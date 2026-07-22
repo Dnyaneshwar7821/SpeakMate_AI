@@ -15,4 +15,25 @@ public class QuoteResponse {
 
 	private String author;
 
+	public String getText() { return text; }
+	public void setText(String text) { this.text = text; }
+
+	public String getAuthor() { return author; }
+	public void setAuthor(String author) { this.author = author; }
+
+	public static QuoteResponseBuilder builder() {
+		return new QuoteResponseBuilder();
+	}
+
+	public static class QuoteResponseBuilder {
+		private String text;
+		private String author;
+
+		public QuoteResponseBuilder text(String text) { this.text = text; return this; }
+		public QuoteResponseBuilder author(String author) { this.author = author; return this; }
+
+		public QuoteResponse build() {
+			return new QuoteResponse(text, author);
+		}
+	}
 }

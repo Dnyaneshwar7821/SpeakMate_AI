@@ -91,4 +91,40 @@ public class Progress {
 
 	public LocalDateTime getUpdatedAt() { return updatedAt; }
 	public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+	public static ProgressBuilder builder() {
+		return new ProgressBuilder();
+	}
+
+	public static class ProgressBuilder {
+		private Long id;
+		private User user;
+		private Integer xp;
+		private Integer level;
+		private Integer currentStreak;
+		private Integer longestStreak;
+		private Integer totalPracticeMinutes;
+		private Integer totalSpeakingSessions;
+		private Integer totalGrammarChecks;
+		private Integer totalVocabularyWords;
+		private LocalDateTime createdAt;
+		private LocalDateTime updatedAt;
+
+		public ProgressBuilder id(Long id) { this.id = id; return this; }
+		public ProgressBuilder user(User user) { this.user = user; return this; }
+		public ProgressBuilder xp(Integer xp) { this.xp = xp; return this; }
+		public ProgressBuilder level(Integer level) { this.level = level; return this; }
+		public ProgressBuilder currentStreak(Integer currentStreak) { this.currentStreak = currentStreak; return this; }
+		public ProgressBuilder longestStreak(Integer longestStreak) { this.longestStreak = longestStreak; return this; }
+		public ProgressBuilder totalPracticeMinutes(Integer totalPracticeMinutes) { this.totalPracticeMinutes = totalPracticeMinutes; return this; }
+		public ProgressBuilder totalSpeakingSessions(Integer totalSpeakingSessions) { this.totalSpeakingSessions = totalSpeakingSessions; return this; }
+		public ProgressBuilder totalGrammarChecks(Integer totalGrammarChecks) { this.totalGrammarChecks = totalGrammarChecks; return this; }
+		public ProgressBuilder totalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; return this; }
+		public ProgressBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+		public ProgressBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+
+		public Progress build() {
+			return new Progress(id, user, xp, level, currentStreak, longestStreak, totalPracticeMinutes, totalSpeakingSessions, totalGrammarChecks, totalVocabularyWords, createdAt, updatedAt);
+		}
+	}
 }

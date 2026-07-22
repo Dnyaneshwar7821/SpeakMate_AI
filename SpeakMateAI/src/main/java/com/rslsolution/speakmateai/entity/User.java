@@ -210,4 +210,84 @@ public class User {
 
 	public String getExpoPushToken() { return expoPushToken; }
 	public void setExpoPushToken(String expoPushToken) { this.expoPushToken = expoPushToken; }
+
+	public static UserBuilder builder() {
+		return new UserBuilder();
+	}
+
+	public static class UserBuilder {
+		private Long id;
+		private String firstName;
+		private String lastName;
+		private String email;
+		private String password;
+		private Role role;
+		private String avatar;
+		private boolean active = true;
+		private LocalDateTime createdAt;
+		private LocalDateTime updatedAt;
+		private boolean welcomeCompleted;
+		private boolean onboardingCompleted;
+		private String authProvider;
+		private String resetPasswordToken;
+		private LocalDateTime resetPasswordTokenExpiry;
+		private String resetOtp;
+		private LocalDateTime resetOtpExpiry;
+		private String nativeLanguage;
+		private String englishLevel;
+		private String learningGoal;
+		private Integer dailyGoalMinutes;
+		private String preferredVoice;
+		private String preferredAccent;
+		private String interests;
+		private String expoPushToken;
+
+		public UserBuilder id(Long id) { this.id = id; return this; }
+		public UserBuilder firstName(String firstName) { this.firstName = firstName; return this; }
+		public UserBuilder lastName(String lastName) { this.lastName = lastName; return this; }
+		public UserBuilder email(String email) { this.email = email; return this; }
+		public UserBuilder password(String password) { this.password = password; return this; }
+		public UserBuilder role(Role role) { this.role = role; return this; }
+		public UserBuilder avatar(String avatar) { this.avatar = avatar; return this; }
+		public UserBuilder active(boolean active) { this.active = active; return this; }
+		public UserBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+		public UserBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+		public UserBuilder welcomeCompleted(boolean welcomeCompleted) { this.welcomeCompleted = welcomeCompleted; return this; }
+		public UserBuilder onboardingCompleted(boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; return this; }
+		public UserBuilder authProvider(String authProvider) { this.authProvider = authProvider; return this; }
+		public UserBuilder nativeLanguage(String nativeLanguage) { this.nativeLanguage = nativeLanguage; return this; }
+		public UserBuilder englishLevel(String englishLevel) { this.englishLevel = englishLevel; return this; }
+		public UserBuilder learningGoal(String learningGoal) { this.learningGoal = learningGoal; return this; }
+		public UserBuilder dailyGoalMinutes(Integer dailyGoalMinutes) { this.dailyGoalMinutes = dailyGoalMinutes; return this; }
+		public UserBuilder preferredVoice(String preferredVoice) { this.preferredVoice = preferredVoice; return this; }
+		public UserBuilder preferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; return this; }
+		public UserBuilder interests(String interests) { this.interests = interests; return this; }
+		public UserBuilder expoPushToken(String expoPushToken) { this.expoPushToken = expoPushToken; return this; }
+
+		public User build() {
+			User user = new User();
+			user.setId(id);
+			user.setFirstName(firstName);
+			user.setLastName(lastName);
+			user.setEmail(email);
+			user.setPassword(password);
+			user.setRole(role);
+			user.setAvatar(avatar);
+			user.setActive(active);
+			user.setCreatedAt(createdAt);
+			user.setUpdatedAt(updatedAt);
+			user.setWelcomeCompleted(welcomeCompleted);
+			user.setOnboardingCompleted(onboardingCompleted);
+			user.setAuthProvider(authProvider);
+			user.setNativeLanguage(nativeLanguage);
+			user.setEnglishLevel(englishLevel);
+			user.setLearningGoal(learningGoal);
+			user.setDailyGoalMinutes(dailyGoalMinutes);
+			user.setPreferredVoice(preferredVoice);
+			user.setPreferredAccent(preferredAccent);
+			user.setInterests(interests);
+			user.setExpoPushToken(expoPushToken);
+			return user;
+		}
+	}
 }

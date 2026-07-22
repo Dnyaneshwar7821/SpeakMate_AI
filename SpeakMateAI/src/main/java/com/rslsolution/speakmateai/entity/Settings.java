@@ -90,4 +90,38 @@ public class Settings {
 
 	public LocalDateTime getUpdatedAt() { return updatedAt; }
 	public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+	public static SettingsBuilder builder() {
+		return new SettingsBuilder();
+	}
+
+	public static class SettingsBuilder {
+		private Long id;
+		private User user;
+		private Boolean darkMode = false;
+		private Boolean notificationsEnabled = true;
+		private String language = "English";
+		private String aiVoice = "Female";
+		private Boolean soundEffects = true;
+		private Boolean autoPlayAudio = true;
+		private Boolean dailyReminder = true;
+		private LocalDateTime createdAt;
+		private LocalDateTime updatedAt;
+
+		public SettingsBuilder id(Long id) { this.id = id; return this; }
+		public SettingsBuilder user(User user) { this.user = user; return this; }
+		public SettingsBuilder darkMode(Boolean darkMode) { this.darkMode = darkMode; return this; }
+		public SettingsBuilder notificationsEnabled(Boolean notificationsEnabled) { this.notificationsEnabled = notificationsEnabled; return this; }
+		public SettingsBuilder language(String language) { this.language = language; return this; }
+		public SettingsBuilder aiVoice(String aiVoice) { this.aiVoice = aiVoice; return this; }
+		public SettingsBuilder soundEffects(Boolean soundEffects) { this.soundEffects = soundEffects; return this; }
+		public SettingsBuilder autoPlayAudio(Boolean autoPlayAudio) { this.autoPlayAudio = autoPlayAudio; return this; }
+		public SettingsBuilder dailyReminder(Boolean dailyReminder) { this.dailyReminder = dailyReminder; return this; }
+		public SettingsBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+		public SettingsBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+
+		public Settings build() {
+			return new Settings(id, user, darkMode, notificationsEnabled, language, aiVoice, soundEffects, autoPlayAudio, dailyReminder, createdAt, updatedAt);
+		}
+	}
 }

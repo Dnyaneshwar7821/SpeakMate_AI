@@ -19,4 +19,26 @@ public class VerifyOtpRequest {
 
 	@NotBlank(message = "OTP is required")
 	private String otp;
+
+	public String getEmail() { return email; }
+	public void setEmail(String email) { this.email = email; }
+
+	public String getOtp() { return otp; }
+	public void setOtp(String otp) { this.otp = otp; }
+
+	public static VerifyOtpRequestBuilder builder() {
+		return new VerifyOtpRequestBuilder();
+	}
+
+	public static class VerifyOtpRequestBuilder {
+		private String email;
+		private String otp;
+
+		public VerifyOtpRequestBuilder email(String email) { this.email = email; return this; }
+		public VerifyOtpRequestBuilder otp(String otp) { this.otp = otp; return this; }
+
+		public VerifyOtpRequest build() {
+			return new VerifyOtpRequest(email, otp);
+		}
+	}
 }
