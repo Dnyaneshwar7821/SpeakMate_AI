@@ -58,7 +58,7 @@ public class User {
 	@Column(nullable = false)
 	private Role role;
 
-	@Column(columnDefinition = "LONGTEXT")
+	@Column(columnDefinition = "TEXT")
 	private String avatar;
 
 	@Builder.Default

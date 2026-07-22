@@ -20,8 +20,12 @@ public class DataSeeder implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) {
-		if (lessonRepository.count() > 0) {
-			return; // Already seeded — do nothing
+		try {
+			if (lessonRepository.count() > 0) {
+				return; // Already seeded — do nothing
+			}
+		} catch (Exception e) {
+			// Ignore if count check fails during initial DDL startup
 		}
 
 		List<Lesson> lessons = new ArrayList<>();

@@ -30,7 +30,7 @@ public class Lesson {
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
-	@Column(columnDefinition = "LONGTEXT")
+	@Column(columnDefinition = "TEXT")
 	private String content;
 
 	// ── New lesson-module fields ──────────────────────────────────────
