@@ -4,7 +4,7 @@ spring.application.name=SpeakMateAI
 # SERVER
 # ===============================
 
-server.port=9091
+server.port=${PORT:9091}
 server.address=0.0.0.0
 
 # ===============================
