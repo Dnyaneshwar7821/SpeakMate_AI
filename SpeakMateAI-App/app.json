@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "SpeakMateAI",
+    "slug": "SpeakMateAI-App",
+    "scheme": "speakmateai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rslsolution.speakmateai"
+    },
+    "android": {
+      "package": "com.rslsolution.speakmateai",
+      "usesCleartextTraffic": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "./plugins/withCleartextTraffic",
+      "expo-audio",
+      "expo-image",
+      "expo-secure-store",
+      "expo-font",
+      "expo-asset",
+      "expo-web-browser",
+      "expo-status-bar",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4F46E5",
+          "defaultChannel": "speakmate-default",
+          "sounds": [],
+          "enableBackgroundRemoteNotifications": false
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "745b51c7-9799-415a-89cd-db8e7f673c1b"
+      }
+    }
+  }
+}

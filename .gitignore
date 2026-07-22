@@ -1,0 +1,56 @@
+# --- Backend (Spring Boot) ---
+SpeakMateAI/target/
+SpeakMateAI/.settings/
+SpeakMateAI/.classpath
+SpeakMateAI/.project
+SpeakMateAI/.factorypath
+SpeakMateAI/*.log
+SpeakMateAI/src/main/resources/application.properties
+
+# --- Frontend (React Native / Expo) ---
+SpeakMateAI-App/node_modules/
+SpeakMateAI-App/.expo/
+SpeakMateAI-App/android/
+SpeakMateAI-App/ios/
+SpeakMateAI-App/web-build/
+SpeakMateAI-App/dist/
+SpeakMateAI-App/*.jks
+SpeakMateAI-App/*.p8
+SpeakMateAI-App/*.p12
+SpeakMateAI-App/*.mobileprovision
+SpeakMateAI-App/npm-debug.log*
+SpeakMateAI-App/yarn-debug.log*
+SpeakMateAI-App/yarn-error.log*
+
+# --- Web Landing/Admin Panel ---
+SpeakMate AI/node_modules/
+SpeakMate AI/dist/
+SpeakMate AI/.env
+
+# --- IDEs and Editor configurations ---
+.metadata/
+*/.metadata/
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+
+# --- Environment & Credentials ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+SpeakMateAI-App/.env
+SpeakMateAI-App/.env.local
+
+# --- Temporary/Output Files ---
+*.txt
+*.docx
+SpeakMate_AI_SRS_v2.docx
+backend_all_code.txt
+frontend_all_code.txt
