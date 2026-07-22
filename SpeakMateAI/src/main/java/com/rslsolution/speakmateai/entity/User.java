@@ -148,4 +148,66 @@ public class User {
 	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
 	private java.util.List<Achievement> achievements;
 
+	public Long getId() { return id; }
+	public void setId(Long id) { this.id = id; }
+
+	public String getFirstName() { return firstName; }
+	public void setFirstName(String firstName) { this.firstName = firstName; }
+
+	public String getLastName() { return lastName; }
+	public void setLastName(String lastName) { this.lastName = lastName; }
+
+	public String getEmail() { return email; }
+	public void setEmail(String email) { this.email = email; }
+
+	public String getPassword() { return password; }
+	public void setPassword(String password) { this.password = password; }
+
+	public Role getRole() { return role; }
+	public void setRole(Role role) { this.role = role; }
+
+	public String getAvatar() { return avatar; }
+	public void setAvatar(String avatar) { this.avatar = avatar; }
+
+	public boolean isActive() { return active; }
+	public void setActive(boolean active) { this.active = active; }
+
+	public LocalDateTime getCreatedAt() { return createdAt; }
+	public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+	public LocalDateTime getUpdatedAt() { return updatedAt; }
+	public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+	public boolean isWelcomeCompleted() { return welcomeCompleted; }
+	public void setWelcomeCompleted(boolean welcomeCompleted) { this.welcomeCompleted = welcomeCompleted; }
+
+	public boolean isOnboardingCompleted() { return onboardingCompleted; }
+	public void setOnboardingCompleted(boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
+
+	public String getAuthProvider() { return authProvider; }
+	public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
+
+	public String getNativeLanguage() { return nativeLanguage; }
+	public void setNativeLanguage(String nativeLanguage) { this.nativeLanguage = nativeLanguage; }
+
+	public String getEnglishLevel() { return englishLevel; }
+	public void setEnglishLevel(String englishLevel) { this.englishLevel = englishLevel; }
+
+	public String getLearningGoal() { return learningGoal; }
+	public void setLearningGoal(String learningGoal) { this.learningGoal = learningGoal; }
+
+	public Integer getDailyGoalMinutes() { return dailyGoalMinutes; }
+	public void setDailyGoalMinutes(Integer dailyGoalMinutes) { this.dailyGoalMinutes = dailyGoalMinutes; }
+
+	public String getPreferredVoice() { return preferredVoice; }
+	public void setPreferredVoice(String preferredVoice) { this.preferredVoice = preferredVoice; }
+
+	public String getPreferredAccent() { return preferredAccent; }
+	public void setPreferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; }
+
+	public String getInterests() { return interests; }
+	public void setInterests(String interests) { this.interests = interests; }
+
+	public String getExpoPushToken() { return expoPushToken; }
+	public void setExpoPushToken(String expoPushToken) { this.expoPushToken = expoPushToken; }
 }

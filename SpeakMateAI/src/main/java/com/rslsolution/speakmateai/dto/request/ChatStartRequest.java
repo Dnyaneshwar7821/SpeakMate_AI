@@ -11,4 +11,7 @@ public class ChatStartRequest {
 	@NotBlank(message = "Mode is required")
 	private String mode;
 
+	public String getMode() { return mode; }
+	public void setMode(String mode) { this.mode = mode; }
+
 }

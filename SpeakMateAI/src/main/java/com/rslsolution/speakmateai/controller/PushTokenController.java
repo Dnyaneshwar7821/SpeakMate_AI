@@ -53,5 +53,8 @@ public class PushTokenController {
     public static class PushTokenRequest {
         @NotBlank(message = "Token is required")
         private String token;
+
+        public String getToken() { return token; }
+        public void setToken(String token) { this.token = token; }
     }
 }

@@ -15,4 +15,7 @@ public class GrammarRequest {
 	@NotBlank(message = "Text is required")
 	private String originalText;
 
+	public String getOriginalText() { return originalText; }
+	public void setOriginalText(String originalText) { this.originalText = originalText; }
+
 }

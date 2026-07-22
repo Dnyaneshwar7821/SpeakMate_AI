@@ -30,4 +30,46 @@ public class ConversationFeedback {
 
 	@Column(columnDefinition = "TEXT")
 	private String summary;
+
+	public Long getId() { return id; }
+	public void setId(Long id) { this.id = id; }
+
+	public SpeakingSession getSession() { return session; }
+	public void setSession(SpeakingSession session) { this.session = session; }
+
+	public String getGrammarCorrections() { return grammarCorrections; }
+	public void setGrammarCorrections(String grammarCorrections) { this.grammarCorrections = grammarCorrections; }
+
+	public String getBetterSentences() { return betterSentences; }
+	public void setBetterSentences(String betterSentences) { this.betterSentences = betterSentences; }
+
+	public String getVocabularySuggestions() { return vocabularySuggestions; }
+	public void setVocabularySuggestions(String vocabularySuggestions) { this.vocabularySuggestions = vocabularySuggestions; }
+
+	public String getSummary() { return summary; }
+	public void setSummary(String summary) { this.summary = summary; }
+
+	public static ConversationFeedbackBuilder builder() {
+		return new ConversationFeedbackBuilder();
+	}
+
+	public static class ConversationFeedbackBuilder {
+		private Long id;
+		private SpeakingSession session;
+		private String grammarCorrections;
+		private String betterSentences;
+		private String vocabularySuggestions;
+		private String summary;
+
+		public ConversationFeedbackBuilder id(Long id) { this.id = id; return this; }
+		public ConversationFeedbackBuilder session(SpeakingSession session) { this.session = session; return this; }
+		public ConversationFeedbackBuilder grammarCorrections(String grammarCorrections) { this.grammarCorrections = grammarCorrections; return this; }
+		public ConversationFeedbackBuilder betterSentences(String betterSentences) { this.betterSentences = betterSentences; return this; }
+		public ConversationFeedbackBuilder vocabularySuggestions(String vocabularySuggestions) { this.vocabularySuggestions = vocabularySuggestions; return this; }
+		public ConversationFeedbackBuilder summary(String summary) { this.summary = summary; return this; }
+
+		public ConversationFeedback build() {
+			return new ConversationFeedback(id, session, grammarCorrections, betterSentences, vocabularySuggestions, summary);
+		}
+	}
 }

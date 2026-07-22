@@ -19,4 +19,16 @@ public class ChatSessionMessageRequest {
 
 	private String level;
 
+	public Long getSessionId() { return sessionId; }
+	public void setSessionId(Long sessionId) { this.sessionId = sessionId; }
+
+	public String getMessage() { return message; }
+	public void setMessage(String message) { this.message = message; }
+
+	public boolean isVoiceEnabled() { return voiceEnabled; }
+	public void setVoiceEnabled(boolean voiceEnabled) { this.voiceEnabled = voiceEnabled; }
+
+	public String getLevel() { return level; }
+	public void setLevel(String level) { this.level = level; }
+
 }

@@ -67,4 +67,101 @@ public class SpeakingSession {
 			scenario = topic;
 		}
 	}
+
+	public Long getId() { return id; }
+	public void setId(Long id) { this.id = id; }
+
+	public User getUser() { return user; }
+	public void setUser(User user) { this.user = user; }
+
+	public String getTopic() { return topic; }
+	public void setTopic(String topic) { this.topic = topic; }
+
+	public String getScenario() { return scenario; }
+	public void setScenario(String scenario) { this.scenario = scenario; }
+
+	public String getTranscript() { return transcript; }
+	public void setTranscript(String transcript) { this.transcript = transcript; }
+
+	public Integer getDuration() { return duration; }
+	public void setDuration(Integer duration) { this.duration = duration; }
+
+	public Integer getXpEarned() { return xpEarned; }
+	public void setXpEarned(Integer xpEarned) { this.xpEarned = xpEarned; }
+
+	public Double getScore() { return score; }
+	public void setScore(Double score) { this.score = score; }
+
+	public Double getPronunciationScore() { return pronunciationScore; }
+	public void setPronunciationScore(Double pronunciationScore) { this.pronunciationScore = pronunciationScore; }
+
+	public Double getFluencyScore() { return fluencyScore; }
+	public void setFluencyScore(Double fluencyScore) { this.fluencyScore = fluencyScore; }
+
+	public Double getGrammarScore() { return grammarScore; }
+	public void setGrammarScore(Double grammarScore) { this.grammarScore = grammarScore; }
+
+	public Double getVocabularyScore() { return vocabularyScore; }
+	public void setVocabularyScore(Double vocabularyScore) { this.vocabularyScore = vocabularyScore; }
+
+	public Double getOverallScore() { return overallScore; }
+	public void setOverallScore(Double overallScore) { this.overallScore = overallScore; }
+
+	public String getFeedback() { return feedback; }
+	public void setFeedback(String feedback) { this.feedback = feedback; }
+
+	public List<ConversationMessage> getMessages() { return messages; }
+	public void setMessages(List<ConversationMessage> messages) { this.messages = messages; }
+
+	public ConversationFeedback getSessionFeedback() { return sessionFeedback; }
+	public void setSessionFeedback(ConversationFeedback sessionFeedback) { this.sessionFeedback = sessionFeedback; }
+
+	public LocalDateTime getCreatedAt() { return createdAt; }
+	public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+	public static SpeakingSessionBuilder builder() {
+		return new SpeakingSessionBuilder();
+	}
+
+	public static class SpeakingSessionBuilder {
+		private Long id;
+		private User user;
+		private String topic;
+		private String scenario;
+		private String transcript;
+		private Integer duration;
+		private Integer xpEarned = 0;
+		private Double score = 0.0;
+		private Double pronunciationScore;
+		private Double fluencyScore;
+		private Double grammarScore;
+		private Double vocabularyScore;
+		private Double overallScore;
+		private String feedback;
+		private List<ConversationMessage> messages = new ArrayList<>();
+		private ConversationFeedback sessionFeedback;
+		private LocalDateTime createdAt;
+
+		public SpeakingSessionBuilder id(Long id) { this.id = id; return this; }
+		public SpeakingSessionBuilder user(User user) { this.user = user; return this; }
+		public SpeakingSessionBuilder topic(String topic) { this.topic = topic; return this; }
+		public SpeakingSessionBuilder scenario(String scenario) { this.scenario = scenario; return this; }
+		public SpeakingSessionBuilder transcript(String transcript) { this.transcript = transcript; return this; }
+		public SpeakingSessionBuilder duration(Integer duration) { this.duration = duration; return this; }
+		public SpeakingSessionBuilder xpEarned(Integer xpEarned) { this.xpEarned = xpEarned; return this; }
+		public SpeakingSessionBuilder score(Double score) { this.score = score; return this; }
+		public SpeakingSessionBuilder pronunciationScore(Double pronunciationScore) { this.pronunciationScore = pronunciationScore; return this; }
+		public SpeakingSessionBuilder fluencyScore(Double fluencyScore) { this.fluencyScore = fluencyScore; return this; }
+		public SpeakingSessionBuilder grammarScore(Double grammarScore) { this.grammarScore = grammarScore; return this; }
+		public SpeakingSessionBuilder vocabularyScore(Double vocabularyScore) { this.vocabularyScore = vocabularyScore; return this; }
+		public SpeakingSessionBuilder overallScore(Double overallScore) { this.overallScore = overallScore; return this; }
+		public SpeakingSessionBuilder feedback(String feedback) { this.feedback = feedback; return this; }
+		public SpeakingSessionBuilder messages(List<ConversationMessage> messages) { this.messages = messages; return this; }
+		public SpeakingSessionBuilder sessionFeedback(ConversationFeedback sessionFeedback) { this.sessionFeedback = sessionFeedback; return this; }
+		public SpeakingSessionBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+
+		public SpeakingSession build() {
+			return new SpeakingSession(id, user, topic, scenario, transcript, duration, xpEarned, score, pronunciationScore, fluencyScore, grammarScore, vocabularyScore, overallScore, feedback, messages, sessionFeedback, createdAt);
+		}
+	}
 }

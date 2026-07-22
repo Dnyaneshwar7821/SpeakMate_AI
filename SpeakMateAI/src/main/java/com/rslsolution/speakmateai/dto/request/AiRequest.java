@@ -15,4 +15,20 @@ public class AiRequest {
 	@NotBlank(message = "Prompt is required")
 	private String prompt;
 
+	public String getPrompt() { return prompt; }
+	public void setPrompt(String prompt) { this.prompt = prompt; }
+
+	public static AiRequestBuilder builder() {
+		return new AiRequestBuilder();
+	}
+
+	public static class AiRequestBuilder {
+		private String prompt;
+
+		public AiRequestBuilder prompt(String prompt) { this.prompt = prompt; return this; }
+
+		public AiRequest build() {
+			return new AiRequest(prompt);
+		}
+	}
 }

@@ -50,4 +50,51 @@ public class ChatSession {
 	public void onUpdate() {
 		updatedAt = LocalDateTime.now();
 	}
+
+	public Long getId() { return id; }
+	public void setId(Long id) { this.id = id; }
+
+	public User getUser() { return user; }
+	public void setUser(User user) { this.user = user; }
+
+	public String getMode() { return mode; }
+	public void setMode(String mode) { this.mode = mode; }
+
+	public String getTitle() { return title; }
+	public void setTitle(String title) { this.title = title; }
+
+	public List<ChatMessage> getMessages() { return messages; }
+	public void setMessages(List<ChatMessage> messages) { this.messages = messages; }
+
+	public LocalDateTime getCreatedAt() { return createdAt; }
+	public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+	public LocalDateTime getUpdatedAt() { return updatedAt; }
+	public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+
+	public static ChatSessionBuilder builder() {
+		return new ChatSessionBuilder();
+	}
+
+	public static class ChatSessionBuilder {
+		private Long id;
+		private User user;
+		private String mode;
+		private String title;
+		private List<ChatMessage> messages = new ArrayList<>();
+		private LocalDateTime createdAt;
+		private LocalDateTime updatedAt;
+
+		public ChatSessionBuilder id(Long id) { this.id = id; return this; }
+		public ChatSessionBuilder user(User user) { this.user = user; return this; }
+		public ChatSessionBuilder mode(String mode) { this.mode = mode; return this; }
+		public ChatSessionBuilder title(String title) { this.title = title; return this; }
+		public ChatSessionBuilder messages(List<ChatMessage> messages) { this.messages = messages; return this; }
+		public ChatSessionBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+		public ChatSessionBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+
+		public ChatSession build() {
+			return new ChatSession(id, user, mode, title, messages, createdAt, updatedAt);
+		}
+	}
 }
