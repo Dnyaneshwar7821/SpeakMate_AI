@@ -8,12 +8,12 @@ server.port=9091
 server.address=0.0.0.0
 
 # ===============================
-# MYSQL CONNECTION
+# POSTGRESQL CONNECTION
 # ===============================
-spring.datasource.url=jdbc:mysql://localhost:3306/speakmateai_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-spring.datasource.username=root
+spring.datasource.url=jdbc:postgresql://<HOST>:<PORT>/<DATABASE_NAME>?sslmode=require
+spring.datasource.username=YOUR_DATABASE_USERNAME
 spring.datasource.password=YOUR_DATABASE_PASSWORD
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.driver-class-name=org.postgresql.Driver
 
 # ===============================
 # JPA / HIBERNATE AUTO TABLE CREATE
@@ -21,7 +21,7 @@ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
-spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 
 jwt.secret=YOUR_JWT_SECRET
 jwt.expiration=86400000
