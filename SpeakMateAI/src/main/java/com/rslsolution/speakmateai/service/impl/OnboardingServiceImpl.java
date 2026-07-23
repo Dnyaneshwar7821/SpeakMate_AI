@@ -38,7 +38,8 @@ public class OnboardingServiceImpl implements OnboardingService {
 		Onboarding onboarding = Onboarding.builder().user(user).englishLevel(request.getEnglishLevel())
 				.learningGoal(request.getLearningGoal()).dailyGoalMinutes(request.getDailyGoalMinutes())
 				.nativeLanguage(request.getNativeLanguage()).preferredLearningTime(request.getPreferredLearningTime())
-				.interests(request.getInterests()).onboardingCompleted(request.getOnboardingCompleted()).build();
+				.interests(request.getInterests()).ageGroup(request.getAgeGroup())
+				.onboardingCompleted(request.getOnboardingCompleted()).build();
 
 		Onboarding savedOnboarding = onboardingRepository.save(onboarding);
 		syncUserOnboarding(user, request);
@@ -66,54 +67,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 							.nativeLanguage("English")
 							.preferredLearningTime("Morning")
 							.interests("General")
-							.onboardingCompleted(false)
-							.build();
-					return onboardingRepository.save(defaultOnboarding);
-				});
-
-		return mapToResponse(onboarding);
-	}
-
-	@Override
-	public OnboardingResponse updateOnboarding(OnboardingRequest request) {
-
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-		User user = userRepository.findByEmail(authentication.getName())
-				.orElseThrow(() -> new UserNotFoundException("User not found"));
-
-		// Create-then-update pattern: never throw 404 for a missing onboarding record.
-		Onboarding onboarding = onboardingRepository.findByUser(user)
-				.orElseGet(() -> {
-					Onboarding defaultOnboarding = Onboarding.builder()
-							.user(user)
-							.englishLevel("Beginner")
-							.learningGoal("Improve English speaking skills")
-							.dailyGoalMinutes(15)
-							.nativeLanguage("English")
-							.preferredLearningTime("Morning")
-	}
-
-	@Override
-	public OnboardingResponse getOnboarding() {
-
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-		User user = userRepository.findByEmail(authentication.getName())
-				.orElseThrow(() -> new UserNotFoundException("User not found"));
-
-		// For a brand-new user who has not yet completed the onboarding flow,
-		// auto-create a default Onboarding record instead of returning 404.
-		Onboarding onboarding = onboardingRepository.findByUser(user)
-				.orElseGet(() -> {
-					Onboarding defaultOnboarding = Onboarding.builder()
-							.user(user)
-							.englishLevel("Beginner")
-							.learningGoal("Improve English speaking skills")
-							.dailyGoalMinutes(15)
-							.nativeLanguage("English")
-							.preferredLearningTime("Morning")
-							.interests("General")
+							.ageGroup("Professional")
 							.onboardingCompleted(false)
 							.build();
 					return onboardingRepository.save(defaultOnboarding);
@@ -141,6 +95,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 							.nativeLanguage("English")
 							.preferredLearningTime("Morning")
 							.interests("General")
+							.ageGroup("Professional")
 							.onboardingCompleted(false)
 							.build();
 					return onboardingRepository.save(defaultOnboarding);
