@@ -15,10 +15,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Screen, StateView } from '../../components/ui';
 import { useTheme } from '../../context/ThemeContext';
-import { settingsService } from '../../services/appServices';
+import { settingsService, onboardingService } from '../../services/appServices';
 import { VoiceService, VOICE_PROFILES } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
+
+const AGE_OPTIONS = [
+  { code: 'Kids', label: 'Kids (6-12) 🎈', desc: 'Simple words, fun stories & high encouragement' },
+  { code: 'Teens', label: 'Teens (13-17) ⚡', desc: 'School life, pop culture & casual chatter' },
+  { code: 'Young Adult', label: 'Young Adults (18-24) 🎓', desc: 'Campus life, travel & interview prep' },
+  { code: 'Professional', label: 'Professionals (25-50) 💼', desc: 'Business English, executive tone & presentations' },
+  { code: 'Senior', label: 'Seniors (50+) ☕', desc: 'Relaxed conversation, culture & life stories' },
+];
 
 const LANGUAGE_OPTIONS = [
   { code: 'English', label: 'English 🇺🇸', native: 'English' },
@@ -45,6 +53,7 @@ const defaults = {
   notificationsEnabled: true,
   language: 'English',
   aiVoice: 'Default',
+  ageGroup: 'Professional',
   soundEffects: true,
   autoPlayAudio: false,
   dailyReminder: true,
@@ -66,15 +75,17 @@ export default function SettingsScreen({ navigation }) {
   // Modals visibility
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [showAgeModal, setShowAgeModal] = useState(false);
 
   const load = async () => {
     try {
-      const [settings, voices, onboardingVoice] = await Promise.all([
+      const [settings, voices, onboardingVoice, onboardingData] = await Promise.all([
         settingsService.get(),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
+        onboardingService.get().catch(() => null),
       ]);
-      setForm({ ...defaults, ...settings });
+      setForm({ ...defaults, ...settings, ageGroup: onboardingData?.ageGroup || 'Professional' });
       setAvailableVoices(voices);
       if (onboardingVoice) {
         setOnboardingVoiceStyle(onboardingVoice);
@@ -102,7 +113,10 @@ export default function SettingsScreen({ navigation }) {
     setSaving(true);
     try {
       // updateSettings on backend auto-creates settings if not found
-      await settingsService.update(form);
+      await Promise.all([
+        settingsService.update(form),
+        onboardingService.update({ ageGroup: form.ageGroup }).catch(() => null),
+      ]);
       // Apply dark mode immediately after saving
       await setDarkMode(form.darkMode);
       Alert.alert('Saved ✓', 'Your preferences have been updated.');
@@ -205,6 +219,27 @@ export default function SettingsScreen({ navigation }) {
                   {OnboardingVoiceService.isSystemDefault(form.aiVoice)
                     ? `System Default (${onboardingVoiceStyle})`
                     : (VOICE_PROFILES.find((o) => o.code === form.aiVoice)?.label || form.aiVoice)}
+                </Text>
+            <View style={[styles.divider, { backgroundColor: dividerColor }]} />
+
+            {/* Age Group Selector */}
+            <TouchableOpacity 
+              style={styles.pickerRow} 
+              activeOpacity={0.7}
+              onPress={() => setShowAgeModal(true)}
+            >
+              <View style={styles.pickerRowLeft}>
+                <View style={[styles.iconBox, { backgroundColor: isDark ? '#3B2E1E' : '#FEF3C7' }]}>
+                  <Ionicons name="people" size={18} color="#D97706" />
+                </View>
+                <View style={{ flex: 1, paddingRight: 8 }}>
+                  <Text style={[styles.rowTitle, { color: labelColor }]}>Age Group</Text>
+                  <Text style={[styles.rowDesc, { color: sublabelColor }]}>Personalizes conversation topics & level</Text>
+                </View>
+              </View>
+              <View style={styles.pickerRowRight}>
+                <Text style={styles.pickerValueText} numberOfLines={1} ellipsizeMode="tail">
+                  {AGE_OPTIONS.find((a) => a.code === form.ageGroup)?.label || form.ageGroup || 'Professional'}
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
               </View>
@@ -472,6 +507,58 @@ export default function SettingsScreen({ navigation }) {
                       >
                         {profile.label}
                       </Text>
+                      {isSelected && (
+                        <Ionicons name="checkmark" size={20} color={COLORS.primary} />
+                      )}
+                    </TouchableOpacity>
+                  );
+        {/* AGE GROUP SELECTION MODAL */}
+        <Modal
+          visible={showAgeModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowAgeModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: modalBg }]}>
+              <View style={[styles.modalHeader, { borderBottomColor: dividerColor }]}>
+                <Text style={[styles.modalTitle, { color: labelColor }]}>Select Your Age Group</Text>
+                <TouchableOpacity onPress={() => setShowAgeModal(false)}>
+                  <Ionicons name="close" size={24} color={sublabelColor} />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScrollView}>
+                {AGE_OPTIONS.map((opt) => {
+                  const isSelected = form.ageGroup === opt.code;
+                  return (
+                    <TouchableOpacity
+                      key={opt.code}
+                      style={[
+                        styles.modalOptionRow,
+                        isSelected && { backgroundColor: optionActiveBg },
+                        { paddingVertical: 12 }
+                      ]}
+                      onPress={() => {
+                        update('ageGroup', opt.code);
+                        setShowAgeModal(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flex: 1, paddingRight: 8 }}>
+                        <Text
+                          style={[
+                            styles.modalOptionText,
+                            { color: isDark ? '#E2E8F0' : '#475569', fontWeight: '600' },
+                            isSelected && { color: COLORS.primary }
+                          ]}
+                        >
+                          {opt.label}
+                        </Text>
+                        <Text style={{ fontSize: 12, color: sublabelColor, marginTop: 2 }}>
+                          {opt.desc}
+                        </Text>
+                      </View>
                       {isSelected && (
                         <Ionicons name="checkmark" size={20} color={COLORS.primary} />
                       )}

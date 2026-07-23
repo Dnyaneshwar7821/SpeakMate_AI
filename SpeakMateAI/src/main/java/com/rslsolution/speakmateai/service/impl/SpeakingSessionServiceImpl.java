@@ -318,11 +318,27 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 					"Instructions: Use sophisticated, professional, and diverse vocabulary (C1-C2 levels). Use complex and varied sentence structures, advanced idioms, and academic or business terms. Challenge the learner with nuanced phrasing and detailed stylistic suggestions.\n";
 		}
 
+		User user = session.getUser();
+		String ageGroup = user != null ? user.getAgeGroup() : null;
+		String ageInstruction = "";
+		if ("Kids".equalsIgnoreCase(ageGroup)) {
+			ageInstruction = "User Age Group: Kids (6-12).\nInstructions: Be super friendly, upbeat, and encouraging. Talk about animals, stories, games, and school. Use simple words and very short sentences.\n";
+		} else if ("Teens".equalsIgnoreCase(ageGroup)) {
+			ageInstruction = "User Age Group: Teens (13-17).\nInstructions: Be a supportive peer-like tutor. Use modern, relatable English, high-school context, gaming/hobbies topics, and everyday slang.\n";
+		} else if ("Young Adult".equalsIgnoreCase(ageGroup) || "Young Adults".equalsIgnoreCase(ageGroup)) {
+			ageInstruction = "User Age Group: Young Adults (18-24).\nInstructions: Focus on campus life, travel, entry job prep, social fluency, and conversational confidence.\n";
+		} else if ("Professional".equalsIgnoreCase(ageGroup) || "Professionals".equalsIgnoreCase(ageGroup)) {
+			ageInstruction = "User Age Group: Professionals (25-50).\nInstructions: Focus on Business English, corporate meeting scenarios, presentations, formal tone, and professional vocabulary.\n";
+		} else if ("Senior".equalsIgnoreCase(ageGroup) || "Seniors".equalsIgnoreCase(ageGroup)) {
+			ageInstruction = "User Age Group: Seniors (50+).\nInstructions: Be warm, patient, and respectful. Discuss culture, books, travel, life stories, and maintain a comfortable pacing.\n";
+		}
+
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
 				"You are a friendly, encouraging English tutor roleplaying with the student in the scenario: '%s'.\n" +
 				"You must act as the role required (e.g. waiter in a restaurant, interviewer in a job interview) and keep the conversation natural and flowing.\n" +
 				"Evaluate the user's LATEST message for grammar and vocabulary improvements.\n" +
+				"%s\n" +
 				"%s\n" +
 				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks. Do not include any text, notes, or explanations outside the JSON object.\n" +
 				"The JSON must have these exact fields and structure:\n" +
@@ -336,7 +352,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				"}\n\n" +
 				"Important: Escape any double quotes inside string values as \\\" to ensure the JSON is valid.",
 				session.getScenario(),
-				levelInstruction
+				levelInstruction,
+				ageInstruction
 		);
 		groqMessages.add(new GroqRequest.Message("system", systemPrompt));
 

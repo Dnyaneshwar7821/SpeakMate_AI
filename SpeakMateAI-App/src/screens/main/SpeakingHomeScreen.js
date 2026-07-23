@@ -20,23 +20,73 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
-import { speakingService } from '../../services/appServices';
+import { speakingService, onboardingService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
 
-// ─── Scenarios Data ──────────────────────────────────────────────────────────
+// ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 
-const SCENARIOS = [
-  { id: '1', title: 'Daily Conversation', category: 'General', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'chatbubbles-outline', desc: 'Chat about your day, hobbies, and general interests.' },
-  { id: '2', title: 'Ordering in Restaurant', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'restaurant-outline', desc: 'Order food, ask about the menu, and pay the bill.' },
-  { id: '3', title: 'Hotel Check-in', category: 'Travel', difficulty: 'Beginner', duration: 5, xp: 20, icon: 'bed-outline', desc: 'Check in, request room services, and ask for local recommendations.' },
-  { id: '4', title: 'Airport Customs', category: 'Travel', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'airplane-outline', desc: 'Declare items, answer security questions, and handle arrivals.' },
-  { id: '5', title: 'Shopping Helpers', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'cart-outline', desc: 'Ask for sizes, negotiate prices, and make payments.' },
-  { id: '6', title: 'Office Small Talk', category: 'Work', difficulty: 'Intermediate', duration: 5, xp: 20, icon: 'briefcase-outline', desc: 'Engage with colleagues, discuss weekends, and plan lunches.' },
-  { id: '7', title: 'Business Meeting', category: 'Work', difficulty: 'Advanced', duration: 8, xp: 30, icon: 'people-outline', desc: 'Present updates, pitch ideas, and negotiate corporate terms.' },
-  { id: '8', title: 'Job Interview Practice', category: 'Career', difficulty: 'Advanced', duration: 10, xp: 40, icon: 'document-text-outline', desc: 'Practice typical HR questions and explain your career goals.' },
-  { id: '9', title: 'College Interview Prep', category: 'Career', difficulty: 'Intermediate', duration: 8, xp: 30, icon: 'school-outline', desc: 'Introduce yourself to admission officers and discuss your major.' },
-  { id: '10', title: 'Presentation Skills', category: 'Work', difficulty: 'Advanced', duration: 7, xp: 30, icon: 'easel-outline', desc: 'Practice starting, structuring, and concluding a keynote presentation.' },
-];
+const AGE_SCENARIOS = {
+  Kids: [
+    { id: 'k1', title: 'Show & Tell', category: 'General', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'color-palette-outline', desc: 'Share your favorite toy, book, or pet with your AI friend.' },
+    { id: 'k2', title: 'At the Zoo', category: 'Daily Life', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'paw-outline', desc: 'Talk to the zoo guide about your favorite animals.' },
+    { id: 'k3', title: 'Ordering Ice Cream', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'ice-cream-outline', desc: 'Choose your favorite flavors and toppings at the ice cream shop.' },
+    { id: 'k4', title: 'My Favorite Superhero', category: 'General', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'flash-outline', desc: 'Describe a superhero and their special powers!' },
+    { id: 'k5', title: 'School Lunch Time', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'restaurant-outline', desc: 'Chat with classmates about your lunch and playground games.' },
+    { id: 'k6', title: 'Space Adventure', category: 'Travel', difficulty: 'Intermediate', duration: 6, xp: 20, icon: 'planet-outline', desc: 'Explore new planets and talk to an alien space buddy.' },
+    { id: 'k7', title: 'Playing at the Park', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'football-outline', desc: 'Invite a friend to play on the swings and slides.' },
+    { id: 'k8', title: 'Birthday Party Fun', category: 'General', difficulty: 'Beginner', duration: 5, xp: 20, icon: 'gift-outline', desc: 'Wish a happy birthday, open gifts, and talk about party games.' },
+    { id: 'k9', title: 'Visiting the Doctor', category: 'General', difficulty: 'Intermediate', duration: 5, xp: 20, icon: 'medkit-outline', desc: 'Explain how you feel to a friendly nurse or doctor.' },
+    { id: 'k10', title: 'Bedtime Story Time', category: 'General', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'moon-outline', desc: 'Co-create a fun bedtime fairytale with your AI coach.' },
+  ],
+  Teens: [
+    { id: 't1', title: 'First Day at High School', category: 'General', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'school-outline', desc: 'Introduce yourself and make new friends at school.' },
+    { id: 't2', title: 'Ordering Fast Food', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'fast-food-outline', desc: 'Order burgers, fries, and drinks with your friends.' },
+    { id: 't3', title: 'Gaming & Hobbies', category: 'General', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'game-controller-outline', desc: 'Discuss your favorite video games, sports, and music bands.' },
+    { id: 't4', title: 'Planning a Weekend Outing', category: 'Daily Life', difficulty: 'Intermediate', duration: 6, xp: 20, icon: 'ticket-outline', desc: 'Group chat to pick a movie or visit an amusement park.' },
+    { id: 't5', title: 'Asking for Homework Help', category: 'General', difficulty: 'Intermediate', duration: 5, xp: 20, icon: 'book-outline', desc: 'Chat with a classmate or tutor about a tricky science assignment.' },
+    { id: 't6', title: 'Shopping for Clothes', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'shirt-outline', desc: 'Try on cool styles, check shoe sizes, and ask for discounts.' },
+    { id: 't7', title: 'Preparing for School Exams', category: 'Career', difficulty: 'Intermediate', duration: 6, xp: 20, icon: 'journal-outline', desc: 'Study session prep and sharing study tips with friends.' },
+    { id: 't8', title: 'Joining a High School Club', category: 'General', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'people-outline', desc: 'Interview for the robotics, drama, or sports club.' },
+    { id: 't9', title: 'Talking About Future Dreams', category: 'Career', difficulty: 'Advanced', duration: 7, xp: 30, icon: 'trophy-outline', desc: 'Discuss dream colleges, tech careers, and personal goals.' },
+    { id: 't10', title: 'Handling Peer Situations', category: 'General', difficulty: 'Advanced', duration: 7, xp: 30, icon: 'chatbox-ellipses-outline', desc: 'Resolve a misunderstanding with a friend politely.' },
+  ],
+  'Young Adult': [
+    { id: 'y1', title: 'Daily Conversation', category: 'General', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'chatbubbles-outline', desc: 'Chat about campus life, daily habits, and weekend plans.' },
+    { id: 'y2', title: 'Campus Coffee Shop', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'cafe-outline', desc: 'Order artisan coffee, study snacks, and chat with baristas.' },
+    { id: 'y3', title: 'College Admission Interview', category: 'Career', difficulty: 'Intermediate', duration: 8, xp: 30, icon: 'school-outline', desc: 'Answer admission questions and explain your choice of major.' },
+    { id: 'y4', title: 'Hostel & Roommate Chat', category: 'Daily Life', difficulty: 'Intermediate', duration: 5, xp: 20, icon: 'home-outline', desc: 'Discuss sharing house chores, schedules, and groceries.' },
+    { id: 'y5', title: 'Backpacking & Travel', category: 'Travel', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'airplane-outline', desc: 'Ask for local directions, book hostel beds, and meet travelers.' },
+    { id: 'y6', title: 'Part-time Job Interview', category: 'Career', difficulty: 'Intermediate', duration: 7, xp: 25, icon: 'briefcase-outline', desc: 'Practice answering basic interview and customer service questions.' },
+    { id: 'y7', title: 'Attending a Tech Fest', category: 'Career', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'hardware-chip-outline', desc: 'Network with peers and pitch ideas at a campus hackathon.' },
+    { id: 'y8', title: 'Renting Your First Apartment', category: 'Daily Life', difficulty: 'Advanced', duration: 7, xp: 30, icon: 'key-outline', desc: 'Talk to a landlord about monthly rent, leases, and utilities.' },
+    { id: 'y9', title: 'Group Project Discussion', category: 'General', difficulty: 'Advanced', duration: 8, xp: 35, icon: 'desktop-outline', desc: 'Divide presentation roles and set project deadlines.' },
+    { id: 'y10', title: 'Public Speaking & Debate', category: 'Work', difficulty: 'Advanced', duration: 8, xp: 35, icon: 'mic-outline', desc: 'Pitch an argument clearly in a campus debate or presentation.' },
+  ],
+  Professional: [
+    { id: '1', title: 'Daily Conversation', category: 'General', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'chatbubbles-outline', desc: 'Chat about your day, hobbies, and general interests.' },
+    { id: '2', title: 'Ordering in Restaurant', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'restaurant-outline', desc: 'Order food, ask about the menu, and pay the bill.' },
+    { id: '3', title: 'Hotel Check-in', category: 'Travel', difficulty: 'Beginner', duration: 5, xp: 20, icon: 'bed-outline', desc: 'Check in, request room services, and ask for local recommendations.' },
+    { id: '4', title: 'Airport Customs', category: 'Travel', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'airplane-outline', desc: 'Declare items, answer security questions, and handle arrivals.' },
+    { id: '5', title: 'Shopping Helpers', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'cart-outline', desc: 'Ask for sizes, negotiate prices, and make payments.' },
+    { id: '6', title: 'Office Small Talk', category: 'Work', difficulty: 'Intermediate', duration: 5, xp: 20, icon: 'briefcase-outline', desc: 'Engage with colleagues, discuss weekends, and plan lunches.' },
+    { id: '7', title: 'Business Meeting', category: 'Work', difficulty: 'Advanced', duration: 8, xp: 30, icon: 'people-outline', desc: 'Present updates, pitch ideas, and negotiate corporate terms.' },
+    { id: '8', title: 'Job Interview Practice', category: 'Career', difficulty: 'Advanced', duration: 10, xp: 40, icon: 'document-text-outline', desc: 'Practice typical HR questions and explain your career goals.' },
+    { id: '9', title: 'Salary & Contract Negotiation', category: 'Career', difficulty: 'Advanced', duration: 8, xp: 35, icon: 'cash-outline', desc: 'Negotiate compensation, benefits, and start date.' },
+    { id: '10', title: 'Presentation Skills', category: 'Work', difficulty: 'Advanced', duration: 7, xp: 30, icon: 'easel-outline', desc: 'Practice starting, structuring, and concluding a keynote presentation.' },
+  ],
+  Senior: [
+    { id: 's1', title: 'Relaxed Daily Conversation', category: 'General', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'chatbubbles-outline', desc: 'Chat comfortably about morning routines, weather, and life.' },
+    { id: 's2', title: 'Tea Time & Gardening', category: 'General', difficulty: 'Beginner', duration: 5, xp: 15, icon: 'leaf-outline', desc: 'Discuss plants, cooking recipes, and home hobbies.' },
+    { id: 's3', title: 'Visiting the Pharmacy', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'medical-outline', desc: 'Ask a pharmacist about prescription directions and advice.' },
+    { id: 's4', title: 'Neighborhood Cafe', category: 'Daily Life', difficulty: 'Beginner', duration: 4, xp: 15, icon: 'cafe-outline', desc: 'Order breakfast and chat pleasantly with local staff.' },
+    { id: 's5', title: 'Sharing Life Stories', category: 'General', difficulty: 'Intermediate', duration: 7, xp: 25, icon: 'book-outline', desc: 'Tell stories about childhood, family, and past trips.' },
+    { id: 's6', title: 'Guided Museum Tour', category: 'Travel', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'compass-outline', desc: 'Ask a tour guide questions about art, history, and culture.' },
+    { id: 's7', title: 'Book & Movie Discussion', category: 'General', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'film-outline', desc: 'Share thoughts on a favorite novel, movie, or biography.' },
+    { id: 's8', title: 'Booking Holiday Travel', category: 'Travel', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'train-outline', desc: 'Reserve train or plane tickets and ask about senior assistance.' },
+    { id: 's9', title: 'Calling Customer Support', category: 'Daily Life', difficulty: 'Intermediate', duration: 5, xp: 20, icon: 'call-outline', desc: 'Get assistance with home internet, TV, or phone service.' },
+    { id: 's10', title: 'Family & Grandchildren Chat', category: 'General', difficulty: 'Advanced', duration: 6, xp: 25, icon: 'heart-outline', desc: 'Practice modern terms and catch up with family news.' },
+  ],
+};
 
 const CATEGORIES = ['All', 'General', 'Daily Life', 'Travel', 'Work', 'Career'];
 
@@ -53,6 +103,7 @@ export default function SpeakingHomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [userAgeGroup, setUserAgeGroup] = useState('Professional');
 
   // Stats calculation
   const totalMinutes = history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60;
@@ -63,10 +114,16 @@ export default function SpeakingHomeScreen({ navigation }) {
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const data = await speakingService.history();
-      setHistory(data || []);
+      const [historyData, onboardingData] = await Promise.all([
+        speakingService.history().catch(() => []),
+        onboardingService.get().catch(() => null),
+      ]);
+      setHistory(historyData || []);
+      if (onboardingData?.ageGroup) {
+        setUserAgeGroup(onboardingData.ageGroup);
+      }
     } catch (e) {
-      console.warn('Failed to load history', e);
+      console.warn('Failed to load speaking dashboard data', e);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -98,9 +155,8 @@ export default function SpeakingHomeScreen({ navigation }) {
         xpReward: scenario.xp,
       });
     } catch (error) {
-      Alert.alert('Error', 'Could not start speaking session.');
-    } finally {
       setLoading(false);
+      Alert.alert('Error', 'Could not start speaking session. Please try again.');
     }
   };
 

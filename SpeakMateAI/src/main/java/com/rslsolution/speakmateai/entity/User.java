@@ -109,6 +109,8 @@ public class User {
 
 	private String preferredAccent;
 
+	private String ageGroup;
+
 	private String interests;
 
 	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)

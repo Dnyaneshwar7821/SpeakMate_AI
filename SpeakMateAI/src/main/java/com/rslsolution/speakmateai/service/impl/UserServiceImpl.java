@@ -434,7 +434,7 @@ public class UserServiceImpl implements UserService {
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
 				.englishLevel(user.getEnglishLevel()).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
-				.preferredAccent(user.getPreferredAccent()).interests(user.getInterests()).build();
+				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup()).interests(user.getInterests()).build();
 	}
 
 	private void validatePasswordStrength(String password) {

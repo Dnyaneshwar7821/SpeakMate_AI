@@ -105,12 +105,12 @@ const DAILY_GOALS = [
   { key: '60 min', label: 'Insane', value: 60 },
 ];
 
-const ACCENTS = [
-  { key: 'American', label: 'American English', flag: '🇺🇸', desc: 'Standard US accent' },
-  { key: 'British', label: 'British English', flag: '🇬🇧', desc: 'RP / BBC English' },
-  { key: 'Australian', label: 'Australian English', flag: '🇦🇺', desc: 'Australian accent' },
-  { key: 'Indian', label: 'Indian English', flag: '🇮🇳', desc: 'South Asian English' },
-  { key: 'Canadian', label: 'Canadian English', flag: '🇨🇦', desc: 'Canadian accent' },
+const AGE_GROUPS = [
+  { key: 'Kids', label: 'Kids (6-12)', icon: '🎈', desc: 'Fun stories, simple words & games' },
+  { key: 'Teens', label: 'Teens (13-17)', icon: '⚡', desc: 'School life, pop culture, gaming & casual chatter' },
+  { key: 'Young Adult', label: 'Young Adults (18-24)', icon: '🎓', desc: 'Campus life, travel, socializing & interview prep' },
+  { key: 'Professional', label: 'Professionals (25-50)', icon: '💼', desc: 'Business English, executive tone & presentations' },
+  { key: 'Senior', label: 'Seniors (50+)', icon: '☕', desc: 'Relaxed conversations, culture & life stories' },
 ];
 
 const REMINDER_TIMES = [
@@ -209,7 +209,7 @@ export default function OnboardingScreen({ navigation }) {
   // --- User Selections ---
   const [language, setLanguage] = useState('English');
   const [aiVoice, setAiVoice] = useState('Friendly');
-  const [preferredAccent, setPreferredAccent] = useState('American');
+  const [ageGroup, setAgeGroup] = useState('Professional');
   const [reminderTime, setReminderTime] = useState('Evening');
   const [whyLearning, setWhyLearning] = useState([]);
   const [level, setLevel] = useState('Intermediate');
@@ -468,7 +468,7 @@ export default function OnboardingScreen({ navigation }) {
         interests: interests.join(', '),
         onboardingCompleted: true,
         preferredVoice: aiVoice,
-        preferredAccent,
+        ageGroup: ageGroup,
         studyReminder: reminderTime !== 'None',
       }).catch(err => console.warn('Onboarding sync skipped/failed:', err));
 
@@ -827,29 +827,29 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
-            {/* Step 9: Preferred Accent */}
+            {/* Step 9: Age Group Selection */}
             {step === 9 && (
               <View style={styles.stepContent}>
-                <Text style={styles.title}>Preferred Accent</Text>
-                <Text style={styles.subtitle}>Choose the English accent you want to practice and hear from your AI coach.</Text>
+                <Text style={styles.title}>Select Your Age Group</Text>
+                <Text style={styles.subtitle}>Choose your age bracket so we can personalize AI conversations, topics, and vocabulary level.</Text>
                 <View style={styles.cardList}>
-                  {ACCENTS.map((accent) => (
+                  {AGE_GROUPS.map((item) => (
                     <TouchableOpacity
-                      key={accent.key}
-                      onPress={() => setPreferredAccent(accent.key)}
+                      key={item.key}
+                      onPress={() => setAgeGroup(item.key)}
                       style={[
                         styles.selectCardLarge,
-                        preferredAccent === accent.key && styles.selectCardLargeActive,
+                        ageGroup === item.key && styles.selectCardLargeActive,
                       ]}
                     >
                       <View style={styles.levelLeft}>
-                        <Text style={styles.accentFlag}>{accent.flag}</Text>
+                        <Text style={styles.accentFlag}>{item.icon}</Text>
                         <View style={styles.levelInfo}>
-                          <Text style={styles.selectCardLabel}>{accent.label}</Text>
-                          <Text style={styles.levelDesc}>{accent.desc}</Text>
+                          <Text style={styles.selectCardLabel}>{item.label}</Text>
+                          <Text style={styles.levelDesc}>{item.desc}</Text>
                         </View>
                       </View>
-                      {preferredAccent === accent.key && (
+                      {ageGroup === item.key && (
                         <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
                       )}
                     </TouchableOpacity>
@@ -999,8 +999,8 @@ export default function OnboardingScreen({ navigation }) {
                     <Text style={styles.summaryValue}>{aiVoice}</Text>
                   </View>
                   <View style={styles.summaryItem}>
-                    <Text style={styles.summaryLabel}>🗣️ Accent:</Text>
-                    <Text style={styles.summaryValue}>{preferredAccent}</Text>
+                    <Text style={styles.summaryLabel}>🎈 Age Group:</Text>
+                    <Text style={styles.summaryValue}>{ageGroup}</Text>
                   </View>
                   <View style={styles.summaryItem}>
                     <Text style={styles.summaryLabel}>📈 Difficulty:</Text>

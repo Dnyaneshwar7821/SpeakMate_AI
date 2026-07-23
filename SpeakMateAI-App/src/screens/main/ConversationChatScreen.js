@@ -111,7 +111,17 @@ export default function ConversationChatScreen({ navigation, route }) {
   const [selectedMessage, setSelectedMessage] = useState(null);
 
   const flatListRef = useRef(null);
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const audioRecorder = useAudioRecorder({
+    ...RecordingPresets.HIGH_QUALITY,
+    isMeteringEnabled: true,
+  });
+
+  // VAD / Silence Auto-Stop refs
+  const vadIntervalRef = useRef(null);
+  const speechDetectedRef = useRef(false);
+  const silenceTimerRef = useRef(0);
+  const initialSilenceTimerRef = useRef(0);
+  const stoppingRef = useRef(false);
 
   // ─── Fetch Voice Preference ───
   useEffect(() => {
@@ -286,36 +296,90 @@ export default function ConversationChatScreen({ navigation, route }) {
     }
   };
 
-  const handleToggleRecording = async () => {
-    if (recording) {
-      setRecording(false);
-      setStatusText('Thinking');
-      setLoading(true);
-      try {
+  const stopRecordingAndSend = async () => {
+    if (stoppingRef.current) return;
+    stoppingRef.current = true;
+    if (vadIntervalRef.current) {
+      clearInterval(vadIntervalRef.current);
+      vadIntervalRef.current = null;
+    }
+
+    setRecording(false);
+    setStatusText('Thinking');
+    setLoading(true);
+    try {
+      if (audioRecorder.isRecording) {
         await audioRecorder.stop();
-        const uri = audioRecorder.uri;
-        if (!uri) throw new Error('Recording URI not found');
-
-        const res = await speechService.speechToText({
-          uri,
-          name: 'chat_recording.m4a',
-          type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mpeg',
-        });
-
-        if (res.transcript && res.transcript.trim()) {
-          // Pre-fill input text so user can edit it before sending
-          setInputText(res.transcript.trim());
-          setStatusText('Waiting for Response');
-        } else {
-          Alert.alert('Silence Detected', 'Could not hear any speech. Please try speaking again.');
-          setStatusText('Waiting for Response');
-        }
-      } catch (err) {
-        Alert.alert('Transcription Failed', 'Make sure you have an active internet connection.');
-        setStatusText('Waiting for Response');
-      } finally {
-        setLoading(false);
       }
+      const uri = audioRecorder.uri;
+      if (!uri) throw new Error('Recording URI not found');
+
+      const res = await speechService.speechToText({
+        uri,
+        name: 'chat_recording.m4a',
+        type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mpeg',
+      });
+
+      if (res.transcript && res.transcript.trim()) {
+        setInputText(res.transcript.trim());
+        setStatusText('Waiting for Response');
+      } else {
+        Alert.alert('Silence Detected', 'Could not hear any speech. Please try speaking again.');
+        setStatusText('Waiting for Response');
+      }
+    } catch (err) {
+      Alert.alert('Transcription Failed', 'Make sure you have an active internet connection.');
+      setStatusText('Waiting for Response');
+    } finally {
+      setLoading(false);
+      stoppingRef.current = false;
+    }
+  };
+
+  const startVADLoop = () => {
+    speechDetectedRef.current = false;
+    silenceTimerRef.current = 0;
+    initialSilenceTimerRef.current = 0;
+    stoppingRef.current = false;
+
+    if (vadIntervalRef.current) clearInterval(vadIntervalRef.current);
+
+    vadIntervalRef.current = setInterval(async () => {
+      if (!audioRecorder.isRecording || stoppingRef.current) {
+        if (vadIntervalRef.current) {
+          clearInterval(vadIntervalRef.current);
+          vadIntervalRef.current = null;
+        }
+        return;
+      }
+
+      try {
+        const status = await audioRecorder.getStatusAsync?.().catch(() => null);
+        const metering = status?.metering ?? audioRecorder.metering ?? -100;
+
+        if (metering > -40) {
+          speechDetectedRef.current = true;
+          silenceTimerRef.current = 0;
+        } else if (speechDetectedRef.current) {
+          silenceTimerRef.current += 300;
+          if (silenceTimerRef.current >= 1500) { // 1.5s of silence after speech -> AUTO STOP
+            stopRecordingAndSend();
+          }
+        } else {
+          initialSilenceTimerRef.current += 300;
+          if (initialSilenceTimerRef.current >= 6000) { // 6s initial silence -> AUTO STOP
+            stopRecordingAndSend();
+          }
+        }
+      } catch (e) {
+        // Fallback polling
+      }
+    }, 300);
+  };
+
+  const handleToggleRecording = async () => {
+    if (audioRecorder.isRecording || recording) {
+      stopRecordingAndSend();
     } else {
       try {
         VoiceService.stop();
@@ -328,6 +392,7 @@ export default function ConversationChatScreen({ navigation, route }) {
         audioRecorder.record();
         setRecording(true);
         setStatusText('Listening');
+        startVADLoop();
       } catch (e) {
         Alert.alert('Microphone initialization failed.');
       }

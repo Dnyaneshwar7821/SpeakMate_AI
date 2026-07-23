@@ -92,6 +92,54 @@ public class OnboardingServiceImpl implements OnboardingService {
 							.dailyGoalMinutes(15)
 							.nativeLanguage("English")
 							.preferredLearningTime("Morning")
+	}
+
+	@Override
+	public OnboardingResponse getOnboarding() {
+
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		User user = userRepository.findByEmail(authentication.getName())
+				.orElseThrow(() -> new UserNotFoundException("User not found"));
+
+		// For a brand-new user who has not yet completed the onboarding flow,
+		// auto-create a default Onboarding record instead of returning 404.
+		Onboarding onboarding = onboardingRepository.findByUser(user)
+				.orElseGet(() -> {
+					Onboarding defaultOnboarding = Onboarding.builder()
+							.user(user)
+							.englishLevel("Beginner")
+							.learningGoal("Improve English speaking skills")
+							.dailyGoalMinutes(15)
+							.nativeLanguage("English")
+							.preferredLearningTime("Morning")
+							.interests("General")
+							.onboardingCompleted(false)
+							.build();
+					return onboardingRepository.save(defaultOnboarding);
+				});
+
+		return mapToResponse(onboarding);
+	}
+
+	@Override
+	public OnboardingResponse updateOnboarding(OnboardingRequest request) {
+
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		User user = userRepository.findByEmail(authentication.getName())
+				.orElseThrow(() -> new UserNotFoundException("User not found"));
+
+		// Create-then-update pattern: never throw 404 for a missing onboarding record.
+		Onboarding onboarding = onboardingRepository.findByUser(user)
+				.orElseGet(() -> {
+					Onboarding defaultOnboarding = Onboarding.builder()
+							.user(user)
+							.englishLevel("Beginner")
+							.learningGoal("Improve English speaking skills")
+							.dailyGoalMinutes(15)
+							.nativeLanguage("English")
+							.preferredLearningTime("Morning")
 							.interests("General")
 							.onboardingCompleted(false)
 							.build();
@@ -104,6 +152,9 @@ public class OnboardingServiceImpl implements OnboardingService {
 		onboarding.setNativeLanguage(request.getNativeLanguage());
 		onboarding.setPreferredLearningTime(request.getPreferredLearningTime());
 		onboarding.setInterests(request.getInterests());
+		if (request.getAgeGroup() != null) {
+			onboarding.setAgeGroup(request.getAgeGroup());
+		}
 		onboarding.setOnboardingCompleted(request.getOnboardingCompleted());
 
 		Onboarding updatedOnboarding = onboardingRepository.save(onboarding);
@@ -132,6 +183,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 				.learningGoal(onboarding.getLearningGoal()).dailyGoalMinutes(onboarding.getDailyGoalMinutes())
 				.nativeLanguage(onboarding.getNativeLanguage())
 				.preferredLearningTime(onboarding.getPreferredLearningTime()).interests(onboarding.getInterests())
+				.ageGroup(onboarding.getAgeGroup())
 				.onboardingCompleted(onboarding.getOnboardingCompleted()).createdAt(onboarding.getCreatedAt())
 				.updatedAt(onboarding.getUpdatedAt()).build();
 	}
@@ -144,6 +196,9 @@ public class OnboardingServiceImpl implements OnboardingService {
 		user.setDailyGoalMinutes(request.getDailyGoalMinutes());
 		user.setPreferredVoice(request.getPreferredVoice());
 		user.setPreferredAccent(request.getPreferredAccent());
+		if (request.getAgeGroup() != null) {
+			user.setAgeGroup(request.getAgeGroup());
+		}
 		user.setInterests(request.getInterests());
 		user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));
 		userRepository.save(user);

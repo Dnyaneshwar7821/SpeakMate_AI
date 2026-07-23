@@ -145,6 +145,7 @@ function Avatar({ name, uri, size = 56 }) {
 export const DashboardHeader = memo(function DashboardHeader({
   name,
   avatar,
+  ageGroup,
   level,
   xp,
   streak,
@@ -216,6 +217,13 @@ export const DashboardHeader = memo(function DashboardHeader({
                 <Ionicons name="flame" size={12} color="#F97316" />
                 <Text style={styles.heroChipText}>{formatNumber(streak)}d streak</Text>
               </View>
+              {ageGroup && (
+                <View style={[styles.heroChip, { backgroundColor: 'rgba(245,158,11,0.2)' }]}>
+                  <Text style={[styles.heroChipText, { color: '#FCD34D', fontWeight: '700' }]}>
+                    {ageGroup === 'Kids' ? '🎈 Kids' : ageGroup === 'Teens' ? '⚡ Teen' : ageGroup === 'Young Adult' ? '🎓 Young Adult' : ageGroup === 'Senior' ? '☕ Senior' : '💼 Professional'}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>

@@ -39,6 +39,8 @@ public class Onboarding {
 	@Column(nullable = false)
 	private String interests;
 
+	private String ageGroup;
+
 	@Builder.Default
 	private Boolean onboardingCompleted = false;
 

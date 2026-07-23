@@ -37,6 +37,8 @@ public class OnboardingRequest {
 
 	private String preferredAccent;
 
+	private String ageGroup;
+
 	private Boolean studyReminder;
 
 	public String getEnglishLevel() { return englishLevel; }
@@ -66,6 +68,9 @@ public class OnboardingRequest {
 	public String getPreferredAccent() { return preferredAccent; }
 	public void setPreferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; }
 
+	public String getAgeGroup() { return ageGroup; }
+	public void setAgeGroup(String ageGroup) { this.ageGroup = ageGroup; }
+
 	public Boolean getStudyReminder() { return studyReminder; }
 	public void setStudyReminder(Boolean studyReminder) { this.studyReminder = studyReminder; }
 
@@ -83,6 +88,7 @@ public class OnboardingRequest {
 		private Boolean onboardingCompleted;
 		private String preferredVoice;
 		private String preferredAccent;
+		private String ageGroup;
 		private Boolean studyReminder;
 
 		public OnboardingRequestBuilder englishLevel(String englishLevel) { this.englishLevel = englishLevel; return this; }
@@ -94,6 +100,7 @@ public class OnboardingRequest {
 		public OnboardingRequestBuilder onboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; return this; }
 		public OnboardingRequestBuilder preferredVoice(String preferredVoice) { this.preferredVoice = preferredVoice; return this; }
 		public OnboardingRequestBuilder preferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; return this; }
+		public OnboardingRequestBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
 		public OnboardingRequestBuilder studyReminder(Boolean studyReminder) { this.studyReminder = studyReminder; return this; }
 
 		public OnboardingRequest build() {
@@ -107,6 +114,7 @@ public class OnboardingRequest {
             obj.setOnboardingCompleted(onboardingCompleted);
             obj.setPreferredVoice(preferredVoice);
             obj.setPreferredAccent(preferredAccent);
+            obj.setAgeGroup(ageGroup);
             obj.setStudyReminder(studyReminder);
             return obj;
         }

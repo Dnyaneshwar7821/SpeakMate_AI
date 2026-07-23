@@ -163,6 +163,7 @@ export default function DashboardScreen({ navigation }) {
     return {
       name,
       avatar: profile.avatar || user?.avatar,
+      ageGroup: profile.ageGroup || user?.ageGroup,
       level: Number(progress.level) || 1,
       xp: Number(progress.xp) || 0,
       streak: Number(progress.currentStreak) || 0,
@@ -277,6 +278,7 @@ export default function DashboardScreen({ navigation }) {
         <DashboardHeader
           name={viewModel.name}
           avatar={viewModel.avatar}
+          ageGroup={viewModel.ageGroup}
           level={viewModel.level}
           xp={viewModel.xp}
           streak={viewModel.streak}

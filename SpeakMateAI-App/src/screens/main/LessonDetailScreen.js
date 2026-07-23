@@ -262,7 +262,17 @@ export default function LessonDetailScreen({ navigation, route }) {
   const [speakingFeedback, setSpeakingFeedback] = useState(null);
   const [isVoiceRecording, setIsVoiceRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
-  const audioRecorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const audioRecorder = useAudioRecorder({
+    ...RecordingPresets.HIGH_QUALITY,
+    isMeteringEnabled: true,
+  });
+
+  // VAD Silence Auto-Stop refs
+  const vadIntervalRef = useRef(null);
+  const speechDetectedRef = useRef(false);
+  const silenceTimerRef = useRef(0);
+  const initialSilenceTimerRef = useRef(0);
+  const stoppingRef = useRef(false);
 
   // AI Tutor Q&A State
   const [tutorInput, setTutorInput] = useState('');
@@ -740,31 +750,85 @@ export default function LessonDetailScreen({ navigation, route }) {
     }
   };
 
-  const handleToggleVoiceRecord = async () => {
-    if (isVoiceRecording) {
-      // Stop recording and transcribe
-      setIsVoiceRecording(false);
-      setIsTranscribing(true);
-      try {
+  const stopRecordingAndTranscribe = async () => {
+    if (stoppingRef.current) return;
+    stoppingRef.current = true;
+    if (vadIntervalRef.current) {
+      clearInterval(vadIntervalRef.current);
+      vadIntervalRef.current = null;
+    }
+
+    setIsVoiceRecording(false);
+    setIsTranscribing(true);
+    try {
+      if (audioRecorder.isRecording) {
         await audioRecorder.stop();
-        const uri = audioRecorder.uri;
-        if (!uri) throw new Error('Recording URI not found');
-        const res = await speechService.speechToText({
-          uri,
-          name: 'lesson_practice.m4a',
-          type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mpeg',
-        });
-        if (res.transcript && res.transcript.trim()) {
-          setSpeakingInput(res.transcript.trim());
-        } else {
-          Alert.alert('No Speech Detected', 'Could not hear anything. Please try speaking again.');
-        }
-      } catch (err) {
-        console.warn('Transcription failed:', err);
-        Alert.alert('Transcription Failed', 'Make sure you have an active internet connection and try again.');
-      } finally {
-        setIsTranscribing(false);
       }
+      const uri = audioRecorder.uri;
+      if (!uri) throw new Error('Recording URI not found');
+      const res = await speechService.speechToText({
+        uri,
+        name: 'lesson_practice.m4a',
+        type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mpeg',
+      });
+      if (res.transcript && res.transcript.trim()) {
+        setSpeakingInput(res.transcript.trim());
+      } else {
+        Alert.alert('No Speech Detected', 'Could not hear anything. Please try speaking again.');
+      }
+    } catch (err) {
+      console.warn('Transcription failed:', err);
+      Alert.alert('Transcription Failed', 'Make sure you have an active internet connection and try again.');
+    } finally {
+      setIsTranscribing(false);
+      stoppingRef.current = false;
+    }
+  };
+
+  const startVADLoop = () => {
+    speechDetectedRef.current = false;
+    silenceTimerRef.current = 0;
+    initialSilenceTimerRef.current = 0;
+    stoppingRef.current = false;
+
+    if (vadIntervalRef.current) clearInterval(vadIntervalRef.current);
+
+    vadIntervalRef.current = setInterval(async () => {
+      if (!audioRecorder.isRecording || stoppingRef.current) {
+        if (vadIntervalRef.current) {
+          clearInterval(vadIntervalRef.current);
+          vadIntervalRef.current = null;
+        }
+        return;
+      }
+
+      try {
+        const status = await audioRecorder.getStatusAsync?.().catch(() => null);
+        const metering = status?.metering ?? audioRecorder.metering ?? -100;
+
+        if (metering > -40) {
+          speechDetectedRef.current = true;
+          silenceTimerRef.current = 0;
+        } else if (speechDetectedRef.current) {
+          silenceTimerRef.current += 300;
+          if (silenceTimerRef.current >= 1500) { // 1.5s silence -> AUTO STOP
+            stopRecordingAndTranscribe();
+          }
+        } else {
+          initialSilenceTimerRef.current += 300;
+          if (initialSilenceTimerRef.current >= 6000) { // 6s initial silence -> AUTO STOP
+            stopRecordingAndTranscribe();
+          }
+        }
+      } catch (e) {
+        // Fallback polling
+      }
+    }, 300);
+  };
+
+  const handleToggleVoiceRecord = async () => {
+    if (isVoiceRecording || audioRecorder.isRecording) {
+      stopRecordingAndTranscribe();
     } else {
       // Start recording
       try {
@@ -777,6 +841,7 @@ export default function LessonDetailScreen({ navigation, route }) {
         await audioRecorder.prepareToRecordAsync();
         audioRecorder.record();
         setIsVoiceRecording(true);
+        startVADLoop();
       } catch (e) {
         console.warn('Mic start failed:', e);
         Alert.alert('Microphone Error', 'Could not start recording. Please check microphone permissions.');
