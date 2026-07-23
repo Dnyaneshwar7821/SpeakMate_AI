@@ -25,13 +25,13 @@ import com.rslsolution.speakmateai.service.SpeechService;
 @Service
 public class SpeechServiceImpl implements SpeechService {
 
-	@Value("${groq.api.key}")
+	@Value("${groq.api.key:}")
 	private String apiKey;
 
-	@Value("${groq.whisper.url}")
+	@Value("${groq.whisper.url:https://api.groq.com/openai/v1/audio/transcriptions}")
 	private String whisperUrl;
 
-	@Value("${groq.whisper.model}")
+	@Value("${groq.whisper.model:whisper-large-v3-turbo}")
 	private String whisperModel;
 
 	private final RestTemplate restTemplate;

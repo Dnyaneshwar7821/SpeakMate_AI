@@ -14,10 +14,10 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtil {
 
-	@Value("${jwt.secret}")
+	@Value("${jwt.secret:SpeakMateAISecretKeyForJWTAuthentication2026}")
 	private String secretKey;
 
-	@Value("${jwt.expiration}")
+	@Value("${jwt.expiration:86400000}")
 	private long jwtExpiration;
 
 	private Key getSigningKey() {

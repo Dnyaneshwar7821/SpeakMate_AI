@@ -48,13 +48,13 @@ import com.rslsolution.speakmateai.service.NotificationService;
 @Transactional
 public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
-	@Value("${groq.api.key}")
+	@Value("${groq.api.key:}")
 	private String apiKey;
 
-	@Value("${groq.api.url}")
+	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.model}")
+	@Value("${groq.model:llama-3.3-70b-versatile}")
 	private String model;
 
 	private final SpeakingSessionRepository speakingSessionRepository;

@@ -50,7 +50,7 @@ public class AIChatServiceImpl implements AIChatService {
 	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.api.key}")
+	@Value("${groq.api.key:}")
 	private String apiKey;
 
 	@Value("${groq.model:llama3-8b-8192}")
