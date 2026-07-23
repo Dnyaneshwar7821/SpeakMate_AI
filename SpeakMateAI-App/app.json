@@ -13,7 +13,6 @@
     },
     "android": {
       "package": "com.rslsolution.speakmateai",
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -31,7 +30,6 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "./plugins/withCleartextTraffic",
       "expo-audio",
       "expo-image",
       "expo-secure-store",
