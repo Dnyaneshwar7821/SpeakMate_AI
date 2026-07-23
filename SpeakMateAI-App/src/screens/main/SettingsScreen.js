@@ -15,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Screen, StateView } from '../../components/ui';
 import { useTheme } from '../../context/ThemeContext';
-import { settingsService, onboardingService } from '../../services/appServices';
+import { settingsService, onboardingService, profileService } from '../../services/appServices';
 import { VoiceService, VOICE_PROFILES } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
