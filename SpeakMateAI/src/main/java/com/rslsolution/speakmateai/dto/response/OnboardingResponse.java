@@ -27,6 +27,8 @@ public class OnboardingResponse {
 
 	private String interests;
 
+	private String ageGroup;
+
 	private Boolean onboardingCompleted;
 
 	private LocalDateTime createdAt;
@@ -54,6 +56,9 @@ public class OnboardingResponse {
 	public String getInterests() { return interests; }
 	public void setInterests(String interests) { this.interests = interests; }
 
+	public String getAgeGroup() { return ageGroup; }
+	public void setAgeGroup(String ageGroup) { this.ageGroup = ageGroup; }
+
 	public Boolean getOnboardingCompleted() { return onboardingCompleted; }
 	public void setOnboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
 
@@ -75,6 +80,7 @@ public class OnboardingResponse {
 		private String nativeLanguage;
 		private String preferredLearningTime;
 		private String interests;
+		private String ageGroup;
 		private Boolean onboardingCompleted;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
@@ -86,6 +92,7 @@ public class OnboardingResponse {
 		public OnboardingResponseBuilder nativeLanguage(String nativeLanguage) { this.nativeLanguage = nativeLanguage; return this; }
 		public OnboardingResponseBuilder preferredLearningTime(String preferredLearningTime) { this.preferredLearningTime = preferredLearningTime; return this; }
 		public OnboardingResponseBuilder interests(String interests) { this.interests = interests; return this; }
+		public OnboardingResponseBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
 		public OnboardingResponseBuilder onboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; return this; }
 		public OnboardingResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 		public OnboardingResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
@@ -99,6 +106,7 @@ public class OnboardingResponse {
             obj.setNativeLanguage(nativeLanguage);
             obj.setPreferredLearningTime(preferredLearningTime);
             obj.setInterests(interests);
+            obj.setAgeGroup(ageGroup);
             obj.setOnboardingCompleted(onboardingCompleted);
             obj.setCreatedAt(createdAt);
             obj.setUpdatedAt(updatedAt);
