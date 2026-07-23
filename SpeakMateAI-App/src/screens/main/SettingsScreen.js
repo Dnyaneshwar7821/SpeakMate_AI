@@ -112,13 +112,21 @@ export default function SettingsScreen({ navigation }) {
   const save = async () => {
     setSaving(true);
     try {
-      // updateSettings on backend auto-creates settings if not found
+      const currentOnboarding = await onboardingService.get().catch(() => ({}));
+      const fullOnboardingPayload = {
+        englishLevel: currentOnboarding.englishLevel || 'Beginner',
+        learningGoal: currentOnboarding.learningGoal || 'Improve English speaking skills',
+        dailyGoalMinutes: currentOnboarding.dailyGoalMinutes || 15,
+        nativeLanguage: form.language || currentOnboarding.nativeLanguage || 'English',
+        preferredLearningTime: currentOnboarding.preferredLearningTime || 'Morning',
+        interests: currentOnboarding.interests || 'General',
+        ageGroup: form.ageGroup || currentOnboarding.ageGroup || 'Professional',
+        onboardingCompleted: true,
+      };
+
       await Promise.all([
         settingsService.update(form),
-        onboardingService.update({
-          ageGroup: form.ageGroup,
-          nativeLanguage: form.language,
-        }).catch(() => null),
+        onboardingService.update(fullOnboardingPayload).catch(() => null),
         profileService.update({ ageGroup: form.ageGroup }).catch(() => null),
       ]);
       // Apply dark mode immediately after saving
