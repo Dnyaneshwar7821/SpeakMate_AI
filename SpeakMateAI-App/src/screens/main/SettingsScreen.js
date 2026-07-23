@@ -115,7 +115,11 @@ export default function SettingsScreen({ navigation }) {
       // updateSettings on backend auto-creates settings if not found
       await Promise.all([
         settingsService.update(form),
-        onboardingService.update({ ageGroup: form.ageGroup }).catch(() => null),
+        onboardingService.update({
+          ageGroup: form.ageGroup,
+          nativeLanguage: form.language,
+        }).catch(() => null),
+        profileService.update({ ageGroup: form.ageGroup }).catch(() => null),
       ]);
       // Apply dark mode immediately after saving
       await setDarkMode(form.darkMode);

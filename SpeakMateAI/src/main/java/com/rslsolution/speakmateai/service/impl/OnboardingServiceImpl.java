@@ -35,11 +35,15 @@ public class OnboardingServiceImpl implements OnboardingService {
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
-		Onboarding onboarding = Onboarding.builder().user(user).englishLevel(request.getEnglishLevel())
-				.learningGoal(request.getLearningGoal()).dailyGoalMinutes(request.getDailyGoalMinutes())
-				.nativeLanguage(request.getNativeLanguage()).preferredLearningTime(request.getPreferredLearningTime())
-				.interests(request.getInterests()).ageGroup(request.getAgeGroup())
-				.onboardingCompleted(request.getOnboardingCompleted()).build();
+		Onboarding onboarding = Onboarding.builder().user(user)
+				.englishLevel(request.getEnglishLevel() != null ? request.getEnglishLevel() : "Beginner")
+				.learningGoal(request.getLearningGoal() != null ? request.getLearningGoal() : "Improve English speaking skills")
+				.dailyGoalMinutes(request.getDailyGoalMinutes() != null ? request.getDailyGoalMinutes() : 15)
+				.nativeLanguage(request.getNativeLanguage() != null ? request.getNativeLanguage() : "English")
+				.preferredLearningTime(request.getPreferredLearningTime() != null ? request.getPreferredLearningTime() : "Morning")
+				.interests(request.getInterests() != null ? request.getInterests() : "General")
+				.ageGroup(request.getAgeGroup() != null ? request.getAgeGroup() : "Professional")
+				.onboardingCompleted(request.getOnboardingCompleted() != null ? request.getOnboardingCompleted() : false).build();
 
 		Onboarding savedOnboarding = onboardingRepository.save(onboarding);
 		syncUserOnboarding(user, request);
@@ -101,16 +105,14 @@ public class OnboardingServiceImpl implements OnboardingService {
 					return onboardingRepository.save(defaultOnboarding);
 				});
 
-		onboarding.setEnglishLevel(request.getEnglishLevel());
-		onboarding.setLearningGoal(request.getLearningGoal());
-		onboarding.setDailyGoalMinutes(request.getDailyGoalMinutes());
-		onboarding.setNativeLanguage(request.getNativeLanguage());
-		onboarding.setPreferredLearningTime(request.getPreferredLearningTime());
-		onboarding.setInterests(request.getInterests());
-		if (request.getAgeGroup() != null) {
-			onboarding.setAgeGroup(request.getAgeGroup());
-		}
-		onboarding.setOnboardingCompleted(request.getOnboardingCompleted());
+		if (request.getEnglishLevel() != null) onboarding.setEnglishLevel(request.getEnglishLevel());
+		if (request.getLearningGoal() != null) onboarding.setLearningGoal(request.getLearningGoal());
+		if (request.getDailyGoalMinutes() != null) onboarding.setDailyGoalMinutes(request.getDailyGoalMinutes());
+		if (request.getNativeLanguage() != null) onboarding.setNativeLanguage(request.getNativeLanguage());
+		if (request.getPreferredLearningTime() != null) onboarding.setPreferredLearningTime(request.getPreferredLearningTime());
+		if (request.getInterests() != null) onboarding.setInterests(request.getInterests());
+		if (request.getAgeGroup() != null) onboarding.setAgeGroup(request.getAgeGroup());
+		if (request.getOnboardingCompleted() != null) onboarding.setOnboardingCompleted(request.getOnboardingCompleted());
 
 		Onboarding updatedOnboarding = onboardingRepository.save(onboarding);
 		syncUserOnboarding(user, request);
@@ -145,17 +147,15 @@ public class OnboardingServiceImpl implements OnboardingService {
 
 	private void syncUserOnboarding(User user, OnboardingRequest request) {
 
-		user.setNativeLanguage(request.getNativeLanguage());
-		user.setEnglishLevel(request.getEnglishLevel());
-		user.setLearningGoal(request.getLearningGoal());
-		user.setDailyGoalMinutes(request.getDailyGoalMinutes());
-		user.setPreferredVoice(request.getPreferredVoice());
-		user.setPreferredAccent(request.getPreferredAccent());
-		if (request.getAgeGroup() != null) {
-			user.setAgeGroup(request.getAgeGroup());
-		}
-		user.setInterests(request.getInterests());
-		user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));
+		if (request.getNativeLanguage() != null) user.setNativeLanguage(request.getNativeLanguage());
+		if (request.getEnglishLevel() != null) user.setEnglishLevel(request.getEnglishLevel());
+		if (request.getLearningGoal() != null) user.setLearningGoal(request.getLearningGoal());
+		if (request.getDailyGoalMinutes() != null) user.setDailyGoalMinutes(request.getDailyGoalMinutes());
+		if (request.getPreferredVoice() != null) user.setPreferredVoice(request.getPreferredVoice());
+		if (request.getPreferredAccent() != null) user.setPreferredAccent(request.getPreferredAccent());
+		if (request.getAgeGroup() != null) user.setAgeGroup(request.getAgeGroup());
+		if (request.getInterests() != null) user.setInterests(request.getInterests());
+		if (request.getOnboardingCompleted() != null) user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));
 		userRepository.save(user);
 	}
 }
