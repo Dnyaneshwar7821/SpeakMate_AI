@@ -112,28 +112,24 @@ export default function SettingsScreen({ navigation }) {
   const save = async () => {
     setSaving(true);
     try {
-      const currentOnboarding = await onboardingService.get().catch(() => ({}));
-      const fullOnboardingPayload = {
-        englishLevel: currentOnboarding.englishLevel || 'Beginner',
-        learningGoal: currentOnboarding.learningGoal || 'Improve English speaking skills',
-        dailyGoalMinutes: currentOnboarding.dailyGoalMinutes || 15,
-        nativeLanguage: form.language || currentOnboarding.nativeLanguage || 'English',
-        preferredLearningTime: currentOnboarding.preferredLearningTime || 'Morning',
-        interests: currentOnboarding.interests || 'General',
-        ageGroup: form.ageGroup || currentOnboarding.ageGroup || 'Professional',
-        onboardingCompleted: true,
-      };
+      // 1. Save Settings (Dark Mode, Voice, Language, Sound Effects, Reminders)
+      const savedSettings = await settingsService.update(form);
+      if (savedSettings && savedSettings.darkMode !== undefined) {
+        await setDarkMode(savedSettings.darkMode);
+      } else {
+        await setDarkMode(form.darkMode);
+      }
 
-      await Promise.all([
-        settingsService.update(form),
-        onboardingService.update(fullOnboardingPayload).catch(() => null),
-        profileService.update({ ageGroup: form.ageGroup }).catch(() => null),
-      ]);
-      // Apply dark mode immediately after saving
-      await setDarkMode(form.darkMode);
-      Alert.alert('Saved ✓', 'Your preferences have been updated.');
+      // 2. Sync Age Group with User Profile & Onboarding
+      if (form.ageGroup) {
+        await profileService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Profile age sync warning:', e));
+        await onboardingService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Onboarding age sync warning:', e));
+      }
+
+      Alert.alert('Saved ✓', 'Your preferences have been updated successfully.');
     } catch (error) {
-      Alert.alert('Save failed', error.userMessage || 'Unable to save settings. Please try again.');
+      console.error('Settings save error:', error);
+      Alert.alert('Save Failed', error.response?.data?.message || error.userMessage || 'Unable to save settings. Please try again.');
     } finally {
       setSaving(false);
     }
