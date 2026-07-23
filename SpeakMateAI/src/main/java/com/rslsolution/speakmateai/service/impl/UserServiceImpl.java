@@ -126,57 +126,38 @@ public class UserServiceImpl implements UserService {
 
 		System.out.println("[Registration OTP Generated] OTP for " + request.getEmail() + " is: " + otp);
 
-		java.util.concurrent.CompletableFuture.runAsync(() -> {
-			try {
-				if (mailSender != null) {
-					MimeMessage message = mailSender.createMimeMessage();
-					MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-					helper.setFrom("dnyaneshwaralgule2003@gmail.com", "SpeakMateAI");
-					helper.setTo(request.getEmail());
-					helper.setSubject("Verify Your Email - SpeakMateAI Registration");
+		String htmlContent = String.format(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"<head>\n" +
+			"    <style>\n" +
+			"        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; }\n" +
+			"        .container { max-width: 600px; background-color: #FFFFFF; border-radius: 16px; padding: 40px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }\n" +
+			"        .logo { font-size: 28px; font-weight: 900; color: #4F46E5; text-align: center; margin-bottom: 24px; }\n" +
+			"        h1 { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px; text-align: center; }\n" +
+			"        p { font-size: 15px; color: #64748B; line-height: 24px; margin-bottom: 24px; }\n" +
+			"        .otp-box { background-color: #EEF2FF; border: 2px dashed #6366F1; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }\n" +
+			"        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #4F46E5; margin: 0; }\n" +
+			"        .footer { text-align: center; font-size: 13px; color: #94A3B8; margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 20px; }\n" +
+			"    </style>\n" +
+			"</head>\n" +
+			"<body>\n" +
+			"    <div class=\"container\">\n" +
+			"        <div class=\"logo\">SpeakMateAI</div>\n" +
+			"        <h1>Verify Your Email Address</h1>\n" +
+			"        <p>Thank you for signing up for SpeakMateAI! Please use the 6-digit Verification Code below to complete your registration:</p>\n" +
+			"        <div class=\"otp-box\">\n" +
+			"            <h2 class=\"otp-code\">%s</h2>\n" +
+			"        </div>\n" +
+			"        <p>This code is valid for <strong>10 minutes</strong>. If you did not request this registration, please ignore this email.</p>\n" +
+			"        <div class=\"footer\">\n" +
+			"            Welcome aboard,<br/><strong>SpeakMateAI Team</strong>\n" +
+			"        </div>\n" +
+			"    </div>\n" +
+			"</body>\n" +
+			"</html>", otp);
 
-					String htmlContent = String.format(
-						"<!DOCTYPE html>\n" +
-						"<html>\n" +
-						"<head>\n" +
-						"    <style>\n" +
-						"        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; }\n" +
-						"        .container { max-width: 600px; background-color: #FFFFFF; border-radius: 16px; padding: 40px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }\n" +
-						"        .logo { font-size: 28px; font-weight: 900; color: #4F46E5; text-align: center; margin-bottom: 24px; }\n" +
-						"        h1 { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px; text-align: center; }\n" +
-						"        p { font-size: 15px; color: #64748B; line-height: 24px; margin-bottom: 24px; }\n" +
-						"        .otp-box { background-color: #EEF2FF; border: 2px dashed #6366F1; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }\n" +
-						"        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #4F46E5; margin: 0; }\n" +
-						"        .footer { text-align: center; font-size: 13px; color: #94A3B8; margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 20px; }\n" +
-						"    </style>\n" +
-						"</head>\n" +
-						"<body>\n" +
-						"    <div class=\"container\">\n" +
-						"        <div class=\"logo\">SpeakMateAI</div>\n" +
-						"        <h1>Verify Your Email Address</h1>\n" +
-						"        <p>Thank you for signing up for SpeakMateAI! Please use the 6-digit Verification Code below to complete your registration:</p>\n" +
-						"        <div class=\"otp-box\">\n" +
-						"            <h2 class=\"otp-code\">%s</h2>\n" +
-						"        </div>\n" +
-						"        <p>This code is valid for <strong>10 minutes</strong>. If you did not request this registration, please ignore this email.</p>\n" +
-						"        <div class=\"footer\">\n" +
-						"            Welcome aboard,<br/><strong>SpeakMateAI Team</strong>\n" +
-						"        </div>\n" +
-						"    </div>\n" +
-						"</body>\n" +
-						"</html>", otp);
-
-					helper.setText(htmlContent, true);
-					mailSender.send(message);
-					System.out.println("[Registration Email Sent] OTP sent to: " + request.getEmail());
-				} else {
-					System.out.println("[SMTP Offline] MailSender bean not present. Registration OTP for " + request.getEmail() + " is: " + otp);
-				}
-			} catch (Exception ex) {
-				System.err.println("[SMTP Error] Failed to send registration OTP email: " + ex.getMessage());
-				System.out.println("[Fallback Log] Registration OTP for " + request.getEmail() + " is: " + otp);
-			}
-		});
+		sendAsyncEmail(request.getEmail(), "Verify Your Email - SpeakMateAI Registration", htmlContent, otp);
 	}
 
 	@Override
@@ -319,59 +300,40 @@ public class UserServiceImpl implements UserService {
 		System.out.println("[Forgot Password OTP Generated] OTP for " + user.getEmail() + " is: " + otp);
 
 		// Send branded HTML OTP email using Spring Boot Mail
-		java.util.concurrent.CompletableFuture.runAsync(() -> {
-			try {
-				if (mailSender != null) {
-					MimeMessage message = mailSender.createMimeMessage();
-					MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-					helper.setFrom("dnyaneshwaralgule2003@gmail.com", "SpeakMateAI");
-					helper.setTo(user.getEmail());
-					helper.setSubject("Your SpeakMateAI Password Reset OTP");
-					
-					String htmlContent = String.format(
-						"<!DOCTYPE html>\n" +
-						"<html>\n" +
-						"<head>\n" +
-						"    <style>\n" +
-						"        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; }\n" +
-						"        .container { max-width: 600px; background-color: #FFFFFF; border-radius: 16px; padding: 40px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }\n" +
-						"        .logo { font-size: 28px; font-weight: 900; color: #4F46E5; text-align: center; margin-bottom: 24px; }\n" +
-						"        h1 { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px; text-align: center; }\n" +
-						"        p { font-size: 15px; color: #64748B; line-height: 24px; margin-bottom: 24px; }\n" +
-						"        .otp-box { background-color: #EEF2FF; border: 2px dashed #6366F1; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }\n" +
-						"        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #4F46E5; margin: 0; }\n" +
-						"        .footer { text-align: center; font-size: 13px; color: #94A3B8; margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 20px; }\n" +
-						"    </style>\n" +
-						"</head>\n" +
-						"<body>\n" +
-						"    <div class=\"container\">\n" +
-						"        <div class=\"logo\">SpeakMateAI</div>\n" +
-						"        <h1>Password Reset OTP</h1>\n" +
-						"        <p>Hello %s,</p>\n" +
-						"        <p>We received a request to reset your SpeakMateAI password. Use the Verification Code below to complete your reset request:</p>\n" +
-						"        <div class=\"otp-box\">\n" +
-						"            <h2 class=\"otp-code\">%s</h2>\n" +
-						"        </div>\n" +
-						"        <p>This OTP code is valid for <strong>10 minutes</strong>. Do not share this OTP with anyone.</p>\n" +
-						"        <p>If you did not request a password reset, please ignore this message.</p>\n" +
-						"        <div class=\"footer\">\n" +
-						"            Regards,<br/><strong>SpeakMateAI Team</strong>\n" +
-						"        </div>\n" +
-						"    </div>\n" +
-						"</body>\n" +
-						"</html>", user.getFirstName(), otp);
+		String htmlContent = String.format(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"<head>\n" +
+			"    <style>\n" +
+			"        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; }\n" +
+			"        .container { max-width: 600px; background-color: #FFFFFF; border-radius: 16px; padding: 40px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }\n" +
+			"        .logo { font-size: 28px; font-weight: 900; color: #4F46E5; text-align: center; margin-bottom: 24px; }\n" +
+			"        h1 { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px; text-align: center; }\n" +
+			"        p { font-size: 15px; color: #64748B; line-height: 24px; margin-bottom: 24px; }\n" +
+			"        .otp-box { background-color: #EEF2FF; border: 2px dashed #6366F1; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }\n" +
+			"        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #4F46E5; margin: 0; }\n" +
+			"        .footer { text-align: center; font-size: 13px; color: #94A3B8; margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 20px; }\n" +
+			"    </style>\n" +
+			"</head>\n" +
+			"<body>\n" +
+			"    <div class=\"container\">\n" +
+			"        <div class=\"logo\">SpeakMateAI</div>\n" +
+			"        <h1>Password Reset OTP</h1>\n" +
+			"        <p>Hello %s,</p>\n" +
+			"        <p>We received a request to reset your SpeakMateAI password. Use the Verification Code below to complete your reset request:</p>\n" +
+			"        <div class=\"otp-box\">\n" +
+			"            <h2 class=\"otp-code\">%s</h2>\n" +
+			"        </div>\n" +
+			"        <p>This OTP code is valid for <strong>10 minutes</strong>. Do not share this OTP with anyone.</p>\n" +
+			"        <p>If you did not request a password reset, please ignore this message.</p>\n" +
+			"        <div class=\"footer\">\n" +
+			"            Regards,<br/><strong>SpeakMateAI Team</strong>\n" +
+			"        </div>\n" +
+			"    </div>\n" +
+			"</body>\n" +
+			"</html>", user.getFirstName(), otp);
 
-					helper.setText(htmlContent, true);
-					mailSender.send(message);
-					System.out.println("[Email Sent Successfully] OTP email sent to: " + user.getEmail());
-				} else {
-					System.out.println("[SMTP Offline] MailSender bean is not present. OTP for " + user.getEmail() + " is: " + otp);
-				}
-			} catch (Exception ex) {
-				System.err.println("[SMTP Error] Failed to send OTP email: " + ex.getMessage());
-				System.out.println("[Fallback Log] OTP for " + user.getEmail() + " is: " + otp);
-			}
-		});
+		sendAsyncEmail(user.getEmail(), "Your SpeakMateAI Password Reset OTP", htmlContent, otp);
 	}
 
 	@Override
@@ -626,6 +588,48 @@ public class UserServiceImpl implements UserService {
 		}
 
 		System.out.println("[User Deleted] Permanently removed user ID: " + id + " and all associated records.");
+	}
+
+	private void sendAsyncEmail(String toEmail, String subject, String htmlContent, String otp) {
+		java.util.concurrent.CompletableFuture.runAsync(() -> {
+			String resendApiKey = System.getenv("RESEND_API_KEY");
+			if (resendApiKey != null && !resendApiKey.isBlank()) {
+				try {
+					java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+					String escapedHtml = htmlContent.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
+					String jsonBody = "{\"from\":\"SpeakMateAI <onboarding@resend.dev>\",\"to\":[\"" + toEmail + "\"],\"subject\":\"" + subject + "\",\"html\":\"" + escapedHtml + "\"}";
+					java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+						.uri(java.net.URI.create("https://api.resend.com/emails"))
+						.header("Authorization", "Bearer " + resendApiKey)
+						.header("Content-Type", "application.json")
+						.POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonBody))
+						.build();
+					java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+					System.out.println("[Resend Email Sent] Status: " + response.statusCode() + " Response: " + response.body());
+					return;
+				} catch (Exception ex) {
+					System.err.println("[Resend Email Error] " + ex.getMessage());
+				}
+			}
+
+			try {
+				if (mailSender != null) {
+					MimeMessage message = mailSender.createMimeMessage();
+					MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+					helper.setFrom("dnyaneshwaralgule2003@gmail.com", "SpeakMateAI");
+					helper.setTo(toEmail);
+					helper.setSubject(subject);
+					helper.setText(htmlContent, true);
+					mailSender.send(message);
+					System.out.println("[SMTP Email Sent] Successfully sent to: " + toEmail);
+				} else {
+					System.out.println("[SMTP Offline] OTP for " + toEmail + " is: " + otp);
+				}
+			} catch (Exception ex) {
+				System.err.println("[SMTP Error] Failed to send email to " + toEmail + ": " + ex.getMessage());
+				System.out.println("[Fallback Log] OTP for " + toEmail + " is: " + otp);
+			}
+		});
 	}
 
 }
