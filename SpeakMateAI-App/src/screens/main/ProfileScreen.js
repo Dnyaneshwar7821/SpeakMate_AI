@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useState, useEffect } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Modal,
