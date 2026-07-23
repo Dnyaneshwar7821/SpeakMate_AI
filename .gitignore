@@ -5,7 +5,6 @@ SpeakMateAI/.classpath
 SpeakMateAI/.project
 SpeakMateAI/.factorypath
 SpeakMateAI/*.log
-SpeakMateAI/src/main/resources/application.properties
 
 # --- Frontend (React Native / Expo) ---
 SpeakMateAI-App/node_modules/

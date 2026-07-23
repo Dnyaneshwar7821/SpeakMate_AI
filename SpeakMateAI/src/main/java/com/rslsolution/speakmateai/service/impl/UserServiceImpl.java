@@ -130,6 +130,7 @@ public class UserServiceImpl implements UserService {
 			if (mailSender != null) {
 				MimeMessage message = mailSender.createMimeMessage();
 				MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+				helper.setFrom("dnyaneshwaralgule2003@gmail.com", "SpeakMateAI");
 				helper.setTo(request.getEmail());
 				helper.setSubject("Verify Your Email - SpeakMateAI Registration");
 
@@ -318,6 +319,7 @@ public class UserServiceImpl implements UserService {
 			if (mailSender != null) {
 				MimeMessage message = mailSender.createMimeMessage();
 				MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+				helper.setFrom("dnyaneshwaralgule2003@gmail.com", "SpeakMateAI");
 				helper.setTo(user.getEmail());
 				helper.setSubject("Your SpeakMateAI Password Reset OTP");
 				
@@ -505,6 +507,7 @@ public class UserServiceImpl implements UserService {
 			if (mailSender != null) {
 				MimeMessage message = mailSender.createMimeMessage();
 				MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+				helper.setFrom("dnyaneshwaralgule2003@gmail.com", "SpeakMateAI");
 				helper.setTo(email);
 				helper.setSubject("Confirm Account Deletion - SpeakMateAI");
 
