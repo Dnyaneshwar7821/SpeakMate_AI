@@ -121,7 +121,19 @@ public class Settings {
 		public SettingsBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public Settings build() {
-			return new Settings(id, user, darkMode, notificationsEnabled, language, aiVoice, soundEffects, autoPlayAudio, dailyReminder, createdAt, updatedAt);
-		}
+            Settings obj = new Settings();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setDarkMode(darkMode);
+            obj.setNotificationsEnabled(notificationsEnabled);
+            obj.setLanguage(language);
+            obj.setAiVoice(aiVoice);
+            obj.setSoundEffects(soundEffects);
+            obj.setAutoPlayAudio(autoPlayAudio);
+            obj.setDailyReminder(dailyReminder);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }

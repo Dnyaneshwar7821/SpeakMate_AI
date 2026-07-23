@@ -97,7 +97,18 @@ public class OnboardingRequest {
 		public OnboardingRequestBuilder studyReminder(Boolean studyReminder) { this.studyReminder = studyReminder; return this; }
 
 		public OnboardingRequest build() {
-			return new OnboardingRequest(englishLevel, learningGoal, dailyGoalMinutes, nativeLanguage, preferredLearningTime, interests, onboardingCompleted, preferredVoice, preferredAccent, studyReminder);
-		}
+            OnboardingRequest obj = new OnboardingRequest();
+            obj.setEnglishLevel(englishLevel);
+            obj.setLearningGoal(learningGoal);
+            obj.setDailyGoalMinutes(dailyGoalMinutes);
+            obj.setNativeLanguage(nativeLanguage);
+            obj.setPreferredLearningTime(preferredLearningTime);
+            obj.setInterests(interests);
+            obj.setOnboardingCompleted(onboardingCompleted);
+            obj.setPreferredVoice(preferredVoice);
+            obj.setPreferredAccent(preferredAccent);
+            obj.setStudyReminder(studyReminder);
+            return obj;
+        }
 	}
 }

@@ -123,7 +123,25 @@ public class DashboardSummaryResponse {
 		public DashboardSummaryResponseBuilder notifications(List<NotificationResponse> notifications) { this.notifications = notifications; return this; }
 
 		public DashboardSummaryResponse build() {
-			return new DashboardSummaryResponse(rank, profile, progress, dailyGoal, weeklyProgress, statistics, quote, recentActivity, activeLessons, upcomingLessons, unreadNotificationsCount, continueLearning, wordOfTheDay, englishTip, recommendations, achievements, notifications);
-		}
+            DashboardSummaryResponse obj = new DashboardSummaryResponse();
+            obj.setRank(rank);
+            obj.setProfile(profile);
+            obj.setProgress(progress);
+            obj.setDailyGoal(dailyGoal);
+            obj.setWeeklyProgress(weeklyProgress);
+            obj.setStatistics(statistics);
+            obj.setQuote(quote);
+            obj.setRecentActivity(recentActivity);
+            obj.setActiveLessons(activeLessons);
+            obj.setUpcomingLessons(upcomingLessons);
+            obj.setUnreadNotificationsCount(unreadNotificationsCount);
+            obj.setContinueLearning(continueLearning);
+            obj.setWordOfTheDay(wordOfTheDay);
+            obj.setEnglishTip(englishTip);
+            obj.setRecommendations(recommendations);
+            obj.setAchievements(achievements);
+            obj.setNotifications(notifications);
+            return obj;
+        }
 	}
 }

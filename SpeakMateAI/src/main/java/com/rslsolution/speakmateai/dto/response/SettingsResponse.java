@@ -91,7 +91,18 @@ public class SettingsResponse {
 		public SettingsResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public SettingsResponse build() {
-			return new SettingsResponse(id, darkMode, notificationsEnabled, language, aiVoice, soundEffects, autoPlayAudio, dailyReminder, createdAt, updatedAt);
-		}
+            SettingsResponse obj = new SettingsResponse();
+            obj.setId(id);
+            obj.setDarkMode(darkMode);
+            obj.setNotificationsEnabled(notificationsEnabled);
+            obj.setLanguage(language);
+            obj.setAiVoice(aiVoice);
+            obj.setSoundEffects(soundEffects);
+            obj.setAutoPlayAudio(autoPlayAudio);
+            obj.setDailyReminder(dailyReminder);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }

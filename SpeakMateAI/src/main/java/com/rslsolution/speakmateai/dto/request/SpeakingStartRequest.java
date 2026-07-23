@@ -49,7 +49,12 @@ public class SpeakingStartRequest {
 		public SpeakingStartRequestBuilder xpReward(Integer xpReward) { this.xpReward = xpReward; return this; }
 
 		public SpeakingStartRequest build() {
-			return new SpeakingStartRequest(scenario, difficulty, estimatedDuration, xpReward);
-		}
+            SpeakingStartRequest obj = new SpeakingStartRequest();
+            obj.setScenario(scenario);
+            obj.setDifficulty(difficulty);
+            obj.setEstimatedDuration(estimatedDuration);
+            obj.setXpReward(xpReward);
+            return obj;
+        }
 	}
 }

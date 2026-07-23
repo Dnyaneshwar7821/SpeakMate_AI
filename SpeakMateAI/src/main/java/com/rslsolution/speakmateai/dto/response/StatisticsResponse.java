@@ -82,7 +82,17 @@ public class StatisticsResponse {
 		public StatisticsResponseBuilder averageScore(Integer averageScore) { this.averageScore = averageScore; return this; }
 
 		public StatisticsResponse build() {
-			return new StatisticsResponse(totalLessons, completedLessons, speakingSessions, vocabularyLearned, grammarExercises, totalStudyHours, currentStreak, longestStreak, averageScore);
-		}
+            StatisticsResponse obj = new StatisticsResponse();
+            obj.setTotalLessons(totalLessons);
+            obj.setCompletedLessons(completedLessons);
+            obj.setSpeakingSessions(speakingSessions);
+            obj.setVocabularyLearned(vocabularyLearned);
+            obj.setGrammarExercises(grammarExercises);
+            obj.setTotalStudyHours(totalStudyHours);
+            obj.setCurrentStreak(currentStreak);
+            obj.setLongestStreak(longestStreak);
+            obj.setAverageScore(averageScore);
+            return obj;
+        }
 	}
 }

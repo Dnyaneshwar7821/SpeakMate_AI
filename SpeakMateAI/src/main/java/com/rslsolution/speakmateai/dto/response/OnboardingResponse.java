@@ -91,7 +91,18 @@ public class OnboardingResponse {
 		public OnboardingResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public OnboardingResponse build() {
-			return new OnboardingResponse(id, englishLevel, learningGoal, dailyGoalMinutes, nativeLanguage, preferredLearningTime, interests, onboardingCompleted, createdAt, updatedAt);
-		}
+            OnboardingResponse obj = new OnboardingResponse();
+            obj.setId(id);
+            obj.setEnglishLevel(englishLevel);
+            obj.setLearningGoal(learningGoal);
+            obj.setDailyGoalMinutes(dailyGoalMinutes);
+            obj.setNativeLanguage(nativeLanguage);
+            obj.setPreferredLearningTime(preferredLearningTime);
+            obj.setInterests(interests);
+            obj.setOnboardingCompleted(onboardingCompleted);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }

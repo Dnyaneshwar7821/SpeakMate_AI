@@ -68,7 +68,15 @@ public class SettingsRequest {
 		public SettingsRequestBuilder dailyReminder(Boolean dailyReminder) { this.dailyReminder = dailyReminder; return this; }
 
 		public SettingsRequest build() {
-			return new SettingsRequest(darkMode, notificationsEnabled, language, aiVoice, soundEffects, autoPlayAudio, dailyReminder);
-		}
+            SettingsRequest obj = new SettingsRequest();
+            obj.setDarkMode(darkMode);
+            obj.setNotificationsEnabled(notificationsEnabled);
+            obj.setLanguage(language);
+            obj.setAiVoice(aiVoice);
+            obj.setSoundEffects(soundEffects);
+            obj.setAutoPlayAudio(autoPlayAudio);
+            obj.setDailyReminder(dailyReminder);
+            return obj;
+        }
 	}
 }

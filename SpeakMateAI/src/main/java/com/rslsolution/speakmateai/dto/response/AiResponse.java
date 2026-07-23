@@ -26,7 +26,9 @@ public class AiResponse {
 		public AiResponseBuilder response(String response) { this.response = response; return this; }
 
 		public AiResponse build() {
-			return new AiResponse(response);
-		}
+            AiResponse obj = new AiResponse();
+            obj.setResponse(response);
+            return obj;
+        }
 	}
 }

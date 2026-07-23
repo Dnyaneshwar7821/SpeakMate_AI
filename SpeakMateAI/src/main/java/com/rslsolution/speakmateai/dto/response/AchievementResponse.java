@@ -77,7 +77,16 @@ public class AchievementResponse {
 		public AchievementResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public AchievementResponse build() {
-			return new AchievementResponse(id, title, description, xpReward, tier, unlocked, unlockedAt, createdAt);
-		}
+            AchievementResponse obj = new AchievementResponse();
+            obj.setId(id);
+            obj.setTitle(title);
+            obj.setDescription(description);
+            obj.setXpReward(xpReward);
+            obj.setTier(tier);
+            obj.setUnlocked(unlocked);
+            obj.setUnlockedAt(unlockedAt);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

@@ -84,7 +84,16 @@ public class ProgressRequest {
 		public ProgressRequestBuilder totalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; return this; }
 
 		public ProgressRequest build() {
-			return new ProgressRequest(xp, level, currentStreak, longestStreak, totalPracticeMinutes, totalSpeakingSessions, totalGrammarChecks, totalVocabularyWords);
-		}
+            ProgressRequest obj = new ProgressRequest();
+            obj.setXp(xp);
+            obj.setLevel(level);
+            obj.setCurrentStreak(currentStreak);
+            obj.setLongestStreak(longestStreak);
+            obj.setTotalPracticeMinutes(totalPracticeMinutes);
+            obj.setTotalSpeakingSessions(totalSpeakingSessions);
+            obj.setTotalGrammarChecks(totalGrammarChecks);
+            obj.setTotalVocabularyWords(totalVocabularyWords);
+            return obj;
+        }
 	}
 }

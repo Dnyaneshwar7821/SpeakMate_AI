@@ -61,7 +61,12 @@ public class ChatBookmark {
 		public ChatBookmarkBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public ChatBookmark build() {
-			return new ChatBookmark(id, user, message, createdAt);
-		}
+            ChatBookmark obj = new ChatBookmark();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setMessage(message);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

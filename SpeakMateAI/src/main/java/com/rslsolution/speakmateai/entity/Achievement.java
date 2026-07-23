@@ -98,7 +98,17 @@ public class Achievement {
 		public AchievementBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public Achievement build() {
-			return new Achievement(id, user, title, description, xpReward, tier, unlocked, unlockedAt, createdAt);
-		}
+            Achievement obj = new Achievement();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setTitle(title);
+            obj.setDescription(description);
+            obj.setXpReward(xpReward);
+            obj.setTier(tier);
+            obj.setUnlocked(unlocked);
+            obj.setUnlockedAt(unlockedAt);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

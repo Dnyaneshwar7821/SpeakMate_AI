@@ -117,7 +117,19 @@ public class ChatMessage {
 		public ChatMessageBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public ChatMessage build() {
-			return new ChatMessage(id, session, sender, message, voiceEnabled, grammarCorrection, betterSentence, vocabularySuggestions, explanation, followUpQuestion, createdAt);
-		}
+            ChatMessage obj = new ChatMessage();
+            obj.setId(id);
+            obj.setSession(session);
+            obj.setSender(sender);
+            obj.setMessage(message);
+            obj.setVoiceEnabled(voiceEnabled);
+            obj.setGrammarCorrection(grammarCorrection);
+            obj.setBetterSentence(betterSentence);
+            obj.setVocabularySuggestions(vocabularySuggestions);
+            obj.setExplanation(explanation);
+            obj.setFollowUpQuestion(followUpQuestion);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

@@ -54,7 +54,12 @@ public class LessonProgressRequest {
 		public LessonProgressRequestBuilder timeSpentMinutes(Integer timeSpentMinutes) { this.timeSpentMinutes = timeSpentMinutes; return this; }
 
 		public LessonProgressRequest build() {
-			return new LessonProgressRequest(lessonId, progressPercent, lastSectionIndex, timeSpentMinutes);
-		}
+            LessonProgressRequest obj = new LessonProgressRequest();
+            obj.setLessonId(lessonId);
+            obj.setProgressPercent(progressPercent);
+            obj.setLastSectionIndex(lastSectionIndex);
+            obj.setTimeSpentMinutes(timeSpentMinutes);
+            return obj;
+        }
 	}
 }

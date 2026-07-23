@@ -30,7 +30,9 @@ public class SendRegistrationOtpRequest {
 		public SendRegistrationOtpRequestBuilder email(String email) { this.email = email; return this; }
 
 		public SendRegistrationOtpRequest build() {
-			return new SendRegistrationOtpRequest(email);
-		}
+            SendRegistrationOtpRequest obj = new SendRegistrationOtpRequest();
+            obj.setEmail(email);
+            return obj;
+        }
 	}
 }

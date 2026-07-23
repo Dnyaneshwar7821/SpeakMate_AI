@@ -47,7 +47,12 @@ public class WeeklyProgressResponse {
 		public WeeklyProgressResponseBuilder speakingSessions(Integer speakingSessions) { this.speakingSessions = speakingSessions; return this; }
 
 		public WeeklyProgressResponse build() {
-			return new WeeklyProgressResponse(day, studyMinutes, lessonsCompleted, speakingSessions);
-		}
+            WeeklyProgressResponse obj = new WeeklyProgressResponse();
+            obj.setDay(day);
+            obj.setStudyMinutes(studyMinutes);
+            obj.setLessonsCompleted(lessonsCompleted);
+            obj.setSpeakingSessions(speakingSessions);
+            return obj;
+        }
 	}
 }

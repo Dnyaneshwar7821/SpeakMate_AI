@@ -28,7 +28,9 @@ public class AvatarRequest {
 		public AvatarRequestBuilder avatar(String avatar) { this.avatar = avatar; return this; }
 
 		public AvatarRequest build() {
-			return new AvatarRequest(avatar);
-		}
+            AvatarRequest obj = new AvatarRequest();
+            obj.setAvatar(avatar);
+            return obj;
+        }
 	}
 }

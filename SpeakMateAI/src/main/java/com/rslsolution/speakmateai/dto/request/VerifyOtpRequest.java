@@ -38,7 +38,10 @@ public class VerifyOtpRequest {
 		public VerifyOtpRequestBuilder otp(String otp) { this.otp = otp; return this; }
 
 		public VerifyOtpRequest build() {
-			return new VerifyOtpRequest(email, otp);
-		}
+            VerifyOtpRequest obj = new VerifyOtpRequest();
+            obj.setEmail(email);
+            obj.setOtp(otp);
+            return obj;
+        }
 	}
 }

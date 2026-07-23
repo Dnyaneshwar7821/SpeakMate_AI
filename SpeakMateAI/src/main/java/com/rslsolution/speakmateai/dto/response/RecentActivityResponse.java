@@ -63,7 +63,14 @@ public class RecentActivityResponse {
 		public RecentActivityResponseBuilder xp(Integer xp) { this.xp = xp; return this; }
 
 		public RecentActivityResponse build() {
-			return new RecentActivityResponse(id, type, icon, title, time, xp);
-		}
+            RecentActivityResponse obj = new RecentActivityResponse();
+            obj.setId(id);
+            obj.setType(type);
+            obj.setIcon(icon);
+            obj.setTitle(title);
+            obj.setTime(time);
+            obj.setXp(xp);
+            return obj;
+        }
 	}
 }

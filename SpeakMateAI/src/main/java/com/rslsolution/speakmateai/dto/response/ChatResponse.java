@@ -56,7 +56,13 @@ public class ChatResponse {
 		public ChatResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public ChatResponse build() {
-			return new ChatResponse(id, userMessage, aiResponse, conversationId, createdAt);
-		}
+            ChatResponse obj = new ChatResponse();
+            obj.setId(id);
+            obj.setUserMessage(userMessage);
+            obj.setAiResponse(aiResponse);
+            obj.setConversationId(conversationId);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

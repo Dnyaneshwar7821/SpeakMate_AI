@@ -44,7 +44,12 @@ public class RecommendationResponse {
 		public RecommendationResponseBuilder targetId(Long targetId) { this.targetId = targetId; return this; }
 
 		public RecommendationResponse build() {
-			return new RecommendationResponse(type, title, actionLabel, targetId);
-		}
+            RecommendationResponse obj = new RecommendationResponse();
+            obj.setType(type);
+            obj.setTitle(title);
+            obj.setActionLabel(actionLabel);
+            obj.setTargetId(targetId);
+            return obj;
+        }
 	}
 }

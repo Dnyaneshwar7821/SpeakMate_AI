@@ -99,7 +99,17 @@ public class Vocabulary {
 		public VocabularyBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public Vocabulary build() {
-			return new Vocabulary(id, user, word, meaning, exampleSentence, synonym, antonym, favorite, createdAt);
-		}
+            Vocabulary obj = new Vocabulary();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setWord(word);
+            obj.setMeaning(meaning);
+            obj.setExampleSentence(exampleSentence);
+            obj.setSynonym(synonym);
+            obj.setAntonym(antonym);
+            obj.setFavorite(favorite);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

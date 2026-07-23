@@ -70,7 +70,15 @@ public class SpeakingHistoryResponse {
 		public SpeakingHistoryResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public SpeakingHistoryResponse build() {
-			return new SpeakingHistoryResponse(id, scenario, duration, xpEarned, score, previewMessage, createdAt);
-		}
+            SpeakingHistoryResponse obj = new SpeakingHistoryResponse();
+            obj.setId(id);
+            obj.setScenario(scenario);
+            obj.setDuration(duration);
+            obj.setXpEarned(xpEarned);
+            obj.setScore(score);
+            obj.setPreviewMessage(previewMessage);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

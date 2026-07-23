@@ -50,7 +50,13 @@ public class WordOfTheDayResponse {
 		public WordOfTheDayResponseBuilder antonym(String antonym) { this.antonym = antonym; return this; }
 
 		public WordOfTheDayResponse build() {
-			return new WordOfTheDayResponse(word, meaning, exampleSentence, synonym, antonym);
-		}
+            WordOfTheDayResponse obj = new WordOfTheDayResponse();
+            obj.setWord(word);
+            obj.setMeaning(meaning);
+            obj.setExampleSentence(exampleSentence);
+            obj.setSynonym(synonym);
+            obj.setAntonym(antonym);
+            return obj;
+        }
 	}
 }

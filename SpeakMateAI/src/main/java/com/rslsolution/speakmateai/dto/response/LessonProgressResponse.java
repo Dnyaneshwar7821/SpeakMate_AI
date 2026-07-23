@@ -106,7 +106,22 @@ public class LessonProgressResponse {
 		public LessonProgressResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public LessonProgressResponse build() {
-			return new LessonProgressResponse(id, lessonId, lessonTitle, lessonCategory, lessonLevel, progressPercent, completed, lastSectionIndex, timeSpentMinutes, xpEarned, lastOpenedAt, completedAt, createdAt, updatedAt);
-		}
+            LessonProgressResponse obj = new LessonProgressResponse();
+            obj.setId(id);
+            obj.setLessonId(lessonId);
+            obj.setLessonTitle(lessonTitle);
+            obj.setLessonCategory(lessonCategory);
+            obj.setLessonLevel(lessonLevel);
+            obj.setProgressPercent(progressPercent);
+            obj.setCompleted(completed);
+            obj.setLastSectionIndex(lastSectionIndex);
+            obj.setTimeSpentMinutes(timeSpentMinutes);
+            obj.setXpEarned(xpEarned);
+            obj.setLastOpenedAt(lastOpenedAt);
+            obj.setCompletedAt(completedAt);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }

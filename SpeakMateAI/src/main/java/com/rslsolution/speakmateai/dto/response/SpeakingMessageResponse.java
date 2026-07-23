@@ -58,7 +58,14 @@ public class SpeakingMessageResponse {
 		public SpeakingMessageResponseBuilder followUpQuestion(String followUpQuestion) { this.followUpQuestion = followUpQuestion; return this; }
 
 		public SpeakingMessageResponse build() {
-			return new SpeakingMessageResponse(aiReply, grammarCorrection, betterSentence, vocabularySuggestions, explanation, followUpQuestion);
-		}
+            SpeakingMessageResponse obj = new SpeakingMessageResponse();
+            obj.setAiReply(aiReply);
+            obj.setGrammarCorrection(grammarCorrection);
+            obj.setBetterSentence(betterSentence);
+            obj.setVocabularySuggestions(vocabularySuggestions);
+            obj.setExplanation(explanation);
+            obj.setFollowUpQuestion(followUpQuestion);
+            return obj;
+        }
 	}
 }

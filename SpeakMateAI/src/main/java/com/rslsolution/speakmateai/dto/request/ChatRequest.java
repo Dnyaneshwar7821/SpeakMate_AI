@@ -36,7 +36,10 @@ public class ChatRequest {
 		public ChatRequestBuilder conversationId(String conversationId) { this.conversationId = conversationId; return this; }
 
 		public ChatRequest build() {
-			return new ChatRequest(message, conversationId);
-		}
+            ChatRequest obj = new ChatRequest();
+            obj.setMessage(message);
+            obj.setConversationId(conversationId);
+            return obj;
+        }
 	}
 }

@@ -26,7 +26,9 @@ public class PronunciationResponse {
 		public PronunciationResponseBuilder feedback(String feedback) { this.feedback = feedback; return this; }
 
 		public PronunciationResponse build() {
-			return new PronunciationResponse(feedback);
-		}
+            PronunciationResponse obj = new PronunciationResponse();
+            obj.setFeedback(feedback);
+            return obj;
+        }
 	}
 }

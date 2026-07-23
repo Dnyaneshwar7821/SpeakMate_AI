@@ -120,8 +120,23 @@ public class SpeakingSessionDetailResponse {
 		public SpeakingSessionDetailResponseBuilder feedbackDetail(FeedbackDto feedbackDetail) { this.feedbackDetail = feedbackDetail; return this; }
 
 		public SpeakingSessionDetailResponse build() {
-			return new SpeakingSessionDetailResponse(id, scenario, duration, xpEarned, score, pronunciationScore, fluencyScore, grammarScore, vocabularyScore, overallScore, feedback, createdAt, messages, feedbackDetail);
-		}
+            SpeakingSessionDetailResponse obj = new SpeakingSessionDetailResponse();
+            obj.setId(id);
+            obj.setScenario(scenario);
+            obj.setDuration(duration);
+            obj.setXpEarned(xpEarned);
+            obj.setScore(score);
+            obj.setPronunciationScore(pronunciationScore);
+            obj.setFluencyScore(fluencyScore);
+            obj.setGrammarScore(grammarScore);
+            obj.setVocabularyScore(vocabularyScore);
+            obj.setOverallScore(overallScore);
+            obj.setFeedback(feedback);
+            obj.setCreatedAt(createdAt);
+            obj.setMessages(messages);
+            obj.setFeedbackDetail(feedbackDetail);
+            return obj;
+        }
 	}
 
 	@Data
@@ -162,8 +177,13 @@ public class SpeakingSessionDetailResponse {
 			public MessageDtoBuilder timestamp(LocalDateTime timestamp) { this.timestamp = timestamp; return this; }
 
 			public MessageDto build() {
-				return new MessageDto(id, sender, message, timestamp);
-			}
+            MessageDto obj = new MessageDto();
+            obj.setId(id);
+            obj.setSender(sender);
+            obj.setMessage(message);
+            obj.setTimestamp(timestamp);
+            return obj;
+        }
 		}
 	}
 
@@ -205,8 +225,13 @@ public class SpeakingSessionDetailResponse {
 			public FeedbackDtoBuilder summary(String summary) { this.summary = summary; return this; }
 
 			public FeedbackDto build() {
-				return new FeedbackDto(grammarCorrections, betterSentences, vocabularySuggestions, summary);
-			}
+            FeedbackDto obj = new FeedbackDto();
+            obj.setGrammarCorrections(grammarCorrections);
+            obj.setBetterSentences(betterSentences);
+            obj.setVocabularySuggestions(vocabularySuggestions);
+            obj.setSummary(summary);
+            return obj;
+        }
 		}
 	}
 }

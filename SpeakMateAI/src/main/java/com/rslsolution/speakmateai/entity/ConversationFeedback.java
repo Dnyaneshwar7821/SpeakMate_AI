@@ -69,7 +69,14 @@ public class ConversationFeedback {
 		public ConversationFeedbackBuilder summary(String summary) { this.summary = summary; return this; }
 
 		public ConversationFeedback build() {
-			return new ConversationFeedback(id, session, grammarCorrections, betterSentences, vocabularySuggestions, summary);
-		}
+            ConversationFeedback obj = new ConversationFeedback();
+            obj.setId(id);
+            obj.setSession(session);
+            obj.setGrammarCorrections(grammarCorrections);
+            obj.setBetterSentences(betterSentences);
+            obj.setVocabularySuggestions(vocabularySuggestions);
+            obj.setSummary(summary);
+            return obj;
+        }
 	}
 }

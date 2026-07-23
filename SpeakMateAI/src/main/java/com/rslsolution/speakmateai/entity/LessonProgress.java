@@ -131,7 +131,20 @@ public class LessonProgress {
 		public LessonProgressBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public LessonProgress build() {
-			return new LessonProgress(id, user, lesson, progressPercent, completed, lastSectionIndex, lastOpenedAt, completedAt, timeSpentMinutes, xpEarned, createdAt, updatedAt);
-		}
+            LessonProgress obj = new LessonProgress();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setLesson(lesson);
+            obj.setProgressPercent(progressPercent);
+            obj.setCompleted(completed);
+            obj.setLastSectionIndex(lastSectionIndex);
+            obj.setLastOpenedAt(lastOpenedAt);
+            obj.setCompletedAt(completedAt);
+            obj.setTimeSpentMinutes(timeSpentMinutes);
+            obj.setXpEarned(xpEarned);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }

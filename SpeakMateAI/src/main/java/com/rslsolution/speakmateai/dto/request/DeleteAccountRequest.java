@@ -38,7 +38,10 @@ public class DeleteAccountRequest {
 		public DeleteAccountRequestBuilder otp(String otp) { this.otp = otp; return this; }
 
 		public DeleteAccountRequest build() {
-			return new DeleteAccountRequest(email, otp);
-		}
+            DeleteAccountRequest obj = new DeleteAccountRequest();
+            obj.setEmail(email);
+            obj.setOtp(otp);
+            return obj;
+        }
 	}
 }

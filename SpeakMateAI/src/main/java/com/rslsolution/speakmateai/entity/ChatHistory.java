@@ -88,7 +88,14 @@ public class ChatHistory {
 		public ChatHistoryBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public ChatHistory build() {
-			return new ChatHistory(id, user, userMessage, aiResponse, conversationId, createdAt);
-		}
+            ChatHistory obj = new ChatHistory();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setUserMessage(userMessage);
+            obj.setAiResponse(aiResponse);
+            obj.setConversationId(conversationId);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

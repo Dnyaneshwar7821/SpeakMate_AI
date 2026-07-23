@@ -448,33 +448,6 @@ public class UserServiceImpl implements UserService {
 			user.setPassword(passwordEncoder.encode(request.getPassword()));
 		}
 
-	}
-
-	@Override
-	public UserResponse getUserById(Long id) {
-
-		User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
-
-		return mapToUserResponse(user);
-	}
-
-	@Override
-	public UserResponse updateUser(Long id, RegisterRequest request) {
-
-		User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
-
-		if (!user.getEmail().equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
-			throw new DuplicateEmailException("Email already exists.");
-		}
-
-		user.setFirstName(request.getFirstName());
-		user.setLastName(request.getLastName());
-		user.setEmail(request.getEmail());
-
-		if (request.getPassword() != null && !request.getPassword().isBlank()) {
-			user.setPassword(passwordEncoder.encode(request.getPassword()));
-		}
-
 		User updatedUser = userRepository.save(user);
 
 		return mapToUserResponse(updatedUser);

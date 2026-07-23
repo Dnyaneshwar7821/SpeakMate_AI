@@ -98,7 +98,19 @@ public class ProgressResponse {
 		public ProgressResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public ProgressResponse build() {
-			return new ProgressResponse(id, xp, level, currentStreak, longestStreak, totalPracticeMinutes, totalSpeakingSessions, totalGrammarChecks, totalVocabularyWords, createdAt, updatedAt);
-		}
+            ProgressResponse obj = new ProgressResponse();
+            obj.setId(id);
+            obj.setXp(xp);
+            obj.setLevel(level);
+            obj.setCurrentStreak(currentStreak);
+            obj.setLongestStreak(longestStreak);
+            obj.setTotalPracticeMinutes(totalPracticeMinutes);
+            obj.setTotalSpeakingSessions(totalSpeakingSessions);
+            obj.setTotalGrammarChecks(totalGrammarChecks);
+            obj.setTotalVocabularyWords(totalVocabularyWords);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }

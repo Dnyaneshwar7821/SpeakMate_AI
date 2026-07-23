@@ -47,7 +47,11 @@ public class SpeakingSessionRequest {
 		public SpeakingSessionRequestBuilder duration(Integer duration) { this.duration = duration; return this; }
 
 		public SpeakingSessionRequest build() {
-			return new SpeakingSessionRequest(topic, transcript, duration);
-		}
+            SpeakingSessionRequest obj = new SpeakingSessionRequest();
+            obj.setTopic(topic);
+            obj.setTranscript(transcript);
+            obj.setDuration(duration);
+            return obj;
+        }
 	}
 }

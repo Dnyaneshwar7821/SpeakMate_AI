@@ -84,7 +84,19 @@ public class ChatMessageResponse {
 		public ChatMessageResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public ChatMessageResponse build() {
-			return new ChatMessageResponse(id, sender, message, voiceEnabled, grammarCorrection, betterSentence, vocabularySuggestions, explanation, followUpQuestion, bookmarked, createdAt);
-		}
+            ChatMessageResponse obj = new ChatMessageResponse();
+            obj.setId(id);
+            obj.setSender(sender);
+            obj.setMessage(message);
+            obj.setVoiceEnabled(voiceEnabled);
+            obj.setGrammarCorrection(grammarCorrection);
+            obj.setBetterSentence(betterSentence);
+            obj.setVocabularySuggestions(vocabularySuggestions);
+            obj.setExplanation(explanation);
+            obj.setFollowUpQuestion(followUpQuestion);
+            obj.setBookmarked(bookmarked);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

@@ -28,7 +28,9 @@ public class AiRequest {
 		public AiRequestBuilder prompt(String prompt) { this.prompt = prompt; return this; }
 
 		public AiRequest build() {
-			return new AiRequest(prompt);
-		}
+            AiRequest obj = new AiRequest();
+            obj.setPrompt(prompt);
+            return obj;
+        }
 	}
 }

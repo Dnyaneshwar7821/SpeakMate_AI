@@ -124,7 +124,20 @@ public class Progress {
 		public ProgressBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public Progress build() {
-			return new Progress(id, user, xp, level, currentStreak, longestStreak, totalPracticeMinutes, totalSpeakingSessions, totalGrammarChecks, totalVocabularyWords, createdAt, updatedAt);
-		}
+            Progress obj = new Progress();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setXp(xp);
+            obj.setLevel(level);
+            obj.setCurrentStreak(currentStreak);
+            obj.setLongestStreak(longestStreak);
+            obj.setTotalPracticeMinutes(totalPracticeMinutes);
+            obj.setTotalSpeakingSessions(totalSpeakingSessions);
+            obj.setTotalGrammarChecks(totalGrammarChecks);
+            obj.setTotalVocabularyWords(totalVocabularyWords);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }

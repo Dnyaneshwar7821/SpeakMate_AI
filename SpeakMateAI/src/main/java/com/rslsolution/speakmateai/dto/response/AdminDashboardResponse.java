@@ -75,7 +75,16 @@ public class AdminDashboardResponse {
 		public AdminDashboardResponseBuilder totalNotifications(Long totalNotifications) { this.totalNotifications = totalNotifications; return this; }
 
 		public AdminDashboardResponse build() {
-			return new AdminDashboardResponse(totalUsers, activeUsers, totalLessons, activeLessons, totalSpeakingSessions, totalVocabularyWords, totalAchievements, totalNotifications);
-		}
+            AdminDashboardResponse obj = new AdminDashboardResponse();
+            obj.setTotalUsers(totalUsers);
+            obj.setActiveUsers(activeUsers);
+            obj.setTotalLessons(totalLessons);
+            obj.setActiveLessons(activeLessons);
+            obj.setTotalSpeakingSessions(totalSpeakingSessions);
+            obj.setTotalVocabularyWords(totalVocabularyWords);
+            obj.setTotalAchievements(totalAchievements);
+            obj.setTotalNotifications(totalNotifications);
+            return obj;
+        }
 	}
 }

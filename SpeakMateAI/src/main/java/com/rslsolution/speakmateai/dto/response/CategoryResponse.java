@@ -56,7 +56,14 @@ public class CategoryResponse {
 		public CategoryResponseBuilder totalXP(Integer totalXP) { this.totalXP = totalXP; return this; }
 
 		public CategoryResponse build() {
-			return new CategoryResponse(name, icon, description, lessonCount, completedCount, totalXP);
-		}
+            CategoryResponse obj = new CategoryResponse();
+            obj.setName(name);
+            obj.setIcon(icon);
+            obj.setDescription(description);
+            obj.setLessonCount(lessonCount);
+            obj.setCompletedCount(completedCount);
+            obj.setTotalXP(totalXP);
+            return obj;
+        }
 	}
 }

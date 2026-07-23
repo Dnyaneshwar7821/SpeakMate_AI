@@ -77,7 +77,16 @@ public class VocabularyResponse {
 		public VocabularyResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public VocabularyResponse build() {
-			return new VocabularyResponse(id, word, meaning, exampleSentence, synonym, antonym, favorite, createdAt);
-		}
+            VocabularyResponse obj = new VocabularyResponse();
+            obj.setId(id);
+            obj.setWord(word);
+            obj.setMeaning(meaning);
+            obj.setExampleSentence(exampleSentence);
+            obj.setSynonym(synonym);
+            obj.setAntonym(antonym);
+            obj.setFavorite(favorite);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

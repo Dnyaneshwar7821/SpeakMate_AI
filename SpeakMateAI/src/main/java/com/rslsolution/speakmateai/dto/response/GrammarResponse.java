@@ -63,7 +63,14 @@ public class GrammarResponse {
 		public GrammarResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public GrammarResponse build() {
-			return new GrammarResponse(id, originalText, correctedText, explanation, grammarScore, createdAt);
-		}
+            GrammarResponse obj = new GrammarResponse();
+            obj.setId(id);
+            obj.setOriginalText(originalText);
+            obj.setCorrectedText(correctedText);
+            obj.setExplanation(explanation);
+            obj.setGrammarScore(grammarScore);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

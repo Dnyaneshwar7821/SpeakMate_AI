@@ -32,7 +32,10 @@ public class AuthResponse {
 		public AuthResponseBuilder user(UserResponse user) { this.user = user; return this; }
 
 		public AuthResponse build() {
-			return new AuthResponse(token, user);
-		}
+            AuthResponse obj = new AuthResponse();
+            obj.setToken(token);
+            obj.setUser(user);
+            return obj;
+        }
 	}
 }

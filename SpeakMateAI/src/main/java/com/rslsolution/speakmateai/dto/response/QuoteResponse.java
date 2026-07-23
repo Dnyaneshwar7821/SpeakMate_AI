@@ -33,7 +33,10 @@ public class QuoteResponse {
 		public QuoteResponseBuilder author(String author) { this.author = author; return this; }
 
 		public QuoteResponse build() {
-			return new QuoteResponse(text, author);
-		}
+            QuoteResponse obj = new QuoteResponse();
+            obj.setText(text);
+            obj.setAuthor(author);
+            return obj;
+        }
 	}
 }

@@ -30,7 +30,9 @@ public class SendDeleteAccountOtpRequest {
 		public SendDeleteAccountOtpRequestBuilder email(String email) { this.email = email; return this; }
 
 		public SendDeleteAccountOtpRequest build() {
-			return new SendDeleteAccountOtpRequest(email);
-		}
+            SendDeleteAccountOtpRequest obj = new SendDeleteAccountOtpRequest();
+            obj.setEmail(email);
+            return obj;
+        }
 	}
 }

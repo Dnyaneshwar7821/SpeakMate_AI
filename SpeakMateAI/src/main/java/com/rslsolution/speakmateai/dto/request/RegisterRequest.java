@@ -71,7 +71,14 @@ public class RegisterRequest {
         public RegisterRequestBuilder otp(String otp) { this.otp = otp; return this; }
 
         public RegisterRequest build() {
-            return new RegisterRequest(firstName, lastName, email, password, confirmPassword, otp);
+            RegisterRequest obj = new RegisterRequest();
+            obj.setFirstName(firstName);
+            obj.setLastName(lastName);
+            obj.setEmail(email);
+            obj.setPassword(password);
+            obj.setConfirmPassword(confirmPassword);
+            obj.setOtp(otp);
+            return obj;
         }
     }
 }

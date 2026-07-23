@@ -161,7 +161,25 @@ public class SpeakingSession {
 		public SpeakingSessionBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public SpeakingSession build() {
-			return new SpeakingSession(id, user, topic, scenario, transcript, duration, xpEarned, score, pronunciationScore, fluencyScore, grammarScore, vocabularyScore, overallScore, feedback, messages, sessionFeedback, createdAt);
-		}
+            SpeakingSession obj = new SpeakingSession();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setTopic(topic);
+            obj.setScenario(scenario);
+            obj.setTranscript(transcript);
+            obj.setDuration(duration);
+            obj.setXpEarned(xpEarned);
+            obj.setScore(score);
+            obj.setPronunciationScore(pronunciationScore);
+            obj.setFluencyScore(fluencyScore);
+            obj.setGrammarScore(grammarScore);
+            obj.setVocabularyScore(vocabularyScore);
+            obj.setOverallScore(overallScore);
+            obj.setFeedback(feedback);
+            obj.setMessages(messages);
+            obj.setSessionFeedback(sessionFeedback);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

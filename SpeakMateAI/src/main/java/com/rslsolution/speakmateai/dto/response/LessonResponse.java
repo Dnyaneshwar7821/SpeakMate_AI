@@ -200,7 +200,37 @@ public class LessonResponse {
 		public LessonResponseBuilder completedAt(LocalDateTime completedAt) { this.completedAt = completedAt; return this; }
 
 		public LessonResponse build() {
-			return new LessonResponse(id, title, category, level, description, content, duration, active, createdAt, updatedAt, xpReward, thumbnail, coverImage, locked, requiredXP, requiredLevel, estimatedMinutes, orderIndex, skills, objectives, requirements, popular, featured, progressPercent, completed, lastSectionIndex, xpEarned, lastOpenedAt, completedAt);
-		}
+            LessonResponse obj = new LessonResponse();
+            obj.setId(id);
+            obj.setTitle(title);
+            obj.setCategory(category);
+            obj.setLevel(level);
+            obj.setDescription(description);
+            obj.setContent(content);
+            obj.setDuration(duration);
+            obj.setActive(active);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            obj.setXpReward(xpReward);
+            obj.setThumbnail(thumbnail);
+            obj.setCoverImage(coverImage);
+            obj.setLocked(locked);
+            obj.setRequiredXP(requiredXP);
+            obj.setRequiredLevel(requiredLevel);
+            obj.setEstimatedMinutes(estimatedMinutes);
+            obj.setOrderIndex(orderIndex);
+            obj.setSkills(skills);
+            obj.setObjectives(objectives);
+            obj.setRequirements(requirements);
+            obj.setPopular(popular);
+            obj.setFeatured(featured);
+            obj.setProgressPercent(progressPercent);
+            obj.setCompleted(completed);
+            obj.setLastSectionIndex(lastSectionIndex);
+            obj.setXpEarned(xpEarned);
+            obj.setLastOpenedAt(lastOpenedAt);
+            obj.setCompletedAt(completedAt);
+            return obj;
+        }
 	}
 }

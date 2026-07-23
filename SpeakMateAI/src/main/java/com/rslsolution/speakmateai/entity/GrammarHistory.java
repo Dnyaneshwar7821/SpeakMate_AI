@@ -95,7 +95,15 @@ public class GrammarHistory {
 		public GrammarHistoryBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public GrammarHistory build() {
-			return new GrammarHistory(id, user, originalText, correctedText, explanation, grammarScore, createdAt);
-		}
+            GrammarHistory obj = new GrammarHistory();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setOriginalText(originalText);
+            obj.setCorrectedText(correctedText);
+            obj.setExplanation(explanation);
+            obj.setGrammarScore(grammarScore);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

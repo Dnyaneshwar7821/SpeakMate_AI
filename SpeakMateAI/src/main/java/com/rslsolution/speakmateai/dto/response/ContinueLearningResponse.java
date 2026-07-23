@@ -50,7 +50,13 @@ public class ContinueLearningResponse {
 		public ContinueLearningResponseBuilder targetId(Long targetId) { this.targetId = targetId; return this; }
 
 		public ContinueLearningResponse build() {
-			return new ContinueLearningResponse(module, title, progressPercent, estimatedMinutesRemaining, targetId);
-		}
+            ContinueLearningResponse obj = new ContinueLearningResponse();
+            obj.setModule(module);
+            obj.setTitle(title);
+            obj.setProgressPercent(progressPercent);
+            obj.setEstimatedMinutesRemaining(estimatedMinutesRemaining);
+            obj.setTargetId(targetId);
+            return obj;
+        }
 	}
 }

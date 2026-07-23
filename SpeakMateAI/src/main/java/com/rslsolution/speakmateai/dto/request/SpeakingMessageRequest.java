@@ -44,7 +44,11 @@ public class SpeakingMessageRequest {
 		public SpeakingMessageRequestBuilder level(String level) { this.level = level; return this; }
 
 		public SpeakingMessageRequest build() {
-			return new SpeakingMessageRequest(sessionId, message, level);
-		}
+            SpeakingMessageRequest obj = new SpeakingMessageRequest();
+            obj.setSessionId(sessionId);
+            obj.setMessage(message);
+            obj.setLevel(level);
+            return obj;
+        }
 	}
 }

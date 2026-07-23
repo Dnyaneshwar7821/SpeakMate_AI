@@ -60,7 +60,13 @@ public class ProfileRequest {
 		public ProfileRequestBuilder learningGoal(String learningGoal) { this.learningGoal = learningGoal; return this; }
 
 		public ProfileRequest build() {
-			return new ProfileRequest(firstName, lastName, email, englishLevel, learningGoal);
-		}
+            ProfileRequest obj = new ProfileRequest();
+            obj.setFirstName(firstName);
+            obj.setLastName(lastName);
+            obj.setEmail(email);
+            obj.setEnglishLevel(englishLevel);
+            obj.setLearningGoal(learningGoal);
+            return obj;
+        }
 	}
 }

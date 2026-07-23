@@ -43,7 +43,11 @@ public class NotificationRequest {
 		public NotificationRequestBuilder isRead(Boolean isRead) { this.isRead = isRead; return this; }
 
 		public NotificationRequest build() {
-			return new NotificationRequest(title, message, isRead);
-		}
+            NotificationRequest obj = new NotificationRequest();
+            obj.setTitle(title);
+            obj.setMessage(message);
+            obj.setIsRead(isRead);
+            return obj;
+        }
 	}
 }

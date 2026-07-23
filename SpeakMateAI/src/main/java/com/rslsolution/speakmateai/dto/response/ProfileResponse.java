@@ -131,7 +131,24 @@ public class ProfileResponse {
 		public ProfileResponseBuilder totalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; return this; }
 
 		public ProfileResponse build() {
-			return new ProfileResponse(id, firstName, lastName, email, role, avatar, englishLevel, learningGoal, xp, level, currentStreak, longestStreak, totalPracticeMinutes, totalSpeakingSessions, totalGrammarChecks, totalVocabularyWords);
-		}
+            ProfileResponse obj = new ProfileResponse();
+            obj.setId(id);
+            obj.setFirstName(firstName);
+            obj.setLastName(lastName);
+            obj.setEmail(email);
+            obj.setRole(role);
+            obj.setAvatar(avatar);
+            obj.setEnglishLevel(englishLevel);
+            obj.setLearningGoal(learningGoal);
+            obj.setXp(xp);
+            obj.setLevel(level);
+            obj.setCurrentStreak(currentStreak);
+            obj.setLongestStreak(longestStreak);
+            obj.setTotalPracticeMinutes(totalPracticeMinutes);
+            obj.setTotalSpeakingSessions(totalSpeakingSessions);
+            obj.setTotalGrammarChecks(totalGrammarChecks);
+            obj.setTotalVocabularyWords(totalVocabularyWords);
+            return obj;
+        }
 	}
 }

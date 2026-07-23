@@ -38,7 +38,10 @@ public class LoginRequest {
 		public LoginRequestBuilder password(String password) { this.password = password; return this; }
 
 		public LoginRequest build() {
-			return new LoginRequest(email, password);
-		}
+            LoginRequest obj = new LoginRequest();
+            obj.setEmail(email);
+            obj.setPassword(password);
+            return obj;
+        }
 	}
 }

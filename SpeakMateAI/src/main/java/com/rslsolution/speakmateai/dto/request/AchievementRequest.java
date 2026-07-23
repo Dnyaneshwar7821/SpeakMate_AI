@@ -59,7 +59,13 @@ public class AchievementRequest {
 		public AchievementRequestBuilder unlocked(Boolean unlocked) { this.unlocked = unlocked; return this; }
 
 		public AchievementRequest build() {
-			return new AchievementRequest(title, description, xpReward, tier, unlocked);
-		}
+            AchievementRequest obj = new AchievementRequest();
+            obj.setTitle(title);
+            obj.setDescription(description);
+            obj.setXpReward(xpReward);
+            obj.setTier(tier);
+            obj.setUnlocked(unlocked);
+            return obj;
+        }
 	}
 }

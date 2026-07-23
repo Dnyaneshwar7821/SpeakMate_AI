@@ -75,7 +75,14 @@ public class Notification {
 		public NotificationBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public Notification build() {
-			return new Notification(id, user, title, message, isRead, createdAt);
-		}
+            Notification obj = new Notification();
+            obj.setId(id);
+            obj.setUser(user);
+            obj.setTitle(title);
+            obj.setMessage(message);
+            obj.setIsRead(isRead);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

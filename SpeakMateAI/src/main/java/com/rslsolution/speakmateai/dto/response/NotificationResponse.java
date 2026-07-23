@@ -56,7 +56,13 @@ public class NotificationResponse {
 		public NotificationResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public NotificationResponse build() {
-			return new NotificationResponse(id, title, message, isRead, createdAt);
-		}
+            NotificationResponse obj = new NotificationResponse();
+            obj.setId(id);
+            obj.setTitle(title);
+            obj.setMessage(message);
+            obj.setIsRead(isRead);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

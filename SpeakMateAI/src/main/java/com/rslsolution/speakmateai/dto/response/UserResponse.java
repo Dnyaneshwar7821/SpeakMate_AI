@@ -149,7 +149,26 @@ public class UserResponse {
 		public UserResponseBuilder interests(String interests) { this.interests = interests; return this; }
 
 		public UserResponse build() {
-			return new UserResponse(id, firstName, lastName, email, role, avatar, active, createdAt, welcomeCompleted, onboardingCompleted, authProvider, nativeLanguage, englishLevel, learningGoal, dailyGoalMinutes, preferredVoice, preferredAccent, interests);
-		}
+            UserResponse obj = new UserResponse();
+            obj.setId(id);
+            obj.setFirstName(firstName);
+            obj.setLastName(lastName);
+            obj.setEmail(email);
+            obj.setRole(role);
+            obj.setAvatar(avatar);
+            obj.setActive(active);
+            obj.setCreatedAt(createdAt);
+            obj.setWelcomeCompleted(welcomeCompleted);
+            obj.setOnboardingCompleted(onboardingCompleted);
+            obj.setAuthProvider(authProvider);
+            obj.setNativeLanguage(nativeLanguage);
+            obj.setEnglishLevel(englishLevel);
+            obj.setLearningGoal(learningGoal);
+            obj.setDailyGoalMinutes(dailyGoalMinutes);
+            obj.setPreferredVoice(preferredVoice);
+            obj.setPreferredAccent(preferredAccent);
+            obj.setInterests(interests);
+            return obj;
+        }
 	}
 }

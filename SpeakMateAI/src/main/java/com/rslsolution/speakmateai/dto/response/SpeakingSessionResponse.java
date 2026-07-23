@@ -98,7 +98,19 @@ public class SpeakingSessionResponse {
 		public SpeakingSessionResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public SpeakingSessionResponse build() {
-			return new SpeakingSessionResponse(id, topic, transcript, duration, pronunciationScore, fluencyScore, grammarScore, vocabularyScore, overallScore, feedback, createdAt);
-		}
+            SpeakingSessionResponse obj = new SpeakingSessionResponse();
+            obj.setId(id);
+            obj.setTopic(topic);
+            obj.setTranscript(transcript);
+            obj.setDuration(duration);
+            obj.setPronunciationScore(pronunciationScore);
+            obj.setFluencyScore(fluencyScore);
+            obj.setGrammarScore(grammarScore);
+            obj.setVocabularyScore(vocabularyScore);
+            obj.setOverallScore(overallScore);
+            obj.setFeedback(feedback);
+            obj.setCreatedAt(createdAt);
+            return obj;
+        }
 	}
 }

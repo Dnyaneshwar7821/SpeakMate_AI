@@ -69,7 +69,13 @@ public class ConversationMessage {
 		public ConversationMessageBuilder timestamp(LocalDateTime timestamp) { this.timestamp = timestamp; return this; }
 
 		public ConversationMessage build() {
-			return new ConversationMessage(id, session, sender, message, timestamp);
-		}
+            ConversationMessage obj = new ConversationMessage();
+            obj.setId(id);
+            obj.setSession(session);
+            obj.setSender(sender);
+            obj.setMessage(message);
+            obj.setTimestamp(timestamp);
+            return obj;
+        }
 	}
 }

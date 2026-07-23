@@ -49,7 +49,13 @@ public class ChatSessionDetailResponse {
 		public ChatSessionDetailResponseBuilder messages(List<ChatMessageResponse> messages) { this.messages = messages; return this; }
 
 		public ChatSessionDetailResponse build() {
-			return new ChatSessionDetailResponse(id, mode, title, createdAt, messages);
-		}
+            ChatSessionDetailResponse obj = new ChatSessionDetailResponse();
+            obj.setId(id);
+            obj.setMode(mode);
+            obj.setTitle(title);
+            obj.setCreatedAt(createdAt);
+            obj.setMessages(messages);
+            return obj;
+        }
 	}
 }

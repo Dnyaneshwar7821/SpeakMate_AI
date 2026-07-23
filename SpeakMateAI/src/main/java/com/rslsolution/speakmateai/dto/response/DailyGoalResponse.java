@@ -68,7 +68,15 @@ public class DailyGoalResponse {
 		public DailyGoalResponseBuilder remainingLessons(Integer remainingLessons) { this.remainingLessons = remainingLessons; return this; }
 
 		public DailyGoalResponse build() {
-			return new DailyGoalResponse(title, lessonsCompletedToday, speakingMinutesToday, vocabularyCompleted, vocabularyTarget, percentage, remainingLessons);
-		}
+            DailyGoalResponse obj = new DailyGoalResponse();
+            obj.setTitle(title);
+            obj.setLessonsCompletedToday(lessonsCompletedToday);
+            obj.setSpeakingMinutesToday(speakingMinutesToday);
+            obj.setVocabularyCompleted(vocabularyCompleted);
+            obj.setVocabularyTarget(vocabularyTarget);
+            obj.setPercentage(percentage);
+            obj.setRemainingLessons(remainingLessons);
+            return obj;
+        }
 	}
 }

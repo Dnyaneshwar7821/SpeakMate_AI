@@ -2,13 +2,11 @@ package com.rslsolution.speakmateai.dto.groq;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class GroqRequest {
 
 	private String model;
@@ -32,7 +30,6 @@ public class GroqRequest {
 
 	@Data
 	@NoArgsConstructor
-	@AllArgsConstructor
 	public static class Message {
 
 		private String role;

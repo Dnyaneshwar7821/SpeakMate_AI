@@ -223,7 +223,31 @@ public class Lesson {
 		public LessonBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public Lesson build() {
-			return new Lesson(id, title, category, level, description, content, xpReward, thumbnail, coverImage, locked, requiredXP, requiredLevel, estimatedMinutes, orderIndex, skills, objectives, requirements, popular, featured, duration, active, createdAt, updatedAt);
-		}
+            Lesson obj = new Lesson();
+            obj.setId(id);
+            obj.setTitle(title);
+            obj.setCategory(category);
+            obj.setLevel(level);
+            obj.setDescription(description);
+            obj.setContent(content);
+            obj.setXpReward(xpReward);
+            obj.setThumbnail(thumbnail);
+            obj.setCoverImage(coverImage);
+            obj.setLocked(locked);
+            obj.setRequiredXP(requiredXP);
+            obj.setRequiredLevel(requiredLevel);
+            obj.setEstimatedMinutes(estimatedMinutes);
+            obj.setOrderIndex(orderIndex);
+            obj.setSkills(skills);
+            obj.setObjectives(objectives);
+            obj.setRequirements(requirements);
+            obj.setPopular(popular);
+            obj.setFeatured(featured);
+            obj.setDuration(duration);
+            obj.setActive(active);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }

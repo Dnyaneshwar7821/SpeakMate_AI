@@ -155,7 +155,28 @@ public class LessonRequest {
 		public LessonRequestBuilder featured(Boolean featured) { this.featured = featured; return this; }
 
 		public LessonRequest build() {
-			return new LessonRequest(title, category, level, description, content, duration, active, xpReward, thumbnail, coverImage, locked, requiredXP, requiredLevel, estimatedMinutes, orderIndex, skills, objectives, requirements, popular, featured);
-		}
+            LessonRequest obj = new LessonRequest();
+            obj.setTitle(title);
+            obj.setCategory(category);
+            obj.setLevel(level);
+            obj.setDescription(description);
+            obj.setContent(content);
+            obj.setDuration(duration);
+            obj.setActive(active);
+            obj.setXpReward(xpReward);
+            obj.setThumbnail(thumbnail);
+            obj.setCoverImage(coverImage);
+            obj.setLocked(locked);
+            obj.setRequiredXP(requiredXP);
+            obj.setRequiredLevel(requiredLevel);
+            obj.setEstimatedMinutes(estimatedMinutes);
+            obj.setOrderIndex(orderIndex);
+            obj.setSkills(skills);
+            obj.setObjectives(objectives);
+            obj.setRequirements(requirements);
+            obj.setPopular(popular);
+            obj.setFeatured(featured);
+            return obj;
+        }
 	}
 }

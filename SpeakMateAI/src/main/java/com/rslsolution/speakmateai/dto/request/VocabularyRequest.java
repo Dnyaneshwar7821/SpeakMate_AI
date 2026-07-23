@@ -28,7 +28,9 @@ public class VocabularyRequest {
 		public VocabularyRequestBuilder word(String word) { this.word = word; return this; }
 
 		public VocabularyRequest build() {
-			return new VocabularyRequest(word);
-		}
+            VocabularyRequest obj = new VocabularyRequest();
+            obj.setWord(word);
+            return obj;
+        }
 	}
 }

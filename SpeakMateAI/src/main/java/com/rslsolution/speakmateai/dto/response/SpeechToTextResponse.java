@@ -26,7 +26,9 @@ public class SpeechToTextResponse {
 		public SpeechToTextResponseBuilder transcript(String transcript) { this.transcript = transcript; return this; }
 
 		public SpeechToTextResponse build() {
-			return new SpeechToTextResponse(transcript);
-		}
+            SpeechToTextResponse obj = new SpeechToTextResponse();
+            obj.setTranscript(transcript);
+            return obj;
+        }
 	}
 }

@@ -32,7 +32,10 @@ public class VerifyOtpResponse {
 		public VerifyOtpResponseBuilder message(String message) { this.message = message; return this; }
 
 		public VerifyOtpResponse build() {
-			return new VerifyOtpResponse(token, message);
-		}
+            VerifyOtpResponse obj = new VerifyOtpResponse();
+            obj.setToken(token);
+            obj.setMessage(message);
+            return obj;
+        }
 	}
 }

@@ -28,7 +28,9 @@ public class PronunciationRequest {
 		public PronunciationRequestBuilder text(String text) { this.text = text; return this; }
 
 		public PronunciationRequest build() {
-			return new PronunciationRequest(text);
-		}
+            PronunciationRequest obj = new PronunciationRequest();
+            obj.setText(text);
+            return obj;
+        }
 	}
 }

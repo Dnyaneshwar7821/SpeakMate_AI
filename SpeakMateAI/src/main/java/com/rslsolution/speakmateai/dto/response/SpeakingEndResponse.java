@@ -80,7 +80,18 @@ public class SpeakingEndResponse {
 		public SpeakingEndResponseBuilder motivationalMessage(String motivationalMessage) { this.motivationalMessage = motivationalMessage; return this; }
 
 		public SpeakingEndResponse build() {
-			return new SpeakingEndResponse(sessionId, scenario, duration, messagesExchanged, grammarMistakes, xpEarned, score, summary, vocabularyLearned, motivationalMessage);
-		}
+            SpeakingEndResponse obj = new SpeakingEndResponse();
+            obj.setSessionId(sessionId);
+            obj.setScenario(scenario);
+            obj.setDuration(duration);
+            obj.setMessagesExchanged(messagesExchanged);
+            obj.setGrammarMistakes(grammarMistakes);
+            obj.setXpEarned(xpEarned);
+            obj.setScore(score);
+            obj.setSummary(summary);
+            obj.setVocabularyLearned(vocabularyLearned);
+            obj.setMotivationalMessage(motivationalMessage);
+            return obj;
+        }
 	}
 }

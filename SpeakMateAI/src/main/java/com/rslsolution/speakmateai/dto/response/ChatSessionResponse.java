@@ -54,7 +54,14 @@ public class ChatSessionResponse {
 		public ChatSessionResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
 		public ChatSessionResponse build() {
-			return new ChatSessionResponse(id, mode, title, messageCount, createdAt, updatedAt);
-		}
+            ChatSessionResponse obj = new ChatSessionResponse();
+            obj.setId(id);
+            obj.setMode(mode);
+            obj.setTitle(title);
+            obj.setMessageCount(messageCount);
+            obj.setCreatedAt(createdAt);
+            obj.setUpdatedAt(updatedAt);
+            return obj;
+        }
 	}
 }
