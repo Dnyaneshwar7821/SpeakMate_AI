@@ -143,7 +143,8 @@ export default function SettingsScreen({ navigation }) {
   return (
     <Screen title="Settings" subtitle="Sync learning preferences with your backend account.">
       <StateView loading={state.loading} error={state.error} onRetry={load}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
           
           {/* ACTIVE SPEAKING TUTOR STATUS CARD */}
           <Card style={[styles.statusCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
@@ -220,6 +221,10 @@ export default function SettingsScreen({ navigation }) {
                     ? `System Default (${onboardingVoiceStyle})`
                     : (VOICE_PROFILES.find((o) => o.code === form.aiVoice)?.label || form.aiVoice)}
                 </Text>
+                <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
+              </View>
+            </TouchableOpacity>
+
             <View style={[styles.divider, { backgroundColor: dividerColor }]} />
 
             {/* Age Group Selector */}
@@ -512,6 +517,12 @@ export default function SettingsScreen({ navigation }) {
                       )}
                     </TouchableOpacity>
                   );
+                })}
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
+
         {/* AGE GROUP SELECTION MODAL */}
         <Modal
           visible={showAgeModal}
@@ -569,6 +580,7 @@ export default function SettingsScreen({ navigation }) {
             </View>
           </View>
         </Modal>
+        </>
       </StateView>
     </Screen>
   );
