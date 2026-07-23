@@ -120,9 +120,8 @@ export default function SettingsScreen({ navigation }) {
         await setDarkMode(form.darkMode);
       }
 
-      // 2. Sync Age Group with User Profile & Onboarding
+      // 2. Sync Age Group via Onboarding Service (which updates both Onboarding & User entities in DB)
       if (form.ageGroup) {
-        await profileService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Profile age sync warning:', e));
         await onboardingService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Onboarding age sync warning:', e));
       }
 
