@@ -13,4 +13,4 @@ COPY --from=build /app/target/*.jar app.jar
 ENV PORT=9091
 EXPOSE 9091
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms128m", "-Xmx256m", "-XX:+UseSerialGC", "-XX:MaxMetaspaceSize=128m", "-jar", "app.jar"]
