@@ -182,8 +182,11 @@ export default function SpeakingHomeScreen({ navigation }) {
     );
   };
 
+  // Active age-tailored scenarios
+  const activeScenarios = AGE_SCENARIOS[userAgeGroup] || AGE_SCENARIOS['Professional'];
+
   // Filtered scenarios
-  const filteredScenarios = SCENARIOS.filter((s) => {
+  const filteredScenarios = activeScenarios.filter((s) => {
     const matchesSearch = s.title.toLowerCase().includes(searchText.toLowerCase()) ||
       s.desc.toLowerCase().includes(searchText.toLowerCase());
     const matchesCat = selectedCategory === 'All' || s.category === selectedCategory;
