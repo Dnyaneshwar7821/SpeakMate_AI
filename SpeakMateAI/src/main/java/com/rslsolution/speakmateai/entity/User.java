@@ -187,6 +187,18 @@ public class User {
 	public String getAuthProvider() { return authProvider; }
 	public void setAuthProvider(String authProvider) { this.authProvider = authProvider; }
 
+	public String getResetPasswordToken() { return resetPasswordToken; }
+	public void setResetPasswordToken(String resetPasswordToken) { this.resetPasswordToken = resetPasswordToken; }
+
+	public LocalDateTime getResetPasswordTokenExpiry() { return resetPasswordTokenExpiry; }
+	public void setResetPasswordTokenExpiry(LocalDateTime resetPasswordTokenExpiry) { this.resetPasswordTokenExpiry = resetPasswordTokenExpiry; }
+
+	public String getResetOtp() { return resetOtp; }
+	public void setResetOtp(String resetOtp) { this.resetOtp = resetOtp; }
+
+	public LocalDateTime getResetOtpExpiry() { return resetOtpExpiry; }
+	public void setResetOtpExpiry(LocalDateTime resetOtpExpiry) { this.resetOtpExpiry = resetOtpExpiry; }
+
 	public String getNativeLanguage() { return nativeLanguage; }
 	public void setNativeLanguage(String nativeLanguage) { this.nativeLanguage = nativeLanguage; }
 
@@ -255,6 +267,10 @@ public class User {
 		public UserBuilder welcomeCompleted(boolean welcomeCompleted) { this.welcomeCompleted = welcomeCompleted; return this; }
 		public UserBuilder onboardingCompleted(boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; return this; }
 		public UserBuilder authProvider(String authProvider) { this.authProvider = authProvider; return this; }
+		public UserBuilder resetPasswordToken(String resetPasswordToken) { this.resetPasswordToken = resetPasswordToken; return this; }
+		public UserBuilder resetPasswordTokenExpiry(LocalDateTime resetPasswordTokenExpiry) { this.resetPasswordTokenExpiry = resetPasswordTokenExpiry; return this; }
+		public UserBuilder resetOtp(String resetOtp) { this.resetOtp = resetOtp; return this; }
+		public UserBuilder resetOtpExpiry(LocalDateTime resetOtpExpiry) { this.resetOtpExpiry = resetOtpExpiry; return this; }
 		public UserBuilder nativeLanguage(String nativeLanguage) { this.nativeLanguage = nativeLanguage; return this; }
 		public UserBuilder englishLevel(String englishLevel) { this.englishLevel = englishLevel; return this; }
 		public UserBuilder learningGoal(String learningGoal) { this.learningGoal = learningGoal; return this; }
@@ -279,6 +295,10 @@ public class User {
 			user.setWelcomeCompleted(welcomeCompleted);
 			user.setOnboardingCompleted(onboardingCompleted);
 			user.setAuthProvider(authProvider);
+			user.setResetPasswordToken(resetPasswordToken);
+			user.setResetPasswordTokenExpiry(resetPasswordTokenExpiry);
+			user.setResetOtp(resetOtp);
+			user.setResetOtpExpiry(resetOtpExpiry);
 			user.setNativeLanguage(nativeLanguage);
 			user.setEnglishLevel(englishLevel);
 			user.setLearningGoal(learningGoal);

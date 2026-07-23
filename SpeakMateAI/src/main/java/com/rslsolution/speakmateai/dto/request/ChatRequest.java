@@ -17,4 +17,26 @@ public class ChatRequest {
 
 	@NotBlank(message = "Conversation ID is required")
 	private String conversationId;
+
+	public String getMessage() { return message; }
+	public void setMessage(String message) { this.message = message; }
+
+	public String getConversationId() { return conversationId; }
+	public void setConversationId(String conversationId) { this.conversationId = conversationId; }
+
+	public static ChatRequestBuilder builder() {
+		return new ChatRequestBuilder();
+	}
+
+	public static class ChatRequestBuilder {
+		private String message;
+		private String conversationId;
+
+		public ChatRequestBuilder message(String message) { this.message = message; return this; }
+		public ChatRequestBuilder conversationId(String conversationId) { this.conversationId = conversationId; return this; }
+
+		public ChatRequest build() {
+			return new ChatRequest(message, conversationId);
+		}
+	}
 }

@@ -26,4 +26,40 @@ public class AchievementRequest {
 
 	private Boolean unlocked;
 
+	public String getTitle() { return title; }
+	public void setTitle(String title) { this.title = title; }
+
+	public String getDescription() { return description; }
+	public void setDescription(String description) { this.description = description; }
+
+	public Integer getXpReward() { return xpReward; }
+	public void setXpReward(Integer xpReward) { this.xpReward = xpReward; }
+
+	public Integer getTier() { return tier; }
+	public void setTier(Integer tier) { this.tier = tier; }
+
+	public Boolean getUnlocked() { return unlocked; }
+	public void setUnlocked(Boolean unlocked) { this.unlocked = unlocked; }
+
+	public static AchievementRequestBuilder builder() {
+		return new AchievementRequestBuilder();
+	}
+
+	public static class AchievementRequestBuilder {
+		private String title;
+		private String description;
+		private Integer xpReward;
+		private Integer tier;
+		private Boolean unlocked;
+
+		public AchievementRequestBuilder title(String title) { this.title = title; return this; }
+		public AchievementRequestBuilder description(String description) { this.description = description; return this; }
+		public AchievementRequestBuilder xpReward(Integer xpReward) { this.xpReward = xpReward; return this; }
+		public AchievementRequestBuilder tier(Integer tier) { this.tier = tier; return this; }
+		public AchievementRequestBuilder unlocked(Boolean unlocked) { this.unlocked = unlocked; return this; }
+
+		public AchievementRequest build() {
+			return new AchievementRequest(title, description, xpReward, tier, unlocked);
+		}
+	}
 }
