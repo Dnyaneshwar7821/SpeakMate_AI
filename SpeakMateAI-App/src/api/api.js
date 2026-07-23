@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { STORAGE_KEYS } from '../utils/storageKeys';
+import { BASE_URL } from '../constants/config';
 
 let logoutCallback = null;
 
@@ -9,7 +10,7 @@ export const setLogoutCallback = (cb) => {
 };
 
 const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+  baseURL: BASE_URL || 'https://speakmateai-backend.onrender.com',
   timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
