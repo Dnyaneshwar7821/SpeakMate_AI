@@ -11,6 +11,7 @@ export const ROUTES = {
   SPEAKING: "/speaking",
   CONVERSATION_SESSION: "/speaking/session",
   SPEAKING_SUMMARY: "/speaking/summary",
+  SPEAKING_HISTORY_DETAIL: "/speaking/history/:id",
   LESSONS: "/lessons",
   LESSON_DETAIL: "/lessons/:id",
   GRAMMAR: "/grammar",

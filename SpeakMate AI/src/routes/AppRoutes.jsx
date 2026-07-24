@@ -18,6 +18,7 @@ import ConversationChat from "../pages/ConversationChat";
 import SpeakingPractice from "../pages/SpeakingPractice";
 import ConversationSession from "../pages/ConversationSession";
 import SpeakingSummary from "../pages/SpeakingSummary";
+import SpeakingHistoryDetail from "../pages/SpeakingHistoryDetail";
 import Lessons from "../pages/Lessons";
 import LessonDetail from "../pages/LessonDetail";
 import GrammarPractice from "../pages/GrammarPractice";
@@ -190,6 +191,17 @@ export function AppRoutes() {
               <ProtectedRoute>
                 <PageTransition>
                   <SpeakingSummary />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.SPEAKING_HISTORY_DETAIL}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <SpeakingHistoryDetail />
                 </PageTransition>
               </ProtectedRoute>
             }
