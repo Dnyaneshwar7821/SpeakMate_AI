@@ -1,3 +1,8 @@
+import { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import ROUTES from "../constants/routes";
+import { lessonModuleService, aiService, speechService } from "../services/appServices";
+
 // Helper to safely parse objectives and skills arrays regardless of API response type
 const parseArrayField = (field, fallback = []) => {
   if (!field) return fallback;
