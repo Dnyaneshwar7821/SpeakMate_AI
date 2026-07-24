@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
-import { speakingService, speechService } from "../services/appServices";
+import { speakingService } from "../services/appServices";
 
 export function ConversationSession() {
   const navigate = useNavigate();
@@ -10,12 +10,12 @@ export function ConversationSession() {
   const scenario = searchParams.get("scenario") || "Free Speaking Practice";
   const xpReward = Number(searchParams.get("xpReward")) || 20;
 
-  const [sessionId, setSessionId] = useState(sessionIdParam || Date.now().toString());
+  const [sessionId] = useState(sessionIdParam || Date.now().toString());
   const [messages, setMessages] = useState([
     {
       id: "1",
       sender: "ai",
-      message: `Hello! I am your AI Speaking Coach for '${scenario}'. Let's practice speaking together!`,
+      message: `Hello! I am your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`,
     },
   ]);
 
@@ -36,6 +36,60 @@ export function ConversationSession() {
 
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
+  const hasSpokenInitialRef = useRef(false);
+
+  // Helper to format full speakable text including AI reply + corrections + explanation
+  const getSpeakableText = (feedback) => {
+    if (!feedback) return "";
+    let text = feedback.aiReply || feedback.message || "";
+    const isCorrect =
+      feedback.grammarCorrection &&
+      (feedback.grammarCorrection.includes("✅") ||
+        feedback.grammarCorrection.toLowerCase().includes("correct"));
+
+    if (feedback.grammarCorrection && !isCorrect) {
+      text += `. A better way to say that is: "${feedback.grammarCorrection}".`;
+      if (feedback.explanation) {
+        text += ` ${feedback.explanation}`;
+      }
+    } else if (feedback.betterSentence) {
+      text += `. You could also express it as: "${feedback.betterSentence}".`;
+      if (feedback.explanation) {
+        text += ` ${feedback.explanation}`;
+      }
+    }
+
+    if (feedback.followUpQuestion) {
+      text += ` ${feedback.followUpQuestion}`;
+    }
+    return text;
+  };
+
+  const handleSpeakText = (text) => {
+    if (isMuted || !text) return;
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = speechSpeed;
+      utterance.lang = "en-US";
+      utterance.onstart = () => setIsAiSpeaking(true);
+      utterance.onend = () => setIsAiSpeaking(false);
+      utterance.onerror = () => setIsAiSpeaking(false);
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // 1st AUTOMATIC AI READ-ALOUD ON MOUNT
+  useEffect(() => {
+    if (!hasSpokenInitialRef.current && messages.length > 0) {
+      hasSpokenInitialRef.current = true;
+      const initialText = messages[0].message;
+      const timerId = setTimeout(() => {
+        handleSpeakText(initialText);
+      }, 500);
+      return () => clearTimeout(timerId);
+    }
+  }, []);
 
   // Timer Effect
   useEffect(() => {
@@ -89,20 +143,6 @@ export function ConversationSession() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const handleSpeakText = (text) => {
-    if (isMuted) return;
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = speechSpeed;
-      utterance.lang = "en-US";
-      utterance.onstart = () => setIsAiSpeaking(true);
-      utterance.onend = () => setIsAiSpeaking(false);
-      utterance.onerror = () => setIsAiSpeaking(false);
-      window.speechSynthesis.speak(utterance);
-    }
-  };
-
   const handleToggleSpeed = () => {
     const SPEEDS = [0.5, 0.75, 1.0, 1.5, 2.0];
     const idx = SPEEDS.indexOf(speechSpeed);
@@ -128,6 +168,10 @@ export function ConversationSession() {
 
   const handleStartListening = () => {
     if (isPaused) return;
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsAiSpeaking(false);
+    }
     if (recognitionRef.current) {
       try {
         setCurrentTranscript("");
@@ -174,8 +218,8 @@ export function ConversationSession() {
         message: text,
         level: chatLevel,
       }).catch(() => ({
-        aiReply: "That is a fantastic point! Practicing every day helps build natural fluency. What else would you like to discuss?",
-        grammarCorrection: "I want to improve my spoken English skills. ✅ Correct!",
+        aiReply: "That is a fantastic point! Practicing every day helps build natural fluency.",
+        grammarCorrection: "I want to improve my spoken English skills.",
         betterSentence: "I would like to enhance my English speaking proficiency.",
         vocabularySuggestions: "Proficiency, Natural fluency, Accent",
         explanation: "Using 'enhance' adds a formal tone to your career conversation.",
@@ -193,7 +237,8 @@ export function ConversationSession() {
       setMessages((prev) => [...prev, aiMsg]);
       setCorrections(feedback);
 
-      const fullSpeakableText = `${feedback.aiReply}. ${feedback.followUpQuestion || ""}`;
+      // AUTOMATIC AUDIO READ-ALOUD OF AI REPLY + CORRECTION + EXPLANATION
+      const fullSpeakableText = getSpeakableText(feedback);
       handleSpeakText(fullSpeakableText);
     } catch (e) {
       setIsThinking(false);
@@ -264,7 +309,13 @@ export function ConversationSession() {
           </div>
 
           <button
-            onClick={() => setIsPaused(!isPaused)}
+            onClick={() => {
+              if (!isPaused && "speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+                setIsAiSpeaking(false);
+              }
+              setIsPaused(!isPaused);
+            }}
             className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
               isPaused ? "bg-amber-500 text-white border-amber-500" : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)]"
             }`}
@@ -326,21 +377,28 @@ export function ConversationSession() {
         {isThinking && (
           <div className="flex items-center gap-2 p-3 text-xs font-bold text-[var(--text-secondary)]">
             <span className="h-2 w-2 rounded-full bg-[#6c63ff] animate-ping" />
-            AI Tutor thinking response...
+            AI Tutor thinking response & analyzing speech...
           </div>
         )}
 
-        {/* Dynamic Tutor Feedback & Corrections overlay */}
+        {/* Dynamic Tutor Feedback & Corrections overlay card */}
         {corrections && (
-          <div className="p-4 rounded-2xl bg-[#1E1B4B]/20 border border-[#6c63ff]/30 space-y-3 animate-in fade-in duration-200">
-            <div className="flex items-center gap-2 text-xs font-extrabold text-[#6c63ff]">
-              <span>🎓 Tutor Feedback & Corrections</span>
+          <div className="p-4 rounded-2xl bg-[#1E1B4B]/20 border border-[#6c63ff]/40 space-y-3 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between gap-2 text-xs font-extrabold text-[#6c63ff]">
+              <span className="flex items-center gap-1.5">🎓 Tutor Feedback & Speech Corrections</span>
+              <button
+                onClick={() => handleSpeakText(getSpeakableText(corrections))}
+                className="px-2.5 py-1 rounded-lg bg-[#6c63ff] text-white text-[10px] font-bold hover:bg-[#8b85ff] transition-all flex items-center gap-1"
+                title="Listen Correction Audio"
+              >
+                <span>🔊 Listen Correction</span>
+              </button>
             </div>
 
             {corrections.grammarCorrection && (
               <div className="text-xs space-y-1">
                 <span className="text-[10px] font-bold text-[#818CF8] uppercase">Grammar Correction</span>
-                <p className="font-semibold text-emerald-500">✓ {corrections.grammarCorrection}</p>
+                <p className="font-semibold text-emerald-500">👉 {corrections.grammarCorrection}</p>
               </div>
             )}
 
@@ -348,6 +406,13 @@ export function ConversationSession() {
               <div className="text-xs space-y-1">
                 <span className="text-[10px] font-bold text-[#818CF8] uppercase">Native Sentence Upgrade</span>
                 <p className="font-semibold text-[var(--text-primary)]">💡 "{corrections.betterSentence}"</p>
+              </div>
+            )}
+
+            {corrections.explanation && (
+              <div className="text-xs space-y-1">
+                <span className="text-[10px] font-bold text-[#818CF8] uppercase">Explanation Note</span>
+                <p className="font-normal italic text-[var(--text-secondary)]">{corrections.explanation}</p>
               </div>
             )}
 
@@ -409,7 +474,13 @@ export function ConversationSession() {
 
         <div className="flex items-center justify-between gap-4">
           <button
-            onClick={() => setIsMuted(!isMuted)}
+            onClick={() => {
+              if (!isMuted && "speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+                setIsAiSpeaking(false);
+              }
+              setIsMuted(!isMuted);
+            }}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
               isMuted ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)]"
             }`}
