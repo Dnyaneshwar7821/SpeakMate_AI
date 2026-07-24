@@ -204,6 +204,14 @@ export function LessonDetail() {
     setQuizLoading(false);
   };
 
+  // Step 7: Auto Fetch Quiz Questions when entering Step 7
+  useEffect(() => {
+    if (!showStudy || studyStep !== 7 || !lesson) return;
+    if (quizQuestions.length === 0) {
+      fetchQuiz(quizLevel || "Basic");
+    }
+  }, [showStudy, studyStep, lesson]);
+
   const handleStartStudyFlow = () => {
     setShowStudy(true);
     setStudyStep(1);
