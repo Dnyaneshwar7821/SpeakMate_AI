@@ -58,6 +58,7 @@ export function LessonDetail() {
   const [quizLoading, setQuizLoading] = useState(false);
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [quizSelectedAnswer, setQuizSelectedAnswer] = useState(null);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
 
@@ -527,41 +528,84 @@ export function LessonDetail() {
                 <p className="text-xs font-bold text-[var(--text-secondary)]">Generating dynamic quiz questions...</p>
               ) : quizQuestions.length > 0 && !quizFinished ? (
                 <div className="space-y-4">
-                  <p className="text-xs font-bold text-[var(--text-secondary)]">Question {currentQuizIdx + 1} of {quizQuestions.length}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-bold text-[var(--text-secondary)]">Question {currentQuizIdx + 1} of {quizQuestions.length}</p>
+                    <span className="text-xs font-bold text-[#6c63ff]">Score: {quizScore} / {quizQuestions.length}</span>
+                  </div>
+
                   <p className="text-sm font-extrabold text-[var(--text-primary)]">{quizQuestions[currentQuizIdx].question}</p>
 
                   <div className="space-y-2">
-                    {quizQuestions[currentQuizIdx].options.map((opt, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setQuizSelectedAnswer(opt)}
-                        className={`w-full p-4 rounded-2xl text-xs font-bold text-left border transition-all ${
-                          quizSelectedAnswer === opt ? "bg-[#6c63ff]/10 border-[#6c63ff] text-[#6c63ff]" : "bg-[var(--bg-elevated)] border-[var(--border-default)]"
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+                    {quizQuestions[currentQuizIdx].options.map((opt, idx) => {
+                      const isCorrect = opt === quizQuestions[currentQuizIdx].correctAnswer;
+                      const isSelected = opt === quizSelectedAnswer;
+
+                      let btnStyle = "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)]";
+                      if (quizSubmitted) {
+                        if (isCorrect) {
+                          btnStyle = "bg-emerald-500/10 border-emerald-500 text-emerald-500 font-extrabold";
+                        } else if (isSelected) {
+                          btnStyle = "bg-red-500/10 border-red-500 text-red-500 font-extrabold";
+                        }
+                      } else if (isSelected) {
+                        btnStyle = "bg-[#6c63ff]/10 border-[#6c63ff] text-[#6c63ff] font-extrabold";
+                      }
+
+                      return (
+                        <button
+                          key={idx}
+                          disabled={quizSubmitted}
+                          onClick={() => {
+                            setQuizSelectedAnswer(opt);
+                            setQuizSubmitted(true);
+                            if (opt === quizQuestions[currentQuizIdx].correctAnswer) {
+                              setQuizScore((s) => s + 1);
+                            }
+                          }}
+                          className={`w-full p-4 rounded-2xl text-xs font-bold text-left border transition-all flex items-center justify-between gap-3 ${btnStyle}`}
+                        >
+                          <span>{opt}</span>
+                          {quizSubmitted && isCorrect && <span className="text-emerald-500 font-extrabold shrink-0">✓ Correct</span>}
+                          {quizSubmitted && isSelected && !isCorrect && <span className="text-red-500 font-extrabold shrink-0">✗ Wrong</span>}
+                        </button>
+                      );
+                    })}
                   </div>
+
+                  {/* Feedback & Explanation Note */}
+                  {quizSubmitted && (
+                    <div
+                      className={`p-4 rounded-2xl border text-xs font-bold space-y-1 animate-in fade-in duration-200 ${
+                        quizSelectedAnswer === quizQuestions[currentQuizIdx].correctAnswer
+                          ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
+                          : "bg-red-500/10 border-red-500/30 text-red-500"
+                      }`}
+                    >
+                      <p className="font-extrabold">
+                        {quizSelectedAnswer === quizQuestions[currentQuizIdx].correctAnswer ? "✓ Correct Answer!" : "✗ Incorrect Answer."}
+                      </p>
+                      <p className="font-semibold text-[var(--text-primary)]">
+                        {quizQuestions[currentQuizIdx].explanation}
+                      </p>
+                    </div>
+                  )}
 
                   <div className="flex justify-end pt-2">
                     <button
-                      disabled={!quizSelectedAnswer}
+                      disabled={!quizSubmitted}
                       onClick={() => {
-                        if (quizSelectedAnswer === quizQuestions[currentQuizIdx].correctAnswer) {
-                          setQuizScore((s) => s + 1);
-                        }
                         if (currentQuizIdx + 1 < quizQuestions.length) {
                           setCurrentQuizIdx((i) => i + 1);
                           setQuizSelectedAnswer(null);
+                          setQuizSubmitted(false);
                         } else {
                           setQuizFinished(true);
                           setStudyStep(8);
                         }
                       }}
-                      className="px-6 py-2.5 rounded-xl bg-[#6c63ff] disabled:opacity-50 text-white text-xs font-extrabold"
+                      className="px-6 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#8b85ff] disabled:opacity-50 text-white text-xs font-extrabold shadow-md transition-all"
                     >
-                      {currentQuizIdx + 1 < quizQuestions.length ? "Next Question →" : "Finish Quiz"}
+                      {currentQuizIdx + 1 < quizQuestions.length ? "Continue to Next Question →" : "Finish Quiz & View Results 🎉"}
                     </button>
                   </div>
                 </div>
