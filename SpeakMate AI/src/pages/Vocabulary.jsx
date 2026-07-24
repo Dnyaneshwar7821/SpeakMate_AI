@@ -1,269 +1,486 @@
-import { useState } from "react";
-
-const INITIAL_WORDS = [
-  { id: "1", word: "Articulate", phonetic: "/ɑːrˈtɪkjuleɪt/", pos: "adj / v", definition: "Expressing oneself clearly and effectively in speech.", example: "She gave an articulate presentation during the interview.", level: "B2", favorite: true },
-  { id: "2", word: "Eloquence", phonetic: "/ˈeləkwəns/", pos: "noun", definition: "Fluent or persuasive speaking or writing.", example: "His eloquence captivated the entire audience.", level: "C1", favorite: true },
-  { id: "3", word: "Coherent", phonetic: "/koʊˈhɪrənt/", pos: "adj", definition: "Logical and consistent in thought or speech.", example: "Make sure your argument remains coherent throughout.", level: "B1", favorite: false },
-  { id: "4", word: "Impromptu", phonetic: "/ɪmˈprɑːmptuː/", pos: "adj / adv", definition: "Done without being planned or rehearsed.", example: "She gave an impromptu speech at the party.", level: "B2", favorite: false },
-  { id: "5", word: "Nuance", phonetic: "/ˈnuːɑːns/", pos: "noun", definition: "A subtle difference in meaning, expression, or sound.", example: "Native speakers pick up on cultural nuances in conversation.", level: "C2", favorite: true },
-  { id: "6", word: "Resilience", phonetic: "/rɪˈzɪliəns/", pos: "noun", definition: "The capacity to recover quickly from difficulties.", example: "Her resilience helped her overcome initial language barriers.", level: "B2", favorite: false },
-];
-
-const LEVELS = ["All", "A1", "A2", "B1", "B2", "C1", "C2"];
+import { useState, useEffect } from "react";
+import { vocabularyService, progressService } from "../services/appServices";
 
 export function Vocabulary() {
-  const [words, setWords] = useState(INITIAL_WORDS);
-  const [selectedLevel, setSelectedLevel] = useState("All");
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [activeTab, setActiveTab] = useState("list"); // 'list', 'flashcards', 'quiz'
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [wordInput, setWordInput] = useState("");
+  const [adding, setAdding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [filterType, setFilterType] = useState("all"); // 'all', 'favorites'
 
-  // New Word Form State
-  const [newWord, setNewWord] = useState("");
-  const [newDefinition, setNewDefinition] = useState("");
-  const [newExample, setNewExample] = useState("");
-  const [newLevel, setNewLevel] = useState("B1");
+  // Flashcard State
+  const [cardIndex, setCardIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
 
-  // Audio Pronunciation
-  const handleSpeak = (text) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.9;
-      utterance.lang = "en-US";
-      window.speechSynthesis.speak(utterance);
+  // Quiz State
+  const [quizQuestions, setQuizQuestions] = useState([]);
+  const [quizLoading, setQuizLoading] = useState(false);
+  const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
+  const [selectedQuizAnswer, setSelectedQuizAnswer] = useState(null);
+  const [quizScore, setQuizScore] = useState(0);
+  const [quizFinished, setQuizFinished] = useState(false);
+  const [earnedXP, setEarnedXP] = useState(0);
+
+  const loadVocabulary = async () => {
+    setLoading(true);
+    try {
+      const data = await vocabularyService.all();
+      setItems(data || []);
+    } catch (e) {
+      setItems([
+        { id: "1", word: "Eloquent", meaning: "Fluent or persuasive in speaking or writing.", exampleSentence: "His eloquent speech captivated everyone.", favorite: true, synonym: "Articulate", antonym: "Inarticulate" },
+        { id: "2", word: "Resilient", meaning: "Able to withstand or recover quickly from difficult conditions.", exampleSentence: "She showed resilient spirit during challenges.", favorite: false, synonym: "Tough", antonym: "Fragile" },
+        { id: "3", word: "Coherent", meaning: "Logical and consistent in thought or expression.", exampleSentence: "Make sure your argument remains coherent.", favorite: true, synonym: "Logical", antonym: "Confused" },
+      ]);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleToggleFav = (id) => {
-    setWords((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, favorite: !w.favorite } : w))
-    );
+  useEffect(() => {
+    loadVocabulary();
+  }, []);
+
+  const handleSpeak = (text) => {
+    if (!text || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0;
+    utterance.lang = "en-US";
+    window.speechSynthesis.speak(utterance);
   };
 
-  const handleAddWord = (e) => {
-    e.preventDefault();
-    if (!newWord.trim() || !newDefinition.trim()) return;
-
-    const created = {
-      id: Date.now().toString(),
-      word: newWord.trim(),
-      phonetic: `/${newWord.toLowerCase()}/`,
-      pos: "word",
-      definition: newDefinition.trim(),
-      example: newExample.trim() || `Example sentence using ${newWord}`,
-      level: newLevel,
-      favorite: false,
-    };
-
-    setWords([created, ...words]);
-    setNewWord("");
-    setNewDefinition("");
-    setNewExample("");
-    setShowAddModal(false);
+  const handleAddWord = async () => {
+    if (!wordInput.trim()) return;
+    setAdding(true);
+    try {
+      await vocabularyService.add(wordInput.trim());
+      setWordInput("");
+      await loadVocabulary();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setAdding(false);
+    }
   };
 
-  const filteredWords = words.filter((w) => {
-    const matchesLevel = selectedLevel === "All" || w.level === selectedLevel;
-    const matchesFav = !onlyFavorites || w.favorite;
+  const handleToggleFavorite = async (item) => {
+    try {
+      const updated = await vocabularyService.toggleFavorite(item.id);
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, favorite: updated.favorite } : i))
+      );
+    } catch (e) {
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, favorite: !i.favorite } : i))
+      );
+    }
+  };
+
+  const handleDeleteWord = async (id) => {
+    try {
+      await vocabularyService.remove(id);
+      setItems((prev) => prev.filter((i) => i.id !== id));
+    } catch (e) {
+      setItems((prev) => prev.filter((i) => i.id !== id));
+    }
+  };
+
+  // Filtered Vocabulary Items
+  const filteredItems = items.filter((i) => {
     const matchesSearch =
-      w.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      w.definition.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesLevel && matchesFav && matchesSearch;
+      i.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (i.meaning && i.meaning.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesFilter = filterType === "all" || (filterType === "favorites" && i.favorite);
+    return matchesSearch && matchesFilter;
   });
 
+  // Start Quiz Engine
+  const startQuiz = async () => {
+    setQuizLoading(true);
+    setQuizFinished(false);
+    setQuizScore(0);
+    setCurrentQuizIdx(0);
+    setSelectedQuizAnswer(null);
+    setEarnedXP(0);
+    setActiveTab("quiz");
+
+    try {
+      const questions = await vocabularyService.quiz();
+      if (questions && questions.length > 0) {
+        setQuizQuestions(questions);
+      } else {
+        setQuizQuestions(fallbackQuizQuestions);
+      }
+    } catch (e) {
+      setQuizQuestions(fallbackQuizQuestions);
+    } finally {
+      setQuizLoading(false);
+    }
+  };
+
+  const fallbackQuizQuestions = [
+    { word: "Eloquent", options: ["Fluent or persuasive in speaking", "Difficult to understand", "Quiet and reserved"], correctAnswer: "Fluent or persuasive in speaking" },
+    { word: "Resilient", options: ["Able to recover quickly from difficulty", "Fragile and easily broken", "Loud and noisy"], correctAnswer: "Able to recover quickly from difficulty" },
+    { word: "Coherent", options: ["Logical and consistent in thought", "Confusing and random", "Slow and inactive"], correctAnswer: "Logical and consistent in thought" },
+  ];
+
+  const handleAnswerSelect = (option) => {
+    if (selectedQuizAnswer !== null) return;
+    setSelectedQuizAnswer(option);
+    const correct = option === quizQuestions[currentQuizIdx].correctAnswer;
+    if (correct) {
+      setQuizScore((s) => s + 1);
+    }
+  };
+
+  const finishQuiz = async () => {
+    setQuizFinished(true);
+    const baseXP = quizScore * 10;
+    const bonusXP = quizScore === quizQuestions.length ? 25 : 0;
+    const totalAwarded = baseXP + bonusXP;
+    setEarnedXP(totalAwarded);
+
+    try {
+      const prog = await progressService.get().catch(() => null);
+      if (prog) {
+        await progressService.update({
+          ...prog,
+          xp: (prog.xp || 0) + totalAwarded,
+          totalVocabularyWords: (prog.totalVocabularyWords || 0) + quizScore,
+        });
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">Vocabulary Builder</h1>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
-            Expand your word bank with CEFR level flashcards, audio pronunciations, and personalized favorites.
-          </p>
-        </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">Vocabulary Coach & Quiz</h1>
+        <p className="text-sm text-[var(--text-secondary)] mt-1">
+          Build your personal word bank with AI definitions, 3D flashcards, and XP quiz challenges.
+        </p>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] max-w-md">
+        <button
+          onClick={() => setActiveTab("list")}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "list" ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          }`}
+        >
+          <span>📋 My List ({filteredItems.length})</span>
+        </button>
 
         <button
-          onClick={() => setShowAddModal(true)}
-          className="px-5 py-2.5 rounded-2xl bg-[#6c63ff] hover:bg-[#8b85ff] text-white font-bold text-sm shadow-md shadow-[#6c63ff]/20 flex items-center justify-center gap-2 transition-all"
+          onClick={() => {
+            if (filteredItems.length === 0) return;
+            setCardIndex(0);
+            setIsFlipped(false);
+            setActiveTab("flashcards");
+          }}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "flashcards" ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          }`}
         >
-          <span>➕ Add New Word</span>
+          <span>🎴 Flashcards</span>
+        </button>
+
+        <button
+          onClick={startQuiz}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
+            activeTab === "quiz" ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+          }`}
+        >
+          <span>🏆 Quiz</span>
         </button>
       </div>
 
-      {/* Search & Filter Controls */}
-      <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <svg className="w-5 h-5 absolute left-3.5 top-3 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search word or definition..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-semibold focus:outline-none focus:border-[#6c63ff]"
-            />
+      {/* TAB 1: MY LIST */}
+      {activeTab === "list" && (
+        <div className="space-y-6">
+          {/* Add Word Card */}
+          <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-4">
+            <h2 className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-secondary)]">Add to My Vocabulary</h2>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Type word (e.g. Eloquent)..."
+                value={wordInput}
+                onChange={(e) => setWordInput(e.target.value)}
+                className="flex-1 px-4 py-2.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+              />
+              <button
+                onClick={handleAddWord}
+                disabled={adding || !wordInput.trim()}
+                className="px-6 py-2.5 rounded-2xl bg-[#6c63ff] hover:bg-[#8b85ff] disabled:opacity-50 text-white text-xs font-extrabold shadow-md"
+              >
+                {adding ? "Adding..." : "+ Add Word"}
+              </button>
+            </div>
           </div>
 
-          <button
-            onClick={() => setOnlyFavorites(!onlyFavorites)}
-            className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all border flex items-center justify-center gap-2 ${
-              onlyFavorites
-                ? "bg-amber-500/10 border-amber-500/30 text-amber-500"
-                : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-secondary)]"
-            }`}
-          >
-            <span>{onlyFavorites ? "★ Favorites Only" : "☆ Show All"}</span>
-          </button>
-        </div>
+          {/* Search & Filter Controls */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <input
+              type="text"
+              placeholder="Search vocabulary or meaning..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full sm:w-72 px-4 py-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
+            />
 
-        {/* Level Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">CEFR:</span>
-          {LEVELS.map((lvl) => (
-            <button
-              key={lvl}
-              onClick={() => setSelectedLevel(lvl)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
-                selectedLevel === lvl
-                  ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20"
-                  : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              }`}
-            >
-              {lvl}
-            </button>
-          ))}
-        </div>
-      </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFilterType("all")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
+                  filterType === "all" ? "bg-[#6c63ff] text-white" : "bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)]"
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setFilterType("favorites")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
+                  filterType === "favorites" ? "bg-[#6c63ff] text-white" : "bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)]"
+                }`}
+              >
+                ★ Favorites Only
+              </button>
+            </div>
+          </div>
 
-      {/* Words Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredWords.map((w) => (
+          {/* Word List Grid */}
+          {loading ? (
+            <p className="text-xs font-bold text-[var(--text-secondary)]">Loading vocabulary...</p>
+          ) : filteredItems.length === 0 ? (
+            <div className="p-8 text-center text-xs font-bold text-[var(--text-secondary)] bg-[var(--bg-surface)] rounded-3xl border border-[var(--border-default)]">
+              No matching vocabulary words found.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredItems.map((item) => (
+                <div key={item.id} className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-3 flex flex-col justify-between">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-extrabold text-lg text-[var(--text-primary)]">{item.word}</h3>
+                        <button onClick={() => handleSpeak(item.word)} className="text-sm">🔊</button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleToggleFavorite(item)} className="text-amber-500 text-sm">
+                          {item.favorite ? "★" : "☆"}
+                        </button>
+                        <button onClick={() => handleDeleteWord(item.id)} className="text-red-500 text-sm font-bold">
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
+
+                    {item.meaning && <p className="text-xs font-semibold text-[var(--text-secondary)]">{item.meaning}</p>}
+                    {item.exampleSentence && (
+                      <p className="text-xs italic text-[var(--text-primary)] bg-[var(--bg-elevated)] p-2.5 rounded-xl border border-[var(--border-default)]">
+                        "{item.exampleSentence}"
+                      </p>
+                    )}
+                  </div>
+
+                  {(item.synonym || item.antonym) && (
+                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--border-default)]">
+                      {item.synonym && <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 text-[10px] font-extrabold">Syn: {item.synonym}</span>}
+                      {item.antonym && <span className="px-2.5 py-0.5 rounded-lg bg-red-500/10 text-red-500 text-[10px] font-extrabold">Ant: {item.antonym}</span>}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 2: FLASHCARDS */}
+      {activeTab === "flashcards" && filteredItems.length > 0 && (
+        <div className="space-y-6">
+          <p className="text-center text-xs font-bold text-[var(--text-secondary)] uppercase">
+            Card {cardIndex + 1} of {filteredItems.length}
+          </p>
+
           <div
-            key={w.id}
-            className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+            onClick={() => setIsFlipped(!isFlipped)}
+            className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#1E1B4B] via-[#0F172A] to-[#6c63ff] text-white shadow-2xl min-h-[300px] flex flex-col items-center justify-center text-center cursor-pointer transition-transform hover:scale-102 space-y-4"
           >
-            <div>
-              <div className="flex items-center justify-between gap-2 mb-3">
-                <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-[#6c63ff]/10 text-[#6c63ff]">
-                  {w.level} • {w.pos}
-                </span>
+            {!isFlipped ? (
+              <>
+                <h2 className="text-3xl sm:text-4xl font-extrabold">{filteredItems[cardIndex].word}</h2>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSpeak(filteredItems[cardIndex].word);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center gap-2"
+                >
+                  🔊 Pronounce Word
+                </button>
+                <p className="text-xs text-[#A5B4FC] pt-4">Tap card to see AI meaning & examples 🔄</p>
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl font-extrabold text-amber-400">{filteredItems[cardIndex].word}</h3>
+                <p className="text-sm font-semibold text-white/90 max-w-md">{filteredItems[cardIndex].meaning}</p>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleSpeak(w.word)}
-                    className="p-1.5 rounded-lg bg-[var(--bg-elevated)] hover:bg-[#6c63ff]/10 text-[#6c63ff] transition-all"
-                    title="Pronounce Word"
-                  >
+                {filteredItems[cardIndex].exampleSentence && (
+                  <p className="text-xs italic text-[#A5B4FC]">"{filteredItems[cardIndex].exampleSentence}"</p>
+                )}
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSpeak(filteredItems[cardIndex].meaning);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center gap-2"
+                >
+                  🔊 Listen Meaning
+                </button>
+                <p className="text-xs text-[#A5B4FC] pt-2">Tap to flip back</p>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center justify-center gap-4">
+            <button
+              onClick={() => {
+                setIsFlipped(false);
+                setCardIndex((i) => (i - 1 + filteredItems.length) % filteredItems.length);
+              }}
+              className="px-6 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold"
+            >
+              ← Previous
+            </button>
+            <button
+              onClick={() => handleToggleFavorite(filteredItems[cardIndex])}
+              className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-extrabold"
+            >
+              {filteredItems[cardIndex]?.favorite ? "★ Favorited" : "☆ Favorite"}
+            </button>
+            <button
+              onClick={() => {
+                setIsFlipped(false);
+                setCardIndex((i) => (i + 1) % filteredItems.length);
+              }}
+              className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold shadow-md"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: QUIZ */}
+      {activeTab === "quiz" && (
+        <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
+          {quizLoading ? (
+            <p className="text-xs font-bold text-[var(--text-secondary)]">Generating vocabulary quiz questions...</p>
+          ) : !quizFinished && quizQuestions.length > 0 ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[var(--text-secondary)] uppercase">
+                  Question {currentQuizIdx + 1} of {quizQuestions.length}
+                </span>
+                <span className="text-xs font-extrabold text-amber-500">⚡ +{quizScore * 10} XP</span>
+              </div>
+
+              <div className="space-y-1">
+                <p className="text-xs font-bold text-[var(--text-secondary)]">What is the definition of:</p>
+                <div className="flex items-center gap-3">
+                  <h3 className="text-2xl font-extrabold text-[var(--text-primary)]">{quizQuestions[currentQuizIdx].word}</h3>
+                  <button onClick={() => handleSpeak(quizQuestions[currentQuizIdx].word)} className="text-sm">
                     🔊
-                  </button>
-                  <button
-                    onClick={() => handleToggleFav(w.id)}
-                    className="text-lg transition-transform hover:scale-110"
-                    title="Toggle Favorite"
-                  >
-                    {w.favorite ? "⭐" : "☆"}
                   </button>
                 </div>
               </div>
 
-              <h3 className="font-extrabold text-xl text-[var(--text-primary)]">{w.word}</h3>
-              <p className="text-xs font-semibold text-[var(--text-secondary)] mt-0.5">{w.phonetic}</p>
+              <div className="space-y-2">
+                {quizQuestions[currentQuizIdx].options.map((opt, idx) => {
+                  const isSelected = selectedQuizAnswer === opt;
+                  const isCorrect = opt === quizQuestions[currentQuizIdx].correctAnswer;
 
-              <p className="text-sm font-semibold text-[var(--text-primary)] mt-3 leading-snug">{w.definition}</p>
-              <p className="text-xs italic text-[var(--text-secondary)] mt-2">"{w.example}"</p>
+                  let btnStyle = "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)]";
+                  if (selectedQuizAnswer !== null) {
+                    if (isCorrect) {
+                      btnStyle = "bg-emerald-500/10 border-emerald-500 text-emerald-500 font-extrabold";
+                    } else if (isSelected) {
+                      btnStyle = "bg-red-500/10 border-red-500 text-red-500 font-extrabold";
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      disabled={selectedQuizAnswer !== null}
+                      onClick={() => handleAnswerSelect(opt)}
+                      className={`w-full p-4 rounded-2xl text-xs font-bold text-left border transition-all flex items-center justify-between gap-3 ${btnStyle}`}
+                    >
+                      <span>{opt}</span>
+                      {selectedQuizAnswer !== null && isCorrect && <span className="text-emerald-500 font-extrabold">✓ Correct</span>}
+                      {selectedQuizAnswer !== null && isSelected && !isCorrect && <span className="text-red-500 font-extrabold">✗ Wrong</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {selectedQuizAnswer !== null && (
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={() => {
+                      if (currentQuizIdx + 1 < quizQuestions.length) {
+                        setCurrentQuizIdx((i) => i + 1);
+                        setSelectedQuizAnswer(null);
+                      } else {
+                        finishQuiz();
+                      }
+                    }}
+                    className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold shadow-md"
+                  >
+                    {currentQuizIdx + 1 < quizQuestions.length ? "Next Question →" : "Finish & Claim XP 🎉"}
+                  </button>
+                </div>
+              )}
             </div>
+          ) : quizFinished ? (
+            <div className="text-center space-y-4 py-6">
+              <span className="text-5xl">🏆</span>
+              <h2 className="text-2xl font-extrabold text-[var(--text-primary)]">Quiz Completed!</h2>
+              <p className="text-xs text-[var(--text-secondary)] font-semibold">
+                You answered {quizScore} out of {quizQuestions.length} questions correctly.
+              </p>
 
-            <div className="mt-5 pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-[11px] font-bold text-[var(--text-secondary)]">
-              <span>Added to word bank</span>
-              <button
-                onClick={() => handleSpeak(w.example)}
-                className="text-[#6c63ff] hover:underline"
-              >
-                Listen Example 🔊
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Add Custom Word Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="max-w-md w-full bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-3xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-extrabold text-[var(--text-primary)]">Add Custom Word</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-sm font-bold text-[var(--text-secondary)]">✕</button>
-            </div>
-
-            <form onSubmit={handleAddWord} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-[var(--text-primary)] mb-1">Word</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Eloquent"
-                  value={newWord}
-                  onChange={(e) => setNewWord(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
-                />
+              <div className="p-4 rounded-2xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 max-w-xs mx-auto space-y-1">
+                <p className="text-xs font-extrabold text-[#6c63ff] uppercase">Total XP Added</p>
+                <p className="text-xl font-extrabold text-amber-500">+{earnedXP} XP</p>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-[var(--text-primary)] mb-1">Definition</label>
-                <textarea
-                  rows={2}
-                  placeholder="Meaning or definition..."
-                  value={newDefinition}
-                  onChange={(e) => setNewDefinition(e.target.value)}
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[var(--text-primary)] mb-1">Example Sentence</label>
-                <input
-                  type="text"
-                  placeholder="e.g. She spoke eloquently..."
-                  value={newExample}
-                  onChange={(e) => setNewExample(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-[var(--text-primary)] mb-1">CEFR Level</label>
-                <select
-                  value={newLevel}
-                  onChange={(e) => setNewLevel(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
-                >
-                  {["A1", "A2", "B1", "B2", "C1", "C2"].map((lvl) => (
-                    <option key={lvl} value={lvl}>{lvl}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-2">
+              <div className="flex justify-center gap-3 pt-2">
                 <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 rounded-xl border border-[var(--border-default)] text-xs font-bold"
+                  onClick={startQuiz}
+                  className="px-6 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold"
                 >
-                  Cancel
+                  Retake Quiz
                 </button>
                 <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#6c63ff] text-white text-xs font-bold shadow-md"
+                  onClick={() => setActiveTab("list")}
+                  className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold"
                 >
-                  Save Word
+                  Back to List
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+          ) : null}
         </div>
       )}
     </div>
