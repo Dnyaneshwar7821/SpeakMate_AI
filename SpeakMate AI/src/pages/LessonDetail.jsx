@@ -1,7 +1,16 @@
-import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
-import ROUTES from "../constants/routes";
-import { lessonModuleService, aiService, speechService } from "../services/appServices";
+// Helper to safely parse objectives and skills arrays regardless of API response type
+const parseArrayField = (field, fallback = []) => {
+  if (!field) return fallback;
+  if (Array.isArray(field)) return field;
+  if (typeof field === "string") {
+    try {
+      const parsed = JSON.parse(field);
+      if (Array.isArray(parsed)) return parsed;
+    } catch (e) {}
+    return field.split(",").map((s) => s.trim()).filter(Boolean);
+  }
+  return fallback;
+};
 
 export function LessonDetail() {
   const { id } = useParams();
@@ -562,7 +571,12 @@ export function LessonDetail() {
           <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
             <h2 className="text-base font-extrabold text-[var(--text-primary)]">🎯 Learning Objectives</h2>
             <div className="space-y-2">
-              {lesson?.objectives?.map((obj, idx) => (
+              {parseArrayField(lesson?.objectives, [
+                "Understand core lesson rules and principles",
+                "Identify practical real-world sentence patterns",
+                "Form correct positive, negative, and question sentences",
+                "Practice speaking full sentences confidently out loud",
+              ]).map((obj, idx) => (
                 <div key={idx} className="flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)]">
                   <span className="text-emerald-500">✓</span>
                   <span>{obj}</span>
@@ -574,7 +588,11 @@ export function LessonDetail() {
           <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
             <h2 className="text-base font-extrabold text-[var(--text-primary)]">⚡ Target Skills</h2>
             <div className="flex flex-wrap gap-2">
-              {lesson?.skills?.map((sk, idx) => (
+              {parseArrayField(lesson?.skills, [
+                "Grammar Accuracy",
+                "Speaking Fluency",
+                "Sentence Structure",
+              ]).map((sk, idx) => (
                 <span key={idx} className="px-3 py-1 rounded-xl bg-[#6c63ff]/10 text-[#6c63ff] text-xs font-extrabold">
                   {sk}
                 </span>
