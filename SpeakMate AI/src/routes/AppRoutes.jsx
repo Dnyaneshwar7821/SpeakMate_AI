@@ -1,25 +1,36 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
-import AppLayout from "@components/layout/AppLayout";
-import AuthLayout from "@components/layout/AuthLayout";
+import AppLayout from "../components/layouts/Layout";
+import AuthLayout from "../components/layout/AuthLayout";
 
-import ROUTES from "@constants/routes";
+import ROUTES from "../constants/routes";
 
-import AiChat from "@pages/AiChat";
-import Dashboard from "@pages/Dashboard";
-import ForgotPassword from "@pages/ForgotPassword";
-import GrammarPractice from "@pages/GrammarPractice";
-import LandingPage from "@pages/LandingPage";
-import ListeningPractice from "@pages/ListeningPractice";
-import Login from "@pages/Login";
-import NotFound from "@pages/NotFound";
-import Profile from "@pages/Profile";
-import Progress from "@pages/Progress";
-import Register from "@pages/Register";
-import Settings from "@pages/Settings";
-import SpeakingPractice from "@pages/SpeakingPractice";
-import Vocabulary from "@pages/Vocabulary";
+import LandingPage from "../pages/LandingPage";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import ForgotPassword from "../pages/ForgotPassword";
+import ResetPassword from "../pages/ResetPassword";
+import Onboarding from "../pages/Onboarding";
+import Dashboard from "../pages/Dashboard";
+import AiChat from "../pages/AiChat";
+import ConversationChat from "../pages/ConversationChat";
+import SpeakingPractice from "../pages/SpeakingPractice";
+import ConversationSession from "../pages/ConversationSession";
+import SpeakingSummary from "../pages/SpeakingSummary";
+import Lessons from "../pages/Lessons";
+import LessonDetail from "../pages/LessonDetail";
+import GrammarPractice from "../pages/GrammarPractice";
+import Vocabulary from "../pages/Vocabulary";
+import ListeningPractice from "../pages/ListeningPractice";
+import Progress from "../pages/Progress";
+import Achievements from "../pages/Achievements";
+import Notifications from "../pages/Notifications";
+import Profile from "../pages/Profile";
+import Settings from "../pages/Settings";
+import Help from "../pages/Help";
+import About from "../pages/About";
+import NotFound from "../pages/NotFound";
 
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
@@ -30,7 +41,7 @@ function PageTransition({ children }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.22, ease: "easeOut" }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
     >
       {children}
     </motion.div>
@@ -43,7 +54,7 @@ export function AppRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* Public Pages */}
+        {/* Public Marketing Landing */}
         <Route element={<AppLayout />}>
           <Route
             path={ROUTES.HOME}
@@ -91,9 +102,32 @@ export function AppRoutes() {
               </PublicRoute>
             }
           />
+
+          <Route
+            path={ROUTES.RESET_PASSWORD}
+            element={
+              <PublicRoute>
+                <PageTransition>
+                  <ResetPassword />
+                </PageTransition>
+              </PublicRoute>
+            }
+          />
         </Route>
 
-        {/* Protected Pages */}
+        {/* Onboarding Flow */}
+        <Route
+          path={ROUTES.ONBOARDING}
+          element={
+            <ProtectedRoute>
+              <PageTransition>
+                <Onboarding />
+              </PageTransition>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Main Authenticated Application Pages */}
         <Route element={<AppLayout />}>
           <Route
             path={ROUTES.DASHBOARD}
@@ -118,11 +152,66 @@ export function AppRoutes() {
           />
 
           <Route
+            path={ROUTES.CONVERSATION_CHAT}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <ConversationChat />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={ROUTES.SPEAKING}
             element={
               <ProtectedRoute>
                 <PageTransition>
                   <SpeakingPractice />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.CONVERSATION_SESSION}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <ConversationSession />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.SPEAKING_SUMMARY}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <SpeakingSummary />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.LESSONS}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Lessons />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.LESSON_DETAIL}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <LessonDetail />
                 </PageTransition>
               </ProtectedRoute>
             }
@@ -173,6 +262,28 @@ export function AppRoutes() {
           />
 
           <Route
+            path={ROUTES.ACHIEVEMENTS}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Achievements />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.NOTIFICATIONS}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Notifications />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path={ROUTES.PROFILE}
             element={
               <ProtectedRoute>
@@ -193,9 +304,31 @@ export function AppRoutes() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path={ROUTES.HELP}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Help />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.ABOUT}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <About />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
-        {/* Not Found */}
+        {/* 404 Fallback */}
         <Route
           path={ROUTES.NOT_FOUND}
           element={

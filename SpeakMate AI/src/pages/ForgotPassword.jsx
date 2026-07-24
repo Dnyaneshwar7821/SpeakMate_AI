@@ -2,7 +2,7 @@ import { useState } from "react";
 import Button from "@components/common/Button";
 import Card from "@components/common/Card";
 import Input from "@components/common/Input";
-import { authService } from "@services/api";
+import { authService } from "../services/authService";
 
 export function ForgotPassword() {
   const [step, setStep] = useState(1); // 1: Email, 2: OTP & Reset

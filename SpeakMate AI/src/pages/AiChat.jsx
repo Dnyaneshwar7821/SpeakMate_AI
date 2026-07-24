@@ -1,212 +1,94 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import Card from "@components/common/Card";
-import { chatMockData } from "@data/chatMockData";
-import { sendMessage } from "@services/aiChat";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ROUTES from "../constants/routes";
 
-const MAX_MESSAGE_LENGTH = 1000;
-
-function formatTime(date) {
-  return new Intl.DateTimeFormat("en", {
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(date);
-}
+const CHAT_TOPICS = [
+  { id: "grammar-coach", title: "Grammar & Sentence Fixer", desc: "Get immediate feedback and explanations on your sentence structure.", icon: "✍️", category: "Grammar" },
+  { id: "vocab-builder", title: "Idiom & Slang Master", desc: "Learn native expressions, phrasal verbs, and daily idioms.", icon: "📚", category: "Vocabulary" },
+  { id: "job-interview", title: "Behavioral Job Interview", desc: "Practice answering tough interview questions using the STAR method.", icon: "💼", category: "Career" },
+  { id: "free-chat", title: "Open Conversation", desc: "Talk freely about any topic, hobbies, news, or life experiences.", icon: "💬", category: "General" },
+];
 
 export function AiChat() {
-  const [messages, setMessages] = useState(chatMockData.starterMessages);
-  const [draft, setDraft] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
-  const endRef = useRef(null);
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
-
-  const canSend = useMemo(() => draft.trim().length > 0 && draft.trim().length <= MAX_MESSAGE_LENGTH, [draft]);
-
-  const handleSend = async () => {
-    const value = draft.trim();
-    if (!value || isTyping || value.length > MAX_MESSAGE_LENGTH) {
-      return;
-    }
-
-    const userMessage = {
-      id: Date.now(),
-      role: "user",
-      content: value,
-      timestamp: new Date(),
-    };
-
-    setMessages((current) => [...current, userMessage]);
-    setDraft("");
-    setIsTyping(true);
-
-    try {
-      const response = await sendMessage(value);
-      const assistantMessage = {
-        id: Date.now() + 1,
-        role: "assistant",
-        content: response?.data?.reply || "I am here to help you practice.",
-        timestamp: new Date(),
-      };
-
-      setMessages((current) => [...current, assistantMessage]);
-    } catch {
-      const fallbackMessage = {
-        id: Date.now() + 2,
-        role: "assistant",
-        content: "I had trouble responding right now. Please try again in a moment.",
-        timestamp: new Date(),
-      };
-      setMessages((current) => [...current, fallbackMessage]);
-    } finally {
-      setIsTyping(false);
-    }
+  const handleStartChat = (topicTitle) => {
+    navigate(`${ROUTES.CONVERSATION_CHAT}?topic=${encodeURIComponent(topicTitle)}`);
   };
 
-  const handlePromptSelect = (prompt) => {
-    setDraft(prompt);
-  };
-
-  const handleKeyDown = (event) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      void handleSend();
-    }
-  };
+  const filteredTopics = CHAT_TOPICS.filter(
+    (t) =>
+      t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <section className="mx-auto flex min-h-[calc(100vh-180px)] max-w-6xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
-        className="mb-4"
-      >
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-indigo-600">
-          AI Chat Coach
-        </p>
-        <h1 className="mt-2 text-3xl font-black text-slate-950 sm:text-4xl">
-          Practice conversations with your AI coach
-        </h1>
-        <p className="mt-2 max-w-2xl text-sm text-slate-600 sm:text-base">
-          Start a conversation, refine your phrasing, and build confidence with guided feedback.
-        </p>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-indigo-100 px-3 py-1 text-sm font-semibold text-indigo-700">
-            {chatMockData.title}
-          </span>
-          <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-700">
-            Topic: {chatMockData.topic}
-          </span>
-        </div>
-      </motion.div>
-
-      <Card className="flex flex-1 flex-col overflow-hidden border-slate-200 bg-white shadow-lg">
-        <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-50 p-3 sm:p-4">
-          {chatMockData.suggestedPrompts.map((prompt) => (
-            <button
-              key={prompt}
-              type="button"
-              onClick={() => handlePromptSelect(prompt)}
-              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-600 transition hover:border-indigo-500 hover:text-indigo-600"
-            >
-              {prompt}
-            </button>
-          ))}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">AI Chat Coach</h1>
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
+            Choose a guided tutor topic or start an open text & voice conversation.
+          </p>
         </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50 p-4 sm:p-6">
-          {messages.length === 0 ? (
-            <div className="flex h-full items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center text-slate-500">
-              Start your first conversation
-            </div>
-          ) : (
-            messages.map((message) => {
-              const isUser = message.role === "user";
+        <button
+          onClick={() => handleStartChat("Open Free Conversation")}
+          className="px-6 py-3 rounded-2xl bg-[#6c63ff] hover:bg-[#8b85ff] text-white font-extrabold text-xs shadow-md shadow-[#6c63ff]/20 flex items-center justify-center gap-2"
+        >
+          <span>💬 Start Open Chat</span>
+        </button>
+      </div>
 
-              return (
-                <motion.div
-                  key={message.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className={`flex ${isUser ? "justify-end" : "justify-start"}`}
-                >
-                  <div className={`flex max-w-[85%] items-end gap-2 sm:max-w-[75%] ${isUser ? "flex-row-reverse" : "flex-row"}`}>
-                    <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-full ${isUser ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-700"}`}>
-                      {isUser ? "You" : "AI"}
-                    </div>
-                    <div
-                      className={`rounded-2xl px-4 py-3 shadow-sm ${
-                        isUser
-                          ? "bg-indigo-600 text-white"
-                          : "border border-slate-200 bg-white text-slate-700"
-                      }`}
-                    >
-                      <p className="whitespace-pre-wrap text-sm leading-6">
-                        {message.content}
-                      </p>
-                      <p className={`mt-2 text-[11px] ${isUser ? "text-indigo-100" : "text-slate-400"}`}>
-                        {formatTime(message.timestamp)}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })
-          )}
+      {/* Search Bar */}
+      <div className="p-4 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm">
+        <div className="relative">
+          <svg className="w-5 h-5 absolute left-3.5 top-3 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search chat topics or coaches..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-semibold focus:outline-none focus:border-[#6c63ff]"
+          />
+        </div>
+      </div>
 
-          {isTyping && (
-            <div className="flex justify-start">
-              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-                <div className="flex items-center gap-1">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-indigo-500 [animation-delay:-0.2s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-indigo-500 [animation-delay:-0.1s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-indigo-500" />
-                </div>
+      {/* Topics Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {filteredTopics.map((t) => (
+          <div
+            key={t.id}
+            className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <span className="text-4xl p-3 rounded-2xl bg-[#6c63ff]/10">{t.icon}</span>
+                <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-[#6c63ff]/10 text-[#6c63ff]">
+                  {t.category}
+                </span>
               </div>
+
+              <h3 className="font-extrabold text-lg text-[var(--text-primary)]">{t.title}</h3>
+              <p className="text-xs text-[var(--text-secondary)] mt-2 leading-relaxed">{t.desc}</p>
             </div>
-          )}
 
-          <div ref={endRef} />
-        </div>
-
-        <div className="border-t border-slate-200 bg-white p-3 sm:p-4">
-          <label htmlFor="chat-input" className="sr-only">
-            Type your message
-          </label>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <textarea
-              id="chat-input"
-              rows={2}
-              value={draft}
-              onChange={(event) => {
-                const nextValue = event.target.value.slice(0, MAX_MESSAGE_LENGTH);
-                setDraft(nextValue);
-              }}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask for help with a conversation or speaking topic..."
-              className="min-h-[84px] flex-1 rounded-2xl border border-slate-300 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:bg-white"
-            />
-            <button
-              type="button"
-              onClick={() => void handleSend()}
-              disabled={!canSend || isTyping}
-              className="rounded-2xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-            >
-              {isTyping ? "Thinking..." : "Send"}
-            </button>
+            <div className="mt-6 pt-4 border-t border-[var(--border-default)] flex justify-end">
+              <button
+                onClick={() => handleStartChat(t.title)}
+                className="px-5 py-2.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6c63ff] hover:text-white text-[var(--text-primary)] font-extrabold text-xs transition-all"
+              >
+                Start Topic Chat →
+              </button>
+            </div>
           </div>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-            <p>Press Enter to send. Use Shift + Enter for a new line.</p>
-            <p className={draft.length >= MAX_MESSAGE_LENGTH ? "font-semibold text-rose-500" : ""}>
-              {draft.length}/{MAX_MESSAGE_LENGTH}
-            </p>
-          </div>
-        </div>
-      </Card>
-    </section>
+        ))}
+      </div>
+    </div>
   );
 }
 
