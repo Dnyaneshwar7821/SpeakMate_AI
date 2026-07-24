@@ -101,6 +101,18 @@ export function LessonDetail() {
     }
   };
 
+  // Cancel speech synthesis whenever step changes or component unmounts
+  useEffect(() => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    return () => {
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, [studyStep, showStudy]);
+
   // Step 1: Auto AI Teaching Concept
   useEffect(() => {
     if (!showStudy || studyStep !== 1 || !lesson) return;

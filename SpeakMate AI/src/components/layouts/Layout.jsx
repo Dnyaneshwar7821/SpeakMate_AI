@@ -7,6 +7,7 @@ import Sidebar from "./Sidebar";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
 import MobileDrawer from "./MobileDrawer";
+import useSpeechCleanup from "../../hooks/useSpeechCleanup";
 
 const NO_SIDEBAR_PATHS = [
   ROUTES.HOME,
@@ -19,6 +20,7 @@ const NO_SIDEBAR_PATHS = [
 ];
 
 export function Layout({ children }) {
+  useSpeechCleanup();
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
