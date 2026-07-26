@@ -94,6 +94,24 @@ body {
   to { opacity: 1; transform: scale(1); }
 }
 
+/* Animated Avatar Lipsync & Equalizer Keyframes */
+@keyframes lipsync {
+  0%, 100% { height: 6px; width: 24px; border-radius: 12px; }
+  25% { height: 18px; width: 22px; border-radius: 50%; }
+  50% { height: 10px; width: 26px; border-radius: 10px; }
+  75% { height: 22px; width: 18px; border-radius: 40%; }
+}
+
+@keyframes eyeBlink {
+  0%, 90%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+
+@keyframes soundbar {
+  0%, 100% { height: 8px; }
+  50% { height: 28px; }
+}
+
 .animate-float {
   animation: float 4s ease-in-out infinite;
 }
@@ -104,6 +122,27 @@ body {
 
 .animate-scale-in {
   animation: scaleIn 0.25s ease-out forwards;
+}
+
+.animate-lipsync {
+  animation: lipsync 0.3s ease-in-out infinite;
+}
+
+.animate-eye-blink {
+  animation: eyeBlink 4.5s ease-in-out infinite;
+}
+
+.animate-soundbar-1 {
+  animation: soundbar 0.4s ease-in-out infinite 0.05s;
+}
+.animate-soundbar-2 {
+  animation: soundbar 0.4s ease-in-out infinite 0.15s;
+}
+.animate-soundbar-3 {
+  animation: soundbar 0.4s ease-in-out infinite 0.25s;
+}
+.animate-soundbar-4 {
+  animation: soundbar 0.4s ease-in-out infinite 0.35s;
 }
 
 /* Glassmorphism Classes with Dynamic Light/Dark Theme Support */

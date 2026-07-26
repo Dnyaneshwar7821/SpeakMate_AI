@@ -19,7 +19,6 @@ export function ConversationSession() {
     },
   ]);
 
-  // Session states matching React Native ConversationScreen
   const [timer, setTimer] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -38,7 +37,6 @@ export function ConversationSession() {
   const chatEndRef = useRef(null);
   const hasSpokenInitialRef = useRef(false);
 
-  // Helper to format full speakable text including AI reply + corrections + explanation
   const getSpeakableText = (feedback) => {
     if (!feedback) return "";
     let text = feedback.aiReply || feedback.message || "";
@@ -79,7 +77,6 @@ export function ConversationSession() {
     }
   };
 
-  // 1st AUTOMATIC AI READ-ALOUD ON MOUNT
   useEffect(() => {
     if (!hasSpokenInitialRef.current && messages.length > 0) {
       hasSpokenInitialRef.current = true;
@@ -91,7 +88,6 @@ export function ConversationSession() {
     }
   }, []);
 
-  // Timer Effect
   useEffect(() => {
     let interval = null;
     if (!isPaused) {
@@ -102,12 +98,10 @@ export function ConversationSession() {
     return () => clearInterval(interval);
   }, [isPaused]);
 
-  // Auto scroll chat thread
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, hints, corrections, isThinking]);
 
-  // Web Speech API Initialization
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -237,7 +231,6 @@ export function ConversationSession() {
       setMessages((prev) => [...prev, aiMsg]);
       setCorrections(feedback);
 
-      // AUTOMATIC AUDIO READ-ALOUD OF AI REPLY + CORRECTION + EXPLANATION
       const fullSpeakableText = getSpeakableText(feedback);
       handleSpeakText(fullSpeakableText);
     } catch (e) {
@@ -325,23 +318,79 @@ export function ConversationSession() {
         </div>
       </div>
 
-      {/* 3D AI Tutor Avatar Header */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] to-[#1E1B4B] text-white shadow-xl flex flex-col items-center justify-center text-center space-y-3 shrink-0 relative overflow-hidden">
-        <div className="relative">
-          <div className={`grid h-20 w-20 place-items-center rounded-3xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white text-3xl shadow-xl ${isAiSpeaking ? "animate-bounce ring-4 ring-[#6c63ff]/50" : ""}`}>
-            🤖
+      {/* Dynamic Animated Vector Lip-Sync AI Tutor Avatar Header */}
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl flex flex-col items-center justify-center text-center space-y-4 shrink-0 relative overflow-hidden">
+        
+        {/* Animated Avatar Face & Soundwave Equalizers */}
+        <div className="flex items-center justify-center gap-6 relative">
+          
+          {/* Left Equalizer Bars (Visible when AI is speaking) */}
+          {isAiSpeaking && (
+            <div className="flex items-center gap-1.5 h-10">
+              <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-1" />
+              <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2" />
+              <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3" />
+            </div>
+          )}
+
+          {/* Avatar Face Box */}
+          <div className="relative group">
+            {/* Glowing Aura Ring */}
+            <div className={`absolute -inset-2 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] opacity-50 blur-lg transition-all ${isAiSpeaking ? "opacity-100 animate-pulse" : isListening ? "opacity-90 ring-4 ring-red-500/50" : ""}`} />
+
+            <div className={`relative grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-tr from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/40 shadow-2xl p-3 ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
+              {/* Avatar Head SVG */}
+              <div className="w-full h-full flex flex-col items-center justify-between py-1">
+                {/* Avatar Eyes */}
+                <div className="flex items-center justify-between w-14 pt-2 animate-eye-blink">
+                  <div className="h-3.5 w-3.5 rounded-full bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] border border-white flex items-center justify-center shadow-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                  </div>
+                  <div className="h-3.5 w-3.5 rounded-full bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] border border-white flex items-center justify-center shadow-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                  </div>
+                </div>
+
+                {/* Avatar Lipsync Mouth */}
+                <div className="pb-2 flex items-center justify-center">
+                  {isAiSpeaking ? (
+                    <div className="bg-gradient-to-b from-[#ff6584] to-[#6c63ff] border border-white/40 shadow-inner animate-lipsync" />
+                  ) : isListening ? (
+                    <div className="h-2 w-7 rounded-full bg-red-500 animate-pulse" />
+                  ) : isThinking ? (
+                    <div className="h-2 w-5 rounded-full bg-amber-400 animate-ping" />
+                  ) : (
+                    <div className="h-2 w-6 rounded-full bg-emerald-400" />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Status Indicator Dot */}
+            <span className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-full border-2 border-[#0F172A] flex items-center justify-center text-[10px] shadow-lg ${isListening ? "bg-red-500 text-white animate-bounce" : isAiSpeaking ? "bg-[#6c63ff] text-white animate-pulse" : "bg-emerald-500 text-white"}`}>
+              {isListening ? "🎙️" : isAiSpeaking ? "🔊" : "✨"}
+            </span>
           </div>
-          <span className={`absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-[#0F172A] ${isListening ? "bg-red-500 animate-ping" : isAiSpeaking ? "bg-[#6c63ff]" : "bg-emerald-500"}`} />
+
+          {/* Right Equalizer Bars (Visible when AI is speaking) */}
+          {isAiSpeaking && (
+            <div className="flex items-center gap-1.5 h-10">
+              <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3" />
+              <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2" />
+              <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-4" />
+            </div>
+          )}
         </div>
 
+        {/* Level Controls */}
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-[#A5B4FC]">Chat Level:</span>
           {["Beginner", "Intermediate", "Advanced"].map((lvl) => (
             <button
               key={lvl}
               onClick={() => setChatLevel(lvl)}
-              className={`px-2.5 py-1 rounded-lg text-[10px] font-extrabold transition-all ${
-                chatLevel === lvl ? "bg-[#6c63ff] text-white" : "bg-white/10 text-white/70"
+              className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all ${
+                chatLevel === lvl ? "bg-[#6c63ff] text-white shadow-md" : "bg-white/10 text-white/70 hover:bg-white/20"
               }`}
             >
               {lvl}
@@ -453,7 +502,7 @@ export function ConversationSession() {
         </div>
       )}
 
-      {/* Bottom Controls Bar matching ConversationScreen.js */}
+      {/* Bottom Controls Bar */}
       <div className="p-4 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-lg flex flex-col gap-3 shrink-0">
         <div className="flex items-center justify-between">
           <button
