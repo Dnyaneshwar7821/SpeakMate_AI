@@ -39,15 +39,9 @@
   --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
-/* Balanced Crisp Desktop Web Application Base Font Scale */
+/* Standard Desktop Web Application Font Scale */
 html {
-  font-size: 15px;
-}
-
-@media (min-width: 1536px) {
-  html {
-    font-size: 16px;
-  }
+  font-size: 16px;
 }
 
 html,

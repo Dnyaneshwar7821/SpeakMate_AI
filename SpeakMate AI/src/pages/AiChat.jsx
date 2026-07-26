@@ -95,64 +95,64 @@ export function AiChat() {
   );
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       {/* Top Banner */}
-      <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl space-y-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-        <div className="space-y-3">
-          <span className="text-xs font-black px-4 py-1.5 rounded-full bg-white/10 uppercase tracking-wider">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl space-y-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-white/10 uppercase tracking-wider">
             24/7 AI Language Tutor
           </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">AI Chat Coach</h1>
-          <p className="text-sm sm:text-base text-indigo-200 font-medium">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">AI Chat Coach</h1>
+          <p className="text-xs sm:text-sm text-indigo-200 font-medium">
             Practice written & spoken conversations with immediate AI corrections, grammar advice, and vocabulary hints.
           </p>
         </div>
 
         <button
           onClick={() => handleStartSession("Free Chat")}
-          className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white font-black text-sm sm:text-base shadow-xl shadow-[#6c63ff]/30 hover:scale-105 transition-transform shrink-0"
+          className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-xs sm:text-sm shadow-lg hover:scale-105 transition-transform shrink-0"
         >
           ✨ Launch New Free Chat
         </button>
       </div>
 
       {/* Search Input */}
-      <div className="glass-card p-6 rounded-3xl">
+      <div className="glass-card p-5 rounded-3xl">
         <div className="relative">
-          <svg className="w-6 h-6 absolute left-4 top-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 absolute left-3.5 top-3 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             type="text"
-            placeholder="Search AI tutor modes, grammar topics, or interview practice..."
+            placeholder="Search AI tutor modes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-6 py-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+            className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs sm:text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
           />
         </div>
       </div>
 
       {/* Recent Chat Conversations Row */}
       {history.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">Recent Chat Sessions</h2>
-            <span className="text-xs font-extrabold text-[#6c63ff]">{history.length} active threads</span>
+            <h2 className="text-xl font-extrabold text-[var(--text-primary)]">Recent Chat Sessions</h2>
+            <span className="text-xs font-bold text-[#6c63ff]">{history.length} active threads</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {history.slice(0, 6).map((session) => (
               <div
                 key={session.id}
                 onClick={() => handleResumeSession(session)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer group"
+                className="glass-card glass-card-hover p-5 rounded-3xl space-y-3 flex flex-col justify-between cursor-pointer group"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-black px-3 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
                       {session.mode || "General"}
                     </span>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -173,7 +173,7 @@ export function AiChat() {
                       </button>
                     </div>
                   </div>
-                  <h3 className="font-black text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors truncate">
+                  <h3 className="font-extrabold text-base text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors truncate">
                     {session.title || "Conversation Thread"}
                   </h3>
                   <p className="text-xs text-[var(--text-secondary)] font-medium truncate">
@@ -192,31 +192,31 @@ export function AiChat() {
       )}
 
       {/* Available AI Chat Modes Grid */}
-      <div className="space-y-4">
-        <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">Choose AI Tutor Mode</h2>
+      <div className="space-y-3">
+        <h2 className="text-xl font-extrabold text-[var(--text-primary)]">Choose AI Tutor Mode</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredModes.map((mode) => (
             <div
               key={mode.key}
               onClick={() => handleStartSession(mode.key)}
-              className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer group"
+              className="glass-card glass-card-hover p-5 rounded-3xl space-y-3 flex flex-col justify-between cursor-pointer group"
             >
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-4xl p-3 rounded-2xl bg-[var(--bg-elevated)]">{mode.icon}</span>
-                  <span className="px-3 py-1 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-xs font-black">
+                  <span className="text-3xl p-2.5 rounded-2xl bg-[var(--bg-elevated)]">{mode.icon}</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-[10px] font-black">
                     {mode.difficulty}
                   </span>
                 </div>
 
-                <h3 className="font-black text-lg sm:text-xl text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                <h3 className="font-extrabold text-base text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
                   {mode.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">{mode.desc}</p>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{mode.desc}</p>
               </div>
 
-              <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
+              <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-bold text-[var(--text-secondary)]">
                 <span>AI Language Tutor</span>
                 <span className="text-[#6c63ff] font-extrabold group-hover:translate-x-1 transition-transform">Start Chat →</span>
               </div>
@@ -228,27 +228,27 @@ export function AiChat() {
       {/* Rename Modal */}
       {renameTargetSession && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <form onSubmit={handleRenameSession} className="glass-card p-8 rounded-3xl max-w-md w-full space-y-6">
-            <h3 className="text-xl font-black text-[var(--text-primary)]">Rename Chat Session</h3>
+          <form onSubmit={handleRenameSession} className="glass-card p-6 rounded-3xl max-w-md w-full space-y-4">
+            <h3 className="text-lg font-extrabold text-[var(--text-primary)]">Rename Chat Session</h3>
             <input
               type="text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
               placeholder="Enter new conversation title..."
-              className="w-full p-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+              className="w-full p-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
             />
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setRenameTargetSession(null)}
-                className="px-5 py-3 rounded-2xl bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-secondary)]"
+                className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] text-xs font-bold text-[var(--text-secondary)]"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={renaming || !newTitle.trim()}
-                className="px-6 py-3 rounded-2xl bg-[#6c63ff] text-white text-sm font-black shadow-md disabled:opacity-50"
+                className="px-5 py-2 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold shadow-md disabled:opacity-50"
               >
                 {renaming ? "Saving..." : "Save Title"}
               </button>

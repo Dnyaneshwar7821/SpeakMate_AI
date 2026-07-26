@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { speakingService, onboardingService } from "../services/appServices";
 
-// ── Age-Tailored Scenarios matching React Native SpeakingHomeScreen ─────────
 const AGE_SCENARIOS = {
   Kids: [
     { id: "k1", title: "Show & Tell", category: "General", difficulty: "Beginner", duration: 4, xp: 15, icon: "🎨", desc: "Share your favorite toy, book, or pet with your AI friend." },
@@ -95,18 +94,6 @@ export function SpeakingPractice() {
     }
   };
 
-  const handleDeleteHistory = async (id, e) => {
-    e.stopPropagation();
-    if (window.confirm("Are you sure you want to delete this speaking session from your history?")) {
-      try {
-        await speakingService.remove(id);
-        setHistory((prev) => prev.filter((h) => h.id !== id));
-      } catch (err) {
-        console.error("Delete history failed:", err);
-      }
-    }
-  };
-
   const activeScenarios = AGE_SCENARIOS[userAgeGroup] || AGE_SCENARIOS["Professional"];
   const filteredScenarios = activeScenarios.filter((s) => {
     const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.desc.toLowerCase().includes(searchQuery.toLowerCase());
@@ -115,77 +102,77 @@ export function SpeakingPractice() {
   });
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-6">
       {/* Top Banner & Stats Card */}
-      <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl space-y-8 relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-3">
-            <span className="text-xs font-black px-4 py-1.5 rounded-full bg-white/10 uppercase tracking-wider">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-white/10 uppercase tracking-wider">
               Interactive AI Voice Module
             </span>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">Speaking Practice</h1>
-            <p className="text-sm sm:text-base text-indigo-200 font-medium">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Speaking Practice</h1>
+            <p className="text-xs sm:text-sm text-indigo-200 font-medium">
               Choose a scenario role, speak naturally, and get real-time audio evaluation.
             </p>
           </div>
 
           <button
             onClick={() => handleStartScenario({ title: "Free Speaking Practice", difficulty: "Intermediate", duration: 5, xp: 20 })}
-            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white font-black text-sm sm:text-base shadow-xl shadow-[#6c63ff]/30 hover:scale-105 transition-transform shrink-0 text-center"
+            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-xs sm:text-sm shadow-lg hover:scale-105 transition-transform shrink-0"
           >
             🎙️ Start Free Voice Conversation
           </button>
         </div>
 
         {/* Overview Stats Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
           <div>
-            <p className="text-2xl sm:text-3xl font-black">{streak} 🔥</p>
-            <p className="text-xs sm:text-sm font-bold opacity-80 mt-1">Streak Days</p>
+            <p className="text-xl font-extrabold">{streak} 🔥</p>
+            <p className="text-xs font-semibold opacity-80 mt-0.5">Streak Days</p>
           </div>
           <div>
-            <p className="text-2xl sm:text-3xl font-black">{Math.round(totalMinutes)}m</p>
-            <p className="text-xs sm:text-sm font-bold opacity-80 mt-1">Total Mins</p>
+            <p className="text-xl font-extrabold">{Math.round(totalMinutes)}m</p>
+            <p className="text-xs font-semibold opacity-80 mt-0.5">Total Mins</p>
           </div>
           <div>
-            <p className="text-2xl sm:text-3xl font-black">{totalXP} ⭐</p>
-            <p className="text-xs sm:text-sm font-bold opacity-80 mt-1">XP Earned</p>
+            <p className="text-xl font-extrabold">{totalXP} ⭐</p>
+            <p className="text-xs font-semibold opacity-80 mt-0.5">XP Earned</p>
           </div>
           <div>
-            <p className="text-2xl sm:text-3xl font-black">{totalSessions}</p>
-            <p className="text-xs sm:text-sm font-bold opacity-80 mt-1">Sessions</p>
+            <p className="text-xl font-extrabold">{totalSessions}</p>
+            <p className="text-xs font-semibold opacity-80 mt-0.5">Sessions</p>
           </div>
         </div>
       </div>
 
       {/* Search & Category Filter Section */}
-      <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6">
+      <div className="glass-card p-5 rounded-3xl space-y-4">
         {/* Search Input */}
         <div className="relative">
-          <svg className="w-6 h-6 absolute left-4 top-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-5 h-5 absolute left-3.5 top-3 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             type="text"
-            placeholder="Search conversation scenarios by topic, role, or keywords..."
+            placeholder="Search conversation scenarios..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-6 py-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+            className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs sm:text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
           />
         </div>
 
         {/* Age Group Selector Bar */}
-        <div className="flex flex-wrap items-center gap-3 border-b border-[var(--border-subtle)] pb-4">
-          <span className="text-xs sm:text-sm font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
+        <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border-subtle)] pb-3">
+          <span className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
             Target Audience:
           </span>
           {AGE_GROUPS.map((group) => (
             <button
               key={group}
               onClick={() => setUserAgeGroup(group)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                 userAgeGroup === group
-                  ? "bg-[#ff6584] text-white shadow-md shadow-[#ff6584]/20"
+                  ? "bg-[#ff6584] text-white shadow-md"
                   : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
@@ -195,17 +182,17 @@ export function SpeakingPractice() {
         </div>
 
         {/* Category Pills */}
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-xs sm:text-sm font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
             Category:
           </span>
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                 selectedCategory === cat
-                  ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20"
+                  ? "bg-[#6c63ff] text-white shadow-md"
                   : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
@@ -216,33 +203,33 @@ export function SpeakingPractice() {
       </div>
 
       {/* Scenario Grid Cards */}
-      <div className="space-y-4">
-        <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
+      <div className="space-y-3">
+        <h2 className="text-xl font-extrabold text-[var(--text-primary)]">
           {userAgeGroup} Practice Scenarios ({filteredScenarios.length})
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredScenarios.map((scenario) => (
             <div
               key={scenario.id}
               onClick={() => handleStartScenario(scenario)}
-              className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer group"
+              className="glass-card glass-card-hover p-5 rounded-3xl space-y-3 flex flex-col justify-between cursor-pointer group"
             >
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-4xl p-3 rounded-2xl bg-[var(--bg-elevated)]">{scenario.icon}</span>
-                  <span className="px-3 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-black">
+                  <span className="text-3xl p-2.5 rounded-2xl bg-[var(--bg-elevated)]">{scenario.icon}</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-[11px] font-black">
                     +{scenario.xp} XP
                   </span>
                 </div>
 
-                <h3 className="font-black text-lg sm:text-xl text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                <h3 className="font-extrabold text-base text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
                   {scenario.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">{scenario.desc}</p>
+                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{scenario.desc}</p>
               </div>
 
-              <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
+              <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-bold text-[var(--text-secondary)]">
                 <span>⏱️ {scenario.duration} mins</span>
                 <span className="text-[#6c63ff] font-extrabold group-hover:translate-x-1 transition-transform">Start Practice →</span>
               </div>
