@@ -1,403 +1,201 @@
-import { useState, useEffect, useRef } from "react";
-import { stopAllSpeech } from "../hooks/useSpeechCleanup";
+import { useState } from "react";
 
-const LISTENING_DRILLS = [
+const ACCENTS = [
+  { id: "us", name: "American English", flag: "🇺🇸", code: "en-US" },
+  { id: "uk", name: "British English", flag: "🇬🇧", code: "en-GB" },
+  { id: "au", name: "Australian English", flag: "🇦🇺", code: "en-AU" },
+  { id: "in", name: "Indian English", flag: "🇮🇳", code: "en-IN" },
+];
+
+const DRILLS = [
   {
     id: "1",
-    title: "Daily Morning Routine in London",
-    category: "Daily Life",
-    level: "A2",
-    duration: "2 mins",
-    speaker: "Emma (UK Accent)",
-    accent: "en-GB",
-    transcript: "Every morning, I wake up at 7 AM, brew a cup of fresh coffee, and read the news headlines before heading to the train station.",
-    dictationSentence: "I wake up at seven AM and brew coffee.",
-    quiz: {
-      question: "What time does the speaker wake up every morning?",
-      options: ["6:00 AM", "7:00 AM", "8:00 AM", "7:30 AM"],
-      correctIndex: 1,
-      explanation: "The speaker explicitly mentions waking up at 7 AM before brewing coffee.",
-    },
+    title: "Ordering Coffee in London",
+    level: "A2 Elementary",
+    accent: "British English",
+    text: "Can I get a large cappuccino with oat milk and a blueberry muffin to go please?",
   },
   {
     id: "2",
-    title: "Business Product Pitch & Strategy",
-    category: "Business",
-    level: "B2",
-    duration: "3 mins",
-    speaker: "David (US Accent)",
-    accent: "en-US",
-    transcript: "Our strategy focuses on accelerating user engagement by integrating interactive voice feedback and personalized daily milestones.",
-    dictationSentence: "Our strategy focuses on user engagement.",
-    quiz: {
-      question: "What is the primary focus of the proposed strategy?",
-      options: ["Reducing software costs", "Accelerating user engagement", "Hiring new staff", "Changing brand logo"],
-      correctIndex: 1,
-      explanation: "The speaker highlights 'accelerating user engagement' as the primary core strategy.",
-    },
+    title: "Tech Startup Job Interview",
+    level: "B2 Upper Intermediate",
+    accent: "American English",
+    text: "Could you walk me through your previous experience optimizing database queries and scaling web applications?",
   },
   {
     id: "3",
-    title: "IELTS Academic Economy Discussion",
-    category: "Academic",
-    level: "C1",
-    duration: "4 mins",
-    speaker: "Prof. Arthur (UK Accent)",
-    accent: "en-GB",
-    transcript: "Although economic indicators suggest mild inflation, the underlying fiscal policies remain robust enough to maintain market equilibrium.",
-    dictationSentence: "Fiscal policies remain robust enough.",
-    quiz: {
-      question: "What do economic indicators suggest in the passage?",
-      options: ["High unemployment", "Mild inflation", "Severe recession", "Rapid growth"],
-      correctIndex: 1,
-      explanation: "The text states 'economic indicators suggest mild inflation'.",
-    },
+    title: "Airport Check-In & Boarding",
+    level: "B1 Intermediate",
+    accent: "Australian English",
+    text: "Please make sure your window shade is open and your seatbelt is securely fastened for our descent into Sydney.",
   },
-  {
-    id: "4",
-    title: "Airport Check-in & Gate Guidance",
-    category: "Travel",
-    level: "B1",
-    duration: "2 mins",
-    speaker: "Sarah (Australian Accent)",
-    accent: "en-AU",
-    transcript: "Attention passengers on flight QF402 to Sydney: Boarding will commence at Gate 14 in approximately ten minutes. Please have your passport ready.",
-    dictationSentence: "Boarding will commence at Gate 14.",
-    quiz: {
-      question: "At which gate will boarding commence?",
-      options: ["Gate 4", "Gate 14", "Gate 40", "Gate 24"],
-      correctIndex: 1,
-      explanation: "The announcement directs passengers to Gate 14.",
-    },
-  },
-];
-
-const ACCENTS = [
-  { label: "US English 🇺🇸", code: "en-US" },
-  { label: "UK English 🇬🇧", code: "en-GB" },
-  { label: "Australian 🇦🇺", code: "en-AU" },
-  { label: "Indian 🇮🇳", code: "en-IN" },
 ];
 
 export function ListeningPractice() {
-  const [selectedDrill, setSelectedDrill] = useState(LISTENING_DRILLS[0]);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
-  const [selectedAccent, setSelectedAccent] = useState("en-US");
+  const [selectedAccent, setSelectedAccent] = useState(ACCENTS[0]);
+  const [activeDrill, setActiveDrill] = useState(DRILLS[0]);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [showTranscript, setShowTranscript] = useState(false);
-  const [mode, setMode] = useState("quiz"); // 'quiz' or 'dictation'
-
-  // Quiz State
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
-  const [xpEarned, setXpEarned] = useState(0);
-
-  // Dictation State
-  const [typedText, setTypedText] = useState("");
-  const [dictationSubmitted, setDictationSubmitted] = useState(false);
-  const [accuracyScore, setAccuracyScore] = useState(0);
-
-  useEffect(() => {
-    return () => {
-      stopAllSpeech();
-    };
-  }, []);
+  const [speechRate, setSpeechRate] = useState(1.0);
+  const [userDictation, setUserDictation] = useState("");
+  const [dictationChecked, setDictationChecked] = useState(false);
 
   const handlePlayAudio = () => {
-    if ("speechSynthesis" in window) {
-      stopAllSpeech();
-      const utterance = new SpeechSynthesisUtterance(selectedDrill.transcript);
-      utterance.rate = playbackSpeed;
-      utterance.lang = selectedAccent;
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => setIsPlaying(false);
-      utterance.onerror = () => setIsPlaying(false);
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+    if (!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(activeDrill.text);
+    utterance.rate = speechRate;
+    utterance.lang = selectedAccent.code;
 
-  const handleStopAudio = () => {
-    stopAllSpeech();
-    setIsPlaying(false);
-  };
+    utterance.onstart = () => setIsPlaying(true);
+    utterance.onend = () => setIsPlaying(false);
+    utterance.onerror = () => setIsPlaying(false);
 
-  const handleSelectDrill = (drill) => {
-    handleStopAudio();
-    setSelectedDrill(drill);
-    setShowTranscript(false);
-    setSelectedOption(null);
-    setQuizSubmitted(false);
-    setTypedText("");
-    setDictationSubmitted(false);
-  };
-
-  const handleCheckDictation = () => {
-    if (!typedText.trim()) return;
-    setDictationSubmitted(true);
-
-    const targetWords = selectedDrill.dictationSentence.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(" ");
-    const userWords = typedText.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(" ");
-
-    let matches = 0;
-    userWords.forEach((w) => {
-      if (targetWords.includes(w)) matches++;
-    });
-
-    const score = Math.min(100, Math.round((matches / Math.max(1, targetWords.length)) * 100));
-    setAccuracyScore(score);
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="w-full space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">Listening Comprehension Coach</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          Train your ears with native speed audio clips, multi-accent pronunciation, dictation drills, and quizzes.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-6">
+        <div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--text-primary)]">Listening Comprehension</h1>
+          <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">
+            Train your ear with multi-accent AI audio playback, playback speed controls, and dictation drills.
+          </p>
+        </div>
       </div>
 
-      {/* Drill Selection Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {LISTENING_DRILLS.map((d) => (
-          <button
-            key={d.id}
-            onClick={() => handleSelectDrill(d)}
-            className={`p-5 rounded-3xl border text-left transition-all flex flex-col justify-between ${
-              selectedDrill.id === d.id
-                ? "border-[#6c63ff] bg-[#6c63ff]/10 ring-2 ring-[#6c63ff]/30 shadow-md"
-                : "border-[var(--border-default)] bg-[var(--bg-surface)] hover:border-[#6c63ff]/50"
-            }`}
-          >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
-                  {d.level}
-                </span>
-                <span className="text-[10px] font-bold text-[var(--text-secondary)]">{d.category}</span>
-              </div>
-              <h3 className="font-extrabold text-sm text-[var(--text-primary)] leading-snug">{d.title}</h3>
-            </div>
-            <p className="text-[10px] font-bold text-[var(--text-secondary)] mt-3">🎙️ {d.speaker}</p>
-          </button>
-        ))}
-      </div>
+      {/* 2-Column Desktop Widescreen Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column: Accent Selector & Audio Controller */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6">
+            <h2 className="text-xl font-black text-[var(--text-primary)]">Accent & Speed Settings</h2>
 
-      {/* Main Interactive Audio Player Console */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
-        {/* Top Meta Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <span className="text-xs font-bold text-[#6c63ff]">{selectedDrill.category} ({selectedDrill.level})</span>
-            <h2 className="text-xl font-extrabold text-[var(--text-primary)] mt-1">{selectedDrill.title}</h2>
-          </div>
-
-          {/* Accent & Speed Selectors */}
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Accent Dropdown */}
-            <select
-              value={selectedAccent}
-              onChange={(e) => setSelectedAccent(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
-            >
+            {/* Accent Buttons */}
+            <div className="grid grid-cols-2 gap-3">
               {ACCENTS.map((acc) => (
-                <option key={acc.code} value={acc.code}>
-                  {acc.label}
-                </option>
-              ))}
-            </select>
-
-            {/* Speed Buttons */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-              {[0.75, 1.0, 1.25, 1.5].map((speed) => (
                 <button
-                  key={speed}
-                  onClick={() => setPlaybackSpeed(speed)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                    playbackSpeed === speed
-                      ? "bg-[#6c63ff] text-white shadow-sm"
-                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  key={acc.id}
+                  onClick={() => setSelectedAccent(acc)}
+                  className={`p-4 rounded-2xl border text-left font-extrabold text-xs sm:text-sm transition-all flex items-center gap-3 ${
+                    selectedAccent.id === acc.id
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 text-[var(--text-primary)]"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
-                  {speed}x
+                  <span className="text-2xl">{acc.flag}</span>
+                  <span className="truncate">{acc.name}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Speed Control Slider */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
+                <span>Playback Speed:</span>
+                <span className="text-[#6c63ff]">{speechRate}x</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {[0.75, 1.0, 1.25].map((rate) => (
+                  <button
+                    key={rate}
+                    onClick={() => setSpeechRate(rate)}
+                    className={`flex-1 py-2 rounded-xl text-xs font-extrabold border ${
+                      speechRate === rate
+                        ? "bg-[#6c63ff] text-white border-[#6c63ff]"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)]"
+                    }`}
+                  >
+                    {rate}x
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Drill Selector Card */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-4">
+            <h2 className="text-xl font-black text-[var(--text-primary)]">Available Drills</h2>
+
+            <div className="space-y-3">
+              {DRILLS.map((d) => (
+                <button
+                  key={d.id}
+                  onClick={() => {
+                    setActiveDrill(d);
+                    setDictationChecked(false);
+                    setUserDictation("");
+                  }}
+                  className={`w-full p-4 rounded-2xl border text-left transition-all space-y-1 ${
+                    activeDrill.id === d.id
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-extrabold text-sm text-[var(--text-primary)]">{d.title}</h3>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
+                      {d.level}
+                    </span>
+                  </div>
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Audio Visualizer & Player Box */}
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            {!isPlaying ? (
+        {/* Right Column: Audio Player & Dictation Practice Workspace */}
+        <div className="lg:col-span-7 space-y-6">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-4">
+              <div>
+                <span className="text-xs font-black text-[#6c63ff] uppercase tracking-wider">
+                  Active Audio Drill
+                </span>
+                <h2 className="text-2xl font-black text-[var(--text-primary)] mt-1">{activeDrill.title}</h2>
+              </div>
+
               <button
                 onClick={handlePlayAudio}
-                className="grid h-16 w-16 place-items-center rounded-full bg-[#6c63ff] hover:bg-[#8b85ff] text-white shadow-lg shadow-[#6c63ff]/40 hover:scale-105 transition-all"
+                className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-sm font-extrabold shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
               >
-                <svg className="w-7 h-7 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                </svg>
-              </button>
-            ) : (
-              <button
-                onClick={handleStopAudio}
-                className="grid h-16 w-16 place-items-center rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/40 animate-pulse"
-              >
-                <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
-                </svg>
-              </button>
-            )}
-
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <p className="font-extrabold text-base">{isPlaying ? "Playing Speech Audio..." : "Click Play to Listen"}</p>
-                {isPlaying && (
-                  <div className="flex items-end gap-1 h-4">
-                    <div className="w-1 bg-amber-400 animate-bounce h-4" />
-                    <div className="w-1 bg-amber-400 animate-bounce h-2 delay-100" />
-                    <div className="w-1 bg-amber-400 animate-bounce h-5 delay-200" />
-                  </div>
-                )}
-              </div>
-              <p className="text-xs text-[#A5B4FC]">
-                Rate: {playbackSpeed}x • Speaker: {selectedDrill.speaker}
-              </p>
-            </div>
-          </div>
-
-          <button
-            onClick={() => setShowTranscript(!showTranscript)}
-            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-extrabold transition-all shrink-0"
-          >
-            {showTranscript ? "Hide Transcript 👁️" : "Show Transcript 👁️"}
-          </button>
-        </div>
-
-        {/* Collapsible Transcript */}
-        {showTranscript && (
-          <div className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs space-y-2 animate-in fade-in duration-200">
-            <span className="font-extrabold text-[#6c63ff] uppercase tracking-wider text-[10px]">📖 Native Audio Transcript</span>
-            <p className="font-semibold text-[var(--text-primary)] leading-relaxed italic">
-              "{selectedDrill.transcript}"
-            </p>
-          </div>
-        )}
-
-        {/* Practice Mode Tabs */}
-        <div className="pt-4 border-t border-[var(--border-default)] space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 p-1 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] max-w-xs">
-              <button
-                onClick={() => setMode("quiz")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  mode === "quiz" ? "bg-[#6c63ff] text-white" : "text-[var(--text-secondary)]"
-                }`}
-              >
-                Comprehension Quiz
-              </button>
-              <button
-                onClick={() => setMode("dictation")}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  mode === "dictation" ? "bg-[#6c63ff] text-white" : "text-[var(--text-secondary)]"
-                }`}
-              >
-                Listen & Type Drill
+                <span>{isPlaying ? "🔊 Playing Audio..." : "▶️ Play Audio Sample"}</span>
               </button>
             </div>
 
-            {xpEarned > 0 && <span className="text-xs font-extrabold text-amber-500">⚡ +{xpEarned} XP Earned</span>}
-          </div>
-
-          {/* MODE 1: COMPREHENSION QUIZ */}
-          {mode === "quiz" && (
-            <div className="space-y-4">
-              <p className="text-xs font-bold text-[var(--text-secondary)]">{selectedDrill.quiz.question}</p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {selectedDrill.quiz.options.map((opt, idx) => {
-                  const isSelected = selectedOption === idx;
-                  const isCorrect = idx === selectedDrill.quiz.correctIndex;
-
-                  let style = "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]";
-                  if (quizSubmitted) {
-                    if (isCorrect) style = "border-emerald-500 bg-emerald-500/10 text-emerald-500 font-extrabold";
-                    else if (isSelected) style = "border-red-500 bg-red-500/10 text-red-500 font-extrabold";
-                  }
-
-                  return (
-                    <button
-                      key={idx}
-                      disabled={quizSubmitted}
-                      onClick={() => {
-                        setSelectedOption(idx);
-                        setQuizSubmitted(true);
-                        if (isCorrect) setXpEarned(20);
-                      }}
-                      className={`p-4 rounded-2xl border text-left text-xs font-semibold transition-all flex items-center justify-between ${style}`}
-                    >
-                      <span>{opt}</span>
-                      {quizSubmitted && isCorrect && <span className="text-emerald-500 font-extrabold">✓ Correct</span>}
-                      {quizSubmitted && isSelected && !isCorrect && <span className="text-red-500 font-extrabold">✗ Wrong</span>}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {quizSubmitted && (
-                <div
-                  className={`p-4 rounded-2xl border text-xs font-bold space-y-1 animate-in fade-in duration-200 ${
-                    selectedOption === selectedDrill.quiz.correctIndex
-                      ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
-                      : "bg-red-500/10 border-red-500/30 text-red-500"
-                  }`}
-                >
-                  <p className="font-extrabold">
-                    {selectedOption === selectedDrill.quiz.correctIndex ? "🎉 Correct Answer! (+20 XP)" : "❌ Incorrect."}
-                  </p>
-                  <p className="font-semibold text-[var(--text-primary)]">{selectedDrill.quiz.explanation}</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* MODE 2: LISTEN & TYPE DICTATION DRILL */}
-          {mode === "dictation" && (
-            <div className="space-y-4">
-              <p className="text-xs font-bold text-[var(--text-secondary)]">Listen to the clip and type the sentence you hear:</p>
+            {/* Dictation Box */}
+            <div className="space-y-4 pt-2">
+              <label className="block text-sm sm:text-base font-black text-[var(--text-primary)]">
+                Dictation Challenge (Type what you hear):
+              </label>
 
               <textarea
-                rows={3}
-                value={typedText}
-                onChange={(e) => setTypedText(e.target.value)}
-                placeholder="Type the sentence here..."
-                className="w-full p-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+                rows={4}
+                placeholder="Listen to the audio sample above and type the exact sentence here..."
+                value={userDictation}
+                onChange={(e) => setUserDictation(e.target.value)}
+                className="w-full p-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
               />
 
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-3">
                 <button
-                  onClick={handleCheckDictation}
-                  disabled={!typedText.trim()}
-                  className="px-6 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#8b85ff] disabled:opacity-50 text-white text-xs font-extrabold shadow-md"
+                  onClick={() => setDictationChecked(true)}
+                  disabled={!userDictation.trim()}
+                  className="px-6 py-3 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs sm:text-sm font-extrabold shadow-md disabled:opacity-50"
                 >
-                  Check Dictation Accuracy
+                  Verify Dictation Accuracy
                 </button>
               </div>
 
-              {dictationSubmitted && (
-                <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-emerald-500">Dictation Accuracy Score</span>
-                    <span className="text-base font-extrabold text-emerald-500">{accuracyScore}%</span>
-                  </div>
-                  <p className="text-[var(--text-primary)] font-semibold">
-                    Target: "{selectedDrill.dictationSentence}"
-                  </p>
+              {dictationChecked && (
+                <div className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3 animate-in fade-in duration-200">
+                  <span className="font-extrabold text-xs text-emerald-500 uppercase">Correct Audio Script:</span>
+                  <p className="font-bold text-sm sm:text-base text-[var(--text-primary)]">"{activeDrill.text}"</p>
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </div>

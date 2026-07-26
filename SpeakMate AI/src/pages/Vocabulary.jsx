@@ -33,6 +33,7 @@ export function Vocabulary() {
         { id: "1", word: "Eloquent", meaning: "Fluent or persuasive in speaking or writing.", exampleSentence: "His eloquent speech captivated everyone.", favorite: true, synonym: "Articulate", antonym: "Inarticulate" },
         { id: "2", word: "Resilient", meaning: "Able to withstand or recover quickly from difficult conditions.", exampleSentence: "She showed resilient spirit during challenges.", favorite: false, synonym: "Tough", antonym: "Fragile" },
         { id: "3", word: "Coherent", meaning: "Logical and consistent in thought or expression.", exampleSentence: "Make sure your argument remains coherent.", favorite: true, synonym: "Logical", antonym: "Confused" },
+        { id: "4", word: "Meticulous", meaning: "Showing great attention to detail; very careful and precise.", exampleSentence: "He was meticulous about keeping his vocabulary notes.", favorite: false, synonym: "Precise", antonym: "Careless" },
       ]);
     } finally {
       setLoading(false);
@@ -97,206 +98,231 @@ export function Vocabulary() {
     return matchesSearch && matchesFilter;
   });
 
-  // Start Quiz Engine
   const startQuiz = async () => {
     setQuizLoading(true);
     setQuizFinished(false);
     setQuizScore(0);
     setCurrentQuizIdx(0);
     setSelectedQuizAnswer(null);
-    setEarnedXP(0);
-    setActiveTab("quiz");
 
     try {
-      const questions = await vocabularyService.quiz();
-      if (questions && questions.length > 0) {
-        setQuizQuestions(questions);
+      const q = await vocabularyService.quiz();
+      if (q && q.length > 0) {
+        setQuizQuestions(q);
       } else {
-        setQuizQuestions(fallbackQuizQuestions);
+        throw new Error("No backend quiz questions");
       }
     } catch (e) {
-      setQuizQuestions(fallbackQuizQuestions);
+      setQuizQuestions([
+        {
+          id: "q1",
+          questionText: "What is the meaning of 'Eloquent'?",
+          options: ["Fluent or persuasive in speaking", "Slow and hesitant", "Extremely loud", "Difficult to understand"],
+          correctIndex: 0,
+          explanation: "Eloquent means expressing oneself clearly and persuasively.",
+        },
+        {
+          id: "q2",
+          questionText: "Choose the synonym for 'Resilient':",
+          options: ["Fragile", "Tough", "Quiet", "Hesitant"],
+          correctIndex: 1,
+          explanation: "Resilient means tough and able to recover quickly.",
+        },
+      ]);
     } finally {
       setQuizLoading(false);
     }
   };
 
-  const fallbackQuizQuestions = [
-    { word: "Eloquent", options: ["Fluent or persuasive in speaking", "Difficult to understand", "Quiet and reserved"], correctAnswer: "Fluent or persuasive in speaking" },
-    { word: "Resilient", options: ["Able to recover quickly from difficulty", "Fragile and easily broken", "Loud and noisy"], correctAnswer: "Able to recover quickly from difficulty" },
-    { word: "Coherent", options: ["Logical and consistent in thought", "Confusing and random", "Slow and inactive"], correctAnswer: "Logical and consistent in thought" },
-  ];
-
-  const handleAnswerSelect = (option) => {
+  const handleAnswerQuiz = (idx) => {
     if (selectedQuizAnswer !== null) return;
-    setSelectedQuizAnswer(option);
-    const correct = option === quizQuestions[currentQuizIdx].correctAnswer;
-    if (correct) {
+    setSelectedQuizAnswer(idx);
+    const q = quizQuestions[currentQuizIdx];
+    if (idx === q.correctIndex) {
       setQuizScore((s) => s + 1);
     }
   };
 
-  const finishQuiz = async () => {
-    setQuizFinished(true);
-    const baseXP = quizScore * 10;
-    const bonusXP = quizScore === quizQuestions.length ? 25 : 0;
-    const totalAwarded = baseXP + bonusXP;
-    setEarnedXP(totalAwarded);
-
-    try {
-      const prog = await progressService.get().catch(() => null);
-      if (prog) {
-        await progressService.update({
-          ...prog,
-          xp: (prog.xp || 0) + totalAwarded,
-          totalVocabularyWords: (prog.totalVocabularyWords || 0) + quizScore,
-        });
+  const handleNextQuizQuestion = () => {
+    if (currentQuizIdx + 1 < quizQuestions.length) {
+      setCurrentQuizIdx((i) => i + 1);
+      setSelectedQuizAnswer(null);
+    } else {
+      const finalScore = quizScore + (selectedQuizAnswer === quizQuestions[currentQuizIdx].correctIndex ? 1 : 0);
+      const earned = finalScore * 20;
+      setEarnedXP(earned);
+      setQuizFinished(true);
+      if (earned > 0) {
+        progressService.addXp(earned).catch(() => {});
       }
-    } catch (e) {
-      console.warn(e);
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="w-full space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">Vocabulary Coach & Quiz</h1>
-        <p className="text-sm text-[var(--text-secondary)] mt-1">
-          Build your personal word bank with AI definitions, 3D flashcards, and XP quiz challenges.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border-subtle)] pb-6">
+        <div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--text-primary)]">Vocabulary Builder</h1>
+          <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">
+            Build your personal word bank, study with 3D flashcards, and test retention with XP quizzes.
+          </p>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] shrink-0">
+          <button
+            onClick={() => setActiveTab("list")}
+            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+              activeTab === "list"
+                ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            📚 Word Bank ({filteredItems.length})
+          </button>
+
+          <button
+            onClick={() => setActiveTab("flashcards")}
+            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+              activeTab === "flashcards"
+                ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            🎴 3D Flashcards
+          </button>
+
+          <button
+            onClick={() => {
+              setActiveTab("quiz");
+              startQuiz();
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
+              activeTab === "quiz"
+                ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            ⚡ XP Quiz Challenge
+          </button>
+        </div>
       </div>
 
-      {/* Tab Switcher */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] max-w-md">
-        <button
-          onClick={() => setActiveTab("list")}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-            activeTab === "list" ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-          }`}
-        >
-          <span>📋 My List ({filteredItems.length})</span>
-        </button>
-
-        <button
-          onClick={() => {
-            if (filteredItems.length === 0) return;
-            setCardIndex(0);
-            setIsFlipped(false);
-            setActiveTab("flashcards");
-          }}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-            activeTab === "flashcards" ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-          }`}
-        >
-          <span>🎴 Flashcards</span>
-        </button>
-
-        <button
-          onClick={startQuiz}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-            activeTab === "quiz" ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-          }`}
-        >
-          <span>🏆 Quiz</span>
-        </button>
-      </div>
-
-      {/* TAB 1: MY LIST */}
+      {/* TAB 1: WORD BANK (DESKTOP WIDESCREEN 2-COLUMN VIEW) */}
       {activeTab === "list" && (
         <div className="space-y-6">
-          {/* Add Word Card */}
-          <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-4">
-            <h2 className="text-xs font-extrabold uppercase tracking-wider text-[var(--text-secondary)]">Add to My Vocabulary</h2>
-            <div className="flex gap-2">
+          {/* Add Word & Search Bar Strip */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-6 flex gap-3">
               <input
                 type="text"
-                placeholder="Type word (e.g. Eloquent)..."
+                placeholder="Add new word (e.g., Pragmatic)..."
                 value={wordInput}
                 onChange={(e) => setWordInput(e.target.value)}
-                className="flex-1 px-4 py-2.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+                onKeyDown={(e) => e.key === "Enter" && handleAddWord()}
+                className="flex-1 px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
               />
               <button
                 onClick={handleAddWord}
                 disabled={adding || !wordInput.trim()}
-                className="px-6 py-2.5 rounded-2xl bg-[#6c63ff] hover:bg-[#8b85ff] disabled:opacity-50 text-white text-xs font-extrabold shadow-md"
+                className="px-6 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] disabled:opacity-50 text-white font-extrabold text-xs sm:text-sm shadow-md shrink-0"
               >
                 {adding ? "Adding..." : "+ Add Word"}
               </button>
             </div>
-          </div>
 
-          {/* Search & Filter Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <input
-              type="text"
-              placeholder="Search vocabulary or meaning..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-72 px-4 py-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
-            />
+            <div className="md:col-span-4">
+              <input
+                type="text"
+                placeholder="🔍 Search words or definitions..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+              />
+            </div>
 
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setFilterType("all")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                  filterType === "all" ? "bg-[#6c63ff] text-white" : "bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)]"
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilterType("favorites")}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold ${
-                  filterType === "favorites" ? "bg-[#6c63ff] text-white" : "bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)]"
-                }`}
-              >
-                ★ Favorites Only
-              </button>
+            <div className="md:col-span-2 flex justify-end">
+              <div className="flex w-full items-center p-1 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                <button
+                  onClick={() => setFilterType("all")}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl ${filterType === "all" ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm" : "text-[var(--text-secondary)]"}`}
+                >
+                  All ({items.length})
+                </button>
+                <button
+                  onClick={() => setFilterType("favorites")}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl ${filterType === "favorites" ? "bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-sm" : "text-[var(--text-secondary)]"}`}
+                >
+                  ⭐ Saved
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Word List Grid */}
+          {/* Word Grid Cards */}
           {loading ? (
-            <p className="text-xs font-bold text-[var(--text-secondary)]">Loading vocabulary...</p>
+            <div className="p-12 text-center text-sm font-bold text-[var(--text-secondary)]">Loading word bank...</div>
           ) : filteredItems.length === 0 ? (
-            <div className="p-8 text-center text-xs font-bold text-[var(--text-secondary)] bg-[var(--bg-surface)] rounded-3xl border border-[var(--border-default)]">
-              No matching vocabulary words found.
+            <div className="p-12 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-center space-y-2">
+              <span className="text-4xl">📚</span>
+              <h3 className="font-extrabold text-base text-[var(--text-primary)]">No Vocabulary Words Found</h3>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)]">Type a new word above or search your word list.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item) => (
-                <div key={item.id} className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-3 flex flex-col justify-between">
-                  <div className="space-y-2">
+                <div
+                  key={item.id}
+                  className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-extrabold text-lg text-[var(--text-primary)]">{item.word}</h3>
-                        <button onClick={() => handleSpeak(item.word)} className="text-sm">🔊</button>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => handleToggleFavorite(item)} className="text-amber-500 text-sm">
-                          {item.favorite ? "★" : "☆"}
-                        </button>
-                        <button onClick={() => handleDeleteWord(item.id)} className="text-red-500 text-sm font-bold">
-                          🗑️
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-xl font-black text-[var(--text-primary)]">{item.word}</h3>
+                        <button
+                          onClick={() => handleSpeak(item.word)}
+                          className="grid h-8 w-8 place-items-center rounded-xl bg-[#6c63ff]/10 text-[#6c63ff] hover:bg-[#6c63ff] hover:text-white transition-all text-xs"
+                          title="Listen Pronunciation"
+                        >
+                          🔊
                         </button>
                       </div>
+
+                      <button
+                        onClick={() => handleToggleFavorite(item)}
+                        className={`text-lg transition-transform hover:scale-125 ${item.favorite ? "text-amber-400" : "text-[var(--text-secondary)] opacity-50"}`}
+                        title="Save to favorites"
+                      >
+                        ★
+                      </button>
                     </div>
 
-                    {item.meaning && <p className="text-xs font-semibold text-[var(--text-secondary)]">{item.meaning}</p>}
+                    <p className="text-sm font-semibold text-[var(--text-primary)] leading-relaxed">{item.meaning}</p>
+
                     {item.exampleSentence && (
-                      <p className="text-xs italic text-[var(--text-primary)] bg-[var(--bg-elevated)] p-2.5 rounded-xl border border-[var(--border-default)]">
+                      <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] italic">
                         "{item.exampleSentence}"
-                      </p>
+                      </div>
+                    )}
+
+                    {(item.synonym || item.antonym) && (
+                      <div className="flex items-center gap-3 text-xs font-bold pt-1">
+                        {item.synonym && <span className="text-emerald-500">Synonym: {item.synonym}</span>}
+                        {item.antonym && <span className="text-rose-500">Antonym: {item.antonym}</span>}
+                      </div>
                     )}
                   </div>
 
-                  {(item.synonym || item.antonym) && (
-                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-[var(--border-default)]">
-                      {item.synonym && <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-500 text-[10px] font-extrabold">Syn: {item.synonym}</span>}
-                      {item.antonym && <span className="px-2.5 py-0.5 rounded-lg bg-red-500/10 text-red-500 text-[10px] font-extrabold">Ant: {item.antonym}</span>}
-                    </div>
-                  )}
+                  <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between">
+                    <span className="text-xs font-extrabold text-[#6c63ff]">CEFR Vocabulary</span>
+                    <button
+                      onClick={() => handleDeleteWord(item.id)}
+                      className="text-xs font-bold text-red-500/70 hover:text-red-500"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -304,181 +330,155 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* TAB 2: FLASHCARDS */}
-      {activeTab === "flashcards" && filteredItems.length > 0 && (
-        <div className="space-y-6">
-          <p className="text-center text-xs font-bold text-[var(--text-secondary)] uppercase">
-            Card {cardIndex + 1} of {filteredItems.length}
-          </p>
+      {/* TAB 2: 3D FLASHCARDS DECK (DESKTOP CENTERED INTERACTIVE WIDGET) */}
+      {activeTab === "flashcards" && items.length > 0 && (
+        <div className="max-w-3xl mx-auto space-y-6 py-4">
+          <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
+            <span>Card {cardIndex + 1} of {items.length}</span>
+            <span>Tap card to flip definition 🔄</span>
+          </div>
 
           <div
             onClick={() => setIsFlipped(!isFlipped)}
-            className="p-8 sm:p-12 rounded-3xl bg-gradient-to-br from-[#1E1B4B] via-[#0F172A] to-[#6c63ff] text-white shadow-2xl min-h-[300px] flex flex-col items-center justify-center text-center cursor-pointer transition-transform hover:scale-102 space-y-4"
+            className="h-80 w-full glass-card p-8 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer shadow-2xl transition-all duration-500 hover:border-[#6c63ff]"
           >
             {!isFlipped ? (
-              <>
-                <h2 className="text-3xl sm:text-4xl font-extrabold">{filteredItems[cardIndex].word}</h2>
+              <div className="space-y-4">
+                <span className="px-3 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-black uppercase">
+                  Word Flashcard
+                </span>
+                <h2 className="text-4xl sm:text-5xl font-black text-[var(--text-primary)]">{items[cardIndex].word}</h2>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSpeak(filteredItems[cardIndex].word);
+                    handleSpeak(items[cardIndex].word);
                   }}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center gap-2"
+                  className="px-4 py-2 rounded-2xl bg-[#6c63ff]/10 text-[#6c63ff] text-xs font-extrabold hover:bg-[#6c63ff] hover:text-white transition-all inline-flex items-center gap-2"
                 >
-                  🔊 Pronounce Word
+                  🔊 Listen Pronunciation
                 </button>
-                <p className="text-xs text-[#A5B4FC] pt-4">Tap card to see AI meaning & examples 🔄</p>
-              </>
+              </div>
             ) : (
-              <>
-                <h3 className="text-xl font-extrabold text-amber-400">{filteredItems[cardIndex].word}</h3>
-                <p className="text-sm font-semibold text-white/90 max-w-md">{filteredItems[cardIndex].meaning}</p>
-
-                {filteredItems[cardIndex].exampleSentence && (
-                  <p className="text-xs italic text-[#A5B4FC]">"{filteredItems[cardIndex].exampleSentence}"</p>
+              <div className="space-y-4">
+                <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-500 text-xs font-black uppercase">
+                  Definition & Example
+                </span>
+                <p className="text-xl sm:text-2xl font-black text-[var(--text-primary)] max-w-xl">
+                  {items[cardIndex].meaning}
+                </p>
+                {items[cardIndex].exampleSentence && (
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] italic">
+                    "{items[cardIndex].exampleSentence}"
+                  </p>
                 )}
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSpeak(filteredItems[cardIndex].meaning);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold flex items-center gap-2"
-                >
-                  🔊 Listen Meaning
-                </button>
-                <p className="text-xs text-[#A5B4FC] pt-2">Tap to flip back</p>
-              </>
+              </div>
             )}
           </div>
 
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex items-center justify-between gap-4">
             <button
               onClick={() => {
                 setIsFlipped(false);
-                setCardIndex((i) => (i - 1 + filteredItems.length) % filteredItems.length);
+                setCardIndex((i) => (i > 0 ? i - 1 : items.length - 1));
               }}
-              className="px-6 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold"
+              className="px-6 py-3 rounded-2xl border border-[var(--border-default)] text-xs sm:text-sm font-extrabold text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
             >
-              ← Previous
+              ← Previous Card
             </button>
-            <button
-              onClick={() => handleToggleFavorite(filteredItems[cardIndex])}
-              className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-extrabold"
-            >
-              {filteredItems[cardIndex]?.favorite ? "★ Favorited" : "☆ Favorite"}
-            </button>
+
             <button
               onClick={() => {
                 setIsFlipped(false);
-                setCardIndex((i) => (i + 1) % filteredItems.length);
+                setCardIndex((i) => (i + 1 < items.length ? i + 1 : 0));
               }}
-              className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold shadow-md"
+              className="px-8 py-3 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs sm:text-sm font-extrabold shadow-md"
             >
-              Next →
+              Next Card →
             </button>
           </div>
         </div>
       )}
 
-      {/* TAB 3: QUIZ */}
+      {/* TAB 3: XP QUIZ CHALLENGE */}
       {activeTab === "quiz" && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
+        <div className="max-w-3xl mx-auto space-y-6">
           {quizLoading ? (
-            <p className="text-xs font-bold text-[var(--text-secondary)]">Generating vocabulary quiz questions...</p>
-          ) : !quizFinished && quizQuestions.length > 0 ? (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[var(--text-secondary)] uppercase">
-                  Question {currentQuizIdx + 1} of {quizQuestions.length}
-                </span>
-                <span className="text-xs font-extrabold text-amber-500">⚡ +{quizScore * 10} XP</span>
+            <div className="p-12 text-center text-sm font-bold text-[var(--text-secondary)]">Loading quiz questions...</div>
+          ) : quizFinished ? (
+            <div className="p-8 sm:p-12 rounded-3xl glass-card text-center space-y-6">
+              <div className="grid h-20 w-20 mx-auto place-items-center rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-500 text-white text-4xl shadow-xl">
+                🏆
+              </div>
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-black text-[var(--text-primary)]">Quiz Completed!</h2>
+                <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
+                  You scored {quizScore} out of {quizQuestions.length} correct.
+                </p>
               </div>
 
-              <div className="space-y-1">
-                <p className="text-xs font-bold text-[var(--text-secondary)]">What is the definition of:</p>
-                <div className="flex items-center gap-3">
-                  <h3 className="text-2xl font-extrabold text-[var(--text-primary)]">{quizQuestions[currentQuizIdx].word}</h3>
-                  <button onClick={() => handleSpeak(quizQuestions[currentQuizIdx].word)} className="text-sm">
-                    🔊
-                  </button>
-                </div>
+              <div className="inline-block px-6 py-2.5 rounded-full bg-emerald-500/20 text-emerald-500 font-extrabold text-sm">
+                + {earnedXP} XP Learning Bonus Claimed! 🎉
               </div>
 
-              <div className="space-y-2">
+              <div>
+                <button
+                  onClick={startQuiz}
+                  className="px-8 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-sm font-extrabold shadow-lg"
+                >
+                  Try Another Quiz ↻
+                </button>
+              </div>
+            </div>
+          ) : quizQuestions.length > 0 ? (
+            <div className="glass-card p-8 rounded-3xl space-y-6">
+              <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
+                <span>Question {currentQuizIdx + 1} of {quizQuestions.length}</span>
+                <span className="text-[#6c63ff]">+20 XP Per Correct Answer</span>
+              </div>
+
+              <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
+                {quizQuestions[currentQuizIdx].questionText}
+              </h2>
+
+              <div className="space-y-3">
                 {quizQuestions[currentQuizIdx].options.map((opt, idx) => {
-                  const isSelected = selectedQuizAnswer === opt;
-                  const isCorrect = opt === quizQuestions[currentQuizIdx].correctAnswer;
-
-                  let btnStyle = "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)]";
-                  if (selectedQuizAnswer !== null) {
-                    if (isCorrect) {
-                      btnStyle = "bg-emerald-500/10 border-emerald-500 text-emerald-500 font-extrabold";
-                    } else if (isSelected) {
-                      btnStyle = "bg-red-500/10 border-red-500 text-red-500 font-extrabold";
-                    }
-                  }
-
+                  const isSelected = selectedQuizAnswer === idx;
+                  const isCorrect = idx === quizQuestions[currentQuizIdx].correctIndex;
                   return (
                     <button
                       key={idx}
+                      onClick={() => handleAnswerQuiz(idx)}
                       disabled={selectedQuizAnswer !== null}
-                      onClick={() => handleAnswerSelect(opt)}
-                      className={`w-full p-4 rounded-2xl text-xs font-bold text-left border transition-all flex items-center justify-between gap-3 ${btnStyle}`}
+                      className={`w-full p-4 rounded-2xl border text-left text-sm font-extrabold transition-all flex items-center justify-between ${
+                        selectedQuizAnswer === null
+                          ? "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]"
+                          : isCorrect
+                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-500"
+                          : isSelected
+                          ? "border-rose-500 bg-rose-500/20 text-rose-500"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] opacity-60"
+                      }`}
                     >
                       <span>{opt}</span>
-                      {selectedQuizAnswer !== null && isCorrect && <span className="text-emerald-500 font-extrabold">✓ Correct</span>}
-                      {selectedQuizAnswer !== null && isSelected && !isCorrect && <span className="text-red-500 font-extrabold">✗ Wrong</span>}
+                      {selectedQuizAnswer !== null && isCorrect && <span>✓ Correct</span>}
                     </button>
                   );
                 })}
               </div>
 
               {selectedQuizAnswer !== null && (
-                <div className="flex justify-end pt-2">
+                <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
+                  <p className="text-xs sm:text-sm font-semibold text-[var(--text-secondary)]">
+                    {quizQuestions[currentQuizIdx].explanation}
+                  </p>
                   <button
-                    onClick={() => {
-                      if (currentQuizIdx + 1 < quizQuestions.length) {
-                        setCurrentQuizIdx((i) => i + 1);
-                        setSelectedQuizAnswer(null);
-                      } else {
-                        finishQuiz();
-                      }
-                    }}
-                    className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold shadow-md"
+                    onClick={handleNextQuizQuestion}
+                    className="px-6 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs sm:text-sm font-extrabold shadow-md shrink-0"
                   >
-                    {currentQuizIdx + 1 < quizQuestions.length ? "Next Question →" : "Finish & Claim XP 🎉"}
+                    Next Question →
                   </button>
                 </div>
               )}
-            </div>
-          ) : quizFinished ? (
-            <div className="text-center space-y-4 py-6">
-              <span className="text-5xl">🏆</span>
-              <h2 className="text-2xl font-extrabold text-[var(--text-primary)]">Quiz Completed!</h2>
-              <p className="text-xs text-[var(--text-secondary)] font-semibold">
-                You answered {quizScore} out of {quizQuestions.length} questions correctly.
-              </p>
-
-              <div className="p-4 rounded-2xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 max-w-xs mx-auto space-y-1">
-                <p className="text-xs font-extrabold text-[#6c63ff] uppercase">Total XP Added</p>
-                <p className="text-xl font-extrabold text-amber-500">+{earnedXP} XP</p>
-              </div>
-
-              <div className="flex justify-center gap-3 pt-2">
-                <button
-                  onClick={startQuiz}
-                  className="px-6 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold"
-                >
-                  Retake Quiz
-                </button>
-                <button
-                  onClick={() => setActiveTab("list")}
-                  className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold"
-                >
-                  Back to List
-                </button>
-              </div>
             </div>
           ) : null}
         </div>
