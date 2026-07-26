@@ -9,6 +9,7 @@ export function Navbar() {
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleLogout = () => {
     logout();
@@ -16,12 +17,18 @@ export function Navbar() {
     navigate(ROUTES.HOME);
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    navigate(`${ROUTES.LESSONS}?search=${encodeURIComponent(searchQuery.trim())}`);
+  };
+
   return (
     <header className="sticky top-0 left-0 w-full z-40 border-b border-[var(--border-default)] bg-[var(--bg-base)]/90 backdrop-blur-md">
       <div className="max-w-[1600px] mx-auto px-6 sm:px-8 lg:px-10 h-20 flex items-center justify-between gap-6">
-        {/* Brand Logo */}
-        <div className="flex items-center gap-4">
-          <Link to={ROUTES.HOME} className="flex items-center gap-3.5 min-w-0 group">
+        {/* Left Section: Brand Logo */}
+        <div className="flex items-center gap-6">
+          <Link to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.HOME} className="flex items-center gap-3 min-w-0 group">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white font-black text-base shadow-lg shadow-[#6c63ff]/25 group-hover:scale-105 transition-transform">
               SM
             </span>
@@ -29,14 +36,33 @@ export function Navbar() {
               SpeakMate AI
             </span>
           </Link>
+
+          {/* Desktop Search Bar */}
+          {isAuthenticated && (
+            <form onSubmit={handleSearchSubmit} className="hidden md:flex items-center relative w-72 lg:w-96">
+              <input
+                type="text"
+                placeholder="Search lessons, vocabulary, grammar..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-12 py-2.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs sm:text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] transition-all"
+              />
+              <span className="absolute left-3.5 text-xs text-[var(--text-secondary)]">🔍</span>
+              <span className="absolute right-3 px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-default)] text-[10px] font-extrabold text-[var(--text-secondary)]">
+                ⌘K
+              </span>
+            </form>
+          )}
         </div>
 
-        {/* Right Actions */}
+        {/* Right Section: Actions & Profile */}
         <div className="flex items-center gap-3 sm:gap-4">
+          {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
             className="grid h-11 w-11 place-items-center rounded-2xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] transition-all"
             aria-label="Toggle theme"
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {isDark ? (
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,6 +77,7 @@ export function Navbar() {
 
           {isAuthenticated ? (
             <div className="relative flex items-center gap-3 sm:gap-4">
+              {/* Notifications Button */}
               <Link
                 to={ROUTES.NOTIFICATIONS}
                 className="grid h-11 w-11 place-items-center rounded-2xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] relative transition-all"
@@ -62,11 +89,19 @@ export function Navbar() {
                 <span className="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[var(--bg-base)]" />
               </Link>
 
-              <div className="hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-full bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm">
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse" />
-                <span className="font-extrabold text-xs sm:text-sm text-[var(--text-primary)]">{user?.streak || 3}d Streak</span>
+              {/* Streak & XP Badges */}
+              <div className="hidden lg:flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black">
+                  <span>🔥</span>
+                  <span>{user?.streak || 3}d Streak</span>
+                </div>
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#6c63ff]/10 border border-[#6c63ff]/20 text-[#6c63ff] text-xs font-black">
+                  <span>⭐</span>
+                  <span>450 XP</span>
+                </div>
               </div>
 
+              {/* User Avatar & Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -80,8 +115,13 @@ export function Navbar() {
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setDropdownOpen(false)} />
                     <div className="absolute right-0 mt-3 w-64 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-2xl py-3 z-20 animate-scale-in">
-                      <div className="px-5 py-3 border-b border-[var(--border-default)]">
-                        <p className="text-base font-black text-[var(--text-primary)] truncate">{user?.name || "User"}</p>
+                      <div className="px-5 py-3 border-b border-[var(--border-default)] space-y-1">
+                        <div className="flex items-center justify-between">
+                          <p className="text-base font-black text-[var(--text-primary)] truncate">{user?.name || "Learner"}</p>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
+                            {user?.level || "B1"}
+                          </span>
+                        </div>
                         <p className="text-xs text-[var(--text-secondary)] font-medium truncate">{user?.email || ""}</p>
                       </div>
 
@@ -98,7 +138,7 @@ export function Navbar() {
                         className="block px-5 py-3 text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        Achievements
+                        Achievements & Badges
                       </Link>
 
                       <Link
@@ -114,7 +154,7 @@ export function Navbar() {
                         className="block px-5 py-3 text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]"
                         onClick={() => setDropdownOpen(false)}
                       >
-                        Preferences
+                        App Preferences
                       </Link>
 
                       <button
