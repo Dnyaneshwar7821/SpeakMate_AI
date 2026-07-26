@@ -3,6 +3,12 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { speakingService } from "../services/appServices";
 
+const AVATAR_PERSONAS = [
+  { id: "sophia", name: "Sophia", role: "AI Language Coach", skinGrad: ["#FAD7BD", "#E3A880"], hairGrad: ["#4A306D", "#1E1035"], eyeColor: "#6C63FF", suitColor: "#6C63FF" },
+  { id: "alex", name: "Alex", role: "Professional AI Tutor", skinGrad: ["#F5C29B", "#D88B5A"], hairGrad: ["#1E293B", "#0F172A"], eyeColor: "#10B981", suitColor: "#3B82F6" },
+  { id: "maya", name: "Maya", role: "Friendly Voice Partner", skinGrad: ["#FCE3CD", "#EBB891"], hairGrad: ["#7C2D12", "#451A03"], eyeColor: "#F59E0B", suitColor: "#EC4899" },
+];
+
 export function ConversationSession() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -11,11 +17,12 @@ export function ConversationSession() {
   const xpReward = Number(searchParams.get("xpReward")) || 20;
 
   const [sessionId] = useState(sessionIdParam || Date.now().toString());
+  const [activePersona, setActivePersona] = useState(AVATAR_PERSONAS[0]);
   const [messages, setMessages] = useState([
     {
       id: "1",
       sender: "ai",
-      message: `Hello! I am your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`,
+      message: `Hello! I am ${AVATAR_PERSONAS[0].name}, your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`,
     },
   ]);
 
@@ -33,23 +40,23 @@ export function ConversationSession() {
   const [corrections, setCorrections] = useState(null);
   const [ending, setEnding] = useState(false);
 
-  // Dynamic Real-Time Phonetic Viseme State ("REST", "AA", "EE", "OO")
+  // Dynamic Real-Time Phonetic Viseme State ("REST", "AA", "EE", "OO", "IH", "OH")
   const [viseme, setViseme] = useState("REST");
 
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
   const hasSpokenInitialRef = useRef(false);
 
-  // Real-Time Lip-Sync Animation Interval Effect
+  // Real-Time Phonetic Lip-Sync Loop
   useEffect(() => {
     let visemeInterval = null;
     if (isAiSpeaking) {
-      const VISEMES = ["AA", "EE", "OO", "AA", "EE", "REST", "AA", "OO"];
+      const VISEMES = ["AA", "EE", "IH", "OO", "AA", "OH", "EE", "REST"];
       let idx = 0;
       visemeInterval = setInterval(() => {
         idx = (idx + 1) % VISEMES.length;
         setViseme(VISEMES[idx]);
-      }, 140);
+      }, 120);
     } else {
       setViseme("REST");
     }
@@ -96,9 +103,9 @@ export function ConversationSession() {
       };
 
       utterance.onboundary = () => {
-        const VISEMES = ["AA", "EE", "OO", "AA"];
-        const randomViseme = VISEMES[Math.floor(Math.random() * VISEMES.length)];
-        setViseme(randomViseme);
+        const VISEMES = ["AA", "EE", "IH", "OO", "OH"];
+        const nextViseme = VISEMES[Math.floor(Math.random() * VISEMES.length)];
+        setViseme(nextViseme);
       };
 
       utterance.onend = () => {
@@ -251,11 +258,11 @@ export function ConversationSession() {
         message: text,
         level: chatLevel,
       }).catch(() => ({
-        aiReply: "That is a fantastic point! Practicing every day helps build natural fluency.",
+        aiReply: `That is a fantastic point! Practicing every day with ${activePersona.name} builds natural fluency.`,
         grammarCorrection: "I want to improve my spoken English skills.",
         betterSentence: "I would like to enhance my English speaking proficiency.",
         vocabularySuggestions: "Proficiency, Natural fluency, Accent",
-        explanation: "Using 'enhance' adds a formal tone to your career conversation.",
+        explanation: "Using 'enhance' adds a formal tone to your conversation.",
         followUpQuestion: "What is your main goal for practicing English?",
       }));
 
@@ -307,9 +314,9 @@ export function ConversationSession() {
   const avatarState = isPaused
     ? "Paused ⏸️"
     : isAiSpeaking
-    ? "AI Speaking... 🔊"
+    ? `${activePersona.name} Speaking... 🔊`
     : isThinking
-    ? "AI Thinking... 🧠"
+    ? `${activePersona.name} Thinking... 🧠`
     : isListening
     ? "Listening to You... 🎙️"
     : "Idle Ready ✨";
@@ -363,6 +370,24 @@ export function ConversationSession() {
       {/* 3D Human-Like Lip-Sync AI Tutor Avatar Header */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl flex flex-col items-center justify-center text-center space-y-4 shrink-0 relative overflow-hidden">
         
+        {/* Persona Switcher Selector */}
+        <div className="flex items-center gap-3 bg-white/10 p-1.5 rounded-full backdrop-blur-md border border-white/15">
+          <span className="text-[10px] font-extrabold px-2.5 text-[#A5B4FC] uppercase tracking-wider">AI Persona:</span>
+          {AVATAR_PERSONAS.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => setActivePersona(p)}
+              className={`px-3.5 py-1 rounded-full text-xs font-extrabold transition-all ${
+                activePersona.id === p.id
+                  ? "bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white shadow-md"
+                  : "text-white/70 hover:text-white"
+              }`}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
+
         {/* Animated Avatar Face & Soundwave Equalizers */}
         <div className="flex items-center justify-center gap-6 relative">
           
@@ -375,47 +400,53 @@ export function ConversationSession() {
             </div>
           )}
 
-          {/* 3D Human Vector Avatar Head Container */}
+          {/* 3D Human Vector Avatar Head Box */}
           <div className="relative group">
             {/* Ambient Aura Glow */}
             <div className={`absolute -inset-3 rounded-full bg-gradient-to-tr from-[#6c63ff] via-[#8b85ff] to-[#ff6584] opacity-50 blur-xl transition-all ${isAiSpeaking ? "opacity-100 animate-pulse" : isListening ? "opacity-90 ring-4 ring-red-500/50" : ""}`} />
 
             {/* Avatar Frame Box */}
-            <div className={`relative grid h-28 w-28 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl p-2 overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
+            <div className={`relative grid h-32 w-32 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl p-2 overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
               
-              {/* 3D Human Head Vector SVG with Real-Time Viseme Lipsync */}
-              <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+              {/* 3D Human Vector Avatar SVG with Multi-Viseme Lip-Syncing */}
+              <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
                 <defs>
                   {/* Skin Gradient */}
                   <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FAD7BD" />
-                    <stop offset="100%" stopColor="#E3A880" />
+                    <stop offset="0%" stopColor={activePersona.skinGrad[0]} />
+                    <stop offset="100%" stopColor={activePersona.skinGrad[1]} />
                   </linearGradient>
                   {/* Hair Gradient */}
                   <linearGradient id="hairGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#4A306D" />
-                    <stop offset="100%" stopColor="#1E1035" />
+                    <stop offset="0%" stopColor={activePersona.hairGrad[0]} />
+                    <stop offset="100%" stopColor={activePersona.hairGrad[1]} />
                   </linearGradient>
                   {/* Iris Gradient */}
                   <radialGradient id="eyeIris">
-                    <stop offset="0%" stopColor="#6C63FF" />
-                    <stop offset="100%" stopColor="#312E81" />
+                    <stop offset="0%" stopColor={activePersona.eyeColor} />
+                    <stop offset="100%" stopColor="#0F172A" />
                   </radialGradient>
                 </defs>
 
-                {/* Neck & Shoulders */}
-                <path d="M 32 82 Q 50 78 68 82 L 72 100 L 28 100 Z" fill="#E3A880" />
-                <path d="M 24 90 Q 50 82 76 90 L 85 100 L 15 100 Z" fill="#6C63FF" opacity="0.9" />
+                {/* Neck & Suit Collar */}
+                <path d="M 32 82 Q 50 78 68 82 L 72 100 L 28 100 Z" fill={activePersona.skinGrad[1]} />
+                <path d="M 24 90 Q 50 82 76 90 L 85 100 L 15 100 Z" fill={activePersona.suitColor} opacity="0.9" />
 
                 {/* 3D Face Base */}
                 <path d="M 26 36 Q 22 58 32 76 Q 50 88 68 76 Q 78 58 74 36 Q 50 30 26 36 Z" fill="url(#skinGrad)" />
 
                 {/* Ears */}
-                <ellipse cx="23" cy="52" rx="4" ry="7" fill="#E3A880" />
-                <ellipse cx="77" cy="52" rx="4" ry="7" fill="#E3A880" />
+                <ellipse cx="23" cy="52" rx="4" ry="7" fill={activePersona.skinGrad[1]} />
+                <ellipse cx="77" cy="52" rx="4" ry="7" fill={activePersona.skinGrad[1]} />
 
-                {/* 3D Hair */}
-                <path d="M 22 40 Q 24 16 50 16 Q 76 16 78 40 Q 64 28 50 28 Q 36 28 22 40 Z" fill="url(#hairGrad)" />
+                {/* Persona Hair Styling */}
+                {activePersona.id === "sophia" ? (
+                  <path d="M 20 42 Q 22 14 50 14 Q 78 14 80 42 Q 65 26 50 26 Q 35 26 20 42 Z" fill="url(#hairGrad)" />
+                ) : activePersona.id === "alex" ? (
+                  <path d="M 24 38 Q 28 18 50 16 Q 72 18 76 38 Q 62 28 50 28 Q 38 28 24 38 Z" fill="url(#hairGrad)" />
+                ) : (
+                  <path d="M 18 44 Q 22 12 50 12 Q 78 12 82 44 Q 65 24 50 24 Q 35 24 18 44 Z" fill="url(#hairGrad)" />
+                )}
 
                 {/* Eyebrows */}
                 <path d="M 31 43 Q 39 39 47 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
@@ -423,45 +454,63 @@ export function ConversationSession() {
 
                 {/* 3D Eyes with Pupil & Reflections */}
                 <g className="animate-eye-blink">
-                  {/* Left Eye */}
                   <ellipse cx="39" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
                   <ellipse cx="39" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIris)" />
                   <circle cx="37.5" cy="47.5" r="1.2" fill="#FFFFFF" />
 
-                  {/* Right Eye */}
                   <ellipse cx="61" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
                   <ellipse cx="61" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIris)" />
                   <circle cx="59.5" cy="47.5" r="1.2" fill="#FFFFFF" />
                 </g>
 
+                {/* Glasses for Sophia */}
+                {activePersona.id === "sophia" && (
+                  <g stroke="#CBD5E1" strokeWidth="1.5" fill="none" opacity="0.8">
+                    <rect x="31" y="44" width="16" height="10" rx="3" />
+                    <rect x="53" y="44" width="16" height="10" rx="3" />
+                    <line x1="47" y1="48" x2="53" y2="48" />
+                  </g>
+                )}
+
                 {/* Nose */}
                 <path d="M 50 50 L 48 60 L 52 60 Z" fill="#D4946A" opacity="0.6" />
 
-                {/* REAL-TIME DYNAMIC LIP-SYNC MOUTH (Morphing based on Viseme) */}
+                {/* REAL-TIME DYNAMIC LIP-SYNC MOUTH MORPHS */}
                 {viseme === "AA" ? (
                   // Open Wide "AA" Mouth
                   <g>
-                    <path d="M 36 66 Q 50 60 64 66 Q 64 80 50 82 Q 36 80 36 66 Z" fill="#991B1B" stroke="#B91C1C" strokeWidth="1" />
-                    <path d="M 38 67 Q 50 63 62 67 L 62 70 Q 50 67 38 70 Z" fill="#FFFFFF" /> {/* Teeth */}
-                    <ellipse cx="50" cy="77" rx="6" ry="3.5" fill="#F87171" /> {/* Tongue */}
+                    <path d="M 35 64 Q 50 58 65 64 Q 65 80 50 82 Q 35 80 35 64 Z" fill="#991B1B" stroke="#B91C1C" strokeWidth="1" />
+                    <path d="M 37 65 Q 50 62 63 65 L 63 68 Q 50 65 37 68 Z" fill="#FFFFFF" />
+                    <ellipse cx="50" cy="77" rx="6" ry="3.5" fill="#F87171" />
                   </g>
                 ) : viseme === "EE" ? (
                   // Wide Smile Talking "EE" Mouth
                   <g>
-                    <path d="M 32 66 Q 50 62 68 66 Q 68 76 50 77 Q 32 76 32 66 Z" fill="#881337" stroke="#9F1239" strokeWidth="1" />
-                    <path d="M 34 67 Q 50 63 66 67 L 66 70 Q 50 67 34 70 Z" fill="#FFFFFF" />
+                    <path d="M 31 65 Q 50 60 69 65 Q 69 77 50 78 Q 31 77 31 65 Z" fill="#881337" stroke="#9F1239" strokeWidth="1" />
+                    <path d="M 33 66 Q 50 62 67 66 L 67 69 Q 50 66 33 69 Z" fill="#FFFFFF" />
                   </g>
                 ) : viseme === "OO" ? (
                   // Puckered Round "OO" Mouth
                   <g>
-                    <path d="M 43 64 Q 50 60 57 64 Q 58 76 50 77 Q 42 76 43 64 Z" fill="#7F1D1D" stroke="#991B1B" strokeWidth="1" />
+                    <path d="M 42 63 Q 50 59 58 63 Q 59 77 50 78 Q 41 77 42 63 Z" fill="#7F1D1D" stroke="#991B1B" strokeWidth="1" />
                     <ellipse cx="50" cy="74" rx="3.5" ry="2" fill="#F87171" />
                   </g>
-                ) : (
-                  // REST / Closed Natural Smile
+                ) : viseme === "IH" ? (
+                  // Half-Open "IH" Mouth
                   <g>
-                    <path d="M 36 68 Q 50 72 64 68" stroke="#991B1B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                    <path d="M 38 70 Q 50 74 62 70" stroke="#E3A880" strokeWidth="1" strokeLinecap="round" fill="none" />
+                    <path d="M 36 65 Q 50 61 64 65 Q 64 74 50 75 Q 36 74 36 65 Z" fill="#881337" stroke="#9F1239" strokeWidth="1" />
+                    <path d="M 38 66 Q 50 63 62 66 L 62 68 Q 50 66 38 68 Z" fill="#FFFFFF" />
+                  </g>
+                ) : viseme === "OH" ? (
+                  // Medium Open "OH" Mouth
+                  <g>
+                    <path d="M 38 63 Q 50 58 62 63 Q 63 78 50 80 Q 37 78 38 63 Z" fill="#7F1D1D" stroke="#991B1B" strokeWidth="1" />
+                    <ellipse cx="50" cy="75" rx="4" ry="2.5" fill="#F87171" />
+                  </g>
+                ) : (
+                  // REST / Natural Closed Smile
+                  <g>
+                    <path d="M 35 68 Q 50 72 65 68 M 37 70 Q 50 74 63 70" stroke="#991B1B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
                   </g>
                 )}
               </svg>
@@ -513,7 +562,7 @@ export function ConversationSession() {
               }`}
             >
               <div className="flex items-center justify-between gap-4">
-                <span className="text-[10px] opacity-75 font-bold uppercase">{m.sender === "user" ? "You" : "SpeakMate AI"}</span>
+                <span className="text-[10px] opacity-75 font-bold uppercase">{m.sender === "user" ? "You" : `${activePersona.name} (AI)`}</span>
                 {m.sender === "ai" && (
                   <button onClick={() => handleSpeakText(m.message)} className="text-xs hover:scale-110" title="Play Speech">
                     🔊
@@ -528,7 +577,7 @@ export function ConversationSession() {
         {isThinking && (
           <div className="flex items-center gap-2 p-3 text-xs font-bold text-[var(--text-secondary)]">
             <span className="h-2 w-2 rounded-full bg-[#6c63ff] animate-ping" />
-            AI Tutor thinking response & analyzing speech...
+            {activePersona.name} thinking response & analyzing speech...
           </div>
         )}
 
