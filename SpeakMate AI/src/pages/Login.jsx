@@ -1,20 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Button from "@components/common/Button";
-import Card from "@components/common/Card";
-import Input from "@components/common/Input";
-import { useAuth } from "@context/AuthContext";
-import ROUTES from "@constants/routes";
+import { useAuth } from "../context/AuthContext";
+import ROUTES from "../constants/routes";
 
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleSubmit = async (event) => {
-    event.preventDefault();
+    if (event) event.preventDefault();
     setError("");
     setLoading(true);
 
@@ -23,53 +21,134 @@ export function Login() {
       navigate(ROUTES.DASHBOARD, { replace: true });
     } catch (err) {
       console.error("Login failed:", err);
-      setError(err.userMessage || err.response?.data?.message || "Invalid credentials or network issue.");
+      setError(err.userMessage || err.response?.data?.message || "Invalid email or password. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async (demoEmail, demoPassword) => {
+    setForm({ email: demoEmail, password: demoPassword });
+    setError("");
+    setLoading(true);
+    try {
+      await login({ email: demoEmail, password: demoPassword });
+      navigate(ROUTES.DASHBOARD, { replace: true });
+    } catch (err) {
+      setError("Demo login failed. Please register a new account.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Card className="mx-auto max-w-md p-6 sm:p-8 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl rounded-2xl">
-      <h1 className="text-2xl font-black text-slate-900 dark:text-white">Welcome back 👋</h1>
-      <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">Log in to continue your English practice.</p>
+    <div className="min-h-[85vh] flex items-center justify-center p-4">
+      <div className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl space-y-6 relative overflow-hidden animate-in fade-in duration-300">
+        {/* Glow Header Accent */}
+        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#6c63ff] to-[#ff6584]" />
 
-      {error && (
-        <div className="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800 text-xs font-semibold text-red-700 dark:text-red-300">
-          {error}
-        </div>
-      )}
-
-      <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
-        <Input
-          label="Email"
-          type="email"
-          placeholder="you@example.com"
-          value={form.email}
-          onChange={(event) => setForm({ ...form, email: event.target.value })}
-          required
-        />
-        <Input
-          label="Password"
-          type="password"
-          placeholder="Enter your password"
-          value={form.password}
-          onChange={(event) => setForm({ ...form, password: event.target.value })}
-          required
-        />
-        <div className="flex items-center justify-between text-sm">
-          <Link to={ROUTES.REGISTER} className="font-semibold text-indigo-600 hover:text-indigo-500">
-            Create account
-          </Link>
-          <Link to={ROUTES.FORGOT_PASSWORD} className="font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-slate-200">
-            Forgot password?
+        {/* Tab Switcher: Login / Register */}
+        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+          <button
+            className="flex-1 py-2.5 rounded-xl text-xs font-extrabold bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20 transition-all"
+          >
+            🔑 Log In
+          </button>
+          <Link
+            to={ROUTES.REGISTER}
+            className="flex-1 py-2.5 rounded-xl text-xs font-extrabold text-[var(--text-secondary)] hover:text-white text-center transition-all"
+          >
+            ✨ Register
           </Link>
         </div>
-        <Button type="submit" className="w-full py-3 text-base font-semibold" disabled={loading}>
-          {loading ? "Signing in..." : "Log in"}
-        </Button>
-      </form>
-    </Card>
+
+        {/* Title */}
+        <div className="space-y-1 text-center">
+          <h1 className="text-2xl font-black text-white">Welcome Back! 👋</h1>
+          <p className="text-xs text-[var(--text-secondary)]">Log in to continue your daily English speaking practice.</p>
+        </div>
+
+        {/* Error Popup Alert */}
+        {error && (
+          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-xs font-bold text-red-400 space-y-1 animate-in fade-in duration-200">
+            <p className="font-extrabold">⚠️ Login Error</p>
+            <p className="text-[11px] font-semibold opacity-90">{error}</p>
+          </div>
+        )}
+
+        {/* Form */}
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-xs font-bold text-[var(--text-primary)] mb-1">Email Address</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              required
+              className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-white focus:outline-none focus:border-[#6c63ff] transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-[var(--text-primary)] mb-1">Password</label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                required
+                className="w-full pl-4 pr-12 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-white focus:outline-none focus:border-[#6c63ff] transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-3 text-xs font-bold text-[var(--text-secondary)] hover:text-white"
+              >
+                {showPassword ? "🙈 Hide" : "👁️ Show"}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between text-xs pt-1">
+            <Link to={ROUTES.FORGOT_PASSWORD} className="font-bold text-[#6c63ff] hover:underline">
+              Forgot password?
+            </Link>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] hover:from-[#7c74ff] hover:to-[#ff7593] disabled:opacity-50 text-white font-extrabold text-xs shadow-xl shadow-[#6c63ff]/25 transition-all"
+          >
+            {loading ? "Signing in..." : "Log In to Account →"}
+          </button>
+        </form>
+
+        {/* Quick Demo Login Divider */}
+        <div className="pt-2 border-t border-[var(--border-subtle)] space-y-3">
+          <p className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] text-center">
+            ⚡ Quick 1-Tap Demo Logins
+          </p>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => handleDemoLogin("student@speakmate.com", "Password123!")}
+              className="py-2.5 px-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6c63ff]/20 border border-[var(--border-default)] text-[11px] font-extrabold text-white transition-all text-center"
+            >
+              🎓 Student Demo
+            </button>
+            <button
+              onClick={() => handleDemoLogin("admin@speakmate.com", "Admin123!")}
+              className="py-2.5 px-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#ff6584]/20 border border-[var(--border-default)] text-[11px] font-extrabold text-white transition-all text-center"
+            >
+              👑 Admin Demo
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

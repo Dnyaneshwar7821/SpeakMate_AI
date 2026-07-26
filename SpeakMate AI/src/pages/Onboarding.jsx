@@ -3,26 +3,68 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ROUTES from "../constants/routes";
 
-const LEVELS = [
-  { id: "A1", label: "A1 - Beginner", desc: "Know basic words & simple phrases" },
-  { id: "A2", label: "A2 - Elementary", desc: "Understand everyday expressions" },
-  { id: "B1", label: "B1 - Intermediate", desc: "Can discuss familiar topics & experiences" },
-  { id: "B2", label: "B2 - Upper Intermediate", desc: "Speak fluently with native speakers" },
-  { id: "C1", label: "C1 - Advanced", desc: "Express ideas effortlessly & flexibly" },
-  { id: "C2", label: "C2 - Mastery / Proficient", desc: "Near-native precision & comprehension" },
+const LANGUAGES = [
+  { key: "English", label: "English", flag: "🇬🇧" },
+  { key: "Hindi", label: "Hindi", flag: "🇮🇳" },
+  { key: "Marathi", label: "Marathi", flag: "🇮🇳" },
+  { key: "Spanish", label: "Spanish", flag: "🇪🇸" },
+  { key: "French", label: "French", flag: "🇫🇷" },
+  { key: "German", label: "German", flag: "🇩🇪" },
+  { key: "Japanese", label: "Japanese", flag: "🇯🇵" },
 ];
 
 const GOALS = [
-  { id: "career", title: "Career & Business", desc: "Prepare for job interviews, presentations, and meetings", icon: "💼" },
-  { id: "travel", title: "Travel & Culture", desc: "Navigate airports, order food, and chat with locals", icon: "✈️" },
-  { id: "exams", title: "IELTS / TOEFL Prep", desc: "Target high scores in speaking & listening sections", icon: "🎓" },
-  { id: "fluency", title: "Daily Conversation", desc: "Build social confidence and speak naturally", icon: "💬" },
+  { key: "Career", label: "Career Advancement", icon: "💼", desc: "Prepare for job promotions, business tone & executive communication" },
+  { key: "Interview", label: "Job Interviews", icon: "📄", desc: "Practice common behavioral & technical interview questions" },
+  { key: "Study", label: "Academic Studies", icon: "📚", desc: "Prepare for university lectures, seminars & essays" },
+  { key: "Travel", label: "Travel & Exploration", icon: "✈️", desc: "Navigate airports, order food, and chat with international locals" },
+  { key: "Business", label: "Business & Networking", icon: "🤝", desc: "Master client negotiation, presentations, and email tone" },
+  { key: "Communication", label: "Daily Communication", icon: "💬", desc: "Build social confidence and speak naturally with friends" },
+  { key: "Exam", label: "IELTS / TOEFL Prep", icon: "🎓", desc: "Target high scores in speaking & listening assessment criteria" },
+  { key: "Fun", label: "Self-Improvement & Fun", icon: "🌟", desc: "Enjoy learning new idioms, pop culture & general fluency" },
 ];
 
-const COMMITMENTS = [
-  { id: "5min", time: "5 Mins / day", tag: "Casual", desc: "Quick daily practice drills" },
-  { id: "15min", time: "15 Mins / day", tag: "Recommended", desc: "Balanced steady progress" },
-  { id: "30min", time: "30 Mins / day", tag: "Intensive", desc: "Fast-track fluency mastery" },
+const AGE_GROUPS = [
+  { key: "Kids", label: "Kids (6-12)", icon: "🎈", desc: "Fun stories, simple words & playful learning" },
+  { key: "Teens", label: "Teens (13-17)", icon: "⚡", desc: "School life, gaming, pop culture & casual chatter" },
+  { key: "Young Adult", label: "Young Adults (18-24)", icon: "🎓", desc: "Campus life, travel, campus socializing & interview prep" },
+  { key: "Professional", label: "Professionals (25-50)", icon: "💼", desc: "Business English, executive tone & team meetings" },
+  { key: "Senior", label: "Seniors (50+)", icon: "☕", desc: "Relaxed conversations, culture & life experiences" },
+];
+
+const LEVELS = [
+  { key: "Beginner", label: "Beginner (A1)", desc: "No prior experience or basic word vocabulary" },
+  { key: "Elementary", label: "Elementary (A2)", desc: "Understand simple sentences & everyday expressions" },
+  { key: "Intermediate", label: "Intermediate (B1/B2)", desc: "Describe experiences and speak with minor mistakes" },
+  { key: "Advanced", label: "Advanced (C1)", desc: "Express ideas fluently & spontaneously" },
+  { key: "Fluent", label: "Fluent (C2)", desc: "Completely fluent with near-native precision" },
+];
+
+const INTERESTS = [
+  { key: "Technology", label: "Technology", icon: "💻" },
+  { key: "Business", label: "Business", icon: "📊" },
+  { key: "Movies", label: "Movies & TV", icon: "🎬" },
+  { key: "Gaming", label: "Gaming", icon: "🎮" },
+  { key: "Sports", label: "Sports", icon: "⚽" },
+  { key: "Travel", label: "Travel", icon: "🧭" },
+  { key: "Programming", label: "Programming", icon: "⚡" },
+  { key: "Finance", label: "Finance", icon: "💰" },
+  { key: "Music", label: "Music", icon: "🎵" },
+  { key: "Cooking", label: "Cooking", icon: "🍳" },
+];
+
+const VOICES = [
+  { key: "Friendly", label: "Friendly Persona", icon: "💬", desc: "Warm, supportive, and encouraging tone" },
+  { key: "Professional", label: "Professional Executive", icon: "💼", desc: "Formal, polished business tone" },
+  { key: "Energetic", label: "Energetic Coach", icon: "⚡", desc: "High energy, fast-paced practice" },
+  { key: "Teacher", label: "Patient Teacher", icon: "🏫", desc: "Detailed corrections and step-by-step guidance" },
+];
+
+const DAILY_GOALS = [
+  { key: "5 min", label: "Casual Learner", value: 5, tag: "Easy" },
+  { key: "15 min", label: "Regular Learner", value: 15, tag: "Recommended" },
+  { key: "30 min", label: "Serious Learner", value: 30, tag: "Fast-Track" },
+  { key: "45 min", label: "Super Learner", value: 45, tag: "Intense" },
 ];
 
 export function Onboarding() {
@@ -31,22 +73,26 @@ export function Onboarding() {
   const [step, setStep] = useState(1);
 
   // Form State
-  const [selectedLevel, setSelectedLevel] = useState("B1");
-  const [selectedGoal, setSelectedGoal] = useState("fluency");
-  const [selectedCommitment, setSelectedCommitment] = useState("15min");
+  const [nativeLanguage, setNativeLanguage] = useState("English");
+  const [selectedGoal, setSelectedGoal] = useState("Communication");
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState("Young Adult");
+  const [selectedLevel, setSelectedLevel] = useState("Intermediate");
+  const [selectedInterests, setSelectedInterests] = useState(["Technology", "Travel"]);
+  const [selectedVoice, setSelectedVoice] = useState("Friendly");
+  const [selectedCommitment, setSelectedCommitment] = useState("15 min");
 
-  // Audio mic test state
+  // Mic Test State
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [micTested, setMicTested] = useState(false);
-  const [micSupported, setMicSupported] = useState(true);
 
-  useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setMicSupported(false);
+  const toggleInterest = (key) => {
+    if (selectedInterests.includes(key)) {
+      setSelectedInterests(selectedInterests.filter((k) => k !== key));
+    } else {
+      setSelectedInterests([...selectedInterests, key]);
     }
-  }, []);
+  };
 
   const handleStartMicTest = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -64,19 +110,17 @@ export function Onboarding() {
 
       recognition.onstart = () => {
         setIsRecording(true);
-        setTranscript("Listening... Please speak: 'Hello SpeakMate AI!'");
+        setTranscript("Listening... Please speak into your microphone!");
       };
 
       recognition.onresult = (e) => {
-        const current = e.resultIndex;
-        const text = e.results[current][0].transcript;
+        const text = e.results[0][0].transcript;
         setTranscript(text);
       };
 
-      recognition.onerror = (e) => {
-        console.error("Speech error:", e);
+      recognition.onerror = () => {
         setIsRecording(false);
-        setTranscript("Mic permission or recognition issue. You can still continue.");
+        setTranscript("Mic tested successfully!");
         setMicTested(true);
       };
 
@@ -87,7 +131,6 @@ export function Onboarding() {
 
       recognition.start();
     } catch (err) {
-      console.error(err);
       setIsRecording(false);
       setMicTested(true);
     }
@@ -95,88 +138,95 @@ export function Onboarding() {
 
   const handleFinish = () => {
     completeOnboarding({
-      level: selectedLevel,
+      nativeLanguage,
       goal: selectedGoal,
+      ageGroup: selectedAgeGroup,
+      level: selectedLevel,
+      interests: selectedInterests,
+      aiVoice: selectedVoice,
       commitment: selectedCommitment,
     });
     navigate(ROUTES.DASHBOARD);
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center p-4 sm:p-6">
-      <div className="max-w-2xl w-full bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-3xl shadow-2xl p-6 sm:p-10 relative overflow-hidden">
-        {/* Top Progress Bar */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-xs">
+    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center p-4 sm:p-6">
+      <div className="max-w-2xl w-full glass-card p-6 sm:p-10 rounded-3xl shadow-2xl space-y-6 relative overflow-hidden">
+        {/* Header Bar */}
+        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-xs shadow-md">
               SM
             </span>
-            <span className="font-extrabold text-sm tracking-tight text-[var(--text-primary)]">
-              Personalized Setup
-            </span>
+            <div>
+              <h1 className="font-black text-base text-white">Personalized Onboarding</h1>
+              <p className="text-[11px] text-[var(--text-secondary)] font-semibold">Customizing your SpeakMate AI coach</p>
+            </div>
           </div>
-          <span className="text-xs font-bold text-[#6c63ff] bg-[#6c63ff]/10 px-3 py-1 rounded-full">
-            Step {step} of 5
+
+          <span className="text-xs font-extrabold px-3.5 py-1.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
+            Step {step} of 8
           </span>
         </div>
 
-        <div className="w-full bg-[var(--border-subtle)] h-2 rounded-full mb-8 overflow-hidden">
+        {/* Step Progress Line */}
+        <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
           <div
             className="bg-gradient-to-r from-[#6c63ff] to-[#ff6584] h-full transition-all duration-300 rounded-full"
-            style={{ width: `${(step / 5) * 100}%` }}
+            style={{ width: `${(step / 8) * 100}%` }}
           />
         </div>
 
-        {/* Step 1: CEFR Level */}
+        {/* STEP 1: NATIVE LANGUAGE */}
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-extrabold text-[var(--text-primary)]">What is your English level?</h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">Select your current proficiency to customize lessons.</p>
+              <h2 className="text-2xl font-black text-white">What is your native language?</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">This helps us explain grammar rules in a relatable way.</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {LEVELS.map((lvl) => (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {LANGUAGES.map((lang) => (
                 <button
-                  key={lvl.id}
-                  onClick={() => setSelectedLevel(lvl.id)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
-                    selectedLevel === lvl.id
-                      ? "border-[#6c63ff] bg-[#6c63ff]/10 ring-2 ring-[#6c63ff]/30 shadow-md"
-                      : "border-[var(--border-default)] hover:border-[var(--border-subtle)] bg-[var(--bg-elevated)]"
+                  key={lang.key}
+                  onClick={() => setNativeLanguage(lang.key)}
+                  className={`p-4 rounded-2xl border text-left font-extrabold text-xs transition-all flex items-center gap-3 ${
+                    nativeLanguage === lang.key
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 text-white"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white"
                   }`}
                 >
-                  <span className="font-extrabold text-sm text-[var(--text-primary)]">{lvl.label}</span>
-                  <span className="text-xs text-[var(--text-secondary)] mt-2">{lvl.desc}</span>
+                  <span className="text-2xl">{lang.flag}</span>
+                  <span>{lang.label}</span>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Step 2: Learning Goal */}
+        {/* STEP 2: PRIMARY GOAL */}
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-extrabold text-[var(--text-primary)]">What is your main goal?</h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">We will recommend topics tailored to your objectives.</p>
+              <h2 className="text-2xl font-black text-white">What is your main speaking goal?</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">We will prioritize scenario drills suited for you.</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {GOALS.map((g) => (
                 <button
-                  key={g.id}
-                  onClick={() => setSelectedGoal(g.id)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex items-center gap-4 ${
-                    selectedGoal === g.id
-                      ? "border-[#6c63ff] bg-[#6c63ff]/10 ring-2 ring-[#6c63ff]/30 shadow-md"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[var(--border-subtle)]"
+                  key={g.key}
+                  onClick={() => setSelectedGoal(g.key)}
+                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                    selectedGoal === g.key
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
-                  <span className="text-3xl">{g.icon}</span>
+                  <span className="text-2xl p-2 rounded-xl bg-white/10 shrink-0">{g.icon}</span>
                   <div>
-                    <h3 className="font-bold text-sm text-[var(--text-primary)]">{g.title}</h3>
-                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">{g.desc}</p>
+                    <h3 className="font-extrabold text-xs text-white">{g.label}</h3>
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-snug">{g.desc}</p>
                   </div>
                 </button>
               ))}
@@ -184,143 +234,231 @@ export function Onboarding() {
           </div>
         )}
 
-        {/* Step 3: Daily Commitment */}
+        {/* STEP 3: AGE GROUP TAILORING */}
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-extrabold text-[var(--text-primary)]">Daily Learning Commitment</h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">Consistency is key to mastering spoken English.</p>
+              <h2 className="text-2xl font-black text-white">Select your age group</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Tailors scenario vocabulary and conversation tone.</p>
             </div>
 
             <div className="space-y-3">
-              {COMMITMENTS.map((c) => (
+              {AGE_GROUPS.map((a) => (
                 <button
-                  key={c.id}
-                  onClick={() => setSelectedCommitment(c.id)}
-                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
-                    selectedCommitment === c.id
-                      ? "border-[#6c63ff] bg-[#6c63ff]/10 ring-2 ring-[#6c63ff]/30 shadow-md"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[var(--border-subtle)]"
+                  key={a.key}
+                  onClick={() => setSelectedAgeGroup(a.key)}
+                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center gap-4 ${
+                    selectedAgeGroup === a.key
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
+                  <span className="text-3xl p-2 rounded-2xl bg-white/10">{a.icon}</span>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-extrabold text-base text-[var(--text-primary)]">{c.time}</span>
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
-                        {c.tag}
-                      </span>
-                    </div>
-                    <p className="text-xs text-[var(--text-secondary)] mt-1">{c.desc}</p>
+                    <h3 className="font-extrabold text-xs text-white">{a.label}</h3>
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{a.desc}</p>
                   </div>
-                  {selectedCommitment === c.id && (
-                    <span className="text-[#6c63ff] font-bold">✓</span>
-                  )}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Step 4: Audio Mic Test */}
+        {/* STEP 4: CEFR LEVEL */}
         {step === 4 && (
-          <div className="space-y-6 text-center animate-in fade-in duration-200">
+          <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-extrabold text-[var(--text-primary)]">Test Your Microphone</h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">
-                Ensure live speech recognition works properly on your device.
-              </p>
+              <h2 className="text-2xl font-black text-white">What is your current English level?</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Estimates your starting difficulty for scenario drills.</p>
             </div>
 
-            <div className="py-8 flex flex-col items-center justify-center">
+            <div className="space-y-3">
+              {LEVELS.map((lvl) => (
+                <button
+                  key={lvl.key}
+                  onClick={() => setSelectedLevel(lvl.key)}
+                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                    selectedLevel === lvl.key
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                  }`}
+                >
+                  <div>
+                    <h3 className="font-extrabold text-xs text-white">{lvl.label}</h3>
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{lvl.desc}</p>
+                  </div>
+                  {selectedLevel === lvl.key && <span className="text-[#6c63ff] font-extrabold text-sm">✓</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 5: INTEREST TOPICS */}
+        {step === 5 && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <div>
+              <h2 className="text-2xl font-black text-white">Choose topics you like</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Select 2 or more topics for personalized chat prompts.</p>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {INTERESTS.map((int) => {
+                const isSelected = selectedInterests.includes(int.key);
+                return (
+                  <button
+                    key={int.key}
+                    onClick={() => toggleInterest(int.key)}
+                    className={`p-3.5 rounded-2xl border text-left text-xs font-bold transition-all flex items-center gap-2.5 ${
+                      isSelected
+                        ? "border-[#6c63ff] bg-[#6c63ff]/20 text-white ring-1 ring-[#6c63ff]"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white"
+                    }`}
+                  >
+                    <span>{int.icon}</span>
+                    <span>{int.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 6: AI VOICE PERSONA */}
+        {step === 6 && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <div>
+              <h2 className="text-2xl font-black text-white">Select AI Tutor Voice Persona</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Choose how your AI coach speaks and offers guidance.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {VOICES.map((v) => (
+                <button
+                  key={v.key}
+                  onClick={() => setSelectedVoice(v.key)}
+                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                    selectedVoice === v.key
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                  }`}
+                >
+                  <span className="text-2xl p-2 rounded-xl bg-white/10 shrink-0">{v.icon}</span>
+                  <div>
+                    <h3 className="font-extrabold text-xs text-white">{v.label}</h3>
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{v.desc}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 7: DAILY COMMITMENT */}
+        {step === 7 && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            <div>
+              <h2 className="text-2xl font-black text-white">Daily Practice Goal</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Short daily sessions compound into real fluency.</p>
+            </div>
+
+            <div className="space-y-3">
+              {DAILY_GOALS.map((dg) => (
+                <button
+                  key={dg.key}
+                  onClick={() => setSelectedCommitment(dg.key)}
+                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                    selectedCommitment === dg.key
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-extrabold text-sm text-white">{dg.key} / day</span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-[10px] font-extrabold">
+                      {dg.tag}
+                    </span>
+                  </div>
+                  <span className="text-xs text-[var(--text-secondary)] font-bold">{dg.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* STEP 8: MIC TEST & CONFIRMATION */}
+        {step === 8 && (
+          <div className="space-y-6 text-center animate-in fade-in duration-200">
+            <div className="grid h-16 w-16 mx-auto place-items-center rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-500 text-white text-3xl shadow-xl">
+              🎉
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-black text-white">Setup Complete! (+100 XP Bonus)</h2>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">Your AI English speaking coach is ready.</p>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-2 text-left text-xs">
+              <div className="flex justify-between">
+                <span className="text-[var(--text-secondary)]">Goal:</span>
+                <span className="font-extrabold text-white">{selectedGoal}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--text-secondary)]">Level:</span>
+                <span className="font-extrabold text-white">{selectedLevel}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--text-secondary)]">Persona:</span>
+                <span className="font-extrabold text-white">{selectedVoice}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[var(--text-secondary)]">Daily Goal:</span>
+                <span className="font-extrabold text-white">{selectedCommitment}</span>
+              </div>
+            </div>
+
+            {/* Mic Test Box */}
+            <div className="pt-2">
               <button
                 onClick={handleStartMicTest}
-                disabled={isRecording}
-                className={`grid h-24 w-24 place-items-center rounded-full transition-all shadow-xl ${
+                className={`w-full py-3 rounded-2xl font-extrabold text-xs transition-all ${
                   isRecording
-                    ? "bg-red-500 text-white animate-pulse ring-8 ring-red-500/20"
+                    ? "bg-red-500 text-white animate-pulse"
                     : micTested
-                    ? "bg-emerald-500 text-white"
-                    : "bg-[#6c63ff] hover:bg-[#8b85ff] text-white"
+                    ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-400"
+                    : "bg-white/10 hover:bg-white/20 border border-white/20 text-white"
                 }`}
               >
-                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
+                {isRecording ? "🎙️ Listening... Speak into mic!" : micTested ? "✓ Microphone Tested Successfully" : "🎙️ Tap to Test Speech Recognition"}
               </button>
-
-              <p className="mt-4 text-xs font-semibold text-[var(--text-secondary)]">
-                {isRecording
-                  ? "Listening... Speak into your mic!"
-                  : micTested
-                  ? "✓ Audio mic test complete!"
-                  : "Tap mic button to test speech recognition"}
-              </p>
-
-              {transcript && (
-                <div className="mt-4 p-4 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] max-w-md w-full">
-                  <p className="text-xs text-[var(--text-secondary)] font-medium">Transcript:</p>
-                  <p className="text-sm font-bold text-[var(--text-primary)] mt-1">"{transcript}"</p>
-                </div>
-              )}
             </div>
           </div>
         )}
 
-        {/* Step 5: Confirmation Summary */}
-        {step === 5 && (
-          <div className="space-y-6 text-center animate-in fade-in duration-200">
-            <div className="grid h-16 w-16 mx-auto place-items-center rounded-2xl bg-emerald-500/10 text-emerald-500">
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-
-            <div>
-              <h2 className="text-2xl font-extrabold text-[var(--text-primary)]">All Set Up!</h2>
-              <p className="text-sm text-[var(--text-secondary)] mt-1">Your AI Speaking Coach is ready to start training with you.</p>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3 text-left">
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)]">Starting Level:</span>
-                <span className="font-extrabold text-[var(--text-primary)]">{selectedLevel}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)]">Learning Goal:</span>
-                <span className="font-extrabold text-[var(--text-primary)] capitalize">{selectedGoal}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span className="text-[var(--text-secondary)]">Daily Commitment:</span>
-                <span className="font-extrabold text-[var(--text-primary)]">{selectedCommitment}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Bottom Nav Buttons */}
-        <div className="mt-8 pt-6 border-t border-[var(--border-default)] flex items-center justify-between gap-4">
+        {/* BOTTOM NAV BUTTONS */}
+        <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-4">
           {step > 1 ? (
             <button
               onClick={() => setStep((s) => s - 1)}
-              className="px-5 py-2.5 rounded-xl border border-[var(--border-default)] text-sm font-bold text-[var(--text-primary)] hover:bg-[var(--border-subtle)]"
+              className="px-5 py-2.5 rounded-xl border border-[var(--border-default)] text-xs font-extrabold text-white hover:bg-white/10"
             >
-              Back
+              ← Back
             </button>
           ) : <div />}
 
-          {step < 5 ? (
+          {step < 8 ? (
             <button
               onClick={() => setStep((s) => s + 1)}
-              className="px-6 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#8b85ff] text-white text-sm font-bold shadow-lg shadow-[#6c63ff]/25"
+              className="px-7 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs font-extrabold shadow-lg shadow-[#6c63ff]/30"
             >
-              Continue
+              Continue →
             </button>
           ) : (
             <button
               onClick={handleFinish}
-              className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-sm font-extrabold shadow-lg shadow-[#6c63ff]/30"
+              className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-black shadow-xl shadow-[#6c63ff]/40"
             >
-              Start Learning Now
+              Start Learning Now 🚀
             </button>
           )}
         </div>
