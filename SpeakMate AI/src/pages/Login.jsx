@@ -139,23 +139,15 @@ export function Login() {
         {/* Quick Demo Login Divider */}
         <div className="pt-2 border-t border-[var(--border-subtle)] space-y-3">
           <p className="text-[10px] font-extrabold uppercase tracking-wider text-[var(--text-secondary)] text-center">
-            ⚡ Quick 1-Tap Demo Logins
+            ⚡ Quick 1-Tap Learner Demo
           </p>
 
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={() => handleDemoLogin("student@speakmate.com", "Password123!")}
-              className="py-2.5 px-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6c63ff]/20 border border-[var(--border-default)] text-[11px] font-extrabold text-[var(--text-primary)] transition-all text-center"
-            >
-              🎓 Student Demo
-            </button>
-            <button
-              onClick={() => handleDemoLogin("admin@speakmate.com", "Admin123!")}
-              className="py-2.5 px-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#ff6584]/20 border border-[var(--border-default)] text-[11px] font-extrabold text-[var(--text-primary)] transition-all text-center"
-            >
-              👑 Admin Demo
-            </button>
-          </div>
+          <button
+            onClick={() => handleDemoLogin("student@speakmate.com", "Password123!")}
+            className="w-full py-3 px-4 rounded-2xl bg-[var(--bg-elevated)] hover:bg-[#6c63ff]/20 border border-[var(--border-default)] text-xs font-extrabold text-[var(--text-primary)] transition-all text-center flex items-center justify-center gap-2 shadow-sm"
+          >
+            <span>🎓 Log In as Demo Learner (Student)</span>
+          </button>
         </div>
       </div>
     </div>
