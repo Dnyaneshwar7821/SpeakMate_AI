@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { speakingService, onboardingService } from "../services/appServices";
 
@@ -53,7 +53,6 @@ export function SpeakingPractice() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [userAgeGroup, setUserAgeGroup] = useState("Professional");
 
-  // Load history & profile age group
   const loadData = async () => {
     setLoading(true);
     try {
@@ -116,70 +115,75 @@ export function SpeakingPractice() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-8">
       {/* Top Banner & Stats Card */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] to-[#1E1B4B] text-white shadow-xl space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-white/10 uppercase tracking-wider">
+      <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl space-y-8 relative overflow-hidden">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-3">
+            <span className="text-xs font-black px-4 py-1.5 rounded-full bg-white/10 uppercase tracking-wider">
               Interactive AI Voice Module
             </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold mt-2">Speaking Practice</h1>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">Speaking Practice</h1>
+            <p className="text-sm sm:text-base text-indigo-200 font-medium">
+              Choose a scenario role, speak naturally, and get real-time audio evaluation.
+            </p>
           </div>
 
           <button
             onClick={() => handleStartScenario({ title: "Free Speaking Practice", difficulty: "Intermediate", duration: 5, xp: 20 })}
-            className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-xs shadow-lg shadow-[#6c63ff]/25 hover:scale-105 transition-all shrink-0"
+            className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white font-black text-sm sm:text-base shadow-xl shadow-[#6c63ff]/30 hover:scale-105 transition-transform shrink-0 text-center"
           >
             🎙️ Start Free Voice Conversation
           </button>
         </div>
 
         {/* Overview Stats Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 text-center">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 p-6 rounded-2xl bg-white/5 border border-white/10 text-center">
           <div>
-            <p className="text-lg font-extrabold">{streak} 🔥</p>
-            <p className="text-[10px] opacity-75 font-semibold">Streak Days</p>
+            <p className="text-2xl sm:text-3xl font-black">{streak} 🔥</p>
+            <p className="text-xs sm:text-sm font-bold opacity-80 mt-1">Streak Days</p>
           </div>
           <div>
-            <p className="text-lg font-extrabold">{Math.round(totalMinutes)}m</p>
-            <p className="text-[10px] opacity-75 font-semibold">Total Mins</p>
+            <p className="text-2xl sm:text-3xl font-black">{Math.round(totalMinutes)}m</p>
+            <p className="text-xs sm:text-sm font-bold opacity-80 mt-1">Total Mins</p>
           </div>
           <div>
-            <p className="text-lg font-extrabold">{totalXP} ⭐</p>
-            <p className="text-[10px] opacity-75 font-semibold">XP Earned</p>
+            <p className="text-2xl sm:text-3xl font-black">{totalXP} ⭐</p>
+            <p className="text-xs sm:text-sm font-bold opacity-80 mt-1">XP Earned</p>
           </div>
           <div>
-            <p className="text-lg font-extrabold">{totalSessions}</p>
-            <p className="text-[10px] opacity-75 font-semibold">Sessions</p>
+            <p className="text-2xl sm:text-3xl font-black">{totalSessions}</p>
+            <p className="text-xs sm:text-sm font-bold opacity-80 mt-1">Sessions</p>
           </div>
         </div>
       </div>
 
       {/* Search & Category Filter Section */}
-      <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
-        {/* Search */}
+      <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6">
+        {/* Search Input */}
         <div className="relative">
-          <svg className="w-5 h-5 absolute left-3.5 top-3 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg className="w-6 h-6 absolute left-4 top-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             type="text"
-            placeholder="Search conversation scenarios..."
+            placeholder="Search conversation scenarios by topic, role, or keywords..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-semibold focus:outline-none focus:border-[#6c63ff]"
+            className="w-full pl-12 pr-6 py-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
           />
         </div>
 
         {/* Age Group Selector Bar */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-[var(--border-subtle)] pb-3">
-          <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">Target Audience:</span>
+        <div className="flex flex-wrap items-center gap-3 border-b border-[var(--border-subtle)] pb-4">
+          <span className="text-xs sm:text-sm font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
+            Target Audience:
+          </span>
           {AGE_GROUPS.map((group) => (
             <button
               key={group}
               onClick={() => setUserAgeGroup(group)}
-              className={`px-3 py-1 rounded-xl text-xs font-bold shrink-0 transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
                 userAgeGroup === group
                   ? "bg-[#ff6584] text-white shadow-md shadow-[#ff6584]/20"
                   : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -191,13 +195,15 @@ export function SpeakingPractice() {
         </div>
 
         {/* Category Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-          <span className="text-xs font-bold text-[var(--text-secondary)] shrink-0">Category:</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-xs sm:text-sm font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">
+            Category:
+          </span>
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-all ${
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
                 selectedCategory === cat
                   ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20"
                   : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
@@ -209,82 +215,40 @@ export function SpeakingPractice() {
         </div>
       </div>
 
-      {/* Scenario Cards Grid */}
-      <div>
-        <h2 className="text-lg font-extrabold text-[var(--text-primary)] mb-4">Conversation Scenarios ({userAgeGroup})</h2>
+      {/* Scenario Grid Cards */}
+      <div className="space-y-4">
+        <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
+          {userAgeGroup} Practice Scenarios ({filteredScenarios.length})
+        </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredScenarios.map((sc) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredScenarios.map((scenario) => (
             <div
-              key={sc.id}
-              onClick={() => handleStartScenario(sc)}
-              className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
+              key={scenario.id}
+              onClick={() => handleStartScenario(scenario)}
+              className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer group"
             >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/10 group-hover:scale-110 transition-transform">
-                    {sc.icon}
-                  </span>
-                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-full bg-[#6c63ff]/10 text-[#6c63ff]">
-                    {sc.difficulty}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-4xl p-3 rounded-2xl bg-[var(--bg-elevated)]">{scenario.icon}</span>
+                  <span className="px-3 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-black">
+                    +{scenario.xp} XP
                   </span>
                 </div>
 
-                <h3 className="font-extrabold text-base text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">{sc.title}</h3>
-                <p className="text-xs text-[var(--text-secondary)] mt-2 leading-relaxed">{sc.desc}</p>
+                <h3 className="font-black text-lg sm:text-xl text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                  {scenario.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">{scenario.desc}</p>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-[var(--border-default)] flex items-center justify-between">
-                <span className="text-xs text-[var(--text-secondary)] font-semibold">⏱️ {sc.duration} mins • +{sc.xp} XP</span>
-                <span className="text-xs font-extrabold text-[#6c63ff] group-hover:translate-x-1 transition-transform">Start →</span>
+              <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
+                <span>⏱️ {scenario.duration} mins</span>
+                <span className="text-[#6c63ff] font-extrabold group-hover:translate-x-1 transition-transform">Start Practice →</span>
               </div>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Speaking History List */}
-      <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
-        <h2 className="text-lg font-extrabold text-[var(--text-primary)]">Speaking History & Saved Sessions</h2>
-
-        {history.length === 0 ? (
-          <div className="p-8 text-center text-[var(--text-secondary)] space-y-2">
-            <p className="text-3xl">🎙️</p>
-            <p className="font-bold text-sm">No speaking history yet.</p>
-            <p className="text-xs">Start any scenario above to practice live speaking!</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {history.map((h) => (
-              <div
-                key={h.id}
-                onClick={() => navigate(`/speaking/history/${h.id}`)}
-                className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-[#6c63ff]/30 transition-all cursor-pointer flex items-center justify-between gap-4"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl p-2.5 rounded-xl bg-[#6c63ff]/10 text-[#6c63ff]">💬</span>
-                  <div>
-                    <h3 className="font-extrabold text-sm text-[var(--text-primary)]">{h.scenario || "Speaking Practice"}</h3>
-                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                      {new Date(h.createdAt || Date.now()).toLocaleDateString()} • {Math.round((h.duration || 180) / 60)}m • Score: {h.score || 88}%
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-[#6c63ff]">Replay →</span>
-                  <button
-                    onClick={(e) => handleDeleteHistory(h.id, e)}
-                    className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-all"
-                    title="Delete Conversation"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );

@@ -23,7 +23,6 @@ export function AiChat() {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Modal State for Rename
   const [renameTargetSession, setRenameTargetSession] = useState(null);
   const [newTitle, setNewTitle] = useState("");
   const [renaming, setRenaming] = useState(false);
@@ -35,7 +34,7 @@ export function AiChat() {
       setHistory(data || []);
     } catch (e) {
       console.warn("Failed to load chat history", e);
-    } fontFinally: {
+    } finally {
       setLoading(false);
     }
   };
@@ -78,236 +77,183 @@ export function AiChat() {
     if (!newTitle.trim() || !renameTargetSession) return;
     setRenaming(true);
     try {
-      await chatService.rename(renameTargetSession.id, newTitle.trim());
+      await chatService.renameSession(renameTargetSession.id, newTitle.trim());
       setHistory((prev) =>
         prev.map((s) => (s.id === renameTargetSession.id ? { ...s, title: newTitle.trim() } : s))
       );
       setRenameTargetSession(null);
       setNewTitle("");
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error("Rename session error:", e);
     } finally {
       setRenaming(false);
     }
   };
 
-  const filteredHistory = history.filter((s) => {
-    const q = searchQuery.toLowerCase();
-    return (s.title || "").toLowerCase().includes(q) || (s.mode || "").toLowerCase().includes(q);
-  });
-
-  const latestSession = history.length > 0 ? history[0] : null;
+  const filteredModes = CHAT_MODES.filter((m) =>
+    m.title.toLowerCase().includes(searchQuery.toLowerCase()) || m.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="space-y-8">
-      {/* Gradient Top Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] to-[#1E1B4B] text-white shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-xl">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-white/10 uppercase tracking-wider text-amber-400">
-              Interactive AI Tutor
-            </span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold">AI Tutor Chat Hub</h1>
-          <p className="text-xs sm:text-sm text-[#A5B4FC] leading-relaxed">
-            Select a specialized tutoring mode to practice interactive reading, writing, grammar corrections, and natural speaking.
+    <div className="w-full space-y-8">
+      {/* Top Banner */}
+      <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl space-y-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="space-y-3">
+          <span className="text-xs font-black px-4 py-1.5 rounded-full bg-white/10 uppercase tracking-wider">
+            24/7 AI Language Tutor
+          </span>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight">AI Chat Coach</h1>
+          <p className="text-sm sm:text-base text-indigo-200 font-medium">
+            Practice written & spoken conversations with immediate AI corrections, grammar advice, and vocabulary hints.
           </p>
         </div>
 
         <button
           onClick={() => handleStartSession("Free Chat")}
-          className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-xs shadow-lg hover:scale-105 transition-all text-center shrink-0"
+          className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white font-black text-sm sm:text-base shadow-xl shadow-[#6c63ff]/30 hover:scale-105 transition-transform shrink-0"
         >
-          ✨ Start Open Conversation
+          ✨ Launch New Free Chat
         </button>
       </div>
 
-      {/* Continue Latest Session Card */}
-      {latestSession && (
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-[#6c63ff]/15 to-[#ff6584]/15 border border-[#6c63ff]/30 shadow-sm space-y-3">
-          <span className="text-[10px] font-extrabold text-[#6c63ff] uppercase tracking-wider">Continue Recent Lesson</span>
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/10">💬</span>
-              <div>
-                <h3 className="font-extrabold text-base text-[var(--text-primary)]">{latestSession.title}</h3>
-                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                  Mode: {latestSession.mode} • {latestSession.messageCount || 2} turns exchanged
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => handleResumeSession(latestSession)}
-              className="px-5 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#8b85ff] text-white text-xs font-extrabold shadow-md shrink-0"
-            >
-              Resume Lesson →
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Suggested Tutoring Modes Carousel */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-extrabold text-[var(--text-primary)]">Choose Tutoring Focus Mode</h2>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {CHAT_MODES.slice(0, 4).map((m) => (
-            <div
-              key={m.key}
-              onClick={() => handleStartSession(m.key)}
-              className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/10 group-hover:scale-110 transition-transform">
-                    {m.icon}
-                  </span>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-500/10 text-[var(--text-secondary)]">
-                    {m.difficulty}
-                  </span>
-                </div>
-                <h3 className="font-extrabold text-sm text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">{m.title}</h3>
-                <p className="text-[11px] text-[var(--text-secondary)] mt-1.5 leading-relaxed line-clamp-2">{m.desc}</p>
-              </div>
-              <div className="mt-4 pt-3 border-t border-[var(--border-subtle)] text-right">
-                <span className="text-xs font-extrabold text-[#6c63ff] group-hover:translate-x-1 transition-transform inline-block">Start →</span>
-              </div>
-            </div>
-          ))}
+      {/* Search Input */}
+      <div className="glass-card p-6 rounded-3xl">
+        <div className="relative">
+          <svg className="w-6 h-6 absolute left-4 top-4 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search AI tutor modes, grammar topics, or interview practice..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-12 pr-6 py-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+          />
         </div>
       </div>
 
-      {/* All Tutoring Focus Areas Grid */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-extrabold text-[var(--text-primary)]">Explore All Learning Modes</h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {CHAT_MODES.map((m) => (
-            <div
-              key={m.key}
-              onClick={() => handleStartSession(m.key)}
-              className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm hover:shadow-md transition-all cursor-pointer flex items-start gap-4 group"
-            >
-              <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/10 shrink-0 group-hover:scale-110 transition-transform">
-                {m.icon}
-              </span>
-              <div className="flex-1 min-w-0 space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-extrabold text-sm text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors truncate">{m.title}</h3>
-                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-slate-500/10 text-[var(--text-secondary)] shrink-0">
-                    {m.difficulty}
-                  </span>
-                </div>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2">{m.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Previous Conversation Sessions List */}
-      <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-lg font-extrabold text-[var(--text-primary)]">Recent Conversations & Lessons</h2>
-
-          {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            <svg className="w-4 h-4 absolute left-3 top-3 text-[var(--text-secondary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
-            />
+      {/* Recent Chat Conversations Row */}
+      {history.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">Recent Chat Sessions</h2>
+            <span className="text-xs font-extrabold text-[#6c63ff]">{history.length} active threads</span>
           </div>
-        </div>
 
-        {filteredHistory.length === 0 ? (
-          <div className="p-8 text-center text-[var(--text-secondary)] space-y-2">
-            <p className="text-3xl">💬</p>
-            <p className="font-bold text-sm">No historical tutoring sessions found.</p>
-            <p className="text-xs">Start any tutoring mode above to practice with your AI coach!</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredHistory.map((h) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {history.slice(0, 6).map((session) => (
               <div
-                key={h.id}
-                onClick={() => handleResumeSession(h)}
-                className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-[#6c63ff]/30 transition-all cursor-pointer flex items-center justify-between gap-4"
+                key={session.id}
+                onClick={() => handleResumeSession(session)}
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer group"
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-2xl p-2.5 rounded-xl bg-[#6c63ff]/10 text-[#6c63ff] shrink-0">💬</span>
-                  <div className="min-w-0">
-                    <h3 className="font-extrabold text-sm text-[var(--text-primary)] truncate">{h.title}</h3>
-                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                      Mode: {h.mode} • {h.messageCount || 0} messages
-                    </p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black px-3 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
+                      {session.mode || "General"}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setRenameTargetSession(session);
+                          setNewTitle(session.title);
+                        }}
+                        className="p-1 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                        title="Rename"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteSession(session.id, e)}
+                        className="p-1 text-[var(--text-secondary)] hover:text-red-500"
+                        title="Delete"
+                      >
+                        🗑️
+                      </button>
+                    </div>
                   </div>
+                  <h3 className="font-black text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors truncate">
+                    {session.title || "Conversation Thread"}
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium truncate">
+                    {session.lastMessage || "Click to resume conversation with AI tutor..."}
+                  </p>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setRenameTargetSession(h);
-                      setNewTitle(h.title);
-                    }}
-                    className="p-2 rounded-lg text-[var(--text-secondary)] hover:text-[#6c63ff] hover:bg-[#6c63ff]/10 transition-all"
-                    title="Rename Conversation"
-                  >
-                    ✏️
-                  </button>
-                  <button
-                    onClick={(e) => handleDeleteSession(h.id, e)}
-                    className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-all"
-                    title="Delete Conversation"
-                  >
-                    🗑️
-                  </button>
+                <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs font-bold text-[#6c63ff]">
+                  <span>Resume Conversation</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </div>
               </div>
             ))}
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Available AI Chat Modes Grid */}
+      <div className="space-y-4">
+        <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">Choose AI Tutor Mode</h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredModes.map((mode) => (
+            <div
+              key={mode.key}
+              onClick={() => handleStartSession(mode.key)}
+              className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer group"
+            >
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-4xl p-3 rounded-2xl bg-[var(--bg-elevated)]">{mode.icon}</span>
+                  <span className="px-3 py-1 rounded-full bg-[var(--bg-elevated)] text-[var(--text-secondary)] text-xs font-black">
+                    {mode.difficulty}
+                  </span>
+                </div>
+
+                <h3 className="font-black text-lg sm:text-xl text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                  {mode.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed">{mode.desc}</p>
+              </div>
+
+              <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
+                <span>AI Language Tutor</span>
+                <span className="text-[#6c63ff] font-extrabold group-hover:translate-x-1 transition-transform">Start Chat →</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Rename Modal */}
       {renameTargetSession && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-md p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-2xl space-y-4">
-            <h3 className="text-lg font-extrabold text-[var(--text-primary)]">Rename Conversation</h3>
-            <form onSubmit={handleRenameSession} className="space-y-4">
-              <input
-                type="text"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Enter new session name..."
-                required
-                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-semibold focus:outline-none focus:border-[#6c63ff]"
-              />
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setRenameTargetSession(null)}
-                  className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] text-xs font-bold text-[var(--text-secondary)]"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={renaming}
-                  className="px-5 py-2 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold shadow-md"
-                >
-                  {renaming ? "Saving..." : "Save Title"}
-                </button>
-              </div>
-            </form>
-          </div>
+          <form onSubmit={handleRenameSession} className="glass-card p-8 rounded-3xl max-w-md w-full space-y-6">
+            <h3 className="text-xl font-black text-[var(--text-primary)]">Rename Chat Session</h3>
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="Enter new conversation title..."
+              className="w-full p-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+            />
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setRenameTargetSession(null)}
+                className="px-5 py-3 rounded-2xl bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-secondary)]"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={renaming || !newTitle.trim()}
+                className="px-6 py-3 rounded-2xl bg-[#6c63ff] text-white text-sm font-black shadow-md disabled:opacity-50"
+              >
+                {renaming ? "Saving..." : "Save Title"}
+              </button>
+            </div>
+          </form>
         </div>
       )}
     </div>
