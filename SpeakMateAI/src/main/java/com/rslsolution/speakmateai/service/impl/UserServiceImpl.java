@@ -473,58 +473,42 @@ public class UserServiceImpl implements UserService {
 
 		System.out.println("[Delete Account OTP Generated] OTP for " + email + " is: " + otp);
 
-		java.util.concurrent.CompletableFuture.runAsync(() -> {
-			try {
-				if (mailSender != null) {
-					MimeMessage message = mailSender.createMimeMessage();
-					MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-					helper.setFrom("dnyaneshwaralgule2003@gmail.com", "SpeakMateAI");
-					helper.setTo(email);
-					helper.setSubject("Confirm Account Deletion - SpeakMateAI");
+		String htmlContent = String.format(
+			"<!DOCTYPE html>\n" +
+			"<html>\n" +
+			"<head>\n" +
+			"    <style>\n" +
+			"        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; }\n" +
+			"        .container { max-width: 600px; background-color: #FFFFFF; border-radius: 16px; padding: 40px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }\n" +
+			"        .logo { font-size: 28px; font-weight: 900; color: #EF4444; text-align: center; margin-bottom: 24px; }\n" +
+			"        h1 { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px; text-align: center; }\n" +
+			"        p { font-size: 15px; color: #64748B; line-height: 24px; margin-bottom: 24px; }\n" +
+			"        .otp-box { background-color: #FEF2F2; border: 2px dashed #EF4444; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }\n" +
+			"        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #DC2626; margin: 0; }\n" +
+			"        .footer { text-align: center; font-size: 13px; color: #94A3B8; margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 20px; }\n" +
+			"    </style>\n" +
+			"</head>\n" +
+			"<body>\n" +
+			"    <div class=\"container\">\n" +
+			"        <div class=\"logo\">SpeakMateAI</div>\n" +
+			"        <h1>Account Deletion Verification Code</h1>\n" +
+			"        <p>Hello %s,</p>\n" +
+			"        <p>We received a request to permanently delete your SpeakMateAI account. Enter the verification code below to authorize account deletion. This code is valid for <strong>10 minutes</strong>.</p>\n" +
+			"        <div class=\"otp-box\">\n" +
+			"            <h2 class=\"otp-code\">%s</h2>\n" +
+			"        </div>\n" +
+			"        <p>If you did not request to delete your account, please ignore this email and your account will remain safe.</p>\n" +
+			"        <div class=\"footer\">\n" +
+			"            &copy; 2026 SpeakMateAI. All rights reserved.\n" +
+			"        </div>\n" +
+			"    </div>\n" +
+			"</body>\n" +
+			"</html>",
+			user.getFirstName() != null ? user.getFirstName() : "User",
+			otp
+		);
 
-					String htmlContent = String.format(
-						"<!DOCTYPE html>\n" +
-						"<html>\n" +
-						"<head>\n" +
-						"    <style>\n" +
-						"        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; }\n" +
-						"        .container { max-width: 600px; background-color: #FFFFFF; border-radius: 16px; padding: 40px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }\n" +
-						"        .logo { font-size: 28px; font-weight: 900; color: #EF4444; text-align: center; margin-bottom: 24px; }\n" +
-						"        h1 { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px; text-align: center; }\n" +
-						"        p { font-size: 15px; color: #64748B; line-height: 24px; margin-bottom: 24px; }\n" +
-						"        .otp-box { background-color: #FEF2F2; border: 2px dashed #EF4444; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }\n" +
-						"        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #DC2626; margin: 0; }\n" +
-						"        .footer { text-align: center; font-size: 13px; color: #94A3B8; margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 20px; }\n" +
-						"    </style>\n" +
-						"</head>\n" +
-						"<body>\n" +
-						"    <div class=\"container\">\n" +
-						"        <div class=\"logo\">SpeakMateAI</div>\n" +
-						"        <h1>Account Deletion Verification Code</h1>\n" +
-						"        <p>Hello %s,</p>\n" +
-						"        <p>We received a request to permanently delete your SpeakMateAI account. Enter the verification code below to authorize account deletion. This code is valid for <strong>10 minutes</strong>.</p>\n" +
-						"        <div class=\"otp-box\">\n" +
-						"            <h2 class=\"otp-code\">%s</h2>\n" +
-						"        </div>\n" +
-						"        <p>If you did not request to delete your account, please ignore this email and your account will remain safe.</p>\n" +
-						"        <div class=\"footer\">\n" +
-						"            &copy; 2026 SpeakMateAI. All rights reserved.\n" +
-						"        </div>\n" +
-						"    </div>\n" +
-						"</body>\n" +
-						"</html>",
-						user.getFirstName() != null ? user.getFirstName() : "User",
-						otp
-					);
-
-					helper.setText(htmlContent, true);
-					mailSender.send(message);
-					System.out.println("[Email Sent] Delete Account OTP successfully sent to: " + email);
-				}
-			} catch (Exception e) {
-				System.err.println("[Email Send Warning] Could not send delete account OTP email: " + e.getMessage());
-			}
-		});
+		sendAsyncEmail(email, "Confirm Account Deletion - SpeakMateAI", htmlContent, otp);
 	}
 
 	@Override
@@ -592,21 +576,51 @@ public class UserServiceImpl implements UserService {
 
 	private void sendAsyncEmail(String toEmail, String subject, String htmlContent, String otp) {
 		java.util.concurrent.CompletableFuture.runAsync(() -> {
+			String brevoApiKey = System.getenv("BREVO_API_KEY");
+			if (brevoApiKey != null && !brevoApiKey.isBlank()) {
+				try {
+					java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+					String escapedHtml = htmlContent.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "").replace("\t", " ");
+					String jsonBody = "{"
+						+ "\"sender\":{\"name\":\"SpeakMateAI\",\"email\":\"dnyaneshwaralgule2003@gmail.com\"},"
+						+ "\"to\":[{\"email\":\"" + toEmail + "\"}],"
+						+ "\"subject\":\"" + subject.replace("\"", "\\\"") + "\","
+						+ "\"htmlContent\":\"" + escapedHtml + "\""
+						+ "}";
+					java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+						.uri(java.net.URI.create("https://api.brevo.com/v3/smtp/email"))
+						.header("api-key", brevoApiKey.trim())
+						.header("Content-Type", "application.json")
+						.header("accept", "application.json")
+						.POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonBody, java.nio.charset.StandardCharsets.UTF_8))
+						.build();
+					java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+					System.out.println("[Brevo Email Sent to " + toEmail + "] Status: " + response.statusCode() + " Response: " + response.body());
+					if (response.statusCode() >= 200 && response.statusCode() < 300) {
+						return;
+					}
+				} catch (Exception ex) {
+					System.err.println("[Brevo Email Error for " + toEmail + "] " + ex.getMessage());
+				}
+			}
+
 			String resendApiKey = System.getenv("RESEND_API_KEY");
 			if (resendApiKey != null && !resendApiKey.isBlank()) {
 				try {
 					java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
-					String escapedHtml = htmlContent.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
+					String escapedHtml = htmlContent.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
 					String jsonBody = "{\"from\":\"SpeakMateAI <onboarding@resend.dev>\",\"to\":[\"" + toEmail + "\"],\"subject\":\"" + subject + "\",\"html\":\"" + escapedHtml + "\"}";
 					java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
 						.uri(java.net.URI.create("https://api.resend.com/emails"))
 						.header("Authorization", "Bearer " + resendApiKey)
 						.header("Content-Type", "application.json")
-						.POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonBody))
+						.POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonBody, java.nio.charset.StandardCharsets.UTF_8))
 						.build();
 					java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 					System.out.println("[Resend Email Sent] Status: " + response.statusCode() + " Response: " + response.body());
-					return;
+					if (response.statusCode() >= 200 && response.statusCode() < 300) {
+						return;
+					}
 				} catch (Exception ex) {
 					System.err.println("[Resend Email Error] " + ex.getMessage());
 				}
