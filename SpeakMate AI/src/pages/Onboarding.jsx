@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ROUTES from "../constants/routes";
@@ -150,7 +150,7 @@ export function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center p-4 sm:p-6">
+    <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center p-4 sm:p-6">
       <div className="max-w-2xl w-full glass-card p-6 sm:p-10 rounded-3xl shadow-2xl space-y-6 relative overflow-hidden">
         {/* Header Bar */}
         <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
@@ -159,7 +159,7 @@ export function Onboarding() {
               SM
             </span>
             <div>
-              <h1 className="font-black text-base text-white">Personalized Onboarding</h1>
+              <h1 className="font-black text-base text-[var(--text-primary)]">Personalized Onboarding</h1>
               <p className="text-[11px] text-[var(--text-secondary)] font-semibold">Customizing your SpeakMate AI coach</p>
             </div>
           </div>
@@ -170,7 +170,7 @@ export function Onboarding() {
         </div>
 
         {/* Step Progress Line */}
-        <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
+        <div className="w-full bg-[var(--border-default)] h-2 rounded-full overflow-hidden">
           <div
             className="bg-gradient-to-r from-[#6c63ff] to-[#ff6584] h-full transition-all duration-300 rounded-full"
             style={{ width: `${(step / 8) * 100}%` }}
@@ -181,7 +181,7 @@ export function Onboarding() {
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-white">What is your native language?</h2>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">What is your native language?</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1">This helps us explain grammar rules in a relatable way.</p>
             </div>
 
@@ -192,8 +192,8 @@ export function Onboarding() {
                   onClick={() => setNativeLanguage(lang.key)}
                   className={`p-4 rounded-2xl border text-left font-extrabold text-xs transition-all flex items-center gap-3 ${
                     nativeLanguage === lang.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 text-white"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 text-[var(--text-primary)] font-black"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   <span className="text-2xl">{lang.flag}</span>
@@ -208,7 +208,7 @@ export function Onboarding() {
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-white">What is your main speaking goal?</h2>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">What is your main speaking goal?</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1">We will prioritize scenario drills suited for you.</p>
             </div>
 
@@ -223,9 +223,9 @@ export function Onboarding() {
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
-                  <span className="text-2xl p-2 rounded-xl bg-white/10 shrink-0">{g.icon}</span>
+                  <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)] shrink-0">{g.icon}</span>
                   <div>
-                    <h3 className="font-extrabold text-xs text-white">{g.label}</h3>
+                    <h3 className="font-extrabold text-xs text-[var(--text-primary)]">{g.label}</h3>
                     <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-snug">{g.desc}</p>
                   </div>
                 </button>
@@ -238,7 +238,7 @@ export function Onboarding() {
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-white">Select your age group</h2>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">Select your age group</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1">Tailors scenario vocabulary and conversation tone.</p>
             </div>
 
@@ -253,9 +253,9 @@ export function Onboarding() {
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
-                  <span className="text-3xl p-2 rounded-2xl bg-white/10">{a.icon}</span>
+                  <span className="text-3xl p-2 rounded-2xl bg-[var(--bg-base)]">{a.icon}</span>
                   <div>
-                    <h3 className="font-extrabold text-xs text-white">{a.label}</h3>
+                    <h3 className="font-extrabold text-xs text-[var(--text-primary)]">{a.label}</h3>
                     <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{a.desc}</p>
                   </div>
                 </button>
@@ -268,7 +268,7 @@ export function Onboarding() {
         {step === 4 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-white">What is your current English level?</h2>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">What is your current English level?</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1">Estimates your starting difficulty for scenario drills.</p>
             </div>
 
@@ -284,7 +284,7 @@ export function Onboarding() {
                   }`}
                 >
                   <div>
-                    <h3 className="font-extrabold text-xs text-white">{lvl.label}</h3>
+                    <h3 className="font-extrabold text-xs text-[var(--text-primary)]">{lvl.label}</h3>
                     <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{lvl.desc}</p>
                   </div>
                   {selectedLevel === lvl.key && <span className="text-[#6c63ff] font-extrabold text-sm">✓</span>}
@@ -298,7 +298,7 @@ export function Onboarding() {
         {step === 5 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-white">Choose topics you like</h2>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">Choose topics you like</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1">Select 2 or more topics for personalized chat prompts.</p>
             </div>
 
@@ -311,8 +311,8 @@ export function Onboarding() {
                     onClick={() => toggleInterest(int.key)}
                     className={`p-3.5 rounded-2xl border text-left text-xs font-bold transition-all flex items-center gap-2.5 ${
                       isSelected
-                        ? "border-[#6c63ff] bg-[#6c63ff]/20 text-white ring-1 ring-[#6c63ff]"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-white"
+                        ? "border-[#6c63ff] bg-[#6c63ff]/20 text-[var(--text-primary)] ring-1 ring-[#6c63ff]"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     }`}
                   >
                     <span>{int.icon}</span>
@@ -328,7 +328,7 @@ export function Onboarding() {
         {step === 6 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-white">Select AI Tutor Voice Persona</h2>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">Select AI Tutor Voice Persona</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1">Choose how your AI coach speaks and offers guidance.</p>
             </div>
 
@@ -343,9 +343,9 @@ export function Onboarding() {
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
-                  <span className="text-2xl p-2 rounded-xl bg-white/10 shrink-0">{v.icon}</span>
+                  <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)] shrink-0">{v.icon}</span>
                   <div>
-                    <h3 className="font-extrabold text-xs text-white">{v.label}</h3>
+                    <h3 className="font-extrabold text-xs text-[var(--text-primary)]">{v.label}</h3>
                     <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{v.desc}</p>
                   </div>
                 </button>
@@ -358,7 +358,7 @@ export function Onboarding() {
         {step === 7 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-white">Daily Practice Goal</h2>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">Daily Practice Goal</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1">Short daily sessions compound into real fluency.</p>
             </div>
 
@@ -374,7 +374,7 @@ export function Onboarding() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="font-extrabold text-sm text-white">{dg.key} / day</span>
+                    <span className="font-extrabold text-sm text-[var(--text-primary)]">{dg.key} / day</span>
                     <span className="px-2.5 py-0.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-[10px] font-extrabold">
                       {dg.tag}
                     </span>
@@ -394,26 +394,26 @@ export function Onboarding() {
             </div>
 
             <div>
-              <h2 className="text-2xl font-black text-white">Setup Complete! (+100 XP Bonus)</h2>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">Setup Complete! (+100 XP Bonus)</h2>
               <p className="text-xs text-[var(--text-secondary)] mt-1">Your AI English speaking coach is ready.</p>
             </div>
 
             <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-2 text-left text-xs">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Goal:</span>
-                <span className="font-extrabold text-white">{selectedGoal}</span>
+                <span className="font-extrabold text-[var(--text-primary)]">{selectedGoal}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Level:</span>
-                <span className="font-extrabold text-white">{selectedLevel}</span>
+                <span className="font-extrabold text-[var(--text-primary)]">{selectedLevel}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Persona:</span>
-                <span className="font-extrabold text-white">{selectedVoice}</span>
+                <span className="font-extrabold text-[var(--text-primary)]">{selectedVoice}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Daily Goal:</span>
-                <span className="font-extrabold text-white">{selectedCommitment}</span>
+                <span className="font-extrabold text-[var(--text-primary)]">{selectedCommitment}</span>
               </div>
             </div>
 
@@ -425,8 +425,8 @@ export function Onboarding() {
                   isRecording
                     ? "bg-red-500 text-white animate-pulse"
                     : micTested
-                    ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-400"
-                    : "bg-white/10 hover:bg-white/20 border border-white/20 text-white"
+                    ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-500 font-extrabold"
+                    : "bg-[var(--bg-elevated)] hover:bg-[#6c63ff]/20 border border-[var(--border-default)] text-[var(--text-primary)]"
                 }`}
               >
                 {isRecording ? "🎙️ Listening... Speak into mic!" : micTested ? "✓ Microphone Tested Successfully" : "🎙️ Tap to Test Speech Recognition"}
@@ -440,7 +440,7 @@ export function Onboarding() {
           {step > 1 ? (
             <button
               onClick={() => setStep((s) => s - 1)}
-              className="px-5 py-2.5 rounded-xl border border-[var(--border-default)] text-xs font-extrabold text-white hover:bg-white/10"
+              className="px-5 py-2.5 rounded-xl border border-[var(--border-default)] text-xs font-extrabold text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
             >
               ← Back
             </button>

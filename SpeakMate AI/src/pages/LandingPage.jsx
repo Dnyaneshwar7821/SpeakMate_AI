@@ -34,7 +34,7 @@ const STATS = [
 
 export function LandingPage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [previewText, setPreviewText] = useState(
+  const [previewText] = useState(
     "Hello! I am your SpeakMate AI coach. Practice speaking English with me every day to build confidence!"
   );
 
@@ -56,7 +56,7 @@ export function LandingPage() {
       {/* HERO SECTION */}
       <section className="relative pt-6 pb-12 sm:pt-12 sm:pb-20 overflow-hidden">
         {/* Glow Background Circles */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-[#6c63ff]/20 to-[#ff6584]/20 blur-3xl pointer-events-none rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-gradient-to-r from-[#6c63ff]/15 to-[#ff6584]/15 blur-3xl pointer-events-none rounded-full" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           {/* Left Column Text */}
@@ -66,11 +66,11 @@ export function LandingPage() {
               <span>AI-Powered Personal English Speaking Coach</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-[var(--text-primary)]">
               Speak English with <span className="gradient-text">Confidence</span> in Real Life.
             </h1>
 
-            <p className="text-base sm:text-lg text-[var(--text-secondary)] max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-base sm:text-lg text-[var(--text-secondary)] max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
               Practice real interactive conversations, receive spoken grammar corrections, master vocabulary flashcards, and build a daily streak habit without any fear of judgement.
             </p>
 
@@ -84,7 +84,7 @@ export function LandingPage() {
               </Link>
               <Link
                 to={ROUTES.LOGIN}
-                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border-default)] text-white font-extrabold text-sm hover:scale-105 transition-all text-center"
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-primary)] font-extrabold text-sm hover:scale-105 transition-all text-center shadow-sm"
               >
                 🔑 Login to Account
               </Link>
@@ -93,10 +93,10 @@ export function LandingPage() {
             {/* Micro Stats */}
             <div className="pt-4 flex items-center justify-center lg:justify-start gap-6 text-xs font-bold text-[var(--text-secondary)]">
               <span className="flex items-center gap-1.5">
-                <span className="text-emerald-400">✓</span> No credit card required
+                <span className="text-emerald-500 font-extrabold">✓</span> No credit card required
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="text-amber-400">★</span> 4.9/5 Rating
+                <span className="text-amber-500 font-extrabold">★</span> 4.9/5 Rating
               </span>
             </div>
           </div>
@@ -110,8 +110,8 @@ export function LandingPage() {
                     🤖
                   </div>
                   <div>
-                    <h3 className="font-extrabold text-base text-white">SpeakMate AI Tutor</h3>
-                    <span className="text-xs font-bold text-emerald-400">● Live Voice Interactive</span>
+                    <h3 className="font-extrabold text-base text-[var(--text-primary)]">SpeakMate AI Tutor</h3>
+                    <span className="text-xs font-bold text-emerald-500">● Live Voice Interactive</span>
                   </div>
                 </div>
 
@@ -124,15 +124,15 @@ export function LandingPage() {
               <div className="space-y-3">
                 <div className="p-4 rounded-2xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 text-xs space-y-1">
                   <span className="font-extrabold text-[#6c63ff] uppercase text-[10px]">Student</span>
-                  <p className="font-semibold text-white">"I am living in London since 2 years and I discuss about my job."</p>
+                  <p className="font-semibold text-[var(--text-primary)]">"I am living in London since 2 years and I discuss about my job."</p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-emerald-400 uppercase text-[10px]">AI Coach Correction (Spoken Out Loud)</span>
-                    <span className="text-emerald-400 font-bold text-[10px]">92% Accuracy</span>
+                    <span className="font-extrabold text-emerald-500 uppercase text-[10px]">AI Coach Correction (Spoken Out Loud)</span>
+                    <span className="text-emerald-500 font-bold text-[10px]">92% Accuracy</span>
                   </div>
-                  <p className="font-bold text-emerald-300">
+                  <p className="font-bold text-emerald-600 dark:text-emerald-300">
                     "I have been living in London for 2 years and I discussed my job."
                   </p>
                   <p className="text-[11px] text-[var(--text-secondary)] italic">
@@ -144,7 +144,7 @@ export function LandingPage() {
               {/* Play Audio Sample Button */}
               <button
                 onClick={handlePlaySampleVoice}
-                className="w-full py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white font-extrabold text-xs flex items-center justify-center gap-2 transition-all shadow-md"
               >
                 <span>{isPlayingAudio ? "🔊 Speaking Sample Audio..." : "🔊 Listen AI Sample Voice"}</span>
               </button>
@@ -171,7 +171,7 @@ export function LandingPage() {
           <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#6c63ff]/10 text-[#6c63ff] uppercase tracking-wider">
             Comprehensive Learning Ecosystem
           </span>
-          <h2 className="text-2xl sm:text-4xl font-black text-white">Everything You Need for Fluency</h2>
+          <h2 className="text-2xl sm:text-4xl font-black text-[var(--text-primary)]">Everything You Need for Fluency</h2>
           <p className="text-sm text-[var(--text-secondary)]">
             Built specifically to eliminate hesitation and accelerate your speaking skills.
           </p>
@@ -182,7 +182,7 @@ export function LandingPage() {
             <div key={idx} className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between">
               <div className="space-y-3">
                 <span className="text-4xl p-3 rounded-2xl bg-[var(--bg-elevated)] inline-block">{f.icon}</span>
-                <h3 className="font-extrabold text-lg text-white">{f.title}</h3>
+                <h3 className="font-extrabold text-lg text-[var(--text-primary)]">{f.title}</h3>
                 <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{f.desc}</p>
               </div>
             </div>

@@ -56,7 +56,7 @@ export function Login() {
           </button>
           <Link
             to={ROUTES.REGISTER}
-            className="flex-1 py-2.5 rounded-xl text-xs font-extrabold text-[var(--text-secondary)] hover:text-white text-center transition-all"
+            className="flex-1 py-2.5 rounded-xl text-xs font-extrabold text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-center transition-all"
           >
             ✨ Register
           </Link>
@@ -64,13 +64,13 @@ export function Login() {
 
         {/* Title */}
         <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-black text-white">Welcome Back! 👋</h1>
-          <p className="text-xs text-[var(--text-secondary)]">Log in to continue your daily English speaking practice.</p>
+          <h1 className="text-2xl font-black text-[var(--text-primary)]">Welcome Back! 👋</h1>
+          <p className="text-xs text-[var(--text-secondary)] font-medium">Log in to continue your daily English speaking practice.</p>
         </div>
 
         {/* Error Popup Alert */}
         {error && (
-          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-xs font-bold text-red-400 space-y-1 animate-in fade-in duration-200">
+          <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-xs font-bold text-red-600 dark:text-red-400 space-y-1 animate-in fade-in duration-200">
             <p className="font-extrabold">⚠️ Login Error</p>
             <p className="text-[11px] font-semibold opacity-90">{error}</p>
           </div>
@@ -86,7 +86,7 @@ export function Login() {
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
               required
-              className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-white focus:outline-none focus:border-[#6c63ff] transition-all"
+              className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] transition-all"
             />
           </div>
 
@@ -99,12 +99,12 @@ export function Login() {
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
-                className="w-full pl-4 pr-12 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-white focus:outline-none focus:border-[#6c63ff] transition-all"
+                className="w-full pl-4 pr-12 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-xs font-bold text-[var(--text-secondary)] hover:text-white"
+                className="absolute right-3 top-3 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               >
                 {showPassword ? "🙈 Hide" : "👁️ Show"}
               </button>
@@ -135,13 +135,13 @@ export function Login() {
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleDemoLogin("student@speakmate.com", "Password123!")}
-              className="py-2.5 px-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6c63ff]/20 border border-[var(--border-default)] text-[11px] font-extrabold text-white transition-all text-center"
+              className="py-2.5 px-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6c63ff]/20 border border-[var(--border-default)] text-[11px] font-extrabold text-[var(--text-primary)] transition-all text-center"
             >
               🎓 Student Demo
             </button>
             <button
               onClick={() => handleDemoLogin("admin@speakmate.com", "Admin123!")}
-              className="py-2.5 px-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#ff6584]/20 border border-[var(--border-default)] text-[11px] font-extrabold text-white transition-all text-center"
+              className="py-2.5 px-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#ff6584]/20 border border-[var(--border-default)] text-[11px] font-extrabold text-[var(--text-primary)] transition-all text-center"
             >
               👑 Admin Demo
             </button>
