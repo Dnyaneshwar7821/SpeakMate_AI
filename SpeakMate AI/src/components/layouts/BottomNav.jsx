@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
 import ROUTES from "../../constants/routes";
 
-export function BottomNav({ onOpenMobileDrawer }) {
+export function BottomNav() {
   const tabs = [
     {
       path: ROUTES.DASHBOARD,
-      label: "Home",
+      label: "Dashboard",
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -39,45 +39,26 @@ export function BottomNav({ onOpenMobileDrawer }) {
         </svg>
       ),
     },
-    {
-      path: ROUTES.PROFILE,
-      label: "Profile",
-      icon: (
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      ),
-    },
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border-default)] bg-[var(--bg-surface)]/95 backdrop-blur-md px-2 py-1.5 flex items-center justify-around shadow-lg">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border-default)] bg-[var(--bg-surface)]/95 backdrop-blur-md px-3 py-2 grid grid-cols-4 gap-1 items-center shadow-2xl">
       {tabs.map((t) => (
         <NavLink
           key={t.path}
           to={t.path}
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 py-1 px-3 rounded-lg text-xs font-semibold transition-all ${
+            `flex flex-col items-center justify-center gap-1 py-1.5 px-2 rounded-xl text-[11px] font-extrabold transition-all text-center ${
               isActive
-                ? "text-[#6c63ff] font-bold"
+                ? "text-[#6c63ff] bg-[#6c63ff]/10"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`
           }
         >
           {t.icon}
-          <span>{t.label}</span>
+          <span className="truncate w-full text-center">{t.label}</span>
         </NavLink>
       ))}
-
-      <button
-        onClick={onOpenMobileDrawer}
-        className="flex flex-col items-center gap-1 py-1 px-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-semibold"
-      >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-        <span>Menu</span>
-      </button>
     </div>
   );
 }

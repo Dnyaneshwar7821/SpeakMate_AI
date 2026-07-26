@@ -44,12 +44,7 @@ export function Layout({ children }) {
         </main>
       </div>
 
-      {showSidebar && (
-        <>
-          <BottomNav onOpenMobileDrawer={() => setMobileDrawerOpen(true)} />
-          <MobileDrawer isOpen={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
-        </>
-      )}
+      {showSidebar && <BottomNav />}
     </div>
   );
 }
