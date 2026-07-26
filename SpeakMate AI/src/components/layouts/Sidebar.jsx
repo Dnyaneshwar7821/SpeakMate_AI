@@ -106,7 +106,7 @@ export function Sidebar() {
   const { user } = useAuth();
 
   return (
-    <aside className="w-64 lg:w-72 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] h-[calc(100vh-64px)] sticky top-16 hidden md:flex flex-col justify-between p-4 overflow-y-auto">
+    <aside className="w-56 sm:w-64 lg:w-72 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] h-[calc(100vh-64px)] sticky top-16 flex flex-col justify-between p-3 sm:p-4 overflow-y-auto z-30">
       <div className="space-y-6">
         {/* SECTION 1: PRACTICE DRILLS */}
         <div className="space-y-1.5">

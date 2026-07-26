@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import ROUTES from "../../constants/routes";
 
-export function Navbar({ onOpenMobileDrawer }) {
+export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -18,20 +18,8 @@ export function Navbar({ onOpenMobileDrawer }) {
 
   return (
     <header className="sticky top-0 left-0 w-full z-40 border-b border-[var(--border-default)] bg-[var(--bg-base)]/88 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          {isAuthenticated && (
-            <button
-              onClick={onOpenMobileDrawer}
-              className="md:hidden grid h-10 w-10 place-items-center rounded-xl text-[var(--text-secondary)] hover:bg-[var(--bg-surface)] transition-all"
-              aria-label="Open Mobile Menu"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          )}
-
           <Link to={ROUTES.HOME} className="flex items-center gap-2 sm:gap-3 min-w-0">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-sm shadow-md shadow-[#6c63ff]/20">
               SM
