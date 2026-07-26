@@ -43,17 +43,13 @@ export function AiChat() {
     fetchHistory();
   }, []);
 
-  const handleStartSession = async (modeKey) => {
-    try {
-      const session = await chatService.start(modeKey).catch(() => ({
-        id: Date.now().toString(),
-        mode: modeKey,
-        title: `${modeKey} Session`,
-      }));
-      navigate(`${ROUTES.CONVERSATION_CHAT}?sessionId=${session.id}&mode=${encodeURIComponent(modeKey)}&title=${encodeURIComponent(session.title)}`);
-    } catch (e) {
-      console.error("Start session failed:", e);
-    }
+  const handleStartSession = (modeKey) => {
+    const sessionId = Date.now().toString();
+    const title = `${modeKey} Session`;
+    navigate(`${ROUTES.CONVERSATION_CHAT}?sessionId=${sessionId}&mode=${encodeURIComponent(modeKey)}&title=${encodeURIComponent(title)}`);
+
+    // Asynchronously trigger backend session start in background without blocking UI
+    chatService.start(modeKey).catch(() => {});
   };
 
   const handleResumeSession = (session) => {

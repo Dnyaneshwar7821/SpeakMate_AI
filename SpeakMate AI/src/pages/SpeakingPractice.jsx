@@ -79,19 +79,23 @@ export function SpeakingPractice() {
   const totalSessions = history.length;
   const streak = history.length > 0 ? 3 : 0;
 
-  const handleStartScenario = async (scenario) => {
-    try {
-      const session = await speakingService.start({
+  const handleStartScenario = (scenario) => {
+    const sessionId = Date.now().toString();
+    navigate(
+      `${ROUTES.CONVERSATION_SESSION}?sessionId=${sessionId}&scenario=${encodeURIComponent(
+        scenario.title
+      )}&xpReward=${scenario.xp || 20}`
+    );
+
+    // Asynchronously trigger backend session start in background without blocking UI
+    speakingService
+      .start({
         scenario: scenario.title,
         difficulty: scenario.difficulty,
         estimatedDuration: scenario.duration,
         xpReward: scenario.xp,
-      }).catch(() => ({ id: Date.now().toString() }));
-
-      navigate(`${ROUTES.CONVERSATION_SESSION}?sessionId=${session.id}&scenario=${encodeURIComponent(scenario.title)}&xpReward=${scenario.xp}`);
-    } catch (e) {
-      console.error(e);
-    }
+      })
+      .catch(() => {});
   };
 
   const activeScenarios = AGE_SCENARIOS[userAgeGroup] || AGE_SCENARIOS["Professional"];
