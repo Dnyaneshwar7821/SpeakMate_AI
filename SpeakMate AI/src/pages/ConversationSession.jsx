@@ -33,9 +33,28 @@ export function ConversationSession() {
   const [corrections, setCorrections] = useState(null);
   const [ending, setEnding] = useState(false);
 
+  // Dynamic Real-Time Phonetic Viseme State ("REST", "AA", "EE", "OO")
+  const [viseme, setViseme] = useState("REST");
+
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
   const hasSpokenInitialRef = useRef(false);
+
+  // Real-Time Lip-Sync Animation Interval Effect
+  useEffect(() => {
+    let visemeInterval = null;
+    if (isAiSpeaking) {
+      const VISEMES = ["AA", "EE", "OO", "AA", "EE", "REST", "AA", "OO"];
+      let idx = 0;
+      visemeInterval = setInterval(() => {
+        idx = (idx + 1) % VISEMES.length;
+        setViseme(VISEMES[idx]);
+      }, 140);
+    } else {
+      setViseme("REST");
+    }
+    return () => clearInterval(visemeInterval);
+  }, [isAiSpeaking]);
 
   const getSpeakableText = (feedback) => {
     if (!feedback) return "";
@@ -70,9 +89,28 @@ export function ConversationSession() {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = speechSpeed;
       utterance.lang = "en-US";
-      utterance.onstart = () => setIsAiSpeaking(true);
-      utterance.onend = () => setIsAiSpeaking(false);
-      utterance.onerror = () => setIsAiSpeaking(false);
+
+      utterance.onstart = () => {
+        setIsAiSpeaking(true);
+        setViseme("AA");
+      };
+
+      utterance.onboundary = () => {
+        const VISEMES = ["AA", "EE", "OO", "AA"];
+        const randomViseme = VISEMES[Math.floor(Math.random() * VISEMES.length)];
+        setViseme(randomViseme);
+      };
+
+      utterance.onend = () => {
+        setIsAiSpeaking(false);
+        setViseme("REST");
+      };
+
+      utterance.onerror = () => {
+        setIsAiSpeaking(false);
+        setViseme("REST");
+      };
+
       window.speechSynthesis.speak(utterance);
     }
   };
@@ -165,6 +203,7 @@ export function ConversationSession() {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       setIsAiSpeaking(false);
+      setViseme("REST");
     }
     if (recognitionRef.current) {
       try {
@@ -241,6 +280,8 @@ export function ConversationSession() {
   const handleEndSession = async () => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
+      setIsAiSpeaking(false);
+      setViseme("REST");
     }
     setEnding(true);
     try {
@@ -306,6 +347,7 @@ export function ConversationSession() {
               if (!isPaused && "speechSynthesis" in window) {
                 window.speechSynthesis.cancel();
                 setIsAiSpeaking(false);
+                setViseme("REST");
               }
               setIsPaused(!isPaused);
             }}
@@ -318,63 +360,123 @@ export function ConversationSession() {
         </div>
       </div>
 
-      {/* Dynamic Animated Vector Lip-Sync AI Tutor Avatar Header */}
+      {/* 3D Human-Like Lip-Sync AI Tutor Avatar Header */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl flex flex-col items-center justify-center text-center space-y-4 shrink-0 relative overflow-hidden">
         
         {/* Animated Avatar Face & Soundwave Equalizers */}
         <div className="flex items-center justify-center gap-6 relative">
           
-          {/* Left Equalizer Bars (Visible when AI is speaking) */}
+          {/* Left Equalizer Bars */}
           {isAiSpeaking && (
-            <div className="flex items-center gap-1.5 h-10">
+            <div className="flex items-center gap-1.5 h-12">
               <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-1" />
               <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2" />
               <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3" />
             </div>
           )}
 
-          {/* Avatar Face Box */}
+          {/* 3D Human Vector Avatar Head Container */}
           <div className="relative group">
-            {/* Glowing Aura Ring */}
-            <div className={`absolute -inset-2 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] opacity-50 blur-lg transition-all ${isAiSpeaking ? "opacity-100 animate-pulse" : isListening ? "opacity-90 ring-4 ring-red-500/50" : ""}`} />
+            {/* Ambient Aura Glow */}
+            <div className={`absolute -inset-3 rounded-full bg-gradient-to-tr from-[#6c63ff] via-[#8b85ff] to-[#ff6584] opacity-50 blur-xl transition-all ${isAiSpeaking ? "opacity-100 animate-pulse" : isListening ? "opacity-90 ring-4 ring-red-500/50" : ""}`} />
 
-            <div className={`relative grid h-24 w-24 place-items-center rounded-3xl bg-gradient-to-tr from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/40 shadow-2xl p-3 ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
-              {/* Avatar Head SVG */}
-              <div className="w-full h-full flex flex-col items-center justify-between py-1">
-                {/* Avatar Eyes */}
-                <div className="flex items-center justify-between w-14 pt-2 animate-eye-blink">
-                  <div className="h-3.5 w-3.5 rounded-full bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] border border-white flex items-center justify-center shadow-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                  </div>
-                  <div className="h-3.5 w-3.5 rounded-full bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] border border-white flex items-center justify-center shadow-sm">
-                    <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                  </div>
-                </div>
+            {/* Avatar Frame Box */}
+            <div className={`relative grid h-28 w-28 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl p-2 overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
+              
+              {/* 3D Human Head Vector SVG with Real-Time Viseme Lipsync */}
+              <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-lg">
+                <defs>
+                  {/* Skin Gradient */}
+                  <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FAD7BD" />
+                    <stop offset="100%" stopColor="#E3A880" />
+                  </linearGradient>
+                  {/* Hair Gradient */}
+                  <linearGradient id="hairGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#4A306D" />
+                    <stop offset="100%" stopColor="#1E1035" />
+                  </linearGradient>
+                  {/* Iris Gradient */}
+                  <radialGradient id="eyeIris">
+                    <stop offset="0%" stopColor="#6C63FF" />
+                    <stop offset="100%" stopColor="#312E81" />
+                  </radialGradient>
+                </defs>
 
-                {/* Avatar Lipsync Mouth */}
-                <div className="pb-2 flex items-center justify-center">
-                  {isAiSpeaking ? (
-                    <div className="bg-gradient-to-b from-[#ff6584] to-[#6c63ff] border border-white/40 shadow-inner animate-lipsync" />
-                  ) : isListening ? (
-                    <div className="h-2 w-7 rounded-full bg-red-500 animate-pulse" />
-                  ) : isThinking ? (
-                    <div className="h-2 w-5 rounded-full bg-amber-400 animate-ping" />
-                  ) : (
-                    <div className="h-2 w-6 rounded-full bg-emerald-400" />
-                  )}
-                </div>
-              </div>
+                {/* Neck & Shoulders */}
+                <path d="M 32 82 Q 50 78 68 82 L 72 100 L 28 100 Z" fill="#E3A880" />
+                <path d="M 24 90 Q 50 82 76 90 L 85 100 L 15 100 Z" fill="#6C63FF" opacity="0.9" />
+
+                {/* 3D Face Base */}
+                <path d="M 26 36 Q 22 58 32 76 Q 50 88 68 76 Q 78 58 74 36 Q 50 30 26 36 Z" fill="url(#skinGrad)" />
+
+                {/* Ears */}
+                <ellipse cx="23" cy="52" rx="4" ry="7" fill="#E3A880" />
+                <ellipse cx="77" cy="52" rx="4" ry="7" fill="#E3A880" />
+
+                {/* 3D Hair */}
+                <path d="M 22 40 Q 24 16 50 16 Q 76 16 78 40 Q 64 28 50 28 Q 36 28 22 40 Z" fill="url(#hairGrad)" />
+
+                {/* Eyebrows */}
+                <path d="M 31 43 Q 39 39 47 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                <path d="M 53 43 Q 61 39 69 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+                {/* 3D Eyes with Pupil & Reflections */}
+                <g className="animate-eye-blink">
+                  {/* Left Eye */}
+                  <ellipse cx="39" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
+                  <ellipse cx="39" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIris)" />
+                  <circle cx="37.5" cy="47.5" r="1.2" fill="#FFFFFF" />
+
+                  {/* Right Eye */}
+                  <ellipse cx="61" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
+                  <ellipse cx="61" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIris)" />
+                  <circle cx="59.5" cy="47.5" r="1.2" fill="#FFFFFF" />
+                </g>
+
+                {/* Nose */}
+                <path d="M 50 50 L 48 60 L 52 60 Z" fill="#D4946A" opacity="0.6" />
+
+                {/* REAL-TIME DYNAMIC LIP-SYNC MOUTH (Morphing based on Viseme) */}
+                {viseme === "AA" ? (
+                  // Open Wide "AA" Mouth
+                  <g>
+                    <path d="M 36 66 Q 50 60 64 66 Q 64 80 50 82 Q 36 80 36 66 Z" fill="#991B1B" stroke="#B91C1C" strokeWidth="1" />
+                    <path d="M 38 67 Q 50 63 62 67 L 62 70 Q 50 67 38 70 Z" fill="#FFFFFF" /> {/* Teeth */}
+                    <ellipse cx="50" cy="77" rx="6" ry="3.5" fill="#F87171" /> {/* Tongue */}
+                  </g>
+                ) : viseme === "EE" ? (
+                  // Wide Smile Talking "EE" Mouth
+                  <g>
+                    <path d="M 32 66 Q 50 62 68 66 Q 68 76 50 77 Q 32 76 32 66 Z" fill="#881337" stroke="#9F1239" strokeWidth="1" />
+                    <path d="M 34 67 Q 50 63 66 67 L 66 70 Q 50 67 34 70 Z" fill="#FFFFFF" />
+                  </g>
+                ) : viseme === "OO" ? (
+                  // Puckered Round "OO" Mouth
+                  <g>
+                    <path d="M 43 64 Q 50 60 57 64 Q 58 76 50 77 Q 42 76 43 64 Z" fill="#7F1D1D" stroke="#991B1B" strokeWidth="1" />
+                    <ellipse cx="50" cy="74" rx="3.5" ry="2" fill="#F87171" />
+                  </g>
+                ) : (
+                  // REST / Closed Natural Smile
+                  <g>
+                    <path d="M 36 68 Q 50 72 64 68" stroke="#991B1B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                    <path d="M 38 70 Q 50 74 62 70" stroke="#E3A880" strokeWidth="1" strokeLinecap="round" fill="none" />
+                  </g>
+                )}
+              </svg>
+
             </div>
 
-            {/* Status Indicator Dot */}
-            <span className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-full border-2 border-[#0F172A] flex items-center justify-center text-[10px] shadow-lg ${isListening ? "bg-red-500 text-white animate-bounce" : isAiSpeaking ? "bg-[#6c63ff] text-white animate-pulse" : "bg-emerald-500 text-white"}`}>
+            {/* Live Status Indicator Badge */}
+            <span className={`absolute -bottom-1 -right-1 h-7 w-7 rounded-full border-2 border-[#0F172A] flex items-center justify-center text-xs shadow-lg ${isListening ? "bg-red-500 text-white animate-bounce" : isAiSpeaking ? "bg-[#6c63ff] text-white animate-pulse" : "bg-emerald-500 text-white"}`}>
               {isListening ? "🎙️" : isAiSpeaking ? "🔊" : "✨"}
             </span>
           </div>
 
-          {/* Right Equalizer Bars (Visible when AI is speaking) */}
+          {/* Right Equalizer Bars */}
           {isAiSpeaking && (
-            <div className="flex items-center gap-1.5 h-10">
+            <div className="flex items-center gap-1.5 h-12">
               <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3" />
               <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2" />
               <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-4" />
@@ -527,6 +629,7 @@ export function ConversationSession() {
               if (!isMuted && "speechSynthesis" in window) {
                 window.speechSynthesis.cancel();
                 setIsAiSpeaking(false);
+                setViseme("REST");
               }
               setIsMuted(!isMuted);
             }}
