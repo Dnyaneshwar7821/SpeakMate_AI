@@ -39,14 +39,14 @@
   --shadow-color: rgba(0, 0, 0, 0.4);
 }
 
-/* Desktop Web Application Base Font Scaling */
+/* Balanced Crisp Desktop Web Application Base Font Scale */
 html {
-  font-size: 18px;
+  font-size: 15px;
 }
 
 @media (min-width: 1536px) {
   html {
-    font-size: 19px;
+    font-size: 16px;
   }
 }
 
@@ -66,8 +66,8 @@ body {
 
 /* Custom Smooth Web Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -87,7 +87,7 @@ body {
 /* Modern Dynamic Web Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  50% { transform: translateY(-8px); }
 }
 
 @keyframes pulseGlow {
@@ -115,20 +115,20 @@ body {
 /* Glassmorphism Classes with Dynamic Light/Dark Theme Support */
 .glass-card {
   background: var(--glass-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 12px 36px -12px var(--shadow-color);
+  box-shadow: 0 10px 30px -10px var(--shadow-color);
 }
 
 .glass-card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card-hover:hover {
-  transform: translateY(-6px);
+  transform: translateY(-4px);
   border-color: rgba(108, 99, 255, 0.45);
-  box-shadow: 0 24px 48px -16px rgba(108, 99, 255, 0.25);
+  box-shadow: 0 20px 40px -12px rgba(108, 99, 255, 0.2);
 }
 
 .gradient-text {
