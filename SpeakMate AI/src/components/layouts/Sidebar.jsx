@@ -1,7 +1,8 @@
 import { NavLink } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import ROUTES from "../../constants/routes";
 
-const MENU_ITEMS = [
+const MAIN_ITEMS = [
   {
     path: ROUTES.DASHBOARD,
     label: "Dashboard",
@@ -14,6 +15,7 @@ const MENU_ITEMS = [
   {
     path: ROUTES.SPEAKING,
     label: "Speaking Practice",
+    badge: "Live AI",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -29,9 +31,12 @@ const MENU_ITEMS = [
       </svg>
     ),
   },
+];
+
+const MODULE_ITEMS = [
   {
     path: ROUTES.LESSONS,
-    label: "Interactive Lessons",
+    label: "CEFR Lessons",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
@@ -58,7 +63,7 @@ const MENU_ITEMS = [
   },
   {
     path: ROUTES.LISTENING,
-    label: "Listening Practice",
+    label: "Listening Drills",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
@@ -74,27 +79,12 @@ const MENU_ITEMS = [
       </svg>
     ),
   },
-  {
-    path: ROUTES.PROGRESS,
-    label: "My Progress",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-  },
-  {
-    path: ROUTES.NOTIFICATIONS,
-    label: "Notifications",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-      </svg>
-    ),
-  },
+];
+
+const ACCOUNT_ITEMS = [
   {
     path: ROUTES.PROFILE,
-    label: "Profile",
+    label: "Profile Settings",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -103,55 +93,110 @@ const MENU_ITEMS = [
   },
   {
     path: ROUTES.SETTINGS,
-    label: "Settings",
+    label: "Preferences",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>
-    ),
-  },
-  {
-    path: ROUTES.HELP,
-    label: "Help & Support",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-    ),
-  },
-  {
-    path: ROUTES.ABOUT,
-    label: "About SpeakMate",
-    icon: (
-      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
   },
 ];
 
 export function Sidebar() {
+  const { user } = useAuth();
+
   return (
-    <aside className="w-64 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] min-h-[calc(100vh-64px)] hidden md:block py-5 px-3">
-      <nav className="space-y-1">
-        {MENU_ITEMS.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
-                isActive
-                  ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/25"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--border-subtle)]"
-              }`
-            }
-          >
-            <span className="shrink-0">{item.icon}</span>
-            <span className="truncate">{item.label}</span>
-          </NavLink>
-        ))}
-      </nav>
+    <aside className="w-64 lg:w-72 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] h-[calc(100vh-64px)] sticky top-16 hidden md:flex flex-col justify-between p-4 overflow-y-auto">
+      <div className="space-y-6">
+        {/* SECTION 1: PRACTICE DRILLS */}
+        <div className="space-y-1.5">
+          <p className="px-3 text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
+            Main Workspace
+          </p>
+          {MAIN_ITEMS.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center justify-between px-3.5 py-3 rounded-2xl text-sm font-extrabold transition-all ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#6c63ff] to-[#8b85ff] text-white shadow-md shadow-[#6c63ff]/25"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                }`
+              }
+            >
+              <div className="flex items-center gap-3">
+                <span className="shrink-0">{item.icon}</span>
+                <span className="truncate">{item.label}</span>
+              </div>
+              {item.badge && (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase">
+                  {item.badge}
+                </span>
+              )}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* SECTION 2: LEARNING MODULES */}
+        <div className="space-y-1.5 pt-2 border-t border-[var(--border-subtle)]">
+          <p className="px-3 text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
+            Learning Modules
+          </p>
+          {MODULE_ITEMS.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-extrabold transition-all ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#6c63ff] to-[#8b85ff] text-white shadow-md shadow-[#6c63ff]/25"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                }`
+              }
+            >
+              <span className="shrink-0">{item.icon}</span>
+              <span className="truncate">{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
+
+        {/* SECTION 3: ACCOUNT & SETTINGS */}
+        <div className="space-y-1.5 pt-2 border-t border-[var(--border-subtle)]">
+          <p className="px-3 text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
+            Account & Preference
+          </p>
+          {ACCOUNT_ITEMS.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3.5 py-3 rounded-2xl text-sm font-extrabold transition-all ${
+                  isActive
+                    ? "bg-gradient-to-r from-[#6c63ff] to-[#8b85ff] text-white shadow-md shadow-[#6c63ff]/25"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                }`
+              }
+            >
+              <span className="shrink-0">{item.icon}</span>
+              <span className="truncate">{item.label}</span>
+            </NavLink>
+          ))}
+        </div>
+      </div>
+
+      {/* USER BOTTOM CARD */}
+      <div className="pt-4 border-t border-[var(--border-subtle)]">
+        <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-sm shadow-sm">
+            {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="font-extrabold text-xs text-[var(--text-primary)] truncate">{user?.name || "Learner"}</p>
+            <p className="text-[10px] font-bold text-[#6c63ff] truncate">Level: {user?.level || "B1 Intermediate"}</p>
+          </div>
+        </div>
+      </div>
     </aside>
   );
 }
