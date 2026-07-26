@@ -541,6 +541,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@org.springframework.transaction.annotation.Transactional
 	public void deleteUser(Long id) {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
@@ -550,13 +551,14 @@ public class UserServiceImpl implements UserService {
 			"DELETE FROM chat_bookmarks WHERE user_id = :userId",
 			"DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE user_id = :userId)",
 			"DELETE FROM chat_sessions WHERE user_id = :userId",
-			"DELETE FROM conversation_feedback WHERE session_id IN (SELECT id FROM conversation_messages WHERE user_id = :userId)",
-			"DELETE FROM conversation_messages WHERE user_id = :userId",
+			"DELETE FROM chat_history WHERE user_id = :userId",
+			"DELETE FROM conversation_feedbacks WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = :userId)",
+			"DELETE FROM conversation_messages WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = :userId)",
 			"DELETE FROM speaking_sessions WHERE user_id = :userId",
 			"DELETE FROM grammar_history WHERE user_id = :userId",
 			"DELETE FROM lesson_progress WHERE user_id = :userId",
-			"DELETE FROM notifications WHERE user_id = :userId",
-			"DELETE FROM achievements WHERE user_id = :userId",
+			"DELETE FROM notification WHERE user_id = :userId",
+			"DELETE FROM achievement WHERE user_id = :userId",
 			"DELETE FROM progress WHERE user_id = :userId",
 			"DELETE FROM settings WHERE user_id = :userId",
 			"DELETE FROM onboarding WHERE user_id = :userId",
