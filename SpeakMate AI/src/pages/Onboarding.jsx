@@ -150,27 +150,27 @@ export function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center p-4 sm:p-6">
-      <div className="max-w-2xl w-full glass-card p-6 sm:p-10 rounded-3xl shadow-2xl space-y-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[var(--bg-base)] flex items-center justify-center p-4 sm:p-8 lg:p-12">
+      <div className="max-w-3xl sm:max-w-4xl w-full glass-card p-8 sm:p-12 rounded-3xl shadow-2xl space-y-8 relative overflow-hidden">
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-xs shadow-md">
+        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-5">
+          <div className="flex items-center gap-4">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white font-black text-sm shadow-md">
               SM
             </span>
             <div>
-              <h1 className="font-black text-base text-[var(--text-primary)]">Personalized Onboarding</h1>
-              <p className="text-[11px] text-[var(--text-secondary)] font-semibold">Customizing your SpeakMate AI coach</p>
+              <h1 className="font-black text-lg sm:text-xl text-[var(--text-primary)]">Personalized Onboarding</h1>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-semibold">Customizing your SpeakMate AI coach</p>
             </div>
           </div>
 
-          <span className="text-xs font-extrabold px-3.5 py-1.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
+          <span className="text-xs sm:text-sm font-extrabold px-4 py-2 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
             Step {step} of 8
           </span>
         </div>
 
         {/* Step Progress Line */}
-        <div className="w-full bg-[var(--border-default)] h-2 rounded-full overflow-hidden">
+        <div className="w-full bg-[var(--border-default)] h-3 rounded-full overflow-hidden">
           <div
             className="bg-gradient-to-r from-[#6c63ff] to-[#ff6584] h-full transition-all duration-300 rounded-full"
             style={{ width: `${(step / 8) * 100}%` }}
@@ -181,22 +181,22 @@ export function Onboarding() {
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">What is your native language?</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">This helps us explain grammar rules in a relatable way.</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">What is your native language?</h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">This helps us explain grammar rules in a relatable way.</p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.key}
                   onClick={() => setNativeLanguage(lang.key)}
-                  className={`p-4 rounded-2xl border text-left font-extrabold text-xs transition-all flex items-center gap-3 ${
+                  className={`p-5 rounded-2xl border text-left font-extrabold text-sm sm:text-base transition-all flex items-center gap-4 ${
                     nativeLanguage === lang.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 text-[var(--text-primary)] font-black"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 text-[var(--text-primary)] font-black shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
-                  <span className="text-2xl">{lang.flag}</span>
+                  <span className="text-3xl">{lang.flag}</span>
                   <span>{lang.label}</span>
                 </button>
               ))}
@@ -208,25 +208,25 @@ export function Onboarding() {
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">What is your main speaking goal?</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">We will prioritize scenario drills suited for you.</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">What is your main speaking goal?</h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">We will prioritize scenario drills suited for you.</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {GOALS.map((g) => (
                 <button
                   key={g.key}
                   onClick={() => setSelectedGoal(g.key)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                  className={`p-5 rounded-2xl border text-left transition-all flex items-start gap-4 ${
                     selectedGoal === g.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
-                  <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)] shrink-0">{g.icon}</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-[var(--bg-base)] shrink-0">{g.icon}</span>
                   <div>
-                    <h3 className="font-extrabold text-xs text-[var(--text-primary)]">{g.label}</h3>
-                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5 leading-snug">{g.desc}</p>
+                    <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{g.label}</h3>
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 leading-snug">{g.desc}</p>
                   </div>
                 </button>
               ))}
@@ -238,25 +238,25 @@ export function Onboarding() {
         {step === 3 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">Select your age group</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Tailors scenario vocabulary and conversation tone.</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Select your age group</h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Tailors scenario vocabulary and conversation tone.</p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {AGE_GROUPS.map((a) => (
                 <button
                   key={a.key}
                   onClick={() => setSelectedAgeGroup(a.key)}
-                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center gap-4 ${
+                  className={`w-full p-5 rounded-2xl border text-left transition-all flex items-center gap-5 ${
                     selectedAgeGroup === a.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
-                  <span className="text-3xl p-2 rounded-2xl bg-[var(--bg-base)]">{a.icon}</span>
+                  <span className="text-4xl p-3 rounded-2xl bg-[var(--bg-base)]">{a.icon}</span>
                   <div>
-                    <h3 className="font-extrabold text-xs text-[var(--text-primary)]">{a.label}</h3>
-                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{a.desc}</p>
+                    <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{a.label}</h3>
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">{a.desc}</p>
                   </div>
                 </button>
               ))}
@@ -268,26 +268,26 @@ export function Onboarding() {
         {step === 4 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">What is your current English level?</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Estimates your starting difficulty for scenario drills.</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">What is your current English level?</h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Estimates your starting difficulty for scenario drills.</p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {LEVELS.map((lvl) => (
                 <button
                   key={lvl.key}
                   onClick={() => setSelectedLevel(lvl.key)}
-                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                  className={`w-full p-5 rounded-2xl border text-left transition-all flex items-center justify-between ${
                     selectedLevel === lvl.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
                   <div>
-                    <h3 className="font-extrabold text-xs text-[var(--text-primary)]">{lvl.label}</h3>
-                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{lvl.desc}</p>
+                    <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{lvl.label}</h3>
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">{lvl.desc}</p>
                   </div>
-                  {selectedLevel === lvl.key && <span className="text-[#6c63ff] font-extrabold text-sm">✓</span>}
+                  {selectedLevel === lvl.key && <span className="text-[#6c63ff] font-extrabold text-base">✓</span>}
                 </button>
               ))}
             </div>
@@ -298,24 +298,24 @@ export function Onboarding() {
         {step === 5 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">Choose topics you like</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Select 2 or more topics for personalized chat prompts.</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Choose topics you like</h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Select 2 or more topics for personalized chat prompts.</p>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {INTERESTS.map((int) => {
                 const isSelected = selectedInterests.includes(int.key);
                 return (
                   <button
                     key={int.key}
                     onClick={() => toggleInterest(int.key)}
-                    className={`p-3.5 rounded-2xl border text-left text-xs font-bold transition-all flex items-center gap-2.5 ${
+                    className={`p-4 rounded-2xl border text-left text-sm sm:text-base font-extrabold transition-all flex items-center gap-3 ${
                       isSelected
-                        ? "border-[#6c63ff] bg-[#6c63ff]/20 text-[var(--text-primary)] ring-1 ring-[#6c63ff]"
+                        ? "border-[#6c63ff] bg-[#6c63ff]/20 text-[var(--text-primary)] ring-2 ring-[#6c63ff] shadow-md"
                         : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     }`}
                   >
-                    <span>{int.icon}</span>
+                    <span className="text-xl sm:text-2xl">{int.icon}</span>
                     <span>{int.label}</span>
                   </button>
                 );
@@ -328,25 +328,25 @@ export function Onboarding() {
         {step === 6 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">Select AI Tutor Voice Persona</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Choose how your AI coach speaks and offers guidance.</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Select AI Tutor Voice Persona</h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Choose how your AI coach speaks and offers guidance.</p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {VOICES.map((v) => (
                 <button
                   key={v.key}
                   onClick={() => setSelectedVoice(v.key)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3 ${
+                  className={`p-5 rounded-2xl border text-left transition-all flex items-start gap-4 ${
                     selectedVoice === v.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
-                  <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)] shrink-0">{v.icon}</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-[var(--bg-base)] shrink-0">{v.icon}</span>
                   <div>
-                    <h3 className="font-extrabold text-xs text-[var(--text-primary)]">{v.label}</h3>
-                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">{v.desc}</p>
+                    <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{v.label}</h3>
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">{v.desc}</p>
                   </div>
                 </button>
               ))}
@@ -358,28 +358,28 @@ export function Onboarding() {
         {step === 7 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">Daily Practice Goal</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Short daily sessions compound into real fluency.</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Daily Practice Goal</h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Short daily sessions compound into real fluency.</p>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
               {DAILY_GOALS.map((dg) => (
                 <button
                   key={dg.key}
                   onClick={() => setSelectedCommitment(dg.key)}
-                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                  className={`w-full p-5 rounded-2xl border text-left transition-all flex items-center justify-between ${
                     selectedCommitment === dg.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="font-extrabold text-sm text-[var(--text-primary)]">{dg.key} / day</span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-[10px] font-extrabold">
+                  <div className="flex items-center gap-4">
+                    <span className="font-black text-base sm:text-lg text-[var(--text-primary)]">{dg.key} / day</span>
+                    <span className="px-3 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-black">
                       {dg.tag}
                     </span>
                   </div>
-                  <span className="text-xs text-[var(--text-secondary)] font-bold">{dg.label}</span>
+                  <span className="text-xs sm:text-sm text-[var(--text-secondary)] font-extrabold">{dg.label}</span>
                 </button>
               ))}
             </div>
@@ -388,32 +388,32 @@ export function Onboarding() {
 
         {/* STEP 8: MIC TEST & CONFIRMATION */}
         {step === 8 && (
-          <div className="space-y-6 text-center animate-in fade-in duration-200">
-            <div className="grid h-16 w-16 mx-auto place-items-center rounded-2xl bg-gradient-to-tr from-amber-400 to-amber-500 text-white text-3xl shadow-xl">
+          <div className="space-y-8 text-center animate-in fade-in duration-200">
+            <div className="grid h-20 w-20 mx-auto place-items-center rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-500 text-white text-4xl shadow-xl">
               🎉
             </div>
 
             <div>
-              <h2 className="text-2xl font-black text-[var(--text-primary)]">Setup Complete! (+100 XP Bonus)</h2>
-              <p className="text-xs text-[var(--text-secondary)] mt-1">Your AI English speaking coach is ready.</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Setup Complete! (+100 XP Bonus)</h2>
+              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Your AI English speaking coach is ready.</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-2 text-left text-xs">
+            <div className="p-6 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3 text-left text-xs sm:text-sm font-semibold">
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Goal:</span>
-                <span className="font-extrabold text-[var(--text-primary)]">{selectedGoal}</span>
+                <span className="font-black text-[var(--text-primary)]">{selectedGoal}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Level:</span>
-                <span className="font-extrabold text-[var(--text-primary)]">{selectedLevel}</span>
+                <span className="font-black text-[var(--text-primary)]">{selectedLevel}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Persona:</span>
-                <span className="font-extrabold text-[var(--text-primary)]">{selectedVoice}</span>
+                <span className="font-black text-[var(--text-primary)]">{selectedVoice}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[var(--text-secondary)]">Daily Goal:</span>
-                <span className="font-extrabold text-[var(--text-primary)]">{selectedCommitment}</span>
+                <span className="font-black text-[var(--text-primary)]">{selectedCommitment}</span>
               </div>
             </div>
 
@@ -421,7 +421,7 @@ export function Onboarding() {
             <div className="pt-2">
               <button
                 onClick={handleStartMicTest}
-                className={`w-full py-3 rounded-2xl font-extrabold text-xs transition-all ${
+                className={`w-full py-4 rounded-2xl font-extrabold text-sm sm:text-base transition-all ${
                   isRecording
                     ? "bg-red-500 text-white animate-pulse"
                     : micTested
@@ -436,11 +436,11 @@ export function Onboarding() {
         )}
 
         {/* BOTTOM NAV BUTTONS */}
-        <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-4">
+        <div className="pt-6 border-t border-[var(--border-subtle)] flex items-center justify-between gap-4">
           {step > 1 ? (
             <button
               onClick={() => setStep((s) => s - 1)}
-              className="px-5 py-2.5 rounded-xl border border-[var(--border-default)] text-xs font-extrabold text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+              className="px-6 py-3.5 rounded-2xl border border-[var(--border-default)] text-xs sm:text-sm font-extrabold text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
             >
               ← Back
             </button>
@@ -449,14 +449,14 @@ export function Onboarding() {
           {step < 8 ? (
             <button
               onClick={() => setStep((s) => s + 1)}
-              className="px-7 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs font-extrabold shadow-lg shadow-[#6c63ff]/30"
+              className="px-8 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs sm:text-sm font-extrabold shadow-lg shadow-[#6c63ff]/30"
             >
               Continue →
             </button>
           ) : (
             <button
               onClick={handleFinish}
-              className="px-8 py-3 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-black shadow-xl shadow-[#6c63ff]/40"
+              className="px-10 py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-sm sm:text-base font-black shadow-xl shadow-[#6c63ff]/40"
             >
               Start Learning Now 🚀
             </button>
