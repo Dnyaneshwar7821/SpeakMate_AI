@@ -86,6 +86,7 @@ const AGE_SCENARIOS = {
     { id: 's8', title: 'Booking Holiday Travel', category: 'Travel', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'train-outline', desc: 'Reserve train or plane tickets and ask about senior assistance.' },
     { id: 's9', title: 'Calling Customer Support', category: 'Daily Life', difficulty: 'Intermediate', duration: 5, xp: 20, icon: 'call-outline', desc: 'Get assistance with home internet, TV, or phone service.' },
     { id: 's10', title: 'Family & Grandchildren Chat', category: 'General', difficulty: 'Advanced', duration: 6, xp: 25, icon: 'heart-outline', desc: 'Practice modern terms and catch up with family news.' },
+  ],
 };
 
 const STANDARD_SCENARIOS = {
