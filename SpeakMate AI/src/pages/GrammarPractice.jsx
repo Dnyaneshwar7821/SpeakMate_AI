@@ -111,6 +111,16 @@ export function GrammarPractice() {
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizLoading, setQuizLoading] = useState(false);
 
+  // Pre-load natural voices
+  useEffect(() => {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+      window.speechSynthesis.getVoices();
+    }
+  }, []);
+
   // Real-Time Lip-Sync Loop
   useEffect(() => {
     let visemeInterval = null;
@@ -127,12 +137,48 @@ export function GrammarPractice() {
     return () => clearInterval(visemeInterval);
   }, [isAiSpeaking]);
 
+  const getBestNaturalVoice = () => {
+    if (!("speechSynthesis" in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+    return (
+      voices.find(
+        (v) =>
+          v.lang.startsWith("en") &&
+          (v.name.includes("Google") ||
+            v.name.includes("Natural") ||
+            v.name.includes("Jenny") ||
+            v.name.includes("Ava") ||
+            v.name.includes("Samantha") ||
+            v.name.includes("Alex") ||
+            v.name.includes("Online"))
+      ) ||
+      voices.find((v) => v.lang === "en-US") ||
+      voices.find((v) => v.lang.startsWith("en")) ||
+      voices[0]
+    );
+  };
+
   const handleSpeakText = (text) => {
     if (!text || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.lang = "en-US";
+
+    // Clean text for ultra-smooth speech delivery
+    const cleanSpeech = text
+      .replace(/[\"\"'']/g, "")
+      .replace(/\./g, ". ")
+      .replace(/\,/g, ", ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanSpeech);
+    utterance.rate = 0.92;
+    utterance.pitch = 1.02;
+
+    const bestVoice = getBestNaturalVoice();
+    if (bestVoice) {
+      utterance.voice = bestVoice;
+    }
 
     utterance.onstart = () => {
       setIsAiSpeaking(true);
@@ -161,9 +207,9 @@ export function GrammarPractice() {
     if (!res) return;
     let spokenMsg = "";
     if (res.isCorrect) {
-      spokenMsg = `Great job! Your sentence, "${res.correctedText}", is grammatically correct!`;
+      spokenMsg = `Fantastic job! Your sentence, ${res.correctedText}, is completely accurate! Keep up the great work!`;
     } else {
-      spokenMsg = `Here is the corrected sentence: "${res.correctedText}". Improvement tip: ${res.explanation || ""}`;
+      spokenMsg = `Here is your corrected sentence: ${res.correctedText}. Here is a helpful tip: ${res.explanation || ""}. Let's keep practicing together!`;
     }
     handleSpeakText(spokenMsg);
   };
@@ -252,7 +298,7 @@ export function GrammarPractice() {
         <div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--text-primary)]">AI Grammar Coach</h1>
           <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">
-            Instantly analyze your sentences, listen to corrected audio out loud, and learn grammar rule improvements.
+            Instantly analyze your sentences, listen to smooth natural audio corrections out loud, and learn grammar rule improvements.
           </p>
         </div>
 
@@ -306,7 +352,7 @@ export function GrammarPractice() {
                 <label className="text-sm sm:text-base font-black text-[var(--text-primary)]">
                   Enter English Sentence to Check
                 </label>
-                <span className="text-xs font-bold text-[#6c63ff]">Real-Time AI Voice Tutor</span>
+                <span className="text-xs font-bold text-[#6c63ff]">Real-Time Smooth Voice Tutor</span>
               </div>
 
               <textarea
@@ -330,7 +376,7 @@ export function GrammarPractice() {
                   disabled={analyzing || !textInput.trim()}
                   className="px-8 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] disabled:opacity-50 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-[#6c63ff]/25 transition-all"
                 >
-                  {analyzing ? "Analyzing & Reading..." : "Check & Read Aloud →"}
+                  {analyzing ? "Analyzing & Speaking..." : "Check & Speak Smoothly →"}
                 </button>
               </div>
             </div>
@@ -400,9 +446,9 @@ export function GrammarPractice() {
                 </div>
 
                 <div>
-                  <h3 className="font-extrabold text-sm text-white">SpeakMate AI Grammar Tutor</h3>
+                  <h3 className="font-extrabold text-sm text-white">SpeakMate AI Smooth Grammar Tutor</h3>
                   <p className="text-xs text-[#A5B4FC] font-medium">
-                    {isAiSpeaking ? "Reading Corrected Sentence & Rules... 🔊" : "Ready to Analyze & Read Out Loud ✨"}
+                    {isAiSpeaking ? "Speaking Smooth Correction & Tips... 🎙️" : "Ready to Analyze & Speak Smoothly ✨"}
                   </p>
                 </div>
               </div>
@@ -426,7 +472,7 @@ export function GrammarPractice() {
                     </span>
                     <div>
                       <h3 className="font-black text-base text-[var(--text-primary)]">Grammar Evaluation Result</h3>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium">AI Read-Aloud Active</p>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium">Smooth Audio Tutor Active</p>
                     </div>
                   </div>
 
@@ -434,7 +480,7 @@ export function GrammarPractice() {
                     onClick={() => handleSpeakCorrectionAndImprovement(analysisResult)}
                     className="px-4 py-2 rounded-2xl bg-[#6c63ff] text-white text-xs font-extrabold hover:bg-[#8b85ff] transition-all inline-flex items-center gap-1.5 shadow-md"
                   >
-                    🔊 Replay AI Voice
+                    🔊 Replay Smooth AI Voice
                   </button>
                 </div>
 
@@ -464,9 +510,9 @@ export function GrammarPractice() {
             ) : (
               <div className="glass-card p-8 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
                 <span className="text-5xl">✍️</span>
-                <h3 className="font-extrabold text-base text-[var(--text-primary)]">Ready for Live AI Correction</h3>
+                <h3 className="font-extrabold text-base text-[var(--text-primary)]">Ready for Smooth AI Voice Check</h3>
                 <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-sm">
-                  Enter your sentence on the left to receive instant spoken corrections and grammar rule explanations.
+                  Enter your sentence on the left to receive instant smooth spoken corrections and grammar rule explanations.
                 </p>
               </div>
             )}
@@ -485,7 +531,7 @@ export function GrammarPractice() {
                 <div className="flex items-center justify-between text-xs font-bold text-[var(--text-secondary)]">
                   <span className="text-emerald-500 font-extrabold">Accuracy: {h.accuracyScore || 90}%</span>
                   <button onClick={() => handleSpeakCorrectionAndImprovement(h)} className="text-[#6c63ff] hover:underline">
-                    🔊 Listen AI Voice
+                    🔊 Listen Smooth AI Voice
                   </button>
                 </div>
 
