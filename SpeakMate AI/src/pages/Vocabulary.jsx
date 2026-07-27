@@ -40,25 +40,6 @@ const THREE_VOCAB_QUIZZES = [
         correctIndex: 1,
         explanation: "Coherent means logical, clear, and well-structured.",
       },
-      {
-        id: "q1_4",
-        questionText: "What is the antonym (opposite) of 'Meticulous'?",
-        options: ["Careless & Sloppy", "Precise", "Thorough", "Attentive"],
-        correctIndex: 0,
-        explanation: "Meticulous means showing great attention to detail; its opposite is careless.",
-      },
-      {
-        id: "q1_5",
-        questionText: "Which sentence uses 'Pragmatic' correctly?",
-        options: [
-          "She took a pragmatic, practical approach to solving the issue.",
-          "The pragmatic bird flew high into the clouds.",
-          "He was pragmatic because he never ate lunch.",
-          "Pragmatic music played on the radio.",
-        ],
-        correctIndex: 0,
-        explanation: "Pragmatic means dealing with things sensibly and realistically in a practical way.",
-      },
     ],
   },
   {
@@ -98,25 +79,6 @@ const THREE_VOCAB_QUIZZES = [
         ],
         correctIndex: 0,
         explanation: "Versatile means flexible and capable of doing many different tasks well.",
-      },
-      {
-        id: "q2_4",
-        questionText: "Which word is a synonym for 'Formidable'?",
-        options: ["Impressive & Powerful", "Weak", "Small", "Friendly"],
-        correctIndex: 0,
-        explanation: "Formidable means inspiring respect or awe through being impressively large or powerful.",
-      },
-      {
-        id: "q2_5",
-        questionText: "What is the meaning of 'Plausible'?",
-        options: [
-          "Seeming reasonable or probable",
-          "Impossible to happen",
-          "Extremely funny",
-          "Boring",
-        ],
-        correctIndex: 0,
-        explanation: "Plausible means believable or realistic based on logical reasoning.",
       },
     ],
   },
@@ -163,25 +125,6 @@ const THREE_VOCAB_QUIZZES = [
         correctIndex: 0,
         explanation: "'Call it a day' means deciding to finish work or practice for the day.",
       },
-      {
-        id: "q3_4",
-        questionText: "What does 'Bite the bullet' mean?",
-        options: [
-          "Face a difficult situation with courage and get it over with",
-          "Eat hard food quickly",
-          "Disobey instructions",
-          "Shoot a target",
-        ],
-        correctIndex: 0,
-        explanation: "'Bite the bullet' means accepting a tough or unpleasant task bravely.",
-      },
-      {
-        id: "q3_5",
-        questionText: "Choose the synonym for 'Spontaneous':",
-        options: ["Impulsive & Natural", "Calculated & Planned", "Slow", "Hesitant"],
-        correctIndex: 0,
-        explanation: "Spontaneous means performed as a result of a sudden impulse without premeditation.",
-      },
     ],
   },
 ];
@@ -199,7 +142,7 @@ export function Vocabulary() {
   const [cardIndex, setCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // 3-Quiz Selection State
+  // 3-Quiz Selection State (3 Questions Per Quiz)
   const [selectedQuizIndex, setSelectedQuizIndex] = useState(0);
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState(null);
@@ -308,7 +251,7 @@ export function Vocabulary() {
       setSelectedQuizAnswer(null);
     } else {
       const finalScore = quizScore + (selectedQuizAnswer === activeQuestions[currentQuizIdx].correctIndex ? 1 : 0);
-      const earned = finalScore * 20;
+      const earned = finalScore * 25;
       setEarnedXP(earned);
       setQuizFinished(true);
       if (earned > 0) {
@@ -324,7 +267,7 @@ export function Vocabulary() {
         <div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--text-primary)]">Vocabulary Builder</h1>
           <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">
-            Build your personal word bank, study with 3D flashcards, and test retention with 3 interactive XP quizzes.
+            Build your personal word bank, study with 3D flashcards, and test retention with 3 interactive XP quizzes (3 questions each).
           </p>
         </div>
 
@@ -363,7 +306,7 @@ export function Vocabulary() {
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            ⚡ 3 XP Quizzes
+            ⚡ 3 XP Quizzes (3 Qs Each)
           </button>
         </div>
       </div>
@@ -587,8 +530,8 @@ export function Vocabulary() {
                   </p>
                 </div>
                 <div className="pt-2 border-t border-white/20 flex items-center justify-between text-xs font-extrabold">
-                  <span>5 Questions</span>
-                  <span>+100 XP Max</span>
+                  <span>3 Questions</span>
+                  <span>+75 XP Max</span>
                 </div>
               </div>
             ))}
@@ -635,7 +578,7 @@ export function Vocabulary() {
                 <span className="text-[var(--text-primary)] font-black">
                   {activeQuiz.title} • Question {currentQuizIdx + 1} of {activeQuestions.length}
                 </span>
-                <span className="text-[#6c63ff] font-extrabold">+20 XP Per Correct Answer</span>
+                <span className="text-[#6c63ff] font-extrabold">+25 XP Per Correct Answer</span>
               </div>
 
               <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] leading-relaxed">
