@@ -979,14 +979,14 @@ export default function LessonDetailScreen({ navigation, route }) {
     const finalScore = quizScoreRef.current;
     const totalQ = quizQuestions.length || 5;
 
-    let multiplier = 10;
-    let perfectBonusAmount = 20;
+    let multiplier = 4;
+    let perfectBonusAmount = 5;
     if (quizLevel === 'Intermediate') {
-      multiplier = 15;
-      perfectBonusAmount = 25;
+      multiplier = 6;
+      perfectBonusAmount = 5;
     } else if (quizLevel === 'Advanced') {
-      multiplier = 20;
-      perfectBonusAmount = 30;
+      multiplier = 8;
+      perfectBonusAmount = 10;
     }
 
     const baseXP = finalScore * multiplier;
