@@ -43,6 +43,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 				.preferredLearningTime(request.getPreferredLearningTime() != null ? request.getPreferredLearningTime() : "Morning")
 				.interests(request.getInterests() != null ? request.getInterests() : "General")
 				.ageGroup(request.getAgeGroup() != null ? request.getAgeGroup() : "Professional")
+				.schoolGrade(request.getSchoolGrade() != null ? request.getSchoolGrade() : "1st Std")
 				.onboardingCompleted(request.getOnboardingCompleted() != null ? request.getOnboardingCompleted() : false).build();
 
 		Onboarding savedOnboarding = onboardingRepository.save(onboarding);
@@ -72,6 +73,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 							.preferredLearningTime("Morning")
 							.interests("General")
 							.ageGroup("Professional")
+							.schoolGrade("1st Std")
 							.onboardingCompleted(false)
 							.build();
 					return onboardingRepository.save(defaultOnboarding);
@@ -100,6 +102,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 							.preferredLearningTime("Morning")
 							.interests("General")
 							.ageGroup("Professional")
+							.schoolGrade("1st Std")
 							.onboardingCompleted(false)
 							.build();
 					return onboardingRepository.save(defaultOnboarding);
@@ -112,6 +115,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 		if (request.getPreferredLearningTime() != null) onboarding.setPreferredLearningTime(request.getPreferredLearningTime());
 		if (request.getInterests() != null) onboarding.setInterests(request.getInterests());
 		if (request.getAgeGroup() != null) onboarding.setAgeGroup(request.getAgeGroup());
+		if (request.getSchoolGrade() != null) onboarding.setSchoolGrade(request.getSchoolGrade());
 		if (request.getOnboardingCompleted() != null) onboarding.setOnboardingCompleted(request.getOnboardingCompleted());
 
 		Onboarding updatedOnboarding = onboardingRepository.save(onboarding);
@@ -141,6 +145,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 				.nativeLanguage(onboarding.getNativeLanguage())
 				.preferredLearningTime(onboarding.getPreferredLearningTime()).interests(onboarding.getInterests())
 				.ageGroup(onboarding.getAgeGroup())
+				.schoolGrade(onboarding.getSchoolGrade())
 				.onboardingCompleted(onboarding.getOnboardingCompleted()).createdAt(onboarding.getCreatedAt())
 				.updatedAt(onboarding.getUpdatedAt()).build();
 	}
@@ -154,6 +159,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 		if (request.getPreferredVoice() != null) user.setPreferredVoice(request.getPreferredVoice());
 		if (request.getPreferredAccent() != null) user.setPreferredAccent(request.getPreferredAccent());
 		if (request.getAgeGroup() != null) user.setAgeGroup(request.getAgeGroup());
+		if (request.getSchoolGrade() != null) user.setSchoolGrade(request.getSchoolGrade());
 		if (request.getInterests() != null) user.setInterests(request.getInterests());
 		if (request.getOnboardingCompleted() != null) user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));
 		userRepository.save(user);

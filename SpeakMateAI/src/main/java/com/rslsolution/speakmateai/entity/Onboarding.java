@@ -41,6 +41,8 @@ public class Onboarding {
 
 	private String ageGroup;
 
+	private String schoolGrade;
+
 	@Builder.Default
 	private Boolean onboardingCompleted = false;
 
@@ -81,8 +83,11 @@ public class Onboarding {
 	public String getPreferredLearningTime() { return preferredLearningTime; }
 	public void setPreferredLearningTime(String preferredLearningTime) { this.preferredLearningTime = preferredLearningTime; }
 
-	public String getInterests() { return interests; }
-	public void setInterests(String interests) { this.interests = interests; }
+	public String getAgeGroup() { return ageGroup; }
+	public void setAgeGroup(String ageGroup) { this.ageGroup = ageGroup; }
+
+	public String getSchoolGrade() { return schoolGrade; }
+	public void setSchoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; }
 
 	public Boolean getOnboardingCompleted() { return onboardingCompleted; }
 	public void setOnboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
@@ -106,6 +111,8 @@ public class Onboarding {
 		private String nativeLanguage;
 		private String preferredLearningTime;
 		private String interests;
+		private String ageGroup;
+		private String schoolGrade;
 		private Boolean onboardingCompleted = false;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
@@ -118,6 +125,8 @@ public class Onboarding {
 		public OnboardingBuilder nativeLanguage(String nativeLanguage) { this.nativeLanguage = nativeLanguage; return this; }
 		public OnboardingBuilder preferredLearningTime(String preferredLearningTime) { this.preferredLearningTime = preferredLearningTime; return this; }
 		public OnboardingBuilder interests(String interests) { this.interests = interests; return this; }
+		public OnboardingBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
+		public OnboardingBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
 		public OnboardingBuilder onboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; return this; }
 		public OnboardingBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 		public OnboardingBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
@@ -132,6 +141,8 @@ public class Onboarding {
             obj.setNativeLanguage(nativeLanguage);
             obj.setPreferredLearningTime(preferredLearningTime);
             obj.setInterests(interests);
+            obj.setAgeGroup(ageGroup);
+            obj.setSchoolGrade(schoolGrade);
             obj.setOnboardingCompleted(onboardingCompleted);
             obj.setCreatedAt(createdAt);
             obj.setUpdatedAt(updatedAt);

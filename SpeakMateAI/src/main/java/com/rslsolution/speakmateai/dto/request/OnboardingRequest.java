@@ -31,6 +31,8 @@ public class OnboardingRequest {
 
 	private String ageGroup;
 
+	private String schoolGrade;
+
 	private Boolean studyReminder;
 
 	public String getEnglishLevel() { return englishLevel; }
@@ -63,6 +65,9 @@ public class OnboardingRequest {
 	public String getAgeGroup() { return ageGroup; }
 	public void setAgeGroup(String ageGroup) { this.ageGroup = ageGroup; }
 
+	public String getSchoolGrade() { return schoolGrade; }
+	public void setSchoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; }
+
 	public Boolean getStudyReminder() { return studyReminder; }
 	public void setStudyReminder(Boolean studyReminder) { this.studyReminder = studyReminder; }
 
@@ -81,6 +86,7 @@ public class OnboardingRequest {
 		private String preferredVoice;
 		private String preferredAccent;
 		private String ageGroup;
+		private String schoolGrade;
 		private Boolean studyReminder;
 
 		public OnboardingRequestBuilder englishLevel(String englishLevel) { this.englishLevel = englishLevel; return this; }
@@ -93,6 +99,7 @@ public class OnboardingRequest {
 		public OnboardingRequestBuilder preferredVoice(String preferredVoice) { this.preferredVoice = preferredVoice; return this; }
 		public OnboardingRequestBuilder preferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; return this; }
 		public OnboardingRequestBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
+		public OnboardingRequestBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
 		public OnboardingRequestBuilder studyReminder(Boolean studyReminder) { this.studyReminder = studyReminder; return this; }
 
 		public OnboardingRequest build() {

@@ -111,6 +111,8 @@ public class User {
 
 	private String ageGroup;
 
+	private String schoolGrade;
+
 	private String interests;
 
 	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
@@ -216,8 +218,11 @@ public class User {
 	public String getPreferredVoice() { return preferredVoice; }
 	public void setPreferredVoice(String preferredVoice) { this.preferredVoice = preferredVoice; }
 
-	public String getPreferredAccent() { return preferredAccent; }
-	public void setPreferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; }
+	public String getAgeGroup() { return ageGroup; }
+	public void setAgeGroup(String ageGroup) { this.ageGroup = ageGroup; }
+
+	public String getSchoolGrade() { return schoolGrade; }
+	public void setSchoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; }
 
 	public String getInterests() { return interests; }
 	public void setInterests(String interests) { this.interests = interests; }
@@ -253,6 +258,8 @@ public class User {
 		private Integer dailyGoalMinutes;
 		private String preferredVoice;
 		private String preferredAccent;
+		private String ageGroup;
+		private String schoolGrade;
 		private String interests;
 		private String expoPushToken;
 
@@ -279,6 +286,8 @@ public class User {
 		public UserBuilder dailyGoalMinutes(Integer dailyGoalMinutes) { this.dailyGoalMinutes = dailyGoalMinutes; return this; }
 		public UserBuilder preferredVoice(String preferredVoice) { this.preferredVoice = preferredVoice; return this; }
 		public UserBuilder preferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; return this; }
+		public UserBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
+		public UserBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
 		public UserBuilder interests(String interests) { this.interests = interests; return this; }
 		public UserBuilder expoPushToken(String expoPushToken) { this.expoPushToken = expoPushToken; return this; }
 
@@ -307,6 +316,8 @@ public class User {
 			user.setDailyGoalMinutes(dailyGoalMinutes);
 			user.setPreferredVoice(preferredVoice);
 			user.setPreferredAccent(preferredAccent);
+			user.setAgeGroup(ageGroup);
+			user.setSchoolGrade(schoolGrade);
 			user.setInterests(interests);
 			user.setExpoPushToken(expoPushToken);
 			return user;
