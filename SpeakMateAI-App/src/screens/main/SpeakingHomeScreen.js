@@ -86,6 +86,68 @@ const AGE_SCENARIOS = {
     { id: 's8', title: 'Booking Holiday Travel', category: 'Travel', difficulty: 'Intermediate', duration: 6, xp: 25, icon: 'train-outline', desc: 'Reserve train or plane tickets and ask about senior assistance.' },
     { id: 's9', title: 'Calling Customer Support', category: 'Daily Life', difficulty: 'Intermediate', duration: 5, xp: 20, icon: 'call-outline', desc: 'Get assistance with home internet, TV, or phone service.' },
     { id: 's10', title: 'Family & Grandchildren Chat', category: 'General', difficulty: 'Advanced', duration: 6, xp: 25, icon: 'heart-outline', desc: 'Practice modern terms and catch up with family news.' },
+};
+
+const STANDARD_SCENARIOS = {
+  '1st Std': [
+    { id: 'std1_1', title: 'Show & Tell My Toy', category: 'General', difficulty: '1st Std (Starter)', duration: 4, xp: 15, icon: 'color-palette-outline', desc: 'Share your favorite toy, pet, or drawing with your SpeakMate AI teacher.' },
+    { id: 'std1_2', title: 'At the Zoo with Animals', category: 'Daily Life', difficulty: '1st Std (Starter)', duration: 5, xp: 15, icon: 'paw-outline', desc: 'Talk about lions, elephants, and monkeys at the zoo.' },
+    { id: 'std1_3', title: 'My Favorite Colors', category: 'General', difficulty: '1st Std (Starter)', duration: 4, xp: 15, icon: 'brush-outline', desc: 'Describe your favorite colors and what you like to draw.' },
+    { id: 'std1_4', title: 'Greeting School Friends', category: 'Daily Life', difficulty: '1st Std (Starter)', duration: 4, xp: 15, icon: 'hand-left-outline', desc: 'Say Good Morning and practice simple hello greetings at school.' },
+  ],
+  '2nd Std': [
+    { id: 'std2_1', title: 'Ordering Ice Cream', category: 'Daily Life', difficulty: '2nd Std (Elementary)', duration: 4, xp: 15, icon: 'ice-cream-outline', desc: 'Pick your favorite ice cream flavors and scoops with your AI buddy.' },
+    { id: 'std2_2', title: 'My Pet & Home Animals', category: 'General', difficulty: '2nd Std (Elementary)', duration: 5, xp: 15, icon: 'happy-outline', desc: 'Describe your dog, cat, or favorite pet at home.' },
+    { id: 'std2_3', title: 'Rainy Day Playground', category: 'Daily Life', difficulty: '2nd Std (Elementary)', duration: 4, xp: 15, icon: 'rainy-outline', desc: 'Talk about paper boats, raincoats, and indoor games.' },
+    { id: 'std2_4', title: 'School Lunch Box', category: 'Daily Life', difficulty: '2nd Std (Elementary)', duration: 4, xp: 15, icon: 'restaurant-outline', desc: 'Share what snacks and fruits are in your lunch box today.' },
+  ],
+  '3rd Std': [
+    { id: 'std3_1', title: 'Visiting the Doctor', category: 'Daily Life', difficulty: '3rd Std (Upper Elem)', duration: 5, xp: 20, icon: 'medkit-outline', desc: 'Explain how you feel and talk to a friendly doctor.' },
+    { id: 'std3_2', title: 'My Birthday Party Fun', category: 'General', difficulty: '3rd Std (Upper Elem)', duration: 5, xp: 20, icon: 'gift-outline', desc: 'Talk about birthday cake, balloons, games, and gifts.' },
+    { id: 'std3_3', title: 'Superheroes & Fairytales', category: 'General', difficulty: '3rd Std (Upper Elem)', duration: 5, xp: 20, icon: 'flash-outline', desc: 'Describe your favorite superhero and their special superpowers.' },
+    { id: 'std3_4', title: 'In the School Garden', category: 'Daily Life', difficulty: '3rd Std (Upper Elem)', duration: 4, xp: 15, icon: 'flower-outline', desc: 'Talk about planting seeds, flowers, and butterflies.' },
+  ],
+  '4th Std': [
+    { id: 'std4_1', title: 'School Canteen Lunch', category: 'Daily Life', difficulty: '4th Std (Pre-Interm)', duration: 5, xp: 20, icon: 'fast-food-outline', desc: 'Order juice, sandwiches, and snacks at the school canteen.' },
+    { id: 'std4_2', title: 'Space Rocket Expedition', category: 'Travel', difficulty: '4th Std (Pre-Interm)', duration: 6, xp: 25, icon: 'planet-outline', desc: 'Fly a rocket ship to the Moon and Mars with your space buddy.' },
+    { id: 'std4_3', title: 'Visiting Grandpa\'s Farm', category: 'Travel', difficulty: '4th Std (Pre-Interm)', duration: 5, xp: 20, icon: 'leaf-outline', desc: 'Talk about tractors, cows, fresh milk, and farm life.' },
+    { id: 'std4_4', title: 'My Dream Vacation Trip', category: 'Travel', difficulty: '4th Std (Pre-Interm)', duration: 6, xp: 25, icon: 'airplane-outline', desc: 'Describe beaches, mountains, and packing your travel bag.' },
+  ],
+  '5th Std': [
+    { id: 'std5_1', title: 'First Day in 5th Grade', category: 'General', difficulty: '5th Std (Intermediate)', duration: 5, xp: 20, icon: 'school-outline', desc: 'Introduce yourself to new classmates and talk about favorite subjects.' },
+    { id: 'std5_2', title: 'Planning a Class Picnic', category: 'Daily Life', difficulty: '5th Std (Intermediate)', duration: 6, xp: 25, icon: 'sunny-outline', desc: 'Discuss picnic spots, sports games, and group snacks with friends.' },
+    { id: 'std5_3', title: 'Favorite Storybook Review', category: 'General', difficulty: '5th Std (Intermediate)', duration: 6, xp: 25, icon: 'book-outline', desc: 'Explain the main characters and plot of a book you love.' },
+    { id: 'std5_4', title: 'Toy & Game Shop Visit', category: 'Daily Life', difficulty: '5th Std (Intermediate)', duration: 5, xp: 20, icon: 'game-controller-outline', desc: 'Discuss board games, puzzles, and video game rules.' },
+  ],
+  '6th Std': [
+    { id: 'std6_1', title: 'Asking Teacher for Homework Help', category: 'General', difficulty: '6th Std (Upper Interm)', duration: 5, xp: 20, icon: 'create-outline', desc: 'Ask your teacher polite questions about science and math homework.' },
+    { id: 'std6_2', title: 'Joining Science & Robotics Club', category: 'General', difficulty: '6th Std (Upper Interm)', duration: 6, xp: 25, icon: 'hardware-chip-outline', desc: 'Introduce your project idea and interview for the school science club.' },
+    { id: 'std6_3', title: 'Annual School Sports Day', category: 'Daily Life', difficulty: '6th Std (Upper Interm)', duration: 6, xp: 25, icon: 'trophy-outline', desc: 'Talk about running races, football matches, and winning medals.' },
+    { id: 'std6_4', title: 'Shopping for School Clothes', category: 'Daily Life', difficulty: '6th Std (Upper Interm)', duration: 5, xp: 20, icon: 'shirt-outline', desc: 'Try on shoes, check sizes, and ask sales staff for assistance.' },
+  ],
+  '7th Std': [
+    { id: 'std7_1', title: 'Group Discussion: Saving Water', category: 'General', difficulty: '7th Std (Intermediate)', duration: 6, xp: 25, icon: 'water-outline', desc: 'Participate in a school group discussion on environmental conservation.' },
+    { id: 'std7_2', title: 'Movie & Novel Review Chat', category: 'General', difficulty: '7th Std (Intermediate)', duration: 6, xp: 25, icon: 'film-outline', desc: 'Share your thoughts, recommendations, and ratings for movies.' },
+    { id: 'std7_3', title: 'Organizing School Cultural Fest', category: 'General', difficulty: '7th Std (Intermediate)', duration: 7, xp: 30, icon: 'musical-notes-outline', desc: 'Divide responsibilities for music, dance, and stage decorations.' },
+    { id: 'std7_4', title: 'Asking Directions in New City', category: 'Travel', difficulty: '7th Std (Intermediate)', duration: 5, xp: 20, icon: 'navigate-outline', desc: 'Practice asking locals for bus stops, landmarks, and subway stations.' },
+  ],
+  '8th Std': [
+    { id: 'std8_1', title: 'Debate: Social Media vs Books', category: 'General', difficulty: '8th Std (Upper Interm)', duration: 7, xp: 30, icon: 'chatbubbles-outline', desc: 'Defend your viewpoint with clear arguments and respectful counter-points.' },
+    { id: 'std8_2', title: 'Student Council Leader Interview', category: 'Career', difficulty: '8th Std (Upper Interm)', duration: 7, xp: 30, icon: 'mic-outline', desc: 'Answer leadership questions and present your school improvement plan.' },
+    { id: 'std8_3', title: 'Tech & AI Innovations Chat', category: 'Work', difficulty: '8th Std (Upper Interm)', duration: 6, xp: 25, icon: 'desktop-outline', desc: 'Discuss how smartphones, AI tools, and computers shape our future.' },
+    { id: 'std8_4', title: 'Planning a Charity Fundraiser', category: 'Work', difficulty: '8th Std (Upper Interm)', duration: 7, xp: 30, icon: 'heart-outline', desc: 'Pitch ideas for helping community causes and collecting donations.' },
+  ],
+  '9th Std': [
+    { id: 'std9_1', title: 'Mock High School Admission Interview', category: 'Career', difficulty: '9th Std (Advanced)', duration: 8, xp: 35, icon: 'school-outline', desc: 'Answer formal interview questions regarding academic choices and goals.' },
+    { id: 'std9_2', title: 'Keynote Speech: Climate Action', category: 'Work', difficulty: '9th Std (Advanced)', duration: 8, xp: 35, icon: 'globe-outline', desc: 'Deliver a structured 3-minute keynote address on renewable energy.' },
+    { id: 'std9_3', title: 'Debate: Online vs Classroom Learning', category: 'General', difficulty: '9th Std (Advanced)', duration: 8, xp: 35, icon: 'easel-outline', desc: 'Argue the pros and cons of digital education vs physical schools.' },
+    { id: 'std9_4', title: 'Resolving Peer Conflict Politely', category: 'Daily Life', difficulty: '9th Std (Advanced)', duration: 7, xp: 30, icon: 'people-outline', desc: 'Handle misunderstandings constructively using diplomatic language.' },
+  ],
+  '10th Std': [
+    { id: 'std10_1', title: '10th Board Exam English Oral Test', category: 'Career', difficulty: '10th Std (Board Prep)', duration: 10, xp: 50, icon: 'document-text-outline', desc: 'Simulate official 10th Board oral examination with strict feedback.' },
+    { id: 'std10_2', title: 'Future College Major & Career Pitch', category: 'Career', difficulty: '10th Std (Board Prep)', duration: 8, xp: 40, icon: 'briefcase-outline', desc: 'Pitch your chosen career roadmap in Engineering, Medicine, Arts, or Tech.' },
+    { id: 'std10_3', title: 'Public Keynote & Q&A Defense', category: 'Work', difficulty: '10th Std (Board Prep)', duration: 9, xp: 45, icon: 'megaphone-outline', desc: 'Deliver a persuasive speech and answer challenging follow-up questions.' },
+    { id: 'std10_4', title: 'Global Youth Leadership Summit', category: 'General', difficulty: '10th Std (Board Prep)', duration: 10, xp: 50, icon: 'earth-outline', desc: 'Discuss international relations, innovation, and youth leadership.' },
   ],
 };
 
@@ -184,8 +246,8 @@ export default function SpeakingHomeScreen({ navigation }) {
     );
   };
 
-  // Active age-tailored scenarios
-  const activeScenarios = AGE_SCENARIOS[userAgeGroup] || AGE_SCENARIOS['Professional'];
+  // Active grade-tailored scenarios
+  const activeScenarios = STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS['1st Std'];
 
   // Filtered scenarios
   const filteredScenarios = activeScenarios.filter((s) => {
