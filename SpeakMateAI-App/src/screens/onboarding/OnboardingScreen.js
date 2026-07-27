@@ -477,6 +477,7 @@ export default function OnboardingScreen({ navigation }) {
     setLoading(true);
     try {
       await AsyncStorage.setItem('speakmate_school_grade', schoolGrade || '1st Std');
+      await AsyncStorage.setItem('speakmate_age_group', ageGroup || 'Professional');
 
       // 1. Sync onboarding details (Avoids any 404 blockages)
       await onboardingService.update({

@@ -120,8 +120,9 @@ export default function SettingsScreen({ navigation }) {
         await setDarkMode(form.darkMode);
       }
 
-      // 2. Sync Age Group via Onboarding Service (which updates both Onboarding & User entities in DB)
+      // 2. Sync Age Group via Onboarding Service & AsyncStorage
       if (form.ageGroup) {
+        await AsyncStorage.setItem('speakmate_age_group', form.ageGroup);
         await onboardingService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Onboarding age sync warning:', e));
       }
 
