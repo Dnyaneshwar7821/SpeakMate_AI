@@ -23,7 +23,7 @@ export function ConversationSession() {
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [speechSpeed, setSpeechSpeed] = useState(1.0);
-  const [chatLevel, setChatLevel] = useState("Beginner");
+  const [chatLevel, setChatLevel] = useState("1st Std");
   const [isListening, setIsListening] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -498,15 +498,28 @@ export function ConversationSession() {
           )}
         </div>
 
-        {/* Level Controls */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-[#A5B4FC]">Chat Level:</span>
-          {["Beginner", "Intermediate", "Advanced"].map((lvl) => (
+        {/* School Standard Level Controls (1st to 10th Standard) */}
+        <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1 scrollbar-none">
+          <span className="text-xs font-bold text-[#A5B4FC] shrink-0">School Standard:</span>
+          {[
+            "1st Std",
+            "2nd Std",
+            "3rd Std",
+            "4th Std",
+            "5th Std",
+            "6th Std",
+            "7th Std",
+            "8th Std",
+            "9th Std",
+            "10th Std",
+          ].map((lvl) => (
             <button
               key={lvl}
               onClick={() => setChatLevel(lvl)}
-              className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all ${
-                chatLevel === lvl ? "bg-[#6c63ff] text-white shadow-md" : "bg-white/10 text-white/70 hover:bg-white/20"
+              className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all shrink-0 ${
+                chatLevel === lvl
+                  ? "bg-[#6c63ff] text-white shadow-md"
+                  : "bg-white/10 text-white/70 hover:bg-white/20"
               }`}
             >
               {lvl}
