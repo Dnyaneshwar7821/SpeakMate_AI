@@ -426,6 +426,9 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private UserResponse mapToUserResponse(User user) {
+		String effectiveGrade = (user.getSchoolGrade() != null && !user.getSchoolGrade().trim().isEmpty())
+				? user.getSchoolGrade()
+				: (user.getEnglishLevel() != null ? user.getEnglishLevel() : "1st Std");
 
 		return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
 				.email(user.getEmail()).role(user.getRole()).avatar(user.getAvatar()).active(user.isActive())
@@ -434,7 +437,7 @@ public class UserServiceImpl implements UserService {
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
 				.englishLevel(user.getEnglishLevel()).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
-				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup()).schoolGrade(user.getSchoolGrade()).interests(user.getInterests()).build();
+				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup()).schoolGrade(effectiveGrade).interests(user.getInterests()).build();
 	}
 
 	private void validatePasswordStrength(String password) {

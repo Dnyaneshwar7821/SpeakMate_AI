@@ -139,13 +139,16 @@ public class OnboardingServiceImpl implements OnboardingService {
 	}
 
 	private OnboardingResponse mapToResponse(Onboarding onboarding) {
+		String effectiveGrade = (onboarding.getSchoolGrade() != null && !onboarding.getSchoolGrade().trim().isEmpty())
+				? onboarding.getSchoolGrade()
+				: (onboarding.getEnglishLevel() != null ? onboarding.getEnglishLevel() : "1st Std");
 
 		return OnboardingResponse.builder().id(onboarding.getId()).englishLevel(onboarding.getEnglishLevel())
 				.learningGoal(onboarding.getLearningGoal()).dailyGoalMinutes(onboarding.getDailyGoalMinutes())
 				.nativeLanguage(onboarding.getNativeLanguage())
 				.preferredLearningTime(onboarding.getPreferredLearningTime()).interests(onboarding.getInterests())
 				.ageGroup(onboarding.getAgeGroup())
-				.schoolGrade(onboarding.getSchoolGrade())
+				.schoolGrade(effectiveGrade)
 				.onboardingCompleted(onboarding.getOnboardingCompleted()).createdAt(onboarding.getCreatedAt())
 				.updatedAt(onboarding.getUpdatedAt()).build();
 	}
