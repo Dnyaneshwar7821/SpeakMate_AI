@@ -155,7 +155,7 @@ public class LessonServiceImpl implements LessonService {
 				.content(request.getContent())
 				.duration(request.getDuration() != null ? request.getDuration() : 10)
 				.active(request.getActive() != null ? request.getActive() : true)
-				.xpReward(request.getXpReward() != null ? request.getXpReward() : 50)
+				.xpReward(request.getXpReward() != null ? request.getXpReward() : 25)
 				.thumbnail(request.getThumbnail())
 				.coverImage(request.getCoverImage())
 				.locked(request.getLocked() != null ? request.getLocked() : false)
@@ -443,7 +443,7 @@ public class LessonServiceImpl implements LessonService {
 			progress.setCompleted(true);
 			progress.setCompletedAt(LocalDateTime.now());
 			progress.setLastOpenedAt(LocalDateTime.now());
-			int xp = lesson.getXpReward() != null ? lesson.getXpReward() : 50;
+			int xp = lesson.getXpReward() != null ? lesson.getXpReward() : 25;
 			progress.setXpEarned(xp);
 
 			// ── Credit XP to user Progress ────────────────────────────────
