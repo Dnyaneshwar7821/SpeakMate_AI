@@ -190,6 +190,7 @@ export default function SpeakingHomeScreen({ navigation }) {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedGrade, setSelectedGrade] = useState('1st Std');
   const [userAgeGroup, setUserAgeGroup] = useState('Professional');
+  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
 
   // Stats calculation
   const totalMinutes = history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60;
@@ -200,18 +201,20 @@ export default function SpeakingHomeScreen({ navigation }) {
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [historyData, onboardingData] = await Promise.all([
+      const [historyData, onboardingData, savedAccType] = await Promise.all([
         speakingService.history().catch(() => []),
         onboardingService.get().catch(() => null),
+        AsyncStorage.getItem('speakmate_account_type'),
       ]);
       setHistory(historyData || []);
+      const effectiveAccType = savedAccType || onboardingData?.accountType || 'INDIVIDUAL_USER';
+      setAccountType(effectiveAccType);
+
       const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
       const backendGrade = onboardingData?.schoolGrade || onboardingData?.englishLevel;
-      const effectiveGrade = savedGrade || backendGrade || '1st Std';
+      const effectiveGrade = savedGrade || backendGrade || (effectiveAccType === 'STUDENT' ? '1st Std' : 'Intermediate');
       setSelectedGrade(effectiveGrade);
-      if (effectiveGrade && !savedGrade) {
-        await AsyncStorage.setItem('speakmate_school_grade', effectiveGrade);
-      }
+
       if (onboardingData?.ageGroup) {
         setUserAgeGroup(onboardingData.ageGroup);
       }
@@ -248,15 +251,21 @@ export default function SpeakingHomeScreen({ navigation }) {
         xpReward: scenario.xp,
       });
     } catch (error) {
+      console.warn('Backend session creation failed, proceeding locally:', error);
+      navigation.navigate('Conversation', {
+        sessionId: 'sim_' + Date.now(),
+        scenario: scenarioName,
+        xpReward: scenario.xp,
+      });
+    } finally {
       setLoading(false);
-      Alert.alert('Error', 'Could not start speaking session. Please try again.');
     }
   };
 
-  const handleDeleteHistory = async (id) => {
+  const handleDeleteHistory = (id) => {
     Alert.alert(
-      'Delete Conversation?',
-      'Are you sure you want to delete this session from your history?',
+      'Delete Practice Record',
+      'Are you sure you want to delete this speaking history item?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -264,9 +273,9 @@ export default function SpeakingHomeScreen({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
-              await speakingService.remove(id);
-              loadData(true);
-            } catch {
+              await speakingService.deleteHistory(id);
+              setHistory((prev) => prev.filter((h) => h.id !== id));
+            } catch (err) {
               Alert.alert('Error', 'Could not delete speaking session.');
             }
           },
@@ -275,8 +284,11 @@ export default function SpeakingHomeScreen({ navigation }) {
     );
   };
 
-  // Active grade-tailored scenarios
-  const activeScenarios = STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS['1st Std'];
+  // Active scenarios based on account type
+  const isStudent = accountType === 'STUDENT';
+  const activeScenarios = isStudent
+    ? (STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS['1st Std'])
+    : (AGE_SCENARIOS[userAgeGroup] || AGE_SCENARIOS['Professional']);
 
   // Filtered scenarios
   const filteredScenarios = activeScenarios.filter((s) => {

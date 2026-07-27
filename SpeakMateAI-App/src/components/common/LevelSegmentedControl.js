@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const GRADE_LEVELS = [
   '1st Std',
@@ -15,20 +16,51 @@ const GRADE_LEVELS = [
   '10th Std',
 ];
 
-export default function LevelSegmentedControl({ selectedLevel = '1st Std', onChangeLevel }) {
+const CEFR_LEVELS = [
+  'Beginner',
+  'Elementary',
+  'Intermediate',
+  'Advanced',
+  'Fluent',
+];
+
+export default function LevelSegmentedControl({
+  selectedLevel,
+  onChangeLevel,
+  accountType: explicitAccountType,
+}) {
+  const [accountType, setAccountType] = useState(explicitAccountType || 'INDIVIDUAL_USER');
+
+  useEffect(() => {
+    if (explicitAccountType) {
+      setAccountType(explicitAccountType);
+    } else {
+      AsyncStorage.getItem('speakmate_account_type').then((type) => {
+        if (type) setAccountType(type);
+      });
+    }
+  }, [explicitAccountType]);
+
+  const isStudent = accountType === 'STUDENT';
+  const levelsToDisplay = isStudent ? GRADE_LEVELS : CEFR_LEVELS;
+  const defaultFallback = isStudent ? '1st Std' : 'Intermediate';
+  const currentSelected = selectedLevel || defaultFallback;
+
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Ionicons name="school-outline" size={13} color="#818CF8" />
-        <Text style={styles.label}>School Grade Level:</Text>
+        <Ionicons name={isStudent ? 'school-outline' : 'ribbon-outline'} size={13} color="#818CF8" />
+        <Text style={styles.label}>
+          {isStudent ? 'School Grade Level:' : 'English Proficiency Level:'}
+        </Text>
       </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {GRADE_LEVELS.map((lvl) => {
-          const isSelected = (selectedLevel || '1st Std') === lvl;
+        {levelsToDisplay.map((lvl) => {
+          const isSelected = currentSelected === lvl;
           return (
             <TouchableOpacity
               key={lvl}

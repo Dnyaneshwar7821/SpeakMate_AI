@@ -200,18 +200,24 @@ export default function GrammarScreen() {
   const [quizComplete, setQuizComplete] = useState(false);
 
   const [userGrade, setUserGrade] = useState('1st Std');
+  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
 
   const loadSettingsAndVoices = async () => {
     try {
-      const [s, voices, savedGrade] = await Promise.all([
+      const [s, voices, savedGrade, savedAccType] = await Promise.all([
         settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_school_grade'),
+        AsyncStorage.getItem('speakmate_account_type'),
       ]);
+      const effAccType = savedAccType || 'INDIVIDUAL_USER';
+      setAccountType(effAccType);
       setUserSettings(s);
       setAvailableVoices(voices);
       if (savedGrade) {
         setUserGrade(savedGrade);
+      } else {
+        setUserGrade(effAccType === 'STUDENT' ? '1st Std' : 'Intermediate');
       }
     } catch (e) {
       console.warn("Failed to load settings in grammar screen:", e);
@@ -537,7 +543,8 @@ export default function GrammarScreen() {
       {/* TAB 2: GRAMMAR TOPICS GUIDE */}
       {activeTab === 'topics' && (
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-          {(STANDARD_GRAMMAR_TOPICS[userGrade] || GRAMMAR_TOPICS).map((topic) => (
+          <LevelSegmentedControl selectedLevel={userGrade} onChangeLevel={setUserGrade} accountType={accountType} />
+          {((accountType === 'STUDENT' && STANDARD_GRAMMAR_TOPICS[userGrade]) ? STANDARD_GRAMMAR_TOPICS[userGrade] : GRAMMAR_TOPICS).map((topic) => (
             <Card key={topic.id} style={[styles.topicCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
               <View style={styles.topicHeader}>
                 <Text style={[styles.topicTitle, { color: theme.textPrimary }]}>{topic.title}</Text>

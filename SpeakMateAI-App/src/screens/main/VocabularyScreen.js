@@ -131,19 +131,25 @@ export default function VocabularyScreen() {
   };
 
   const [userGrade, setUserGrade] = useState('1st Std');
+  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
 
   const loadSettingsAndVoices = async () => {
     try {
-      const [s, voices, onboardingVoice, savedGrade] = await Promise.all([
-        settingsService.get(),
+      const [s, voices, onboardingVoice, savedGrade, savedAccType] = await Promise.all([
+        settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
         AsyncStorage.getItem('speakmate_school_grade'),
+        AsyncStorage.getItem('speakmate_account_type'),
       ]);
+      const effAccType = savedAccType || 'INDIVIDUAL_USER';
+      setAccountType(effAccType);
       setSettings({ ...s, onboardingVoice });
       setAvailableVoices(voices);
       if (savedGrade) {
         setUserGrade(savedGrade);
+      } else {
+        setUserGrade(effAccType === 'STUDENT' ? '1st Std' : 'Intermediate');
       }
     } catch (e) {
       console.warn("Failed to load settings in vocabulary screen:", e);

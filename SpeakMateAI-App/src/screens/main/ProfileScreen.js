@@ -137,14 +137,20 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
+  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
+
   const load = async () => {
     try {
-      const profile = await profileService.get();
+      const [profile, savedAccType] = await Promise.all([
+        profileService.get(),
+        AsyncStorage.getItem('speakmate_account_type'),
+      ]);
       setForm({
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         email: profile.email || '',
       });
+      setAccountType(savedAccType || profile.accountType || 'INDIVIDUAL_USER');
       setState({ loading: false, error: '', profile });
     } catch (error) {
       setForm({
@@ -419,18 +425,25 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </Card>
 
-        {/* English Proficiency Level Quick Switcher */}
+        {/* English Proficiency Level / School Standard Quick Switcher */}
         <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
             <View>
-              <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>AI Tutor English Level</Text>
-              <Text style={{ fontSize: 12, color: sublabelColor }}>Controls speaking & chat response complexity</Text>
+              <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                {accountType === 'STUDENT' ? '🎓 School Standard Grade' : '👤 AI Tutor English Level'}
+              </Text>
+              <Text style={{ fontSize: 12, color: sublabelColor }}>
+                {accountType === 'STUDENT' ? 'Configured standard curriculum grade' : 'Controls speaking & chat response complexity'}
+              </Text>
             </View>
             {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
           </View>
 
           <View style={styles.levelSegmentRow}>
-            {['Beginner', 'Intermediate', 'Advanced'].map((lvl) => {
+            {(accountType === 'STUDENT'
+              ? ['1st Std', '5th Std', '8th Std', '10th Std']
+              : ['Beginner', 'Elementary', 'Intermediate', 'Advanced', 'Fluent']
+            ).map((lvl) => {
               const active = currentEnglishLevel.toLowerCase() === lvl.toLowerCase();
               return (
                 <TouchableOpacity

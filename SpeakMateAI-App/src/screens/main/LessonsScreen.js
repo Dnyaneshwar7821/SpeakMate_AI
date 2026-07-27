@@ -408,18 +408,22 @@ export default function LessonsScreen({ navigation }) {
   const headerTranslate = useRef(new Animated.Value(-20)).current;
 
   const [userGrade, setUserGrade] = useState('1st Std');
+  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
 
   // ── Load data ──────────────────────────────────────────────────────
   const loadAll = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     setError('');
     try {
-      const [cats, recs, cont, savedGrade] = await Promise.all([
+      const [cats, recs, cont, savedGrade, savedAccType] = await Promise.all([
         lessonModuleService.categories(),
         lessonModuleService.recommended(),
         lessonModuleService.continueLearning(),
         AsyncStorage.getItem('speakmate_school_grade'),
+        AsyncStorage.getItem('speakmate_account_type'),
       ]);
+      const effAccType = savedAccType || 'INDIVIDUAL_USER';
+      setAccountType(effAccType);
       setCategories(cats || []);
       setRecommended(recs || []);
       setContinueItems(cont || []);
@@ -536,7 +540,9 @@ export default function LessonsScreen({ navigation }) {
                 <Text style={styles.heroHi}>Welcome back 👋</Text>
                 <Text style={styles.heroTitle}>Continue your learning</Text>
                 <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
-                  🎓 Standard Level: {userGrade} (Auto-Configured)
+                  {accountType === 'STUDENT'
+                    ? `🎓 Standard Level: ${userGrade || '1st Std'}`
+                    : `👤 English Level: ${userGrade || 'Intermediate'}`}
                 </Text>
               </View>
             </View>
