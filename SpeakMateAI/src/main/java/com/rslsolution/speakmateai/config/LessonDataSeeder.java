@@ -10,7 +10,7 @@ import com.rslsolution.speakmateai.repository.LessonRepository;
 
 /**
  * Seeds 20 comprehensive lessons across 10 categories on first boot (idempotent).
- * Only runs if the lessons table is empty. Contains rich educational content for each topic.
+ * Contains lowered, balanced XP rewards (15-30 XP) matching standard curriculum.
  */
 @Component
 public class LessonDataSeeder implements CommandLineRunner {
@@ -23,7 +23,27 @@ public class LessonDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (lessonRepository.count() > 0) return; // already seeded
+        if (lessonRepository.count() > 0) {
+            // Update existing seeded lessons to use lowered XP rewards if they have high XP (>35)
+            List<Lesson> existing = lessonRepository.findAll();
+            boolean updated = false;
+            for (Lesson l : existing) {
+                if (l.getXpReward() != null && l.getXpReward() > 35) {
+                    if ("Beginner".equalsIgnoreCase(l.getLevel())) {
+                        l.setXpReward(20);
+                    } else if ("Intermediate".equalsIgnoreCase(l.getLevel())) {
+                        l.setXpReward(25);
+                    } else {
+                        l.setXpReward(30);
+                    }
+                    updated = true;
+                }
+            }
+            if (updated) {
+                lessonRepository.saveAll(existing);
+            }
+            return;
+        }
 
         List<Lesson> lessons = List.of(
 
@@ -51,7 +71,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Use simple present correctly,Use present continuous,Avoid common tense errors")
                 .skills("Sentence Structure,Verb Conjugation,Written English")
                 .requirements("None")
-                .estimatedMinutes(20).xpReward(80).orderIndex(1)
+                .estimatedMinutes(20).xpReward(20).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             Lesson.builder()
@@ -76,7 +96,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Use simple past,Use past continuous,Use past perfect")
                 .skills("Storytelling,Grammar Accuracy,Writing")
                 .requirements("Present Tenses Mastery")
-                .estimatedMinutes(25).xpReward(100).orderIndex(2)
+                .estimatedMinutes(25).xpReward(25).orderIndex(2)
                 .active(true).popular(true).locked(false).build(),
 
             Lesson.builder()
@@ -105,7 +125,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Use zero conditional,Use first conditional,Use second and third conditionals")
                 .skills("Advanced Grammar,Hypothetical Speech,Writing")
                 .requirements("Past Tenses Deep Dive")
-                .estimatedMinutes(30).xpReward(150).orderIndex(3)
+                .estimatedMinutes(30).xpReward(30).orderIndex(3)
                 .active(true).locked(false).build(),
 
             // ── Vocabulary ───────────────────────────────────────────────
@@ -134,7 +154,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Learn 100 common nouns,Learn 100 common verbs,Learn 100 adjectives")
                 .skills("Reading,Communication,Word Recognition")
                 .requirements("None")
-                .estimatedMinutes(20).xpReward(70).orderIndex(1)
+                .estimatedMinutes(20).xpReward(20).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             Lesson.builder()
@@ -165,7 +185,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Learn 50 common idioms,Use idioms naturally,Understand native speakers")
                 .skills("Fluency,Natural Speech,Comprehension")
                 .requirements("Essential 500 Words")
-                .estimatedMinutes(25).xpReward(110).orderIndex(2)
+                .estimatedMinutes(25).xpReward(25).orderIndex(2)
                 .active(true).popular(true).locked(false).build(),
 
             Lesson.builder()
@@ -188,7 +208,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Email writing vocabulary,Meeting phrases,Presentation language")
                 .skills("Professional English,Email Writing,Presentations")
                 .requirements("Idioms and Phrases")
-                .estimatedMinutes(30).xpReward(140).orderIndex(3)
+                .estimatedMinutes(30).xpReward(30).orderIndex(3)
                 .active(true).locked(false).build(),
 
             // ── Speaking ─────────────────────────────────────────────────
@@ -212,7 +232,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Introduce yourself confidently,Make small talk,Overcome speaking anxiety")
                 .skills("Fluency,Confidence,Pronunciation")
                 .requirements("None")
-                .estimatedMinutes(20).xpReward(90).orderIndex(1)
+                .estimatedMinutes(20).xpReward(20).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             Lesson.builder()
@@ -239,7 +259,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Use narrative structure,Tell a story fluently,Use sequence markers")
                 .skills("Storytelling,Fluency,Past Tenses")
                 .requirements("Speak with Confidence")
-                .estimatedMinutes(25).xpReward(120).orderIndex(2)
+                .estimatedMinutes(25).xpReward(25).orderIndex(2)
                 .active(true).locked(false).build(),
 
             // ── Pronunciation ────────────────────────────────────────────
@@ -263,7 +283,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Identify all 20 vowel sounds,Produce short vowels,Produce long vowels")
                 .skills("Pronunciation,Clarity,Accent Reduction")
                 .requirements("None")
-                .estimatedMinutes(25).xpReward(85).orderIndex(1)
+                .estimatedMinutes(25).xpReward(20).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             Lesson.builder()
@@ -285,7 +305,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Identify stressed syllables,Apply stress rules,Use noun-verb stress contrasts")
                 .skills("Stress Patterns,Natural Speech,Rhythm")
                 .requirements("English Vowel Sounds")
-                .estimatedMinutes(20).xpReward(100).orderIndex(2)
+                .estimatedMinutes(20).xpReward(25).orderIndex(2)
                 .active(true).locked(false).build(),
 
             // ── Conversation ─────────────────────────────────────────────
@@ -311,7 +331,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Handle greetings,Shop in English,Ask for directions")
                 .skills("Communication,Listening,Fluency")
                 .requirements("None")
-                .estimatedMinutes(20).xpReward(75).orderIndex(1)
+                .estimatedMinutes(20).xpReward(20).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             Lesson.builder()
@@ -335,7 +355,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Express opinions clearly,Use hedging language,Agree and disagree politely")
                 .skills("Critical Thinking,Debate,Persuasion")
                 .requirements("Everyday Conversations")
-                .estimatedMinutes(30).xpReward(160).orderIndex(2)
+                .estimatedMinutes(30).xpReward(30).orderIndex(2)
                 .active(true).locked(false).build(),
 
             // ── Listening ────────────────────────────────────────────────
@@ -360,7 +380,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Understand British accent,Understand American accent,Understand Australian accent")
                 .skills("Listening Comprehension,Accent Recognition,Vocabulary")
                 .requirements("None")
-                .estimatedMinutes(30).xpReward(110).orderIndex(1)
+                .estimatedMinutes(30).xpReward(25).orderIndex(1)
                 .active(true).popular(true).locked(false).build(),
 
             // ── Business English ─────────────────────────────────────────
@@ -387,7 +407,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Write a professional subject line,Structure email body,Use formal closings")
                 .skills("Email Writing,Professional English,Grammar")
                 .requirements("None")
-                .estimatedMinutes(25).xpReward(130).orderIndex(1)
+                .estimatedMinutes(25).xpReward(25).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             Lesson.builder()
@@ -412,7 +432,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Structure a presentation,Open confidently,Handle Q&A")
                 .skills("Public Speaking,Presentation Skills,Professional English")
                 .requirements("Professional Email Writing")
-                .estimatedMinutes(35).xpReward(180).orderIndex(2)
+                .estimatedMinutes(35).xpReward(30).orderIndex(2)
                 .active(true).locked(false).build(),
 
             // ── Interview Preparation ────────────────────────────────────
@@ -436,7 +456,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Answer Tell me about yourself,Describe strengths and weaknesses,Answer behavioral questions")
                 .skills("Interview Skills,Professional English,Confidence")
                 .requirements("None")
-                .estimatedMinutes(30).xpReward(140).orderIndex(1)
+                .estimatedMinutes(30).xpReward(25).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             // ── Travel English ───────────────────────────────────────────
@@ -461,7 +481,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Handle check-in,Clear customs,Navigate the airport")
                 .skills("Listening,Communication,Travel Vocabulary")
                 .requirements("None")
-                .estimatedMinutes(20).xpReward(80).orderIndex(1)
+                .estimatedMinutes(20).xpReward(20).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             Lesson.builder()
@@ -484,7 +504,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Make a reservation,Check in and check out,Request hotel services")
                 .skills("Communication,Travel Vocabulary,Problem-Solving")
                 .requirements("At the Airport")
-                .estimatedMinutes(20).xpReward(75).orderIndex(2)
+                .estimatedMinutes(20).xpReward(20).orderIndex(2)
                 .active(true).locked(false).build(),
 
             // ── Daily English ────────────────────────────────────────────
@@ -508,7 +528,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Describe daily routine,Use frequency adverbs,Talk about time")
                 .skills("Simple Present,Time Expressions,Daily Vocabulary")
                 .requirements("None")
-                .estimatedMinutes(15).xpReward(60).orderIndex(1)
+                .estimatedMinutes(15).xpReward(15).orderIndex(1)
                 .active(true).popular(true).featured(true).locked(false).build(),
 
             Lesson.builder()
@@ -533,7 +553,7 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .objectives("Describe food and taste,Order at a restaurant,Express food preferences")
                 .skills("Vocabulary,Communication,Politeness")
                 .requirements("Morning Routines")
-                .estimatedMinutes(20).xpReward(70).orderIndex(2)
+                .estimatedMinutes(20).xpReward(20).orderIndex(2)
                 .active(true).locked(false).build()
         );
 
