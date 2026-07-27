@@ -77,14 +77,18 @@ export default function SettingsScreen({ navigation }) {
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
 
+  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
+
   const load = async () => {
     try {
-      const [settings, voices, onboardingVoice, onboardingData] = await Promise.all([
+      const [settings, voices, onboardingVoice, onboardingData, savedType] = await Promise.all([
         settingsService.get(),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
         onboardingService.get().catch(() => null),
+        AsyncStorage.getItem('speakmate_account_type'),
       ]);
+      if (savedType) setAccountType(savedType);
       setForm({ ...defaults, ...settings, ageGroup: onboardingData?.ageGroup || 'Professional' });
       setAvailableVoices(voices);
       if (onboardingVoice) {
@@ -235,10 +239,11 @@ export default function SettingsScreen({ navigation }) {
 
             <View style={[styles.divider, { backgroundColor: dividerColor }]} />
 
-            {/* Age Group Selector */}
+            {/* Age Group Selector (Blurred for School Students) */}
             <TouchableOpacity 
-              style={styles.pickerRow} 
+              style={[styles.pickerRow, accountType === 'STUDENT' && { opacity: 0.45 }]} 
               activeOpacity={0.7}
+              disabled={accountType === 'STUDENT'}
               onPress={() => setShowAgeModal(true)}
             >
               <View style={styles.pickerRowLeft}>
@@ -246,15 +251,19 @@ export default function SettingsScreen({ navigation }) {
                   <Ionicons name="people" size={18} color="#D97706" />
                 </View>
                 <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={[styles.rowTitle, { color: labelColor }]}>Age Group</Text>
-                  <Text style={[styles.rowDesc, { color: sublabelColor }]}>Personalizes conversation topics & level</Text>
+                  <Text style={[styles.rowTitle, { color: labelColor }]}>
+                    Age Group {accountType === 'STUDENT' && '🔒 (Student Mode)'}
+                  </Text>
+                  <Text style={[styles.rowDesc, { color: sublabelColor }]}>
+                    {accountType === 'STUDENT' ? 'Auto-configured for school curriculum' : 'Personalizes conversation topics & level'}
+                  </Text>
                 </View>
               </View>
               <View style={styles.pickerRowRight}>
                 <Text style={styles.pickerValueText} numberOfLines={1} ellipsizeMode="tail">
-                  {AGE_OPTIONS.find((a) => a.code === form.ageGroup)?.label || form.ageGroup || 'Professional'}
+                  {accountType === 'STUDENT' ? 'Standard Grade' : (AGE_OPTIONS.find((a) => a.code === form.ageGroup)?.label || form.ageGroup || 'Professional')}
                 </Text>
-                <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
+                <Ionicons name="lock-closed" size={16} color={sublabelColor} />
               </View>
             </TouchableOpacity>
           </Card>

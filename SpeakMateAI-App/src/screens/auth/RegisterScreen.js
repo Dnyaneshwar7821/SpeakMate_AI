@@ -36,6 +36,7 @@ export default function RegisterScreen({ navigation }) {
   const { register } = useContext(AuthContext);
 
   const [accountType, setAccountType] = useState('INDIVIDUAL_USER'); // 'INDIVIDUAL_USER' | 'STUDENT'
+  const [schoolName, setSchoolName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -82,6 +83,7 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const validateFullForm = () => {
+    if (accountType === 'STUDENT' && !schoolName.trim()) return 'Please enter your school name.';
     if (!firstName.trim()) return 'First name is required.';
     if (!lastName.trim()) return 'Last name is required.';
     if (!email.trim()) return 'Email address is required.';
@@ -132,6 +134,9 @@ export default function RegisterScreen({ navigation }) {
     try {
       const emailLower = email.trim().toLowerCase();
       await AsyncStorage.setItem('speakmate_account_type', accountType);
+      if (schoolName.trim()) {
+        await AsyncStorage.setItem('speakmate_school_name', schoolName.trim());
+      }
       await register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -140,6 +145,7 @@ export default function RegisterScreen({ navigation }) {
         confirmPassword,
         otp: otp.trim(),
         accountType,
+        schoolName: schoolName.trim(),
       });
       setOtpState('VERIFIED');
       setRegistered(true);
@@ -276,6 +282,18 @@ export default function RegisterScreen({ navigation }) {
                     </TouchableOpacity>
                   </View>
                 </View>
+
+                {/* School Name Field for Students */}
+                {accountType === 'STUDENT' && (
+                  <AuthInput
+                    label="School Name"
+                    value={schoolName}
+                    onChangeText={(t) => { setSchoolName(t); clearError(); }}
+                    placeholder="Enter your school name"
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                  />
+                )}
 
                 {/* First Name & Last Name row */}
                 <View style={styles.nameRow}>

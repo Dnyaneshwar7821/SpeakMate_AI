@@ -475,7 +475,13 @@ export function Onboarding() {
         <div className="pt-6 border-t border-[var(--border-default)] flex items-center justify-between">
           {step > 1 ? (
             <button
-              onClick={() => setStep((s) => s - 1)}
+              onClick={() => {
+                if (step === 4 && accountType === "STUDENT") {
+                  setStep(2);
+                } else {
+                  setStep((s) => s - 1);
+                }
+              }}
               className="px-5 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-base)] text-xs font-black text-[var(--text-primary)] transition-all"
             >
               ← Back
@@ -486,7 +492,13 @@ export function Onboarding() {
 
           {step < TOTAL_STEPS ? (
             <button
-              onClick={() => setStep((s) => s + 1)}
+              onClick={() => {
+                if (step === 2 && accountType === "STUDENT") {
+                  setStep(4);
+                } else {
+                  setStep((s) => s + 1);
+                }
+              }}
               className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-black shadow-lg shadow-[#6c63ff]/25 hover:scale-105 transition-transform"
             >
               Continue →

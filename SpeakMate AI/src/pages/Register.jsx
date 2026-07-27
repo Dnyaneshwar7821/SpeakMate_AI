@@ -15,7 +15,8 @@ export function Register() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [accountType, setAccountType] = useState("INDIVIDUAL_USER"); // 'INDIVIDUAL_USER' | 'STUDENT'
+  const [accountType, setAccountType] = useState("INDIVIDUAL_USER");
+  const [schoolName, setSchoolName] = useState(""); // 'INDIVIDUAL_USER' | 'STUDENT'
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -204,6 +205,23 @@ export function Register() {
                 </button>
               </div>
             </div>
+
+            {/* School Name Field for Students */}
+            {accountType === "STUDENT" && (
+              <div>
+                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
+                  School Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Enter your school name"
+                  value={schoolName}
+                  onChange={(e) => setSchoolName(e.target.value)}
+                  required
+                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] transition-all"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
