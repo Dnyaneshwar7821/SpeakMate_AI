@@ -201,33 +201,10 @@ export function SpeakingPractice() {
         </div>
       </div>
 
-      {/* Target Selector Strip: School Standard (for Students Only) */}
+      {/* School Grade Level Badge (for Students Only) */}
       {isStudent && (
-        <div className="p-4 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-3">
-          <div className="flex items-center gap-2 text-xs font-black text-[#6c63ff] uppercase tracking-wider">
-            <span>🎓 School Grade Level:</span>
-          </div>
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {SCHOOL_GRADES.map((item) => {
-              const isSelected = selectedGrade === item;
-              return (
-                <button
-                  key={item}
-                  onClick={() => {
-                    setSelectedGrade(item);
-                    localStorage.setItem("speakmate_school_grade", item);
-                  }}
-                  className={`px-4 py-2 rounded-2xl text-xs sm:text-sm font-black transition-all border ${
-                    isSelected
-                      ? "bg-[#6c63ff] border-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/30"
-                      : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
-                >
-                  {item}
-                </button>
-              );
-            })}
-          </div>
+        <div className="px-4 py-2 rounded-2xl bg-[#6c63ff]/15 border border-[#6c63ff]/30 text-[#6c63ff] font-extrabold text-xs sm:text-sm inline-flex items-center gap-2 max-w-max">
+          <span>🎓 School Grade Level: {selectedGrade}</span>
         </div>
       )}
 

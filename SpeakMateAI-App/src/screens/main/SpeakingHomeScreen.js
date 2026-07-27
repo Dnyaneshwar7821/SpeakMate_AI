@@ -351,13 +351,14 @@ export default function SpeakingHomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* ── Standard Level Segmented Selector (For School Students Only) ── */}
+      {/* ── School Grade Level Badge (For School Students Only) ── */}
       {isStudent && (
-        <LevelSegmentedControl
-          selectedLevel={selectedGrade}
-          onChangeLevel={(val) => setSelectedGrade(val)}
-          accountType="STUDENT"
-        />
+        <View style={{ paddingHorizontal: 16, marginVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Ionicons name="school-outline" size={16} color="#818CF8" />
+          <Text style={{ color: '#818CF8', fontSize: 13, fontWeight: '700' }}>
+            School Grade Level: {selectedGrade}
+          </Text>
+        </View>
       )}
 
       {/* ── Categories Carousel ── */}
