@@ -719,8 +719,41 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
-            {/* Step 5: School Standard Selection */}
+            {/* Step 5: English Proficiency Level */}
             {step === 5 && (
+              <View style={styles.stepContent}>
+                <Text style={styles.title}>Select Your English Level</Text>
+                <Text style={styles.subtitle}>Choose your current proficiency level in English.</Text>
+                <View style={styles.cardList}>
+                  {LEVELS.map((item) => (
+                    <TouchableOpacity
+                      key={item.key}
+                      onPress={() => setLevel(item.key)}
+                      style={[
+                        styles.selectCardLarge,
+                        level === item.key && styles.selectCardLargeActive,
+                      ]}
+                    >
+                      <View style={styles.levelLeft}>
+                        <View style={styles.levelRatingBox}>
+                          <Text style={styles.levelRatingText}>{item.rating}</Text>
+                        </View>
+                        <View style={styles.levelInfo}>
+                          <Text style={styles.selectCardLabel}>{item.label}</Text>
+                          <Text style={styles.levelDesc}>{item.desc}</Text>
+                        </View>
+                      </View>
+                      {level === item.key && (
+                        <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Step 6: School Standard Selection */}
+            {step === 6 && (
               <View style={styles.stepContent}>
                 <Text style={styles.title}>Select Your School Standard</Text>
                 <Text style={styles.subtitle}>Choose your school grade. The entire app will adapt its speaking practice, AI chat, and lessons to this standard level.</Text>
@@ -730,7 +763,6 @@ export default function OnboardingScreen({ navigation }) {
                       key={grd.key}
                       onPress={() => {
                         setSchoolGrade(grd.key);
-                        setLevel(grd.key);
                         AsyncStorage.setItem('speakmate_school_grade', grd.key);
                       }}
                       style={[
@@ -756,8 +788,8 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
-            {/* Step 6: Interests */}
-            {step === 6 && (
+            {/* Step 7: Interests */}
+            {step === 7 && (
               <View style={styles.stepContent}>
                 <Text style={styles.title}>What interests you?</Text>
                 <Text style={styles.subtitle}>Select topics you enjoy. We use these for AI practice sessions.</Text>
@@ -794,8 +826,8 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
-            {/* Step 7: Heard About Us */}
-            {step === 7 && (
+            {/* Step 8: Heard About Us */}
+            {step === 8 && (
               <View style={styles.stepContent}>
                 <Text style={styles.title}>Where did you hear about us?</Text>
                 <Text style={styles.subtitle}>Help us understand how you discovered SpeakMateAI.</Text>
@@ -822,8 +854,8 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
-            {/* Step 8: Daily Goal */}
-            {step === 8 && (
+            {/* Step 9: Daily Goal */}
+            {step === 9 && (
               <View style={styles.stepContent}>
                 <Text style={styles.title}>Choose Daily Goal</Text>
                 <Text style={styles.subtitle}>Consistency is key! Set a daily learning goal to build habits.</Text>
@@ -842,37 +874,6 @@ export default function OnboardingScreen({ navigation }) {
                         <Text style={styles.selectCardLabel}>{goal.key} / day</Text>
                       </View>
                       <Text style={styles.goalPillText}>{goal.label}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Step 9: Age Group Selection */}
-            {step === 9 && (
-              <View style={styles.stepContent}>
-                <Text style={styles.title}>Select Your Age Group</Text>
-                <Text style={styles.subtitle}>Choose your age bracket so we can personalize AI conversations, topics, and vocabulary level.</Text>
-                <View style={styles.cardList}>
-                  {AGE_GROUPS.map((item) => (
-                    <TouchableOpacity
-                      key={item.key}
-                      onPress={() => setAgeGroup(item.key)}
-                      style={[
-                        styles.selectCardLarge,
-                        ageGroup === item.key && styles.selectCardLargeActive,
-                      ]}
-                    >
-                      <View style={styles.levelLeft}>
-                        <Text style={styles.accentFlag}>{item.icon}</Text>
-                        <View style={styles.levelInfo}>
-                          <Text style={styles.selectCardLabel}>{item.label}</Text>
-                          <Text style={styles.levelDesc}>{item.desc}</Text>
-                        </View>
-                      </View>
-                      {ageGroup === item.key && (
-                        <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
-                      )}
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -1024,8 +1025,12 @@ export default function OnboardingScreen({ navigation }) {
                     <Text style={styles.summaryValue}>{ageGroup}</Text>
                   </View>
                   <View style={styles.summaryItem}>
-                    <Text style={styles.summaryLabel}>📈 Difficulty:</Text>
+                    <Text style={styles.summaryLabel}>📈 English Level:</Text>
                     <Text style={styles.summaryValue}>{level}</Text>
+                  </View>
+                  <View style={styles.summaryItem}>
+                    <Text style={styles.summaryLabel}>🎓 School Standard:</Text>
+                    <Text style={styles.summaryValue}>{schoolGrade}</Text>
                   </View>
                   <View style={styles.summaryItem}>
                     <Text style={styles.summaryLabel}>⏱️ Daily Goal:</Text>
