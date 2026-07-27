@@ -114,6 +114,10 @@ export function SpeakingPractice() {
         onboardingService.get().catch(() => null),
       ]);
       setHistory(historyData || []);
+      const savedGrade = localStorage.getItem("speakmate_school_grade");
+      if (savedGrade) {
+        setSelectedGrade(savedGrade);
+      }
       if (onboardingData?.ageGroup) {
         setUserAgeGroup(onboardingData.ageGroup);
       }
@@ -254,7 +258,10 @@ export function SpeakingPractice() {
             {SCHOOL_GRADES.map((grade) => (
               <button
                 key={grade}
-                onClick={() => setSelectedGrade(grade)}
+                onClick={() => {
+                  setSelectedGrade(grade);
+                  localStorage.setItem("speakmate_school_grade", grade);
+                }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
                   selectedGrade === grade
                     ? "bg-[#6c63ff] text-white shadow-md scale-105"
