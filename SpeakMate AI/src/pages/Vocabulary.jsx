@@ -1,56 +1,79 @@
 import { useState, useEffect } from "react";
 import { vocabularyService, progressService } from "../services/appServices";
 
-const DEFAULT_VOCABULARY_POOL = [
-  { id: "1", word: "Eloquent", meaning: "Fluent or persuasive in speaking or writing.", exampleSentence: "His eloquent speech captivated everyone.", favorite: true, synonym: "Articulate", antonym: "Inarticulate" },
-  { id: "2", word: "Resilient", meaning: "Able to withstand or recover quickly from difficult conditions.", exampleSentence: "She showed resilient spirit during challenges.", favorite: false, synonym: "Tough", antonym: "Fragile" },
-  { id: "3", word: "Coherent", meaning: "Logical and consistent in thought or expression.", exampleSentence: "Make sure your argument remains coherent.", favorite: true, synonym: "Logical", antonym: "Confused" },
-  { id: "4", word: "Meticulous", meaning: "Showing great attention to detail; very careful and precise.", exampleSentence: "He was meticulous about keeping his vocabulary notes.", favorite: false, synonym: "Precise", antonym: "Careless" },
-  { id: "5", word: "Pragmatic", meaning: "Dealing with things sensibly and realistically in a practical way.", exampleSentence: "She took a pragmatic approach to solving the issue.", favorite: true, synonym: "Practical", antonym: "Idealistic" },
+// Large Curated Dictionary Pool for 100% Different Automatic Quiz Generation Every Time!
+const EXTENDED_DICTIONARY_POOL = [
+  { word: "Eloquent", meaning: "Fluent or persuasive in speaking and writing.", synonym: "Articulate" },
+  { word: "Resilient", meaning: "Able to withstand or recover quickly from difficult conditions.", synonym: "Tough" },
+  { word: "Coherent", meaning: "Logical, clear, and consistent in thought or expression.", synonym: "Logical" },
+  { word: "Meticulous", meaning: "Showing great attention to detail; very careful and precise.", synonym: "Precise" },
+  { word: "Pragmatic", meaning: "Dealing with things sensibly and realistically in a practical way.", synonym: "Practical" },
+  { word: "Articulate", meaning: "Having or showing the ability to speak fluently and coherently.", synonym: "Expressive" },
+  { word: "Ambiguous", meaning: "Open to more than one interpretation; not having one obvious meaning.", synonym: "Unclear" },
+  { word: "Versatile", meaning: "Able to adapt or be adapted to many different functions or activities.", synonym: "Flexible" },
+  { word: "Formidable", meaning: "Inspiring respect or awe through being impressively large or powerful.", synonym: "Impressive" },
+  { word: "Plausible", meaning: "Seeming reasonable or probable based on logical grounds.", synonym: "Believable" },
+  { word: "Tenacious", meaning: "Tending to keep a firm hold of something; persistent and determined.", synonym: "Determined" },
+  { word: "Scrupulous", meaning: "Very diligent, thorough, and attentive to details.", synonym: "Conscientious" },
+  { word: "Candor", meaning: "The quality of being open, honest, and sincere in expression.", synonym: "Honesty" },
+  { word: "Empathy", meaning: "The ability to understand and share the feelings of another person.", synonym: "Compassion" },
+  { word: "Jubilant", meaning: "Feeling or expressing great happiness and triumph.", synonym: "Joyful" },
+  { word: "Gregarious", meaning: "Fond of company; sociable and outgoing.", synonym: "Sociable" },
+  { word: "Ephemeral", meaning: "Lasting for a very short time; fleeting.", synonym: "Transient" },
+  { word: "Diligent", meaning: "Having or showing care and conscientiousness in one's work.", synonym: "Hardworking" },
+  { word: "Altruistic", meaning: "Showing a disinterested and selfless concern for the well-being of others.", synonym: "Selfless" },
+  { word: "Perceptive", meaning: "Having or showing sensitive insight and quick understanding.", synonym: "Insightful" },
+  { word: "Inquisitive", meaning: "Curious and eager to learn or inquire into things.", synonym: "Curious" },
+  { word: "Catalyst", meaning: "A person or thing that precipitates a change or event.", synonym: "Spark" },
+  { word: "Benevolent", meaning: "Well meaning and kindly; serving a charitable purpose.", synonym: "Kind" },
+  { word: "Audacious", meaning: "Showing a willingness to take surprisingly bold risks.", synonym: "Daring" },
+  { word: "Fastidious", meaning: "Very attentive to and concerned about accuracy and detail.", synonym: "Fussy" },
+  { word: "Quintessential", meaning: "Representing the most perfect or typical example of a quality.", synonym: "Classic" },
+  { word: "Serendipity", meaning: "The occurrence of events by chance in a happy or beneficial way.", synonym: "Luck" },
+  { word: "Veracity", meaning: "Conformity to facts; accuracy and truthfulness.", synonym: "Truthfulness" },
 ];
 
-// Helper to generate 3 dynamic quiz questions based on the user's added word bank!
-function generateDynamicVocabQuiz(wordBank) {
-  const pool = Array.isArray(wordBank) && wordBank.length > 0 ? wordBank : DEFAULT_VOCABULARY_POOL;
-  const poolCopy = [...pool];
+// Fisher-Yates Random Shuffle
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
-  // Shuffle pool to pick random words
-  poolCopy.sort(() => 0.5 - Math.random());
-  const selectedWords = poolCopy.slice(0, 3);
-
-  // If fewer than 3 words, fill from default pool
-  while (selectedWords.length < 3) {
-    const fallback = DEFAULT_VOCABULARY_POOL[selectedWords.length % DEFAULT_VOCABULARY_POOL.length];
-    if (!selectedWords.find((w) => w.word === fallback.word)) {
-      selectedWords.push(fallback);
+// Generate 100% Different 3-Question Quiz every time!
+function generateDifferentRandomQuiz(userAddedWords = []) {
+  const combined = [...userAddedWords, ...EXTENDED_DICTIONARY_POOL];
+  
+  const uniquePool = [];
+  const seen = new Set();
+  for (const item of combined) {
+    if (item.word && !seen.has(item.word.toLowerCase())) {
+      seen.add(item.word.toLowerCase());
+      uniquePool.push(item);
     }
   }
 
-  // All available meanings for distractor options
-  const allMeanings = [
-    ...new Set([
-      ...pool.map((w) => w.meaning).filter(Boolean),
-      ...DEFAULT_VOCABULARY_POOL.map((w) => w.meaning),
-      "Slow, hesitant, and quiet in tone",
-      "Easily broken, delicate, and fragile",
-      "Uncertain and open to multiple meanings",
-    ]),
-  ];
+  const shuffledPool = shuffleArray(uniquePool);
+  const selected = shuffledPool.slice(0, 3);
 
-  return selectedWords.map((wordObj, i) => {
-    const correctMeaning = wordObj.meaning || "Fluent or persuasive in communication.";
-    const otherMeanings = allMeanings.filter((m) => m !== correctMeaning);
+  const allMeanings = [...new Set(uniquePool.map((w) => w.meaning).filter(Boolean))];
 
-    // Shuffle options
-    otherMeanings.sort(() => 0.5 - Math.random());
-    const distractors = otherMeanings.slice(0, 3);
+  return selected.map((wordObj, i) => {
+    const correctMeaning = wordObj.meaning;
+    const distractors = shuffleArray(allMeanings.filter((m) => m !== correctMeaning)).slice(0, 3);
 
-    const options = [correctMeaning, ...distractors];
-    options.sort(() => 0.5 - Math.random());
+    while (distractors.length < 3) {
+      distractors.push("Lasting for a short temporary period");
+    }
+
+    const options = shuffleArray([correctMeaning, ...distractors]);
     const correctIndex = options.indexOf(correctMeaning);
 
     return {
-      id: `dynamic_q_${i}_${wordObj.id || Math.random()}`,
+      id: `quiz_q_${Date.now()}_${i}`,
       word: wordObj.word,
       questionText: `What is the meaning of the word '${wordObj.word}'?`,
       options,
@@ -73,7 +96,7 @@ export function Vocabulary() {
   const [cardIndex, setCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Dynamic Quiz State (3 Questions based on added words!)
+  // Dynamic Quiz State (Automatically 100% different every run!)
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizLoading, setQuizLoading] = useState(false);
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
@@ -86,9 +109,9 @@ export function Vocabulary() {
     setLoading(true);
     try {
       const data = await vocabularyService.all();
-      setItems(data && data.length > 0 ? data : DEFAULT_VOCABULARY_POOL);
+      setItems(data && data.length > 0 ? data : EXTENDED_DICTIONARY_POOL.slice(0, 5));
     } catch (e) {
-      setItems(DEFAULT_VOCABULARY_POOL);
+      setItems(EXTENDED_DICTIONARY_POOL.slice(0, 5));
     } finally {
       setLoading(false);
     }
@@ -107,6 +130,24 @@ export function Vocabulary() {
     window.speechSynthesis.speak(utterance);
   };
 
+  // Auto-speak word or meaning when Flashcard tab is active or card flips!
+  useEffect(() => {
+    if (activeTab === "flashcards" && items.length > 0 && items[cardIndex]) {
+      const currentItem = items[cardIndex];
+      const textToSpeak = isFlipped ? currentItem.meaning : currentItem.word;
+      handleSpeak(textToSpeak);
+    }
+  }, [activeTab, cardIndex, isFlipped]);
+
+  const handleCardClick = () => {
+    const nextFlipped = !isFlipped;
+    setIsFlipped(nextFlipped);
+    if (items[cardIndex]) {
+      const textToSpeak = nextFlipped ? items[cardIndex].meaning : items[cardIndex].word;
+      handleSpeak(textToSpeak);
+    }
+  };
+
   const handleAddWord = async () => {
     if (!wordInput.trim()) return;
     setAdding(true);
@@ -115,12 +156,11 @@ export function Vocabulary() {
       setWordInput("");
       await loadVocabulary();
     } catch (e) {
-      // Local fallback insert
       const newWordObj = {
         id: String(Date.now()),
         word: wordInput.trim(),
-        meaning: `Vocabulary word added to personal word bank.`,
-        exampleSentence: `Practice using ${wordInput.trim()} in daily conversations.`,
+        meaning: `Useful English vocabulary word added to your personal bank.`,
+        exampleSentence: `Practice using '${wordInput.trim()}' in your daily conversations.`,
         favorite: true,
       };
       setItems((prev) => [newWordObj, ...prev]);
@@ -169,8 +209,8 @@ export function Vocabulary() {
     setSelectedQuizAnswer(null);
 
     setTimeout(() => {
-      const dynamicQs = generateDynamicVocabQuiz(items);
-      setQuizQuestions(dynamicQs);
+      const newQuiz = generateDifferentRandomQuiz(items);
+      setQuizQuestions(newQuiz);
       setQuizLoading(false);
     }, 150);
   };
@@ -201,7 +241,7 @@ export function Vocabulary() {
 
   const currentQ = quizQuestions[currentQuizIdx] || {
     word: "Vocabulary",
-    questionText: "What is the meaning of your added vocabulary word?",
+    questionText: "What is the meaning of your vocabulary word?",
     options: ["Meaning A", "Meaning B", "Meaning C", "Meaning D"],
     correctIndex: 0,
     explanation: "Review vocabulary definitions in your Word Bank.",
@@ -214,7 +254,7 @@ export function Vocabulary() {
         <div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--text-primary)]">Vocabulary Builder</h1>
           <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">
-            Build your personal word bank, study with 3D flashcards, and test retention on your added words with dynamic XP quizzes.
+            Build your personal word bank, study with auto-speaking 3D flashcards, and test retention with 100% unique auto-generated quizzes.
           </p>
         </div>
 
@@ -253,7 +293,7 @@ export function Vocabulary() {
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            ⚡ Dynamic Word Quiz (3 Questions)
+            ⚡ Auto-New Quiz (3 Qs)
           </button>
         </div>
       </div>
@@ -322,7 +362,7 @@ export function Vocabulary() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item) => (
                 <div
-                  key={item.id}
+                  key={item.id || item.word}
                   className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between"
                 >
                   <div className="space-y-3">
@@ -379,22 +419,22 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* TAB 2: 3D FLASHCARDS DECK */}
+      {/* TAB 2: 3D FLASHCARDS DECK (WITH AUTO AI VOICE SPEECH ON WORD & MEANING) */}
       {activeTab === "flashcards" && items.length > 0 && (
         <div className="max-w-3xl mx-auto space-y-6 py-4">
           <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
             <span>Card {cardIndex + 1} of {items.length}</span>
-            <span>Tap card to flip definition 🔄</span>
+            <span>Tap card to flip definition • AI Voice Auto-Reads 🔊</span>
           </div>
 
           <div
-            onClick={() => setIsFlipped(!isFlipped)}
+            onClick={handleCardClick}
             className="h-80 w-full glass-card p-8 rounded-3xl flex flex-col items-center justify-center text-center cursor-pointer shadow-2xl transition-all duration-500 hover:border-[#6c63ff]"
           >
             {!isFlipped ? (
               <div className="space-y-4">
                 <span className="px-3 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-black uppercase">
-                  Word Flashcard
+                  Word Flashcard (AI Voice Auto-Reading)
                 </span>
                 <h2 className="text-4xl sm:text-5xl font-black text-[var(--text-primary)]">{items[cardIndex].word}</h2>
                 <button
@@ -404,13 +444,13 @@ export function Vocabulary() {
                   }}
                   className="px-4 py-2 rounded-2xl bg-[#6c63ff]/10 text-[#6c63ff] text-xs font-extrabold hover:bg-[#6c63ff] hover:text-white transition-all inline-flex items-center gap-2"
                 >
-                  🔊 Listen Pronunciation
+                  🔊 Re-play Word Pronunciation
                 </button>
               </div>
             ) : (
               <div className="space-y-4">
                 <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-500 text-xs font-black uppercase">
-                  Definition & Example
+                  Definition & Example (AI Voice Auto-Reading)
                 </span>
                 <p className="text-xl sm:text-2xl font-black text-[var(--text-primary)] max-w-xl">
                   {items[cardIndex].meaning}
@@ -420,6 +460,15 @@ export function Vocabulary() {
                     "{items[cardIndex].exampleSentence}"
                   </p>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSpeak(items[cardIndex].meaning);
+                  }}
+                  className="px-4 py-2 rounded-2xl bg-emerald-500/10 text-emerald-500 text-xs font-extrabold hover:bg-emerald-500 hover:text-white transition-all inline-flex items-center gap-2 mt-2"
+                >
+                  🔊 Re-play Definition Speech
+                </button>
               </div>
             )}
           </div>
@@ -448,11 +497,13 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* TAB 3: DYNAMIC VOCABULARY QUIZ (QUESTIONS ABOUT ADDED WORDS & NEW WORDS) */}
+      {/* TAB 3: AUTOMATICALLY DIFFERENT QUIZ EVERY TIME */}
       {activeTab === "quiz" && (
         <div className="max-w-3xl mx-auto space-y-6">
           {quizLoading ? (
-            <div className="p-12 text-center text-sm font-bold text-[var(--text-secondary)]">Generating quiz from your added words...</div>
+            <div className="p-12 text-center text-sm font-bold text-[var(--text-secondary)]">
+              Generating new unique quiz questions... ⚡
+            </div>
           ) : quizFinished ? (
             <div className="p-8 sm:p-12 rounded-3xl glass-card text-center space-y-6 animate-in fade-in duration-300">
               <div className="grid h-20 w-20 mx-auto place-items-center rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-500 text-white text-4xl shadow-xl">
@@ -460,11 +511,11 @@ export function Vocabulary() {
               </div>
               <div>
                 <span className="text-xs font-black uppercase tracking-wider text-[#6c63ff] px-3 py-1 rounded-full bg-[#6c63ff]/10">
-                  Word Bank Quiz Result
+                  Unique Quiz Result
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] mt-3">Quiz Completed!</h2>
                 <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
-                  You scored {quizScore} out of {quizQuestions.length} correct on your word bank items.
+                  You scored {quizScore} out of {quizQuestions.length} correct.
                 </p>
               </div>
 
@@ -477,7 +528,7 @@ export function Vocabulary() {
                   onClick={startQuiz}
                   className="px-8 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-sm font-extrabold shadow-lg"
                 >
-                  Generate New Quiz ↻
+                  ⚡ Generate Different Quiz ↻
                 </button>
               </div>
             </div>
@@ -486,7 +537,7 @@ export function Vocabulary() {
               {/* Question Header Banner */}
               <div className="p-4 rounded-2xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 space-y-1">
                 <div className="flex items-center justify-between text-xs font-bold text-[#6c63ff]">
-                  <span className="uppercase tracking-wider">Word Bank Quiz • Question {currentQuizIdx + 1} of {quizQuestions.length}</span>
+                  <span className="uppercase tracking-wider">Auto-Generated Quiz • Question {currentQuizIdx + 1} of {quizQuestions.length}</span>
                   <span>+25 XP Per Correct Answer</span>
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] leading-relaxed pt-1">
