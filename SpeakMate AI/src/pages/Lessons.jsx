@@ -5,9 +5,9 @@ import { lessonModuleService } from "../services/appServices";
 const DIFFICULTY_TABS = ["All", "Beginner", "Intermediate", "Advanced"];
 
 const DIFF_COLORS = {
-  Beginner: { bg: "bg-emerald-500/10", text: "text-emerald-500" },
-  Intermediate: { bg: "bg-amber-500/10", text: "text-amber-500" },
-  Advanced: { bg: "bg-red-500/10", text: "text-red-500" },
+  Beginner: { bg: "bg-emerald-500/15", text: "text-emerald-500" },
+  Intermediate: { bg: "bg-amber-500/15", text: "text-amber-500" },
+  Advanced: { bg: "bg-rose-500/15", text: "text-rose-500" },
 };
 
 const DEFAULT_CATEGORIES = [
@@ -178,101 +178,101 @@ export function Lessons() {
   };
 
   return (
-    <div className="w-full space-y-6">
-      {/* Hero Header Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl space-y-5">
-        <div className="space-y-2 max-w-xl">
-          <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-white/10 uppercase tracking-wider text-amber-400">
-            Structured CEFR & School Standard Path
-          </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">CEFR English Lessons</h1>
-          <p className="text-xs sm:text-sm text-[#A5B4FC] font-medium leading-relaxed">
+    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4">
+      {/* Top Banner Header */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4338ca] p-6 sm:p-10 text-white shadow-2xl space-y-6">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="relative z-10 space-y-3 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
+            🎓 Structured CEFR Path
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">CEFR English Lessons</h1>
+          <p className="text-sm sm:text-base text-indigo-200 font-medium leading-relaxed">
             Bite-sized interactive lessons covering grammar, vocabulary, business communication, and natural speaking drills.
           </p>
         </div>
 
         {/* Search Bar */}
         <div className="relative max-w-xl">
-          <svg className="w-5 h-5 absolute left-3.5 top-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
           <input
             type="text"
-            placeholder="Search lessons, topics, categories..."
+            placeholder="🔍 Search lessons, topics, categories..."
             value={searchText}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-11 pr-4 py-2.5 rounded-xl bg-white/10 border border-white/20 text-white placeholder-slate-400 text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#6c63ff]"
+            className="w-full pl-5 pr-4 py-3.5 rounded-2xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm font-bold focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
           />
         </div>
       </div>
 
       {/* Difficulty Level Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-[var(--border-subtle)] pb-3">
-        <span className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider shrink-0">
-          Level Tier:
-        </span>
-        {DIFFICULTY_TABS.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            className={`px-4 py-1.5 rounded-xl text-xs font-extrabold shrink-0 transition-all ${
-              activeTab === tab
-                ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20"
-                : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <span className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider px-2 shrink-0">
+            Level Tier:
+          </span>
+          {DIFFICULTY_TABS.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black shrink-0 transition-all ${
+                activeTab === tab
+                  ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-md shadow-[#6c63ff]/25 scale-102"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Continue Learning Banner */}
       {continueItems.length > 0 && searchResults === null && (
-        <div className="p-6 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="space-y-1 text-center sm:text-left">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">
+        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 text-center sm:text-left">
+            <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-3.5 py-1 rounded-full border border-white/20">
               📚 Continue Learning
             </span>
-            <h3 className="text-xl font-extrabold">{continueItems[0].title}</h3>
-            <p className="text-xs font-medium opacity-90">
+            <h3 className="text-2xl font-black">{continueItems[0].title}</h3>
+            <p className="text-xs sm:text-sm font-semibold opacity-90">
               Category: {continueItems[0].category} • Level: {continueItems[0].level} • {continueItems[0].progressPercent || 40}% Complete
             </p>
           </div>
           <button
             onClick={() => navigate(`/lessons/${continueItems[0].id}`)}
-            className="px-6 py-3 rounded-2xl bg-white text-[#6c63ff] font-extrabold text-xs sm:text-sm shadow-md hover:scale-105 transition-transform shrink-0"
+            className="px-8 py-4 rounded-2xl bg-white text-[#6c63ff] font-black text-sm shadow-xl hover:scale-105 transition-all shrink-0"
           >
             Resume Lesson ▶
           </button>
         </div>
       )}
 
-      {/* Categories Carousel */}
+      {/* Categories Grid */}
       {categories.length > 0 && searchResults === null && (
-        <div className="space-y-3">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-extrabold text-[var(--text-primary)]">Lesson Categories</h2>
+            <h2 className="text-2xl font-black text-[var(--text-primary)]">Lesson Categories</h2>
             {selectedCategory && (
-              <button onClick={() => setSelectedCategory(null)} className="text-xs font-extrabold text-[#6c63ff] hover:underline">
+              <button onClick={() => setSelectedCategory(null)} className="text-xs font-black text-[#6c63ff] hover:underline">
                 Clear Filter ({selectedCategory})
               </button>
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {categories.map((cat) => (
               <div
                 key={cat.name}
                 onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
-                className={`p-4 rounded-2xl border shadow-sm cursor-pointer transition-all text-center space-y-1 ${
+                className={`p-5 rounded-2xl border shadow-sm cursor-pointer transition-all text-center space-y-2 ${
                   selectedCategory === cat.name
-                    ? "bg-[#6c63ff] border-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/25"
+                    ? "bg-gradient-to-br from-[#6c63ff] to-[#4f46e5] border-[#6c63ff] text-white shadow-xl scale-102"
                     : "glass-card glass-card-hover border-[var(--border-default)]"
                 }`}
               >
-                <p className="text-2xl">📂</p>
-                <p className="font-extrabold text-xs truncate">{cat.name}</p>
-                <p className="text-[10px] opacity-80 font-bold">{cat.lessonCount || 8} lessons</p>
+                <p className="text-3xl">📂</p>
+                <p className="font-black text-xs sm:text-sm truncate">{cat.name}</p>
+                <p className="text-[10px] opacity-80 font-extrabold">{cat.lessonCount || 8} lessons</p>
               </div>
             ))}
           </div>
@@ -280,49 +280,49 @@ export function Lessons() {
       )}
 
       {/* Main Lessons Grid */}
-      <div className="space-y-3">
-        <h2 className="text-xl font-extrabold text-[var(--text-primary)]">
+      <div className="space-y-4">
+        <h2 className="text-2xl font-black text-[var(--text-primary)]">
           {selectedCategory ? `${selectedCategory} Lessons` : `${activeTab} Lessons`} ({filteredLessons.length})
         </h2>
 
         {loading ? (
-          <div className="p-12 text-center font-extrabold text-sm text-[var(--text-secondary)]">Loading lessons...</div>
+          <div className="p-16 text-center font-extrabold text-sm text-[var(--text-secondary)]">Loading lessons...</div>
         ) : filteredLessons.length === 0 ? (
-          <div className="p-8 text-center text-[var(--text-secondary)] space-y-2 glass-card rounded-3xl">
-            <p className="text-3xl">📖</p>
-            <p className="font-extrabold text-sm">No lessons found matching your filters.</p>
+          <div className="p-12 text-center text-[var(--text-secondary)] space-y-2 glass-card rounded-3xl">
+            <p className="text-4xl">📖</p>
+            <p className="font-extrabold text-base text-[var(--text-primary)]">No lessons found matching your filters.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredLessons.map((l) => {
               const diffBadge = DIFF_COLORS[l.level] || DIFF_COLORS[l.difficulty] || DIFF_COLORS.Beginner;
               return (
                 <div
                   key={l.id}
                   onClick={() => navigate(`/lessons/${l.id}`)}
-                  className="glass-card glass-card-hover p-5 rounded-3xl space-y-3 flex flex-col justify-between cursor-pointer group"
+                  className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all duration-300"
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#6c63ff]/10 text-[#6c63ff]">
+                      <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-[#6c63ff]/15 text-[#6c63ff]">
                         {l.category || "General"}
                       </span>
-                      <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${diffBadge.bg} ${diffBadge.text}`}>
+                      <span className={`text-[10px] font-black px-3 py-1 rounded-full ${diffBadge.bg} ${diffBadge.text}`}>
                         {l.level || l.difficulty || "Beginner"}
                       </span>
                     </div>
 
-                    <h3 className="font-extrabold text-base text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                    <h3 className="font-black text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
                       {l.title}
                     </h3>
-                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed line-clamp-2">{l.description}</p>
+                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium line-clamp-2">{l.description}</p>
                   </div>
 
-                  <div className="pt-3 border-t border-[var(--border-subtle)] flex items-center justify-between">
+                  <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
                     <span className="text-xs text-[var(--text-secondary)] font-bold">
                       ⏱️ {l.estimatedMinutes || l.duration || 15} mins • +{l.xpReward || 25} XP
                     </span>
-                    <button className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] group-hover:bg-[#6c63ff] group-hover:text-white font-extrabold text-xs transition-all">
+                    <button className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] group-hover:opacity-90 text-white font-extrabold text-xs shadow-md transition-all">
                       Start →
                     </button>
                   </div>

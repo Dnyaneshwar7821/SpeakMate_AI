@@ -16,15 +16,21 @@ export function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const activeGrade =
+    user?.schoolGrade ||
+    localStorage.getItem("speakmate_school_grade") ||
+    user?.level ||
+    "5th Std";
+
   const [stats, setStats] = useState({
-    level: user?.level || "B1 Intermediate",
+    level: activeGrade,
     xp: 450,
     streak: user?.streak || 3,
     dailyGoalMins: 15,
     completedMins: 8,
-    accuracy: 92,
+    accuracy: 94,
     totalHours: 12.5,
-    wordsLearned: 142,
+    wordsLearned: 148,
   });
 
   const [timerActive, setTimerActive] = useState(false);
@@ -82,115 +88,136 @@ export function Dashboard() {
   const currentQuote = MOTIVATIONAL_QUOTES[quoteIndex];
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4">
       {/* Welcome Hero Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6c63ff] via-[#8b85ff] to-[#ff6584] text-white shadow-xl relative overflow-hidden"
+        className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-[#4f46e5] via-[#6c63ff] to-[#8b5cf6] text-white shadow-2xl"
       >
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-xl">
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-extrabold px-3.5 py-1 rounded-full bg-white/20 uppercase tracking-wider">
-                🎓 Standard: {user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || user?.level || "1st Std"} (Auto-Adapted)
+              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20">
+                🎓 Standard: {activeGrade} (Adapted Curriculum)
               </span>
-              <span className="text-xs font-extrabold px-3.5 py-1 rounded-full bg-amber-400 text-slate-950">
+              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-md">
                 🔥 {stats.streak}-Day Streak
               </span>
-              <span className="text-xs font-extrabold px-3.5 py-1 rounded-full bg-emerald-400 text-slate-950">
+              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-emerald-400 text-slate-950 shadow-md">
                 ⭐ {stats.xp} XP Points
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Welcome back, {user?.name || "Learner"}! 👋
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+              Welcome back, {user?.firstName || user?.name || "Learner"}! 👋
             </h1>
-            <p className="text-sm opacity-90 leading-relaxed font-medium">
-              Your AI English tutor is ready. Practice live speaking, review vocabulary flashcards, or take a quick lesson drill today!
+            <p className="text-sm sm:text-base text-indigo-100 leading-relaxed font-medium">
+              Your AI English tutor is ready. Practice live speaking, test dynamic vocabulary quizzes, or start a grammar analysis drill!
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
             <button
               onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=free-speak`)}
-              className="px-6 py-3.5 rounded-2xl bg-white text-[#6c63ff] font-extrabold text-sm shadow-md hover:scale-[1.02] transition-transform text-center"
+              className="px-6 py-4 rounded-2xl bg-white text-[#4f46e5] font-black text-sm shadow-xl hover:scale-102 transition-all text-center"
             >
               🎙️ Start Live AI Voice Chat
             </button>
             <button
-              onClick={() => navigate(ROUTES.LESSONS)}
-              className="px-6 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm backdrop-blur-md border border-white/20 text-center"
+              onClick={() => navigate(ROUTES.SPEAKING)}
+              className="px-6 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-black text-sm backdrop-blur-md border border-white/25 text-center transition-all"
             >
-              📖 Continue Lessons
+              🏫 6 Standard Scenarios
             </button>
           </div>
         </div>
       </motion.div>
 
-      {/* Statistics Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="glass-card p-5 rounded-3xl space-y-1">
-          <span className="text-2xl">🗣️</span>
-          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">Speaking Time</p>
-          <p className="text-2xl font-extrabold text-[#6c63ff]">{stats.totalHours} hrs</p>
+      {/* Key Metric Statistics Cards Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+          <div className="flex items-center justify-between">
+            <span className="text-3xl p-2.5 rounded-2xl bg-[#6c63ff]/10">🗣️</span>
+            <span className="text-[10px] font-black uppercase text-[#6c63ff] tracking-wider px-2 py-0.5 rounded-md bg-[#6c63ff]/10">
+              Total Practice
+            </span>
+          </div>
+          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Speaking Time</p>
+          <p className="text-3xl font-black text-[#6c63ff]">{stats.totalHours} hrs</p>
         </div>
 
-        <div className="glass-card p-5 rounded-3xl space-y-1">
-          <span className="text-2xl">🎯</span>
-          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">Accuracy Score</p>
-          <p className="text-2xl font-extrabold text-emerald-500">{stats.accuracy}%</p>
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+          <div className="flex items-center justify-between">
+            <span className="text-3xl p-2.5 rounded-2xl bg-emerald-500/10">🎯</span>
+            <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/10">
+              Fluency Rate
+            </span>
+          </div>
+          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Accuracy Score</p>
+          <p className="text-3xl font-black text-emerald-500">{stats.accuracy}%</p>
         </div>
 
-        <div className="glass-card p-5 rounded-3xl space-y-1">
-          <span className="text-2xl">📚</span>
-          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">Words Mastered</p>
-          <p className="text-2xl font-extrabold text-amber-500">{stats.wordsLearned}</p>
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+          <div className="flex items-center justify-between">
+            <span className="text-3xl p-2.5 rounded-2xl bg-amber-500/10">📚</span>
+            <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider px-2 py-0.5 rounded-md bg-amber-500/10">
+              Vocabulary
+            </span>
+          </div>
+          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Words Mastered</p>
+          <p className="text-3xl font-black text-amber-500">{stats.wordsLearned}</p>
         </div>
 
-        <div className="glass-card p-5 rounded-3xl space-y-1">
-          <span className="text-2xl">🏆</span>
-          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider">Badges Unlocked</p>
-          <p className="text-2xl font-extrabold text-[#ff6584]">3 / 6</p>
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+          <div className="flex items-center justify-between">
+            <span className="text-3xl p-2.5 rounded-2xl bg-rose-500/10">🏆</span>
+            <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider px-2 py-0.5 rounded-md bg-rose-500/10">
+              Milestones
+            </span>
+          </div>
+          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Badges Unlocked</p>
+          <p className="text-3xl font-black text-rose-500">4 / 6</p>
         </div>
       </div>
 
       {/* Main Interactive Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (2 Cols) */}
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Column (8 Cols) */}
+        <div className="lg:col-span-8 space-y-8">
           {/* Daily Goal & Interactive Warmup Drill */}
-          <div className="glass-card p-6 rounded-3xl space-y-5">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 border border-[var(--border-default)]">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs font-extrabold text-[#6c63ff] uppercase tracking-wider">Daily Target</span>
-                <h2 className="text-xl font-extrabold text-[var(--text-primary)] mt-1">
+                <span className="text-xs font-black text-[#6c63ff] uppercase tracking-wider">Daily Target</span>
+                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] mt-1">
                   Practice for {stats.dailyGoalMins} Minutes Today
                 </h2>
               </div>
-              <span className="text-xs font-extrabold text-emerald-500 bg-emerald-500/10 px-3.5 py-1.5 rounded-full">
+              <span className="text-xs font-black text-emerald-500 bg-emerald-500/15 px-4 py-1.5 rounded-full border border-emerald-500/20">
                 {stats.completedMins} / {stats.dailyGoalMins} Mins
               </span>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-[var(--border-subtle)] h-3 rounded-full overflow-hidden">
+            <div className="w-full bg-[var(--bg-elevated)] h-3.5 rounded-full overflow-hidden p-0.5 border border-[var(--border-subtle)]">
               <div
-                className="bg-gradient-to-r from-[#6c63ff] to-[#ff6584] h-full rounded-full transition-all duration-500"
+                className="bg-gradient-to-r from-[#6c63ff] via-[#8b85ff] to-[#ff6584] h-full rounded-full transition-all duration-500 shadow-md"
                 style={{ width: `${Math.min(100, (stats.completedMins / stats.dailyGoalMins) * 100)}%` }}
               />
             </div>
 
-            {/* Interactive 5-Min Warmup Timer Drill */}
-            <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className={`grid h-12 w-12 place-items-center rounded-2xl ${timerActive ? "bg-red-500 text-white animate-pulse" : "bg-[#6c63ff]/10 text-[#6c63ff]"} text-xl font-bold shrink-0`}>
+            {/* Interactive 5-Min Warmup Timer Drill Card */}
+            <div className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div className={`grid h-14 w-14 place-items-center rounded-2xl ${timerActive ? "bg-rose-500 text-white animate-pulse" : "bg-[#6c63ff]/15 text-[#6c63ff]"} text-2xl font-bold shrink-0 shadow-md`}>
                   ⏱️
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-sm text-[var(--text-primary)]">Quick 5-Min Speaking Warmup</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                  <h3 className="font-extrabold text-base text-[var(--text-primary)]">Quick 5-Min Speaking Warmup</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5 leading-relaxed">
                     {timerActive ? `Warmup in progress: ${formatTimer(timeLeft)} remaining` : timerCompleted ? "✓ Warmup Completed! +30 XP claimed" : "Tap start to warm up your voice & earn +30 XP"}
                   </p>
                 </div>
@@ -203,14 +230,14 @@ export function Dashboard() {
                     setTimerActive(true);
                     setTimerCompleted(false);
                   }}
-                  className="px-5 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs font-extrabold shadow-md shrink-0 w-full sm:w-auto"
+                  className="px-6 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs font-black shadow-lg shrink-0 w-full sm:w-auto transition-all"
                 >
                   {timerCompleted ? "Restart Warmup" : "Start Warmup"}
                 </button>
               ) : (
                 <button
                   onClick={() => setTimerActive(false)}
-                  className="px-5 py-2.5 rounded-xl bg-red-500 text-white text-xs font-extrabold shadow-md shrink-0 w-full sm:w-auto"
+                  className="px-6 py-3.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-black shadow-lg shrink-0 w-full sm:w-auto transition-all"
                 >
                   Pause Timer ({formatTimer(timeLeft)})
                 </button>
@@ -218,88 +245,96 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* Quick Action Hub */}
-          <div className="space-y-3">
-            <h2 className="text-xl font-extrabold text-[var(--text-primary)]">Quick Learning Actions</h2>
+          {/* Quick Learning Action Hub */}
+          <div className="space-y-4">
+            <h2 className="text-2xl font-black text-[var(--text-primary)]">Quick Learning Actions</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div
                 onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=job-interview`)}
-                className="glass-card glass-card-hover p-5 rounded-3xl space-y-3 cursor-pointer group"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-2.5 rounded-2xl bg-[#6c63ff]/10">💼</span>
-                  <span className="text-xs font-extrabold text-[#6c63ff] group-hover:translate-x-1 transition-transform">Start →</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/15">💼</span>
+                  <span className="text-xs font-black text-[#6c63ff] group-hover:translate-x-1 transition-transform">Start →</span>
                 </div>
-                <h3 className="font-extrabold text-base text-[var(--text-primary)]">Job Interview Roleplay</h3>
-                <p className="text-xs text-[var(--text-secondary)] font-medium">Practice STAR method answers with live AI voice evaluation.</p>
+                <div>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">Job Interview Roleplay</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Practice STAR method answers with live AI voice evaluation.</p>
+                </div>
               </div>
 
               <div
                 onClick={() => navigate(ROUTES.LESSONS)}
-                className="glass-card glass-card-hover p-5 rounded-3xl space-y-3 cursor-pointer group"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-2.5 rounded-2xl bg-[#ff6584]/10">📖</span>
-                  <span className="text-xs font-extrabold text-[#ff6584] group-hover:translate-x-1 transition-transform">Browse →</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-rose-500/15">📖</span>
+                  <span className="text-xs font-black text-rose-500 group-hover:translate-x-1 transition-transform">Browse →</span>
                 </div>
-                <h3 className="font-extrabold text-base text-[var(--text-primary)]">CEFR Lesson Modules</h3>
-                <p className="text-xs text-[var(--text-secondary)] font-medium">Structured bite-sized quizzes & flashcards from A1 to C2.</p>
+                <div>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-rose-500 transition-colors">CEFR Lesson Modules</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Structured bite-sized quizzes & flashcards from A1 to C2.</p>
+                </div>
               </div>
 
               <div
                 onClick={() => navigate(ROUTES.GRAMMAR)}
-                className="glass-card glass-card-hover p-5 rounded-3xl space-y-3 cursor-pointer group"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-2.5 rounded-2xl bg-emerald-500/10">✍️</span>
-                  <span className="text-xs font-extrabold text-emerald-500 group-hover:translate-x-1 transition-transform">Check →</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-emerald-500/15">✍️</span>
+                  <span className="text-xs font-black text-emerald-500 group-hover:translate-x-1 transition-transform">Check →</span>
                 </div>
-                <h3 className="font-extrabold text-base text-[var(--text-primary)]">AI Live Grammar Checker</h3>
-                <p className="text-xs text-[var(--text-secondary)] font-medium">Analyze any sentence with instant error highlight feedback.</p>
+                <div>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-emerald-500 transition-colors">AI Live Grammar Checker</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Analyze any sentence with instant error highlight feedback.</p>
+                </div>
               </div>
 
               <div
                 onClick={() => navigate(ROUTES.VOCABULARY)}
-                className="glass-card glass-card-hover p-5 rounded-3xl space-y-3 cursor-pointer group"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-2.5 rounded-2xl bg-amber-500/10">📚</span>
-                  <span className="text-xs font-extrabold text-amber-500 group-hover:translate-x-1 transition-transform">Study →</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-amber-500/15">📚</span>
+                  <span className="text-xs font-black text-amber-500 group-hover:translate-x-1 transition-transform">Study →</span>
                 </div>
-                <h3 className="font-extrabold text-base text-[var(--text-primary)]">Vocabulary Flashcards</h3>
-                <p className="text-xs text-[var(--text-secondary)] font-medium">Study definitions, phonetics, and audio pronunciations.</p>
+                <div>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-amber-500 transition-colors">Vocabulary Flashcards</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Study definitions, phonetics, and audio pronunciations.</p>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column (1 Col) */}
-        <div className="space-y-6">
+        {/* Right Column (4 Cols) */}
+        <div className="lg:col-span-4 space-y-8">
           {/* Daily Motivation & Audio Quote Card */}
-          <div className="glass-card p-6 rounded-3xl border border-[#6c63ff]/30 space-y-4">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#6c63ff]/30 space-y-5 shadow-xl">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-extrabold text-[#6c63ff] uppercase tracking-wider">Daily Inspiration</span>
+              <span className="text-xs font-black text-[#6c63ff] uppercase tracking-wider">Daily Inspiration</span>
               <button
                 onClick={() => setQuoteIndex((i) => (i + 1) % MOTIVATIONAL_QUOTES.length)}
-                className="text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                className="text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 title="Next Quote"
               >
                 ↻ Next Quote
               </button>
             </div>
 
-            <div className="space-y-2">
-              <p className="text-sm font-bold text-[var(--text-primary)] italic leading-relaxed">
+            <div className="space-y-3">
+              <p className="text-base font-extrabold text-[var(--text-primary)] italic leading-relaxed">
                 "{currentQuote.quote}"
               </p>
-              <p className="text-xs font-extrabold text-[#6c63ff]">— {currentQuote.author}</p>
+              <p className="text-xs font-black text-[#6c63ff]">— {currentQuote.author}</p>
             </div>
 
-            <div className="pt-2 flex items-center justify-between gap-2 flex-wrap">
+            <div className="pt-2 flex items-center justify-between gap-3 flex-wrap">
               <button
                 onClick={() => handleSpeakQuote(currentQuote.quote)}
-                className="px-3.5 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold text-[var(--text-primary)] hover:bg-[#6c63ff] hover:text-white transition-all flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-black text-[var(--text-primary)] hover:bg-[#6c63ff] hover:text-white transition-all flex items-center gap-2 shadow-sm"
               >
                 <span>🔊 Listen Quote</span>
               </button>
@@ -307,48 +342,48 @@ export function Dashboard() {
               {!challengeClaimed ? (
                 <button
                   onClick={handleAcceptChallenge}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-extrabold shadow-md"
+                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-black shadow-md transition-all hover:scale-102"
                 >
                   Accept Goal (+50 XP)
                 </button>
               ) : (
-                <span className="text-xs font-extrabold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
+                <span className="text-xs font-black text-emerald-500 bg-emerald-500/15 px-4 py-1.5 rounded-full border border-emerald-500/20">
                   ✓ Goal Accepted!
                 </span>
               )}
             </div>
           </div>
 
-          {/* Quick Streak & Achievement Progress Card */}
-          <div className="glass-card p-6 rounded-3xl space-y-4">
+          {/* Milestones & Achievements Card */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
             <div className="flex items-center justify-between">
-              <h3 className="font-extrabold text-sm text-[var(--text-primary)]">Milestones</h3>
-              <Link to={ROUTES.ACHIEVEMENTS} className="text-xs font-extrabold text-[#6c63ff] hover:underline">
+              <h3 className="font-black text-lg text-[var(--text-primary)]">Milestones</h3>
+              <Link to={ROUTES.ACHIEVEMENTS} className="text-xs font-black text-[#6c63ff] hover:underline">
                 View All →
               </Link>
             </div>
 
-            <div className="space-y-3">
-              <div className="p-3.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
+            <div className="space-y-3.5">
+              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">🔥</span>
+                  <span className="text-2xl p-2 rounded-xl bg-amber-500/10">🔥</span>
                   <div>
-                    <p className="font-extrabold text-xs text-[var(--text-primary)]">3-Day Streak Master</p>
+                    <p className="font-black text-xs text-[var(--text-primary)]">3-Day Streak Master</p>
                     <p className="text-[11px] text-emerald-500 font-bold mt-0.5">Unlocked ✓</p>
                   </div>
                 </div>
-                <span className="text-xs font-extrabold text-amber-500">+50 XP</span>
+                <span className="text-xs font-black text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full">+50 XP</span>
               </div>
 
-              <div className="p-3.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
+              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">📚</span>
+                  <span className="text-2xl p-2 rounded-xl bg-[#6c63ff]/10">📚</span>
                   <div>
-                    <p className="font-extrabold text-xs text-[var(--text-primary)]">Vocabulary Virtuoso</p>
+                    <p className="font-black text-xs text-[var(--text-primary)]">Vocabulary Virtuoso</p>
                     <p className="text-[11px] text-emerald-500 font-bold mt-0.5">Unlocked ✓</p>
                   </div>
                 </div>
-                <span className="text-xs font-extrabold text-amber-500">+50 XP</span>
+                <span className="text-xs font-black text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full">+50 XP</span>
               </div>
             </div>
           </div>
