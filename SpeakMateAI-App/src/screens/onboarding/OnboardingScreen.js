@@ -424,12 +424,12 @@ export default function OnboardingScreen({ navigation }) {
     } else if (step === 5) {
       transitionToNext(6);
     } else if (step === 6) {
+      transitionToNext(7);
+    } else if (step === 7) {
       if (interests.length === 0) {
         setError('Please select at least one interest.');
         return;
       }
-      transitionToNext(7);
-    } else if (step === 7) {
       transitionToNext(8);
     } else if (step === 8) {
       transitionToNext(9);
