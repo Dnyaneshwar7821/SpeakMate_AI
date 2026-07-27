@@ -731,6 +731,7 @@ export default function OnboardingScreen({ navigation }) {
                       onPress={() => {
                         setSchoolGrade(grd.key);
                         setLevel(grd.key);
+                        AsyncStorage.setItem('speakmate_school_grade', grd.key);
                       }}
                       style={[
                         styles.selectCardLarge,

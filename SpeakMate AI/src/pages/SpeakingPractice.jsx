@@ -115,8 +115,11 @@ export function SpeakingPractice() {
       ]);
       setHistory(historyData || []);
       const savedGrade = localStorage.getItem("speakmate_school_grade");
-      if (savedGrade) {
-        setSelectedGrade(savedGrade);
+      const backendGrade = onboardingData?.schoolGrade || onboardingData?.englishLevel;
+      const effectiveGrade = savedGrade || backendGrade || "1st Std";
+      setSelectedGrade(effectiveGrade);
+      if (effectiveGrade && !savedGrade) {
+        localStorage.setItem("speakmate_school_grade", effectiveGrade);
       }
       if (onboardingData?.ageGroup) {
         setUserAgeGroup(onboardingData.ageGroup);

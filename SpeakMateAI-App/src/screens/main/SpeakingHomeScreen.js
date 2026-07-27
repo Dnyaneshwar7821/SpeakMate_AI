@@ -205,8 +205,11 @@ export default function SpeakingHomeScreen({ navigation }) {
       ]);
       setHistory(historyData || []);
       const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
-      if (savedGrade) {
-        setSelectedGrade(savedGrade);
+      const backendGrade = onboardingData?.schoolGrade || onboardingData?.englishLevel;
+      const effectiveGrade = savedGrade || backendGrade || '1st Std';
+      setSelectedGrade(effectiveGrade);
+      if (effectiveGrade && !savedGrade) {
+        await AsyncStorage.setItem('speakmate_school_grade', effectiveGrade);
       }
       if (onboardingData?.ageGroup) {
         setUserAgeGroup(onboardingData.ageGroup);
