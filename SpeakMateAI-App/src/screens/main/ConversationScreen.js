@@ -29,7 +29,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { speechService, speakingService, settingsService, profileService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
 import { VoiceService } from '../../services/VoiceService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import AIAvatar from '../../components/common/AIAvatar';
 import JumpingDotsIndicator from '../../components/common/JumpingDotsIndicator';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
