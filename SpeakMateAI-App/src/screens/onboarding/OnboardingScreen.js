@@ -68,6 +68,19 @@ const LEVELS = [
   { key: 'Fluent', label: 'Fluent', desc: 'Completely fluent, close to native proficiency', rating: 'C2' },
 ];
 
+const SCHOOL_GRADES = [
+  { key: '1st Std', label: '1st Standard', desc: 'Alphabet phonics, colors, animals & simple greetings', icon: 'color-palette-outline' },
+  { key: '2nd Std', label: '2nd Standard', desc: 'Classroom items, daily routines, food & hobbies', icon: 'ice-cream-outline' },
+  { key: '3rd Std', label: '3rd Standard', desc: 'Action verbs, community helpers, time & past stories', icon: 'medkit-outline' },
+  { key: '4th Std', label: '4th Standard', desc: 'Describing places, canteen lunch, healthy habits & directions', icon: 'planet-outline' },
+  { key: '5th Std', label: '5th Standard', desc: 'First day in 5th grade, science projects & story reviews', icon: 'school-outline' },
+  { key: '6th Std', label: '6th Standard', desc: 'Asking teacher questions, school clubs & sports day', icon: 'create-outline' },
+  { key: '7th Std', label: '7th Standard', desc: 'Group discussions, environmental care & movie reviews', icon: 'water-outline' },
+  { key: '8th Std', label: '8th Standard', desc: 'School debates, student council & tech innovations', icon: 'chatbubbles-outline' },
+  { key: '9th Std', label: '9th Standard', desc: 'High school admission interviews & keynote speeches', icon: 'globe-outline' },
+  { key: '10th Std', label: '10th Standard', desc: '10th Board oral exam prep & career roadmaps', icon: 'document-text-outline' },
+];
+
 const INTERESTS = [
   { key: 'Technology', label: 'Technology', icon: 'desktop-outline' },
   { key: 'Business', label: 'Business', icon: 'business-outline' },
@@ -706,31 +719,34 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
-            {/* Step 5: Levels */}
+            {/* Step 5: School Standard Selection */}
             {step === 5 && (
               <View style={styles.stepContent}>
-                <Text style={styles.title}>Current English Level</Text>
-                <Text style={styles.subtitle}>Estimate your current level. This sets your initial practice difficulty.</Text>
+                <Text style={styles.title}>Select Your School Standard</Text>
+                <Text style={styles.subtitle}>Choose your school grade. The entire app will adapt its speaking practice, AI chat, and lessons to this standard level.</Text>
                 <View style={styles.cardList}>
-                  {LEVELS.map((lvl) => (
+                  {SCHOOL_GRADES.map((grd) => (
                     <TouchableOpacity
-                      key={lvl.key}
-                      onPress={() => setLevel(lvl.key)}
+                      key={grd.key}
+                      onPress={() => {
+                        setSchoolGrade(grd.key);
+                        setLevel(grd.key);
+                      }}
                       style={[
                         styles.selectCardLarge,
-                        level === lvl.key && styles.selectCardLargeActive,
+                        schoolGrade === grd.key && styles.selectCardLargeActive,
                       ]}
                     >
                       <View style={styles.levelLeft}>
                         <View style={styles.levelRatingBox}>
-                          <Text style={styles.levelRatingText}>{lvl.rating}</Text>
+                          <Ionicons name={grd.icon} size={20} color="#4F46E5" />
                         </View>
                         <View style={styles.levelInfo}>
-                          <Text style={styles.selectCardLabel}>{lvl.label}</Text>
-                          <Text style={styles.levelDesc}>{lvl.desc}</Text>
+                          <Text style={styles.selectCardLabel}>{grd.label}</Text>
+                          <Text style={styles.levelDesc}>{grd.desc}</Text>
                         </View>
                       </View>
-                      {level === lvl.key && (
+                      {schoolGrade === grd.key && (
                         <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
                       )}
                     </TouchableOpacity>

@@ -181,7 +181,10 @@ export default function ConversationScreen({ navigation, route }) {
         if (onboardingVoice) {
           setOnboardingVoiceStyle(onboardingVoice);
         }
-        if (profile && profile.englishLevel) {
+        const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
+        if (savedGrade) {
+          setChatLevel(savedGrade);
+        } else if (profile && profile.englishLevel) {
           setChatLevel(profile.englishLevel);
         }
         // Always reset voice speed to 1.0x (Normal Default) when entering a session
@@ -688,11 +691,7 @@ export default function ConversationScreen({ navigation, route }) {
         style={{ marginTop: 2, marginBottom: 6 }}
       />
 
-      {/* Premium Sliding Segmented Control */}
-      <LevelSegmentedControl
-        selectedLevel={chatLevel}
-        onChangeLevel={setChatLevel}
-      />
+      {/* ── Chat Messages ── */}
 
       {/* ── Chat Messages ── */}
       <FlatList

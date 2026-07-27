@@ -335,8 +335,13 @@ export default function SpeakingHomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* ── Grade Progression Level Bar ── */}
-      <LevelSegmentedControl selectedLevel={selectedGrade} onChangeLevel={setSelectedGrade} />
+      {/* ── Auto-Adapted Standard Level Badge ── */}
+      <View style={{ paddingHorizontal: 16, marginVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Ionicons name="school-outline" size={16} color="#818CF8" />
+        <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700' }}>
+          Current Standard: {selectedGrade} (Auto-configured from your profile)
+        </Text>
+      </View>
 
       {/* ── Categories Carousel ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>

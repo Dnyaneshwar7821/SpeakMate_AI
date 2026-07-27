@@ -155,9 +155,7 @@ export function SpeakingPractice() {
       .catch(() => {});
   };
 
-  const activeScenarios = activeTab === "grade"
-    ? (STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS["1st Std"])
-    : (AGE_SCENARIOS[userAgeGroup] || AGE_SCENARIOS["Professional"]);
+  const activeScenarios = STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS["1st Std"];
 
   const filteredScenarios = activeScenarios.filter((s) => {
     const matchesSearch = s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.desc.toLowerCase().includes(searchQuery.toLowerCase());
@@ -225,54 +223,18 @@ export function SpeakingPractice() {
           />
         </div>
 
-        {/* View Mode Toggle: School Standard vs Age Group */}
-        <div className="flex items-center gap-3 border-b border-[var(--border-subtle)] pb-3">
-          <button
-            onClick={() => setActiveTab("grade")}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
-              activeTab === "grade"
-                ? "bg-[#6c63ff] text-white shadow-md"
-                : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            🎓 School Standards (1st - 10th Std)
-          </button>
-          <button
-            onClick={() => setActiveTab("age")}
-            className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all ${
-              activeTab === "age"
-                ? "bg-[#6c63ff] text-white shadow-md"
-                : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            👤 General Age Groups
-          </button>
+        {/* Auto-Configured Standard Level Indicator */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border-subtle)] pb-3">
+          <span className="text-xs font-extrabold text-[#6c63ff] uppercase tracking-wider">
+            🎓 Configured Standard:
+          </span>
+          <span className="px-3 py-1 rounded-xl text-xs font-extrabold bg-[#6c63ff] text-white shadow-md">
+            {selectedGrade} Level
+          </span>
+          <span className="text-[11px] text-[var(--text-secondary)] font-medium">
+            (Auto-adapted from your onboarding profile)
+          </span>
         </div>
-
-        {/* School Standard Selector Bar (1st Std to 10th Std) */}
-        {activeTab === "grade" && (
-          <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border-subtle)] pb-3">
-            <span className="text-xs font-extrabold text-[#6c63ff] uppercase tracking-wider">
-              School Grade:
-            </span>
-            {SCHOOL_GRADES.map((grade) => (
-              <button
-                key={grade}
-                onClick={() => {
-                  setSelectedGrade(grade);
-                  localStorage.setItem("speakmate_school_grade", grade);
-                }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
-                  selectedGrade === grade
-                    ? "bg-[#6c63ff] text-white shadow-md scale-105"
-                    : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
-              >
-                {grade}
-              </button>
-            ))}
-          </div>
-        )}
 
         {/* Category Pills */}
         <div className="flex flex-wrap items-center gap-2">
