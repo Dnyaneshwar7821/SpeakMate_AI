@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 
+const AGE_GROUPS = [
+  { key: "Kids", label: "Kids (6-12)", icon: "🎈", desc: "Simple words, fun stories & high encouragement" },
+  { key: "Teens", label: "Teens (13-17)", icon: "⚡", desc: "School life, gaming, pop culture & casual chatter" },
+  { key: "Young Adult", label: "Young Adults (18-24)", icon: "🎓", desc: "Campus life, travel & interview prep" },
+  { key: "Professional", label: "Professionals (25-50)", icon: "💼", desc: "Business English, executive tone & presentations" },
+  { key: "Senior", label: "Seniors (50+)", icon: "☕", desc: "Relaxed conversation, culture & life stories" },
+];
+
 const VOICE_PERSONAS = [
   {
     key: "Friendly",
@@ -68,10 +76,15 @@ const COMMITMENTS = [
 export function Settings() {
   const { isDark, toggleTheme } = useTheme();
 
+  const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+
   const [accent, setAccent] = useState("US");
   const [speechRate, setSpeechRate] = useState("1.0");
   const [selectedVoice, setSelectedVoice] = useState(
     localStorage.getItem("speakmate_voice_persona") || "Friendly"
+  );
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState(
+    localStorage.getItem("speakmate_age_group") || "Professional"
   );
   const [dailyGoal, setDailyGoal] = useState(
     localStorage.getItem("speakmate_daily_goal") || "15 min"
@@ -115,6 +128,7 @@ export function Settings() {
   const handleSaveSettings = (e) => {
     if (e) e.preventDefault();
     localStorage.setItem("speakmate_voice_persona", selectedVoice);
+    localStorage.setItem("speakmate_age_group", selectedAgeGroup);
     localStorage.setItem("speakmate_daily_goal", dailyGoal);
     setSaved(true);
     setTimeout(() => setSaved(false), 2500);
@@ -127,7 +141,7 @@ export function Settings() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black">App Settings & Preferences ⚙️</h1>
           <p className="text-xs sm:text-sm font-medium opacity-90 mt-1">
-            Customize AI tutor voice personas, audio playback speed, notification reminders, and display themes.
+            Customize target age group, AI tutor voice personas, audio playback speed, and notification reminders.
           </p>
         </div>
       </div>
@@ -135,6 +149,45 @@ export function Settings() {
       {saved && (
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm font-black text-center animate-in fade-in duration-200">
           ✓ All application settings saved successfully!
+        </div>
+      )}
+
+      {/* Target Age Group (For Individual Users) */}
+      {accountType === "INDIVIDUAL_USER" && (
+        <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
+          <div>
+            <h2 className="text-lg font-black text-[var(--text-primary)]">Target Age Group</h2>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
+              Personalizes conversation scenarios, AI chat context, and topic recommendations across all modules.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {AGE_GROUPS.map((a) => {
+              const isSelected = selectedAgeGroup === a.key;
+              return (
+                <button
+                  key={a.key}
+                  type="button"
+                  onClick={() => {
+                    setSelectedAgeGroup(a.key);
+                    localStorage.setItem("speakmate_age_group", a.key);
+                  }}
+                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 ${
+                    isSelected
+                      ? "border-[#6c63ff] bg-[#6c63ff]/15 ring-2 ring-[#6c63ff]/30 shadow-md"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                  }`}
+                >
+                  <span className="text-2xl p-2 rounded-xl bg-[var(--bg-surface)] shrink-0">{a.icon}</span>
+                  <div>
+                    <h3 className="font-black text-sm text-[var(--text-primary)]">{a.label}</h3>
+                    <p className="text-xs text-[var(--text-secondary)] mt-0.5 font-medium">{a.desc}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 

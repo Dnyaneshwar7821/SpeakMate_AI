@@ -154,6 +154,7 @@ export function Onboarding() {
   const handleFinish = () => {
     const finalGrade = selectedGrade || "5th Std";
     localStorage.setItem("speakmate_school_grade", finalGrade);
+    localStorage.setItem("speakmate_age_group", selectedAgeGroup);
     completeOnboarding({
       nativeLanguage,
       goal: selectedGoal,
