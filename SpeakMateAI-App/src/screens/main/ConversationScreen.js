@@ -112,7 +112,7 @@ export default function ConversationScreen({ navigation, route }) {
   const [statusText, setStatusText] = useState('Waiting for Response');
   const [loading, setLoading] = useState(false);
   const [ending, setEnding] = useState(false);
-  const [chatLevel, setChatLevel] = useState('Beginner');
+  const [chatLevel, setChatLevel] = useState('1st Std');
   const [avatarExpression, setAvatarExpression] = useState(undefined);
   const [hints, setHints] = useState([]);
   const [loadingHints, setLoadingHints] = useState(false);

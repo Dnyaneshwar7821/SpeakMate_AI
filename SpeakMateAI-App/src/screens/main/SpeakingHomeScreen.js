@@ -22,6 +22,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 import { speakingService, onboardingService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
+import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
 
 // ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 
@@ -103,6 +104,7 @@ export default function SpeakingHomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedGrade, setSelectedGrade] = useState('1st Std');
   const [userAgeGroup, setUserAgeGroup] = useState('Professional');
 
   // Stats calculation
@@ -245,6 +247,9 @@ export default function SpeakingHomeScreen({ navigation }) {
           )}
         </View>
       </View>
+
+      {/* ── Grade Progression Level Bar ── */}
+      <LevelSegmentedControl selectedLevel={selectedGrade} onChangeLevel={setSelectedGrade} />
 
       {/* ── Categories Carousel ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
