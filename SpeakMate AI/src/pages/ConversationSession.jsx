@@ -3,12 +3,6 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { speakingService } from "../services/appServices";
 
-const AVATAR_PERSONAS = [
-  { id: "sophia", name: "Sophia", role: "AI Language Coach", skinGrad: ["#FAD7BD", "#E3A880"], hairGrad: ["#4A306D", "#1E1035"], eyeColor: "#6C63FF", suitColor: "#6C63FF" },
-  { id: "alex", name: "Alex", role: "Professional AI Tutor", skinGrad: ["#F5C29B", "#D88B5A"], hairGrad: ["#1E293B", "#0F172A"], eyeColor: "#10B981", suitColor: "#3B82F6" },
-  { id: "maya", name: "Maya", role: "Friendly Voice Partner", skinGrad: ["#FCE3CD", "#EBB891"], hairGrad: ["#7C2D12", "#451A03"], eyeColor: "#F59E0B", suitColor: "#EC4899" },
-];
-
 export function ConversationSession() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -17,12 +11,11 @@ export function ConversationSession() {
   const xpReward = Number(searchParams.get("xpReward")) || 20;
 
   const [sessionId] = useState(sessionIdParam || Date.now().toString());
-  const [activePersona, setActivePersona] = useState(AVATAR_PERSONAS[0]);
   const [messages, setMessages] = useState([
     {
       id: "1",
       sender: "ai",
-      message: `Hello! I am ${AVATAR_PERSONAS[0].name}, your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`,
+      message: `Hello! I am your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`,
     },
   ]);
 
@@ -200,7 +193,7 @@ export function ConversationSession() {
       setHints(data || []);
     } catch (e) {
       console.warn("Failed to fetch hints:", e);
-    } finally {
+    } fontFinally: {
       setLoadingHints(false);
     }
   };
@@ -258,7 +251,7 @@ export function ConversationSession() {
         message: text,
         level: chatLevel,
       }).catch(() => ({
-        aiReply: `That is a fantastic point! Practicing every day with ${activePersona.name} builds natural fluency.`,
+        aiReply: "That is a fantastic point! Practicing every day with SpeakMate AI builds natural fluency.",
         grammarCorrection: "I want to improve my spoken English skills.",
         betterSentence: "I would like to enhance my English speaking proficiency.",
         vocabularySuggestions: "Proficiency, Natural fluency, Accent",
@@ -314,9 +307,9 @@ export function ConversationSession() {
   const avatarState = isPaused
     ? "Paused ⏸️"
     : isAiSpeaking
-    ? `${activePersona.name} Speaking... 🔊`
+    ? "SpeakMate AI Speaking... 🔊"
     : isThinking
-    ? `${activePersona.name} Thinking... 🧠`
+    ? "SpeakMate AI Thinking... 🧠"
     : isListening
     ? "Listening to You... 🎙️"
     : "Idle Ready ✨";
@@ -367,26 +360,13 @@ export function ConversationSession() {
         </div>
       </div>
 
-      {/* 3D Human-Like Lip-Sync AI Tutor Avatar Header */}
+      {/* 3D Human-Like Lip-Sync SpeakMate AI Avatar Header */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl flex flex-col items-center justify-center text-center space-y-4 shrink-0 relative overflow-hidden">
         
-        {/* Persona Switcher Selector */}
-        <div className="flex items-center gap-3 bg-white/10 p-1.5 rounded-full backdrop-blur-md border border-white/15">
-          <span className="text-[10px] font-extrabold px-2.5 text-[#A5B4FC] uppercase tracking-wider">AI Persona:</span>
-          {AVATAR_PERSONAS.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setActivePersona(p)}
-              className={`px-3.5 py-1 rounded-full text-xs font-extrabold transition-all ${
-                activePersona.id === p.id
-                  ? "bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white shadow-md"
-                  : "text-white/70 hover:text-white"
-              }`}
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
+        {/* Title */}
+        <span className="text-xs font-black uppercase tracking-wider text-[#A5B4FC]">
+          SpeakMate AI Voice Tutor
+        </span>
 
         {/* Animated Avatar Face & Soundwave Equalizers */}
         <div className="flex items-center justify-center gap-6 relative">
@@ -408,45 +388,39 @@ export function ConversationSession() {
             {/* Avatar Frame Box */}
             <div className={`relative grid h-32 w-32 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl p-2 overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
               
-              {/* 3D Human Vector Avatar SVG with Multi-Viseme Lip-Syncing */}
+              {/* SpeakMate AI 3D Human Vector SVG with Multi-Viseme Lip-Syncing */}
               <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
                 <defs>
                   {/* Skin Gradient */}
                   <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={activePersona.skinGrad[0]} />
-                    <stop offset="100%" stopColor={activePersona.skinGrad[1]} />
+                    <stop offset="0%" stopColor="#FAD7BD" />
+                    <stop offset="100%" stopColor="#E3A880" />
                   </linearGradient>
                   {/* Hair Gradient */}
                   <linearGradient id="hairGrad" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor={activePersona.hairGrad[0]} />
-                    <stop offset="100%" stopColor={activePersona.hairGrad[1]} />
+                    <stop offset="0%" stopColor="#4A306D" />
+                    <stop offset="100%" stopColor="#1E1035" />
                   </linearGradient>
                   {/* Iris Gradient */}
                   <radialGradient id="eyeIris">
-                    <stop offset="0%" stopColor={activePersona.eyeColor} />
+                    <stop offset="0%" stopColor="#6C63FF" />
                     <stop offset="100%" stopColor="#0F172A" />
                   </radialGradient>
                 </defs>
 
                 {/* Neck & Suit Collar */}
-                <path d="M 32 82 Q 50 78 68 82 L 72 100 L 28 100 Z" fill={activePersona.skinGrad[1]} />
-                <path d="M 24 90 Q 50 82 76 90 L 85 100 L 15 100 Z" fill={activePersona.suitColor} opacity="0.9" />
+                <path d="M 32 82 Q 50 78 68 82 L 72 100 L 28 100 Z" fill="#E3A880" />
+                <path d="M 24 90 Q 50 82 76 90 L 85 100 L 15 100 Z" fill="#6C63FF" opacity="0.9" />
 
                 {/* 3D Face Base */}
                 <path d="M 26 36 Q 22 58 32 76 Q 50 88 68 76 Q 78 58 74 36 Q 50 30 26 36 Z" fill="url(#skinGrad)" />
 
                 {/* Ears */}
-                <ellipse cx="23" cy="52" rx="4" ry="7" fill={activePersona.skinGrad[1]} />
-                <ellipse cx="77" cy="52" rx="4" ry="7" fill={activePersona.skinGrad[1]} />
+                <ellipse cx="23" cy="52" rx="4" ry="7" fill="#E3A880" />
+                <ellipse cx="77" cy="52" rx="4" ry="7" fill="#E3A880" />
 
-                {/* Persona Hair Styling */}
-                {activePersona.id === "sophia" ? (
-                  <path d="M 20 42 Q 22 14 50 14 Q 78 14 80 42 Q 65 26 50 26 Q 35 26 20 42 Z" fill="url(#hairGrad)" />
-                ) : activePersona.id === "alex" ? (
-                  <path d="M 24 38 Q 28 18 50 16 Q 72 18 76 38 Q 62 28 50 28 Q 38 28 24 38 Z" fill="url(#hairGrad)" />
-                ) : (
-                  <path d="M 18 44 Q 22 12 50 12 Q 78 12 82 44 Q 65 24 50 24 Q 35 24 18 44 Z" fill="url(#hairGrad)" />
-                )}
+                {/* Hair Styling */}
+                <path d="M 20 42 Q 22 14 50 14 Q 78 14 80 42 Q 65 26 50 26 Q 35 26 20 42 Z" fill="url(#hairGrad)" />
 
                 {/* Eyebrows */}
                 <path d="M 31 43 Q 39 39 47 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
@@ -462,15 +436,6 @@ export function ConversationSession() {
                   <ellipse cx="61" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIris)" />
                   <circle cx="59.5" cy="47.5" r="1.2" fill="#FFFFFF" />
                 </g>
-
-                {/* Glasses for Sophia */}
-                {activePersona.id === "sophia" && (
-                  <g stroke="#CBD5E1" strokeWidth="1.5" fill="none" opacity="0.8">
-                    <rect x="31" y="44" width="16" height="10" rx="3" />
-                    <rect x="53" y="44" width="16" height="10" rx="3" />
-                    <line x1="47" y1="48" x2="53" y2="48" />
-                  </g>
-                )}
 
                 {/* Nose */}
                 <path d="M 50 50 L 48 60 L 52 60 Z" fill="#D4946A" opacity="0.6" />
@@ -562,7 +527,7 @@ export function ConversationSession() {
               }`}
             >
               <div className="flex items-center justify-between gap-4">
-                <span className="text-[10px] opacity-75 font-bold uppercase">{m.sender === "user" ? "You" : `${activePersona.name} (AI)`}</span>
+                <span className="text-[10px] opacity-75 font-bold uppercase">{m.sender === "user" ? "You" : "SpeakMate AI"}</span>
                 {m.sender === "ai" && (
                   <button onClick={() => handleSpeakText(m.message)} className="text-xs hover:scale-110" title="Play Speech">
                     🔊
@@ -577,7 +542,7 @@ export function ConversationSession() {
         {isThinking && (
           <div className="flex items-center gap-2 p-3 text-xs font-bold text-[var(--text-secondary)]">
             <span className="h-2 w-2 rounded-full bg-[#6c63ff] animate-ping" />
-            {activePersona.name} thinking response & analyzing speech...
+            SpeakMate AI thinking response & analyzing speech...
           </div>
         )}
 
