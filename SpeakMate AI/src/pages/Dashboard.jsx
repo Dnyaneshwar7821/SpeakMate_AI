@@ -94,7 +94,7 @@ export function Dashboard() {
           <div className="space-y-3 max-w-xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-extrabold px-3.5 py-1 rounded-full bg-white/20 uppercase tracking-wider">
-                {stats.level}
+                🎓 Standard: {user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || user?.level || "1st Std"} (Auto-Adapted)
               </span>
               <span className="text-xs font-extrabold px-3.5 py-1 rounded-full bg-amber-400 text-slate-950">
                 🔥 {stats.streak}-Day Streak

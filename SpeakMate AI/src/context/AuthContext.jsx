@@ -16,6 +16,12 @@ export function AuthProvider({ children }) {
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const syncSchoolGrade = (userData) => {
+    if (!userData) return;
+    const effectiveGrade = userData.schoolGrade || userData.englishLevel || localStorage.getItem("speakmate_school_grade") || "1st Std";
+    localStorage.setItem("speakmate_school_grade", effectiveGrade);
+  };
+
   const restoreSession = useCallback(async () => {
     try {
       setLoading(true);
@@ -25,13 +31,16 @@ export function AuthProvider({ children }) {
       if (storedToken && storedToken !== "null" && storedToken !== "undefined") {
         setToken(storedToken);
         if (storedUser) {
-          setUser(JSON.parse(storedUser));
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          syncSchoolGrade(parsedUser);
         }
 
         try {
           const me = await authService.me();
           if (me) {
             setUser(me);
+            syncSchoolGrade(me);
             localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(me));
             setOnboardingCompleted(Boolean(me.onboardingCompleted));
           }
@@ -54,6 +63,7 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(STORAGE_KEYS.token);
     localStorage.removeItem(STORAGE_KEYS.user);
     localStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+    localStorage.removeItem("speakmate_school_grade");
     setToken(null);
     setUser(null);
     setOnboardingCompleted(false);
@@ -69,6 +79,7 @@ export function AuthProvider({ children }) {
       if (response && response.token) {
         localStorage.setItem(STORAGE_KEYS.token, response.token);
         if (response.user) {
+          syncSchoolGrade(response.user);
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
           setUser(response.user);
           setOnboardingCompleted(Boolean(response.user.onboardingCompleted));
@@ -92,6 +103,7 @@ export function AuthProvider({ children }) {
   const updateUser = (updatedUserData) => {
     setUser((curr) => {
       const next = { ...(curr || {}), ...updatedUserData };
+      syncSchoolGrade(next);
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(next));
       return next;
     });
