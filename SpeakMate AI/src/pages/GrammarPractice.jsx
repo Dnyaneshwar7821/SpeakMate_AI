@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
-import { grammarService, aiService } from "../services/appServices";
+import { useState, useEffect, useRef } from "react";
+import { grammarService } from "../services/appServices";
 
 // Intelligent Client-Side Grammar Engine for Fallback/Offline Correctness
 function performSmartGrammarCorrection(text) {
   let corrected = text;
   const explanations = [];
-  const corrections = [];
 
   // Rule 1: Subject-Verb Agreement (I/They/We vs He/She/It)
   if (/\b(i|we|they|you)\s+(goes|likes|wants|has|does|works|plays)\b/i.test(corrected)) {
@@ -17,7 +16,7 @@ function performSmartGrammarCorrection(text) {
       .replace(/\b(i|we|they|you)\s+does\b/gi, "$1 do")
       .replace(/\b(i|we|they|you)\s+works\b/gi, "$1 work")
       .replace(/\b(i|we|they|you)\s+plays\b/gi, "$1 play");
-    explanations.push("Subject-Verb Agreement: Plural subjects (I, we, they, you) take base form verbs without 's'.");
+    explanations.push("Plural subjects (I, we, they, you) take base form verbs without 's'.");
   }
 
   if (/\b(he|she|it)\s+(go|like|want|have|do|work|play)\b/i.test(corrected)) {
@@ -29,13 +28,13 @@ function performSmartGrammarCorrection(text) {
       .replace(/\b(he|she|it)\s+do\b/gi, "$1 does")
       .replace(/\b(he|she|it)\s+work\b/gi, "$1 works")
       .replace(/\b(he|she|it)\s+play\b/gi, "$1 plays");
-    explanations.push("Subject-Verb Agreement: Third-person singular (he, she, it) requires third-person verb forms ending in '-s' or '-es'.");
+    explanations.push("Third-person singular (he, she, it) requires third-person verbs ending in '-s' or '-es'.");
   }
 
   // Rule 2: Preposition of Duration ('since' vs 'for')
   if (/\b(since)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|several|a few)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b/i.test(corrected)) {
     corrected = corrected.replace(/\b(since)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|several|a few)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b/gi, "for $2 $3");
-    explanations.push("Prepositions: Use 'for' when referring to a period or duration of time (e.g. 'for 2 years'), and 'since' for a specific starting point (e.g. 'since 2022').");
+    explanations.push("Use 'for' for duration of time (e.g. for 2 years), and 'since' for a starting point.");
   }
 
   // Rule 3: Continuous Tense Auxiliaries ('is go' -> 'is going')
@@ -50,10 +49,10 @@ function performSmartGrammarCorrection(text) {
       .replace(/\b(am|is|are|was|were)\s+talk\b/gi, "$1 talking")
       .replace(/\b(am|is|are|was|were)\s+write\b/gi, "$1 writing")
       .replace(/\b(am|is|are|was|were)\s+drive\b/gi, "$1 driving");
-    explanations.push("Continuous Tenses: Auxiliary verbs (am/is/are/was/were) must be followed by the present participle (verb + -ing).");
+    explanations.push("Auxiliary verbs (am/is/are/was/were) must be followed by present participle verbs ending in '-ing'.");
   }
 
-  // Rule 4: Past Tense Double Negatives / Auxiliaries ('didn't went' -> 'didn't go')
+  // Rule 4: Past Tense Auxiliaries ('didn't went' -> 'didn't go')
   if (/\b(didn't|did not)\s+(went|saw|came|ate|took|wrote|drank)\b/i.test(corrected)) {
     corrected = corrected
       .replace(/\b(didn't|did not)\s+went\b/gi, "$1 go")
@@ -63,22 +62,21 @@ function performSmartGrammarCorrection(text) {
       .replace(/\b(didn't|did not)\s+took\b/gi, "$1 take")
       .replace(/\b(didn't|did not)\s+wrote\b/gi, "$1 write")
       .replace(/\b(didn't|did not)\s+drank\b/gi, "$1 drink");
-    explanations.push("Auxiliary Verbs: After 'did' or 'didn't', always use the base form of the verb.");
+    explanations.push("After 'did' or 'didn't', always use the base form of the verb.");
   }
 
   // Rule 5: Indefinite Articles ('a apple' -> 'an apple')
   if (/\b\ba\s+(apple|orange|egg|umbrella|hour|honest|elephant|idea|avocado|airplane)\b/i.test(corrected)) {
     corrected = corrected.replace(/\ba\s+(apple|orange|egg|umbrella|hour|honest|elephant|idea|avocado|airplane)\b/gi, "an $1");
-    explanations.push("Indefinite Articles: Use 'an' before words starting with vowel sounds (a, e, i, o, u, silent h).");
+    explanations.push("Use 'an' before words starting with vowel sounds.");
   }
 
   // Rule 6: Redundant Prepositions ('discuss about' -> 'discuss')
   if (/\bdiscuss\s+about\b/i.test(corrected)) {
     corrected = corrected.replace(/\bdiscuss\s+about\b/gi, "discuss");
-    explanations.push("Word Choice: 'Discuss' already means 'talk about', so using 'about' after 'discuss' is redundant.");
+    explanations.push("'Discuss' already means 'talk about', so using 'about' is redundant.");
   }
 
-  // Capitalization & Period
   corrected = corrected.trim();
   if (corrected.length > 0) {
     corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
@@ -94,26 +92,81 @@ function performSmartGrammarCorrection(text) {
     correctedText: isExactSame ? text : corrected,
     accuracyScore: isExactSame ? 100 : Math.max(70, Math.floor(100 - explanations.length * 10)),
     explanation: isExactSame
-      ? "✅ Excellent! Your sentence is grammatically correct with accurate tense usage and phrasing."
+      ? "Great job! Your sentence is grammatically correct with accurate tense usage and phrasing."
       : explanations.join(" "),
     isCorrect: isExactSame,
   };
 }
 
 export function GrammarPractice() {
-  const [activeTab, setActiveTab] = useState("checker"); // 'checker', 'history', 'quiz'
+  const [activeTab, setActiveTab] = useState("checker");
   const [textInput, setTextInput] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [history, setHistory] = useState([]);
+  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  const [viseme, setViseme] = useState("REST");
 
   // Quiz State
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizLoading, setQuizLoading] = useState(false);
-  const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
-  const [quizScore, setQuizScore] = useState(0);
-  const [quizFinished, setQuizFinished] = useState(false);
+
+  // Real-Time Lip-Sync Loop
+  useEffect(() => {
+    let visemeInterval = null;
+    if (isAiSpeaking) {
+      const VISEMES = ["AA", "EE", "IH", "OO", "AA", "OH", "EE", "REST"];
+      let idx = 0;
+      visemeInterval = setInterval(() => {
+        idx = (idx + 1) % VISEMES.length;
+        setViseme(VISEMES[idx]);
+      }, 120);
+    } else {
+      setViseme("REST");
+    }
+    return () => clearInterval(visemeInterval);
+  }, [isAiSpeaking]);
+
+  const handleSpeakText = (text) => {
+    if (!text || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.95;
+    utterance.lang = "en-US";
+
+    utterance.onstart = () => {
+      setIsAiSpeaking(true);
+      setViseme("AA");
+    };
+
+    utterance.onboundary = () => {
+      const VISEMES = ["AA", "EE", "IH", "OO", "OH"];
+      setViseme(VISEMES[Math.floor(Math.random() * VISEMES.length)]);
+    };
+
+    utterance.onend = () => {
+      setIsAiSpeaking(false);
+      setViseme("REST");
+    };
+
+    utterance.onerror = () => {
+      setIsAiSpeaking(false);
+      setViseme("REST");
+    };
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleSpeakCorrectionAndImprovement = (res) => {
+    if (!res) return;
+    let spokenMsg = "";
+    if (res.isCorrect) {
+      spokenMsg = `Great job! Your sentence, "${res.correctedText}", is grammatically correct!`;
+    } else {
+      spokenMsg = `Here is the corrected sentence: "${res.correctedText}". Improvement tip: ${res.explanation || ""}`;
+    }
+    handleSpeakText(spokenMsg);
+  };
 
   const loadHistory = async () => {
     try {
@@ -142,39 +195,29 @@ export function GrammarPractice() {
     setAnalyzing(true);
     setAnalysisResult(null);
 
+    let resultObj = null;
     try {
       const backendRes = await grammarService.analyze(rawText).catch(() => null);
       if (backendRes && backendRes.correctedText) {
-        setAnalysisResult(backendRes);
+        resultObj = backendRes;
       } else {
-        const smartRes = performSmartGrammarCorrection(rawText);
-        setAnalysisResult(smartRes);
+        resultObj = performSmartGrammarCorrection(rawText);
       }
+      setAnalysisResult(resultObj);
       await loadHistory();
     } catch (e) {
-      const smartRes = performSmartGrammarCorrection(rawText);
-      setAnalysisResult(smartRes);
+      resultObj = performSmartGrammarCorrection(rawText);
+      setAnalysisResult(resultObj);
     } finally {
       setAnalyzing(false);
+      if (resultObj) {
+        setTimeout(() => handleSpeakCorrectionAndImprovement(resultObj), 400);
+      }
     }
-  };
-
-  const handleSpeak = (text) => {
-    if (!text || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.lang = "en-US";
-    window.speechSynthesis.speak(utterance);
   };
 
   const startGrammarQuiz = async () => {
     setQuizLoading(true);
-    setQuizFinished(false);
-    setQuizScore(0);
-    setCurrentQuizIdx(0);
-    setSelectedAnswer(null);
-
     try {
       const q = await grammarService.quiz().catch(() => null);
       if (q && q.length > 0) {
@@ -196,13 +239,6 @@ export function GrammarPractice() {
           correctIndex: 1,
           explanation: "Use 'have been + verb-ing' for an action that started in the past and continues in the present.",
         },
-        {
-          id: "gq2",
-          questionText: "Choose the correct preposition: 'She is interested ___ learning languages.'",
-          options: ["at", "in", "on", "for"],
-          correctIndex: 1,
-          explanation: "The adjective 'interested' is followed by the preposition 'in'.",
-        },
       ]);
     } finally {
       setQuizLoading(false);
@@ -216,7 +252,7 @@ export function GrammarPractice() {
         <div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--text-primary)]">AI Grammar Coach</h1>
           <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">
-            Instantly analyze your sentences, correct grammar rules out loud, and test your knowledge with quizzes.
+            Instantly analyze your sentences, listen to corrected audio out loud, and learn grammar rule improvements.
           </p>
         </div>
 
@@ -270,12 +306,12 @@ export function GrammarPractice() {
                 <label className="text-sm sm:text-base font-black text-[var(--text-primary)]">
                   Enter English Sentence to Check
                 </label>
-                <span className="text-xs font-bold text-[#6c63ff]">Real-Time AI Feedback</span>
+                <span className="text-xs font-bold text-[#6c63ff]">Real-Time AI Voice Tutor</span>
               </div>
 
               <textarea
                 rows={6}
-                placeholder="Type or paste any English sentence (e.g., 'I goes to school yesterday and she do not likes apples')..."
+                placeholder="Type or paste any English sentence (e.g., 'I goes to school yesterday and she do not likes apples since two years')..."
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
                 className="w-full p-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-semibold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] leading-relaxed"
@@ -294,14 +330,93 @@ export function GrammarPractice() {
                   disabled={analyzing || !textInput.trim()}
                   className="px-8 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] disabled:opacity-50 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-[#6c63ff]/25 transition-all"
                 >
-                  {analyzing ? "Analyzing..." : "Check Grammar Now →"}
+                  {analyzing ? "Analyzing & Reading..." : "Check & Read Aloud →"}
                 </button>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Analysis Results Card */}
-          <div className="lg:col-span-6">
+          {/* Right Column: 3D Lip-Sync AI Tutor & Analysis Results Card */}
+          <div className="lg:col-span-6 space-y-6">
+            
+            {/* 3D Lip-Sync Vector AI Tutor Avatar Card */}
+            <div className="p-5 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl flex items-center justify-between gap-4 overflow-hidden">
+              <div className="flex items-center gap-4">
+                {/* Avatar Frame Box */}
+                <div className="relative">
+                  <div className={`relative grid h-20 w-20 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl p-1.5 overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
+                    <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
+                      <defs>
+                        <linearGradient id="skinGradG" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#FAD7BD" />
+                          <stop offset="100%" stopColor="#E3A880" />
+                        </linearGradient>
+                        <linearGradient id="hairGradG" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stopColor="#4A306D" />
+                          <stop offset="100%" stopColor="#1E1035" />
+                        </linearGradient>
+                        <radialGradient id="eyeIrisG">
+                          <stop offset="0%" stopColor="#6C63FF" />
+                          <stop offset="100%" stopColor="#0F172A" />
+                        </radialGradient>
+                      </defs>
+
+                      <path d="M 32 82 Q 50 78 68 82 L 72 100 L 28 100 Z" fill="#E3A880" />
+                      <path d="M 24 90 Q 50 82 76 90 L 85 100 L 15 100 Z" fill="#6C63FF" opacity="0.9" />
+                      <path d="M 26 36 Q 22 58 32 76 Q 50 88 68 76 Q 78 58 74 36 Q 50 30 26 36 Z" fill="url(#skinGradG)" />
+                      <ellipse cx="23" cy="52" rx="4" ry="7" fill="#E3A880" />
+                      <ellipse cx="77" cy="52" rx="4" ry="7" fill="#E3A880" />
+                      <path d="M 20 42 Q 22 14 50 14 Q 78 14 80 42 Q 65 26 50 26 Q 35 26 20 42 Z" fill="url(#hairGradG)" />
+                      <path d="M 31 43 Q 39 39 47 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                      <path d="M 53 43 Q 61 39 69 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+
+                      <g className="animate-eye-blink">
+                        <ellipse cx="39" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
+                        <ellipse cx="39" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIrisG)" />
+                        <circle cx="37.5" cy="47.5" r="1.2" fill="#FFFFFF" />
+                        <ellipse cx="61" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
+                        <ellipse cx="61" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIrisG)" />
+                        <circle cx="59.5" cy="47.5" r="1.2" fill="#FFFFFF" />
+                      </g>
+                      <path d="M 50 50 L 48 60 L 52 60 Z" fill="#D4946A" opacity="0.6" />
+
+                      {/* Lip-Sync Mouth */}
+                      {viseme === "AA" ? (
+                        <g>
+                          <path d="M 35 64 Q 50 58 65 64 Q 65 80 50 82 Q 35 80 35 64 Z" fill="#991B1B" stroke="#B91C1C" strokeWidth="1" />
+                          <path d="M 37 65 Q 50 62 63 65 L 63 68 Q 50 65 37 68 Z" fill="#FFFFFF" />
+                          <ellipse cx="50" cy="77" rx="6" ry="3.5" fill="#F87171" />
+                        </g>
+                      ) : viseme === "EE" ? (
+                        <g>
+                          <path d="M 31 65 Q 50 60 69 65 Q 69 77 50 78 Q 31 77 31 65 Z" fill="#881337" stroke="#9F1239" strokeWidth="1" />
+                          <path d="M 33 66 Q 50 62 67 66 L 67 69 Q 50 66 33 69 Z" fill="#FFFFFF" />
+                        </g>
+                      ) : (
+                        <path d="M 35 68 Q 50 72 65 68 M 37 70 Q 50 74 63 70" stroke="#991B1B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                      )}
+                    </svg>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-extrabold text-sm text-white">SpeakMate AI Grammar Tutor</h3>
+                  <p className="text-xs text-[#A5B4FC] font-medium">
+                    {isAiSpeaking ? "Reading Corrected Sentence & Rules... 🔊" : "Ready to Analyze & Read Out Loud ✨"}
+                  </p>
+                </div>
+              </div>
+
+              {isAiSpeaking && (
+                <div className="flex items-center gap-1.5 h-8">
+                  <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-1" />
+                  <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2" />
+                  <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3" />
+                </div>
+              )}
+            </div>
+
+            {/* Results Card */}
             {analysisResult ? (
               <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 animate-in fade-in duration-300">
                 <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
@@ -311,15 +426,15 @@ export function GrammarPractice() {
                     </span>
                     <div>
                       <h3 className="font-black text-base text-[var(--text-primary)]">Grammar Evaluation Result</h3>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium">Instant AI Correction</p>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium">AI Read-Aloud Active</p>
                     </div>
                   </div>
 
                   <button
-                    onClick={() => handleSpeak(analysisResult.correctedText)}
-                    className="px-4 py-2 rounded-2xl bg-[#6c63ff]/10 text-[#6c63ff] text-xs font-extrabold hover:bg-[#6c63ff] hover:text-white transition-all inline-flex items-center gap-1.5"
+                    onClick={() => handleSpeakCorrectionAndImprovement(analysisResult)}
+                    className="px-4 py-2 rounded-2xl bg-[#6c63ff] text-white text-xs font-extrabold hover:bg-[#8b85ff] transition-all inline-flex items-center gap-1.5 shadow-md"
                   >
-                    🔊 Listen Corrected
+                    🔊 Replay AI Voice
                   </button>
                 </div>
 
@@ -330,7 +445,7 @@ export function GrammarPractice() {
                   </div>
 
                   <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs sm:text-sm space-y-1">
-                    <span className="font-extrabold text-emerald-500 uppercase text-[10px]">AI Natural Native Phrasing</span>
+                    <span className="font-extrabold text-emerald-500 uppercase text-[10px]">AI Corrected Sentence</span>
                     <p className="font-bold text-emerald-600 dark:text-emerald-300">
                       "{analysisResult.correctedText}"
                     </p>
@@ -338,18 +453,18 @@ export function GrammarPractice() {
 
                   {analysisResult.explanation && (
                     <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs sm:text-sm space-y-1">
-                      <span className="font-extrabold text-[#6c63ff] uppercase text-[10px]">Grammar Rule Explanation</span>
+                      <span className="font-extrabold text-[#6c63ff] uppercase text-[10px]">Grammar Rule Improvement</span>
                       <p className="text-[var(--text-secondary)] leading-relaxed font-medium">
-                        {analysisResult.explanation}
+                        💡 {analysisResult.explanation}
                       </p>
                     </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="h-full glass-card p-8 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 min-h-[300px]">
+              <div className="glass-card p-8 rounded-3xl flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
                 <span className="text-5xl">✍️</span>
-                <h3 className="font-extrabold text-base text-[var(--text-primary)]">Ready to Check Your Grammar</h3>
+                <h3 className="font-extrabold text-base text-[var(--text-primary)]">Ready for Live AI Correction</h3>
                 <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-sm">
                   Enter your sentence on the left to receive instant spoken corrections and grammar rule explanations.
                 </p>
@@ -369,8 +484,8 @@ export function GrammarPractice() {
               <div key={h.id || Math.random()} className="glass-card p-6 rounded-3xl space-y-3">
                 <div className="flex items-center justify-between text-xs font-bold text-[var(--text-secondary)]">
                   <span className="text-emerald-500 font-extrabold">Accuracy: {h.accuracyScore || 90}%</span>
-                  <button onClick={() => handleSpeak(h.correctedText)} className="text-[#6c63ff] hover:underline">
-                    🔊 Listen
+                  <button onClick={() => handleSpeakCorrectionAndImprovement(h)} className="text-[#6c63ff] hover:underline">
+                    🔊 Listen AI Voice
                   </button>
                 </div>
 
