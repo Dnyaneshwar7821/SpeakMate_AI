@@ -1,6 +1,191 @@
 import { useState, useEffect } from "react";
 import { vocabularyService, progressService } from "../services/appServices";
 
+const THREE_VOCAB_QUIZZES = [
+  {
+    id: "quiz_1",
+    title: "Quiz 1: Everyday & School Vocabulary",
+    badge: "Level 1 (Starter - 5th Std)",
+    icon: "📚",
+    desc: "Test core everyday words, definitions, and simple synonyms.",
+    questions: [
+      {
+        id: "q1_1",
+        questionText: "What is the meaning of 'Eloquent'?",
+        options: [
+          "Fluent or persuasive in speaking and writing",
+          "Slow, hesitant, and quiet",
+          "Extremely loud and aggressive",
+          "Difficult to comprehend or read",
+        ],
+        correctIndex: 0,
+        explanation: "Eloquent means expressing oneself fluently, clearly, and persuasively.",
+      },
+      {
+        id: "q1_2",
+        questionText: "Choose the best synonym for 'Resilient':",
+        options: ["Fragile & Weak", "Tough & Adaptable", "Quiet & Shy", "Hesitant"],
+        correctIndex: 1,
+        explanation: "Resilient means able to withstand or recover quickly from difficult conditions.",
+      },
+      {
+        id: "q1_3",
+        questionText: "What does 'Coherent' mean in a speech or essay?",
+        options: [
+          "Confused and scattered",
+          "Logical and consistent",
+          "Completely silent",
+          "Very emotional",
+        ],
+        correctIndex: 1,
+        explanation: "Coherent means logical, clear, and well-structured.",
+      },
+      {
+        id: "q1_4",
+        questionText: "What is the antonym (opposite) of 'Meticulous'?",
+        options: ["Careless & Sloppy", "Precise", "Thorough", "Attentive"],
+        correctIndex: 0,
+        explanation: "Meticulous means showing great attention to detail; its opposite is careless.",
+      },
+      {
+        id: "q1_5",
+        questionText: "Which sentence uses 'Pragmatic' correctly?",
+        options: [
+          "She took a pragmatic, practical approach to solving the issue.",
+          "The pragmatic bird flew high into the clouds.",
+          "He was pragmatic because he never ate lunch.",
+          "Pragmatic music played on the radio.",
+        ],
+        correctIndex: 0,
+        explanation: "Pragmatic means dealing with things sensibly and realistically in a practical way.",
+      },
+    ],
+  },
+  {
+    id: "quiz_2",
+    title: "Quiz 2: Advanced CEFR & High School Academic Words",
+    badge: "Level 2 (6th - 10th Std)",
+    icon: "🎓",
+    desc: "Master high-level academic vocabulary, complex antonyms, and precision.",
+    questions: [
+      {
+        id: "q2_1",
+        questionText: "What is the meaning of 'Articulate'?",
+        options: [
+          "Having or showing the ability to speak fluently and coherently",
+          "Unclear and mumbled",
+          "Extremely lazy",
+          "Stubborn",
+        ],
+        correctIndex: 0,
+        explanation: "Articulate means expressing thoughts clearly and effectively in speech.",
+      },
+      {
+        id: "q2_2",
+        questionText: "Choose the antonym (opposite) for 'Ambiguous':",
+        options: ["Vague", "Clear & Explicit", "Uncertain", "Mysterious"],
+        correctIndex: 1,
+        explanation: "Ambiguous means open to more than one interpretation; clear is its direct opposite.",
+      },
+      {
+        id: "q2_3",
+        questionText: "What does 'Versatile' mean?",
+        options: [
+          "Able to adapt or be adapted to many different functions or activities",
+          "Fixed in one rigid position",
+          "Very expensive",
+          "Easily broken",
+        ],
+        correctIndex: 0,
+        explanation: "Versatile means flexible and capable of doing many different tasks well.",
+      },
+      {
+        id: "q2_4",
+        questionText: "Which word is a synonym for 'Formidable'?",
+        options: ["Impressive & Powerful", "Weak", "Small", "Friendly"],
+        correctIndex: 0,
+        explanation: "Formidable means inspiring respect or awe through being impressively large or powerful.",
+      },
+      {
+        id: "q2_5",
+        questionText: "What is the meaning of 'Plausible'?",
+        options: [
+          "Seeming reasonable or probable",
+          "Impossible to happen",
+          "Extremely funny",
+          "Boring",
+        ],
+        correctIndex: 0,
+        explanation: "Plausible means believable or realistic based on logical reasoning.",
+      },
+    ],
+  },
+  {
+    id: "quiz_3",
+    title: "Quiz 3: Idioms, Synonyms & Phrasal Verbs Mastery",
+    badge: "Level 3 (Fluency & Native Speech)",
+    icon: "⚡",
+    desc: "Master native English idioms, phrasal verbs, and expressive speech.",
+    questions: [
+      {
+        id: "q3_1",
+        questionText: "What does the idiom 'Break the ice' mean?",
+        options: [
+          "To start a conversation and relieve initial tension in a social situation",
+          "To drop something cold on the floor",
+          "To end a friendship permanently",
+          "To freeze water into cubes",
+        ],
+        correctIndex: 0,
+        explanation: "'Break the ice' means making people feel comfortable and starting a social chat.",
+      },
+      {
+        id: "q3_2",
+        questionText: "What is the meaning of 'Beat around the bush'?",
+        options: [
+          "Avoid talking about the main topic directly",
+          "Trim bushes in a garden",
+          "Run fast in a park",
+          "Win a sports match easily",
+        ],
+        correctIndex: 0,
+        explanation: "'Beat around the bush' means speaking evasively instead of addressing the main point.",
+      },
+      {
+        id: "q3_3",
+        questionText: "What does the phrasal verb 'Call it a day' mean?",
+        options: [
+          "Stop working on something for the rest of the day",
+          "Name a day of the week",
+          "Wake up very early in the morning",
+          "Invite someone to a party",
+        ],
+        correctIndex: 0,
+        explanation: "'Call it a day' means deciding to finish work or practice for the day.",
+      },
+      {
+        id: "q3_4",
+        questionText: "What does 'Bite the bullet' mean?",
+        options: [
+          "Face a difficult situation with courage and get it over with",
+          "Eat hard food quickly",
+          "Disobey instructions",
+          "Shoot a target",
+        ],
+        correctIndex: 0,
+        explanation: "'Bite the bullet' means accepting a tough or unpleasant task bravely.",
+      },
+      {
+        id: "q3_5",
+        questionText: "Choose the synonym for 'Spontaneous':",
+        options: ["Impulsive & Natural", "Calculated & Planned", "Slow", "Hesitant"],
+        correctIndex: 0,
+        explanation: "Spontaneous means performed as a result of a sudden impulse without premeditation.",
+      },
+    ],
+  },
+];
+
 export function Vocabulary() {
   const [activeTab, setActiveTab] = useState("list"); // 'list', 'flashcards', 'quiz'
   const [items, setItems] = useState([]);
@@ -8,15 +193,14 @@ export function Vocabulary() {
   const [wordInput, setWordInput] = useState("");
   const [adding, setAdding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterType, setFilterType] = useState("all"); // 'all', 'favorites'
+  const [filterType, setFilterType] = useState("all");
 
   // Flashcard State
   const [cardIndex, setCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Quiz State
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [quizLoading, setQuizLoading] = useState(false);
+  // 3-Quiz Selection State
+  const [selectedQuizIndex, setSelectedQuizIndex] = useState(0);
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState(null);
   const [quizScore, setQuizScore] = useState(0);
@@ -48,7 +232,7 @@ export function Vocabulary() {
     if (!text || !("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
+    utterance.rate = 0.95;
     utterance.lang = "en-US";
     window.speechSynthesis.speak(utterance);
   };
@@ -98,62 +282,37 @@ export function Vocabulary() {
     return matchesSearch && matchesFilter;
   });
 
-  const startQuiz = async () => {
-    setQuizLoading(true);
+  const activeQuiz = THREE_VOCAB_QUIZZES[selectedQuizIndex];
+  const activeQuestions = activeQuiz.questions;
+
+  const startQuiz = (quizIdx = 0) => {
+    setSelectedQuizIndex(quizIdx);
     setQuizFinished(false);
     setQuizScore(0);
     setCurrentQuizIdx(0);
     setSelectedQuizAnswer(null);
-
-    try {
-      const q = await vocabularyService.quiz();
-      if (q && q.length > 0) {
-        setQuizQuestions(q);
-      } else {
-        throw new Error("No backend quiz questions");
-      }
-    } catch (e) {
-      setQuizQuestions([
-        {
-          id: "q1",
-          questionText: "What is the meaning of 'Eloquent'?",
-          options: ["Fluent or persuasive in speaking", "Slow and hesitant", "Extremely loud", "Difficult to understand"],
-          correctIndex: 0,
-          explanation: "Eloquent means expressing oneself clearly and persuasively.",
-        },
-        {
-          id: "q2",
-          questionText: "Choose the synonym for 'Resilient':",
-          options: ["Fragile", "Tough", "Quiet", "Hesitant"],
-          correctIndex: 1,
-          explanation: "Resilient means tough and able to recover quickly.",
-        },
-      ]);
-    } finally {
-      setQuizLoading(false);
-    }
   };
 
   const handleAnswerQuiz = (idx) => {
     if (selectedQuizAnswer !== null) return;
     setSelectedQuizAnswer(idx);
-    const q = quizQuestions[currentQuizIdx];
+    const q = activeQuestions[currentQuizIdx];
     if (idx === q.correctIndex) {
       setQuizScore((s) => s + 1);
     }
   };
 
   const handleNextQuizQuestion = () => {
-    if (currentQuizIdx + 1 < quizQuestions.length) {
+    if (currentQuizIdx + 1 < activeQuestions.length) {
       setCurrentQuizIdx((i) => i + 1);
       setSelectedQuizAnswer(null);
     } else {
-      const finalScore = quizScore + (selectedQuizAnswer === quizQuestions[currentQuizIdx].correctIndex ? 1 : 0);
+      const finalScore = quizScore + (selectedQuizAnswer === activeQuestions[currentQuizIdx].correctIndex ? 1 : 0);
       const earned = finalScore * 20;
       setEarnedXP(earned);
       setQuizFinished(true);
       if (earned > 0) {
-        progressService.addXp(earned).catch(() => {});
+        progressService.create({ xp: earned }).catch(() => {});
       }
     }
   };
@@ -165,7 +324,7 @@ export function Vocabulary() {
         <div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-[var(--text-primary)]">Vocabulary Builder</h1>
           <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">
-            Build your personal word bank, study with 3D flashcards, and test retention with XP quizzes.
+            Build your personal word bank, study with 3D flashcards, and test retention with 3 interactive XP quizzes.
           </p>
         </div>
 
@@ -196,7 +355,7 @@ export function Vocabulary() {
           <button
             onClick={() => {
               setActiveTab("quiz");
-              startQuiz();
+              startQuiz(0);
             }}
             className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all ${
               activeTab === "quiz"
@@ -204,12 +363,12 @@ export function Vocabulary() {
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            ⚡ XP Quiz Challenge
+            ⚡ 3 XP Quizzes
           </button>
         </div>
       </div>
 
-      {/* TAB 1: WORD BANK (DESKTOP WIDESCREEN 2-COLUMN VIEW) */}
+      {/* TAB 1: WORD BANK (DESKTOP WIDESCREEN VIEW) */}
       {activeTab === "list" && (
         <div className="space-y-6">
           {/* Add Word & Search Bar Strip */}
@@ -330,7 +489,7 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* TAB 2: 3D FLASHCARDS DECK (DESKTOP CENTERED INTERACTIVE WIDGET) */}
+      {/* TAB 2: 3D FLASHCARDS DECK */}
       {activeTab === "flashcards" && items.length > 0 && (
         <div className="max-w-3xl mx-auto space-y-6 py-4">
           <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
@@ -399,20 +558,55 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* TAB 3: XP QUIZ CHALLENGE */}
+      {/* TAB 3: 3 VOCABULARY QUIZZES SELECTION & CHALLENGE */}
       {activeTab === "quiz" && (
-        <div className="max-w-3xl mx-auto space-y-6">
-          {quizLoading ? (
-            <div className="p-12 text-center text-sm font-bold text-[var(--text-secondary)]">Loading quiz questions...</div>
-          ) : quizFinished ? (
-            <div className="p-8 sm:p-12 rounded-3xl glass-card text-center space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          
+          {/* Quiz Selector Cards (3 Quizzes) */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {THREE_VOCAB_QUIZZES.map((q, idx) => (
+              <div
+                key={q.id}
+                onClick={() => startQuiz(idx)}
+                className={`p-5 rounded-3xl border cursor-pointer transition-all space-y-3 ${
+                  selectedQuizIndex === idx
+                    ? "bg-[#6c63ff] text-white border-[#6c63ff] shadow-xl shadow-[#6c63ff]/25 scale-105"
+                    : "glass-card glass-card-hover border-[var(--border-default)]"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl p-2 rounded-2xl bg-white/10">{q.icon}</span>
+                  <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full ${selectedQuizIndex === idx ? "bg-white/20 text-white" : "bg-[#6c63ff]/10 text-[#6c63ff]"}`}>
+                    {q.badge}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base">{q.title}</h3>
+                  <p className={`text-xs mt-1 ${selectedQuizIndex === idx ? "opacity-90" : "text-[var(--text-secondary)]"}`}>
+                    {q.desc}
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-white/20 flex items-center justify-between text-xs font-extrabold">
+                  <span>5 Questions</span>
+                  <span>+100 XP Max</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Active Selected Quiz Challenge View */}
+          {quizFinished ? (
+            <div className="p-8 sm:p-12 rounded-3xl glass-card text-center space-y-6 animate-in fade-in duration-300">
               <div className="grid h-20 w-20 mx-auto place-items-center rounded-3xl bg-gradient-to-tr from-amber-400 to-amber-500 text-white text-4xl shadow-xl">
                 🏆
               </div>
               <div>
-                <h2 className="text-3xl sm:text-4xl font-black text-[var(--text-primary)]">Quiz Completed!</h2>
+                <span className="text-xs font-black uppercase tracking-wider text-[#6c63ff] px-3 py-1 rounded-full bg-[#6c63ff]/10">
+                  {activeQuiz.title} Result
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] mt-3">Quiz Completed!</h2>
                 <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1">
-                  You scored {quizScore} out of {quizQuestions.length} correct.
+                  You scored {quizScore} out of {activeQuestions.length} correct.
                 </p>
               </div>
 
@@ -420,30 +614,38 @@ export function Vocabulary() {
                 + {earnedXP} XP Learning Bonus Claimed! 🎉
               </div>
 
-              <div>
+              <div className="flex flex-wrap justify-center gap-4 pt-2">
                 <button
-                  onClick={startQuiz}
-                  className="px-8 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-sm font-extrabold shadow-lg"
+                  onClick={() => startQuiz(selectedQuizIndex)}
+                  className="px-6 py-3 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs sm:text-sm font-extrabold shadow-lg"
                 >
-                  Try Another Quiz ↻
+                  Retry This Quiz ↻
+                </button>
+                <button
+                  onClick={() => startQuiz((selectedQuizIndex + 1) % THREE_VOCAB_QUIZZES.length)}
+                  className="px-6 py-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs sm:text-sm font-extrabold text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
+                >
+                  Next Quiz Tier →
                 </button>
               </div>
             </div>
-          ) : quizQuestions.length > 0 ? (
-            <div className="glass-card p-8 rounded-3xl space-y-6">
-              <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
-                <span>Question {currentQuizIdx + 1} of {quizQuestions.length}</span>
-                <span className="text-[#6c63ff]">+20 XP Per Correct Answer</span>
+          ) : activeQuestions.length > 0 ? (
+            <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 animate-in fade-in duration-200">
+              <div className="flex items-center justify-between text-xs sm:text-sm font-bold border-b border-[var(--border-subtle)] pb-4">
+                <span className="text-[var(--text-primary)] font-black">
+                  {activeQuiz.title} • Question {currentQuizIdx + 1} of {activeQuestions.length}
+                </span>
+                <span className="text-[#6c63ff] font-extrabold">+20 XP Per Correct Answer</span>
               </div>
 
-              <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
-                {quizQuestions[currentQuizIdx].questionText}
+              <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] leading-relaxed">
+                {activeQuestions[currentQuizIdx].questionText}
               </h2>
 
               <div className="space-y-3">
-                {quizQuestions[currentQuizIdx].options.map((opt, idx) => {
+                {activeQuestions[currentQuizIdx].options.map((opt, idx) => {
                   const isSelected = selectedQuizAnswer === idx;
-                  const isCorrect = idx === quizQuestions[currentQuizIdx].correctIndex;
+                  const isCorrect = idx === activeQuestions[currentQuizIdx].correctIndex;
                   return (
                     <button
                       key={idx}
@@ -467,9 +669,9 @@ export function Vocabulary() {
               </div>
 
               {selectedQuizAnswer !== null && (
-                <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
+                <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between gap-4">
                   <p className="text-xs sm:text-sm font-semibold text-[var(--text-secondary)]">
-                    {quizQuestions[currentQuizIdx].explanation}
+                    💡 {activeQuestions[currentQuizIdx].explanation}
                   </p>
                   <button
                     onClick={handleNextQuizQuestion}
