@@ -5,11 +5,6 @@ import { speakingService, onboardingService } from "../services/appServices";
 import { authService } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 
-const SCHOOL_GRADES = [
-  "1st Std", "2nd Std", "3rd Std", "4th Std", "5th Std", 
-  "6th Std", "7th Std", "8th Std", "9th Std", "10th Std"
-];
-
 const STANDARD_SCENARIOS = {
   "1st Std": [
     { id: "std1_1", title: "Alphabet & Sounds Fun", category: "General", difficulty: "1st Std (Starter)", duration: 4, xp: 15, icon: "🎨", desc: "Practice letters A to Z and phonics sounds with your SpeakMate AI teacher." },
@@ -98,8 +93,8 @@ const CATEGORIES = ["All", "General", "Daily Life", "Travel", "Work", "Career"];
 export function SpeakingPractice() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  
-  const initialGrade =
+
+  const userGrade =
     user?.schoolGrade ||
     localStorage.getItem("speakmate_school_grade") ||
     user?.level ||
@@ -109,9 +104,7 @@ export function SpeakingPractice() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedGrade, setSelectedGrade] = useState(initialGrade);
-  const [activeTab, setActiveTab] = useState("grade"); // "grade" or "age"
-  const [userAgeGroup, setUserAgeGroup] = useState("Professional");
+  const [selectedGrade, setSelectedGrade] = useState(userGrade);
 
   const loadData = async () => {
     setLoading(true);
@@ -130,10 +123,6 @@ export function SpeakingPractice() {
 
       setSelectedGrade(activeGrade);
       localStorage.setItem("speakmate_school_grade", activeGrade);
-
-      if (meData?.ageGroup) {
-        setUserAgeGroup(meData.ageGroup);
-      }
     } catch (e) {
       console.warn("Failed to load speaking data", e);
     } finally {
@@ -145,7 +134,6 @@ export function SpeakingPractice() {
     loadData();
   }, []);
 
-  const totalMinutes = history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60;
   const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
   const totalSessions = history.length;
 
@@ -186,12 +174,12 @@ export function SpeakingPractice() {
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#1E1B4B] via-[#312E81] to-[#4338CA] text-white shadow-xl space-y-4 relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
           <div className="space-y-2 max-w-xl">
-            <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-white/10 uppercase tracking-wider text-amber-300">
-              Active Standard Level: {selectedGrade}
+            <span className="text-[10px] font-extrabold px-3.5 py-1 rounded-full bg-white/20 uppercase tracking-wider text-amber-300">
+              🎓 Configured Standard: {selectedGrade}
             </span>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Speaking Practice Drills</h1>
             <p className="text-xs sm:text-sm text-[#C7D2FE] font-medium leading-relaxed">
-              Interactive AI conversation scenarios matching the <strong>{selectedGrade}</strong> curriculum. Practice out loud with real-time feedback.
+              Interactive AI conversation scenarios tailored to your <strong>{selectedGrade}</strong> curriculum selected during onboarding.
             </p>
           </div>
 
@@ -208,38 +196,7 @@ export function SpeakingPractice() {
         </div>
       </div>
 
-      {/* School Standard Selector Bar (1st Std - 10th Std) */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-            <span>🏫 Select School Standard:</span>
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-[#6c63ff]/10 text-[#6c63ff] font-extrabold">
-              {selectedGrade} Selected
-            </span>
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-[var(--border-subtle)]">
-          {SCHOOL_GRADES.map((grade) => (
-            <button
-              key={grade}
-              onClick={() => {
-                setSelectedGrade(grade);
-                localStorage.setItem("speakmate_school_grade", grade);
-              }}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold shrink-0 transition-all ${
-                selectedGrade === grade
-                  ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/30 scale-105"
-                  : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)] border border-[var(--border-default)]"
-              }`}
-            >
-              {grade}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Category Filter Pills */}
+      {/* Category Filter Pills & Search Bar */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 overflow-x-auto pb-1">
           {CATEGORIES.map((cat) => (
@@ -248,7 +205,7 @@ export function SpeakingPractice() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold shrink-0 transition-all ${
                 selectedCategory === cat
-                  ? "bg-[var(--text-primary)] text-[var(--bg-surface)] shadow-sm"
+                  ? "bg-[#6c63ff] text-white shadow-md shadow-[#6c63ff]/20"
                   : "bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
               }`}
             >
@@ -257,7 +214,7 @@ export function SpeakingPractice() {
           ))}
         </div>
 
-        {/* Search */}
+        {/* Search Bar */}
         <input
           type="text"
           placeholder="Search 6 scenarios..."
@@ -267,14 +224,17 @@ export function SpeakingPractice() {
         />
       </div>
 
-      {/* Scenarios Grid (6 Scenarios for each Standard) */}
+      {/* Scenarios Grid (Automatically displays the 6 scenarios of the Onboarding Standard) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-extrabold text-[var(--text-primary)]">
-            {selectedGrade} Conversation Drills (6 Scenarios)
+          <h3 className="text-lg font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+            <span>🏫 {selectedGrade} Speaking Drills</span>
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 font-bold">
+              Auto-Adapted from Onboarding Profile
+            </span>
           </h3>
           <span className="text-xs font-bold text-[var(--text-secondary)]">
-            Showing {filteredScenarios.length} of 6 Scenarios
+            {filteredScenarios.length} Scenarios Available
           </span>
         </div>
 
