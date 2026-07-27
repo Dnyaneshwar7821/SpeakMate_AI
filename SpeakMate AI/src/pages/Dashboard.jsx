@@ -14,6 +14,7 @@ const MOTIVATIONAL_QUOTES = [
 
 export function Dashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
   const isStudent = accountType === "STUDENT";
 

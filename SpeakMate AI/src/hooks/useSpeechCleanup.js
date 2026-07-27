@@ -36,14 +36,12 @@ export function useSpeechCleanup() {
 
     window.addEventListener("beforeunload", handleUnloadOrHide);
     window.addEventListener("pagehide", handleUnloadOrHide);
-    window.addEventListener("unload", handleUnloadOrHide);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       stopAllSpeech();
       window.removeEventListener("beforeunload", handleUnloadOrHide);
       window.removeEventListener("pagehide", handleUnloadOrHide);
-      window.removeEventListener("unload", handleUnloadOrHide);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
