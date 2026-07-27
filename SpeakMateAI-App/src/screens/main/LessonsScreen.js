@@ -23,6 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lessonModuleService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
 
@@ -322,19 +323,25 @@ export default function LessonsScreen({ navigation }) {
   const headerOpacity = useRef(new Animated.Value(0)).current;
   const headerTranslate = useRef(new Animated.Value(-20)).current;
 
+  const [userGrade, setUserGrade] = useState('1st Std');
+
   // ── Load data ──────────────────────────────────────────────────────
   const loadAll = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     setError('');
     try {
-      const [cats, recs, cont] = await Promise.all([
+      const [cats, recs, cont, savedGrade] = await Promise.all([
         lessonModuleService.categories(),
         lessonModuleService.recommended(),
         lessonModuleService.continueLearning(),
+        AsyncStorage.getItem('speakmate_school_grade'),
       ]);
       setCategories(cats || []);
       setRecommended(recs || []);
       setContinueItems(cont || []);
+      if (savedGrade) {
+        setUserGrade(savedGrade);
+      }
 
       // Load lessons based on current filter
       await applyFilter(selectedCategory, activeTab, silent);
@@ -439,6 +446,9 @@ export default function LessonsScreen({ navigation }) {
               <View>
                 <Text style={styles.heroHi}>Welcome back 👋</Text>
                 <Text style={styles.heroTitle}>Continue your learning</Text>
+                <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+                  🎓 Standard Level: {userGrade} (Auto-Configured)
+                </Text>
               </View>
             </View>
 

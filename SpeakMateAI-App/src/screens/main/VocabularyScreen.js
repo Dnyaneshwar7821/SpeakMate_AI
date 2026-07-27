@@ -65,15 +65,21 @@ export default function VocabularyScreen() {
     }
   };
 
+  const [userGrade, setUserGrade] = useState('1st Std');
+
   const loadSettingsAndVoices = async () => {
     try {
-      const [s, voices, onboardingVoice] = await Promise.all([
+      const [s, voices, onboardingVoice, savedGrade] = await Promise.all([
         settingsService.get(),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
+        AsyncStorage.getItem('speakmate_school_grade'),
       ]);
       setSettings({ ...s, onboardingVoice });
       setAvailableVoices(voices);
+      if (savedGrade) {
+        setUserGrade(savedGrade);
+      }
     } catch (e) {
       console.warn("Failed to load settings in vocabulary screen:", e);
     }
@@ -289,7 +295,7 @@ export default function VocabularyScreen() {
   });
 
   return (
-    <Screen title="Vocabulary" subtitle="Professional AI Vocabulary Coach & Quiz.">
+    <Screen title="Vocabulary Builder" subtitle={`Save words & take AI quizzes (Calibrated for ${userGrade})`}>
       {/* Dynamic Tab Bar */}
       <View style={[styles.tabContainer, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
         <TouchableOpacity

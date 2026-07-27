@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 import { COLORS } from '../../constants/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { chatService } from '../../services/appServices';
 
 // ─── Chat Modes Specs ────────────────────────────────────────────────────────
@@ -45,11 +46,17 @@ export default function AIChatScreen({ navigation }) {
   const [newTitle, setNewTitle] = useState('');
   const [renaming, setRenaming] = useState(false);
 
+  const [userGrade, setUserGrade] = useState('1st Std');
+
   const fetchHistory = async () => {
     setLoading(true);
     try {
       const data = await chatService.history();
       setHistory(data || []);
+      const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
+      if (savedGrade) {
+        setUserGrade(savedGrade);
+      }
     } catch (e) {
       console.warn("Failed to load chat history:", e);
     } finally {
@@ -175,6 +182,9 @@ export default function AIChatScreen({ navigation }) {
               </View>
               <Text style={styles.headerSubtitle}>
                 Select a learning mode to practice real-time interactive reading, writing, and speaking.
+              </Text>
+              <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700', marginTop: 4 }}>
+                🎓 Standard Level: {userGrade} (Auto-Configured)
               </Text>
             </LinearGradient>
 

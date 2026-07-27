@@ -13,6 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { AppButton, Card, Screen, StateView } from '../../components/ui';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { grammarService, settingsService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
@@ -81,14 +82,20 @@ export default function GrammarScreen() {
   const [quizScore, setQuizScore] = useState(0);
   const [quizComplete, setQuizComplete] = useState(false);
 
+  const [userGrade, setUserGrade] = useState('1st Std');
+
   const loadSettingsAndVoices = async () => {
     try {
-      const [s, voices] = await Promise.all([
+      const [s, voices, savedGrade] = await Promise.all([
         settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
+        AsyncStorage.getItem('speakmate_school_grade'),
       ]);
       setUserSettings(s);
       setAvailableVoices(voices);
+      if (savedGrade) {
+        setUserGrade(savedGrade);
+      }
     } catch (e) {
       console.warn("Failed to load settings in grammar screen:", e);
     }
@@ -260,7 +267,7 @@ export default function GrammarScreen() {
   };
 
   return (
-    <Screen title="Grammar" subtitle="Learn grammar topics and analyze sentences.">
+    <Screen title="Grammar Coach" subtitle={`Learn tenses & check sentences (Calibrated for ${userGrade})`}>
       {/* Tab bar */}
       <View style={[styles.tabContainer, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
         <TouchableOpacity
