@@ -30,9 +30,12 @@ import {
 } from '../../components/auth';
 import { authService } from '../../services/authService';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 export default function RegisterScreen({ navigation }) {
   const { register } = useContext(AuthContext);
 
+  const [accountType, setAccountType] = useState('INDIVIDUAL_USER'); // 'INDIVIDUAL_USER' | 'STUDENT'
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -128,6 +131,7 @@ export default function RegisterScreen({ navigation }) {
 
     try {
       const emailLower = email.trim().toLowerCase();
+      await AsyncStorage.setItem('speakmate_account_type', accountType);
       await register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -135,6 +139,7 @@ export default function RegisterScreen({ navigation }) {
         password,
         confirmPassword,
         otp: otp.trim(),
+        accountType,
       });
       setOtpState('VERIFIED');
       setRegistered(true);
@@ -221,6 +226,56 @@ export default function RegisterScreen({ navigation }) {
               /* ── Registration Form ── */
               <AuthCard style={styles.card}>
                 <ErrorMessage message={error} />
+
+                {/* Account Type Role Selection */}
+                <View style={styles.accountTypeContainer}>
+                  <Text style={styles.accountTypeLabel}>I am signing up as a:</Text>
+                  <View style={styles.accountTypeToggleRow}>
+                    <TouchableOpacity
+                      onPress={() => setAccountType('INDIVIDUAL_USER')}
+                      style={[
+                        styles.accountTypeBtn,
+                        accountType === 'INDIVIDUAL_USER' && styles.accountTypeBtnActive,
+                      ]}
+                    >
+                      <Ionicons
+                        name="person-outline"
+                        size={18}
+                        color={accountType === 'INDIVIDUAL_USER' ? '#4F46E5' : '#64748B'}
+                      />
+                      <Text
+                        style={[
+                          styles.accountTypeBtnText,
+                          accountType === 'INDIVIDUAL_USER' && styles.accountTypeBtnTextActive,
+                        ]}
+                      >
+                        Individual
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => setAccountType('STUDENT')}
+                      style={[
+                        styles.accountTypeBtn,
+                        accountType === 'STUDENT' && styles.accountTypeBtnActive,
+                      ]}
+                    >
+                      <Ionicons
+                        name="school-outline"
+                        size={18}
+                        color={accountType === 'STUDENT' ? '#4F46E5' : '#64748B'}
+                      />
+                      <Text
+                        style={[
+                          styles.accountTypeBtnText,
+                          accountType === 'STUDENT' && styles.accountTypeBtnTextActive,
+                        ]}
+                      >
+                        School Student
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
 
                 {/* First Name & Last Name row */}
                 <View style={styles.nameRow}>
@@ -443,6 +498,45 @@ const styles = StyleSheet.create({
     elevation: 8,
     borderWidth: 1,
     borderColor: '#F1F5F9',
+  },
+  accountTypeContainer: {
+    marginBottom: 16,
+  },
+  accountTypeLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 8,
+  },
+  accountTypeToggleRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  accountTypeBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  accountTypeBtnActive: {
+    borderColor: '#4F46E5',
+    backgroundColor: '#EEF2FF',
+  },
+  accountTypeBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  accountTypeBtnTextActive: {
+    color: '#4F46E5',
+    fontWeight: '800',
   },
   nameRow: {
     flexDirection: 'row',

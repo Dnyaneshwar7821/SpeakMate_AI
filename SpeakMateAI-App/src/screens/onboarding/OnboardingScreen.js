@@ -234,12 +234,15 @@ export default function OnboardingScreen({ navigation }) {
   const [customPhoto, setCustomPhoto] = useState(null);
   const [avatarCategory, setAvatarCategory] = useState('illustrated');
 
+  const [accountType, setAccountType] = useState('INDIVIDUAL_USER'); // 'INDIVIDUAL_USER' | 'STUDENT'
   // --- Speech & Voice selection ---
   const [availableVoices, setAvailableVoices] = useState([]);
   
   useEffect(() => {
     async function initOnboardingSpeech() {
       try {
+        const storedAccountType = await AsyncStorage.getItem('speakmate_account_type');
+        if (storedAccountType) setAccountType(storedAccountType);
         const voices = await Speech.getAvailableVoicesAsync();
         const enVoices = voices.filter(v => v.language.startsWith('en'));
         setAvailableVoices(enVoices);
@@ -422,8 +425,7 @@ export default function OnboardingScreen({ navigation }) {
       }
       transitionToNext(5);
     } else if (step === 5) {
-      transitionToNext(6);
-    } else if (step === 6) {
+      // Step 5 handles either School Grade (Student) or CEFR Level (Individual)
       transitionToNext(7);
     } else if (step === 7) {
       if (interests.length === 0) {
@@ -445,7 +447,9 @@ export default function OnboardingScreen({ navigation }) {
   };
 
   const handleBack = () => {
-    if (step > 1) {
+    if (step === 7) {
+      transitionToNext(5);
+    } else if (step > 1) {
       transitionToNext(step - 1);
     }
   };
@@ -719,72 +723,73 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
-            {/* Step 5: English Proficiency Level */}
+            {/* Step 5: Dynamic Level / Standard Selection */}
             {step === 5 && (
               <View style={styles.stepContent}>
-                <Text style={styles.title}>Select Your English Level</Text>
-                <Text style={styles.subtitle}>Choose your current proficiency level in English.</Text>
-                <View style={styles.cardList}>
-                  {LEVELS.map((item) => (
-                    <TouchableOpacity
-                      key={item.key}
-                      onPress={() => setLevel(item.key)}
-                      style={[
-                        styles.selectCardLarge,
-                        level === item.key && styles.selectCardLargeActive,
-                      ]}
-                    >
-                      <View style={styles.levelLeft}>
-                        <View style={styles.levelRatingBox}>
-                          <Text style={styles.levelRatingText}>{item.rating}</Text>
-                        </View>
-                        <View style={styles.levelInfo}>
-                          <Text style={styles.selectCardLabel}>{item.label}</Text>
-                          <Text style={styles.levelDesc}>{item.desc}</Text>
-                        </View>
-                      </View>
-                      {level === item.key && (
-                        <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Step 6: School Standard Selection */}
-            {step === 6 && (
-              <View style={styles.stepContent}>
-                <Text style={styles.title}>Select Your School Standard</Text>
-                <Text style={styles.subtitle}>Choose your school grade. The entire app will adapt its speaking practice, AI chat, and lessons to this standard level.</Text>
-                <View style={styles.cardList}>
-                  {SCHOOL_GRADES.map((grd) => (
-                    <TouchableOpacity
-                      key={grd.key}
-                      onPress={() => {
-                        setSchoolGrade(grd.key);
-                        AsyncStorage.setItem('speakmate_school_grade', grd.key);
-                      }}
-                      style={[
-                        styles.selectCardLarge,
-                        schoolGrade === grd.key && styles.selectCardLargeActive,
-                      ]}
-                    >
-                      <View style={styles.levelLeft}>
-                        <View style={styles.levelRatingBox}>
-                          <Ionicons name={grd.icon} size={20} color="#4F46E5" />
-                        </View>
-                        <View style={styles.levelInfo}>
-                          <Text style={styles.selectCardLabel}>{grd.label}</Text>
-                          <Text style={styles.levelDesc}>{grd.desc}</Text>
-                        </View>
-                      </View>
-                      {schoolGrade === grd.key && (
-                        <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                {accountType === 'STUDENT' ? (
+                  <>
+                    <Text style={styles.title}>Select Your School Standard</Text>
+                    <Text style={styles.subtitle}>Choose your current school grade. Your speaking scenarios, AI tutor conversations, and lessons will adapt to this level.</Text>
+                    <View style={styles.cardList}>
+                      {SCHOOL_GRADES.map((grd) => (
+                        <TouchableOpacity
+                          key={grd.key}
+                          onPress={() => {
+                            setSchoolGrade(grd.key);
+                            AsyncStorage.setItem('speakmate_school_grade', grd.key);
+                          }}
+                          style={[
+                            styles.selectCardLarge,
+                            schoolGrade === grd.key && styles.selectCardLargeActive,
+                          ]}
+                        >
+                          <View style={styles.levelLeft}>
+                            <View style={styles.levelRatingBox}>
+                              <Ionicons name={grd.icon} size={20} color="#4F46E5" />
+                            </View>
+                            <View style={styles.levelInfo}>
+                              <Text style={styles.selectCardLabel}>{grd.label}</Text>
+                              <Text style={styles.levelDesc}>{grd.desc}</Text>
+                            </View>
+                          </View>
+                          {schoolGrade === grd.key && (
+                            <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.title}>Select Your English Level</Text>
+                    <Text style={styles.subtitle}>Choose your current proficiency level in English.</Text>
+                    <View style={styles.cardList}>
+                      {LEVELS.map((item) => (
+                        <TouchableOpacity
+                          key={item.key}
+                          onPress={() => setLevel(item.key)}
+                          style={[
+                            styles.selectCardLarge,
+                            level === item.key && styles.selectCardLargeActive,
+                          ]}
+                        >
+                          <View style={styles.levelLeft}>
+                            <View style={styles.levelRatingBox}>
+                              <Text style={styles.levelRatingText}>{item.rating}</Text>
+                            </View>
+                            <View style={styles.levelInfo}>
+                              <Text style={styles.selectCardLabel}>{item.label}</Text>
+                              <Text style={styles.levelDesc}>{item.desc}</Text>
+                            </View>
+                          </View>
+                          {level === item.key && (
+                            <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
+                          )}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                )}
               </View>
             )}
 
