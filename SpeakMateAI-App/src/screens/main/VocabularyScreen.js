@@ -22,6 +22,9 @@ import { vocabularyService, settingsService, progressService } from '../../servi
 import { VoiceService } from '../../services/VoiceService';
 import { COLORS } from '../../constants/colors';
 
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = width - 60;
+
 const STANDARD_VOCABULARY = {
   '1st Std': [
     { id: 'v1_1', word: 'Apple', phonetic: '/ˈæp.əl/', partOfSpeech: 'noun', meaning: 'A sweet round fruit that grows on trees.', example: 'An apple a day keeps the doctor away.', favorite: true },
