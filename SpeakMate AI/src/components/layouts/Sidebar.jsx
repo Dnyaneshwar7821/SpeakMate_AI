@@ -193,7 +193,9 @@ export function Sidebar() {
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-extrabold text-xs text-[var(--text-primary)] truncate">{user?.name || "Learner"}</p>
-            <p className="text-[10px] font-bold text-[#6c63ff] truncate">Level: {user?.level || "B1 Intermediate"}</p>
+            <p className="text-[10px] font-bold text-[#6c63ff] truncate">
+              Standard: {localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || user?.level || "1st Std"}
+            </p>
           </div>
         </div>
       </div>
