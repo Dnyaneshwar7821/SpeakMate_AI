@@ -104,9 +104,11 @@ export function Register() {
 
       await authService.register(payload);
       
-      // Auto login after registration
-      await login({ email: form.email.trim(), password: form.password });
-      navigate(ROUTES.ONBOARDING, { replace: true });
+      // Navigate to Login page (do not auto-login)
+      navigate(ROUTES.LOGIN, {
+        replace: true,
+        state: { infoMessage: "Account created successfully! Please log in to your account." },
+      });
     } catch (err) {
       console.error("Registration failed:", err);
       setError(

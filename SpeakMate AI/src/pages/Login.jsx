@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ROUTES from "../constants/routes";
 
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const infoMessage = location.state?.infoMessage || "";
 
   const handleSubmit = async (event) => {
     if (event) event.preventDefault();
@@ -77,6 +79,14 @@ export function Login() {
             Log in to continue your daily English speaking practice with SpeakMate AI.
           </p>
         </div>
+
+        {/* Success Info Banner */}
+        {infoMessage && (
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 space-y-1 animate-in fade-in duration-200">
+            <p className="font-black">🎉 Registration Successful!</p>
+            <p className="font-semibold opacity-90">{infoMessage}</p>
+          </div>
+        )}
 
         {/* Error Popup Alert */}
         {error && (
