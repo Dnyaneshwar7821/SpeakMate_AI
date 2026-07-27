@@ -19,6 +19,149 @@ import { VoiceService } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
 
+const STANDARD_GRAMMAR_TOPICS = {
+  '1st Std': [
+    {
+      id: 'g1_1',
+      title: 'Naming Words (Nouns) & Capital Letters',
+      description: 'Learn names of people, places, animals, and things.',
+      explanations: 'Nouns are naming words like Boy, School, Dog, and Apple. Always start sentences and names with a Capital Letter.',
+      examples: [
+        { original: 'i love my dog tommy.', corrected: 'I love my dog Tommy.', rule: 'Capitalize "I" and proper name "Tommy".' }
+      ],
+      quiz: [
+        { question: 'Which word is a naming word (noun)?', options: ['Run', 'Apple', 'Sing', 'Fast'], correct: 'Apple' }
+      ]
+    }
+  ],
+  '2nd Std': [
+    {
+      id: 'g2_1',
+      title: 'One & Many (Singular / Plural)',
+      description: 'Learn adding -s and -es for more than one object.',
+      explanations: 'Add -s to make regular plurals: Dog -> Dogs, Book -> Books. Add -es for words ending in -ch, -sh, -s, -x: Bus -> Buses.',
+      examples: [
+        { original: 'I have two dog.', corrected: 'I have two dogs.', rule: 'Add -s for more than one dog.' }
+      ],
+      quiz: [
+        { question: 'What is the plural of "Bus"?', options: ['Buss', 'Buses', 'Bussies', 'Bux'], correct: 'Buses' }
+      ]
+    }
+  ],
+  '3rd Std': [
+    {
+      id: 'g3_1',
+      title: 'Action Verbs & Simple Present',
+      description: 'Use verbs for daily habits and actions happening now.',
+      explanations: 'Verbs tell what someone does. Use "He plays" for singular and "They play" for plural in simple present.',
+      examples: [
+        { original: 'He play football every day.', corrected: 'He plays football every day.', rule: 'Add -s to simple present verbs with He/She/It.' }
+      ],
+      quiz: [
+        { question: 'Complete: "She _______ to school every morning."', options: ['walk', 'walks', 'walking', 'walked'], correct: 'walks' }
+      ]
+    }
+  ],
+  '4th Std': [
+    {
+      id: 'g4_1',
+      title: 'Past Tense & Comparative Words',
+      description: 'Speak about completed past actions and compare sizes.',
+      explanations: 'Use Past Simple (went, ate, played) for completed actions. Use -er (bigger, faster) when comparing two objects.',
+      examples: [
+        { original: 'She go to market yesterday.', corrected: 'She went to market yesterday.', rule: 'Use past tense "went" for completed past time.' }
+      ],
+      quiz: [
+        { question: 'Complete: "An elephant is _______ than a lion."', options: ['big', 'bigger', 'biggest', 'more big'], correct: 'bigger' }
+      ]
+    }
+  ],
+  '5th Std': [
+    {
+      id: 'g5_1',
+      title: 'Present Continuous & Future (Going to)',
+      description: 'Describe ongoing actions and planned future events.',
+      explanations: 'Form Present Continuous with is/am/are + verb-ing (I am studying). Use "going to" for planned future trips.',
+      examples: [
+        { original: 'I studying math right now.', corrected: 'I am studying math right now.', rule: 'Present Continuous requires helper verb am/is/are.' }
+      ],
+      quiz: [
+        { question: 'Complete: "We are _______ a picnic tomorrow."', options: ['plan', 'planned', 'planning', 'plans'], correct: 'planning' }
+      ]
+    }
+  ],
+  '6th Std': [
+    {
+      id: 'g6_1',
+      title: 'Present Perfect Tense & Modal Verbs',
+      description: 'Express completed experiences and modal requests (can, should).',
+      explanations: 'Form Present Perfect with have/has + past participle (I have completed). Use "should" for advice and "can" for ability.',
+      examples: [
+        { original: 'I have finish my homework.', corrected: 'I have finished my homework.', rule: 'Present Perfect uses past participle "finished".' }
+      ],
+      quiz: [
+        { question: 'Complete: "She has _______ her science project."', options: ['submit', 'submitted', 'submitting', 'submits'], correct: 'submitted' }
+      ]
+    }
+  ],
+  '7th Std': [
+    {
+      id: 'g7_1',
+      title: 'Conjunctions & Relative Clauses',
+      description: 'Connect sentences using because, although, who, which.',
+      explanations: 'Use conjunctions (and, but, because, although) to connect clauses. Use "who" for people and "which" for things.',
+      examples: [
+        { original: 'This is the boy which won the race.', corrected: 'This is the boy who won the race.', rule: 'Use "who" when referring to people.' }
+      ],
+      quiz: [
+        { question: 'Complete: "I stayed home _______ it was raining heavily."', options: ['but', 'because', 'although', 'so that'], correct: 'because' }
+      ]
+    }
+  ],
+  '8th Std': [
+    {
+      id: 'g8_1',
+      title: 'Active vs. Passive Voice',
+      description: 'Shift focus between subject performer and action object.',
+      explanations: 'Active: Mom baked the cake. Passive: The cake was baked by Mom. Form: to be + past participle.',
+      examples: [
+        { original: 'The letter sent by the principal.', corrected: 'The letter was sent by the principal.', rule: 'Passive voice requires a form of "to be".' }
+      ],
+      quiz: [
+        { question: 'Change to passive: "The chef cooked the meal."', options: ['The meal is cooked by the chef.', 'The meal was cooked by the chef.', 'The chef cooked meal.', 'The meal cooks by chef.'], correct: 'The meal was cooked by the chef.' }
+      ]
+    }
+  ],
+  '9th Std': [
+    {
+      id: 'g9_1',
+      title: 'Conditional Sentences & Reported Speech',
+      description: 'Master If-clauses (Types 1, 2, 3) and indirect statements.',
+      explanations: 'Type 1: If it rains, we will stay inside. Type 2: If I were rich, I would travel. Reported speech shifts tenses back.',
+      examples: [
+        { original: 'If I study hard, I would pass.', corrected: 'If I study hard, I will pass.', rule: 'Type 1 conditional pairs Present Simple with "will".' }
+      ],
+      quiz: [
+        { question: 'Complete: "If I _______ more time, I would join the debate."', options: ['have', 'had', 'have had', 'will have'], correct: 'had' }
+      ]
+    }
+  ],
+  '10th Std': [
+    {
+      id: 'g10_1',
+      title: '10th Board Exam Syntax & Advanced Inversion',
+      description: 'Master formal rhetorical structures, inversion, and board syntax.',
+      explanations: 'Inversion places auxiliary verbs before subjects after negative adverbs (e.g., "Not only did he win, but...").',
+      examples: [
+        { original: 'Not only he won the gold, but he set a record.', corrected: 'Not only did he win the gold, but he also set a record.', rule: 'Use inverted auxiliary "did he win" after "Not only".' }
+      ],
+      quiz: [
+        { question: 'Complete: "No sooner _______ the stage than the audience applauded."', options: ['he stepped', 'did he step', 'he has stepped', 'steps he'], correct: 'did he step' }
+      ]
+    }
+  ],
+};
+
 const GRAMMAR_TOPICS = [
   {
     id: 'tenses',
@@ -32,32 +175,6 @@ const GRAMMAR_TOPICS = [
     quiz: [
       { question: 'Identify the correct sentence:', options: ['He has gone to Paris yesterday.', 'He went to Paris yesterday.', 'He goes to Paris yesterday.', 'He was go to Paris yesterday.'], correct: 'He went to Paris yesterday.' },
       { question: 'Complete: "I _______ English for three years now."', options: ['am study', 'studied', 'have been studying', 'studies'], correct: 'have been studying' }
-    ]
-  },
-  {
-    id: 'prepositions',
-    title: 'Prepositions of Place & Time',
-    description: 'Master when to use "in", "on", "at", "by", etc.',
-    explanations: 'Use "at" for specific times and points. Use "on" for days/dates and surfaces. Use "in" for months/years, enclosed spaces, and general periods of time.',
-    examples: [
-      { original: 'Meet me on 9:00 PM.', corrected: 'Meet me at 9:00 PM.', rule: 'Use "at" for specific clock times.' },
-      { original: 'I am in the bus.', corrected: 'I am on the bus.', rule: 'Use "on" for public transport vehicles like buses, trains, and planes.' }
-    ],
-    quiz: [
-      { question: 'What is the correct preposition: "He graduated ____ 2021."', options: ['at', 'on', 'in', 'by'], correct: 'in' },
-      { question: 'Complete: "The keys are lying _______ the kitchen table."', options: ['in', 'at', 'on', 'underneath of'], correct: 'on' }
-    ]
-  },
-  {
-    id: 'passive-voice',
-    title: 'Active vs. Passive Voice',
-    description: 'Understand focus shifts between subject and action object.',
-    explanations: 'Use Active Voice when the subject performs the action. Use Passive Voice (Form: to be + past participle) when the object of the action is the main focus or the actor is unknown.',
-    examples: [
-      { original: 'The cake baked by my mom.', corrected: 'The cake was baked by my mom.', rule: 'Passive voice needs a form of "to be" (was/is/has been) before the past participle.' }
-    ],
-    quiz: [
-      { question: 'Change to passive: "The chef cooked the food."', options: ['The food is cooked by the chef.', 'The food cooked by the chef.', 'The food was cooked by the chef.', 'The chef was cooked by the food.'], correct: 'The food was cooked by the chef.' }
     ]
   }
 ];
@@ -399,7 +516,7 @@ export default function GrammarScreen() {
       {/* TAB 2: GRAMMAR TOPICS GUIDE */}
       {activeTab === 'topics' && (
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-          {GRAMMAR_TOPICS.map((topic) => (
+          {(STANDARD_GRAMMAR_TOPICS[userGrade] || GRAMMAR_TOPICS).map((topic) => (
             <Card key={topic.id} style={[styles.topicCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
               <View style={styles.topicHeader}>
                 <Text style={[styles.topicTitle, { color: theme.textPrimary }]}>{topic.title}</Text>
