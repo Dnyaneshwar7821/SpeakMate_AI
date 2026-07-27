@@ -539,11 +539,11 @@ export default function LessonsScreen({ navigation }) {
               <View>
                 <Text style={styles.heroHi}>Welcome back 👋</Text>
                 <Text style={styles.heroTitle}>Continue your learning</Text>
-                <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
-                  {accountType === 'STUDENT'
-                    ? `🎓 Standard Level: ${userGrade || '1st Std'}`
-                    : `👤 English Level: ${userGrade || 'Intermediate'}`}
-                </Text>
+                {accountType === 'STUDENT' && (
+                  <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+                    🎓 Standard Level: {userGrade || '1st Std'}
+                  </Text>
+                )}
               </View>
             </View>
 

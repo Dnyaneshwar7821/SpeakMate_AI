@@ -411,7 +411,14 @@ export default function GrammarScreen() {
   };
 
   return (
-    <Screen title="Grammar Coach" subtitle={`Learn tenses & check sentences (Calibrated for ${userGrade})`}>
+    <Screen
+      title="Grammar Coach"
+      subtitle={
+        accountType === 'STUDENT'
+          ? `Learn tenses & check sentences (Calibrated for ${userGrade})`
+          : 'Learn tenses & analyze sentence grammar'
+      }
+    >
       {/* Tab bar */}
       <View style={[styles.tabContainer, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
         <TouchableOpacity

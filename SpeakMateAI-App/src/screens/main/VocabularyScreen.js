@@ -366,7 +366,14 @@ export default function VocabularyScreen() {
   });
 
   return (
-    <Screen title="Vocabulary Builder" subtitle={`Save words & take AI quizzes (Calibrated for ${userGrade})`}>
+    <Screen
+      title="Vocabulary Builder"
+      subtitle={
+        accountType === 'STUDENT'
+          ? `Save words & take AI quizzes (Calibrated for ${userGrade})`
+          : 'Save words & take interactive AI flashcard quizzes'
+      }
+    >
       {/* Dynamic Tab Bar */}
       <View style={[styles.tabContainer, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
         <TouchableOpacity

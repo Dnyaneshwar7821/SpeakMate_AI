@@ -27,6 +27,9 @@ export function AiChat() {
   const [newTitle, setNewTitle] = useState("");
   const [renaming, setRenaming] = useState(false);
 
+  const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+  const isStudent = accountType === "STUDENT";
+  const [userAgeGroup, setUserAgeGroup] = useState("Professional");
   const [userGrade, setUserGrade] = useState("1st Std");
 
   const fetchHistory = async () => {
@@ -35,9 +38,9 @@ export function AiChat() {
       const data = await chatService.history().catch(() => []);
       setHistory(data || []);
       const savedGrade = localStorage.getItem("speakmate_school_grade");
-      if (savedGrade) {
-        setUserGrade(savedGrade);
-      }
+      const savedAge = localStorage.getItem("speakmate_age_group");
+      if (savedGrade) setUserGrade(savedGrade);
+      if (savedAge) setUserAgeGroup(savedAge);
     } catch (e) {
       console.warn("Failed to load chat history", e);
     } finally {
@@ -102,7 +105,7 @@ export function AiChat() {
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl space-y-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-2">
           <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-white/10 uppercase tracking-wider">
-            24/7 AI Language Tutor · Standard: {userGrade} (Auto-Adapted)
+            {isStudent ? `24/7 AI Language Tutor · Standard: ${userGrade}` : `24/7 AI Language Tutor · ${userAgeGroup} Profile`}
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">AI Chat Coach</h1>
           <p className="text-xs sm:text-sm text-indigo-200 font-medium">
