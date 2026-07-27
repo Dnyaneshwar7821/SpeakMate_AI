@@ -351,18 +351,14 @@ export default function SpeakingHomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* ── Dynamic Level / Age Group Segmented Selector ── */}
-      <LevelSegmentedControl
-        selectedLevel={isStudent ? selectedGrade : userAgeGroup}
-        onChangeLevel={(val) => {
-          if (isStudent) {
-            setSelectedGrade(val);
-          } else {
-            setUserAgeGroup(val);
-          }
-        }}
-        accountType={accountType}
-      />
+      {/* ── Standard Level Segmented Selector (For School Students Only) ── */}
+      {isStudent && (
+        <LevelSegmentedControl
+          selectedLevel={selectedGrade}
+          onChangeLevel={(val) => setSelectedGrade(val)}
+          accountType="STUDENT"
+        />
+      )}
 
       {/* ── Categories Carousel ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
