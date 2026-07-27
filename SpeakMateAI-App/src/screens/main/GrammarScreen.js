@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { AppButton, Card, Screen, StateView } from '../../components/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { grammarService, settingsService } from '../../services/appServices';
+import { grammarService, settingsService, progressService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
@@ -245,6 +245,17 @@ export default function GrammarScreen() {
       setText('');
       await load();
 
+      // Award +20 XP for grammar check
+      try {
+        const currProgress = await progressService.get().catch(() => null);
+        if (currProgress) {
+          await progressService.update({
+            ...currProgress,
+            xp: (currProgress.xp || 0) + 20,
+          });
+        }
+      } catch (xpErr) {}
+
       // Read aloud full analysis feedback automatically!
       if (response) {
         speakFullFeedback(response);
@@ -360,12 +371,22 @@ export default function GrammarScreen() {
     }
   };
 
-  const handleNextQuizQuestion = () => {
+  const handleNextQuizQuestion = async () => {
     setSelectedQuizAnswer(null);
     if (currentQuestionIndex < selectedTopic.quiz.length - 1) {
       setCurrentQuestionIndex((prev) => prev + 1);
     } else {
       setQuizComplete(true);
+      try {
+        const totalAwarded = quizScore * 25 + (quizScore === selectedTopic.quiz.length ? 25 : 0);
+        const currProgress = await progressService.get().catch(() => null);
+        if (currProgress && totalAwarded > 0) {
+          await progressService.update({
+            ...currProgress,
+            xp: (currProgress.xp || 0) + totalAwarded,
+          });
+        }
+      } catch (e) {}
     }
   };
 

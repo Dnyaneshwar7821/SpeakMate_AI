@@ -322,7 +322,7 @@ export default function VocabularyScreen() {
     setQuizFinished(true);
     const finalScore = quizScoreRef.current;
     const totalQuestions = quizQuestions.length;
-    const baseXP = finalScore * 10;
+    const baseXP = finalScore * 25; // 25 XP per correct answer
     const perfectBonus = (finalScore === totalQuestions && totalQuestions > 0) ? 25 : 0;
     const totalAwarded = baseXP + perfectBonus;
     setEarnedXP(totalAwarded);
