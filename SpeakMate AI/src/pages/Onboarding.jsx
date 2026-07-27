@@ -84,13 +84,14 @@ export function Onboarding() {
   const navigate = useNavigate();
   const { completeOnboarding } = useAuth();
   const [step, setStep] = useState(1);
+  const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
 
   // Form State
   const [nativeLanguage, setNativeLanguage] = useState("English");
   const [selectedGoal, setSelectedGoal] = useState("Communication");
   const [selectedAgeGroup, setSelectedAgeGroup] = useState("Young Adult");
   const [selectedLevel, setSelectedLevel] = useState("Intermediate");
-  const [selectedGrade, setSelectedGrade] = useState("1st Std");
+  const [selectedGrade, setSelectedGrade] = useState("5th Std");
   const [selectedInterests, setSelectedInterests] = useState(["Technology", "Travel"]);
   const [selectedVoice, setSelectedVoice] = useState("Friendly");
   const [selectedCommitment, setSelectedCommitment] = useState("15 min");
@@ -151,7 +152,7 @@ export function Onboarding() {
   };
 
   const handleFinish = () => {
-    const finalGrade = selectedGrade || "1st Std";
+    const finalGrade = selectedGrade || "5th Std";
     localStorage.setItem("speakmate_school_grade", finalGrade);
     completeOnboarding({
       nativeLanguage,
@@ -166,7 +167,7 @@ export function Onboarding() {
     navigate(ROUTES.DASHBOARD);
   };
 
-  const TOTAL_STEPS = 9;
+  const TOTAL_STEPS = 8;
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -274,74 +275,75 @@ export function Onboarding() {
           </div>
         )}
 
-        {/* STEP 4: ENGLISH LEVEL */}
+        {/* STEP 4: DYNAMIC LEVEL / STANDARD SELECTION */}
         {step === 4 && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">What is your current English proficiency?</h2>
-              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Estimates your baseline grammar and conversation fluency.</p>
-            </div>
+            {accountType === "STUDENT" ? (
+              <>
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Select your School Standard</h2>
+                  <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Choose your school grade. Your speaking practice, AI chat, and lessons will adapt to this level.</p>
+                </div>
 
-            <div className="space-y-3">
-              {LEVELS.map((lvl) => (
-                <button
-                  key={lvl.key}
-                  onClick={() => setSelectedLevel(lvl.key)}
-                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
-                    selectedLevel === lvl.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
-                  }`}
-                >
-                  <div>
-                    <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{lvl.label}</h3>
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-0.5">{lvl.desc}</p>
-                  </div>
-                  {selectedLevel === lvl.key && <span className="text-[#6c63ff] font-extrabold text-base">✓</span>}
-                </button>
-              ))}
-            </div>
+                <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
+                  {SCHOOL_GRADES.map((grd) => (
+                    <button
+                      key={grd.key}
+                      onClick={() => {
+                        setSelectedGrade(grd.key);
+                        localStorage.setItem("speakmate_school_grade", grd.key);
+                      }}
+                      className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                        selectedGrade === grd.key
+                          ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)]">{grd.icon}</span>
+                        <div>
+                          <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{grd.label}</h3>
+                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-0.5">{grd.desc}</p>
+                        </div>
+                      </div>
+                      {selectedGrade === grd.key && <span className="text-[#6c63ff] font-extrabold text-base">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">What is your current English proficiency?</h2>
+                  <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Estimates your baseline grammar and conversation fluency.</p>
+                </div>
+
+                <div className="space-y-3">
+                  {LEVELS.map((lvl) => (
+                    <button
+                      key={lvl.key}
+                      onClick={() => setSelectedLevel(lvl.key)}
+                      className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                        selectedLevel === lvl.key
+                          ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                      }`}
+                    >
+                      <div>
+                        <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{lvl.label}</h3>
+                        <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-0.5">{lvl.desc}</p>
+                      </div>
+                      {selectedLevel === lvl.key && <span className="text-[#6c63ff] font-extrabold text-base">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         )}
 
-        {/* STEP 5: SCHOOL STANDARD SELECTION */}
+        {/* STEP 5: INTEREST TOPICS */}
         {step === 5 && (
-          <div className="space-y-6 animate-in fade-in duration-200">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Select your School Standard</h2>
-              <p className="text-sm sm:text-base text-[var(--text-secondary)] mt-1.5 font-medium">Choose your school grade. The entire app will adapt its speaking practice, AI chat, and lessons to this standard level.</p>
-            </div>
-
-            <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-              {SCHOOL_GRADES.map((grd) => (
-                <button
-                  key={grd.key}
-                  onClick={() => {
-                    setSelectedGrade(grd.key);
-                    localStorage.setItem("speakmate_school_grade", grd.key);
-                  }}
-                  className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between ${
-                    selectedGrade === grd.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/20 ring-2 ring-[#6c63ff]/30 shadow-md"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)]">{grd.icon}</span>
-                    <div>
-                      <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{grd.label}</h3>
-                      <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-0.5">{grd.desc}</p>
-                    </div>
-                  </div>
-                  {selectedGrade === grd.key && <span className="text-[#6c63ff] font-extrabold text-base">✓</span>}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* STEP 6: INTEREST TOPICS */}
-        {step === 6 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Choose topics you like</h2>
@@ -370,8 +372,8 @@ export function Onboarding() {
           </div>
         )}
 
-        {/* STEP 7: AI VOICE PERSONA */}
-        {step === 7 && (
+        {/* STEP 6: AI VOICE PERSONA */}
+        {step === 6 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Choose your AI Tutor Voice Persona</h2>
@@ -400,8 +402,8 @@ export function Onboarding() {
           </div>
         )}
 
-        {/* STEP 8: DAILY COMMITMENT */}
-        {step === 8 && (
+        {/* STEP 7: DAILY COMMITMENT */}
+        {step === 7 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Set your daily practice goal</h2>
@@ -433,8 +435,8 @@ export function Onboarding() {
           </div>
         )}
 
-        {/* STEP 9: MIC & AUDIO TEST */}
-        {step === 9 && (
+        {/* STEP 8: MIC & AUDIO TEST */}
+        {step === 8 && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">Test your microphone</h2>

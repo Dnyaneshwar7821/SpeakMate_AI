@@ -15,6 +15,7 @@ export function Register() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const [accountType, setAccountType] = useState("INDIVIDUAL_USER"); // 'INDIVIDUAL_USER' | 'STUDENT'
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -62,6 +63,7 @@ export function Register() {
 
     setLoading(true);
     try {
+      localStorage.setItem("speakmate_account_type", accountType);
       await authService.sendRegistrationOtp({ email: form.email.trim() });
       setInfoMessage(`A 6-digit verification code has been sent to ${form.email.trim()}.`);
       setStep(2);
@@ -89,6 +91,7 @@ export function Register() {
 
     setLoading(true);
     try {
+      localStorage.setItem("speakmate_account_type", accountType);
       const payload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -96,6 +99,7 @@ export function Register() {
         password: form.password,
         confirmPassword: form.confirmPassword,
         otp: form.otp.trim(),
+        accountType,
       };
 
       await authService.register(payload);
@@ -165,6 +169,40 @@ export function Register() {
         {/* STEP 1 FORM: NAME, EMAIL & PASSWORD */}
         {step === 1 && (
           <form className="space-y-5" onSubmit={handleSendOtp}>
+            {/* Account Type Role Selection */}
+            <div className="space-y-2">
+              <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">
+                I am signing up as a:
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAccountType("INDIVIDUAL_USER")}
+                  className={`py-3 px-4 rounded-2xl border text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 ${
+                    accountType === "INDIVIDUAL_USER"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] ring-2 ring-[#6c63ff]/30 shadow-sm"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  <span>👤</span>
+                  <span>Individual</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAccountType("STUDENT")}
+                  className={`py-3 px-4 rounded-2xl border text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 ${
+                    accountType === "STUDENT"
+                      ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] ring-2 ring-[#6c63ff]/30 shadow-sm"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                  }`}
+                >
+                  <span>🎓</span>
+                  <span>School Student</span>
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">First Name</label>
