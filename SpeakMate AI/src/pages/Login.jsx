@@ -17,8 +17,12 @@ export function Login() {
     setLoading(true);
 
     try {
-      await login(form);
-      navigate(ROUTES.DASHBOARD, { replace: true });
+      const res = await login(form);
+      if (res && res.user && !res.user.onboardingCompleted) {
+        navigate(ROUTES.ONBOARDING, { replace: true });
+      } else {
+        navigate(ROUTES.DASHBOARD, { replace: true });
+      }
     } catch (err) {
       console.error("Login failed:", err);
       setError(err.userMessage || err.response?.data?.message || "Invalid email or password. Please try again.");
@@ -32,8 +36,12 @@ export function Login() {
     setError("");
     setLoading(true);
     try {
-      await login({ email: demoEmail, password: demoPassword });
-      navigate(ROUTES.DASHBOARD, { replace: true });
+      const res = await login({ email: demoEmail, password: demoPassword });
+      if (res && res.user && !res.user.onboardingCompleted) {
+        navigate(ROUTES.ONBOARDING, { replace: true });
+      } else {
+        navigate(ROUTES.DASHBOARD, { replace: true });
+      }
     } catch (err) {
       setError("Demo login failed. Please register a new account.");
     } finally {
