@@ -51,6 +51,8 @@ public class UserResponse {
 
 	private String ageGroup;
 
+	private String schoolGrade;
+
 	private String interests;
 
 	public Long getId() { return id; }
@@ -107,6 +109,9 @@ public class UserResponse {
 	public String getAgeGroup() { return ageGroup; }
 	public void setAgeGroup(String ageGroup) { this.ageGroup = ageGroup; }
 
+	public String getSchoolGrade() { return schoolGrade; }
+	public void setSchoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; }
+
 	public String getInterests() { return interests; }
 	public void setInterests(String interests) { this.interests = interests; }
 
@@ -133,6 +138,7 @@ public class UserResponse {
 		private String preferredVoice;
 		private String preferredAccent;
 		private String ageGroup;
+		private String schoolGrade;
 		private String interests;
 
 		public UserResponseBuilder id(Long id) { this.id = id; return this; }
@@ -153,6 +159,7 @@ public class UserResponse {
 		public UserResponseBuilder preferredVoice(String preferredVoice) { this.preferredVoice = preferredVoice; return this; }
 		public UserResponseBuilder preferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; return this; }
 		public UserResponseBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
+		public UserResponseBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
 		public UserResponseBuilder interests(String interests) { this.interests = interests; return this; }
 
 		public UserResponse build() {
@@ -175,6 +182,7 @@ public class UserResponse {
             obj.setPreferredVoice(preferredVoice);
             obj.setPreferredAccent(preferredAccent);
             obj.setAgeGroup(ageGroup);
+            obj.setSchoolGrade(schoolGrade);
             obj.setInterests(interests);
             return obj;
         }

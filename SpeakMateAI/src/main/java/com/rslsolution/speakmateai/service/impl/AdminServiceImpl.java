@@ -93,6 +93,12 @@ public class AdminServiceImpl implements AdminService {
 
 		return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
 				.email(user.getEmail()).role(user.getRole()).avatar(user.getAvatar()).active(user.isActive())
-				.createdAt(user.getCreatedAt()).build();
+				.createdAt(user.getCreatedAt()).welcomeCompleted(user.isWelcomeCompleted())
+				.onboardingCompleted(user.isOnboardingCompleted())
+				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
+				.englishLevel(user.getEnglishLevel()).learningGoal(user.getLearningGoal())
+				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
+				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup())
+				.schoolGrade(user.getSchoolGrade()).interests(user.getInterests()).build();
 	}
 }
