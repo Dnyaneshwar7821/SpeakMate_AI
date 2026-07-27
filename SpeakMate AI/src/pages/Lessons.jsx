@@ -10,33 +10,128 @@ const DIFF_COLORS = {
   Advanced: { bg: "bg-red-500/10", text: "text-red-500" },
 };
 
+const DEFAULT_CATEGORIES = [
+  { name: "Grammar", lessonCount: 12 },
+  { name: "Vocabulary", lessonCount: 15 },
+  { name: "Business", lessonCount: 8 },
+  { name: "Speaking", lessonCount: 14 },
+  { name: "Academic", lessonCount: 10 },
+  { name: "Daily Life", lessonCount: 11 },
+];
+
+const DEFAULT_LESSONS = [
+  {
+    id: "1",
+    title: "Present Tenses Mastery",
+    category: "Grammar",
+    level: "Beginner",
+    difficulty: "Beginner",
+    estimatedMinutes: 15,
+    xpReward: 25,
+    description: "Master present simple vs continuous tenses with real-world sentence drills and voice audio exercises.",
+  },
+  {
+    id: "2",
+    title: "Professional Email & Business Writing",
+    category: "Business",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    estimatedMinutes: 20,
+    xpReward: 35,
+    description: "Learn executive tone, formal greetings, and persuasive communication strategies for business emails.",
+  },
+  {
+    id: "3",
+    title: "Job Interview Speaking Drills",
+    category: "Business",
+    level: "Advanced",
+    difficulty: "Advanced",
+    estimatedMinutes: 25,
+    xpReward: 50,
+    description: "Practice answering behavioral interview questions confidently with AI Tutor voice feedback.",
+  },
+  {
+    id: "4",
+    title: "Essential Everyday Vocabulary",
+    category: "Vocabulary",
+    level: "Beginner",
+    difficulty: "Beginner",
+    estimatedMinutes: 15,
+    xpReward: 20,
+    description: "Expand your word bank with 50 high-frequency nouns, verbs, and adjectives used in daily conversations.",
+  },
+  {
+    id: "5",
+    title: "Idioms & Phrasal Verbs for Natural Speech",
+    category: "Speaking",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    estimatedMinutes: 18,
+    xpReward: 30,
+    description: "Sound like a native speaker using popular English idioms, phrasal verbs, and expressive collocations.",
+  },
+  {
+    id: "6",
+    title: "Past & Present Perfect Tense Drills",
+    category: "Grammar",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    estimatedMinutes: 20,
+    xpReward: 35,
+    description: "Understand the subtle differences between simple past and present perfect with step-by-step quizzes.",
+  },
+  {
+    id: "7",
+    title: "10th Board Oral Exam & Public Speaking Prep",
+    category: "Academic",
+    level: "Advanced",
+    difficulty: "Advanced",
+    estimatedMinutes: 30,
+    xpReward: 60,
+    description: "Comprehensive public speaking prep, keynote delivery, and oral presentation mastery for 10th standard students.",
+  },
+  {
+    id: "8",
+    title: "Social Small Talk & Networking Confidence",
+    category: "Daily Life",
+    level: "Beginner",
+    difficulty: "Beginner",
+    estimatedMinutes: 15,
+    xpReward: 25,
+    description: "Break the ice easily at social gatherings, coffee shops, and campus events with effortless small talk.",
+  },
+];
+
 export function Lessons() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
-  const [lessons, setLessons] = useState([]);
-  const [continueItems, setContinueItems] = useState([]);
-  const [recommended, setRecommended] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [lessons, setLessons] = useState(DEFAULT_LESSONS);
+  const [continueItems, setContinueItems] = useState([DEFAULT_LESSONS[0]]);
+  const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [searchResults, setSearchResults] = useState(null);
   const [activeTab, setActiveTab] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const loadData = async () => {
-    setLoading(true);
     try {
-      const [cats, recs, cont, list] = await Promise.all([
-        lessonModuleService.categories().catch(() => []),
-        lessonModuleService.recommended().catch(() => []),
-        lessonModuleService.continueLearning().catch(() => []),
-        lessonModuleService.list({}).catch(() => []),
+      const fetchWithTimeout = (promise, ms = 2000) =>
+        Promise.race([
+          promise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
+        ]);
+
+      const [cats, cont, list] = await Promise.all([
+        fetchWithTimeout(lessonModuleService.categories()).catch(() => null),
+        fetchWithTimeout(lessonModuleService.continueLearning()).catch(() => null),
+        fetchWithTimeout(lessonModuleService.list({})).catch(() => null),
       ]);
-      setCategories(cats || []);
-      setRecommended(recs || []);
-      setContinueItems(cont || []);
-      setLessons(list || []);
+
+      if (cats && Array.isArray(cats) && cats.length > 0) setCategories(cats);
+      if (cont && Array.isArray(cont) && cont.length > 0) setContinueItems(cont);
+      if (list && Array.isArray(list) && list.length > 0) setLessons(list);
     } catch (e) {
-      console.warn("Failed to load lessons data", e);
+      console.warn("Using default CEFR lessons fallback:", e);
     } finally {
       setLoading(false);
     }
@@ -64,8 +159,19 @@ export function Lessons() {
       return;
     }
     try {
-      const results = await lessonModuleService.search(text.trim());
-      setSearchResults(results || []);
+      const results = await lessonModuleService.search(text.trim()).catch(() => null);
+      if (results && Array.isArray(results)) {
+        setSearchResults(results);
+      } else {
+        const query = text.toLowerCase();
+        const localResults = lessons.filter(
+          (l) =>
+            l.title.toLowerCase().includes(query) ||
+            l.description.toLowerCase().includes(query) ||
+            l.category.toLowerCase().includes(query)
+        );
+        setSearchResults(localResults);
+      }
     } catch (e) {
       setSearchResults([]);
     }
@@ -77,7 +183,7 @@ export function Lessons() {
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl space-y-5">
         <div className="space-y-2 max-w-xl">
           <span className="text-[10px] font-extrabold px-3 py-1 rounded-full bg-white/10 uppercase tracking-wider text-amber-400">
-            Structured Learning Path
+            Structured CEFR & School Standard Path
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">CEFR English Lessons</h1>
           <p className="text-xs sm:text-sm text-[#A5B4FC] font-medium leading-relaxed">
@@ -153,7 +259,7 @@ export function Lessons() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {categories.map((cat) => (
               <div
                 key={cat.name}
