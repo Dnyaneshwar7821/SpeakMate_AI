@@ -65,6 +65,7 @@ export const vocabularyService = {
 
 export const grammarService = {
   check: (originalText) => api.post("/api/grammar/check-grammar", { originalText }).then((res) => res.data),
+  analyze: (originalText) => api.post("/api/grammar/check-grammar", { originalText }).then((res) => res.data),
   history: () => api.get("/api/grammar/get-all-grammar").then((res) => res.data),
   remove: (id) => api.delete(`/api/grammar/delete-grammar/${id}`).then((res) => res.data),
 };
