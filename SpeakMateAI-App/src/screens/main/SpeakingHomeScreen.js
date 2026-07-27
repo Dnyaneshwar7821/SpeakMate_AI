@@ -351,13 +351,18 @@ export default function SpeakingHomeScreen({ navigation }) {
         </View>
       </View>
 
-      {/* ── Auto-Adapted Standard Level Badge ── */}
-      <View style={{ paddingHorizontal: 16, marginVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Ionicons name="school-outline" size={16} color="#818CF8" />
-        <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700' }}>
-          Current Standard: {selectedGrade} (Auto-configured from your profile)
-        </Text>
-      </View>
+      {/* ── Dynamic Level / Age Group Segmented Selector ── */}
+      <LevelSegmentedControl
+        selectedLevel={isStudent ? selectedGrade : userAgeGroup}
+        onChangeLevel={(val) => {
+          if (isStudent) {
+            setSelectedGrade(val);
+          } else {
+            setUserAgeGroup(val);
+          }
+        }}
+        accountType={accountType}
+      />
 
       {/* ── Categories Carousel ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>

@@ -16,6 +16,14 @@ const GRADE_LEVELS = [
   '10th Std',
 ];
 
+const AGE_GROUPS = [
+  'Kids',
+  'Teens',
+  'Young Adult',
+  'Professional',
+  'Senior',
+];
+
 const CEFR_LEVELS = [
   'Beginner',
   'Elementary',
@@ -28,6 +36,7 @@ export default function LevelSegmentedControl({
   selectedLevel,
   onChangeLevel,
   accountType: explicitAccountType,
+  mode = 'auto', // 'auto', 'ageGroup', 'grade', 'cefr'
 }) {
   const [accountType, setAccountType] = useState(explicitAccountType || 'INDIVIDUAL_USER');
 
@@ -42,17 +51,36 @@ export default function LevelSegmentedControl({
   }, [explicitAccountType]);
 
   const isStudent = accountType === 'STUDENT';
-  const levelsToDisplay = isStudent ? GRADE_LEVELS : CEFR_LEVELS;
-  const defaultFallback = isStudent ? '1st Std' : 'Intermediate';
+
+  let levelsToDisplay = isStudent ? GRADE_LEVELS : AGE_GROUPS;
+  let headerLabel = isStudent ? 'School Grade Level:' : 'Target Age Group:';
+  let headerIcon = isStudent ? 'school-outline' : 'people-outline';
+  let defaultFallback = isStudent ? '1st Std' : 'Professional';
+
+  if (mode === 'ageGroup') {
+    levelsToDisplay = AGE_GROUPS;
+    headerLabel = 'Target Age Group:';
+    headerIcon = 'people-outline';
+    defaultFallback = 'Professional';
+  } else if (mode === 'cefr') {
+    levelsToDisplay = CEFR_LEVELS;
+    headerLabel = 'English Proficiency Level:';
+    headerIcon = 'ribbon-outline';
+    defaultFallback = 'Intermediate';
+  } else if (mode === 'grade') {
+    levelsToDisplay = GRADE_LEVELS;
+    headerLabel = 'School Grade Level:';
+    headerIcon = 'school-outline';
+    defaultFallback = '1st Std';
+  }
+
   const currentSelected = selectedLevel || defaultFallback;
 
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Ionicons name={isStudent ? 'school-outline' : 'ribbon-outline'} size={13} color="#818CF8" />
-        <Text style={styles.label}>
-          {isStudent ? 'School Grade Level:' : 'English Proficiency Level:'}
-        </Text>
+        <Ionicons name={headerIcon} size={13} color="#818CF8" />
+        <Text style={styles.label}>{headerLabel}</Text>
       </View>
       <ScrollView
         horizontal
