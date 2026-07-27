@@ -14,16 +14,20 @@ const MOTIVATIONAL_QUOTES = [
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+  const isStudent = accountType === "STUDENT";
 
   const activeGrade =
     user?.schoolGrade ||
     localStorage.getItem("speakmate_school_grade") ||
-    user?.level ||
-    "5th Std";
+    "1st Std";
+  const activeAgeGroup =
+    localStorage.getItem("speakmate_age_group") ||
+    user?.ageGroup ||
+    "Professional";
 
   const [stats, setStats] = useState({
-    level: activeGrade,
+    level: isStudent ? activeGrade : activeAgeGroup,
     xp: 450,
     streak: user?.streak || 3,
     dailyGoalMins: 15,
@@ -101,7 +105,7 @@ export function Dashboard() {
           <div className="space-y-3 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20">
-                🎓 Standard: {activeGrade} (Adapted Curriculum)
+                {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 Target Age Group: ${activeAgeGroup}`}
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-md">
                 🔥 {stats.streak}-Day Streak
@@ -130,7 +134,7 @@ export function Dashboard() {
               onClick={() => navigate(ROUTES.SPEAKING)}
               className="px-6 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-black text-sm backdrop-blur-md border border-white/25 text-center transition-all"
             >
-              🏫 6 Standard Scenarios
+              {isStudent ? "🏫 6 Standard Scenarios" : "🗣️ Conversation Scenarios"}
             </button>
           </div>
         </div>
