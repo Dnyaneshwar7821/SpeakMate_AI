@@ -107,9 +107,21 @@ export function useSpeech(options = {}) {
 
       window.speechSynthesis.cancel();
 
+      const personaKey = localStorage.getItem("speakmate_voice_persona") || "Friendly";
+      const personaMap = {
+        Friendly: { pitch: 1.15, rate: 1.0 },
+        Professional: { pitch: 0.9, rate: 0.9 },
+        Energetic: { pitch: 1.15, rate: 1.2 },
+        Calm: { pitch: 0.95, rate: 0.85 },
+        Teacher: { pitch: 1.05, rate: 0.95 },
+        "Native Speaker": { pitch: 1.0, rate: 1.05 },
+      };
+
+      const pConfig = personaMap[personaKey] || personaMap.Friendly;
+
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = rate;
-      utterance.pitch = pitch;
+      utterance.rate = (rate || 1) * pConfig.rate;
+      utterance.pitch = (pitch || 1) * pConfig.pitch;
       utterance.lang = lang;
 
       if (selectedVoice) {

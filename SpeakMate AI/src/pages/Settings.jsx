@@ -2,10 +2,60 @@ import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 const VOICE_PERSONAS = [
-  { key: "Friendly", label: "Friendly Persona", icon: "💬", desc: "Warm, supportive, and encouraging tone" },
-  { key: "Professional", label: "Professional Executive", icon: "💼", desc: "Formal, polished business tone" },
-  { key: "Energetic", label: "Energetic Coach", icon: "⚡", desc: "High energy, fast-paced practice" },
-  { key: "Teacher", label: "Patient Teacher", icon: "🏫", desc: "Detailed corrections and step-by-step guidance" },
+  {
+    key: "Friendly",
+    label: "Friendly Persona",
+    icon: "💬",
+    desc: "Warm, supportive, and encouraging tone",
+    pitch: 1.15,
+    rate: 1.0,
+    previewText: "Hello there! I am your friendly AI English tutor. I'm excited to practice English with you!",
+  },
+  {
+    key: "Professional",
+    label: "Professional Executive",
+    icon: "💼",
+    desc: "Formal, polished business tone",
+    pitch: 0.9,
+    rate: 0.9,
+    previewText: "Hello. I am your professional AI tutor. Let's work together to polish your English communication skills.",
+  },
+  {
+    key: "Energetic",
+    label: "Energetic Coach",
+    icon: "⚡",
+    desc: "High energy, fast-paced practice",
+    pitch: 1.15,
+    rate: 1.2,
+    previewText: "Hey! Ready to level up your English? Let's get started and have some fun speaking!",
+  },
+  {
+    key: "Calm",
+    label: "Calm Tutor",
+    icon: "🌧️",
+    desc: "Relaxed, patient guidance and soft pace",
+    pitch: 0.95,
+    rate: 0.85,
+    previewText: "Welcome. I am your calm AI tutor. We will practice English step by step at your own pace.",
+  },
+  {
+    key: "Teacher",
+    label: "Patient Teacher",
+    icon: "🏫",
+    desc: "Detailed corrections and step-by-step guidance",
+    pitch: 1.05,
+    rate: 0.95,
+    previewText: "Hello. I am your English teacher. Today we will focus on building your confidence in speaking.",
+  },
+  {
+    key: "Native Speaker",
+    label: "Native Speaker",
+    icon: "🌐",
+    desc: "Natural, fluent conversational flow",
+    pitch: 1.0,
+    rate: 1.05,
+    previewText: "Hey friend! I'm your native speaker tutor. Let's practice speaking naturally and fluently.",
+  },
 ];
 
 const COMMITMENTS = [
@@ -27,12 +77,43 @@ export function Settings() {
     localStorage.getItem("speakmate_daily_goal") || "15 min"
   );
 
+  const [playingVoice, setPlayingVoice] = useState(null);
   const [reminders, setReminders] = useState(true);
   const [streakAlerts, setStreakAlerts] = useState(true);
   const [saved, setSaved] = useState(false);
 
+  const playVoicePreview = (persona) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+
+    setPlayingVoice(persona.key);
+    const utterance = new SpeechSynthesisUtterance(persona.previewText);
+    utterance.pitch = persona.pitch;
+    utterance.rate = persona.rate * parseFloat(speechRate);
+    utterance.lang = accent === "UK" ? "en-GB" : accent === "AU" ? "en-AU" : "en-US";
+
+    const voices = window.speechSynthesis.getVoices();
+    const targetVoice =
+      voices.find((v) => v.lang.startsWith(utterance.lang) && v.name.includes("Natural")) ||
+      voices.find((v) => v.lang.startsWith("en")) ||
+      voices[0];
+
+    if (targetVoice) utterance.voice = targetVoice;
+
+    utterance.onend = () => setPlayingVoice(null);
+    utterance.onerror = () => setPlayingVoice(null);
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const handleSelectVoice = (persona) => {
+    setSelectedVoice(persona.key);
+    localStorage.setItem("speakmate_voice_persona", persona.key);
+    playVoicePreview(persona);
+  };
+
   const handleSaveSettings = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     localStorage.setItem("speakmate_voice_persona", selectedVoice);
     localStorage.setItem("speakmate_daily_goal", dailyGoal);
     setSaved(true);
@@ -46,7 +127,7 @@ export function Settings() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black">App Settings & Preferences ⚙️</h1>
           <p className="text-xs sm:text-sm font-medium opacity-90 mt-1">
-            Customize audio voices, notification reminders, daily practice goals, and display themes.
+            Customize AI tutor voice personas, audio playback speed, notification reminders, and display themes.
           </p>
         </div>
       </div>
@@ -82,9 +163,14 @@ export function Settings() {
 
       {/* AI Voice & Audio Preferences */}
       <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
-        <h2 className="text-lg font-black text-[var(--text-primary)]">AI Voice & Speech Synthesizer</h2>
+        <div>
+          <h2 className="text-lg font-black text-[var(--text-primary)]">AI Voice & Speech Synthesizer</h2>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
+            Selecting an AI Voice Persona changes how the tutor speaks across the entire application.
+          </p>
+        </div>
 
-        <div className="space-y-5">
+        <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Target English Accent</label>
@@ -114,26 +200,55 @@ export function Settings() {
           </div>
 
           <div>
-            <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">AI Tutor Voice Persona</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {VOICE_PERSONAS.map((v) => (
-                <button
-                  key={v.key}
-                  type="button"
-                  onClick={() => setSelectedVoice(v.key)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 ${
-                    selectedVoice === v.key
-                      ? "border-[#6c63ff] bg-[#6c63ff]/15 ring-2 ring-[#6c63ff]/30 shadow-md"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
-                  }`}
-                >
-                  <span className="text-2xl p-2 rounded-xl bg-[var(--bg-surface)] shrink-0">{v.icon}</span>
-                  <div>
-                    <h3 className="font-black text-sm text-[var(--text-primary)]">{v.label}</h3>
-                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">{v.desc}</p>
+            <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">
+              AI Tutor Voice Persona (Same 6 Options as Mobile App)
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {VOICE_PERSONAS.map((v) => {
+                const isSelected = selectedVoice === v.key;
+                const isPlayingThis = playingVoice === v.key;
+                return (
+                  <div
+                    key={v.key}
+                    onClick={() => handleSelectVoice(v)}
+                    className={`p-5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between space-y-3 relative ${
+                      isSelected
+                        ? "border-[#6c63ff] bg-[#6c63ff]/15 ring-2 ring-[#6c63ff]/30 shadow-md"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl p-2 rounded-xl bg-[var(--bg-surface)] shrink-0">{v.icon}</span>
+                        {isSelected && (
+                          <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-[#6c63ff] text-white">
+                            Active Voice
+                          </span>
+                        )}
+                      </div>
+                      <h3 className="font-black text-sm text-[var(--text-primary)]">{v.label}</h3>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed">{v.desc}</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSelectVoice(v);
+                      }}
+                      className={`w-full py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                        isPlayingThis
+                          ? "bg-amber-500 text-white animate-pulse"
+                          : isSelected
+                          ? "bg-[#6c63ff] text-white"
+                          : "bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[#6c63ff]/20"
+                      }`}
+                    >
+                      <span>{isPlayingThis ? "🔊 Speaking..." : "▶ Test Sample"}</span>
+                    </button>
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
