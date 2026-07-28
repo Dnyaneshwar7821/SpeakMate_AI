@@ -135,7 +135,7 @@ export function Dashboard() {
               onClick={() => navigate(ROUTES.SPEAKING)}
               className="px-6 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-black text-sm backdrop-blur-md border border-white/25 text-center transition-all"
             >
-              {isStudent ? "🏫 6 Standard Scenarios" : "🗣️ Conversation Scenarios"}
+              {isStudent ? `🏫 ${activeGrade} Scenarios` : "🗣️ Conversation Scenarios"}
             </button>
           </div>
         </div>

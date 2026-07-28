@@ -91,7 +91,7 @@ export function Onboarding() {
   const [selectedGoal, setSelectedGoal] = useState("Communication");
   const [selectedAgeGroup, setSelectedAgeGroup] = useState("Young Adult");
   const [selectedLevel, setSelectedLevel] = useState("Intermediate");
-  const [selectedGrade, setSelectedGrade] = useState("5th Std");
+  const [selectedGrade, setSelectedGrade] = useState(() => localStorage.getItem("speakmate_school_grade") || "1st Std");
   const [selectedInterests, setSelectedInterests] = useState(["Technology", "Travel"]);
   const [selectedVoice, setSelectedVoice] = useState("Friendly");
   const [selectedCommitment, setSelectedCommitment] = useState("15 min");
@@ -152,7 +152,7 @@ export function Onboarding() {
   };
 
   const handleFinish = () => {
-    const finalGrade = selectedGrade || "5th Std";
+    const finalGrade = selectedGrade || localStorage.getItem("speakmate_school_grade") || "1st Std";
     localStorage.setItem("speakmate_school_grade", finalGrade);
     localStorage.setItem("speakmate_age_group", selectedAgeGroup);
     completeOnboarding({
