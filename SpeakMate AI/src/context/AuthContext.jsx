@@ -11,9 +11,16 @@ const STORAGE_KEYS = {
 };
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.user);
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  });
+  const [token, setToken] = useState(() => localStorage.getItem(STORAGE_KEYS.token) || null);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.onboardingCompleted) === "true";
+  });
   const [loading, setLoading] = useState(true);
 
   const syncSchoolGrade = (userData) => {

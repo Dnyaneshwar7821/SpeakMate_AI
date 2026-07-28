@@ -1,7 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { Canvas } from "@react-three/fiber";
+import { Environment } from "@react-three/drei";
 import ROUTES from "../constants/routes";
 import { chatService } from "../services/appServices";
+import { Avatar3D } from "../components/Avatar3D";
 
 export function ConversationChat() {
   const navigate = useNavigate();
@@ -336,100 +339,21 @@ export function ConversationChat() {
             {/* Ambient Aura Glow */}
             <div className={`absolute -inset-3 rounded-full bg-gradient-to-tr from-[#6c63ff] via-[#8b85ff] to-[#ff6584] opacity-50 blur-xl transition-all ${isAiSpeaking ? "opacity-100 animate-pulse" : isListening ? "opacity-90 ring-4 ring-red-500/50" : ""}`} />
 
+
+
+
             {/* Avatar Frame Box */}
-            <div className={`relative grid h-28 w-28 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl p-2 overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
+            <div className={`relative grid h-48 w-48 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
               
-              {/* SpeakMate AI 3D Human Vector SVG with Multi-Viseme Lip-Syncing */}
-              <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
-                <defs>
-                  {/* Skin Gradient */}
-                  <linearGradient id="skinGradChat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#FAD7BD" />
-                    <stop offset="100%" stopColor="#E3A880" />
-                  </linearGradient>
-                  {/* Hair Gradient */}
-                  <linearGradient id="hairGradChat" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#4A306D" />
-                    <stop offset="100%" stopColor="#1E1035" />
-                  </linearGradient>
-                  {/* Iris Gradient */}
-                  <radialGradient id="eyeIrisChat">
-                    <stop offset="0%" stopColor="#6C63FF" />
-                    <stop offset="100%" stopColor="#0F172A" />
-                  </radialGradient>
-                </defs>
-
-                {/* Neck & Suit Collar */}
-                <path d="M 32 82 Q 50 78 68 82 L 72 100 L 28 100 Z" fill="#E3A880" />
-                <path d="M 24 90 Q 50 82 76 90 L 85 100 L 15 100 Z" fill="#6C63FF" opacity="0.9" />
-
-                {/* 3D Face Base */}
-                <path d="M 26 36 Q 22 58 32 76 Q 50 88 68 76 Q 78 58 74 36 Q 50 30 26 36 Z" fill="url(#skinGradChat)" />
-
-                {/* Ears */}
-                <ellipse cx="23" cy="52" rx="4" ry="7" fill="#E3A880" />
-                <ellipse cx="77" cy="52" rx="4" ry="7" fill="#E3A880" />
-
-                {/* Hair Styling */}
-                <path d="M 20 42 Q 22 14 50 14 Q 78 14 80 42 Q 65 26 50 26 Q 35 26 20 42 Z" fill="url(#hairGradChat)" />
-
-                {/* Eyebrows */}
-                <path d="M 31 43 Q 39 39 47 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                <path d="M 53 43 Q 61 39 69 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-
-                {/* 3D Eyes with Pupil & Reflections */}
-                <g className="animate-eye-blink">
-                  <ellipse cx="39" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
-                  <ellipse cx="39" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIrisChat)" />
-                  <circle cx="37.5" cy="47.5" r="1.2" fill="#FFFFFF" />
-
-                  <ellipse cx="61" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
-                  <ellipse cx="61" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIrisChat)" />
-                  <circle cx="59.5" cy="47.5" r="1.2" fill="#FFFFFF" />
-                </g>
-
-                {/* Nose */}
-                <path d="M 50 50 L 48 60 L 52 60 Z" fill="#D4946A" opacity="0.6" />
-
-                {/* REAL-TIME DYNAMIC LIP-SYNC MOUTH MORPHS */}
-                {viseme === "AA" ? (
-                  // Open Wide "AA" Mouth
-                  <g>
-                    <path d="M 35 64 Q 50 58 65 64 Q 65 80 50 82 Q 35 80 35 64 Z" fill="#991B1B" stroke="#B91C1C" strokeWidth="1" />
-                    <path d="M 37 65 Q 50 62 63 65 L 63 68 Q 50 65 37 68 Z" fill="#FFFFFF" />
-                    <ellipse cx="50" cy="77" rx="6" ry="3.5" fill="#F87171" />
-                  </g>
-                ) : viseme === "EE" ? (
-                  // Wide Smile Talking "EE" Mouth
-                  <g>
-                    <path d="M 31 65 Q 50 60 69 65 Q 69 77 50 78 Q 31 77 31 65 Z" fill="#881337" stroke="#9F1239" strokeWidth="1" />
-                    <path d="M 33 66 Q 50 62 67 66 L 67 69 Q 50 66 33 69 Z" fill="#FFFFFF" />
-                  </g>
-                ) : viseme === "OO" ? (
-                  // Puckered Round "OO" Mouth
-                  <g>
-                    <path d="M 42 63 Q 50 59 58 63 Q 59 77 50 78 Q 41 77 42 63 Z" fill="#7F1D1D" stroke="#991B1B" strokeWidth="1" />
-                    <ellipse cx="50" cy="74" rx="3.5" ry="2" fill="#F87171" />
-                  </g>
-                ) : viseme === "IH" ? (
-                  // Half-Open "IH" Mouth
-                  <g>
-                    <path d="M 36 65 Q 50 61 64 65 Q 64 74 50 75 Q 36 74 36 65 Z" fill="#881337" stroke="#9F1239" strokeWidth="1" />
-                    <path d="M 38 66 Q 50 63 62 66 L 62 68 Q 50 66 38 68 Z" fill="#FFFFFF" />
-                  </g>
-                ) : viseme === "OH" ? (
-                  // Medium Open "OH" Mouth
-                  <g>
-                    <path d="M 38 63 Q 50 58 62 63 Q 63 78 50 80 Q 37 78 38 63 Z" fill="#7F1D1D" stroke="#991B1B" strokeWidth="1" />
-                    <ellipse cx="50" cy="75" rx="4" ry="2.5" fill="#F87171" />
-                  </g>
-                ) : (
-                  // REST / Natural Closed Smile
-                  <g>
-                    <path d="M 35 68 Q 50 72 65 68 M 37 70 Q 50 74 63 70" stroke="#991B1B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                  </g>
-                )}
-              </svg>
+              {/* WebGL 3D Avatar */}
+              <div className="w-full h-full absolute inset-0">
+                <Canvas camera={{ position: [0, 0, 3], fov: 40 }}>
+                  <ambientLight intensity={1.5} />
+                  <directionalLight position={[2, 2, 2]} intensity={2} />
+                  <Environment preset="city" />
+                  <Avatar3D viseme={viseme} isSpeaking={isAiSpeaking} />
+                </Canvas>
+              </div>
 
             </div>
 
