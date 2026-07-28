@@ -151,11 +151,11 @@ export function Onboarding() {
     }
   };
 
-  const handleFinish = () => {
+  const handleFinish = async () => {
     const finalGrade = selectedGrade || localStorage.getItem("speakmate_school_grade") || "1st Std";
     localStorage.setItem("speakmate_school_grade", finalGrade);
     localStorage.setItem("speakmate_age_group", selectedAgeGroup);
-    completeOnboarding({
+    await completeOnboarding({
       nativeLanguage,
       goal: selectedGoal,
       ageGroup: selectedAgeGroup,

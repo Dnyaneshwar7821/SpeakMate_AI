@@ -18,6 +18,7 @@ import com.rslsolution.speakmateai.dto.request.ForgotPasswordRequest;
 import com.rslsolution.speakmateai.dto.request.LoginRequest;
 import com.rslsolution.speakmateai.dto.request.RegisterRequest;
 import com.rslsolution.speakmateai.dto.request.ResetPasswordRequest;
+import com.rslsolution.speakmateai.dto.request.CompleteOnboardingRequest;
 import com.rslsolution.speakmateai.dto.request.SendDeleteAccountOtpRequest;
 import com.rslsolution.speakmateai.dto.request.SendRegistrationOtpRequest;
 import com.rslsolution.speakmateai.dto.request.VerifyOtpRequest;
@@ -189,6 +190,11 @@ public class UserController {
 	@GetMapping("/me")
 	public UserResponse me() {
 		return userService.getCurrentUser();
+	}
+
+	@PostMapping("/complete-onboarding")
+	public UserResponse completeOnboarding(@RequestBody CompleteOnboardingRequest request) {
+		return userService.completeOnboarding(request);
 	}
 
 	@GetMapping("/get-all-users")

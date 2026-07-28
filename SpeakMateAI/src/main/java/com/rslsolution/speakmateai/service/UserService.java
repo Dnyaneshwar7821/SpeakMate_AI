@@ -26,6 +26,8 @@ public interface UserService {
 
 	AuthResponse login(LoginRequest request);
 
+	UserResponse completeOnboarding(com.rslsolution.speakmateai.dto.request.CompleteOnboardingRequest request);
+
 	UserResponse getCurrentUser();
 
 	void forgotPassword(ForgotPasswordRequest request);

@@ -337,6 +337,32 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public UserResponse completeOnboarding(com.rslsolution.speakmateai.dto.request.CompleteOnboardingRequest request) {
+		String currentUserEmail = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByEmail(currentUserEmail)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+		
+		user.setOnboardingCompleted(true);
+		
+		com.rslsolution.speakmateai.entity.Onboarding onboarding = onboardingRepository.findByUser(user).orElse(new com.rslsolution.speakmateai.entity.Onboarding());
+		onboarding.setUser(user);
+		if (request.getNativeLanguage() != null) onboarding.setNativeLanguage(request.getNativeLanguage());
+		if (request.getGoal() != null) onboarding.setLearningGoal(request.getGoal());
+		if (request.getAgeGroup() != null) onboarding.setAgeGroup(request.getAgeGroup());
+		if (request.getEnglishLevel() != null) onboarding.setEnglishLevel(request.getEnglishLevel());
+		if (request.getSchoolGrade() != null) onboarding.setSchoolGrade(request.getSchoolGrade());
+		if (request.getInterests() != null) onboarding.setInterests(String.join(",", request.getInterests()));
+		if (request.getAiVoice() != null) onboarding.setAiVoice(request.getAiVoice());
+		if (request.getCommitment() != null) onboarding.setDailyGoalMinutes(Integer.parseInt(request.getCommitment().replaceAll("[^0-9]", "")));
+		onboarding.setOnboardingCompleted(true);
+		onboardingRepository.save(onboarding);
+
+		userRepository.save(user);
+
+		return mapToUserResponse(user);
+	}
+
+	@Override
 	public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
 
 		User user = userRepository.findByEmail(request.getEmail())

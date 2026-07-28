@@ -126,12 +126,26 @@ export function AuthProvider({ children }) {
     });
   };
 
-  const completeOnboarding = (data) => {
+  const completeOnboarding = async (data) => {
+    try {
+      if (token) {
+        const updatedUser = await authService.completeOnboarding(data);
+        setUser(updatedUser);
+        syncSchoolGrade(updatedUser);
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));
+      } else {
+        if (user) {
+          updateUser({ ...data, onboardingCompleted: true });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to complete onboarding on server:", error);
+      if (user) {
+        updateUser({ ...data, onboardingCompleted: true });
+      }
+    }
     setOnboardingCompleted(true);
     localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
-    if (user) {
-      updateUser({ ...data, onboardingCompleted: true });
-    }
   };
 
   const value = useMemo(

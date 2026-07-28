@@ -43,6 +43,8 @@ public class Onboarding {
 
 	private String schoolGrade;
 
+	private String aiVoice;
+
 	@Builder.Default
 	private Boolean onboardingCompleted = false;
 
@@ -89,6 +91,9 @@ public class Onboarding {
 	public String getSchoolGrade() { return schoolGrade; }
 	public void setSchoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; }
 
+	public String getAiVoice() { return aiVoice; }
+	public void setAiVoice(String aiVoice) { this.aiVoice = aiVoice; }
+
 	public Boolean getOnboardingCompleted() { return onboardingCompleted; }
 	public void setOnboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; }
 
@@ -113,6 +118,7 @@ public class Onboarding {
 		private String interests;
 		private String ageGroup;
 		private String schoolGrade;
+		private String aiVoice;
 		private Boolean onboardingCompleted = false;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
@@ -127,6 +133,7 @@ public class Onboarding {
 		public OnboardingBuilder interests(String interests) { this.interests = interests; return this; }
 		public OnboardingBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
 		public OnboardingBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
+		public OnboardingBuilder aiVoice(String aiVoice) { this.aiVoice = aiVoice; return this; }
 		public OnboardingBuilder onboardingCompleted(Boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; return this; }
 		public OnboardingBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 		public OnboardingBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
@@ -143,6 +150,7 @@ public class Onboarding {
             obj.setInterests(interests);
             obj.setAgeGroup(ageGroup);
             obj.setSchoolGrade(schoolGrade);
+            obj.setAiVoice(aiVoice);
             obj.setOnboardingCompleted(onboardingCompleted);
             obj.setCreatedAt(createdAt);
             obj.setUpdatedAt(updatedAt);

@@ -21,6 +21,11 @@ export const authService = {
     return response.data;
   },
 
+  completeOnboarding: async (payload) => {
+    const response = await api.post("/api/users/complete-onboarding", payload);
+    return response.data;
+  },
+
   forgotPassword: async (payload) => {
     const response = await api.post("/api/users/forgot-password", payload);
     return response.data;
