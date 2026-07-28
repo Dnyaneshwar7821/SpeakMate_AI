@@ -1,5 +1,11 @@
 package com.rslsolution.speakmateai.enums;
 
 public enum Role {
-	USER, ADMIN
+	SUPER_ADMIN,
+	ADMIN,
+	SCHOOL_ADMIN,
+	SCHOOL_TEACHER,
+	STUDENT,
+	INDIVIDUAL_USER,
+	USER
 }

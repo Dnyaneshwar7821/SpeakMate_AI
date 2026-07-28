@@ -113,6 +113,10 @@ public class User {
 
 	private String schoolGrade;
 
+	private Long schoolId;
+
+	private String schoolName;
+
 	private String interests;
 
 	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
