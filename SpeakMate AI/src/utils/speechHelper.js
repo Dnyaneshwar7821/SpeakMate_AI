@@ -82,8 +82,8 @@ export const VOICE_PERSONAS = [
   },
 ];
 
-export const getSavedVoiceSettings = () => {
-  const aiVoice = localStorage.getItem("speakmate_ai_voice") || "Default";
+export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
+  const aiVoice = overrideVoiceCode || localStorage.getItem("speakmate_ai_voice") || "Default";
   const onboardingVoice = localStorage.getItem("speakmate_onboarding_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly";
   const accent = localStorage.getItem("speakmate_voice_accent") || "US";
   const selectedVoiceName = localStorage.getItem("speakmate_voice_name") || "";
@@ -151,10 +151,10 @@ export const getSavedVoiceSettings = () => {
   };
 };
 
-export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
+export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overrideVoiceCode = null) => {
   if (!utterance || typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
-  const settings = getSavedVoiceSettings();
+  const settings = getSavedVoiceSettings(overrideVoiceCode);
   utterance.lang = settings.lang;
   utterance.pitch = settings.pitch;
   utterance.rate = settings.baseRate * settings.rateMultiplier * speedMultiplier;
@@ -327,7 +327,7 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   const doSpeak = () => {
     try {
       window.speechSynthesis.resume();
-      applyGlobalVoiceSettings(utterance, speedMultiplier);
+      applyGlobalVoiceSettings(utterance, speedMultiplier, options.overrideVoiceCode);
       window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.warn("Speech synthesis execution error:", e);

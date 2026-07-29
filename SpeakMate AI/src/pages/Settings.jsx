@@ -54,6 +54,7 @@ export function Settings() {
     }
     setPlayingVoice(voiceCode);
     speakGlobalText(textToSpeak, 1.0, {
+      overrideVoiceCode: voiceCode,
       onend: () => setPlayingVoice(null),
       onerror: () => setPlayingVoice(null),
     });
