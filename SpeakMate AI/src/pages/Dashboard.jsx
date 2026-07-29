@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
+import { speakGlobalText } from "../utils/speechHelper";
 
 const MOTIVATIONAL_QUOTES = [
   { quote: "The limits of my language mean the limits of my world.", author: "Ludwig Wittgenstein" },
@@ -76,13 +77,7 @@ export function Dashboard() {
   };
 
   const handleSpeakQuote = (text) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 0.95;
-      utterance.lang = "en-US";
-      window.speechSynthesis.speak(utterance);
-    }
+    speakGlobalText(text);
   };
 
   const handleAcceptChallenge = () => {

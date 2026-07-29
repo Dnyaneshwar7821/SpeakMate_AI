@@ -1,10 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
+
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import ROUTES from "../constants/routes";
 import { speakingService } from "../services/appServices";
 import { Avatar3D } from "../components/Avatar3D";
+import { speakGlobalText } from "../utils/speechHelper";
+import { useAuth } from "../context/AuthContext";
 
 export function ConversationSession() {
   const navigate = useNavigate();
@@ -26,7 +29,8 @@ export function ConversationSession() {
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [speechSpeed, setSpeechSpeed] = useState(1.0);
-  const [chatLevel, setChatLevel] = useState("1st Std");
+  const { user } = useAuth();
+  const [chatLevel] = useState(user?.schoolGrade || user?.englishLevel || "Intermediate");
   const [isListening, setIsListening] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
@@ -87,35 +91,25 @@ export function ConversationSession() {
 
   const handleSpeakText = (text) => {
     if (isMuted || !text) return;
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = speechSpeed;
-      utterance.lang = "en-US";
-
-      utterance.onstart = () => {
+    speakGlobalText(text, speechSpeed, {
+      onstart: () => {
         setIsAiSpeaking(true);
         setViseme("AA");
-      };
-
-      utterance.onboundary = () => {
+      },
+      onboundary: () => {
         const VISEMES = ["AA", "EE", "IH", "OO", "OH"];
         const nextViseme = VISEMES[Math.floor(Math.random() * VISEMES.length)];
         setViseme(nextViseme);
-      };
-
-      utterance.onend = () => {
+      },
+      onend: () => {
         setIsAiSpeaking(false);
         setViseme("REST");
-      };
-
-      utterance.onerror = () => {
+      },
+      onerror: () => {
         setIsAiSpeaking(false);
         setViseme("REST");
-      };
-
-      window.speechSynthesis.speak(utterance);
-    }
+      },
+    });
   };
 
   useEffect(() => {
@@ -318,29 +312,30 @@ export function ConversationSession() {
     : "Idle Ready ✨";
 
   return (
-    <div className="h-[calc(100vh-100px)] flex flex-col max-w-4xl mx-auto space-y-4">
-      {/* Session Top Header */}
-      <div className="p-4 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] flex items-center justify-between gap-4 shadow-sm shrink-0">
-        <div className="flex items-center gap-3">
+    <div className="h-[calc(100vh-80px)] flex flex-col max-w-4xl mx-auto gap-3 p-2 sm:p-4 overflow-hidden">
+      {/* 1. TOP HEADER (Scenario Title + Timer + Pause) */}
+      <div className="p-3.5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] flex items-center justify-between gap-3 shadow-sm shrink-0">
+        <div className="flex items-center gap-2.5 min-w-0">
           <Link
             to={ROUTES.SPEAKING}
-            className="p-2.5 rounded-2xl bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            className="p-2 rounded-xl bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors shrink-0"
+            title="Back to Scenarios"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </Link>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <h2 className="font-extrabold text-sm text-[var(--text-primary)] truncate max-w-xs">{scenario}</h2>
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <h2 className="font-extrabold text-xs text-[var(--text-primary)] truncate">{scenario}</h2>
             </div>
-            <p className="text-[10px] text-[var(--text-secondary)] font-semibold">{avatarState}</p>
+            <p className="text-[10px] text-[#6c63ff] font-semibold truncate">{avatarState}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold text-[var(--text-primary)]">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[11px] font-extrabold text-[var(--text-primary)]">
             <span>⏱️</span>
             <span>{formatTime(timer)}</span>
           </div>
@@ -354,8 +349,8 @@ export function ConversationSession() {
               }
               setIsPaused(!isPaused);
             }}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all border ${
-              isPaused ? "bg-amber-500 text-white border-amber-500" : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)]"
+            className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all border shadow-sm ${
+              isPaused ? "bg-amber-500/20 text-amber-500 border-amber-500/40" : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
             {isPaused ? "▶ Resume" : "⏸ Pause"}
@@ -363,35 +358,11 @@ export function ConversationSession() {
         </div>
       </div>
 
-      {/* 3D Human-Like Lip-Sync SpeakMate AI Avatar Header */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl flex flex-col items-center justify-center text-center space-y-4 shrink-0 relative overflow-hidden">
-        
-        {/* Title */}
-        <span className="text-xs font-black uppercase tracking-wider text-[#A5B4FC]">
-          SpeakMate AI Voice Tutor
-        </span>
-
-        {/* Animated Avatar Face & Soundwave Equalizers */}
-        <div className="flex items-center justify-center gap-6 relative">
-          
-          {/* Left Equalizer Bars */}
-          {isAiSpeaking && (
-            <div className="flex items-center gap-1.5 h-12">
-              <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-1" />
-              <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2" />
-              <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3" />
-            </div>
-          )}
-
-          {/* 3D Human Vector Avatar Head Box */}
-          <div className="relative group">
-            {/* Ambient Aura Glow */}
-            <div className={`absolute -inset-3 rounded-full bg-gradient-to-tr from-[#6c63ff] via-[#8b85ff] to-[#ff6584] opacity-50 blur-xl transition-all ${isAiSpeaking ? "opacity-100 animate-pulse" : isListening ? "opacity-90 ring-4 ring-red-500/50" : ""}`} />
-
-            {/* Avatar Frame Box */}
-            <div className={`relative grid h-48 w-48 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
-              
-              {/* WebGL 3D Avatar */}
+      {/* 2. AVATAR STAGE (Compact 3D Avatar Header) */}
+      <div className="p-3 rounded-2xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#0F172A] border border-[#6c63ff]/30 text-white shadow-md flex items-center justify-between gap-4 shrink-0 overflow-hidden">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative shrink-0">
+            <div className={`relative grid h-20 w-20 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-lg overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
               <div className="w-full h-full absolute inset-0">
                 <Canvas camera={{ position: [0, 0, 3], fov: 40 }}>
                   <ambientLight intensity={1.5} />
@@ -400,178 +371,151 @@ export function ConversationSession() {
                   <Avatar3D viseme={viseme} isSpeaking={isAiSpeaking} />
                 </Canvas>
               </div>
-
             </div>
-
-            {/* Live Status Indicator Badge */}
-            <span className={`absolute -bottom-1 -right-1 h-7 w-7 rounded-full border-2 border-[#0F172A] flex items-center justify-center text-xs shadow-lg ${isListening ? "bg-red-500 text-white animate-bounce" : isAiSpeaking ? "bg-[#6c63ff] text-white animate-pulse" : "bg-emerald-500 text-white"}`}>
+            <span className={`absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full border-2 border-[#0F172A] flex items-center justify-center text-[9px] shadow-md ${isListening ? "bg-rose-500 text-white animate-bounce" : isAiSpeaking ? "bg-[#6c63ff] text-white animate-pulse" : "bg-emerald-500 text-white"}`}>
               {isListening ? "🎙️" : isAiSpeaking ? "🔊" : "✨"}
             </span>
           </div>
 
-          {/* Right Equalizer Bars */}
-          {isAiSpeaking && (
-            <div className="flex items-center gap-1.5 h-12">
-              <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3" />
-              <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2" />
-              <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-4" />
+          <div className="min-w-0">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#A5B4FC]">SpeakMate AI Voice Tutor</span>
+            <h3 className="text-xs font-bold text-white truncate">{avatarState}</h3>
+          </div>
+        </div>
+
+        {isAiSpeaking && (
+          <div className="flex items-center gap-1 h-6 pr-2 shrink-0">
+            <span className="w-1 bg-[#6c63ff] rounded-full animate-soundbar-1" />
+            <span className="w-1 bg-[#ff6584] rounded-full animate-soundbar-2" />
+            <span className="w-1 bg-emerald-400 rounded-full animate-soundbar-3" />
+          </div>
+        )}
+      </div>
+
+      {/* 3. CONVERSATION THREAD (Flex-1, Positioned ABOVE the Speak Button) */}
+      <div className="flex-1 min-h-0 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-3xl shadow-sm overflow-hidden flex flex-col">
+        {/* Right Panel Header */}
+        <div className="px-4 py-2.5 border-b border-[var(--border-default)] bg-[var(--bg-elevated)] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-[#6c63ff]" />
+            <span className="text-xs font-extrabold text-[var(--text-primary)] uppercase tracking-wider">
+              Conversation Thread
+            </span>
+          </div>
+          <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-[#6c63ff]">
+            {messages.length} Messages
+          </span>
+        </div>
+
+        {/* Scrollable Message Thread */}
+        <div className="flex-1 overflow-y-auto space-y-4 p-4">
+          {messages.map((m) => (
+            <div key={m.id} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
+              <div
+                className={`max-w-xl p-3.5 rounded-2xl text-xs font-semibold shadow-sm space-y-1.5 ${
+                  m.sender === "user"
+                    ? "bg-[#6c63ff] text-white rounded-br-none"
+                    : "bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-bl-none"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-[10px] opacity-80 font-black uppercase tracking-wide flex items-center gap-1.5">
+                    {m.sender === "user" ? "👤 You" : "🤖 SpeakMate AI"}
+                  </span>
+                  {m.sender === "ai" && (
+                    <button onClick={() => handleSpeakText(m.message)} className="text-xs hover:scale-110" title="Play Voice">
+                      🔊
+                    </button>
+                  )}
+                </div>
+                <p className="leading-relaxed text-xs">{m.message}</p>
+              </div>
+            </div>
+          ))}
+
+          {isThinking && (
+            <div className="flex items-center gap-2.5 p-3 rounded-2xl bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-xs font-bold text-[#6c63ff] animate-pulse">
+              <span className="h-2 w-2 rounded-full bg-[#6c63ff] animate-ping" />
+              SpeakMate AI analyzing grammar & generating response...
             </div>
           )}
-        </div>
 
-        {/* School Standard Level Controls (1st to 10th Standard) */}
-        <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-1 scrollbar-none">
-          <span className="text-xs font-bold text-[#A5B4FC] shrink-0">School Standard:</span>
-          {[
-            "1st Std",
-            "2nd Std",
-            "3rd Std",
-            "4th Std",
-            "5th Std",
-            "6th Std",
-            "7th Std",
-            "8th Std",
-            "9th Std",
-            "10th Std",
-          ].map((lvl) => (
-            <button
-              key={lvl}
-              onClick={() => setChatLevel(lvl)}
-              className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all shrink-0 ${
-                chatLevel === lvl
-                  ? "bg-[#6c63ff] text-white shadow-md"
-                  : "bg-white/10 text-white/70 hover:bg-white/20"
-              }`}
-            >
-              {lvl}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Chat Thread Container */}
-      <div className="flex-1 overflow-y-auto space-y-4 p-4 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm">
-        {messages.map((m) => (
-          <div key={m.id} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
-            <div
-              className={`max-w-md p-4 rounded-2xl text-xs font-semibold shadow-sm space-y-2 ${
-                m.sender === "user"
-                  ? "bg-[#6c63ff] text-white rounded-br-none"
-                  : "bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-bl-none"
-              }`}
-            >
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-[10px] opacity-75 font-bold uppercase">{m.sender === "user" ? "You" : "SpeakMate AI"}</span>
-                {m.sender === "ai" && (
-                  <button onClick={() => handleSpeakText(m.message)} className="text-xs hover:scale-110" title="Play Speech">
-                    🔊
-                  </button>
-                )}
+          {/* Dynamic Tutor Feedback & Corrections card */}
+          {corrections && (
+            <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[#6c63ff]/40 space-y-3 shadow-md animate-in fade-in duration-300">
+              <div className="flex items-center justify-between gap-2 text-xs font-extrabold text-[#6c63ff] pb-2 border-b border-[var(--border-default)]">
+                <span className="flex items-center gap-1.5">🎓 Live Tutor Evaluation & Speech Feedback</span>
+                <button
+                  onClick={() => handleSpeakText(getSpeakableText(corrections))}
+                  className="px-2.5 py-1 rounded-lg bg-[#6c63ff] text-white text-[10px] font-bold hover:bg-[#8b85ff] transition-all flex items-center gap-1 shadow-sm"
+                  title="Listen Correction Audio"
+                >
+                  <span>🔊 Listen Feedback</span>
+                </button>
               </div>
-              <p className="leading-relaxed">{m.message}</p>
+
+              {corrections.grammarCorrection && (
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1">
+                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-wider">Grammar Correction</span>
+                  <p className="font-semibold text-emerald-600 dark:text-emerald-400">👉 {corrections.grammarCorrection}</p>
+                </div>
+              )}
+
+              {corrections.betterSentence && (
+                <div className="p-2.5 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-xs space-y-1">
+                  <span className="text-[10px] font-black text-[#6c63ff] uppercase tracking-wider">Native Phrasing Upgrade</span>
+                  <p className="font-semibold text-[var(--text-primary)]">💡 "{corrections.betterSentence}"</p>
+                </div>
+              )}
+
+              {corrections.explanation && (
+                <div className="p-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs space-y-1">
+                  <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wider">Explanation Note</span>
+                  <p className="font-normal italic text-[var(--text-secondary)]">{corrections.explanation}</p>
+                </div>
+              )}
+
+              {corrections.vocabularySuggestions && (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-1">
+                  <span className="text-[10px] font-black text-amber-500 uppercase tracking-wider">Vocabulary Upgrade</span>
+                  <p className="font-semibold text-amber-600 dark:text-amber-400">✨ {corrections.vocabularySuggestions}</p>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          )}
 
-        {isThinking && (
-          <div className="flex items-center gap-2 p-3 text-xs font-bold text-[var(--text-secondary)]">
-            <span className="h-2 w-2 rounded-full bg-[#6c63ff] animate-ping" />
-            SpeakMate AI thinking response & analyzing speech...
-          </div>
-        )}
+          {/* Live Transcript Stream */}
+          {isListening && (
+            <div className="flex flex-col items-end">
+              <div className="p-3.5 rounded-2xl bg-[#6c63ff]/20 border border-[#6c63ff]/40 text-xs font-semibold text-[var(--text-primary)] italic animate-pulse">
+                🎙️ "{currentTranscript || "Listening to your voice..."}"
+              </div>
+            </div>
+          )}
 
-        {/* Dynamic Tutor Feedback & Corrections overlay card */}
-        {corrections && (
-          <div className="p-4 rounded-2xl bg-[#1E1B4B]/20 border border-[#6c63ff]/40 space-y-3 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between gap-2 text-xs font-extrabold text-[#6c63ff]">
-              <span className="flex items-center gap-1.5">🎓 Tutor Feedback & Speech Corrections</span>
+          <div ref={chatEndRef} />
+        </div>
+
+        {/* Suggestions chips */}
+        {hints.length > 0 && (
+          <div className="p-2.5 border-t border-[var(--border-default)] bg-[var(--bg-elevated)]/50 flex items-center gap-2 overflow-x-auto shrink-0">
+            <span className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-wide shrink-0">Suggestions:</span>
+            {hints.map((hint, idx) => (
               <button
-                onClick={() => handleSpeakText(getSpeakableText(corrections))}
-                className="px-2.5 py-1 rounded-lg bg-[#6c63ff] text-white text-[10px] font-bold hover:bg-[#8b85ff] transition-all flex items-center gap-1"
-                title="Listen Correction Audio"
+                key={idx}
+                onClick={() => sendUserText(hint)}
+                className="px-3 py-1 rounded-xl bg-[var(--bg-surface)] hover:bg-[#6c63ff] hover:text-white text-[var(--text-primary)] text-xs font-semibold shrink-0 transition-all border border-[var(--border-default)] shadow-sm"
               >
-                <span>🔊 Listen Correction</span>
+                {hint}
               </button>
-            </div>
-
-            {corrections.grammarCorrection && (
-              <div className="text-xs space-y-1">
-                <span className="text-[10px] font-bold text-[#818CF8] uppercase">Grammar Correction</span>
-                <p className="font-semibold text-emerald-500">👉 {corrections.grammarCorrection}</p>
-              </div>
-            )}
-
-            {corrections.betterSentence && (
-              <div className="text-xs space-y-1">
-                <span className="text-[10px] font-bold text-[#818CF8] uppercase">Native Sentence Upgrade</span>
-                <p className="font-semibold text-[var(--text-primary)]">💡 "{corrections.betterSentence}"</p>
-              </div>
-            )}
-
-            {corrections.explanation && (
-              <div className="text-xs space-y-1">
-                <span className="text-[10px] font-bold text-[#818CF8] uppercase">Explanation Note</span>
-                <p className="font-normal italic text-[var(--text-secondary)]">{corrections.explanation}</p>
-              </div>
-            )}
-
-            {corrections.vocabularySuggestions && (
-              <div className="text-xs space-y-1">
-                <span className="text-[10px] font-bold text-[#818CF8] uppercase">Vocabulary Suggested</span>
-                <p className="font-semibold text-amber-500">✨ {corrections.vocabularySuggestions}</p>
-              </div>
-            )}
+            ))}
           </div>
         )}
-
-        {/* Live Transcript Stream */}
-        {isListening && (
-          <div className="flex flex-col items-end">
-            <div className="p-3 rounded-2xl bg-[#6c63ff]/20 border border-[#6c63ff]/40 text-xs font-semibold text-[var(--text-primary)] italic animate-pulse">
-              "{currentTranscript || "Listening to your voice..."}"
-            </div>
-          </div>
-        )}
-
-        <div ref={chatEndRef} />
       </div>
 
-      {/* Hints chips */}
-      {hints.length > 0 && (
-        <div className="p-3 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] flex items-center gap-2 overflow-x-auto shrink-0">
-          <span className="text-[10px] font-bold text-[var(--text-secondary)] shrink-0">Suggestions:</span>
-          {hints.map((hint, idx) => (
-            <button
-              key={idx}
-              onClick={() => sendUserText(hint)}
-              className="px-3 py-1.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6c63ff] hover:text-white text-xs font-semibold shrink-0 transition-all"
-            >
-              {hint}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* Bottom Controls Bar */}
-      <div className="p-4 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-lg flex flex-col gap-3 shrink-0">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={handleFetchHints}
-            disabled={loadingHints}
-            className="text-xs font-bold text-[#6c63ff] hover:underline flex items-center gap-1"
-          >
-            <span>💡 {loadingHints ? "Loading hints..." : "Need help? Ask AI Tutor for suggestion"}</span>
-          </button>
-
-          <button
-            onClick={handleToggleSpeed}
-            className="px-3 py-1 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold text-[var(--text-secondary)]"
-          >
-            ⚡ {speechSpeed}x Speed
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between gap-4">
+      {/* 4. BOTTOM CONTROLS BAR (Contains the SPEAK / MIC BUTTON at the bottom) */}
+      <div className="p-3 sm:p-4 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-lg flex items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center gap-2">
           <button
             onClick={() => {
               if (!isMuted && "speechSynthesis" in window) {
@@ -581,40 +525,68 @@ export function ConversationSession() {
               }
               setIsMuted(!isMuted);
             }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border ${
-              isMuted ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)]"
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm ${
+              isMuted ? "bg-rose-500/10 border-rose-500/30 text-rose-500" : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            {isMuted ? "🔇 Muted" : "🔊 Sound On"}
+            {isMuted ? "🔇" : "🔊"}
           </button>
 
-          {/* Main SoundWave Mic Button */}
+          <button
+            onClick={handleToggleSpeed}
+            className="px-3 py-2 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold text-[#6c63ff] hover:opacity-80 transition-all shadow-sm"
+          >
+            ⚡ {speechSpeed}x
+          </button>
+        </div>
+
+        {/* MAIN SPEAK BUTTON (Centered at the Bottom) */}
+        <div className="flex items-center justify-center">
           {!isListening ? (
-            <button
-              onClick={handleStartListening}
-              className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white shadow-xl hover:scale-105 transition-transform"
-            >
-              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-              </svg>
-            </button>
+            <div className="relative group">
+              <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#6c63ff] to-[#ff6584] opacity-40 blur-md group-hover:opacity-80 transition-opacity" />
+              <button
+                onClick={handleStartListening}
+                className="relative grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white shadow-xl hover:scale-105 transition-transform"
+                title="Click to Speak"
+              >
+                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                </svg>
+              </button>
+            </div>
           ) : (
-            <button
-              onClick={handleStopListeningAndSend}
-              className="grid h-16 w-16 place-items-center rounded-full bg-red-500 text-white shadow-xl animate-pulse ring-4 ring-red-500/30"
-            >
-              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </button>
+            <div className="relative">
+              <div className="absolute -inset-3 rounded-full bg-rose-500 opacity-50 animate-ping" />
+              <button
+                onClick={handleStopListeningAndSend}
+                className="relative grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full bg-rose-500 text-white shadow-xl animate-pulse ring-4 ring-rose-500/30"
+                title="Click to Send"
+              >
+                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+            </div>
           )}
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleFetchHints}
+            disabled={loadingHints}
+            className="px-3 py-2 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-[#6c63ff] text-xs font-bold hover:bg-[#6c63ff]/20 transition-all"
+            title="Get AI Suggestion"
+          >
+            💡 {loadingHints ? "..." : "Hint"}
+          </button>
 
           <button
             onClick={handleEndSession}
             disabled={ending}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-extrabold shadow-md"
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-extrabold shadow-md hover:opacity-90 transition-all shrink-0"
           >
-            {ending ? "Evaluating..." : "End & Evaluate"}
+            {ending ? "Evaluating..." : "Finish"}
           </button>
         </div>
       </div>

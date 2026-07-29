@@ -25,18 +25,11 @@ export function AuthProvider({ children }) {
 
   const syncSchoolGrade = (userData) => {
     if (!userData) return;
-    let effectiveGrade = userData.schoolGrade;
-    if (!effectiveGrade || !effectiveGrade.includes("Std")) {
-      const stored = localStorage.getItem("speakmate_school_grade");
-      if (stored && stored.includes("Std")) {
-        effectiveGrade = stored;
-      } else if (userData.englishLevel && userData.englishLevel.includes("Std")) {
-        effectiveGrade = userData.englishLevel;
-      } else {
-        effectiveGrade = "5th Std";
-      }
+    if (userData.schoolGrade && userData.schoolGrade.includes("Std")) {
+      localStorage.setItem("speakmate_school_grade", userData.schoolGrade);
+    } else {
+      localStorage.removeItem("speakmate_school_grade");
     }
-    localStorage.setItem("speakmate_school_grade", effectiveGrade);
   };
 
   const restoreSession = useCallback(async () => {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import { authService } from "../services/authService";
 import ROUTES from "../constants/routes";
 
@@ -27,6 +28,7 @@ const CEFR_LEVELS = [
 
 export function Profile() {
   const { user, updateUser, logout } = useAuth();
+  const toast = useToast();
   const navigate = useNavigate();
 
   const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
@@ -35,7 +37,7 @@ export function Profile() {
   const [email, setEmail] = useState(user?.email || "learner@example.com");
   const [nativeLang, setNativeLang] = useState(user?.nativeLang || "English");
   const [schoolGrade, setSchoolGrade] = useState(
-    localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || user?.level || "5th Std"
+    accountType === "STUDENT" ? (localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std") : null
   );
   const [cefrLevel, setCefrLevel] = useState(user?.level || "Intermediate");
 
@@ -51,15 +53,21 @@ export function Profile() {
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    localStorage.setItem("speakmate_school_grade", schoolGrade);
+    const finalGrade = accountType === "STUDENT" ? schoolGrade : null;
+    if (finalGrade) {
+      localStorage.setItem("speakmate_school_grade", finalGrade);
+    } else {
+      localStorage.removeItem("speakmate_school_grade");
+    }
     updateUser({
       name,
       email,
       nativeLang,
       level: accountType === "STUDENT" ? schoolGrade : cefrLevel,
-      schoolGrade,
+      schoolGrade: finalGrade,
     });
     setSaved(true);
+    toast.success("Profile updated successfully!");
     setTimeout(() => setSaved(false), 2500);
   };
 

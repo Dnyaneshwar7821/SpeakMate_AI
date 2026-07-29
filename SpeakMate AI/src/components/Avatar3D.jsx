@@ -1,139 +1,31 @@
-import React, { useRef, useMemo, useState, useEffect } from 'react';
-import { useFrame, useGraph } from '@react-three/fiber';
-import { useGLTF } from '@react-three/drei';
+import React, { useRef, useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-// --- Error Boundary for 3D Models ---
-class AvatarErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-  render() {
-    if (this.state.hasError) {
-      return <ProceduralRobotAvatar viseme={this.props.viseme} isSpeaking={this.props.isSpeaking} />;
-    }
-    return this.props.children;
-  }
-}
-
-// --- Realistic Human Avatar (Loads /avatar.glb) ---
-function HumanAvatar({ viseme, isSpeaking }) {
-  // This will throw if /avatar.glb is missing, triggering the ErrorBoundary
-  const { scene } = useGLTF('/avatar.glb');
-  const { nodes } = useGraph(scene);
+export function Avatar3D({ viseme = "REST", isSpeaking = false }) {
   const group = useRef();
-
-  // Find the head mesh (usually called Wolf3D_Head in Ready Player Me)
-  const headMesh = useMemo(() => {
-    let head = null;
-    scene.traverse((child) => {
-      if (child.isMesh && child.morphTargetDictionary) {
-        // RPM usually has 'Wolf3D_Head' or 'Wolf3D_Avatar' with morphs
-        if (child.name.includes('Head') || child.name.includes('Avatar') || child.name.includes('Mesh')) {
-          head = child;
-        }
-      }
-    });
-    return head;
-  }, [scene]);
-
-  // Viseme to Morph Target Index mapping
-  const visemeMapping = useMemo(() => {
-    if (!headMesh || !headMesh.morphTargetDictionary) return {};
-    const dict = headMesh.morphTargetDictionary;
-    return {
-      "AA": dict["viseme_aa"] !== undefined ? dict["viseme_aa"] : dict["mouthOpen"],
-      "EE": dict["viseme_E"] !== undefined ? dict["viseme_E"] : dict["mouthSmile"],
-      "IH": dict["viseme_I"] !== undefined ? dict["viseme_I"] : dict["mouthSmile"],
-      "OO": dict["viseme_O"] !== undefined ? dict["viseme_O"] : dict["mouthPucker"],
-      "OH": dict["viseme_O"] !== undefined ? dict["viseme_O"] : dict["mouthOpen"],
-    };
-  }, [headMesh]);
-
-  const blinkTargetIndex = useMemo(() => {
-    if (!headMesh || !headMesh.morphTargetDictionary) return -1;
-    return headMesh.morphTargetDictionary["eyeBlink_Left"] !== undefined 
-           ? headMesh.morphTargetDictionary["eyeBlink_Left"] 
-           : -1;
-  }, [headMesh]);
-
-  useFrame((state) => {
-    if (!group.current) return;
-    
-    // Idle animation (breathing)
-    if (!isSpeaking) {
-      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, Math.sin(state.clock.elapsedTime * 0.5) * 0.05, 0.05);
-      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, 0, 0.05);
-    } else {
-      // Head bobbing while talking
-      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, Math.sin(state.clock.elapsedTime * 3) * 0.05, 0.1);
-      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, Math.sin(state.clock.elapsedTime * 2) * 0.02, 0.1);
-    }
-
-    // Apply Lip Sync Morphs
-    if (headMesh && headMesh.morphTargetInfluences) {
-      // Reset all lip sync morphs to 0 smoothly
-      Object.values(visemeMapping).forEach(index => {
-        if (index !== undefined && index !== -1) {
-          headMesh.morphTargetInfluences[index] = THREE.MathUtils.lerp(headMesh.morphTargetInfluences[index], 0, 0.3);
-        }
-      });
-      
-      // Apply the active viseme
-      if (isSpeaking && viseme !== "REST") {
-        const targetIndex = visemeMapping[viseme];
-        if (targetIndex !== undefined && targetIndex !== -1) {
-          headMesh.morphTargetInfluences[targetIndex] = THREE.MathUtils.lerp(headMesh.morphTargetInfluences[targetIndex], 1, 0.4);
-        }
-      }
-
-      // Procedural Blinking
-      if (blinkTargetIndex !== -1) {
-        const time = state.clock.elapsedTime;
-        const isBlinking = (Math.sin(time * 3) > 0.96 && Math.sin(time * 11) > 0.5) || Math.sin(time * 7) > 0.98;
-        headMesh.morphTargetInfluences[blinkTargetIndex] = THREE.MathUtils.lerp(
-          headMesh.morphTargetInfluences[blinkTargetIndex], 
-          isBlinking ? 1 : 0, 
-          0.5
-        );
-        // Assuming eyeBlink_Right is usually right next to eyeBlink_Left
-        if (headMesh.morphTargetInfluences[blinkTargetIndex + 1] !== undefined) {
-           headMesh.morphTargetInfluences[blinkTargetIndex + 1] = headMesh.morphTargetInfluences[blinkTargetIndex];
-        }
-      }
-    }
-  });
-
-  return (
-    <group ref={group} dispose={null} position={[0, -1.5, 1]} scale={1.8}>
-      <primitive object={scene} />
-    </group>
-  );
-}
-
-// --- Procedural Robot Fallback ---
-function ProceduralRobotAvatar({ viseme, isSpeaking }) {
-  const group = useRef();
+  const headGroup = useRef();
   const mouth = useRef();
   const leftEye = useRef();
   const rightEye = useRef();
+  const leftEar = useRef();
+  const rightEar = useRef();
+  const antenna = useRef();
 
   const visemeMapping = useMemo(() => ({
-    "AA": [0.8, 1.2, 1],
-    "EE": [1.5, 0.4, 1],
-    "IH": [1.2, 0.6, 1],
-    "OO": [0.5, 0.8, 1],
-    "OH": [0.7, 1.0, 1],
+    "AA": [1.5, 1.2, 1],
+    "EE": [2.0, 0.4, 1],
+    "IH": [1.5, 0.6, 1],
+    "OO": [0.8, 1.0, 1],
+    "OH": [1.0, 1.5, 1],
     "REST": [1.0, 0.1, 1]
   }), []);
 
   useFrame((state) => {
     if (!group.current || !mouth.current || !leftEye.current || !rightEye.current) return;
     
+    const time = state.clock.elapsedTime;
+
     const targetScale = (isSpeaking && viseme !== "REST") 
       ? (visemeMapping[viseme] || visemeMapping["OO"])
       : visemeMapping["REST"];
@@ -141,15 +33,25 @@ function ProceduralRobotAvatar({ viseme, isSpeaking }) {
     mouth.current.scale.x = THREE.MathUtils.lerp(mouth.current.scale.x, targetScale[0], 0.3);
     mouth.current.scale.y = THREE.MathUtils.lerp(mouth.current.scale.y, targetScale[1], 0.3);
 
+    // Floating animation
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, -0.2 + Math.sin(time * 2) * 0.05, 0.1);
+
     if (isSpeaking && viseme !== "REST") {
-      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, Math.sin(state.clock.elapsedTime * 4) * 0.1, 0.1);
-      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, Math.sin(state.clock.elapsedTime * 2) * 0.05, 0.1);
+      headGroup.current.rotation.y = THREE.MathUtils.lerp(headGroup.current.rotation.y, Math.sin(time * 4) * 0.15, 0.1);
+      headGroup.current.rotation.x = THREE.MathUtils.lerp(headGroup.current.rotation.x, Math.sin(time * 2) * 0.05, 0.1);
+      leftEar.current.rotation.z = Math.sin(time * 10) * 0.1;
+      rightEar.current.rotation.z = -Math.sin(time * 10) * 0.1;
     } else {
-      group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, Math.sin(state.clock.elapsedTime * 0.5) * 0.05, 0.05);
-      group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, 0, 0.05);
+      headGroup.current.rotation.y = THREE.MathUtils.lerp(headGroup.current.rotation.y, Math.sin(time * 0.5) * 0.1, 0.05);
+      headGroup.current.rotation.x = THREE.MathUtils.lerp(headGroup.current.rotation.x, 0, 0.05);
+      leftEar.current.rotation.z = THREE.MathUtils.lerp(leftEar.current.rotation.z, 0, 0.1);
+      rightEar.current.rotation.z = THREE.MathUtils.lerp(rightEar.current.rotation.z, 0, 0.1);
     }
     
-    const time = state.clock.elapsedTime;
+    if (antenna.current) {
+      antenna.current.scale.setScalar(1 + Math.sin(time * 5) * 0.2);
+    }
+
     const isBlinking = (Math.sin(time * 3) > 0.96 && Math.sin(time * 11) > 0.5) || Math.sin(time * 7) > 0.98;
     const blinkScale = isBlinking ? 0.05 : 1;
     
@@ -158,42 +60,80 @@ function ProceduralRobotAvatar({ viseme, isSpeaking }) {
   });
 
   return (
-    <group ref={group} dispose={null} position={[0, -0.2, 0]} scale={1.5}>
-      <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[1.2, 1.4, 1.2]} />
-        <meshStandardMaterial color="#6c63ff" roughness={0.3} metalness={0.7} />
-      </mesh>
-      <mesh position={[0, 0, 0.61]}>
-        <planeGeometry args={[1.0, 1.2]} />
-        <meshStandardMaterial color="#0F172A" roughness={0.5} />
-      </mesh>
-      <mesh ref={leftEye} position={[-0.25, 0.2, 0.62]}>
-        <capsuleGeometry args={[0.08, 0.1, 4, 8]} />
-        <meshBasicMaterial color="#00ffcc" />
-      </mesh>
-      <mesh ref={rightEye} position={[0.25, 0.2, 0.62]}>
-        <capsuleGeometry args={[0.08, 0.1, 4, 8]} />
-        <meshBasicMaterial color="#00ffcc" />
-      </mesh>
-      <mesh ref={mouth} position={[0, -0.3, 0.62]}>
-        <boxGeometry args={[0.4, 0.1, 0.05]} />
-        <meshBasicMaterial color="#ff6584" />
-      </mesh>
-      <mesh position={[0, -0.85, 0]}>
-        <cylinderGeometry args={[0.2, 0.3, 0.3, 16]} />
-        <meshStandardMaterial color="#333" />
+    // Scaled to fit beautifully without clipping
+    <group ref={group} dispose={null} scale={0.85}>
+      <group ref={headGroup}>
+        {/* Robot Head (Spherical) */}
+        <mesh position={[0, 0, 0]}>
+          <sphereGeometry args={[0.8, 64, 64]} />
+          <meshStandardMaterial color="#f8fafc" roughness={0.1} metalness={0.8} />
+        </mesh>
+        
+        {/* Robot Face Screen (Curved Black Glass) */}
+        <mesh position={[0, 0, 0.15]}>
+          <sphereGeometry args={[0.78, 64, 64, 0, Math.PI * 2, 0, Math.PI / 2.3]} />
+          <meshStandardMaterial color="#020617" roughness={0.0} metalness={1.0} />
+        </mesh>
+        
+        {/* Left Eye */}
+        <mesh ref={leftEye} position={[-0.25, 0.15, 0.72]} rotation={[-0.1, -0.2, 0]}>
+          <capsuleGeometry args={[0.08, 0.12, 16, 16]} />
+          <meshBasicMaterial color="#00ffcc" />
+        </mesh>
+        
+        {/* Right Eye */}
+        <mesh ref={rightEye} position={[0.25, 0.15, 0.72]} rotation={[-0.1, 0.2, 0]}>
+          <capsuleGeometry args={[0.08, 0.12, 16, 16]} />
+          <meshBasicMaterial color="#00ffcc" />
+        </mesh>
+        
+        {/* Lip-Syncing Mouth */}
+        <mesh ref={mouth} position={[0, -0.25, 0.76]} rotation={[0, 0, Math.PI / 2]}>
+          <capsuleGeometry args={[0.05, 0.15, 16, 16]} />
+          <meshBasicMaterial color="#ff6584" />
+        </mesh>
+        
+        {/* Antenna Stem */}
+        <mesh position={[0, 0.9, 0]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.3, 16]} />
+          <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.2} />
+        </mesh>
+        {/* Antenna Bulb */}
+        <mesh ref={antenna} position={[0, 1.05, 0]}>
+          <sphereGeometry args={[0.08, 32, 32]} />
+          <meshBasicMaterial color="#6c63ff" />
+        </mesh>
+
+        {/* Left Ear Panel */}
+        <group ref={leftEar} position={[-0.8, 0, 0]}>
+          <mesh rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.25, 0.25, 0.1, 32]} />
+            <meshStandardMaterial color="#6c63ff" roughness={0.4} metalness={0.6} />
+          </mesh>
+          <mesh position={[-0.06, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.15, 0.15, 0.05, 32]} />
+            <meshBasicMaterial color="#00ffcc" />
+          </mesh>
+        </group>
+
+        {/* Right Ear Panel */}
+        <group ref={rightEar} position={[0.8, 0, 0]}>
+          <mesh rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.25, 0.25, 0.1, 32]} />
+            <meshStandardMaterial color="#6c63ff" roughness={0.4} metalness={0.6} />
+          </mesh>
+          <mesh position={[0.06, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.15, 0.15, 0.05, 32]} />
+            <meshBasicMaterial color="#00ffcc" />
+          </mesh>
+        </group>
+      </group>
+      
+      {/* Robot Floating Base / Neck */}
+      <mesh position={[0, -0.9, 0]}>
+        <cylinderGeometry args={[0.3, 0.15, 0.4, 32]} />
+        <meshStandardMaterial color="#94a3b8" roughness={0.3} metalness={0.8} />
       </mesh>
     </group>
-  );
-}
-
-// --- Main Export ---
-export function Avatar3D({ viseme, isSpeaking }) {
-  return (
-    <AvatarErrorBoundary viseme={viseme} isSpeaking={isSpeaking}>
-      <React.Suspense fallback={<ProceduralRobotAvatar viseme={viseme} isSpeaking={isSpeaking} />}>
-        <HumanAvatar viseme={viseme} isSpeaking={isSpeaking} />
-      </React.Suspense>
-    </AvatarErrorBoundary>
   );
 }

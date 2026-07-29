@@ -152,8 +152,12 @@ export function Onboarding() {
   };
 
   const handleFinish = async () => {
-    const finalGrade = selectedGrade || localStorage.getItem("speakmate_school_grade") || "1st Std";
-    localStorage.setItem("speakmate_school_grade", finalGrade);
+    const finalGrade = accountType === "STUDENT" ? selectedGrade : null;
+    if (finalGrade) {
+      localStorage.setItem("speakmate_school_grade", finalGrade);
+    } else {
+      localStorage.removeItem("speakmate_school_grade");
+    }
     localStorage.setItem("speakmate_age_group", selectedAgeGroup);
     await completeOnboarding({
       nativeLanguage,

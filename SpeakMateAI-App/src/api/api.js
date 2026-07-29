@@ -39,9 +39,19 @@ api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
+    const config = error.config;
     const status = error.response?.status;
     const data = error.response?.data;
+
+    // Retry once on network timeout or connection error (e.g. Render free tier cold start)
+    const isNetworkError = !error.response || error.code === 'ECONNABORTED' || error.message === 'Network Error';
+    if (config && isNetworkError && !config._retry) {
+      config._retry = true;
+      console.warn(`[Axios] Network request failed/timed out. Retrying once (${config.url})...`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      return api(config);
+    }
 
     if (status !== 401 && status !== 404) {
       console.error('[Axios Response Error] Detailed logs:');

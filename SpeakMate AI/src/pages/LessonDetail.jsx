@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
+import { speakGlobalText } from "../utils/speechHelper";
 import { lessonModuleService, aiService, speechService } from "../services/appServices";
 
 // Helper to safely parse objectives and skills arrays regardless of API response type
@@ -93,12 +94,8 @@ export function LessonDetail() {
 
   // Audio Speech Read-Aloud Helper
   const handleSpeakText = (text) => {
-    if ("speechSynthesis" in window && text) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text.replace(/[\*\_]/g, ""));
-      utterance.rate = 1.0;
-      utterance.lang = "en-US";
-      window.speechSynthesis.speak(utterance);
+    if (text) {
+      speakGlobalText(text);
     }
   };
 

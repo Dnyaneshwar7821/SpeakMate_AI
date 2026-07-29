@@ -453,14 +453,11 @@ public class UserServiceImpl implements UserService {
 
 	private UserResponse mapToUserResponse(User user) {
 		String effectiveGrade = user.getSchoolGrade();
-		if (effectiveGrade == null || effectiveGrade.trim().isEmpty() || !effectiveGrade.contains("Std")) {
+		if (effectiveGrade == null || effectiveGrade.trim().isEmpty()) {
 			java.util.Optional<Onboarding> ob = onboardingRepository.findByUser(user);
 			if (ob.isPresent() && ob.get().getSchoolGrade() != null && !ob.get().getSchoolGrade().trim().isEmpty()) {
 				effectiveGrade = ob.get().getSchoolGrade();
 			}
-		}
-		if (effectiveGrade == null || effectiveGrade.trim().isEmpty()) {
-			effectiveGrade = "5th Std";
 		}
 
 		return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())

@@ -152,7 +152,7 @@ export function SpeakingPractice() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const [selectedGrade, setSelectedGrade] = useState(
-    localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std"
+    accountType === "STUDENT" ? (localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std") : null
   );
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(
     localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional"

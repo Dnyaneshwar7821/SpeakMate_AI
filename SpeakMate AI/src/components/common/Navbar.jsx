@@ -10,7 +10,6 @@ const PRACTICE_ITEMS = [
   { path: ROUTES.SPEAKING, label: "Speaking Practice", description: "Fluency drills" },
   { path: ROUTES.GRAMMAR, label: "Grammar Practice", description: "Strengthen accuracy" },
   { path: ROUTES.VOCABULARY, label: "Vocabulary Practice", description: "Grow your words" },
-  { path: ROUTES.LISTENING, label: "Listening Practice", description: "Improve comprehension" },
 ];
 
 const PROFILE_ITEMS = [

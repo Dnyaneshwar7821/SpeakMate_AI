@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { speakGlobalText } from "../utils/speechHelper";
 import ROUTES from "../constants/routes";
 import { speakingService } from "../services/appServices";
 
@@ -36,13 +37,7 @@ export function SpeakingHistoryDetail() {
   }, [id]);
 
   const handleSpeakText = (text) => {
-    if ("speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1.0;
-      utterance.lang = "en-US";
-      window.speechSynthesis.speak(utterance);
-    }
+    speakGlobalText(text);
   };
 
   if (loading) {

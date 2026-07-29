@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { grammarService } from "../services/appServices";
+import { speakGlobalText } from "../utils/speechHelper";
+import { Avatar3D } from "../components/Avatar3D";
 
 function performSmartGrammarCorrection(text) {
   let corrected = text;
@@ -153,46 +155,25 @@ export function GrammarPractice() {
   };
 
   const handleSpeakText = (text) => {
-    if (!text || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-
-    const cleanSpeech = text
-      .replace(/[\"\"'']/g, "")
-      .replace(/\./g, ". ")
-      .replace(/\,/g, ", ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    const utterance = new SpeechSynthesisUtterance(cleanSpeech);
-    utterance.rate = 0.92;
-    utterance.pitch = 1.02;
-
-    const bestVoice = getBestNaturalVoice();
-    if (bestVoice) {
-      utterance.voice = bestVoice;
-    }
-
-    utterance.onstart = () => {
-      setIsAiSpeaking(true);
-      setViseme("AA");
-    };
-
-    utterance.onboundary = () => {
-      const VISEMES = ["AA", "EE", "IH", "OO", "OH"];
-      setViseme(VISEMES[Math.floor(Math.random() * VISEMES.length)]);
-    };
-
-    utterance.onend = () => {
-      setIsAiSpeaking(false);
-      setViseme("REST");
-    };
-
-    utterance.onerror = () => {
-      setIsAiSpeaking(false);
-      setViseme("REST");
-    };
-
-    window.speechSynthesis.speak(utterance);
+    if (!text) return;
+    speakGlobalText(text, 1.0, {
+      onstart: () => {
+        setIsAiSpeaking(true);
+        setViseme("AA");
+      },
+      onboundary: () => {
+        const VISEMES = ["AA", "EE", "IH", "OO", "OH"];
+        setViseme(VISEMES[Math.floor(Math.random() * VISEMES.length)]);
+      },
+      onend: () => {
+        setIsAiSpeaking(false);
+        setViseme("REST");
+      },
+      onerror: () => {
+        setIsAiSpeaking(false);
+        setViseme("REST");
+      },
+    });
   };
 
   const handleSpeakCorrectionAndImprovement = (res) => {

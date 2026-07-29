@@ -9,7 +9,6 @@ const MENU_ITEMS = [
   { path: ROUTES.LESSONS, label: "Interactive Lessons" },
   { path: ROUTES.GRAMMAR, label: "Grammar Coach" },
   { path: ROUTES.VOCABULARY, label: "Vocabulary Builder" },
-  { path: ROUTES.LISTENING, label: "Listening Practice" },
   { path: ROUTES.ACHIEVEMENTS, label: "Achievements & Badges" },
   { path: ROUTES.PROGRESS, label: "My Progress" },
   { path: ROUTES.NOTIFICATIONS, label: "Notifications" },

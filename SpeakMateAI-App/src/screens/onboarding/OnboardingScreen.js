@@ -223,7 +223,7 @@ export default function OnboardingScreen({ navigation }) {
   const [language, setLanguage] = useState('English');
   const [aiVoice, setAiVoice] = useState('Friendly');
   const [ageGroup, setAgeGroup] = useState('Professional');
-  const [schoolGrade, setSchoolGrade] = useState('1st Std');
+  const [schoolGrade, setSchoolGrade] = useState(null);
   const [reminderTime, setReminderTime] = useState('Evening');
   const [whyLearning, setWhyLearning] = useState([]);
   const [level, setLevel] = useState('Intermediate');
@@ -476,13 +476,18 @@ export default function OnboardingScreen({ navigation }) {
   const handleFinishOnboarding = async () => {
     setLoading(true);
     try {
-      await AsyncStorage.setItem('speakmate_school_grade', schoolGrade || '1st Std');
+      const finalGrade = accountType === 'STUDENT' ? (schoolGrade || '1st Std') : null;
+      if (finalGrade) {
+        await AsyncStorage.setItem('speakmate_school_grade', finalGrade);
+      } else {
+        await AsyncStorage.removeItem('speakmate_school_grade');
+      }
       await AsyncStorage.setItem('speakmate_age_group', ageGroup || 'Professional');
 
       // 1. Sync onboarding details (Avoids any 404 blockages)
       await onboardingService.update({
         englishLevel: level,
-        schoolGrade: schoolGrade || '1st Std',
+        schoolGrade: finalGrade,
         learningGoal: whyLearning.join(', '),
         dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
         nativeLanguage: language,

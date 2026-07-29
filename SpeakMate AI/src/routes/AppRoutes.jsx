@@ -23,7 +23,7 @@ import Lessons from "../pages/Lessons";
 import LessonDetail from "../pages/LessonDetail";
 import GrammarPractice from "../pages/GrammarPractice";
 import Vocabulary from "../pages/Vocabulary";
-import ListeningPractice from "../pages/ListeningPractice";
+
 import Progress from "../pages/Progress";
 import Achievements from "../pages/Achievements";
 import Notifications from "../pages/Notifications";
@@ -251,16 +251,6 @@ export function AppRoutes() {
             }
           />
 
-          <Route
-            path={ROUTES.LISTENING}
-            element={
-              <ProtectedRoute>
-                <PageTransition>
-                  <ListeningPractice />
-                </PageTransition>
-              </ProtectedRoute>
-            }
-          />
 
           <Route
             path={ROUTES.PROGRESS}

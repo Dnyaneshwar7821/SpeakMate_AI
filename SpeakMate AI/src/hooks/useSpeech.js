@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useToast } from "../context/ToastContext";
 
 export function useSpeech(options = {}) {
   const { lang = "en-US", rate = 1, pitch = 1, onResult, onError } = options;
+  const toast = useToast();
 
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
@@ -43,7 +45,7 @@ export function useSpeech(options = {}) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.");
+      toast.warning("Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.");
       return;
     }
 

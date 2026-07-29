@@ -75,22 +75,11 @@ public class OnboardingServiceImpl implements OnboardingService {
 							.preferredLearningTime("Morning")
 							.interests("General")
 							.ageGroup("Professional")
-							.schoolGrade("1st Std")
+							.schoolGrade(null)
 							.onboardingCompleted(false)
 							.build();
 					return onboardingRepository.save(defaultOnboarding);
 				});
-
-		// Auto-populate empty database schoolGrade column from englishLevel for existing users
-		if (onboarding.getSchoolGrade() == null || onboarding.getSchoolGrade().trim().isEmpty()) {
-			onboarding.setSchoolGrade(resolveGrade(onboarding.getSchoolGrade(), onboarding.getEnglishLevel()));
-			onboarding = onboardingRepository.save(onboarding);
-		}
-
-		if (user.getSchoolGrade() == null || user.getSchoolGrade().trim().isEmpty()) {
-			user.setSchoolGrade(resolveGrade(user.getSchoolGrade(), user.getEnglishLevel()));
-			userRepository.save(user);
-		}
 
 		return mapToResponse(onboarding);
 	}
@@ -115,7 +104,7 @@ public class OnboardingServiceImpl implements OnboardingService {
 							.preferredLearningTime("Morning")
 							.interests("General")
 							.ageGroup("Professional")
-							.schoolGrade("1st Std")
+							.schoolGrade(null)
 							.onboardingCompleted(false)
 							.build();
 					return onboardingRepository.save(defaultOnboarding);
@@ -189,9 +178,6 @@ public class OnboardingServiceImpl implements OnboardingService {
 		if (schoolGrade != null && !schoolGrade.trim().isEmpty()) {
 			return schoolGrade;
 		}
-		if (englishLevel != null && !englishLevel.trim().isEmpty()) {
-			return englishLevel;
-		}
-		return "1st Std";
+		return null;
 	}
 }

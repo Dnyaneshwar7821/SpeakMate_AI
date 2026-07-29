@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { vocabularyService, progressService } from "../services/appServices";
+import { speakGlobalText } from "../utils/speechHelper";
 
 // Curated CEFR Dictionary Pool for 100% Unique Automatic Quiz Generation
 const EXTENDED_DICTIONARY_POOL = [
@@ -107,17 +108,12 @@ export function Vocabulary() {
   }, []);
 
   const handleSpeak = (text) => {
-    if (!text || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
+    if (!text) return;
     setSpeakingWord(text);
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.lang = "en-US";
-    utterance.onend = () => setSpeakingWord(null);
-    utterance.onerror = () => setSpeakingWord(null);
-
-    window.speechSynthesis.speak(utterance);
+    speakGlobalText(text, 1.0, {
+      onend: () => setSpeakingWord(null),
+      onerror: () => setSpeakingWord(null),
+    });
   };
 
   // Auto-speak word or meaning when Flashcard tab is active or card flips

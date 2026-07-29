@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { chatService } from "../services/appServices";
+import { useModal } from "../context/ModalContext";
+import { useToast } from "../context/ToastContext";
 
 const CHAT_MODES = [
   { key: "General English", title: "General English", desc: "Improve conversation, general fluency and grammar.", difficulty: "All levels", icon: "💬", color: "#6366F1" },
@@ -19,6 +21,8 @@ const CHAT_MODES = [
 
 export function AiChat() {
   const navigate = useNavigate();
+  const { showConfirm } = useModal();
+  const toast = useToast();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -67,12 +71,22 @@ export function AiChat() {
 
   const handleDeleteSession = async (id, e) => {
     e.stopPropagation();
-    if (window.confirm("Are you sure you want to permanently delete this chat session and its full message history?")) {
+    const confirmed = await showConfirm({
+      title: "Delete Chat Session?",
+      message: "Are you sure you want to permanently delete this chat session and its message history?",
+      confirmText: "Delete Session",
+      cancelText: "Keep Session",
+      type: "danger",
+    });
+
+    if (confirmed) {
       try {
         await chatService.deleteSession(id);
         setHistory((prev) => prev.filter((s) => s.id !== id));
-      } catch (e) {
-        console.error("Delete session error:", e);
+        toast.success("Chat session deleted successfully");
+      } catch (err) {
+        console.error("Delete session error:", err);
+        toast.error("Failed to delete chat session");
       }
     }
   };

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { VOICE_PERSONAS, speakGlobalText } from "../utils/speechHelper";
+import { useToast } from "../context/ToastContext";
 
 const AGE_GROUPS = [
   { key: "Kids", label: "Kids (6-12)", icon: "🎈", desc: "Simple words, fun stories & high encouragement" },
@@ -9,62 +11,7 @@ const AGE_GROUPS = [
   { key: "Senior", label: "Seniors (50+)", icon: "☕", desc: "Relaxed conversation, culture & life stories" },
 ];
 
-const VOICE_PERSONAS = [
-  {
-    key: "Friendly",
-    label: "Friendly Persona",
-    icon: "💬",
-    desc: "Warm, supportive, and encouraging tone",
-    pitch: 1.15,
-    rate: 1.0,
-    previewText: "Hello there! I am your friendly AI English tutor. I'm excited to practice English with you!",
-  },
-  {
-    key: "Professional",
-    label: "Professional Executive",
-    icon: "💼",
-    desc: "Formal, polished business tone",
-    pitch: 0.9,
-    rate: 0.9,
-    previewText: "Hello. I am your professional AI tutor. Let's work together to polish your English communication skills.",
-  },
-  {
-    key: "Energetic",
-    label: "Energetic Coach",
-    icon: "⚡",
-    desc: "High energy, fast-paced practice",
-    pitch: 1.15,
-    rate: 1.2,
-    previewText: "Hey! Ready to level up your English? Let's get started and have some fun speaking!",
-  },
-  {
-    key: "Calm",
-    label: "Calm Tutor",
-    icon: "🌧️",
-    desc: "Relaxed, patient guidance and soft pace",
-    pitch: 0.95,
-    rate: 0.85,
-    previewText: "Welcome. I am your calm AI tutor. We will practice English step by step at your own pace.",
-  },
-  {
-    key: "Teacher",
-    label: "Patient Teacher",
-    icon: "🏫",
-    desc: "Detailed corrections and step-by-step guidance",
-    pitch: 1.05,
-    rate: 0.95,
-    previewText: "Hello. I am your English teacher. Today we will focus on building your confidence in speaking.",
-  },
-  {
-    key: "Native Speaker",
-    label: "Native Speaker",
-    icon: "🌐",
-    desc: "Natural, fluent conversational flow",
-    pitch: 1.0,
-    rate: 1.05,
-    previewText: "Hey friend! I'm your native speaker tutor. Let's practice speaking naturally and fluently.",
-  },
-];
+
 
 const COMMITMENTS = [
   { key: "5 min", label: "Casual Learner", value: 5 },
@@ -75,11 +22,16 @@ const COMMITMENTS = [
 
 export function Settings() {
   const { isDark, toggleTheme } = useTheme();
+  const toast = useToast();
 
   const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
 
-  const [accent, setAccent] = useState("US");
-  const [speechRate, setSpeechRate] = useState("1.0");
+  const [accent, setAccent] = useState(
+    localStorage.getItem("speakmate_voice_accent") || "US"
+  );
+  const [speechRate, setSpeechRate] = useState(
+    localStorage.getItem("speakmate_speech_rate") || "1.0"
+  );
   const [selectedVoice, setSelectedVoice] = useState(
     localStorage.getItem("speakmate_voice_persona") || "Friendly"
   );
@@ -96,27 +48,11 @@ export function Settings() {
   const [saved, setSaved] = useState(false);
 
   const playVoicePreview = (persona) => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-    window.speechSynthesis.cancel();
-
     setPlayingVoice(persona.key);
-    const utterance = new SpeechSynthesisUtterance(persona.previewText);
-    utterance.pitch = persona.pitch;
-    utterance.rate = persona.rate * parseFloat(speechRate);
-    utterance.lang = accent === "UK" ? "en-GB" : accent === "AU" ? "en-AU" : "en-US";
-
-    const voices = window.speechSynthesis.getVoices();
-    const targetVoice =
-      voices.find((v) => v.lang.startsWith(utterance.lang) && v.name.includes("Natural")) ||
-      voices.find((v) => v.lang.startsWith("en")) ||
-      voices[0];
-
-    if (targetVoice) utterance.voice = targetVoice;
-
-    utterance.onend = () => setPlayingVoice(null);
-    utterance.onerror = () => setPlayingVoice(null);
-
-    window.speechSynthesis.speak(utterance);
+    speakGlobalText(persona.previewText, 1.0, {
+      onend: () => setPlayingVoice(null),
+      onerror: () => setPlayingVoice(null),
+    });
   };
 
   const handleSelectVoice = (persona) => {
@@ -125,12 +61,25 @@ export function Settings() {
     playVoicePreview(persona);
   };
 
+  const handleAccentChange = (val) => {
+    setAccent(val);
+    localStorage.setItem("speakmate_voice_accent", val);
+  };
+
+  const handleRateChange = (val) => {
+    setSpeechRate(val);
+    localStorage.setItem("speakmate_speech_rate", val);
+  };
+
   const handleSaveSettings = (e) => {
     if (e) e.preventDefault();
     localStorage.setItem("speakmate_voice_persona", selectedVoice);
+    localStorage.setItem("speakmate_voice_accent", accent);
+    localStorage.setItem("speakmate_speech_rate", speechRate);
     localStorage.setItem("speakmate_age_group", selectedAgeGroup);
     localStorage.setItem("speakmate_daily_goal", dailyGoal);
     setSaved(true);
+    toast.success("All application settings saved successfully!");
     setTimeout(() => setSaved(false), 2500);
   };
 
@@ -237,7 +186,7 @@ export function Settings() {
               <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Target English Accent</label>
               <select
                 value={accent}
-                onChange={(e) => setAccent(e.target.value)}
+                onChange={(e) => handleAccentChange(e.target.value)}
                 className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
               >
                 <option value="US">American English (US)</option>
@@ -254,7 +203,7 @@ export function Settings() {
                 max="1.5"
                 step="0.05"
                 value={speechRate}
-                onChange={(e) => setSpeechRate(e.target.value)}
+                onChange={(e) => handleRateChange(e.target.value)}
                 className="w-full accent-[#6c63ff] mt-2"
               />
             </div>
