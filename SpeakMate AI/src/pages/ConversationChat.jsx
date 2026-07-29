@@ -175,11 +175,17 @@ export function ConversationChat() {
   }, []);
 
   const handleToggleSpeed = () => {
-    const SPEEDS = [0.75, 1.0, 1.25, 1.5, 2.0];
+    const SPEEDS = [0.5, 0.75, 1.0, 1.5, 2.0];
     const idx = SPEEDS.indexOf(speechSpeed);
     const nextSpeed = SPEEDS[(idx + 1) % SPEEDS.length];
     setSpeechSpeed(nextSpeed);
-    toast.info(`Audio Speech Speed set to ${nextSpeed}x`);
+    localStorage.setItem("speakmate_voice_speed", String(nextSpeed));
+
+    // Replay latest AI message with new speed (Matches Mobile App VoiceService)
+    const lastAiMsg = [...messages].reverse().find((m) => m.sender === "ai" || m.role === "assistant");
+    if (lastAiMsg && lastAiMsg.text) {
+      speakGlobalText(lastAiMsg.text, nextSpeed);
+    }
   };
 
   const handleFetchHints = async () => {
@@ -361,9 +367,10 @@ export function ConversationChat() {
             <span className="text-[11px] font-bold text-[var(--text-secondary)]">Speech Settings</span>
             <button
               onClick={handleToggleSpeed}
-              className="px-3 py-1.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold text-[var(--text-secondary)]"
+              className="px-3.5 py-1.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold text-[#6c63ff] hover:opacity-80 transition-all flex items-center gap-1.5"
+              title="Adjust Speech Speed"
             >
-              ⚡ {speechSpeed}x Speed
+              <span>⏱️ {speechSpeed}x Speed</span>
             </button>
           </div>
 
