@@ -28,15 +28,17 @@ export function Dashboard() {
     user?.ageGroup ||
     "Professional";
 
+  const savedGoal = parseInt(localStorage.getItem("speakmate_daily_goal") || "15", 10);
+
   const [stats, setStats] = useState({
     level: isStudent ? activeGrade : activeAgeGroup,
-    xp: 450,
-    streak: user?.streak || 3,
-    dailyGoalMins: 15,
-    completedMins: 8,
-    accuracy: 94,
-    totalHours: 12.5,
-    wordsLearned: 148,
+    xp: user?.xp || 0,
+    streak: user?.streak || 0,
+    dailyGoalMins: savedGoal,
+    completedMins: user?.completedMins || 0,
+    accuracy: user?.accuracy || 0,
+    totalHours: user?.totalHours || 0,
+    wordsLearned: user?.wordsLearned || 0,
   });
 
   const [timerActive, setTimerActive] = useState(false);
@@ -179,7 +181,7 @@ export function Dashboard() {
             </span>
           </div>
           <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Badges Unlocked</p>
-          <p className="text-3xl font-black text-rose-500">4 / 6</p>
+          <p className="text-3xl font-black text-rose-500">{stats.badgesUnlocked || (stats.streak > 0 ? 1 : 0)} / 6</p>
         </div>
       </div>
 
