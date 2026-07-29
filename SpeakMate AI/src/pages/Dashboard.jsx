@@ -6,6 +6,8 @@ import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 
+import { getLiveProgressStats, recordSpeakingSession } from "../utils/progressTracker";
+
 const MOTIVATIONAL_QUOTES = [
   { quote: "The limits of my language mean the limits of my world.", author: "Ludwig Wittgenstein" },
   { quote: "Language is the road map of a culture. It tells you where its people come from and where they are going.", author: "Rita Mae Brown" },
@@ -28,18 +30,7 @@ export function Dashboard() {
     user?.ageGroup ||
     "Professional";
 
-  const savedGoal = parseInt(localStorage.getItem("speakmate_daily_goal") || "15", 10);
-
-  const [stats, setStats] = useState({
-    level: isStudent ? activeGrade : activeAgeGroup,
-    xp: user?.xp || 0,
-    streak: user?.streak || 0,
-    dailyGoalMins: savedGoal,
-    completedMins: user?.completedMins || 0,
-    accuracy: user?.accuracy || 0,
-    totalHours: user?.totalHours || 0,
-    wordsLearned: user?.wordsLearned || 0,
-  });
+  const [stats, setStats] = useState(() => getLiveProgressStats(user));
 
   const [timerActive, setTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300);
@@ -47,7 +38,19 @@ export function Dashboard() {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [challengeClaimed, setChallengeClaimed] = useState(false);
 
+  const refreshStats = () => {
+    const liveStats = getLiveProgressStats(user);
+    setStats((prev) => ({
+      ...prev,
+      ...liveStats,
+      level: isStudent ? activeGrade : activeAgeGroup,
+      dailyGoalMins: parseInt(localStorage.getItem("speakmate_daily_goal") || "15", 10),
+    }));
+  };
+
   useEffect(() => {
+    refreshStats();
+    window.addEventListener("focus", refreshStats);
     dashboardService
       .summary()
       .then((data) => {
@@ -56,7 +59,9 @@ export function Dashboard() {
         }
       })
       .catch(() => {});
-  }, []);
+
+    return () => window.removeEventListener("focus", refreshStats);
+  }, [user, activeGrade, activeAgeGroup]);
 
   useEffect(() => {
     let interval = null;
@@ -67,7 +72,8 @@ export function Dashboard() {
     } else if (timeLeft === 0 && timerActive) {
       setTimerActive(false);
       setTimerCompleted(true);
-      setStats((prev) => ({ ...prev, xp: prev.xp + 30, completedMins: prev.completedMins + 5 }));
+      recordSpeakingSession(5, 95);
+      refreshStats();
     }
     return () => clearInterval(interval);
   }, [timerActive, timeLeft]);

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { lessonModuleService } from "../services/appServices";
+import { recordLessonCompleted } from "../utils/progressTracker";
 
 const DIFFICULTY_TABS = ["All", "Beginner", "Intermediate", "Advanced"];
 
@@ -299,7 +300,10 @@ export function Lessons() {
               return (
                 <div
                   key={l.id}
-                  onClick={() => navigate(`/lessons/${l.id}`)}
+                  onClick={() => {
+                    recordLessonCompleted(90);
+                    navigate(`/lessons/${l.id}`);
+                  }}
                   className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all duration-300"
                 >
                   <div className="space-y-3">

@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { dashboardService } from "../services/appServices";
 import ROUTES from "../constants/routes";
 
+import { getLiveProgressStats } from "../utils/progressTracker";
+
 const SKILLS = [
   { name: "Speaking Fluency", score: 88, color: "bg-[#6c63ff]" },
   { name: "Grammar Accuracy", score: 92, color: "bg-emerald-500" },
@@ -12,45 +14,26 @@ const SKILLS = [
 ];
 
 export function Progress() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [dashboard, setDashboard] = useState(null);
-
-  const loadProgressData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const data = await dashboardService.summary();
-      setDashboard(data);
-    } catch (err) {
-      console.warn("Failed to load progress summary:", err);
-      setError(err.userMessage || "Unable to load live progress analytics.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [loading, setLoading] = useState(false);
+  const [liveStats, setLiveStats] = useState(() => getLiveProgressStats());
 
   useEffect(() => {
-    loadProgressData();
+    const updateStats = () => {
+      setLiveStats(getLiveProgressStats());
+    };
+    updateStats();
+    window.addEventListener("focus", updateStats);
+    return () => window.removeEventListener("focus", updateStats);
   }, []);
 
-  const p = dashboard?.progress || {};
-  const stats = dashboard?.statistics || {};
-  const weeklyData = dashboard?.weeklyProgress || [
-    { day: "Mon", studyMinutes: 25 },
-    { day: "Tue", studyMinutes: 15 },
-    { day: "Wed", studyMinutes: 30 },
-    { day: "Thu", studyMinutes: 20 },
-    { day: "Fri", studyMinutes: 45 },
-    { day: "Sat", studyMinutes: 10 },
-    { day: "Sun", studyMinutes: 35 },
-  ];
+  const totalHours = liveStats.totalHours || 0;
+  const accuracy = liveStats.accuracy || 0;
+  const wordsLearned = liveStats.wordsLearned || 0;
+  const streak = liveStats.streak || 0;
+  const xp = liveStats.xp || 0;
 
-  // Level & XP calculation
-  const level = p.level || 1;
-  const xp = p.xp || 0;
+  const level = Math.floor(xp / 100) + 1;
   const currentLevelBaseXp = (level - 1) * 100;
-  const nextLevelXp = level * 100;
   const levelXpProgress = xp - currentLevelBaseXp;
   const levelPercentage = Math.min(100, Math.max(0, (levelXpProgress / 100) * 100));
 

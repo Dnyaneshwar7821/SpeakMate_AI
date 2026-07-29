@@ -158,20 +158,11 @@ export function GrammarPractice() {
     if (!res) return;
     let spokenMsg = "";
     if (res.isCorrect) {
-      spokenMsg = `Great job! Your sentence, "${res.correctedText}", is completely accurate!`;
+      spokenMsg = "Great job! Your sentence is grammatically correct with accurate phrasing.";
     } else {
-      spokenMsg = `Here is your corrected sentence: "${res.correctedText}". `;
-      if (res.corrections && res.corrections.length > 0) {
-        const details = res.corrections.map((c) => c.rule).join(" ");
-        spokenMsg += details;
-      } else if (res.explanation) {
-        const cleanExplanation = res.explanation
-          .replace(/\d+\.\s*\[.*?\]/gi, "")
-          .replace(/\[.*?\]/gi, "")
-          .replace(/\s+/g, " ")
-          .trim();
-        spokenMsg += cleanExplanation;
-      }
+      const cleanCorrection = (res.correctedText || "").replace(/[*_#`~]/g, "");
+      const cleanExplanation = (res.explanation || "").replace(/\[.*?\]/g, "").replace(/\d+\./g, "").trim();
+      spokenMsg = `Corrected sentence: ${cleanCorrection}. ${cleanExplanation}`;
     }
     handleSpeakText(spokenMsg);
   };
@@ -212,10 +203,12 @@ export function GrammarPractice() {
         resultObj = performSmartGrammarCorrection(rawText);
       }
       setAnalysisResult(resultObj);
+      recordGrammarCheck(resultObj?.accuracyScore || 90);
       await loadHistory();
     } catch (e) {
       resultObj = performSmartGrammarCorrection(rawText);
       setAnalysisResult(resultObj);
+      recordGrammarCheck(resultObj?.accuracyScore || 90);
     } finally {
       setAnalyzing(false);
       if (resultObj) {

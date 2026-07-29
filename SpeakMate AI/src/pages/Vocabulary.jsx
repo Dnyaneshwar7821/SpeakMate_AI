@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { vocabularyService, progressService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
+import { recordVocabularyMastered } from "../utils/progressTracker";
 
 // Curated CEFR Dictionary Pool for 100% Unique Automatic Quiz Generation
 const EXTENDED_DICTIONARY_POOL = [
@@ -139,6 +140,7 @@ export function Vocabulary() {
     setAdding(true);
     try {
       await vocabularyService.add(wordInput.trim());
+      recordVocabularyMastered(1);
       setWordInput("");
       await loadVocabulary();
     } catch (e) {
@@ -150,6 +152,7 @@ export function Vocabulary() {
         favorite: true,
       };
       setItems((prev) => [newWordObj, ...prev]);
+      recordVocabularyMastered(1);
       setWordInput("");
     } finally {
       setAdding(false);

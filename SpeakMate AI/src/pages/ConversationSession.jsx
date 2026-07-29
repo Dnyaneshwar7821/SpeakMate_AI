@@ -8,6 +8,7 @@ import { speakingService } from "../services/appServices";
 import { Avatar3D } from "../components/Avatar3D";
 import { speakGlobalText } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
+import { recordSpeakingSession } from "../utils/progressTracker";
 
 export function ConversationSession() {
   const navigate = useNavigate();
@@ -305,8 +306,10 @@ export function ConversationSession() {
         betterSentences: "I would like to enhance my English speaking proficiency.",
         motivationalMessage: "Excellent work! Keep practicing every day to sound more natural.",
       }));
+      recordSpeakingSession(Math.max(1, Math.ceil(timer / 60)), summary?.score || 88);
       navigate(ROUTES.SPEAKING_SUMMARY, { state: { summary } });
     } catch (e) {
+      recordSpeakingSession(Math.max(1, Math.ceil(timer / 60)), 85);
       navigate(ROUTES.SPEAKING_SUMMARY);
     } finally {
       setEnding(false);
