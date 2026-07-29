@@ -1,5 +1,17 @@
 // src/utils/speechHelper.js
 
+export const VOICE_PROFILES = [
+  { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male' },
+  { code: 'US Female', accent: 'American', locale: 'en-US', gender: 'female', label: 'American - Female' },
+  { code: 'UK Male', accent: 'British', locale: 'en-GB', gender: 'male', label: 'British - Male' },
+  { code: 'UK Female', accent: 'British', locale: 'en-GB', gender: 'female', label: 'British - Female' },
+  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male' },
+  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female' },
+  { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male' },
+  { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female' },
+  { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default' },
+];
+
 export const VOICE_PERSONAS = [
   {
     key: "Friendly",
@@ -64,22 +76,42 @@ export const VOICE_PERSONAS = [
 ];
 
 export const getSavedVoiceSettings = () => {
-  const personaKey = localStorage.getItem("speakmate_voice_persona") || "Friendly";
+  const voiceCode = localStorage.getItem("speakmate_ai_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly";
   const accent = localStorage.getItem("speakmate_voice_accent") || "US";
   const selectedVoiceName = localStorage.getItem("speakmate_voice_name") || "";
   const customPitch = localStorage.getItem("speakmate_voice_pitch");
   const customRate = localStorage.getItem("speakmate_speech_rate") || "1.0";
 
-  const personaObj = VOICE_PERSONAS.find((p) => p.key === personaKey) || VOICE_PERSONAS[0];
+  // Check if voiceCode matches a VOICE_PROFILE
+  const profile = VOICE_PROFILES.find((p) => p.code === voiceCode);
+  const personaObj = VOICE_PERSONAS.find((p) => p.key === voiceCode) || VOICE_PERSONAS[0];
+
+  let targetLang = accent === "UK" ? "en-GB" : accent === "AU" ? "en-AU" : accent === "IN" ? "en-IN" : "en-US";
+  let gender = personaObj.gender;
+  let pitch = customPitch ? parseFloat(customPitch) : personaObj.pitch;
+  let baseRate = personaObj.rate;
+
+  if (profile) {
+    if (profile.locale) targetLang = profile.locale;
+    if (profile.gender) gender = profile.gender;
+    if (profile.code.includes("Male")) {
+      pitch = 0.9;
+    } else if (profile.code.includes("Female")) {
+      pitch = 1.1;
+    }
+  }
 
   return {
-    personaKey,
+    voiceCode,
+    profile,
     personaObj,
     accent,
+    gender,
     selectedVoiceName,
-    pitch: customPitch ? parseFloat(customPitch) : personaObj.pitch,
+    pitch,
     rateMultiplier: parseFloat(customRate),
-    lang: accent === "UK" ? "en-GB" : accent === "AU" ? "en-AU" : "en-US",
+    lang: targetLang,
+    baseRate,
   };
 };
 
@@ -89,7 +121,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
   const settings = getSavedVoiceSettings();
   utterance.lang = settings.lang;
   utterance.pitch = settings.pitch;
-  utterance.rate = settings.personaObj.rate * settings.rateMultiplier * speedMultiplier;
+  utterance.rate = settings.baseRate * settings.rateMultiplier * speedMultiplier;
 
   const voices = window.speechSynthesis.getVoices();
   if (voices && voices.length > 0) {
@@ -100,26 +132,40 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
       targetVoice = voices.find((v) => v.name === settings.selectedVoiceName);
     }
 
-    // 2. Matching language and gender preference (Male/Female)
+    // 2. Matching language & gender preference (Male/Female)
     if (!targetVoice) {
-      const targetLangPrefix = settings.lang.split("-")[0];
-      const isMale = settings.personaObj.gender === "male";
+      const targetLangPrefix = settings.lang.toLowerCase();
+      const isMale = settings.gender === "male";
       
+      // Match exact locale (e.g., en-US, en-GB, en-AU, en-IN) and gender
       targetVoice = voices.find(
         (v) =>
-          v.lang.toLowerCase().startsWith(targetLangPrefix) &&
+          v.lang.toLowerCase().replace("_", "-") === targetLangPrefix &&
+          (isMale
+            ? v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("james") || v.name.toLowerCase().includes("rishi")
+            : v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("susan") || v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("veena"))
+      );
+    }
+
+    // 3. Fallback matching language prefix and gender
+    if (!targetVoice) {
+      const langPrefix = settings.lang.split("-")[0].toLowerCase();
+      const isMale = settings.gender === "male";
+      targetVoice = voices.find(
+        (v) =>
+          v.lang.toLowerCase().startsWith(langPrefix) &&
           (isMale
             ? v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("james")
             : v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("susan") || v.name.toLowerCase().includes("samantha"))
       );
     }
 
-    // 3. Fallback to any voice matching accent lang
+    // 4. Fallback matching any voice of the language
     if (!targetVoice) {
-      targetVoice = voices.find((v) => v.lang.startsWith(settings.lang.split("-")[0]));
+      targetVoice = voices.find((v) => v.lang.toLowerCase().startsWith(settings.lang.split("-")[0].toLowerCase()));
     }
 
-    // 4. Ultimate fallback to first available voice
+    // 5. Ultimate fallback
     if (!targetVoice && voices.length > 0) {
       targetVoice = voices[0];
     }

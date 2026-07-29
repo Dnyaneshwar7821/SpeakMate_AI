@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useToast } from "../context/ToastContext";
+import { speakGlobalText } from "../utils/speechHelper";
 
 export function useSpeech(options = {}) {
   const { lang = "en-US", rate = 1, pitch = 1, onResult, onError } = options;
@@ -106,37 +107,13 @@ export function useSpeech(options = {}) {
   const speak = useCallback(
     (text) => {
       if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return;
-
-      window.speechSynthesis.cancel();
-
-      const personaKey = localStorage.getItem("speakmate_voice_persona") || "Friendly";
-      const personaMap = {
-        Friendly: { pitch: 1.15, rate: 1.0 },
-        Professional: { pitch: 0.9, rate: 0.9 },
-        Energetic: { pitch: 1.15, rate: 1.2 },
-        Calm: { pitch: 0.95, rate: 0.85 },
-        Teacher: { pitch: 1.05, rate: 0.95 },
-        "Native Speaker": { pitch: 1.0, rate: 1.05 },
-      };
-
-      const pConfig = personaMap[personaKey] || personaMap.Friendly;
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = (rate || 1) * pConfig.rate;
-      utterance.pitch = (pitch || 1) * pConfig.pitch;
-      utterance.lang = lang;
-
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      }
-
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
-      utterance.onerror = () => setIsSpeaking(false);
-
-      window.speechSynthesis.speak(utterance);
+      speakGlobalText(text, rate || 1.0, {
+        onstart: () => setIsSpeaking(true),
+        onend: () => setIsSpeaking(false),
+        onerror: () => setIsSpeaking(false),
+      });
     },
-    [rate, pitch, lang, selectedVoice]
+    [rate]
   );
 
   const stopSpeaking = useCallback(() => {
