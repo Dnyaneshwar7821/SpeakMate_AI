@@ -1,15 +1,15 @@
 // src/utils/speechHelper.js
 
 export const VOICE_PROFILES = [
-  { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male' },
-  { code: 'US Female', accent: 'American', locale: 'en-US', gender: 'female', label: 'American - Female' },
-  { code: 'UK Male', accent: 'British', locale: 'en-GB', gender: 'male', label: 'British - Male' },
-  { code: 'UK Female', accent: 'British', locale: 'en-GB', gender: 'female', label: 'British - Female' },
-  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male' },
-  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female' },
-  { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male' },
-  { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female' },
-  { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default' },
+  { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male', previewText: 'Hello, I am your American Male English tutor.' },
+  { code: 'US Female', accent: 'American', locale: 'en-US', gender: 'female', label: 'American - Female', previewText: 'Hello, I am your American Female English tutor.' },
+  { code: 'UK Male', accent: 'British', locale: 'en-GB', gender: 'male', label: 'British - Male', previewText: 'Hello, I am your British Male English tutor.' },
+  { code: 'UK Female', accent: 'British', locale: 'en-GB', gender: 'female', label: 'British - Female', previewText: 'Hello, I am your British Female English tutor.' },
+  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male', previewText: 'Hello, I am your Australian Male English tutor.' },
+  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: 'Hello, I am your Australian Female English tutor.' },
+  { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male', previewText: 'Hello, I am your Indian Male English tutor.' },
+  { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female', previewText: 'Hello, I am your Indian Female English tutor.' },
+  { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default', previewText: 'Hello, I am your System Default English tutor.' },
 ];
 
 export const VOICE_PERSONAS = [
@@ -21,7 +21,7 @@ export const VOICE_PERSONAS = [
     pitch: 1.15,
     rate: 1.0,
     gender: "female",
-    previewText: "Hello there! I am your friendly AI English tutor. I'm excited to practice English with you!",
+    previewText: "Hello, I am your Friendly Persona English tutor.",
   },
   {
     key: "Professional",
@@ -31,7 +31,7 @@ export const VOICE_PERSONAS = [
     pitch: 0.9,
     rate: 0.9,
     gender: "male",
-    previewText: "Hello. I am your professional AI tutor. Let's work together to polish your English communication skills.",
+    previewText: "Hello, I am your Professional Executive English tutor.",
   },
   {
     key: "Energetic",
@@ -41,7 +41,7 @@ export const VOICE_PERSONAS = [
     pitch: 1.15,
     rate: 1.2,
     gender: "female",
-    previewText: "Hey! Ready to level up your English? Let's get started and have some fun speaking!",
+    previewText: "Hello, I am your Energetic Coach English tutor.",
   },
   {
     key: "Calm",
@@ -51,7 +51,7 @@ export const VOICE_PERSONAS = [
     pitch: 0.95,
     rate: 0.85,
     gender: "male",
-    previewText: "Welcome. I am your calm AI tutor. We will practice English step by step at your own pace.",
+    previewText: "Hello, I am your Calm Tutor English tutor.",
   },
   {
     key: "Teacher",
@@ -61,7 +61,7 @@ export const VOICE_PERSONAS = [
     pitch: 1.05,
     rate: 0.95,
     gender: "female",
-    previewText: "Hello. I am your English teacher. Today we will focus on building your confidence in speaking.",
+    previewText: "Hello, I am your Patient Teacher English tutor.",
   },
   {
     key: "Native Speaker",
@@ -71,7 +71,7 @@ export const VOICE_PERSONAS = [
     pitch: 1.0,
     rate: 1.05,
     gender: "male",
-    previewText: "Hey friend! I'm your native speaker tutor. Let's practice speaking naturally and fluently.",
+    previewText: "Hello, I am your Native Speaker English tutor.",
   },
 ];
 
@@ -95,9 +95,9 @@ export const getSavedVoiceSettings = () => {
     if (profile.locale) targetLang = profile.locale;
     if (profile.gender) gender = profile.gender;
     if (profile.code.includes("Male")) {
-      pitch = 0.9;
+      pitch = 0.88;
     } else if (profile.code.includes("Female")) {
-      pitch = 1.1;
+      pitch = 1.12;
     }
   }
 
@@ -132,46 +132,78 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
       targetVoice = voices.find((v) => v.name === settings.selectedVoiceName);
     }
 
-    // 2. Matching language & gender preference (Male/Female)
+    const isMale = settings.gender === "male";
+    const targetLangPrefix = settings.lang.toLowerCase(); // e.g. "en-us", "en-gb", "en-au", "en-in"
+    const langBase = settings.lang.split("-")[0].toLowerCase(); // "en"
+
+    // Name keywords per gender
+    const MALE_NAMES = ["guy", "david", "mark", "alex", "tom", "chris", "george", "james", "ryan", "oliver", "daniel", "malcolm", "william", "russell", "prabhat", "rishi", "ravi", "male"];
+    const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "neerja", "veena", "heera", "female"];
+
+    const preferredKeywords = isMale ? MALE_NAMES : FEMALE_NAMES;
+    const excludedKeywords = isMale ? FEMALE_NAMES : MALE_NAMES;
+
+    const matchesGender = (v) => {
+      const vName = v.name.toLowerCase();
+      const hasPreferred = preferredKeywords.some((k) => vName.includes(k));
+      const hasExcluded = excludedKeywords.some((k) => vName.includes(k));
+      if (hasPreferred && !hasExcluded) return true;
+      if (isMale && (vName.includes("david") || vName.includes("guy") || vName.includes("george") || vName.includes("male"))) return true;
+      if (!isMale && (vName.includes("zira") || vName.includes("jenny") || vName.includes("samantha") || vName.includes("female"))) return true;
+      return false;
+    };
+
+    // 2. Best match: Exact locale + smooth "Natural/Online/Google" + Gender
+    targetVoice = voices.find(
+      (v) =>
+        v.lang.toLowerCase().replace("_", "-") === targetLangPrefix &&
+        (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google")) &&
+        matchesGender(v)
+    );
+
+    // 3. Exact locale + Gender
     if (!targetVoice) {
-      const targetLangPrefix = settings.lang.toLowerCase();
-      const isMale = settings.gender === "male";
-      
-      // Match exact locale (e.g., en-US, en-GB, en-AU, en-IN) and gender
+      targetVoice = voices.find(
+        (v) => v.lang.toLowerCase().replace("_", "-") === targetLangPrefix && matchesGender(v)
+      );
+    }
+
+    // 4. Exact locale + Smooth (Natural/Online/Google)
+    if (!targetVoice) {
       targetVoice = voices.find(
         (v) =>
           v.lang.toLowerCase().replace("_", "-") === targetLangPrefix &&
-          (isMale
-            ? v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("james") || v.name.toLowerCase().includes("rishi")
-            : v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("susan") || v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("veena"))
+          (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google"))
       );
     }
 
-    // 3. Fallback matching language prefix and gender
+    // 5. Exact locale any voice
     if (!targetVoice) {
-      const langPrefix = settings.lang.split("-")[0].toLowerCase();
-      const isMale = settings.gender === "male";
+      targetVoice = voices.find((v) => v.lang.toLowerCase().replace("_", "-") === targetLangPrefix);
+    }
+
+    // 6. Language prefix + Gender
+    if (!targetVoice) {
       targetVoice = voices.find(
-        (v) =>
-          v.lang.toLowerCase().startsWith(langPrefix) &&
-          (isMale
-            ? v.name.toLowerCase().includes("male") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("james")
-            : v.name.toLowerCase().includes("female") || v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("susan") || v.name.toLowerCase().includes("samantha"))
+        (v) => v.lang.toLowerCase().startsWith(langBase) && matchesGender(v)
       );
     }
 
-    // 4. Fallback matching any voice of the language
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => v.lang.toLowerCase().startsWith(settings.lang.split("-")[0].toLowerCase()));
-    }
-
-    // 5. Ultimate fallback
+    // 7. Ultimate fallback
     if (!targetVoice && voices.length > 0) {
       targetVoice = voices[0];
     }
 
     if (targetVoice) {
       utterance.voice = targetVoice;
+      // Fine-tune pitch for clarity if fallback voice doesn't match gender
+      const voiceIsFemale = FEMALE_NAMES.some((k) => targetVoice.name.toLowerCase().includes(k));
+      const voiceIsMale = MALE_NAMES.some((k) => targetVoice.name.toLowerCase().includes(k));
+      if (isMale && voiceIsFemale) {
+        utterance.pitch = 0.80; // Pitch-shift down for masculine depth
+      } else if (!isMale && voiceIsMale) {
+        utterance.pitch = 1.20; // Pitch-shift up for feminine clarity
+      }
     }
   }
 };
