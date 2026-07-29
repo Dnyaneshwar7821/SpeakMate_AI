@@ -76,20 +76,24 @@ export const VOICE_PERSONAS = [
 ];
 
 export const getSavedVoiceSettings = () => {
-  const voiceCode = localStorage.getItem("speakmate_ai_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly";
+  const aiVoice = localStorage.getItem("speakmate_ai_voice") || "Default";
+  const onboardingVoice = localStorage.getItem("speakmate_onboarding_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly";
   const accent = localStorage.getItem("speakmate_voice_accent") || "US";
   const selectedVoiceName = localStorage.getItem("speakmate_voice_name") || "";
   const customPitch = localStorage.getItem("speakmate_voice_pitch");
   const customRate = localStorage.getItem("speakmate_speech_rate") || "1.0";
 
-  // Check if voiceCode matches a VOICE_PROFILE
-  const profile = VOICE_PROFILES.find((p) => p.code === voiceCode);
-  const personaObj = VOICE_PERSONAS.find((p) => p.key === voiceCode) || VOICE_PERSONAS[0];
+  const isDefault = aiVoice === "Default" || !aiVoice;
+  const effectiveVoiceCode = isDefault ? onboardingVoice : aiVoice;
+
+  // Check if effectiveVoiceCode matches a VOICE_PROFILE or VOICE_PERSONA
+  const profile = VOICE_PROFILES.find((p) => p.code === effectiveVoiceCode);
+  const personaObj = VOICE_PERSONAS.find((p) => p.key === effectiveVoiceCode) || VOICE_PERSONAS[0];
 
   let targetLang = accent === "UK" ? "en-GB" : accent === "AU" ? "en-AU" : accent === "IN" ? "en-IN" : "en-US";
-  let gender = personaObj.gender;
-  let pitch = customPitch ? parseFloat(customPitch) : personaObj.pitch;
-  let baseRate = personaObj.rate;
+  let gender = personaObj ? personaObj.gender : "female";
+  let pitch = customPitch ? parseFloat(customPitch) : (personaObj ? personaObj.pitch : 1.0);
+  let baseRate = personaObj ? personaObj.rate : 1.0;
 
   if (profile) {
     if (profile.locale) targetLang = profile.locale;
@@ -124,7 +128,10 @@ export const getSavedVoiceSettings = () => {
   }
 
   return {
-    voiceCode,
+    aiVoice,
+    onboardingVoice,
+    effectiveVoiceCode,
+    isDefault,
     profile,
     personaObj,
     accent,
@@ -172,14 +179,12 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
     const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "neerja", "veena", "heera", "female"];
 
     // Profile-driven targeted voice matching
-    if (settings.voiceCode === "AU Female") {
-      // Australian female voice lookup
+    if (settings.effectiveVoiceCode === "AU Female") {
       targetVoice = voices.find((v) =>
         (v.lang.toLowerCase().includes("au") || v.name.toLowerCase().includes("australia") || v.name.toLowerCase().includes("natasha") || v.name.toLowerCase().includes("catherine")) &&
         !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       );
       if (!targetVoice) {
-        // Exclude all female voices used by US Female, UK Female, and IN Female!
         const EXCLUDED_OTHER_FEMALES = ["jenny", "zira", "samantha", "sonia", "hazel", "fiona", "kate", "serena", "neerja", "veena", "heera", "kalpana", "ananya"];
         targetVoice = voices.find(
           (v) =>
@@ -190,7 +195,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
       if (!targetVoice) {
         targetVoice = voices.find((v) => v.name.toLowerCase().includes("karen") || v.name.toLowerCase().includes("catherine")) || voices[0];
       }
-    } else if (settings.voiceCode === "IN Female") {
+    } else if (settings.effectiveVoiceCode === "IN Female") {
       targetVoice = voices.find((v) =>
         (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("veena") || v.name.toLowerCase().includes("neerja") || v.name.toLowerCase().includes("heera")) &&
         !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
@@ -199,15 +204,15 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
         targetVoice = voices.find((v) => v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("jenny")) ||
                       voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
       }
-    } else if (settings.voiceCode === "UK Female") {
+    } else if (settings.effectiveVoiceCode === "UK Female") {
       targetVoice = voices.find((v) =>
         v.lang.toLowerCase().includes("gb") && FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       ) || voices.find((v) => UK_FEMALE.some((k) => v.name.toLowerCase().includes(k)));
-    } else if (settings.voiceCode === "UK Male") {
+    } else if (settings.effectiveVoiceCode === "UK Male") {
       targetVoice = voices.find((v) =>
         v.lang.toLowerCase().includes("gb") && MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       ) || voices.find((v) => UK_MALE.some((k) => v.name.toLowerCase().includes(k)));
-    } else if (settings.voiceCode === "AU Male") {
+    } else if (settings.effectiveVoiceCode === "AU Male") {
       targetVoice = voices.find((v) =>
         AU_MALE.some((k) => v.name.toLowerCase().includes(k) || v.lang.toLowerCase().includes("au"))
       );
@@ -215,11 +220,11 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
         targetVoice = voices.find((v) => v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("chris") || v.name.toLowerCase().includes("alex")) ||
                       voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
       }
-    } else if (settings.voiceCode === "US Male") {
+    } else if (settings.effectiveVoiceCode === "US Male") {
       targetVoice = voices.find((v) =>
         v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("guy") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("male"))
       ) || voices.find((v) => US_MALE.some((k) => v.name.toLowerCase().includes(k)));
-    } else if (settings.voiceCode === "IN Male") {
+    } else if (settings.effectiveVoiceCode === "IN Male") {
       targetVoice = voices.find((v) =>
         (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("rishi") || v.name.toLowerCase().includes("prabhat")) &&
         !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))

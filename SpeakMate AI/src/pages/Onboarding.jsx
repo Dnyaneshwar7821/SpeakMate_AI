@@ -161,6 +161,10 @@ export function Onboarding() {
       localStorage.removeItem("speakmate_school_grade");
     }
     localStorage.setItem("speakmate_age_group", selectedAgeGroup);
+    localStorage.setItem("speakmate_onboarding_voice", selectedVoice);
+    localStorage.setItem("speakmate_voice_persona", selectedVoice);
+    localStorage.setItem("speakmate_ai_voice", "Default");
+
     await completeOnboarding({
       nativeLanguage,
       goal: selectedGoal,

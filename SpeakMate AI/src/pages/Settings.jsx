@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { VOICE_PERSONAS, VOICE_PROFILES, speakGlobalText, getSavedVoiceSettings } from "../utils/speechHelper";
+import { VOICE_PROFILES, speakGlobalText, getSavedVoiceSettings } from "../utils/speechHelper";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
 
@@ -33,7 +33,7 @@ export function Settings() {
     localStorage.getItem("speakmate_speech_rate") || "1.0"
   );
   const [selectedVoice, setSelectedVoice] = useState(
-    localStorage.getItem("speakmate_ai_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly"
+    localStorage.getItem("speakmate_ai_voice") || "Default"
   );
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(
     localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional"
@@ -47,17 +47,25 @@ export function Settings() {
   const [streakAlerts, setStreakAlerts] = useState(true);
   const [saved, setSaved] = useState(false);
 
+  // Onboarding voice persona fallback (Matches Mobile App OnboardingVoiceService)
+  const onboardingVoiceStyle = localStorage.getItem("speakmate_onboarding_voice") || localStorage.getItem("speakmate_voice_persona") || user?.preferredVoice || "Friendly";
+
   // Active voice label resolver (Matches Mobile App Status Header)
   const activeVoiceLabel = (() => {
+    if (selectedVoice === "Default" || !selectedVoice) {
+      return `System Default (${onboardingVoiceStyle})`;
+    }
     const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
-    if (profile) return profile.label;
-    const persona = VOICE_PERSONAS.find((p) => p.key === selectedVoice);
-    if (persona) return persona.label;
-    return selectedVoice;
+    return profile ? profile.label : selectedVoice;
   })();
 
   const playVoicePreview = (voiceCode, previewMsg) => {
-    const textToSpeak = previewMsg || `Hello! I am your AI speaking tutor using the ${activeVoiceLabel} voice. I'm excited to practice English with you!`;
+    let textToSpeak = previewMsg;
+    if (voiceCode === "Default") {
+      textToSpeak = `Hello! I am your System Default English tutor using the ${onboardingVoiceStyle} voice selected during onboarding.`;
+    } else if (!textToSpeak) {
+      textToSpeak = `Hello! I am your AI speaking tutor using the ${activeVoiceLabel} voice. I'm excited to practice English with you!`;
+    }
     setPlayingVoice(voiceCode);
     speakGlobalText(textToSpeak, 1.0, {
       onend: () => setPlayingVoice(null),
@@ -68,12 +76,12 @@ export function Settings() {
   const handleSelectVoiceCode = (voiceCode, labelName, previewText) => {
     setSelectedVoice(voiceCode);
     localStorage.setItem("speakmate_ai_voice", voiceCode);
-    localStorage.setItem("speakmate_voice_persona", voiceCode);
-    
+
     // Sync backend & auth context
     updateUser({ preferredVoice: voiceCode });
 
-    toast.success(`AI Speaking Voice changed to "${labelName}" globally!`);
+    const displayLabel = voiceCode === "Default" ? `System Default (${onboardingVoiceStyle})` : labelName;
+    toast.success(`AI Speaking Voice changed to "${displayLabel}" globally!`);
     playVoicePreview(voiceCode, previewText);
   };
 
@@ -90,7 +98,6 @@ export function Settings() {
   const handleSaveSettings = async (e) => {
     if (e) e.preventDefault();
     localStorage.setItem("speakmate_ai_voice", selectedVoice);
-    localStorage.setItem("speakmate_voice_persona", selectedVoice);
     localStorage.setItem("speakmate_voice_accent", accent);
     localStorage.setItem("speakmate_speech_rate", speechRate);
     localStorage.setItem("speakmate_age_group", selectedAgeGroup);
@@ -117,7 +124,7 @@ export function Settings() {
       {/* Header Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black">App Settings & Voice Configuration ⚙️</h1>
+          <h1 className="text-2xl sm:text-3xl font-black">App Settings & Preferences ⚙️</h1>
           <p className="text-xs sm:text-sm font-medium opacity-90 mt-1">
             Customize target age group, AI tutor speaking voice profiles, audio playback speed, and global preferences.
           </p>
@@ -224,12 +231,12 @@ export function Settings() {
         </div>
       </div>
 
-      {/* ── AI VOICE PROFILES & PERSONAS (Global App-Wide Voice Selection) ── */}
+      {/* ── AI VOICE PROFILES (Global App-Wide Voice Selection) ── */}
       <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
         <div>
-          <h2 className="text-lg font-black text-[var(--text-primary)]">AI Speaking Tutor Voice (Global App-Wide)</h2>
+          <h2 className="text-lg font-black text-[var(--text-primary)]">AI Speaking Tutor Voice</h2>
           <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
-            Changing the AI Voice here updates how the tutor speaks across <strong>Speaking Practice, AI Chat, Lessons, Vocabulary, and Grammar</strong> modules.
+            System Default uses the voice selected during onboarding (<strong>{onboardingVoiceStyle}</strong>). You can select a regional accent profile to override it across all modules.
           </p>
         </div>
 
@@ -263,116 +270,63 @@ export function Settings() {
             </div>
           </div>
 
-          {/* 1. Regional Accent Voice Profiles (Same as Mobile App) */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-wider text-[#6c63ff]">
-              🌐 Accent Voice Profiles (Mobile Parity)
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {VOICE_PROFILES.map((profile) => {
-                const isSelected = selectedVoice === profile.code;
-                const isPlayingThis = playingVoice === profile.code;
-                return (
-                  <div
-                    key={profile.code}
-                    onClick={() => handleSelectVoiceCode(profile.code, profile.label, profile.previewText)}
-                    className={`p-4.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between space-y-3 relative ${
-                      isSelected
-                        ? "border-[#6c63ff] bg-[#6c63ff]/15 ring-2 ring-[#6c63ff]/30 shadow-md"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
-                    }`}
-                  >
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-[#6c63ff]/15 text-[#6c63ff]">
-                          {profile.accent}
+          {/* Regional Accent Voice Profiles (Same as Mobile App) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {VOICE_PROFILES.map((profile) => {
+              const isSelected = selectedVoice === profile.code;
+              const isPlayingThis = playingVoice === profile.code;
+              const displayLabel = profile.code === "Default" ? `System Default (${onboardingVoiceStyle})` : profile.label;
+
+              return (
+                <div
+                  key={profile.code}
+                  onClick={() => handleSelectVoiceCode(profile.code, profile.label, profile.previewText)}
+                  className={`p-4.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between space-y-3 relative ${
+                    isSelected
+                      ? "border-[#6c63ff] bg-[#6c63ff]/15 ring-2 ring-[#6c63ff]/30 shadow-md"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                  }`}
+                >
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black uppercase px-2.5 py-0.5 rounded-full bg-[#6c63ff]/15 text-[#6c63ff]">
+                        {profile.accent}
+                      </span>
+                      {isSelected && (
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#6c63ff] text-white">
+                          Active Voice
                         </span>
-                        {isSelected && (
-                          <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#6c63ff] text-white">
-                            Active Voice
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="font-black text-sm text-[var(--text-primary)]">{profile.label}</h4>
-                      <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-                        {profile.gender === "male" ? "👨 Male Native Accent" : "👩 Female Native Accent"}
-                      </p>
+                      )}
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectVoiceCode(profile.code, profile.label, profile.previewText);
-                      }}
-                      className={`w-full py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                        isPlayingThis
-                          ? "bg-amber-500 text-white animate-pulse"
-                          : isSelected
-                          ? "bg-[#6c63ff] text-white"
-                          : "bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[#6c63ff]/20"
-                      }`}
-                    >
-                      <span>{isPlayingThis ? "🔊 Speaking..." : "▶ Select & Preview"}</span>
-                    </button>
+                    <h4 className="font-black text-sm text-[var(--text-primary)]">{displayLabel}</h4>
+                    <p className="text-[11px] text-[var(--text-secondary)] font-medium">
+                      {profile.code === "Default"
+                        ? `Onboarding Choice: ${onboardingVoiceStyle}`
+                        : profile.gender === "male"
+                        ? "👨 Male Native Accent"
+                        : "👩 Female Native Accent"}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
 
-          {/* 2. Persona Voice Options */}
-          <div className="space-y-3 pt-4 border-t border-[var(--border-default)]">
-            <h3 className="text-sm font-black text-[var(--text-primary)] uppercase tracking-wider text-[#6c63ff]">
-              💬 Persona Voice Styles
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {VOICE_PERSONAS.map((v) => {
-                const isSelected = selectedVoice === v.key;
-                const isPlayingThis = playingVoice === v.key;
-                return (
-                  <div
-                    key={v.key}
-                    onClick={() => handleSelectVoiceCode(v.key, v.label, v.previewText)}
-                    className={`p-4.5 rounded-2xl border cursor-pointer transition-all flex flex-col justify-between space-y-3 relative ${
-                      isSelected
-                        ? "border-[#6c63ff] bg-[#6c63ff]/15 ring-2 ring-[#6c63ff]/30 shadow-md"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/40"
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectVoiceCode(profile.code, profile.label, profile.previewText);
+                    }}
+                    className={`w-full py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                      isPlayingThis
+                        ? "bg-amber-500 text-white animate-pulse"
+                        : isSelected
+                        ? "bg-[#6c63ff] text-white"
+                        : "bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[#6c63ff]/20"
                     }`}
                   >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl p-2 rounded-xl bg-[var(--bg-surface)] shrink-0">{v.icon}</span>
-                        {isSelected && (
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#6c63ff] text-white">
-                            Active Voice
-                          </span>
-                        )}
-                      </div>
-                      <h4 className="font-black text-sm text-[var(--text-primary)]">{v.label}</h4>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed">{v.desc}</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSelectVoiceCode(v.key, v.label, v.previewText);
-                      }}
-                      className={`w-full py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 ${
-                        isPlayingThis
-                          ? "bg-amber-500 text-white animate-pulse"
-                          : isSelected
-                          ? "bg-[#6c63ff] text-white"
-                          : "bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[#6c63ff]/20"
-                      }`}
-                    >
-                      <span>{isPlayingThis ? "🔊 Speaking..." : "▶ Select & Preview"}</span>
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                    <span>{isPlayingThis ? "🔊 Speaking..." : "▶ Select & Preview"}</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
