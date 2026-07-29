@@ -102,12 +102,6 @@ export function Settings() {
     }
   };
 
-  const isDraftChanged =
-    accent !== savedAccent ||
-    selectedVoice !== savedVoice ||
-    selectedAgeGroup !== savedAgeGroup ||
-    dailyGoal !== savedDailyGoal;
-
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300">
       {/* Header Banner */}
@@ -130,18 +124,6 @@ export function Settings() {
       {saved && (
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm font-black text-center animate-in fade-in duration-200">
           ✓ All application settings saved and applied globally across all learning modules!
-        </div>
-      )}
-
-      {isDraftChanged && !saved && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-xs sm:text-sm font-black text-center flex items-center justify-between gap-4">
-          <span>⚠️ You have unsaved changes in your settings draft. Click "Save All Settings" to apply.</span>
-          <button
-            onClick={handleSaveSettings}
-            className="px-4 py-1.5 rounded-xl bg-amber-500 text-white text-xs font-black shrink-0"
-          >
-            Save Now
-          </button>
         </div>
       )}
 
@@ -283,11 +265,7 @@ export function Settings() {
       </div>
 
       {/* SAVE BUTTON FOOTER */}
-      <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl flex items-center justify-between gap-4">
-        <span className="text-xs font-black text-[var(--text-secondary)]">
-          {isDraftChanged ? "⚠️ Unsaved draft changes" : "✓ All settings up to date"}
-        </span>
-
+      <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl flex items-center justify-end gap-4">
         <button
           onClick={handleSaveSettings}
           disabled={saving}
