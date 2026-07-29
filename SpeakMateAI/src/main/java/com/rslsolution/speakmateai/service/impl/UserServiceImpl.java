@@ -464,18 +464,22 @@ public class UserServiceImpl implements UserService {
 
 	private UserResponse mapToUserResponse(User user) {
 		String effectiveGrade = user.getSchoolGrade();
+		java.util.Optional<Onboarding> ob = onboardingRepository.findByUser(user);
 		if (effectiveGrade == null || effectiveGrade.trim().isEmpty()) {
-			java.util.Optional<Onboarding> ob = onboardingRepository.findByUser(user);
 			if (ob.isPresent() && ob.get().getSchoolGrade() != null && !ob.get().getSchoolGrade().trim().isEmpty()) {
 				effectiveGrade = ob.get().getSchoolGrade();
 			}
 		}
 		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
+		boolean isCompleted = user.isOnboardingCompleted() || 
+				(ob.isPresent() && Boolean.TRUE.equals(ob.get().getOnboardingCompleted())) || 
+				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) || 
+				(user.getEnglishLevel() != null && !user.getEnglishLevel().trim().isEmpty());
 
 		return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
 				.email(user.getEmail()).role(user.getRole()).avatar(user.getAvatar()).active(user.isActive())
 				.createdAt(user.getCreatedAt()).welcomeCompleted(user.isWelcomeCompleted())
-				.onboardingCompleted(user.isOnboardingCompleted())
+				.onboardingCompleted(isCompleted)
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
 				.englishLevel(effectiveLevel).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())

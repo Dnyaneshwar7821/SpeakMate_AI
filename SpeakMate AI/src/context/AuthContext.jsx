@@ -37,6 +37,7 @@ export function AuthProvider({ children }) {
       setLoading(true);
       const storedToken = localStorage.getItem(STORAGE_KEYS.token);
       const storedUser = localStorage.getItem(STORAGE_KEYS.user);
+      const storedOnboardingCompleted = localStorage.getItem(STORAGE_KEYS.onboardingCompleted) === "true";
 
       if (storedToken && storedToken !== "null" && storedToken !== "undefined") {
         setToken(storedToken);
@@ -44,6 +45,9 @@ export function AuthProvider({ children }) {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           syncSchoolGrade(parsedUser);
+          if (parsedUser.onboardingCompleted || storedOnboardingCompleted || parsedUser.schoolGrade || parsedUser.englishLevel) {
+            setOnboardingCompleted(true);
+          }
         }
 
         try {
@@ -52,7 +56,16 @@ export function AuthProvider({ children }) {
             setUser(me);
             syncSchoolGrade(me);
             localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(me));
-            setOnboardingCompleted(Boolean(me.onboardingCompleted));
+            const isCompleted = Boolean(
+              me.onboardingCompleted ||
+              storedOnboardingCompleted ||
+              me.schoolGrade ||
+              me.englishLevel
+            );
+            setOnboardingCompleted(isCompleted);
+            if (isCompleted) {
+              localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
+            }
           }
         } catch (meError) {
           console.warn("User session verification fallback:", meError.userMessage || meError.message);
