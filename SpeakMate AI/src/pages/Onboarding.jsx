@@ -152,8 +152,9 @@ export function Onboarding() {
   };
 
   const handleFinish = async () => {
-    const finalGrade = accountType === "STUDENT" ? selectedGrade : null;
-    const finalLevel = accountType === "STUDENT" ? null : selectedLevel;
+    const isStudentMode = accountType === "STUDENT" || Boolean(selectedGrade && selectedGrade.includes("Std"));
+    const finalGrade = isStudentMode ? selectedGrade : null;
+    const finalLevel = isStudentMode ? null : selectedLevel;
     if (finalGrade) {
       localStorage.setItem("speakmate_school_grade", finalGrade);
     } else {

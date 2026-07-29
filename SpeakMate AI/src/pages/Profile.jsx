@@ -53,8 +53,9 @@ export function Profile() {
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
-    const finalGrade = accountType === "STUDENT" ? schoolGrade : null;
-    const finalLevel = accountType === "STUDENT" ? null : cefrLevel;
+    const isStudentMode = accountType === "STUDENT" || Boolean(schoolGrade && schoolGrade.includes("Std"));
+    const finalGrade = isStudentMode ? schoolGrade : null;
+    const finalLevel = isStudentMode ? null : cefrLevel;
     if (finalGrade) {
       localStorage.setItem("speakmate_school_grade", finalGrade);
     } else {

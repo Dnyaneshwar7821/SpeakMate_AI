@@ -476,7 +476,9 @@ export default function OnboardingScreen({ navigation }) {
   const handleFinishOnboarding = async () => {
     setLoading(true);
     try {
-      const finalGrade = accountType === 'STUDENT' ? (schoolGrade || '1st Std') : null;
+      const isStudentMode = accountType === 'STUDENT' || Boolean(schoolGrade && schoolGrade.includes('Std'));
+      const finalGrade = isStudentMode ? (schoolGrade || '1st Std') : null;
+      const finalLevel = isStudentMode ? null : level;
       if (finalGrade) {
         await AsyncStorage.setItem('speakmate_school_grade', finalGrade);
       } else {
@@ -486,7 +488,7 @@ export default function OnboardingScreen({ navigation }) {
 
       // 1. Sync onboarding details (Avoids any 404 blockages)
       await onboardingService.update({
-        englishLevel: accountType === 'STUDENT' ? null : level,
+        englishLevel: finalLevel,
         schoolGrade: finalGrade,
         learningGoal: whyLearning.join(', '),
         dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
