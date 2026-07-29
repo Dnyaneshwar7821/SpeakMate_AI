@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
 import { grammarService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
-import { Avatar3D } from "../components/Avatar3D";
 
 function performSmartGrammarCorrection(text) {
   let corrected = text;
-  const explanations = [];
+  const corrections = [];
 
   // Rule 1: Subject-Verb Agreement (I/They/We vs He/She/It)
   if (/\b(i|we|they|you)\s+(goes|likes|wants|has|does|works|plays)\b/i.test(corrected)) {
@@ -17,7 +16,10 @@ function performSmartGrammarCorrection(text) {
       .replace(/\b(i|we|they|you)\s+does\b/gi, "$1 do")
       .replace(/\b(i|we|they|you)\s+works\b/gi, "$1 work")
       .replace(/\b(i|we|they|you)\s+plays\b/gi, "$1 play");
-    explanations.push("Plural subjects (I, we, they, you) take base form verbs without 's'.");
+    corrections.push({
+      category: "Subject-Verb Agreement",
+      rule: "Plural subjects (I, we, they, you) take base form verbs without 's'.",
+    });
   }
 
   if (/\b(he|she|it)\s+(go|like|want|have|do|work|play)\b/i.test(corrected)) {
@@ -29,13 +31,19 @@ function performSmartGrammarCorrection(text) {
       .replace(/\b(he|she|it)\s+do\b/gi, "$1 does")
       .replace(/\b(he|she|it)\s+work\b/gi, "$1 works")
       .replace(/\b(he|she|it)\s+play\b/gi, "$1 plays");
-    explanations.push("Third-person singular (he, she, it) requires third-person verbs ending in '-s' or '-es'.");
+    corrections.push({
+      category: "Subject-Verb Agreement",
+      rule: "Third-person singular (he, she, it) requires third-person verbs ending in '-s' or '-es'.",
+    });
   }
 
   // Rule 2: Preposition of Duration ('since' vs 'for')
   if (/\b(since)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|several|a few)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b/i.test(corrected)) {
     corrected = corrected.replace(/\b(since)\s+(\d+|one|two|three|four|five|six|seven|eight|nine|ten|several|a few)\s+(seconds?|minutes?|hours?|days?|weeks?|months?|years?)\b/gi, "for $2 $3");
-    explanations.push("Use 'for' for duration of time (e.g. for 2 years), and 'since' for a starting point.");
+    corrections.push({
+      category: "Preposition",
+      rule: "Use 'for' for duration of time (e.g. for 2 years), and 'since' for a starting point.",
+    });
   }
 
   // Rule 3: Continuous Tense Auxiliaries ('is go' -> 'is going')
@@ -50,7 +58,10 @@ function performSmartGrammarCorrection(text) {
       .replace(/\b(am|is|are|was|were)\s+talk\b/gi, "$1 talking")
       .replace(/\b(am|is|are|was|were)\s+write\b/gi, "$1 writing")
       .replace(/\b(am|is|are|was|were)\s+drive\b/gi, "$1 driving");
-    explanations.push("Auxiliary verbs (am/is/are/was/were) must be followed by present participle verbs ending in '-ing'.");
+    corrections.push({
+      category: "Verb Tense",
+      rule: "Auxiliary verbs (am/is/are/was/were) must be followed by present participle verbs ending in '-ing'.",
+    });
   }
 
   // Rule 4: Past Tense Auxiliaries ('didn't went' -> 'didn't go')
@@ -63,19 +74,36 @@ function performSmartGrammarCorrection(text) {
       .replace(/\b(didn't|did not)\s+took\b/gi, "$1 take")
       .replace(/\b(didn't|did not)\s+wrote\b/gi, "$1 write")
       .replace(/\b(didn't|did not)\s+drank\b/gi, "$1 drink");
-    explanations.push("After 'did' or 'didn't', always use the base form of the verb.");
+    corrections.push({
+      category: "Verb Form",
+      rule: "After 'did' or 'didn't', always use the base form of the verb.",
+    });
   }
 
   // Rule 5: Indefinite Articles ('a apple' -> 'an apple')
   if (/\b\ba\s+(apple|orange|egg|umbrella|hour|honest|elephant|idea|avocado|airplane)\b/i.test(corrected)) {
     corrected = corrected.replace(/\ba\s+(apple|orange|egg|umbrella|hour|honest|elephant|idea|avocado|airplane)\b/gi, "an $1");
-    explanations.push("Use 'an' before words starting with vowel sounds.");
+    corrections.push({
+      category: "Articles",
+      rule: "Use 'an' before words starting with vowel sounds.",
+    });
   }
 
   // Rule 6: Redundant Prepositions ('discuss about' -> 'discuss')
   if (/\bdiscuss\s+about\b/i.test(corrected)) {
     corrected = corrected.replace(/\bdiscuss\s+about\b/gi, "discuss");
-    explanations.push("'Discuss' already means 'talk about', so using 'about' is redundant.");
+    corrections.push({
+      category: "Redundancy",
+      rule: "'Discuss' already means 'talk about', so using 'about' is redundant.",
+    });
+  }
+
+  // Rule 7: Capitalization Check
+  if (text.length > 0 && text.charAt(0) !== text.charAt(0).toUpperCase()) {
+    corrections.unshift({
+      category: "Capitalization",
+      rule: "Sentences must start with a capital letter.",
+    });
   }
 
   corrected = corrected.trim();
@@ -91,10 +119,11 @@ function performSmartGrammarCorrection(text) {
   return {
     originalText: text,
     correctedText: isExactSame ? text : corrected,
-    accuracyScore: isExactSame ? 100 : Math.max(70, Math.floor(100 - explanations.length * 10)),
+    accuracyScore: isExactSame ? 100 : Math.max(70, Math.floor(100 - corrections.length * 10)),
+    corrections: isExactSame ? [] : corrections,
     explanation: isExactSame
       ? "Great job! Your sentence is grammatically correct with accurate tense usage and phrasing."
-      : explanations.join(" "),
+      : corrections.map((c, i) => `${i + 1}. [${c.category}] ${c.rule}`).join(" "),
     isCorrect: isExactSame,
   };
 }
@@ -106,7 +135,6 @@ export function GrammarPractice() {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
-  const [viseme, setViseme] = useState("REST");
 
   useEffect(() => {
     if ("speechSynthesis" in window) {
@@ -117,62 +145,12 @@ export function GrammarPractice() {
     }
   }, []);
 
-  useEffect(() => {
-    let visemeInterval = null;
-    if (isAiSpeaking) {
-      const VISEMES = ["AA", "EE", "IH", "OO", "AA", "OH", "EE", "REST"];
-      let idx = 0;
-      visemeInterval = setInterval(() => {
-        idx = (idx + 1) % VISEMES.length;
-        setViseme(VISEMES[idx]);
-      }, 120);
-    } else {
-      setViseme("REST");
-    }
-    return () => clearInterval(visemeInterval);
-  }, [isAiSpeaking]);
-
-  const getBestNaturalVoice = () => {
-    if (!("speechSynthesis" in window)) return null;
-    const voices = window.speechSynthesis.getVoices();
-    if (!voices || voices.length === 0) return null;
-    return (
-      voices.find(
-        (v) =>
-          v.lang.startsWith("en") &&
-          (v.name.includes("Google") ||
-            v.name.includes("Natural") ||
-            v.name.includes("Jenny") ||
-            v.name.includes("Ava") ||
-            v.name.includes("Samantha") ||
-            v.name.includes("Alex") ||
-            v.name.includes("Online"))
-      ) ||
-      voices.find((v) => v.lang === "en-US") ||
-      voices.find((v) => v.lang.startsWith("en")) ||
-      voices[0]
-    );
-  };
-
   const handleSpeakText = (text) => {
     if (!text) return;
     speakGlobalText(text, 1.0, {
-      onstart: () => {
-        setIsAiSpeaking(true);
-        setViseme("AA");
-      },
-      onboundary: () => {
-        const VISEMES = ["AA", "EE", "IH", "OO", "OH"];
-        setViseme(VISEMES[Math.floor(Math.random() * VISEMES.length)]);
-      },
-      onend: () => {
-        setIsAiSpeaking(false);
-        setViseme("REST");
-      },
-      onerror: () => {
-        setIsAiSpeaking(false);
-        setViseme("REST");
-      },
+      onstart: () => setIsAiSpeaking(true),
+      onend: () => setIsAiSpeaking(false),
+      onerror: () => setIsAiSpeaking(false),
     });
   };
 
@@ -180,9 +158,17 @@ export function GrammarPractice() {
     if (!res) return;
     let spokenMsg = "";
     if (res.isCorrect) {
-      spokenMsg = `Fantastic job! Your sentence, ${res.correctedText}, is completely accurate! Keep up the great work!`;
+      spokenMsg = `Great job! Your sentence, "${res.correctedText}", is completely accurate!`;
     } else {
-      spokenMsg = `Here is your corrected sentence: ${res.correctedText}. Here is a helpful tip: ${res.explanation || ""}. Let's keep practicing together!`;
+      spokenMsg = `Here is your corrected sentence: "${res.correctedText}". `;
+      if (res.corrections && res.corrections.length > 0) {
+        const details = res.corrections
+          .map((c, idx) => `${idx + 1}. In bracket ${c.category}. What was wrong: ${c.rule}`)
+          .join(" ");
+        spokenMsg += details;
+      } else {
+        spokenMsg += `What was wrong: ${res.explanation || ""}`;
+      }
     }
     handleSpeakText(spokenMsg);
   };
@@ -291,22 +277,22 @@ export function GrammarPractice() {
                   Enter English Sentence to Check
                 </label>
                 <span className="text-xs font-black text-[#6c63ff] px-3 py-1 rounded-full bg-[#6c63ff]/15">
-                  Voice Tutor Active
+                  AI Voice Player Active
                 </span>
               </div>
 
               <textarea
                 rows={6}
-                placeholder="Type or paste any English sentence (e.g., 'I goes to school yesterday and she do not likes apples since two years')..."
+                placeholder="Type or paste any English sentence (e.g., 'i goes to school yesterday and she do not likes apples since two years')..."
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
                 className="w-full p-4.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] leading-relaxed"
               />
 
-              <div className="flex items-center justify-between gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
                 <button
-                  onClick={() => setTextInput("I goes to school yesterday and she do not likes apples since two years.")}
-                  className="text-xs font-black text-[#6c63ff] hover:underline"
+                  onClick={() => setTextInput("i goes to school yesterday and she do not likes apples since two years.")}
+                  className="text-xs font-black text-[#6c63ff] hover:underline text-left"
                 >
                   + Insert Sample Error Sentence
                 </button>
@@ -322,79 +308,27 @@ export function GrammarPractice() {
             </div>
           </div>
 
-          {/* Right Column: 3D Lip-Sync AI Tutor & Results */}
+          {/* Right Column: AI Voice Audio Banner & Analysis Results */}
           <div className="lg:col-span-6 space-y-6">
-            {/* 3D Vector AI Tutor Avatar Card */}
+            {/* AI Voice Status Banner (Avatar Removed, Only AI Voice Functionality Kept) */}
             <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl flex items-center justify-between gap-4 overflow-hidden border border-white/10">
               <div className="flex items-center gap-4">
-                <div className="relative">
-                  <div className={`relative grid h-20 w-20 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl p-1.5 overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
-                    <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-xl">
-                      <defs>
-                        <linearGradient id="skinGradG" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#FAD7BD" />
-                          <stop offset="100%" stopColor="#E3A880" />
-                        </linearGradient>
-                        <linearGradient id="hairGradG" x1="0" y1="0" x2="1" y2="1">
-                          <stop offset="0%" stopColor="#4A306D" />
-                          <stop offset="100%" stopColor="#1E1035" />
-                        </linearGradient>
-                        <radialGradient id="eyeIrisG">
-                          <stop offset="0%" stopColor="#6C63FF" />
-                          <stop offset="100%" stopColor="#0F172A" />
-                        </radialGradient>
-                      </defs>
-
-                      <path d="M 32 82 Q 50 78 68 82 L 72 100 L 28 100 Z" fill="#E3A880" />
-                      <path d="M 24 90 Q 50 82 76 90 L 85 100 L 15 100 Z" fill="#6C63FF" opacity="0.9" />
-                      <path d="M 26 36 Q 22 58 32 76 Q 50 88 68 76 Q 78 58 74 36 Q 50 30 26 36 Z" fill="url(#skinGradG)" />
-                      <ellipse cx="23" cy="52" rx="4" ry="7" fill="#E3A880" />
-                      <ellipse cx="77" cy="52" rx="4" ry="7" fill="#E3A880" />
-                      <path d="M 20 42 Q 22 14 50 14 Q 78 14 80 42 Q 65 26 50 26 Q 35 26 20 42 Z" fill="url(#hairGradG)" />
-                      <path d="M 31 43 Q 39 39 47 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                      <path d="M 53 43 Q 61 39 69 43" stroke="#2D1945" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-
-                      <g className="animate-eye-blink">
-                        <ellipse cx="39" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
-                        <ellipse cx="39" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIrisG)" />
-                        <circle cx="37.5" cy="47.5" r="1.2" fill="#FFFFFF" />
-                        <ellipse cx="61" cy="49" rx="6" ry="4.5" fill="#FFFFFF" />
-                        <ellipse cx="61" cy="49" rx="3.5" ry="3.5" fill="url(#eyeIrisG)" />
-                        <circle cx="59.5" cy="47.5" r="1.2" fill="#FFFFFF" />
-                      </g>
-                      <path d="M 50 50 L 48 60 L 52 60 Z" fill="#D4946A" opacity="0.6" />
-
-                      {viseme === "AA" ? (
-                        <g>
-                          <path d="M 35 64 Q 50 58 65 64 Q 65 80 50 82 Q 35 80 35 64 Z" fill="#991B1B" stroke="#B91C1C" strokeWidth="1" />
-                          <path d="M 37 65 Q 50 62 63 65 L 63 68 Q 50 65 37 68 Z" fill="#FFFFFF" />
-                          <ellipse cx="50" cy="77" rx="6" ry="3.5" fill="#F87171" />
-                        </g>
-                      ) : viseme === "EE" ? (
-                        <g>
-                          <path d="M 31 65 Q 50 60 69 65 Q 69 77 50 78 Q 31 77 31 65 Z" fill="#881337" stroke="#9F1239" strokeWidth="1" />
-                          <path d="M 33 66 Q 50 62 67 66 L 67 69 Q 50 66 33 69 Z" fill="#FFFFFF" />
-                        </g>
-                      ) : (
-                        <path d="M 35 68 Q 50 72 65 68 M 37 70 Q 50 74 63 70" stroke="#991B1B" strokeWidth="2.5" strokeLinecap="round" fill="none" />
-                      )}
-                    </svg>
-                  </div>
+                <div className="h-12 w-12 rounded-2xl bg-[#6c63ff]/20 border border-[#6c63ff]/50 grid place-items-center text-2xl shadow-inner shrink-0">
+                  🎙️
                 </div>
-
                 <div>
-                  <h3 className="font-extrabold text-[#F8FAFC]">SpeakMate AI Voice Tutor</h3>
+                  <h3 className="font-extrabold text-[#F8FAFC]">AI Voice Tutor</h3>
                   <p className="text-xs text-[#A5B4FC] font-medium mt-0.5">
-                    {isAiSpeaking ? "Speaking Smooth Correction & Tips... 🎙️" : "Ready to Analyze & Speak Smoothly ✨"}
+                    {isAiSpeaking ? "Speaking Smooth Correction & Tips... 🔊" : "Ready to Analyze & Speak Smoothly ✨"}
                   </p>
                 </div>
               </div>
 
               {isAiSpeaking && (
                 <div className="flex items-center gap-1.5 h-8">
-                  <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-1" />
-                  <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2" />
-                  <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3" />
+                  <span className="w-1.5 bg-[#6c63ff] rounded-full animate-pulse h-6" />
+                  <span className="w-1.5 bg-[#ff6584] rounded-full animate-bounce h-8" />
+                  <span className="w-1.5 bg-emerald-400 rounded-full animate-pulse h-5" />
                 </div>
               )}
             </div>
@@ -434,14 +368,34 @@ export function GrammarPractice() {
                     </p>
                   </div>
 
-                  {analysisResult.explanation && (
-                    <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs sm:text-sm space-y-1">
-                      <span className="font-black text-[#6c63ff] uppercase text-[10px]">Grammar Rule Improvement</span>
-                      <p className="text-[var(--text-secondary)] leading-relaxed font-semibold">
+                  {/* Structured Rule Improvements with Category Brackets */}
+                  <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3">
+                    <span className="font-black text-[#6c63ff] uppercase text-[10px] tracking-wider">
+                      Grammar Rule Improvements
+                    </span>
+
+                    {analysisResult.corrections && analysisResult.corrections.length > 0 ? (
+                      <div className="space-y-3">
+                        {analysisResult.corrections.map((c, i) => (
+                          <div key={i} className="p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] space-y-1">
+                            <span className="font-black text-[#6c63ff] text-xs">
+                              {i + 1}. ({c.category})
+                            </span>
+                            <p className="text-xs sm:text-sm text-[var(--text-primary)] font-bold">
+                              Corrected phrasing applied in sentence.
+                            </p>
+                            <p className="text-xs text-[var(--text-secondary)] font-medium">
+                              💡 What was wrong: {c.rule}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-semibold leading-relaxed">
                         💡 {analysisResult.explanation}
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </div>
             ) : (
