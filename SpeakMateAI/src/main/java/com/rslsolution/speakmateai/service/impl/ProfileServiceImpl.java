@@ -36,6 +36,7 @@ public class ProfileServiceImpl implements ProfileService {
 			progress.setLevel(calculatedLevel);
 			progressRepository.save(progress);
 		}
+		String effectiveLevel = (user.getSchoolGrade() != null && !user.getSchoolGrade().trim().isEmpty()) ? null : user.getEnglishLevel();
 		return ProfileResponse.builder()
 				.id(user.getId())
 				.firstName(user.getFirstName())
@@ -43,7 +44,7 @@ public class ProfileServiceImpl implements ProfileService {
 				.email(user.getEmail())
 				.role(user.getRole().name())
 				.avatar(user.getAvatar())
-				.englishLevel(user.getEnglishLevel())
+				.englishLevel(effectiveLevel)
 				.learningGoal(user.getLearningGoal())
 				.xp(xp)
 				.level(calculatedLevel)

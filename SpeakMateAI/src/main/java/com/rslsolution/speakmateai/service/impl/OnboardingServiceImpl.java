@@ -36,9 +36,10 @@ public class OnboardingServiceImpl implements OnboardingService {
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
 		String resolvedGrade = resolveGrade(request.getSchoolGrade(), request.getEnglishLevel());
+		String resolvedLevel = (resolvedGrade != null && !resolvedGrade.trim().isEmpty()) ? null : request.getEnglishLevel();
 
 		Onboarding onboarding = Onboarding.builder().user(user)
-				.englishLevel(request.getEnglishLevel() != null ? request.getEnglishLevel() : "Beginner")
+				.englishLevel(resolvedLevel)
 				.learningGoal(request.getLearningGoal() != null ? request.getLearningGoal() : "Improve English speaking skills")
 				.dailyGoalMinutes(request.getDailyGoalMinutes() != null ? request.getDailyGoalMinutes() : 15)
 				.nativeLanguage(request.getNativeLanguage() != null ? request.getNativeLanguage() : "English")
@@ -110,7 +111,6 @@ public class OnboardingServiceImpl implements OnboardingService {
 					return onboardingRepository.save(defaultOnboarding);
 				});
 
-		if (request.getEnglishLevel() != null) onboarding.setEnglishLevel(request.getEnglishLevel());
 		if (request.getLearningGoal() != null) onboarding.setLearningGoal(request.getLearningGoal());
 		if (request.getDailyGoalMinutes() != null) onboarding.setDailyGoalMinutes(request.getDailyGoalMinutes());
 		if (request.getNativeLanguage() != null) onboarding.setNativeLanguage(request.getNativeLanguage());
@@ -120,6 +120,11 @@ public class OnboardingServiceImpl implements OnboardingService {
 		
 		String resolvedGrade = resolveGrade(request.getSchoolGrade(), request.getEnglishLevel());
 		onboarding.setSchoolGrade(resolvedGrade);
+		if (resolvedGrade != null && !resolvedGrade.trim().isEmpty()) {
+			onboarding.setEnglishLevel(null);
+		} else if (request.getEnglishLevel() != null) {
+			onboarding.setEnglishLevel(request.getEnglishLevel());
+		}
 
 		if (request.getOnboardingCompleted() != null) onboarding.setOnboardingCompleted(request.getOnboardingCompleted());
 
@@ -145,8 +150,9 @@ public class OnboardingServiceImpl implements OnboardingService {
 
 	private OnboardingResponse mapToResponse(Onboarding onboarding) {
 		String effectiveGrade = resolveGrade(onboarding.getSchoolGrade(), onboarding.getEnglishLevel());
+		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : onboarding.getEnglishLevel();
 
-		return OnboardingResponse.builder().id(onboarding.getId()).englishLevel(onboarding.getEnglishLevel())
+		return OnboardingResponse.builder().id(onboarding.getId()).englishLevel(effectiveLevel)
 				.learningGoal(onboarding.getLearningGoal()).dailyGoalMinutes(onboarding.getDailyGoalMinutes())
 				.nativeLanguage(onboarding.getNativeLanguage())
 				.preferredLearningTime(onboarding.getPreferredLearningTime()).interests(onboarding.getInterests())
@@ -159,7 +165,6 @@ public class OnboardingServiceImpl implements OnboardingService {
 	private void syncUserOnboarding(User user, OnboardingRequest request) {
 
 		if (request.getNativeLanguage() != null) user.setNativeLanguage(request.getNativeLanguage());
-		if (request.getEnglishLevel() != null) user.setEnglishLevel(request.getEnglishLevel());
 		if (request.getLearningGoal() != null) user.setLearningGoal(request.getLearningGoal());
 		if (request.getDailyGoalMinutes() != null) user.setDailyGoalMinutes(request.getDailyGoalMinutes());
 		if (request.getPreferredVoice() != null) user.setPreferredVoice(request.getPreferredVoice());
@@ -168,6 +173,11 @@ public class OnboardingServiceImpl implements OnboardingService {
 		
 		String resolvedGrade = resolveGrade(request.getSchoolGrade(), request.getEnglishLevel());
 		user.setSchoolGrade(resolvedGrade);
+		if (resolvedGrade != null && !resolvedGrade.trim().isEmpty()) {
+			user.setEnglishLevel(null);
+		} else if (request.getEnglishLevel() != null) {
+			user.setEnglishLevel(request.getEnglishLevel());
+		}
 
 		if (request.getInterests() != null) user.setInterests(request.getInterests());
 		if (request.getOnboardingCompleted() != null) user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));

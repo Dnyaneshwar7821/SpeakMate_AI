@@ -153,6 +153,7 @@ export function Onboarding() {
 
   const handleFinish = async () => {
     const finalGrade = accountType === "STUDENT" ? selectedGrade : null;
+    const finalLevel = accountType === "STUDENT" ? null : selectedLevel;
     if (finalGrade) {
       localStorage.setItem("speakmate_school_grade", finalGrade);
     } else {
@@ -163,7 +164,8 @@ export function Onboarding() {
       nativeLanguage,
       goal: selectedGoal,
       ageGroup: selectedAgeGroup,
-      level: selectedLevel,
+      level: finalLevel,
+      englishLevel: finalLevel,
       schoolGrade: finalGrade,
       interests: selectedInterests,
       aiVoice: selectedVoice,

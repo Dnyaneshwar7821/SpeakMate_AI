@@ -91,13 +91,14 @@ public class AdminServiceImpl implements AdminService {
 
 	private UserResponse mapToUserResponse(User user) {
 		String effectiveGrade = user.getSchoolGrade();
+		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
 
 		return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
 				.email(user.getEmail()).role(user.getRole()).avatar(user.getAvatar()).active(user.isActive())
 				.createdAt(user.getCreatedAt()).welcomeCompleted(user.isWelcomeCompleted())
 				.onboardingCompleted(user.isOnboardingCompleted())
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
-				.englishLevel(user.getEnglishLevel()).learningGoal(user.getLearningGoal())
+				.englishLevel(effectiveLevel).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
 				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup())
 				.schoolGrade(effectiveGrade).interests(user.getInterests()).build();

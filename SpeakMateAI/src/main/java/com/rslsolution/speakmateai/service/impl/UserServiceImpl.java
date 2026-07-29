@@ -349,8 +349,19 @@ public class UserServiceImpl implements UserService {
 		if (request.getNativeLanguage() != null) onboarding.setNativeLanguage(request.getNativeLanguage());
 		if (request.getGoal() != null) onboarding.setLearningGoal(request.getGoal());
 		if (request.getAgeGroup() != null) onboarding.setAgeGroup(request.getAgeGroup());
-		if (request.getEnglishLevel() != null) onboarding.setEnglishLevel(request.getEnglishLevel());
-		if (request.getSchoolGrade() != null) onboarding.setSchoolGrade(request.getSchoolGrade());
+		if (request.getSchoolGrade() != null && !request.getSchoolGrade().trim().isEmpty()) {
+			onboarding.setSchoolGrade(request.getSchoolGrade());
+			onboarding.setEnglishLevel(null);
+			user.setSchoolGrade(request.getSchoolGrade());
+			user.setEnglishLevel(null);
+		} else {
+			onboarding.setSchoolGrade(null);
+			user.setSchoolGrade(null);
+			if (request.getEnglishLevel() != null) {
+				onboarding.setEnglishLevel(request.getEnglishLevel());
+				user.setEnglishLevel(request.getEnglishLevel());
+			}
+		}
 		if (request.getInterests() != null) onboarding.setInterests(String.join(",", request.getInterests()));
 		if (request.getAiVoice() != null) onboarding.setAiVoice(request.getAiVoice());
 		if (request.getCommitment() != null) onboarding.setDailyGoalMinutes(Integer.parseInt(request.getCommitment().replaceAll("[^0-9]", "")));
@@ -459,13 +470,14 @@ public class UserServiceImpl implements UserService {
 				effectiveGrade = ob.get().getSchoolGrade();
 			}
 		}
+		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
 
 		return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
 				.email(user.getEmail()).role(user.getRole()).avatar(user.getAvatar()).active(user.isActive())
 				.createdAt(user.getCreatedAt()).welcomeCompleted(user.isWelcomeCompleted())
 				.onboardingCompleted(user.isOnboardingCompleted())
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
-				.englishLevel(user.getEnglishLevel()).learningGoal(user.getLearningGoal())
+				.englishLevel(effectiveLevel).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
 				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup()).schoolGrade(effectiveGrade).interests(user.getInterests()).build();
 	}

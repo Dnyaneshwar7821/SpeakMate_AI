@@ -486,7 +486,7 @@ export default function OnboardingScreen({ navigation }) {
 
       // 1. Sync onboarding details (Avoids any 404 blockages)
       await onboardingService.update({
-        englishLevel: level,
+        englishLevel: accountType === 'STUDENT' ? null : level,
         schoolGrade: finalGrade,
         learningGoal: whyLearning.join(', '),
         dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,

@@ -54,6 +54,7 @@ export function Profile() {
   const handleSaveProfile = (e) => {
     e.preventDefault();
     const finalGrade = accountType === "STUDENT" ? schoolGrade : null;
+    const finalLevel = accountType === "STUDENT" ? null : cefrLevel;
     if (finalGrade) {
       localStorage.setItem("speakmate_school_grade", finalGrade);
     } else {
@@ -63,7 +64,8 @@ export function Profile() {
       name,
       email,
       nativeLang,
-      level: accountType === "STUDENT" ? schoolGrade : cefrLevel,
+      level: finalLevel,
+      englishLevel: finalLevel,
       schoolGrade: finalGrade,
     });
     setSaved(true);
