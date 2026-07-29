@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
-import { VOICE_PROFILES, speakGlobalText, getSavedVoiceSettings } from "../utils/speechHelper";
+import { VOICE_PROFILES, speakGlobalText } from "../utils/speechHelper";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
 
@@ -28,9 +28,6 @@ export function Settings() {
 
   const [accent, setAccent] = useState(
     localStorage.getItem("speakmate_voice_accent") || "US"
-  );
-  const [speechRate, setSpeechRate] = useState(
-    localStorage.getItem("speakmate_speech_rate") || "1.0"
   );
   const [selectedVoice, setSelectedVoice] = useState(
     localStorage.getItem("speakmate_ai_voice") || "Default"
@@ -90,16 +87,10 @@ export function Settings() {
     localStorage.setItem("speakmate_voice_accent", val);
   };
 
-  const handleRateChange = (val) => {
-    setSpeechRate(val);
-    localStorage.setItem("speakmate_speech_rate", val);
-  };
-
   const handleSaveSettings = async (e) => {
     if (e) e.preventDefault();
     localStorage.setItem("speakmate_ai_voice", selectedVoice);
     localStorage.setItem("speakmate_voice_accent", accent);
-    localStorage.setItem("speakmate_speech_rate", speechRate);
     localStorage.setItem("speakmate_age_group", selectedAgeGroup);
     localStorage.setItem("speakmate_daily_goal", dailyGoal);
 
@@ -126,7 +117,7 @@ export function Settings() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-black">App Settings & Preferences ⚙️</h1>
           <p className="text-xs sm:text-sm font-medium opacity-90 mt-1">
-            Customize target age group, AI tutor speaking voice profiles, audio playback speed, and global preferences.
+            Customize target age group, AI tutor speaking voice profiles, target accent, and global preferences.
           </p>
         </div>
       </div>
@@ -147,7 +138,7 @@ export function Settings() {
             <span className="text-[10px] font-black uppercase tracking-wider text-[#a5b4fc]">ACTIVE SPEAKING TUTOR VOICE</span>
             <h2 className="text-xl sm:text-2xl font-black text-white mt-0.5">{activeVoiceLabel}</h2>
             <p className="text-xs text-indigo-200 font-medium mt-1">
-              Playback Speed: <strong>{speechRate}x</strong> • Target Accent: <strong>{accent}</strong>
+              Target Accent: <strong>{accent}</strong>
             </p>
           </div>
         </div>
@@ -241,33 +232,18 @@ export function Settings() {
         </div>
 
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div>
-              <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Target English Accent</label>
-              <select
-                value={accent}
-                onChange={(e) => handleAccentChange(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
-              >
-                <option value="US">American English (US)</option>
-                <option value="UK">British English (UK)</option>
-                <option value="AU">Australian English (AU)</option>
-                <option value="IN">Indian English (IN)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Default Audio Speed ({speechRate}x)</label>
-              <input
-                type="range"
-                min="0.75"
-                max="1.5"
-                step="0.05"
-                value={speechRate}
-                onChange={(e) => handleRateChange(e.target.value)}
-                className="w-full accent-[#6c63ff] mt-2 cursor-pointer"
-              />
-            </div>
+          <div>
+            <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Target English Accent</label>
+            <select
+              value={accent}
+              onChange={(e) => handleAccentChange(e.target.value)}
+              className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+            >
+              <option value="US">American English (US)</option>
+              <option value="UK">British English (UK)</option>
+              <option value="AU">Australian English (AU)</option>
+              <option value="IN">Indian English (IN)</option>
+            </select>
           </div>
 
           {/* Regional Accent Voice Profiles (Same as Mobile App) */}

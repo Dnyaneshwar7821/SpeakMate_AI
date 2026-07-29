@@ -178,10 +178,11 @@ export function ConversationSession() {
   };
 
   const handleToggleSpeed = () => {
-    const SPEEDS = [0.5, 0.75, 1.0, 1.5, 2.0];
+    const SPEEDS = [0.75, 1.0, 1.25, 1.5, 2.0];
     const idx = SPEEDS.indexOf(speechSpeed);
     const nextSpeed = SPEEDS[(idx + 1) % SPEEDS.length];
     setSpeechSpeed(nextSpeed);
+    toast.info(`Audio Speech Speed set to ${nextSpeed}x`);
   };
 
   const handleFetchHints = async () => {
