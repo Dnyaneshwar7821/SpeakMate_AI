@@ -358,38 +358,44 @@ export function ConversationSession() {
         </div>
       </div>
 
-      {/* 2. AVATAR STAGE (Compact 3D Avatar Header) */}
-      <div className="p-3 rounded-2xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#0F172A] border border-[#6c63ff]/30 text-white shadow-md flex items-center justify-between gap-4 shrink-0 overflow-hidden">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="relative shrink-0">
-            <div className={`relative grid h-20 w-20 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-lg overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
-              <div className="w-full h-full absolute inset-0">
-                <Canvas camera={{ position: [0, 0, 3], fov: 40 }}>
-                  <ambientLight intensity={1.5} />
-                  <directionalLight position={[2, 2, 2]} intensity={2} />
-                  <Environment preset="city" />
-                  <Avatar3D viseme={viseme} isSpeaking={isAiSpeaking} />
-                </Canvas>
-              </div>
+      {/* 2. CENTERED 3D AI AVATAR STAGE (Centered in the Middle) */}
+      <div className="relative p-4 sm:p-5 rounded-3xl bg-gradient-to-b from-[#0F172A] via-[#1E1B4B] to-[#0F172A] border border-[#6c63ff]/40 text-white shadow-xl flex flex-col items-center justify-center shrink-0 overflow-hidden text-center gap-2.5">
+        {/* Ambient glow backdrop */}
+        <div className="absolute inset-0 bg-[#6c63ff]/10 blur-2xl pointer-events-none" />
+
+        <div className="relative">
+          {/* Centered Avatar Canvas */}
+          <div className={`relative grid h-28 w-28 sm:h-36 sm:w-36 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-4 ${isAiSpeaking ? "border-[#6c63ff] shadow-[0_0_25px_rgba(108,99,255,0.6)] scale-105" : "border-[#6c63ff]/40 shadow-lg"} transition-all duration-300 overflow-hidden`}>
+            <div className="w-full h-full absolute inset-0">
+              <Canvas camera={{ position: [0, 0, 3], fov: 40 }}>
+                <ambientLight intensity={1.5} />
+                <directionalLight position={[2, 2, 2]} intensity={2} />
+                <Environment preset="city" />
+                <Avatar3D viseme={viseme} isSpeaking={isAiSpeaking} />
+              </Canvas>
             </div>
-            <span className={`absolute -bottom-0.5 -right-0.5 h-5 w-5 rounded-full border-2 border-[#0F172A] flex items-center justify-center text-[9px] shadow-md ${isListening ? "bg-rose-500 text-white animate-bounce" : isAiSpeaking ? "bg-[#6c63ff] text-white animate-pulse" : "bg-emerald-500 text-white"}`}>
-              {isListening ? "🎙️" : isAiSpeaking ? "🔊" : "✨"}
-            </span>
           </div>
 
-          <div className="min-w-0">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#A5B4FC]">SpeakMate AI Voice Tutor</span>
-            <h3 className="text-xs font-bold text-white truncate">{avatarState}</h3>
-          </div>
+          {/* Status Badge Indicator */}
+          <span className={`absolute bottom-0 right-0 h-7 w-7 rounded-full border-2 border-[#0F172A] flex items-center justify-center text-xs shadow-md ${isListening ? "bg-rose-500 text-white animate-bounce" : isAiSpeaking ? "bg-[#6c63ff] text-white animate-pulse" : "bg-emerald-500 text-white"}`}>
+            {isListening ? "🎙️" : isAiSpeaking ? "🔊" : "✨"}
+          </span>
         </div>
 
-        {isAiSpeaking && (
-          <div className="flex items-center gap-1 h-6 pr-2 shrink-0">
-            <span className="w-1 bg-[#6c63ff] rounded-full animate-soundbar-1" />
-            <span className="w-1 bg-[#ff6584] rounded-full animate-soundbar-2" />
-            <span className="w-1 bg-emerald-400 rounded-full animate-soundbar-3" />
-          </div>
-        )}
+        {/* Status Label Directly Below Centered Avatar */}
+        <div className="space-y-0.5 z-10">
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#A5B4FC]">SpeakMate AI Speaking Coach</span>
+          <h3 className="text-xs sm:text-sm font-extrabold text-white flex items-center justify-center gap-2">
+            <span>{avatarState}</span>
+            {isAiSpeaking && (
+              <span className="flex items-center gap-1 h-3 shrink-0">
+                <span className="w-1 bg-[#6c63ff] rounded-full animate-soundbar-1 h-3" />
+                <span className="w-1 bg-[#ff6584] rounded-full animate-soundbar-2 h-3" />
+                <span className="w-1 bg-emerald-400 rounded-full animate-soundbar-3 h-3" />
+              </span>
+            )}
+          </h3>
+        </div>
       </div>
 
       {/* 3. CONVERSATION THREAD (Flex-1, Positioned ABOVE the Speak Button) */}
