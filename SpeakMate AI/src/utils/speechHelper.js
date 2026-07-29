@@ -95,27 +95,27 @@ export const getSavedVoiceSettings = () => {
     if (profile.locale) targetLang = profile.locale;
     if (profile.gender) gender = profile.gender;
 
-    // Distinct pitch & cadence profiles for EVERY profile
+    // Distinct pitch & cadence profiles for ALL 8 profiles
     if (profile.code === "US Male") {
-      pitch = 0.92;
+      pitch = 0.95;
       baseRate = 1.0;
     } else if (profile.code === "US Female") {
       pitch = 1.12;
       baseRate = 1.0;
     } else if (profile.code === "UK Male") {
-      pitch = 0.80; // Deep deliberate British male tone
+      pitch = 0.78; // Deep deliberate British male tone
       baseRate = 0.92; // Deliberate British cadence
     } else if (profile.code === "UK Female") {
       pitch = 1.16;
       baseRate = 0.96;
     } else if (profile.code === "AU Male") {
-      pitch = 0.94; // Brisk, energetic Australian male pitch
-      baseRate = 1.08; // Brisk Aussie cadence
+      pitch = 1.08; // Brisk, higher-pitched energetic Australian male
+      baseRate = 1.12; // Fast upbeat Aussie cadence
     } else if (profile.code === "AU Female") {
       pitch = 1.04;
       baseRate = 1.05;
     } else if (profile.code === "IN Male") {
-      pitch = 0.76; // Deep resonant Indian male tone
+      pitch = 0.70; // Ultra-deep resonant Indian male tone
       baseRate = 0.95;
     } else if (profile.code === "IN Female") {
       pitch = 1.28; // High warm feminine Indian tone
@@ -181,12 +181,13 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
         AU_MALE.some((k) => v.name.toLowerCase().includes(k) || v.lang.toLowerCase().includes("au"))
       );
       if (!targetVoice) {
-        // Fallback to non-GB male voice (e.g. US male Guy/David/Alex) so it is 100% DISTINCT from UK Male!
-        targetVoice = voices.find((v) => (v.lang.toLowerCase().includes("us") || v.lang.toLowerCase().includes("en")) && !v.lang.toLowerCase().includes("gb") && MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+        // Fallback to distinct voice (Mark / George / Chris) so it is 100% DISTINCT from US Male (Guy/David)!
+        targetVoice = voices.find((v) => v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("chris") || v.name.toLowerCase().includes("alex")) ||
+                      voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
       }
     } else if (settings.voiceCode === "US Male") {
       targetVoice = voices.find((v) =>
-        v.lang.toLowerCase().includes("us") && MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+        v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("guy") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("male"))
       ) || voices.find((v) => US_MALE.some((k) => v.name.toLowerCase().includes(k)));
     } else if (settings.voiceCode === "IN Male") {
       targetVoice = voices.find((v) =>
