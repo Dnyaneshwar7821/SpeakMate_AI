@@ -112,14 +112,14 @@ export const getSavedVoiceSettings = () => {
       pitch = 1.08; // Brisk, higher-pitched energetic Australian male
       baseRate = 1.12; // Fast upbeat Aussie cadence
     } else if (profile.code === "AU Female") {
-      pitch = 0.98; // Crisp, brisk Aussie female pitch (Lower than IN Female!)
-      baseRate = 1.14; // Fast, crisp Aussie female cadence
+      pitch = 1.05; // Australian female pitch
+      baseRate = 1.05; // Australian female cadence
     } else if (profile.code === "IN Male") {
       pitch = 0.70; // Ultra-deep resonant Indian male tone
       baseRate = 0.95;
     } else if (profile.code === "IN Female") {
-      pitch = 1.35; // High warm feminine Indian tone (Significantly higher than AU Female!)
-      baseRate = 0.86; // Soft, gentle Indian cadence
+      pitch = 1.35; // High warm feminine Indian tone
+      baseRate = 0.86;
     }
   }
 
@@ -164,7 +164,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
     const UK_MALE = ["ryan", "george", "oliver", "daniel", "malcolm", "uk male", "british", "en-gb"];
     const UK_FEMALE = ["sonia", "hazel", "fiona", "kate", "serena", "uk female", "british", "en-gb"];
     const AU_MALE = ["william", "russell", "au male", "australian", "en-au"];
-    const AU_FEMALE = ["natasha", "catherine", "karen", "victoria", "samantha", "au female", "australian", "en-au"];
+    const AU_FEMALE = ["natasha", "catherine", "karen", "au female", "australian", "en-au"];
     const IN_MALE = ["prabhat", "rishi", "ravi", "in male", "indian", "en-in"];
     const IN_FEMALE = ["neerja", "veena", "heera", "kalpana", "ananya", "in female", "indian", "en-in", "hindi"];
 
@@ -172,23 +172,31 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
     const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "neerja", "veena", "heera", "female"];
 
     // Profile-driven targeted voice matching
-    if (settings.voiceCode === "IN Female") {
+    if (settings.voiceCode === "AU Female") {
+      // Australian female voice lookup
+      targetVoice = voices.find((v) =>
+        (v.lang.toLowerCase().includes("au") || v.name.toLowerCase().includes("australia") || v.name.toLowerCase().includes("natasha") || v.name.toLowerCase().includes("catherine")) &&
+        !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+      );
+      if (!targetVoice) {
+        // Exclude all female voices used by US Female, UK Female, and IN Female!
+        const EXCLUDED_OTHER_FEMALES = ["jenny", "zira", "samantha", "sonia", "hazel", "fiona", "kate", "serena", "neerja", "veena", "heera", "kalpana", "ananya"];
+        targetVoice = voices.find(
+          (v) =>
+            !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) &&
+            !EXCLUDED_OTHER_FEMALES.some((k) => v.name.toLowerCase().includes(k))
+        );
+      }
+      if (!targetVoice) {
+        targetVoice = voices.find((v) => v.name.toLowerCase().includes("karen") || v.name.toLowerCase().includes("catherine")) || voices[0];
+      }
+    } else if (settings.voiceCode === "IN Female") {
       targetVoice = voices.find((v) =>
         (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("veena") || v.name.toLowerCase().includes("neerja") || v.name.toLowerCase().includes("heera")) &&
         !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       );
       if (!targetVoice) {
-        // High pitch (1.35) warm Indian female fallback using Zira/Jenny
         targetVoice = voices.find((v) => v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("jenny")) ||
-                      voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
-      }
-    } else if (settings.voiceCode === "AU Female") {
-      targetVoice = voices.find((v) =>
-        AU_FEMALE.some((k) => v.name.toLowerCase().includes(k) || v.lang.toLowerCase().includes("au"))
-      );
-      if (!targetVoice) {
-        // Crisp pitch (0.98) & fast rate (1.14) Aussie female fallback using Victoria/Samantha
-        targetVoice = voices.find((v) => v.name.toLowerCase().includes("victoria") || v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("karen")) ||
                       voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
       }
     } else if (settings.voiceCode === "UK Female") {
