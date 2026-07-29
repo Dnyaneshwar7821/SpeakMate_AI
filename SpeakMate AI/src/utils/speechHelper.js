@@ -94,7 +94,21 @@ export const getSavedVoiceSettings = () => {
   if (profile) {
     if (profile.locale) targetLang = profile.locale;
     if (profile.gender) gender = profile.gender;
-    if (profile.code.includes("Male")) {
+
+    // Distinct pitch & cadence profiles for AU Female vs IN Female
+    if (profile.code === "AU Female") {
+      pitch = 1.04;
+      baseRate = 1.05; // Crisp, clear Australian cadence
+    } else if (profile.code === "IN Female") {
+      pitch = 1.26;
+      baseRate = 0.90; // Soft, warm, melodic Indian cadence
+    } else if (profile.code === "AU Male") {
+      pitch = 0.86;
+      baseRate = 1.02;
+    } else if (profile.code === "IN Male") {
+      pitch = 0.92;
+      baseRate = 0.92;
+    } else if (profile.code.includes("Male")) {
       pitch = 0.88;
     } else if (profile.code.includes("Female")) {
       pitch = 1.12;
@@ -136,66 +150,87 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
     const targetLangPrefix = settings.lang.toLowerCase(); // e.g. "en-us", "en-gb", "en-au", "en-in"
     const langBase = settings.lang.split("-")[0].toLowerCase(); // "en"
 
-    // Name keywords per gender
-    const MALE_NAMES = ["guy", "david", "mark", "alex", "tom", "chris", "george", "james", "ryan", "oliver", "daniel", "malcolm", "william", "russell", "prabhat", "rishi", "ravi", "male"];
+    // Specific Accent-Gender keywords
+    const AU_FEMALE_KEYWORDS = ["natasha", "catherine", "karen", "australian", "au female", "en-au"];
+    const IN_FEMALE_KEYWORDS = ["neerja", "veena", "heera", "indian", "in female", "en-in", "hindi", "kalpana", "ananya"];
+
+    const MALE_NAMES = ["guy", "david", "mark", "alex", "tom", "chris", "george", "james", "ryan", "oliver", "daniel", "william", "russell", "prabhat", "rishi", "ravi", "male"];
     const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "neerja", "veena", "heera", "female"];
 
-    const preferredKeywords = isMale ? MALE_NAMES : FEMALE_NAMES;
-    const excludedKeywords = isMale ? FEMALE_NAMES : MALE_NAMES;
-
-    const matchesGender = (v) => {
-      const vName = v.name.toLowerCase();
-      const hasPreferred = preferredKeywords.some((k) => vName.includes(k));
-      const hasExcluded = excludedKeywords.some((k) => vName.includes(k));
-      if (hasPreferred && !hasExcluded) return true;
-      if (isMale && (vName.includes("david") || vName.includes("guy") || vName.includes("george") || vName.includes("male"))) return true;
-      if (!isMale && (vName.includes("zira") || vName.includes("jenny") || vName.includes("samantha") || vName.includes("female"))) return true;
-      return false;
-    };
-
-    // 2. Best match: Exact locale + smooth "Natural/Online/Google" + Gender
-    targetVoice = voices.find(
-      (v) =>
-        v.lang.toLowerCase().replace("_", "-") === targetLangPrefix &&
-        (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google")) &&
-        matchesGender(v)
-    );
-
-    // 3. Exact locale + Gender
-    if (!targetVoice) {
-      targetVoice = voices.find(
-        (v) => v.lang.toLowerCase().replace("_", "-") === targetLangPrefix && matchesGender(v)
+    // 2. Specific check for AU Female vs IN Female
+    if (settings.voiceCode === "AU Female") {
+      targetVoice = voices.find((v) =>
+        AU_FEMALE_KEYWORDS.some((k) => v.name.toLowerCase().includes(k) || v.lang.toLowerCase().includes("au"))
       );
+      if (!targetVoice) {
+        // Fallback to UK female (Hazel / Sonia) for distinct Commonwealth AU tone
+        targetVoice = voices.find((v) => v.lang.toLowerCase().includes("gb") && FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+      }
+    } else if (settings.voiceCode === "IN Female") {
+      targetVoice = voices.find((v) =>
+        IN_FEMALE_KEYWORDS.some((k) => v.name.toLowerCase().includes(k) || v.lang.toLowerCase().includes("in"))
+      );
+      if (!targetVoice) {
+        // Fallback to Google / Natural Female with custom Indian pitch modulation
+        targetVoice = voices.find((v) => v.name.toLowerCase().includes("veena") || v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("female"));
+      }
     }
 
-    // 4. Exact locale + Smooth (Natural/Online/Google)
+    // 3. Best match: Exact locale + smooth "Natural/Online/Google" + Gender
     if (!targetVoice) {
+      const preferredKeywords = isMale ? MALE_NAMES : FEMALE_NAMES;
+      const excludedKeywords = isMale ? FEMALE_NAMES : MALE_NAMES;
+
+      const matchesGender = (v) => {
+        const vName = v.name.toLowerCase();
+        const hasPreferred = preferredKeywords.some((k) => vName.includes(k));
+        const hasExcluded = excludedKeywords.some((k) => vName.includes(k));
+        if (hasPreferred && !hasExcluded) return true;
+        if (isMale && (vName.includes("david") || vName.includes("guy") || vName.includes("george") || vName.includes("male"))) return true;
+        if (!isMale && (vName.includes("zira") || vName.includes("jenny") || vName.includes("samantha") || vName.includes("female"))) return true;
+        return false;
+      };
+
       targetVoice = voices.find(
         (v) =>
           v.lang.toLowerCase().replace("_", "-") === targetLangPrefix &&
-          (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google"))
+          (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google")) &&
+          matchesGender(v)
       );
+
+      if (!targetVoice) {
+        targetVoice = voices.find(
+          (v) => v.lang.toLowerCase().replace("_", "-") === targetLangPrefix && matchesGender(v)
+        );
+      }
+
+      if (!targetVoice) {
+        targetVoice = voices.find(
+          (v) =>
+            v.lang.toLowerCase().replace("_", "-") === targetLangPrefix &&
+            (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("google"))
+        );
+      }
+
+      if (!targetVoice) {
+        targetVoice = voices.find((v) => v.lang.toLowerCase().replace("_", "-") === targetLangPrefix);
+      }
+
+      if (!targetVoice) {
+        targetVoice = voices.find(
+          (v) => v.lang.toLowerCase().startsWith(langBase) && matchesGender(v)
+        );
+      }
     }
 
-    // 5. Exact locale any voice
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => v.lang.toLowerCase().replace("_", "-") === targetLangPrefix);
-    }
-
-    // 6. Language prefix + Gender
-    if (!targetVoice) {
-      targetVoice = voices.find(
-        (v) => v.lang.toLowerCase().startsWith(langBase) && matchesGender(v)
-      );
-    }
-
-    // 7. Ultimate fallback
+    // 4. Ultimate fallback
     if (!targetVoice && voices.length > 0) {
       targetVoice = voices[0];
     }
 
     if (targetVoice) {
       utterance.voice = targetVoice;
+
       // Fine-tune pitch for clarity if fallback voice doesn't match gender
       const voiceIsFemale = FEMALE_NAMES.some((k) => targetVoice.name.toLowerCase().includes(k));
       const voiceIsMale = MALE_NAMES.some((k) => targetVoice.name.toLowerCase().includes(k));
