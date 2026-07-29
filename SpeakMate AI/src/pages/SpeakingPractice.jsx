@@ -4,13 +4,10 @@ import ROUTES from "../constants/routes";
 import { speakingService } from "../services/appServices";
 import { authService } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
+import { useModal } from "../context/ModalContext";
+import { useToast } from "../context/ToastContext";
 
-const AGE_GROUPS = ["Kids", "Teens", "Young Adult", "Professional", "Senior"];
-const SCHOOL_GRADES = [
-  "1st Std", "2nd Std", "3rd Std", "4th Std", "5th Std",
-  "6th Std", "7th Std", "8th Std", "9th Std", "10th Std"
-];
-
+// ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 const AGE_SCENARIOS = {
   Kids: [
     { id: "k1", title: "Show & Tell", category: "General", difficulty: "Beginner", duration: 4, xp: 15, icon: "🎨", desc: "Share your favorite toy, book, or pet with your AI friend." },
@@ -19,6 +16,10 @@ const AGE_SCENARIOS = {
     { id: "k4", title: "My Favorite Superhero", category: "General", difficulty: "Beginner", duration: 5, xp: 15, icon: "⚡", desc: "Describe a superhero and their special powers!" },
     { id: "k5", title: "School Lunch Time", category: "Daily Life", difficulty: "Beginner", duration: 4, xp: 15, icon: "🍱", desc: "Chat with classmates about your lunch and playground games." },
     { id: "k6", title: "Space Adventure", category: "Travel", difficulty: "Intermediate", duration: 6, xp: 20, icon: "🚀", desc: "Explore new planets and talk to an alien space buddy." },
+    { id: "k7", title: "Playing at the Park", category: "Daily Life", difficulty: "Beginner", duration: 4, xp: 15, icon: "⚽", desc: "Invite a friend to play on the swings and slides." },
+    { id: "k8", title: "Birthday Party Fun", category: "General", difficulty: "Beginner", duration: 5, xp: 20, icon: "🎁", desc: "Wish a happy birthday, open gifts, and talk about party games." },
+    { id: "k9", title: "Visiting the Doctor", category: "General", difficulty: "Intermediate", duration: 5, xp: 20, icon: "🩺", desc: "Explain how you feel to a friendly nurse or doctor." },
+    { id: "k10", title: "Bedtime Story Time", category: "General", difficulty: "Intermediate", duration: 6, xp: 25, icon: "🌙", desc: "Co-create a fun bedtime fairytale with your AI coach." },
   ],
   Teens: [
     { id: "t1", title: "First Day at High School", category: "General", difficulty: "Beginner", duration: 5, xp: 15, icon: "🏫", desc: "Introduce yourself and make new friends at school." },
@@ -27,6 +28,10 @@ const AGE_SCENARIOS = {
     { id: "t4", title: "Planning a Weekend Outing", category: "Daily Life", difficulty: "Intermediate", duration: 6, xp: 20, icon: "🎟️", desc: "Group chat to pick a movie or visit an amusement park." },
     { id: "t5", title: "Asking for Homework Help", category: "General", difficulty: "Intermediate", duration: 5, xp: 20, icon: "📚", desc: "Chat with a classmate or tutor about a tricky science assignment." },
     { id: "t6", title: "Shopping for Clothes", category: "Daily Life", difficulty: "Beginner", duration: 4, xp: 15, icon: "👕", desc: "Try on cool styles, check shoe sizes, and ask for discounts." },
+    { id: "t7", title: "Preparing for School Exams", category: "Career", difficulty: "Intermediate", duration: 6, xp: 20, icon: "📓", desc: "Study session prep and sharing study tips with friends." },
+    { id: "t8", title: "Joining a High School Club", category: "General", difficulty: "Intermediate", duration: 6, xp: 25, icon: "👥", desc: "Interview for the robotics, drama, or sports club." },
+    { id: "t9", title: "Talking About Future Dreams", category: "Career", difficulty: "Advanced", duration: 7, xp: 30, icon: "🏆", desc: "Discuss dream colleges, tech careers, and personal goals." },
+    { id: "t10", title: "Handling Peer Situations", category: "General", difficulty: "Advanced", duration: 7, xp: 30, icon: "💬", desc: "Resolve a misunderstanding with a friend politely." },
   ],
   "Young Adult": [
     { id: "y1", title: "Daily Conversation", category: "General", difficulty: "Beginner", duration: 5, xp: 15, icon: "💬", desc: "Chat about campus life, daily habits, and weekend plans." },
@@ -35,6 +40,10 @@ const AGE_SCENARIOS = {
     { id: "y4", title: "Hostel & Roommate Chat", category: "Daily Life", difficulty: "Intermediate", duration: 5, xp: 20, icon: "🏠", desc: "Discuss sharing house chores, schedules, and groceries." },
     { id: "y5", title: "Backpacking & Travel", category: "Travel", difficulty: "Intermediate", duration: 6, xp: 25, icon: "✈️", desc: "Ask for local directions, book hostel beds, and meet travelers." },
     { id: "y6", title: "Part-time Job Interview", category: "Career", difficulty: "Intermediate", duration: 7, xp: 25, icon: "💼", desc: "Practice answering basic interview and customer service questions." },
+    { id: "y7", title: "Attending a Tech Fest", category: "Career", difficulty: "Intermediate", duration: 6, xp: 25, icon: "⚙️", desc: "Network with peers and pitch ideas at a campus hackathon." },
+    { id: "y8", title: "Renting Your First Apartment", category: "Daily Life", difficulty: "Advanced", duration: 7, xp: 30, icon: "🔑", desc: "Talk to a landlord about monthly rent, leases, and utilities." },
+    { id: "y9", title: "Group Project Discussion", category: "General", difficulty: "Advanced", duration: 8, xp: 35, icon: "🖥️", desc: "Divide presentation roles and set project deadlines." },
+    { id: "y10", title: "Public Speaking & Debate", category: "Work", difficulty: "Advanced", duration: 8, xp: 35, icon: "🎤", desc: "Pitch an argument clearly in a campus debate or presentation." },
   ],
   Professional: [
     { id: "p1", title: "Daily Conversation", category: "General", difficulty: "Beginner", duration: 5, xp: 15, icon: "💬", desc: "Chat about your day, hobbies, and general interests." },
@@ -43,6 +52,10 @@ const AGE_SCENARIOS = {
     { id: "p4", title: "Airport Customs", category: "Travel", difficulty: "Intermediate", duration: 6, xp: 25, icon: "✈️", desc: "Declare items, answer security questions, and handle arrivals." },
     { id: "p5", title: "Office Small Talk", category: "Work", difficulty: "Intermediate", duration: 5, xp: 20, icon: "💼", desc: "Engage with colleagues, discuss weekends, and plan lunches." },
     { id: "p6", title: "Business Meeting", category: "Work", difficulty: "Advanced", duration: 8, xp: 30, icon: "👥", desc: "Present updates, pitch ideas, and negotiate corporate terms." },
+    { id: "p7", title: "Job Interview Practice", category: "Career", difficulty: "Advanced", duration: 10, xp: 40, icon: "📄", desc: "Practice typical HR questions and explain your career goals." },
+    { id: "p8", title: "Salary & Contract Negotiation", category: "Career", difficulty: "Advanced", duration: 8, xp: 35, icon: "💵", desc: "Negotiate compensation, benefits, and start date." },
+    { id: "p9", title: "Presentation Skills", category: "Work", difficulty: "Advanced", duration: 7, xp: 30, icon: "🖼️", desc: "Practice starting, structuring, and concluding a keynote presentation." },
+    { id: "p10", title: "Executive Coaching Session", category: "Work", difficulty: "Advanced", duration: 9, xp: 45, icon: "🎯", desc: "Refine high-level executive communication, leadership tone, and feedback." },
   ],
   Senior: [
     { id: "s1", title: "Relaxed Daily Conversation", category: "General", difficulty: "Beginner", duration: 5, xp: 15, icon: "💬", desc: "Chat comfortably about morning routines, weather, and life." },
@@ -51,9 +64,14 @@ const AGE_SCENARIOS = {
     { id: "s4", title: "Neighborhood Cafe", category: "Daily Life", difficulty: "Beginner", duration: 4, xp: 15, icon: "☕", desc: "Order breakfast and chat pleasantly with local staff." },
     { id: "s5", title: "Sharing Life Stories", category: "General", difficulty: "Intermediate", duration: 7, xp: 25, icon: "📖", desc: "Tell stories about childhood, family, and past trips." },
     { id: "s6", title: "Guided Museum Tour", category: "Travel", difficulty: "Intermediate", duration: 6, xp: 25, icon: "🏛️", desc: "Ask a tour guide questions about art, history, and culture." },
+    { id: "s7", title: "Book & Movie Discussion", category: "General", difficulty: "Intermediate", duration: 6, xp: 25, icon: "🎬", desc: "Share thoughts on a favorite novel, movie, or biography." },
+    { id: "s8", title: "Booking Holiday Travel", category: "Travel", difficulty: "Intermediate", duration: 6, xp: 25, icon: "🚆", desc: "Reserve train or plane tickets and ask about senior assistance." },
+    { id: "s9", title: "Calling Customer Support", category: "Daily Life", difficulty: "Intermediate", duration: 5, xp: 20, icon: "📞", desc: "Get assistance with home internet, TV, or phone service." },
+    { id: "s10", title: "Family & Grandchildren Chat", category: "General", difficulty: "Advanced", duration: 6, xp: 25, icon: "❤️", desc: "Practice modern terms and catch up with family news." },
   ],
 };
 
+// ─── School Grade Scenarios Data ─────────────────────────────────────────────
 const STANDARD_SCENARIOS = {
   "1st Std": [
     { id: "std1_1", title: "Alphabet & Sounds Fun", category: "General", difficulty: "1st Std", duration: 4, xp: 15, icon: "🎨", desc: "Practice letters A to Z and phonics sounds with your SpeakMate AI teacher." },
@@ -142,9 +160,11 @@ const CATEGORIES = ["All", "General", "Daily Life", "Travel", "Work", "Career"];
 export function SpeakingPractice() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showConfirm } = useModal();
+  const toast = useToast();
 
   const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
-  const isStudent = accountType === "STUDENT";
+  const isStudent = accountType === "STUDENT" || Boolean(user?.schoolGrade);
 
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -152,7 +172,7 @@ export function SpeakingPractice() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const [selectedGrade, setSelectedGrade] = useState(
-    accountType === "STUDENT" ? (localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std") : null
+    localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std"
   );
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(
     localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional"
@@ -186,8 +206,11 @@ export function SpeakingPractice() {
     loadData();
   }, []);
 
+  // 4-Stat Calculations (Matches Mobile App Dashboard Header)
+  const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
   const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
   const totalSessions = history.length;
+  const streakDays = history.length > 0 ? 3 : 0; // Simulated active streak
 
   const currentScenarios = isStudent
     ? (STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS["1st Std"])
@@ -219,45 +242,80 @@ export function SpeakingPractice() {
     }).catch(() => {});
   };
 
+  const handleDeleteHistoryItem = async (id, e) => {
+    e.stopPropagation();
+    const confirmed = await showConfirm({
+      title: "Delete Practice Record?",
+      message: "Are you sure you want to delete this speaking practice history item?",
+      confirmText: "Delete Record",
+      cancelText: "Keep Record",
+      type: "danger",
+    });
+
+    if (confirmed) {
+      try {
+        await speakingService.deleteHistory(id);
+        setHistory((prev) => prev.filter((h) => h.id !== id));
+        toast.success("Practice record deleted successfully!");
+      } catch (err) {
+        console.error("Failed to delete history item:", err);
+        toast.error("Could not delete speaking session record.");
+      }
+    }
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4 animate-in fade-in duration-300">
-      {/* Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4338ca] p-6 sm:p-10 text-white shadow-2xl space-y-5">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+      {/* Hero Banner with 4-Stat Bar (Matches Mobile App Gradient Header & Cards) */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81] p-6 sm:p-10 text-white shadow-2xl space-y-6">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
-              {isStudent ? `🎓 Configured Standard: ${selectedGrade}` : `👤 Target Age Group: ${selectedAgeGroup}`}
+              {isStudent ? `🎓 School Grade: ${selectedGrade}` : `👤 Target Profile: ${selectedAgeGroup}`}
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">Speaking Practice Drills</h1>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">Speaking Practice</h1>
             <p className="text-sm sm:text-base text-indigo-200 font-medium leading-relaxed">
               Interactive AI conversation scenarios tailored to your{" "}
-              <strong>{isStudent ? selectedGrade : selectedAgeGroup}</strong> profile.
+              <strong>{isStudent ? selectedGrade : selectedAgeGroup}</strong> curriculum and goals.
             </p>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-[90px]">
-              <span className="block text-xs text-indigo-200 font-bold uppercase">Sessions</span>
-              <span className="text-2xl font-black text-white">{totalSessions}</span>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-[100px]">
-              <span className="block text-xs text-indigo-200 font-bold uppercase">Total XP</span>
-              <span className="text-2xl font-black text-amber-300">⭐ {totalXP}</span>
-            </div>
+        {/* 4-Stat Dashboard Bar */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-2">
+          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-center">
+            <span className="text-xl sm:text-2xl font-black text-amber-400">{streakDays} 🔥</span>
+            <span className="text-[11px] font-bold text-indigo-200 uppercase tracking-wider mt-1">Streak Days</span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-center">
+            <span className="text-xl sm:text-2xl font-black text-sky-300">{totalMinutes}m</span>
+            <span className="text-[11px] font-bold text-indigo-200 uppercase tracking-wider mt-1">Total Mins</span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-center">
+            <span className="text-xl sm:text-2xl font-black text-amber-300">{totalXP} ⭐</span>
+            <span className="text-[11px] font-bold text-indigo-200 uppercase tracking-wider mt-1">XP Earned</span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-center">
+            <span className="text-xl sm:text-2xl font-black text-white">{totalSessions}</span>
+            <span className="text-[11px] font-bold text-indigo-200 uppercase tracking-wider mt-1">Sessions</span>
           </div>
         </div>
       </div>
 
-      {/* School Grade Level Badge (for Students Only) */}
+      {/* Student Badge Indicator */}
       {isStudent && (
-        <div className="px-4 py-2 rounded-2xl bg-[#6c63ff]/15 border border-[#6c63ff]/30 text-[#6c63ff] font-extrabold text-xs sm:text-sm inline-flex items-center gap-2 max-w-max">
-          <span>🎓 School Grade Level: {selectedGrade}</span>
+        <div className="px-4 py-2.5 rounded-2xl bg-[#6c63ff]/15 border border-[#6c63ff]/30 text-[#6c63ff] font-extrabold text-xs sm:text-sm inline-flex items-center gap-2 shadow-sm">
+          <span>🎓 School Grade Curriculum Level: <strong>{selectedGrade}</strong></span>
         </div>
       )}
 
-      {/* Category Filter Pills & Search Bar Strip */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+      {/* Category Filter Tabs & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           {CATEGORIES.map((cat) => (
             <button
@@ -274,21 +332,21 @@ export function SpeakingPractice() {
           ))}
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar Input */}
         <input
           type="text"
-          placeholder="🔍 Search scenarios..."
+          placeholder="🔍 Search conversation scenarios..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs sm:text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] w-full sm:w-64"
+          className="px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs sm:text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] w-full sm:w-72 shadow-inner"
         />
       </div>
 
-      {/* Scenarios Grid */}
+      {/* Conversation Scenarios Grid */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-3">
-            <span>{isStudent ? `🏫 ${selectedGrade} Speaking Drills` : `🗣️ ${selectedAgeGroup} Conversation Scenarios`}</span>
+          <h3 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-2.5">
+            <span>{isStudent ? `🏫 ${selectedGrade} Practice Scenarios` : `🗣️ ${selectedAgeGroup} Conversation Scenarios`}</span>
           </h3>
           <span className="text-xs font-bold text-[var(--text-secondary)]">
             {filteredScenarios.length} Scenarios Available
@@ -300,11 +358,11 @@ export function SpeakingPractice() {
             <div
               key={scenario.id}
               onClick={() => handleStartScenario(scenario)}
-              className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all duration-300"
+              className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6c63ff]/60 hover:shadow-xl transition-all duration-300"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-3xl p-3 rounded-2xl bg-[var(--bg-elevated)] shadow-inner">
+                  <span className="text-3xl p-3.5 rounded-2xl bg-[var(--bg-elevated)] shadow-inner">
                     {scenario.icon}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -318,7 +376,7 @@ export function SpeakingPractice() {
                 </div>
 
                 <div>
-                  <h4 className="font-black text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                  <h4 className="font-black text-base sm:text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
                     {scenario.title}
                   </h4>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1.5 line-clamp-2 font-medium">
@@ -329,15 +387,74 @@ export function SpeakingPractice() {
 
               <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
                 <span className="text-xs text-[var(--text-secondary)] font-bold">
-                  ⏱️ {scenario.duration} mins • {isStudent ? selectedGrade : selectedAgeGroup}
+                  ⏱️ {scenario.duration} mins • {isStudent ? selectedGrade : scenario.difficulty}
                 </span>
-                <button className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] group-hover:opacity-90 text-white font-extrabold text-xs shadow-md transition-all">
-                  Start Drill →
+                <button className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] group-hover:opacity-90 text-white font-extrabold text-xs shadow-md transition-all">
+                  Start Practice →
                 </button>
               </div>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* ── Speaking History Section ── */}
+      <div className="space-y-4 pt-4 border-t border-[var(--border-default)]">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-2.5">
+            <span>📜 Speaking Practice History</span>
+          </h3>
+          <span className="text-xs font-bold text-[var(--text-secondary)]">
+            {history.length} Practice Records Saved
+          </span>
+        </div>
+
+        {history.length === 0 ? (
+          <div className="p-8 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-center space-y-3">
+            <span className="text-4xl block">🎙️</span>
+            <h4 className="font-black text-base text-[var(--text-primary)]">No speaking history yet</h4>
+            <p className="text-xs text-[var(--text-secondary)] max-w-sm mx-auto font-medium">
+              Start any conversation scenario above to practice your spoken English and build your transcript history!
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {history.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => navigate(`${ROUTES.SPEAKING_HISTORY_DETAIL}?sessionId=${item.id}`)}
+                className="group p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all flex items-start justify-between gap-4 cursor-pointer shadow-sm hover:shadow-md"
+              >
+                <div className="flex items-start gap-3.5 min-w-0">
+                  <div className="p-3 rounded-xl bg-[#6c63ff]/15 text-[#6c63ff] text-xl shrink-0">
+                    💬
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="font-black text-sm text-[var(--text-primary)] truncate group-hover:text-[#6c63ff] transition-colors">
+                      {item.scenario || "Speaking Practice Session"}
+                    </h4>
+                    <p className="text-[11px] text-[var(--text-secondary)] font-bold mt-0.5">
+                      {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Recent"} • {Math.round((item.duration || 0) / 60)} min •{" "}
+                      <span className="text-emerald-500 font-extrabold">{item.score || 85}% Score</span>
+                    </p>
+                    <p className="text-xs text-[var(--text-secondary)] font-medium line-clamp-1 mt-1">
+                      {item.previewMessage || item.feedback || "Completed speaking practice simulation."}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={(e) => handleDeleteHistoryItem(item.id, e)}
+                  title="Delete record"
+                  className="p-2 rounded-xl text-rose-500 hover:bg-rose-500/10 transition-colors shrink-0 font-extrabold text-sm"
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
