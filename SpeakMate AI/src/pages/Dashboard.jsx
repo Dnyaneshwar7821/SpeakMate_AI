@@ -101,7 +101,7 @@ export function Dashboard() {
           <div className="space-y-3 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20">
-                {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 Target Age Group: ${activeAgeGroup}`}
+                {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 Level: ${activeAgeGroup}`}
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-md">
                 🔥 {stats.streak}-Day Streak
@@ -115,22 +115,22 @@ export function Dashboard() {
               Welcome back, {user?.firstName || user?.name || "Learner"}! 👋
             </h1>
             <p className="text-sm sm:text-base text-indigo-100 leading-relaxed font-medium">
-              Your AI English tutor is ready. Practice live speaking, test dynamic vocabulary quizzes, or start a grammar analysis drill!
+              Your AI English tutor is ready. Practice live speaking, test dynamic vocabulary quizzes, check grammar, or track your progress analytics!
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
             <button
               onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=free-speak`)}
-              className="px-6 py-4 rounded-2xl bg-white text-[#4f46e5] font-black text-sm shadow-xl hover:scale-102 transition-all text-center"
+              className="px-6 py-4 rounded-2xl bg-white text-[#4f46e5] font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all text-center"
             >
               🎙️ Start Live AI Voice Chat
             </button>
             <button
-              onClick={() => navigate(ROUTES.SPEAKING)}
+              onClick={() => navigate(ROUTES.PROGRESS)}
               className="px-6 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-black text-sm backdrop-blur-md border border-white/25 text-center transition-all"
             >
-              {isStudent ? `🏫 ${activeGrade} Scenarios` : "🗣️ Conversation Scenarios"}
+              📊 Progress Analytics
             </button>
           </div>
         </div>
@@ -138,21 +138,21 @@ export function Dashboard() {
 
       {/* Key Metric Statistics Cards Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-3xl p-2.5 rounded-2xl bg-[#6c63ff]/10">🗣️</span>
-            <span className="text-[10px] font-black uppercase text-[#6c63ff] tracking-wider px-2 py-0.5 rounded-md bg-[#6c63ff]/10">
-              Total Practice
+            <span className="text-[10px] font-black uppercase text-[#6c63ff] tracking-wider px-2.5 py-1 rounded-full bg-[#6c63ff]/10">
+              Practice Time
             </span>
           </div>
-          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Speaking Time</p>
+          <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Total Hours</p>
           <p className="text-3xl font-black text-[#6c63ff]">{stats.totalHours} hrs</p>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-3xl p-2.5 rounded-2xl bg-emerald-500/10">🎯</span>
-            <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider px-2 py-0.5 rounded-md bg-emerald-500/10">
+            <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10">
               Fluency Rate
             </span>
           </div>
@@ -160,10 +160,10 @@ export function Dashboard() {
           <p className="text-3xl font-black text-emerald-500">{stats.accuracy}%</p>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-3xl p-2.5 rounded-2xl bg-amber-500/10">📚</span>
-            <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider px-2 py-0.5 rounded-md bg-amber-500/10">
+            <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider px-2.5 py-1 rounded-full bg-amber-500/10">
               Vocabulary
             </span>
           </div>
@@ -171,10 +171,10 @@ export function Dashboard() {
           <p className="text-3xl font-black text-amber-500">{stats.wordsLearned}</p>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-md">
           <div className="flex items-center justify-between">
             <span className="text-3xl p-2.5 rounded-2xl bg-rose-500/10">🏆</span>
-            <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider px-2 py-0.5 rounded-md bg-rose-500/10">
+            <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider px-2.5 py-1 rounded-full bg-rose-500/10">
               Milestones
             </span>
           </div>
@@ -188,7 +188,7 @@ export function Dashboard() {
         {/* Left Column (8 Cols) */}
         <div className="lg:col-span-8 space-y-8">
           {/* Daily Goal & Interactive Warmup Drill */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 border border-[var(--border-default)]">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 border border-[var(--border-default)] shadow-xl">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs font-black text-[#6c63ff] uppercase tracking-wider">Daily Target</span>
@@ -245,64 +245,100 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* Quick Learning Action Hub */}
+          {/* Quick Learning Action Hub - FEATURING ALL MODULES */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-black text-[var(--text-primary)]">Quick Learning Actions</h2>
+            <h2 className="text-2xl font-black text-[var(--text-primary)]">All Learning Modules</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Module 1: Speaking Practice */}
               <div
-                onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=job-interview`)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                onClick={() => navigate(ROUTES.SPEAKING)}
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/15">💼</span>
-                  <span className="text-xs font-black text-[#6c63ff] group-hover:translate-x-1 transition-transform">Start →</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/15">🗣️</span>
+                  <span className="text-xs font-black text-[#6c63ff] group-hover:translate-x-1 transition-transform">Practice →</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">Job Interview Roleplay</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Practice STAR method answers with live AI voice evaluation.</p>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">Speaking Practice</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
+                    {isStudent ? `Curated ${activeGrade} grade scenarios & phonics.` : "Real-world conversations, interviews & speeches."}
+                  </p>
                 </div>
               </div>
 
-              <div
-                onClick={() => navigate(ROUTES.LESSONS)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-rose-500/15">📖</span>
-                  <span className="text-xs font-black text-rose-500 group-hover:translate-x-1 transition-transform">Browse →</span>
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-rose-500 transition-colors">CEFR Lesson Modules</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Structured bite-sized quizzes & flashcards from A1 to C2.</p>
-                </div>
-              </div>
-
+              {/* Module 2: Grammar Practice */}
               <div
                 onClick={() => navigate(ROUTES.GRAMMAR)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-3xl p-3 rounded-2xl bg-emerald-500/15">✍️</span>
-                  <span className="text-xs font-black text-emerald-500 group-hover:translate-x-1 transition-transform">Check →</span>
+                  <span className="text-xs font-black text-emerald-500 group-hover:translate-x-1 transition-transform">Analyze →</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-emerald-500 transition-colors">AI Live Grammar Checker</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Analyze any sentence with instant error highlight feedback.</p>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-emerald-500 transition-colors">AI Live Grammar Practice</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Instant sentence correction with AI audio explanation.</p>
                 </div>
               </div>
 
+              {/* Module 3: CEFR Lessons */}
+              <div
+                onClick={() => navigate(ROUTES.LESSONS)}
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl p-3 rounded-2xl bg-rose-500/15">📖</span>
+                  <span className="text-xs font-black text-rose-500 group-hover:translate-x-1 transition-transform">Study →</span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-rose-500 transition-colors">CEFR Lesson Modules</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Structured bite-sized lessons & quizzes from A1 to C2.</p>
+                </div>
+              </div>
+
+              {/* Module 4: Vocabulary Builder */}
               <div
                 onClick={() => navigate(ROUTES.VOCABULARY)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-3xl p-3 rounded-2xl bg-amber-500/15">📚</span>
-                  <span className="text-xs font-black text-amber-500 group-hover:translate-x-1 transition-transform">Study →</span>
+                  <span className="text-xs font-black text-amber-500 group-hover:translate-x-1 transition-transform">Explore →</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-amber-500 transition-colors">Vocabulary Flashcards</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Study definitions, phonetics, and audio pronunciations.</p>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-amber-500 transition-colors">Vocabulary Builder</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Study definitions, phonetics & AI audio pronunciations.</p>
+                </div>
+              </div>
+
+              {/* Module 5: Progress & Analytics */}
+              <div
+                onClick={() => navigate(ROUTES.PROGRESS)}
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl p-3 rounded-2xl bg-cyan-500/15">📊</span>
+                  <span className="text-xs font-black text-cyan-500 group-hover:translate-x-1 transition-transform">View →</span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-cyan-500 transition-colors">Progress & Analytics</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Level tracker, weekly study rhythm & skill competency.</p>
+                </div>
+              </div>
+
+              {/* Module 6: AI Chat Coach */}
+              <div
+                onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=free-speak`)}
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl p-3 rounded-2xl bg-indigo-500/15">💬</span>
+                  <span className="text-xs font-black text-indigo-500 group-hover:translate-x-1 transition-transform">Chat →</span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-indigo-500 transition-colors">AI Voice Chat Coach</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Freeform voice conversation with speed controls.</p>
                 </div>
               </div>
             </div>
@@ -342,7 +378,7 @@ export function Dashboard() {
               {!challengeClaimed ? (
                 <button
                   onClick={handleAcceptChallenge}
-                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-black shadow-md transition-all hover:scale-102"
+                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-black shadow-md transition-all hover:scale-105"
                 >
                   Accept Goal (+50 XP)
                 </button>
