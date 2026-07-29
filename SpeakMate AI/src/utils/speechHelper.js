@@ -106,31 +106,31 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     if (profile.locale) targetLang = profile.locale;
     if (profile.gender) gender = profile.gender;
 
-    // Distinct pitch & cadence profiles for ALL 8 profiles
+    // Smooth, natural human speech rates & warm pitch profiles (Normal speed)
     if (profile.code === "US Male") {
-      pitch = 0.95;
-      baseRate = 1.0;
+      pitch = 0.98;
+      baseRate = 1.05;
     } else if (profile.code === "US Female") {
-      pitch = 1.10;
-      baseRate = 1.0;
+      pitch = 1.08;
+      baseRate = 1.05;
     } else if (profile.code === "UK Male") {
-      pitch = 0.78; // Deep deliberate British male tone
-      baseRate = 0.92; // Deliberate British cadence
+      pitch = 0.92;
+      baseRate = 1.02;
     } else if (profile.code === "UK Female") {
-      pitch = 1.18; // Refined British female pitch
-      baseRate = 0.94; // Deliberate British female cadence
+      pitch = 1.08;
+      baseRate = 1.02;
     } else if (profile.code === "AU Male") {
-      pitch = 1.08; // Brisk, higher-pitched energetic Australian male
-      baseRate = 1.12; // Fast upbeat Aussie cadence
+      pitch = 1.02;
+      baseRate = 1.05;
     } else if (profile.code === "AU Female") {
-      pitch = 1.05; // Australian female pitch
-      baseRate = 1.05; // Australian female cadence
+      pitch = 1.06;
+      baseRate = 1.05;
     } else if (profile.code === "IN Male") {
-      pitch = 0.70; // Ultra-deep resonant Indian male tone
-      baseRate = 0.95;
+      pitch = 0.95;
+      baseRate = 1.02;
     } else if (profile.code === "IN Female") {
-      pitch = 1.35; // High warm feminine Indian tone
-      baseRate = 0.86;
+      pitch = 1.12;
+      baseRate = 1.02;
     }
   }
 
@@ -296,13 +296,13 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
     if (targetVoice) {
       utterance.voice = targetVoice;
 
-      // Fine-tune pitch for clarity if fallback voice doesn't match gender
+      // Fine-tune pitch for smooth natural clarity if fallback voice doesn't match gender
       const voiceIsFemale = FEMALE_NAMES.some((k) => targetVoice.name.toLowerCase().includes(k));
       const voiceIsMale = MALE_NAMES.some((k) => targetVoice.name.toLowerCase().includes(k));
       if (isMale && voiceIsFemale) {
-        utterance.pitch = 0.78; // Deep pitch-shift down for masculine depth
+        utterance.pitch = 0.88; // Subtle pitch-shift down for masculine depth
       } else if (!isMale && voiceIsMale) {
-        utterance.pitch = 1.25; // Bright pitch-shift up for feminine clarity
+        utterance.pitch = 1.12; // Subtle pitch-shift up for feminine clarity
       }
     }
   }
