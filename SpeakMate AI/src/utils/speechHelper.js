@@ -103,14 +103,14 @@ export const getSavedVoiceSettings = () => {
       pitch = 1.12;
       baseRate = 1.0;
     } else if (profile.code === "UK Male") {
-      pitch = 0.80; // Deep British male tone
-      baseRate = 0.93; // Deliberate British cadence
+      pitch = 0.80; // Deep deliberate British male tone
+      baseRate = 0.92; // Deliberate British cadence
     } else if (profile.code === "UK Female") {
       pitch = 1.16;
       baseRate = 0.96;
     } else if (profile.code === "AU Male") {
-      pitch = 0.85;
-      baseRate = 1.04;
+      pitch = 0.94; // Brisk, energetic Australian male pitch
+      baseRate = 1.08; // Brisk Aussie cadence
     } else if (profile.code === "AU Female") {
       pitch = 1.04;
       baseRate = 1.05;
@@ -176,6 +176,14 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
       targetVoice = voices.find((v) =>
         v.lang.toLowerCase().includes("gb") && MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       ) || voices.find((v) => UK_MALE.some((k) => v.name.toLowerCase().includes(k)));
+    } else if (settings.voiceCode === "AU Male") {
+      targetVoice = voices.find((v) =>
+        AU_MALE.some((k) => v.name.toLowerCase().includes(k) || v.lang.toLowerCase().includes("au"))
+      );
+      if (!targetVoice) {
+        // Fallback to non-GB male voice (e.g. US male Guy/David/Alex) so it is 100% DISTINCT from UK Male!
+        targetVoice = voices.find((v) => (v.lang.toLowerCase().includes("us") || v.lang.toLowerCase().includes("en")) && !v.lang.toLowerCase().includes("gb") && MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+      }
     } else if (settings.voiceCode === "US Male") {
       targetVoice = voices.find((v) =>
         v.lang.toLowerCase().includes("us") && MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
@@ -186,7 +194,6 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
         !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       );
       if (!targetVoice) {
-        // Fallback to any male voice with deep Indian pitch (0.76)
         targetVoice = voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
       }
     } else if (settings.voiceCode === "IN Female") {
@@ -195,7 +202,6 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
         !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       );
       if (!targetVoice) {
-        // Fallback to female voice with high Indian pitch (1.28)
         targetVoice = voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
       }
     } else if (settings.voiceCode === "AU Female") {
@@ -204,13 +210,6 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
       );
       if (!targetVoice) {
         targetVoice = voices.find((v) => v.lang.toLowerCase().includes("gb") && FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
-      }
-    } else if (settings.voiceCode === "AU Male") {
-      targetVoice = voices.find((v) =>
-        AU_MALE.some((k) => v.name.toLowerCase().includes(k) || v.lang.toLowerCase().includes("au"))
-      );
-      if (!targetVoice) {
-        targetVoice = voices.find((v) => v.lang.toLowerCase().includes("gb") && MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
       }
     }
 
