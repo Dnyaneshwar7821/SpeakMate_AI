@@ -329,22 +329,23 @@ export function Settings() {
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-2xl">✨</span>
-                    {(selectedVoice === "Default" || !selectedVoice) && (
-                      <span className="px-2.5 py-0.5 rounded-full bg-[#6c63ff] text-white text-[10px] font-black uppercase">
-                        Selected
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {playingVoice === "Default" && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase animate-pulse">
+                          🔊 Playing...
+                        </span>
+                      )}
+                      {(selectedVoice === "Default" || !selectedVoice) && (
+                        <span className="px-2.5 py-0.5 rounded-full bg-[#6c63ff] text-white text-[10px] font-black uppercase">
+                          Selected
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <h4 className="font-black text-base text-[var(--text-primary)]">1. System Default</h4>
                   <p className="text-xs text-[var(--text-secondary)] font-medium">
                     Uses your onboarding voice persona (<strong>{onboardingVoiceStyle}</strong>) with natural system speech.
                   </p>
-                </div>
-
-                <div className="pt-2">
-                  <span className="w-full py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs font-black text-[#6c63ff] transition-all flex items-center justify-center gap-1.5">
-                    {playingVoice === "Default" ? "🔊 Playing Test Voice..." : "▶ Click to Select & Test"}
-                  </span>
                 </div>
               </div>
 
@@ -364,11 +365,18 @@ export function Settings() {
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="text-2xl">{profile.gender === "female" ? "👩‍🏫" : "👨‍🏫"}</span>
-                        {isSelected && (
-                          <span className="px-2.5 py-0.5 rounded-full bg-[#6c63ff] text-white text-[10px] font-black uppercase">
-                            Selected
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {playingVoice === profile.code && (
+                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase animate-pulse">
+                              🔊 Playing...
+                            </span>
+                          )}
+                          {isSelected && (
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#6c63ff] text-white text-[10px] font-black uppercase">
+                              Selected
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center justify-between gap-2">
                         <h4 className="font-black text-base text-[var(--text-primary)]">
@@ -381,12 +389,6 @@ export function Settings() {
                       <p className="text-xs text-[var(--text-secondary)] font-medium">
                         Custom pitch tuned for {profile.accent} {profile.gender} tutor.
                       </p>
-                    </div>
-
-                    <div className="pt-2">
-                      <span className="w-full py-2 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs font-black text-[#6c63ff] transition-all flex items-center justify-center gap-1.5">
-                        {playingVoice === profile.code ? "🔊 Playing Test Voice..." : "▶ Click to Select & Test"}
-                      </span>
                     </div>
                   </div>
                 );
