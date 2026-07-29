@@ -21,11 +21,11 @@ const SCHOOL_GRADES = [
   "10th Std",
 ];
 
-const CEFR_LEVELS = [
-  "Beginner",
+const ENGLISH_LEVELS = [
+  "Basic",
   "Elementary",
   "Intermediate",
-  "Advanced",
+  "Advance",
   "Fluent",
 ];
 
@@ -239,7 +239,7 @@ export function Profile() {
                 {rank.icon} {rank.name}
               </span>
               <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30">
-                {accountType === "STUDENT" ? `🎓 ${schoolGrade} Standard` : `👤 ${cefrLevel} Level`}
+                {accountType === "STUDENT" ? `🎓 ${schoolGrade || "1st Std"} Standard` : `👤 ${cefrLevel || "Intermediate"} Level`}
               </span>
               <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30">
                 ⭐ {user?.xp || 150} XP
@@ -340,22 +340,22 @@ export function Profile() {
                   className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
                 >
                   {SCHOOL_GRADES.map((g) => (
-                    <option key={g} value={g}>🎓 {g} Level</option>
+                    <option key={g} value={g}>🎓 {g} Standard</option>
                   ))}
                 </select>
               </>
             ) : (
               <>
                 <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
-                  Configured English CEFR Level
+                  Configured English Proficiency Level
                 </label>
                 <select
                   value={cefrLevel}
                   onChange={(e) => setCefrLevel(e.target.value)}
                   className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
                 >
-                  {CEFR_LEVELS.map((lvl) => (
-                    <option key={lvl} value={lvl}>👤 {lvl} Proficiency</option>
+                  {ENGLISH_LEVELS.map((lvl) => (
+                    <option key={lvl} value={lvl}>👤 {lvl} Level</option>
                   ))}
                 </select>
               </>
