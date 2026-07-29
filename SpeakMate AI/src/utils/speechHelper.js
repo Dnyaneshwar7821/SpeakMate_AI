@@ -133,16 +133,38 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0) => {
 export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return null;
 
-  window.speechSynthesis.cancel();
+  try {
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
+  } catch (e) {}
+
   const cleanText = text.replace(/[*_#`~]/g, "");
   const utterance = new SpeechSynthesisUtterance(cleanText);
-  applyGlobalVoiceSettings(utterance, speedMultiplier);
 
   if (options.onstart) utterance.onstart = options.onstart;
   if (options.onboundary) utterance.onboundary = options.onboundary;
   if (options.onend) utterance.onend = options.onend;
   if (options.onerror) utterance.onerror = options.onerror;
 
-  window.speechSynthesis.speak(utterance);
+  const doSpeak = () => {
+    try {
+      window.speechSynthesis.resume();
+      applyGlobalVoiceSettings(utterance, speedMultiplier);
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Speech synthesis execution error:", e);
+    }
+  };
+
+  const voices = window.speechSynthesis.getVoices();
+  if (!voices || voices.length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      doSpeak();
+    };
+    setTimeout(doSpeak, 350);
+  } else {
+    doSpeak();
+  }
+
   return utterance;
 };

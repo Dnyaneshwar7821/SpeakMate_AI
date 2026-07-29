@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation, Link } from "react-router-dom";
 
 import { Canvas } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
@@ -11,17 +11,22 @@ import { useAuth } from "../context/AuthContext";
 
 export function ConversationSession() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const sessionIdParam = searchParams.get("sessionId");
-  const scenario = searchParams.get("scenario") || "Free Speaking Practice";
+  const scenario = searchParams.get("scenario") || location.state?.scenarioTitle || "Free Speaking Practice";
   const xpReward = Number(searchParams.get("xpReward")) || 20;
+
+  const initialGreeting = location.state?.scenarioDesc
+    ? `Hello! Welcome to '${scenario}'. ${location.state.scenarioDesc} Let's practice speaking together!`
+    : `Hello! I am your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`;
 
   const [sessionId] = useState(sessionIdParam || Date.now().toString());
   const [messages, setMessages] = useState([
     {
       id: "1",
       sender: "ai",
-      message: `Hello! I am your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`,
+      message: initialGreeting,
     },
   ]);
 
@@ -118,10 +123,10 @@ export function ConversationSession() {
       const initialText = messages[0].message;
       const timerId = setTimeout(() => {
         handleSpeakText(initialText);
-      }, 500);
+      }, 400);
       return () => clearTimeout(timerId);
     }
-  }, []);
+  }, [messages]);
 
   useEffect(() => {
     let interval = null;
