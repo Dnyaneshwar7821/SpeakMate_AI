@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTheme } from "../context/ThemeContext";
 import { VOICE_PROFILES, speakGlobalText } from "../utils/speechHelper";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
@@ -20,7 +19,6 @@ const COMMITMENTS = [
 ];
 
 export function Settings() {
-  const { isDark, toggleTheme } = useTheme();
   const toast = useToast();
   const { user, updateUser, completeOnboarding } = useAuth();
 
@@ -199,29 +197,6 @@ export function Settings() {
         </div>
       </div>
 
-      {/* Theme & Appearance */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
-        <h2 className="text-lg font-black text-[var(--text-primary)]">Appearance & Interface Theme</h2>
-
-        <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-          <div>
-            <p className="text-sm font-black text-[var(--text-primary)]">Dark Mode Theme</p>
-            <p className="text-xs text-[var(--text-secondary)] font-medium">Toggle dark or light theme interface.</p>
-          </div>
-
-          <button
-            onClick={toggleTheme}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all border shadow-sm ${
-              isDark
-                ? "bg-[#6c63ff] border-[#6c63ff] text-white shadow-[#6c63ff]/30"
-                : "bg-[var(--bg-surface)] border-[var(--border-default)] text-[var(--text-primary)]"
-            }`}
-          >
-            {isDark ? "🌙 Dark Mode" : "☀️ Light Mode"}
-          </button>
-        </div>
-      </div>
-
       {/* ── AI VOICE PROFILES (Global App-Wide Voice Selection) ── */}
       <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
         <div>
@@ -365,7 +340,7 @@ export function Settings() {
         <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
           <button
             onClick={handleSaveSettings}
-            className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6c63ff]/25 transition-all"
+            className="py-3.5 px-8 rounded-2xl bg-[#6c63ff] hover:opacity-90 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6c63ff]/25 transition-all"
           >
             Save All Settings
           </button>
