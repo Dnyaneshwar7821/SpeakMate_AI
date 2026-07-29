@@ -162,12 +162,15 @@ export function GrammarPractice() {
     } else {
       spokenMsg = `Here is your corrected sentence: "${res.correctedText}". `;
       if (res.corrections && res.corrections.length > 0) {
-        const details = res.corrections
-          .map((c, idx) => `${idx + 1}. In bracket ${c.category}. What was wrong: ${c.rule}`)
-          .join(" ");
+        const details = res.corrections.map((c) => c.rule).join(" ");
         spokenMsg += details;
-      } else {
-        spokenMsg += `What was wrong: ${res.explanation || ""}`;
+      } else if (res.explanation) {
+        const cleanExplanation = res.explanation
+          .replace(/\d+\.\s*\[.*?\]/gi, "")
+          .replace(/\[.*?\]/gi, "")
+          .replace(/\s+/g, " ")
+          .trim();
+        spokenMsg += cleanExplanation;
       }
     }
     handleSpeakText(spokenMsg);
