@@ -12,6 +12,13 @@ export const VOICE_PROFILES = [
   { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default', previewText: 'Hello, I am your System Default English tutor.' },
 ];
 
+export const ACCENT_LIST = [
+  { code: 'US', label: 'American English (US)', flag: '🇺🇸' },
+  { code: 'UK', label: 'British English (UK)', flag: '🇬🇧' },
+  { code: 'AU', label: 'Australian English (AU)', flag: '🇦🇺' },
+  { code: 'IN', label: 'Indian English (IN)', flag: '🇮🇳' },
+];
+
 export const VOICE_PERSONAS = [
   {
     key: "Friendly",
