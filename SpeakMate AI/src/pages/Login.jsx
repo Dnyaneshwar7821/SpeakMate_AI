@@ -34,12 +34,8 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-[85vh] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
-      {/* Subtle Background Glow Spheres */}
-      <div className="absolute top-1/4 left-1/3 w-80 h-80 bg-[#6c63ff]/15 rounded-full blur-[100px] pointer-events-none animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/3 w-80 h-80 bg-[#ff6584]/10 rounded-full blur-[100px] pointer-events-none animate-pulse delay-1000" />
-
-      <div className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-2xl space-y-6 relative z-10 animate-in fade-in duration-300">
+    <div className="w-full max-w-md mx-auto relative z-10">
+      <div className="bg-[var(--bg-surface)] p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-2xl space-y-6 relative animate-in fade-in duration-300">
         
         {/* Brand App Badge Header */}
         <div className="text-center space-y-3">
