@@ -143,11 +143,45 @@ body {
   animation: eyeBlink 4.5s ease-in-out infinite;
 }
 
-.animate-soundbar-1 {
-  animation: soundbar 0.4s ease-in-out infinite 0.05s;
+/* Modern Ultra-Premium Web Glassmorphism & Glow Tokens */
+.glass-card-premium {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 40px -15px var(--shadow-color);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.animate-soundbar-2 {
-  animation: soundbar 0.4s ease-in-out infinite 0.15s;
+
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 25px 50px -12px var(--primary-glow);
+  border-color: rgba(108, 99, 255, 0.4);
+}
+
+/* Gradient Text Shimmer */
+.gradient-text-shimmer {
+  background: linear-gradient(135deg, #6c63ff 0%, #ff6584 50%, #8b5cf6 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 6s linear infinite;
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
+}
+
+/* Floating Light Orbs */
+.bg-mesh-glow {
+  background-image: 
+    radial-gradient(at 10% 20%, rgba(108, 99, 255, 0.12) 0px, transparent 50%),
+    radial-gradient(at 90% 80%, rgba(255, 101, 132, 0.1) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
 }
 .animate-soundbar-3 {
   animation: soundbar 0.4s ease-in-out infinite 0.25s;

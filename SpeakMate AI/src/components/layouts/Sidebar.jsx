@@ -118,10 +118,10 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-sm font-extrabold transition-all ${
+                `flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-extrabold transition-all duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#6c63ff] to-[#8b85ff] text-white shadow-md shadow-[#6c63ff]/25"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                    ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/30 scale-[1.02]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1.5"
                 }`
               }
             >
@@ -130,7 +130,7 @@ export function Sidebar() {
                 <span className="truncate">{item.label}</span>
               </div>
               {item.badge && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
                   {item.badge}
                 </span>
               )}
@@ -139,7 +139,7 @@ export function Sidebar() {
         </div>
 
         {/* SECTION 2: LEARNING MODULES */}
-        <div className="space-y-1.5 pt-2 border-t border-[var(--border-subtle)]">
+        <div className="space-y-1.5 pt-3 border-t border-[var(--border-subtle)]">
           <p className="px-3 text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
             Learning Modules
           </p>
@@ -148,10 +148,10 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-extrabold transition-all ${
+                `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-extrabold transition-all duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#6c63ff] to-[#8b85ff] text-white shadow-md shadow-[#6c63ff]/25"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                    ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/30 scale-[1.02]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1.5"
                 }`
               }
             >
@@ -162,7 +162,7 @@ export function Sidebar() {
         </div>
 
         {/* SECTION 3: ACCOUNT & SETTINGS */}
-        <div className="space-y-1.5 pt-2 border-t border-[var(--border-subtle)]">
+        <div className="space-y-1.5 pt-3 border-t border-[var(--border-subtle)]">
           <p className="px-3 text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
             Account & Settings
           </p>
@@ -171,10 +171,10 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-extrabold transition-all ${
+                `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-extrabold transition-all duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#6c63ff] to-[#8b85ff] text-white shadow-md shadow-[#6c63ff]/25"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]"
+                    ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/30 scale-[1.02]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1.5"
                 }`
               }
             >

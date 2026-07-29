@@ -145,8 +145,13 @@ export function Dashboard() {
       </motion.div>
 
       {/* Key Metric Statistics Cards Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-md">
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+      >
+        <div className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-3xl p-2.5 rounded-2xl bg-[#6c63ff]/10">🗣️</span>
             <span className="text-[10px] font-black uppercase text-[#6c63ff] tracking-wider px-2.5 py-1 rounded-full bg-[#6c63ff]/10">
@@ -157,7 +162,7 @@ export function Dashboard() {
           <p className="text-3xl font-black text-[#6c63ff]">{stats.totalHours} hrs</p>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-md">
+        <div className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-3xl p-2.5 rounded-2xl bg-emerald-500/10">🎯</span>
             <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10">
@@ -168,7 +173,7 @@ export function Dashboard() {
           <p className="text-3xl font-black text-emerald-500">{stats.accuracy}%</p>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-md">
+        <div className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-3xl p-2.5 rounded-2xl bg-amber-500/10">📚</span>
             <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider px-2.5 py-1 rounded-full bg-amber-500/10">
@@ -179,7 +184,7 @@ export function Dashboard() {
           <p className="text-3xl font-black text-amber-500">{stats.wordsLearned}</p>
         </div>
 
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-md">
+        <div className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-3xl p-2.5 rounded-2xl bg-rose-500/10">🏆</span>
             <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider px-2.5 py-1 rounded-full bg-rose-500/10">
@@ -189,7 +194,7 @@ export function Dashboard() {
           <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Badges Unlocked</p>
           <p className="text-3xl font-black text-rose-500">{stats.badgesUnlocked || (stats.streak > 0 ? 1 : 0)} / 6</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Main Interactive Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -261,10 +266,10 @@ export function Dashboard() {
               {/* Module 1: Speaking Practice */}
               <div
                 onClick={() => navigate(ROUTES.SPEAKING)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/15">🗣️</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/15 group-hover:scale-110 transition-transform">🗣️</span>
                   <span className="text-xs font-black text-[#6c63ff] group-hover:translate-x-1 transition-transform">Practice →</span>
                 </div>
                 <div>
@@ -278,10 +283,10 @@ export function Dashboard() {
               {/* Module 2: Grammar Practice */}
               <div
                 onClick={() => navigate(ROUTES.GRAMMAR)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-emerald-500/15">✍️</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-emerald-500/15 group-hover:scale-110 transition-transform">✍️</span>
                   <span className="text-xs font-black text-emerald-500 group-hover:translate-x-1 transition-transform">Analyze →</span>
                 </div>
                 <div>
@@ -293,10 +298,10 @@ export function Dashboard() {
               {/* Module 3: CEFR Lessons */}
               <div
                 onClick={() => navigate(ROUTES.LESSONS)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-rose-500/15">📖</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-rose-500/15 group-hover:scale-110 transition-transform">📖</span>
                   <span className="text-xs font-black text-rose-500 group-hover:translate-x-1 transition-transform">Study →</span>
                 </div>
                 <div>
@@ -308,10 +313,10 @@ export function Dashboard() {
               {/* Module 4: Vocabulary Builder */}
               <div
                 onClick={() => navigate(ROUTES.VOCABULARY)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-amber-500/15">📚</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-amber-500/15 group-hover:scale-110 transition-transform">📚</span>
                   <span className="text-xs font-black text-amber-500 group-hover:translate-x-1 transition-transform">Explore →</span>
                 </div>
                 <div>
@@ -323,10 +328,10 @@ export function Dashboard() {
               {/* Module 5: Progress & Analytics */}
               <div
                 onClick={() => navigate(ROUTES.PROGRESS)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-cyan-500/15">📊</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-cyan-500/15 group-hover:scale-110 transition-transform">📊</span>
                   <span className="text-xs font-black text-cyan-500 group-hover:translate-x-1 transition-transform">View →</span>
                 </div>
                 <div>
@@ -338,10 +343,10 @@ export function Dashboard() {
               {/* Module 6: AI Chat Coach */}
               <div
                 onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=free-speak`)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)] shadow-md"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-indigo-500/15">💬</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-indigo-500/15 group-hover:scale-110 transition-transform">💬</span>
                   <span className="text-xs font-black text-indigo-500 group-hover:translate-x-1 transition-transform">Chat →</span>
                 </div>
                 <div>

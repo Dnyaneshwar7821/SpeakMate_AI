@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import ROUTES from "../../constants/routes";
+import { getLiveProgressStats } from "../../utils/progressTracker";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -10,6 +11,16 @@ export function Navbar() {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [liveStats, setLiveStats] = useState(() => getLiveProgressStats());
+
+  useEffect(() => {
+    const updateStats = () => {
+      setLiveStats(getLiveProgressStats());
+    };
+    updateStats();
+    window.addEventListener("focus", updateStats);
+    return () => window.removeEventListener("focus", updateStats);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -91,13 +102,13 @@ export function Navbar() {
 
               {/* Streak & XP Badges */}
               <div className="hidden lg:flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black">
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-black shadow-sm">
                   <span>🔥</span>
-                  <span>{user?.streak || 3}d Streak</span>
+                  <span>{liveStats.streak || user?.streak || 0}d Streak</span>
                 </div>
-                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#6c63ff]/10 border border-[#6c63ff]/20 text-[#6c63ff] text-xs font-black">
+                <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#6c63ff]/10 border border-[#6c63ff]/20 text-[#6c63ff] text-xs font-black shadow-sm">
                   <span>⭐</span>
-                  <span>450 XP</span>
+                  <span>{liveStats.xp || 0} XP</span>
                 </div>
               </div>
 
