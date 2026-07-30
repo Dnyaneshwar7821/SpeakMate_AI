@@ -458,8 +458,11 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		List<ConversationMessage> history = messageRepository.findBySessionOrderByTimestampAsc(session);
 
 		// Calculate duration
-		long durationSeconds = Duration.between(session.getCreatedAt(), LocalDateTime.now()).toSeconds();
-		if (durationSeconds <= 0) durationSeconds = 30; // fallback minimum
+		long durationSeconds = 30;
+		if (session.getCreatedAt() != null) {
+			durationSeconds = Duration.between(session.getCreatedAt(), LocalDateTime.now()).toSeconds();
+			if (durationSeconds <= 0) durationSeconds = 30;
+		}
 
 		// Build transcript text for AI review
 		StringBuilder transcriptBuilder = new StringBuilder();
