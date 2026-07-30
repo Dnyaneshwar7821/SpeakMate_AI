@@ -65,6 +65,8 @@ const linking = {
   },
 };
 
+import { ToastProvider } from './src/context/ToastContext';
+
 // Inner component so hooks work inside providers
 function AppContent() {
   usePushNotifications();
@@ -94,9 +96,11 @@ export default function App() {
           <ThemeProvider>
             <NotificationProvider>
               <DrawerProvider>
-                <NavigationContainer linking={linking}>
-                  <AppContent />
-                </NavigationContainer>
+                <ToastProvider>
+                  <NavigationContainer linking={linking}>
+                    <AppContent />
+                  </NavigationContainer>
+                </ToastProvider>
               </DrawerProvider>
             </NotificationProvider>
           </ThemeProvider>

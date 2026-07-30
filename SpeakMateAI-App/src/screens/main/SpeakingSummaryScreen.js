@@ -16,15 +16,28 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 import { COLORS } from '../../constants/colors';
 
+import { useEffect } from 'react';
+import { useToast } from '../../context/ToastContext';
+
 export default function SpeakingSummaryScreen({ navigation, route }) {
   const { isDark, theme } = useTheme();
   const { summary } = route.params || {};
+  const { showToast, triggerConfetti } = useToast();
 
   const score = summary?.score || 0;
   const xp = summary?.xpEarned ?? summary?.xp ?? 0;
   const durationSecs = summary?.durationSeconds ?? summary?.duration ?? 0;
   const mins = Math.floor(durationSecs / 60);
   const secs = durationSecs % 60;
+
+  useEffect(() => {
+    triggerConfetti();
+    if (xp > 0) {
+      showToast(`Session Complete! +${xp} XP`, 'xp', `Practiced for ${mins}m ${secs}s`);
+    } else {
+      showToast('Session Complete! 🎙️', 'info', 'Keep practicing daily to earn XP!');
+    }
+  }, []);
 
   const handleFinish = () => {
     navigation.reset({

@@ -54,10 +54,13 @@ const DashboardCache = {
   },
 };
 
+import { useToast } from '../../context/ToastContext';
+
 export default function DashboardScreen({ navigation }) {
   const { user } = useContext(AuthContext);
   const { openDrawer, setProfile, setProgress } = useDrawer();
   const { isDark } = useTheme();
+  const { showToast, triggerConfetti } = useToast();
   
   const [state, setState] = useState(() => ({
     loading: !DashboardCache.get(),
@@ -222,11 +225,12 @@ export default function DashboardScreen({ navigation }) {
     const currentXp = viewModel.xp;
     if (currentXp >= 100) {
       setPurchasedFreezes((prev) => prev + 1);
-      Alert.alert('Streak Freeze Purchased! ❄️', '1 Streak Freeze has been added to your reserve.');
+      triggerConfetti();
+      showToast('Streak Freeze Purchased! ❄️', 'warning', '1 Streak Freeze added to your reserve');
     } else {
-      Alert.alert('Earn More XP ❄️', 'You need 100 XP to buy a Streak Freeze. Complete practice sessions to earn XP!');
+      showToast('Earn More XP ❄️', 'info', 'You need 100 XP to buy a Streak Freeze');
     }
-  }, [viewModel.xp]);
+  }, [viewModel.xp, showToast, triggerConfetti]);
 
   const handleRecommendationPress = useCallback((rec) => {
     if (!rec) return;
