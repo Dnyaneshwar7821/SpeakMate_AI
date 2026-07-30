@@ -608,8 +608,8 @@ export default function ConversationScreen({ navigation, route }) {
               const fallbackSummary = {
                 score: 85,
                 summary: 'Completed practice session.',
-                durationSeconds: secondsElapsed || 60,
-                totalMessages: messages.length,
+                durationSeconds: timer || 60,
+                totalMessages: Array.isArray(messages) ? messages.length : 0,
                 vocabularyLearned: 'General practice vocabulary.',
                 grammarCorrections: 'Good effort in sentence structure.',
                 betterSentences: 'Keep practicing daily to improve fluency!',
