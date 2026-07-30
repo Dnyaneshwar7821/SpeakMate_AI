@@ -21,9 +21,10 @@ export default function SpeakingSummaryScreen({ navigation, route }) {
   const { summary } = route.params || {};
 
   const score = summary?.score || 0;
-  const xp = summary?.xpEarned || 0;
-  const mins = summary?.duration ? Math.round(summary.duration / 60) : 0;
-  const secs = summary?.duration ? summary.duration % 60 : 0;
+  const xp = summary?.xpEarned ?? summary?.xp ?? 0;
+  const durationSecs = summary?.durationSeconds ?? summary?.duration ?? 0;
+  const mins = Math.floor(durationSecs / 60);
+  const secs = durationSecs % 60;
 
   const handleFinish = () => {
     navigation.reset({

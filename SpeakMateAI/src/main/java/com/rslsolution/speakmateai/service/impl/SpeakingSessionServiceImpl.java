@@ -535,9 +535,24 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			System.err.println("⚠️ Groq final evaluation failed, using fallback metrics: " + e.getMessage());
 		}
 
-		// Calculate XP reward
-		int xp = 10 + (history.size() / 2) * 5; // base 10 XP + 5 XP per message turn
-		if (xp > 50) xp = 50; // cap at 50 XP
+		// Calculate XP reward based on actual practice time:
+		// Real app logic: Must spend at least 60s (1 min) to earn XP. Less than 60s (e.g. 1s) = 0 XP.
+		int xp = 0;
+		if (durationSeconds >= 60) {
+			if (durationSeconds < 120) {
+				xp = 10; // 1 min = 10 XP
+			} else if (durationSeconds < 180) {
+				xp = 12; // 2 mins = 12 XP
+			} else if (durationSeconds < 240) {
+				xp = 14; // 3 mins = 14 XP
+			} else if (durationSeconds < 300) {
+				xp = 15; // 4 mins = 15 XP
+			} else {
+				// 5+ mins = 20 XP base + bonus for additional time (capped at 50 XP)
+				long extraMins = (durationSeconds - 300) / 180;
+				xp = Math.min(50, (int) (20 + extraMins * 5));
+			}
+		}
 
 		// Update session fields
 		session.setDuration((int) durationSeconds);

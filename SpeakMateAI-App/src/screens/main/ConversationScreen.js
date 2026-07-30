@@ -604,17 +604,25 @@ export default function ConversationScreen({ navigation, route }) {
               const summary = await speakingService.end(sessionId);
               navigation.replace('SpeakingSummary', { summary });
             } catch (e) {
-              console.warn('Backend end session failed or timed out, showing summary fallback:', e);
+              const calcXp = (dur) => {
+                if (!dur || dur < 60) return 0;
+                if (dur < 120) return 10;
+                if (dur < 180) return 12;
+                if (dur < 240) return 14;
+                if (dur < 300) return 15;
+                return Math.min(50, 20 + Math.floor((dur - 300) / 180) * 5);
+              };
+              const sessionDur = timer || 0;
               const fallbackSummary = {
                 score: 85,
                 summary: 'Completed practice session.',
-                durationSeconds: timer || 60,
+                durationSeconds: sessionDur,
                 totalMessages: Array.isArray(messages) ? messages.length : 0,
                 vocabularyLearned: 'General practice vocabulary.',
                 grammarCorrections: 'Good effort in sentence structure.',
                 betterSentences: 'Keep practicing daily to improve fluency!',
                 motivationalMessage: 'Great job completing your speaking practice today! 🌟',
-                xpEarned: 25,
+                xpEarned: calcXp(sessionDur),
               };
               navigation.replace('SpeakingSummary', { summary: fallbackSummary });
             } finally {
