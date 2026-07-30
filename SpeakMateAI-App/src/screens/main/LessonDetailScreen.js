@@ -36,6 +36,7 @@ try {
 } catch (_) {}
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import { lessonModuleService, settingsService, aiService, progressService, speechService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { COLORS } from '../../constants/colors';
@@ -1007,6 +1008,9 @@ export default function LessonDetailScreen({ navigation, route }) {
     const totalAwarded = baseXP + perfectBonus;
     setEarnedXP(totalAwarded);
 
+    triggerConfetti();
+    showToast(`Quiz Complete! +${totalAwarded} XP 🏆`, 'xp', `Score: ${finalScore}/${totalQ} correct!`);
+
     try {
       if (lesson) {
         await lessonModuleService.complete(lesson.id);
@@ -1032,11 +1036,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       
       await loadLesson();
       
-      Alert.alert(
-        '🎉 Lesson Completed!',
-        `Superb! You unlocked +${earnedXP > 0 ? earnedXP : (lesson.xpReward || 50)} XP and leveled up your English skills.`,
-        [{ text: 'Great!' }]
-      );
+      triggerConfetti();
+      showToast('Lesson Mastered! 🎉', 'success', `Unlocked +${earnedXP > 0 ? earnedXP : (lesson.xpReward || 50)} XP`);
     } catch (err) {
       Alert.alert('Error', 'Unable to record completion. Please try again.');
     } finally {
