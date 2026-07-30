@@ -1,0 +1,3179 @@
+{
+  "onboarding": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "daily_goal_minutes",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "english_level",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "interests",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "learning_goal",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "native_language",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "onboarding_completed",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "preferred_learning_time",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "age_group",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "school_grade",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "ai_voice",
+        "data_type": "character varying"
+      }
+    ],
+    "rowCount": 4,
+    "rows": [
+      {
+        "id": "29",
+        "created_at": "2026-07-28T04:32:25.994Z",
+        "daily_goal_minutes": 15,
+        "english_level": "Beginner",
+        "interests": "Technology,Travel",
+        "learning_goal": "Interview",
+        "native_language": "English",
+        "onboarding_completed": true,
+        "preferred_learning_time": "Morning",
+        "updated_at": "2026-07-28T05:10:11.648Z",
+        "user_id": "4",
+        "age_group": "Senior",
+        "school_grade": "5th Std",
+        "ai_voice": "Friendly"
+      },
+      {
+        "id": "31",
+        "created_at": "2026-07-28T23:52:55.057Z",
+        "daily_goal_minutes": 30,
+        "english_level": "Beginner",
+        "interests": "Technology,Travel",
+        "learning_goal": "Interview",
+        "native_language": "English",
+        "onboarding_completed": true,
+        "preferred_learning_time": "Morning",
+        "updated_at": "2026-07-28T23:54:47.755Z",
+        "user_id": "6",
+        "age_group": "Young Adult",
+        "school_grade": null,
+        "ai_voice": "Friendly"
+      },
+      {
+        "id": "32",
+        "created_at": "2026-07-29T01:25:37.016Z",
+        "daily_goal_minutes": 20,
+        "english_level": "Intermediate",
+        "interests": "Travel, Science",
+        "learning_goal": "Study",
+        "native_language": "English",
+        "onboarding_completed": true,
+        "preferred_learning_time": "Morning",
+        "updated_at": "2026-07-29T01:27:01.116Z",
+        "user_id": "7",
+        "age_group": "Professional",
+        "school_grade": "3rd Std",
+        "ai_voice": null
+      },
+      {
+        "id": "35",
+        "created_at": "2026-07-29T23:51:05.034Z",
+        "daily_goal_minutes": 15,
+        "english_level": "Beginner",
+        "interests": "General",
+        "learning_goal": "Improve English speaking skills",
+        "native_language": "English",
+        "onboarding_completed": false,
+        "preferred_learning_time": "Morning",
+        "updated_at": "2026-07-30T00:01:13.033Z",
+        "user_id": "24",
+        "age_group": "Young Adult",
+        "school_grade": null,
+        "ai_voice": null
+      }
+    ]
+  },
+  "achievement": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "description",
+        "data_type": "text"
+      },
+      {
+        "column_name": "tier",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "title",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "unlocked",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "unlocked_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "xp_reward",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 6,
+    "rows": [
+      {
+        "id": "25",
+        "created_at": "2026-07-28T05:13:05.842Z",
+        "description": "Complete your first lesson!",
+        "tier": 1,
+        "title": "First Steps",
+        "unlocked": false,
+        "unlocked_at": null,
+        "xp_reward": 50,
+        "user_id": "4"
+      },
+      {
+        "id": "26",
+        "created_at": "2026-07-28T05:13:05.848Z",
+        "description": "Complete your first speaking session!",
+        "tier": 1,
+        "title": "Speak Up",
+        "unlocked": false,
+        "unlocked_at": null,
+        "xp_reward": 50,
+        "user_id": "4"
+      },
+      {
+        "id": "27",
+        "created_at": "2026-07-28T05:13:05.851Z",
+        "description": "Save 5 words to your vocabulary!",
+        "tier": 1,
+        "title": "Word Collector",
+        "unlocked": false,
+        "unlocked_at": null,
+        "xp_reward": 50,
+        "user_id": "4"
+      },
+      {
+        "id": "28",
+        "created_at": "2026-07-28T05:13:05.853Z",
+        "description": "Perform 3 grammar corrections!",
+        "tier": 1,
+        "title": "Grammar Guru",
+        "unlocked": false,
+        "unlocked_at": null,
+        "xp_reward": 50,
+        "user_id": "4"
+      },
+      {
+        "id": "29",
+        "created_at": "2026-07-28T05:13:05.854Z",
+        "description": "Reach a 3-day learning streak!",
+        "tier": 1,
+        "title": "Hot Streak",
+        "unlocked": false,
+        "unlocked_at": null,
+        "xp_reward": 50,
+        "user_id": "4"
+      },
+      {
+        "id": "30",
+        "created_at": "2026-07-28T05:13:05.857Z",
+        "description": "Earn 500 total learning XP!",
+        "tier": 1,
+        "title": "Super Scholar",
+        "unlocked": false,
+        "unlocked_at": null,
+        "xp_reward": 100,
+        "user_id": "4"
+      }
+    ]
+  },
+  "speaking_sessions": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "duration",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "feedback",
+        "data_type": "text"
+      },
+      {
+        "column_name": "fluency_score",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "grammar_score",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "overall_score",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "pronunciation_score",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "scenario",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "score",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "topic",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "transcript",
+        "data_type": "text"
+      },
+      {
+        "column_name": "vocabulary_score",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "xp_earned",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "playing_with_neon": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "name",
+        "data_type": "text"
+      },
+      {
+        "column_name": "value",
+        "data_type": "real"
+      }
+    ],
+    "rowCount": 10,
+    "rows": [
+      {
+        "id": 1,
+        "name": "c4ca4238a0",
+        "value": 0.83310235
+      },
+      {
+        "id": 2,
+        "name": "c81e728d9d",
+        "value": 0.88557607
+      },
+      {
+        "id": 3,
+        "name": "eccbc87e4b",
+        "value": 0.16057949
+      },
+      {
+        "id": 4,
+        "name": "a87ff679a2",
+        "value": 0.74529296
+      },
+      {
+        "id": 5,
+        "name": "e4da3b7fbb",
+        "value": 0.7076901
+      },
+      {
+        "id": 6,
+        "name": "1679091c5a",
+        "value": 0.15749124
+      },
+      {
+        "id": 7,
+        "name": "8f14e45fce",
+        "value": 0.36594728
+      },
+      {
+        "id": 8,
+        "name": "c9f0f895fb",
+        "value": 0.9420961
+      },
+      {
+        "id": 9,
+        "name": "45c48cce2e",
+        "value": 0.92349654
+      },
+      {
+        "id": 10,
+        "name": "d3d9446802",
+        "value": 0.2272126
+      }
+    ]
+  },
+  "chat_bookmarks": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "message_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "chat_history": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "ai_response",
+        "data_type": "text"
+      },
+      {
+        "column_name": "conversation_id",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "user_message",
+        "data_type": "text"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "chat_sessions": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "mode",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "title",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 3,
+    "rows": [
+      {
+        "id": "22",
+        "created_at": "2026-07-28T05:11:34.140Z",
+        "mode": "General English",
+        "title": "General English Session",
+        "updated_at": "2026-07-28T05:11:34.140Z",
+        "user_id": "4"
+      },
+      {
+        "id": "23",
+        "created_at": "2026-07-28T06:35:14.101Z",
+        "mode": "Grammar Coach",
+        "title": "Grammar Coach Session",
+        "updated_at": "2026-07-28T06:35:14.101Z",
+        "user_id": "4"
+      },
+      {
+        "id": "24",
+        "created_at": "2026-07-28T06:35:14.201Z",
+        "mode": "General English",
+        "title": "General English Session",
+        "updated_at": "2026-07-28T06:35:14.201Z",
+        "user_id": "4"
+      }
+    ]
+  },
+  "lessons": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "active",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "category",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "content",
+        "data_type": "text"
+      },
+      {
+        "column_name": "cover_image",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "description",
+        "data_type": "text"
+      },
+      {
+        "column_name": "duration",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "estimated_minutes",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "featured",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "level",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "locked",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "objectives",
+        "data_type": "text"
+      },
+      {
+        "column_name": "order_index",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "popular",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "required_level",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "requiredxp",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "requirements",
+        "data_type": "text"
+      },
+      {
+        "column_name": "skills",
+        "data_type": "text"
+      },
+      {
+        "column_name": "thumbnail",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "title",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "xp_reward",
+        "data_type": "integer"
+      }
+    ],
+    "rowCount": 20,
+    "rows": [
+      {
+        "id": "1",
+        "active": true,
+        "category": "Grammar",
+        "content": "English has two primary present tenses: Simple Present and Present Continuous.\n\n1. Simple Present (Subject + Verb 1 + Object)\n- Used for habits, routines, and permanent facts.\n- Example: 'I live in New York.' (Permanent) or 'She drinks coffee every morning.' (Habit)\n\n2. Present Continuous (Subject + am/is/are + Verb-ing)\n- Used for temporary situations and actions happening right now.\n- Example: 'I am studying English.' (Temporary study) or 'Look! It is raining outside.' (Happening now)\n\nCommon Mistakes:\n- Don't use continuous tenses with stative verbs (verbs of feeling/thinking):\n  Incorrect: 'I am knowing the answer.'\n  Correct: 'I know the answer.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:23.419Z",
+        "description": "Master the simple present and present continuous with real-world examples.",
+        "duration": 10,
+        "estimated_minutes": 20,
+        "featured": true,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Use simple present correctly,Use present continuous,Avoid common tense errors",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Sentence Structure,Verb Conjugation,Written English",
+        "thumbnail": null,
+        "title": "Present Tenses Mastery",
+        "updated_at": "2026-07-27T05:26:07.085Z",
+        "xp_reward": 20
+      },
+      {
+        "id": "2",
+        "active": true,
+        "category": "Grammar",
+        "content": "Narrating events in the past requires choosing the right past tense:\n\n1. Simple Past (Subject + Verb-ed / Irregular Verb)\n- Used for completed past actions with a specific time.\n- Example: 'I visited Paris in 2022.'\n\n2. Past Continuous (Subject + was/were + Verb-ing)\n- Used for actions that were in progress at a specific moment in the past, or when an action was interrupted.\n- Example: 'I was cooking dinner when the phone rang.' (Cooking was in progress, call interrupted it)\n\n3. Past Perfect (Subject + had + Past Participle)\n- Used to talk about an action that happened before another past action.\n- Example: 'When I arrived at the station, the train had already left.' (The train left first)\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:23.559Z",
+        "description": "Simple past vs. past continuous vs. past perfect — explained clearly.",
+        "duration": 10,
+        "estimated_minutes": 25,
+        "featured": false,
+        "level": "Intermediate",
+        "locked": false,
+        "objectives": "Use simple past,Use past continuous,Use past perfect",
+        "order_index": 2,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "Present Tenses Mastery",
+        "skills": "Storytelling,Grammar Accuracy,Writing",
+        "thumbnail": null,
+        "title": "Past Tenses Deep Dive",
+        "updated_at": "2026-07-27T05:26:07.187Z",
+        "xp_reward": 25
+      },
+      {
+        "id": "3",
+        "active": true,
+        "category": "Grammar",
+        "content": "Conditionals describe the result of a specific condition. There are four types:\n\n1. Zero Conditional (If + Present Simple, Present Simple)\n- Used for general truths and facts.\n- Example: 'If you heat ice, it melts.'\n\n2. First Conditional (If + Present Simple, Will + Verb)\n- Used for real, likely future possibilities.\n- Example: 'If it rains tomorrow, we will stay at home.'\n\n3. Second Conditional (If + Past Simple, Would + Verb)\n- Used for imaginary, hypothetical present/future situations.\n- Example: 'If I won the lottery, I would buy a large mansion.'\n\n4. Third Conditional (If + Past Perfect, Would Have + Verb 3)\n- Used for imaginary past situations and regrets.\n- Example: 'If I had studied harder, I would have passed the exam.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:23.635Z",
+        "description": "Master zero, first, second, and third conditionals for hypotheticals and possibilities.",
+        "duration": 10,
+        "estimated_minutes": 30,
+        "featured": false,
+        "level": "Advanced",
+        "locked": false,
+        "objectives": "Use zero conditional,Use first conditional,Use second and third conditionals",
+        "order_index": 3,
+        "popular": false,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "Past Tenses Deep Dive",
+        "skills": "Advanced Grammar,Hypothetical Speech,Writing",
+        "thumbnail": null,
+        "title": "Conditionals: If Sentences",
+        "updated_at": "2026-07-27T05:26:07.187Z",
+        "xp_reward": 30
+      },
+      {
+        "id": "4",
+        "active": true,
+        "category": "Vocabulary",
+        "content": "Vocabulary learning is most effective when categorized:\n\n1. High-Frequency Nouns:\n- People: 'friend', 'family', 'people', 'student', 'boss'\n- Places: 'school', 'home', 'work', 'city', 'office'\n- Objects: 'computer', 'book', 'phone', 'table', 'car'\n\n2. Core Verbs:\n- Action: 'do', 'make', 'go', 'take', 'come', 'run'\n- Thought/Sense: 'know', 'think', 'see', 'hear', 'learn'\n\n3. Describing Adjectives:\n- Positive: 'good', 'happy', 'great', 'important', 'easy'\n- Negative: 'bad', 'difficult', 'sad', 'cheap', 'slow'\n\nTry using these in simple combinations: 'My boss has a new computer.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:23.715Z",
+        "description": "The 500 most useful English words every learner must know.",
+        "duration": 10,
+        "estimated_minutes": 20,
+        "featured": true,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Learn 100 common nouns,Learn 100 common verbs,Learn 100 adjectives",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Reading,Communication,Word Recognition",
+        "thumbnail": null,
+        "title": "Essential 500 Words",
+        "updated_at": "2026-07-27T05:26:07.187Z",
+        "xp_reward": 20
+      },
+      {
+        "id": "5",
+        "active": true,
+        "category": "Vocabulary",
+        "content": "Idioms are phrases where the meaning cannot be understood from the literal words.\n\nCommon Conversational Idioms:\n\n1. 'Under the weather'\n- Meaning: Feeling slightly sick or unwell.\n- Example: 'I'm feeling a bit under the weather, so I won't go to work.'\n\n2. 'Bite the bullet'\n- Meaning: Face a difficult situation with courage and get it over with.\n- Example: 'I hate dental work, but I need to bite the bullet and go.'\n\n3. 'Spill the beans'\n- Meaning: Reveal a secret, often accidentally.\n- Example: 'Don't spill the beans about the surprise party!'\n\n4. 'Once in a blue moon'\n- Meaning: Happening very rarely.\n- Example: 'My brother lives abroad, so I only see him once in a blue moon.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:23.788Z",
+        "description": "Learn 50 common English idioms used in everyday conversation.",
+        "duration": 10,
+        "estimated_minutes": 25,
+        "featured": false,
+        "level": "Intermediate",
+        "locked": false,
+        "objectives": "Learn 50 common idioms,Use idioms naturally,Understand native speakers",
+        "order_index": 2,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "Essential 500 Words",
+        "skills": "Fluency,Natural Speech,Comprehension",
+        "thumbnail": null,
+        "title": "Idioms and Phrases",
+        "updated_at": "2026-07-27T05:26:07.187Z",
+        "xp_reward": 25
+      },
+      {
+        "id": "6",
+        "active": true,
+        "category": "Vocabulary",
+        "content": "Succeed in English-speaking workplaces with professional vocabulary:\n\n1. Key Verbs:\n- 'Postpone': Delay an event to a later time. (e.g. 'Let's postpone the meeting.')\n- 'Collaborate': Work together to achieve something. (e.g. 'We need to collaborate on this proposal.')\n- 'Implement': Put a decision or plan into effect. (e.g. 'We will implement the changes next week.')\n\n2. Nouns and Phrases:\n- 'Key takeaway': The most important point to remember.\n- 'Action item': A specific task to be done.\n- 'Bottleneck': A stage in a process that slows everything down.\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:23.860Z",
+        "description": "Professional vocabulary for meetings, emails, and presentations.",
+        "duration": 10,
+        "estimated_minutes": 30,
+        "featured": false,
+        "level": "Advanced",
+        "locked": false,
+        "objectives": "Email writing vocabulary,Meeting phrases,Presentation language",
+        "order_index": 3,
+        "popular": false,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "Idioms and Phrases",
+        "skills": "Professional English,Email Writing,Presentations",
+        "thumbnail": null,
+        "title": "Business Vocabulary",
+        "updated_at": "2026-07-27T05:26:07.187Z",
+        "xp_reward": 30
+      },
+      {
+        "id": "7",
+        "active": true,
+        "category": "Speaking",
+        "content": "Building speaking confidence is about attitude, not just grammar:\n\n1. Start with Simple Formulas\n- When introducing yourself: 'Hi, I'm [Name]. I work in [Industry] and I enjoy [Hobby].'\n- Keep sentences short. Short sentences are easier to control and pronounce.\n\n2. Use Speech Fillers Politely\n- If you need time to think, don't stay silent. Use fillers like: 'Well...', 'Let me think...', 'Actually...'\n\n3. Don't Fear Mistakes\n- Communication is the goal. Native speakers focus on what you say, not if you made a small tense error. Keep speaking!\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:24.007Z",
+        "description": "Overcome fear of speaking and build your English fluency from day one.",
+        "duration": 10,
+        "estimated_minutes": 20,
+        "featured": true,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Introduce yourself confidently,Make small talk,Overcome speaking anxiety",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Fluency,Confidence,Pronunciation",
+        "thumbnail": null,
+        "title": "Speak with Confidence",
+        "updated_at": "2026-07-27T05:26:07.187Z",
+        "xp_reward": 20
+      },
+      {
+        "id": "8",
+        "active": true,
+        "category": "Speaking",
+        "content": "To tell an engaging story, structure it clearly using chronological transition markers:\n\n1. Setting the Scene (Past Continuous)\n- Describe what was happening around you.\n- Example: 'Last summer, I was traveling in Italy. The sun was shining...'\n\n2. The Interrupting Action (Simple Past)\n- Introduce the main event using sequence markers like 'Suddenly' or 'Out of the blue'.\n- Example: 'Suddenly, my bag disappeared.'\n\n3. Using Linkers:\n- 'First of all...'\n- 'Then / Next...'\n- 'After that...'\n- 'In the end...'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:24.156Z",
+        "description": "Tell compelling stories in English using transitions and narrative techniques.",
+        "duration": 10,
+        "estimated_minutes": 25,
+        "featured": false,
+        "level": "Intermediate",
+        "locked": false,
+        "objectives": "Use narrative structure,Tell a story fluently,Use sequence markers",
+        "order_index": 2,
+        "popular": false,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "Speak with Confidence",
+        "skills": "Storytelling,Fluency,Past Tenses",
+        "thumbnail": null,
+        "title": "Storytelling in English",
+        "updated_at": "2026-07-27T05:26:07.187Z",
+        "xp_reward": 25
+      },
+      {
+        "id": "9",
+        "active": true,
+        "category": "Pronunciation",
+        "content": "English has 20 vowel sounds represented by only 5 vowel letters. Distinguishing between short and long vowel sounds is crucial:\n\n1. Short /ɪ/ vs. Long /iː/\n- Short /ɪ/ (lax mouth, short sound): 'ship', 'fit', 'sit', 'bin'\n- Long /iː/ (wide smile, longer sound): 'sheep', 'feet', 'seat', 'bean'\n\n2. Minimal Pair Drills:\n- 'Leave' vs. 'Live' (e.g. 'Where do you live?' vs 'I need to leave.')\n- 'Heal' vs. 'Hill'\n\nPractice smiling wide for /iː/ and keeping your jaw relaxed and neutral for /ɪ/.\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:24.299Z",
+        "description": "Master all 20 English vowel sounds to speak clearly and be understood.",
+        "duration": 10,
+        "estimated_minutes": 25,
+        "featured": true,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Identify all 20 vowel sounds,Produce short vowels,Produce long vowels",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Pronunciation,Clarity,Accent Reduction",
+        "thumbnail": null,
+        "title": "English Vowel Sounds",
+        "updated_at": "2026-07-27T05:26:07.187Z",
+        "xp_reward": 20
+      },
+      {
+        "id": "10",
+        "active": true,
+        "category": "Pronunciation",
+        "content": "Word stress is the magic key to English comprehension. Stressed syllables are louder, longer, and higher in pitch.\n\n1. Two-Syllable Noun vs. Verb Stress:\n- For nouns, stress the first syllable: **RE**cord, **IM**port, **PRE**sent.\n- For verbs, stress the second syllable: re**CORD**, im**PORT**, pre**SENT**.\n- Example: 'He gave me a **PRE**sent.' vs. 'I will pre**SENT** the slides.'\n\n2. Sentence Stress:\n- Stress content words (nouns, verbs, adjectives).\n- Unstress function words (prepositions, articles, pronouns).\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:24.451Z",
+        "description": "Learn how word stress changes meaning and makes you sound more natural.",
+        "duration": 10,
+        "estimated_minutes": 20,
+        "featured": false,
+        "level": "Intermediate",
+        "locked": false,
+        "objectives": "Identify stressed syllables,Apply stress rules,Use noun-verb stress contrasts",
+        "order_index": 2,
+        "popular": false,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "English Vowel Sounds",
+        "skills": "Stress Patterns,Natural Speech,Rhythm",
+        "thumbnail": null,
+        "title": "Word Stress Patterns",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 25
+      },
+      {
+        "id": "11",
+        "active": true,
+        "category": "Conversation",
+        "content": "Daily English centers on simple exchanges. Let's study how to ask for and give directions:\n\nAsking for Help:\n- 'Excuse me, could you tell me how to get to the train station?'\n- 'Excuse me, is there a pharmacy nearby?'\n\nGiving Directions:\n- 'Go straight down this street.'\n- 'Turn left at the traffic light.'\n- 'It's on your right, next to the post office.'\n\nPolite endings:\n- 'Thank you so much!' -> 'You're welcome!' or 'No problem!'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:24.607Z",
+        "description": "Practice the conversations you have every day: greetings, shopping, asking directions.",
+        "duration": 10,
+        "estimated_minutes": 20,
+        "featured": true,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Handle greetings,Shop in English,Ask for directions",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Communication,Listening,Fluency",
+        "thumbnail": null,
+        "title": "Everyday Conversations",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 20
+      },
+      {
+        "id": "12",
+        "active": true,
+        "category": "Conversation",
+        "content": "Advanced conversation requires expressing opinions politely but firmly:\n\n1. Expressing Strong Beliefs:\n- 'From my perspective, it is clear that...'\n- 'I strongly believe that...'\n\n2. Disagreeing Politely (Crucial Skill):\n- Avoid: 'You are wrong.'\n- Use: 'I see your point, but have you considered...?' or 'I agree with you to some extent, but...'\n\n3. Formulating Persuasive Questions:\n- 'Wouldn't you agree that this option saves time?'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:24.760Z",
+        "description": "Learn how to express opinions, agree, disagree, and persuade others in English.",
+        "duration": 10,
+        "estimated_minutes": 30,
+        "featured": false,
+        "level": "Advanced",
+        "locked": false,
+        "objectives": "Express opinions clearly,Use hedging language,Agree and disagree politely",
+        "order_index": 2,
+        "popular": false,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "Everyday Conversations",
+        "skills": "Critical Thinking,Debate,Persuasion",
+        "thumbnail": null,
+        "title": "Debate and Persuasion",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 30
+      },
+      {
+        "id": "13",
+        "active": true,
+        "category": "Listening",
+        "content": "Understanding accents requires noticing differences in vocabulary and pronunciation:\n\n1. Vocabulary Differences:\n- American: 'elevator', 'apartment', 'subway', 'trash'\n- British: 'lift', 'flat', 'underground', 'rubbish'\n\n2. Pronunciation Differences (The Letter R):\n- American accent is rhotic: they pronounce the 'r' in 'water' and 'car'.\n- British accent is non-rhotic: 'water' sounds like 'watah', 'car' sounds like 'cah'.\n\n3. Listening Strategy:\n- Focus on content words (nouns and verbs) to get the context, rather than worrying about every single sound.\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:24.908Z",
+        "description": "Train your ear to understand different English accents: British, American, Australian.",
+        "duration": 10,
+        "estimated_minutes": 30,
+        "featured": false,
+        "level": "Intermediate",
+        "locked": false,
+        "objectives": "Understand British accent,Understand American accent,Understand Australian accent",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Listening Comprehension,Accent Recognition,Vocabulary",
+        "thumbnail": null,
+        "title": "Listen and Understand: Accents",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 25
+      },
+      {
+        "id": "14",
+        "active": true,
+        "category": "Business English",
+        "content": "Professional emails follow a strict 4-step structure:\n\n1. Formal Greeting:\n- 'Dear Mr. Jones,' (Formal client) or 'Dear Team,' (Internal department)\n\n2. Pleasant Opening:\n- 'I hope this email finds you well.'\n\n3. Clear Statement of Purpose:\n- 'I am writing to inquire about...' or 'I am writing to follow up on our meeting.'\n\n4. Formal Call-to-Action & Closing:\n- 'Please let me know your availability by Friday.'\n- 'Best regards,' or 'Sincerely,' followed by your name.\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:25.059Z",
+        "description": "Write clear, professional emails that get responses and build credibility.",
+        "duration": 10,
+        "estimated_minutes": 25,
+        "featured": true,
+        "level": "Intermediate",
+        "locked": false,
+        "objectives": "Write a professional subject line,Structure email body,Use formal closings",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Email Writing,Professional English,Grammar",
+        "thumbnail": null,
+        "title": "Professional Email Writing",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 25
+      },
+      {
+        "id": "15",
+        "active": true,
+        "category": "Business English",
+        "content": "Structure a presentation clearly using signpost phrases:\n\n1. The Introduction:\n- 'Welcome everyone. Today I'd like to present our quarterly results.'\n\n2. Transitional Signposts:\n- Moving to a new point: 'Let's move on to the next topic...'\n- Elaborating: 'To go into more detail...'\n- Visual references: 'As you can see on this chart...'\n\n3. The Conclusion & Q&A:\n- 'To wrap up, let's summarize the key points...'\n- 'Thank you for your time. I'd be happy to take any questions now.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:25.211Z",
+        "description": "Deliver clear, engaging presentations in English with confidence.",
+        "duration": 10,
+        "estimated_minutes": 35,
+        "featured": false,
+        "level": "Advanced",
+        "locked": false,
+        "objectives": "Structure a presentation,Open confidently,Handle Q&A",
+        "order_index": 2,
+        "popular": false,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "Professional Email Writing",
+        "skills": "Public Speaking,Presentation Skills,Professional English",
+        "thumbnail": null,
+        "title": "Presentations in English",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 30
+      },
+      {
+        "id": "16",
+        "active": true,
+        "category": "Interview Preparation",
+        "content": "Ace job interviews by structuring your responses strategically:\n\n1. 'Tell me about yourself'\n- Use the Present-Past-Future framework:\n  - Present: 'I am currently a senior developer leading a team...'\n  - Past: 'Before this, I worked for 3 years building cloud databases...'\n  - Future: 'I'm looking to join a company like yours where I can apply my skills...'\n\n2. 'What is your greatest weakness?'\n- Name a real but manageable weakness, and immediately explain how you are working to improve it.\n- Example: 'I used to struggle with public speaking, but I joined Toastmasters last year to practice.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:25.361Z",
+        "description": "Prepare for the top 20 interview questions with model answers.",
+        "duration": 10,
+        "estimated_minutes": 30,
+        "featured": true,
+        "level": "Intermediate",
+        "locked": false,
+        "objectives": "Answer Tell me about yourself,Describe strengths and weaknesses,Answer behavioral questions",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Interview Skills,Professional English,Confidence",
+        "thumbnail": null,
+        "title": "Common Interview Questions",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 25
+      },
+      {
+        "id": "17",
+        "active": true,
+        "category": "Travel English",
+        "content": "Navigate airport security and check-in with these common dialogues:\n\nAt the Check-In Counter:\n- Agent: 'May I see your passport and ticket, please?'\n- Passenger: 'Here you go. I'd like an aisle seat, please.'\n- Agent: 'Are you checking any bags?'\n- Passenger: 'Yes, just this one suitcase.'\n\nAt Security:\n- Agent: 'Please place your laptop in a separate bin. Empty your pockets.'\n- Passenger: 'Do I need to take off my shoes?'\n- Agent: 'Yes, please.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:25.518Z",
+        "description": "All the English you need for check-in, security, boarding, and arrivals.",
+        "duration": 10,
+        "estimated_minutes": 20,
+        "featured": true,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Handle check-in,Clear customs,Navigate the airport",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Listening,Communication,Travel Vocabulary",
+        "thumbnail": null,
+        "title": "At the Airport",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 20
+      },
+      {
+        "id": "18",
+        "active": true,
+        "category": "Travel English",
+        "content": "Master conversations at hotel reception desks:\n\nChecking In:\n- Guest: 'Hello, I have a reservation under the name Robinson.'\n- Reception: 'Yes, Mr. Robinson. A double room for three nights. May I see your ID?'\n- Guest: 'Here is my passport. Is breakfast included?'\n- Reception: 'Yes, breakfast is served in the lobby from 7 AM to 10 AM.'\n\nHandling Problems:\n- Guest: 'Excuse me, my room keycard isn't working.'\n- Reception: 'Let me reprogram that keycard for you immediately.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:25.668Z",
+        "description": "Check in, make requests, and handle problems at hotels in English.",
+        "duration": 10,
+        "estimated_minutes": 20,
+        "featured": false,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Make a reservation,Check in and check out,Request hotel services",
+        "order_index": 2,
+        "popular": false,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "At the Airport",
+        "skills": "Communication,Travel Vocabulary,Problem-Solving",
+        "thumbnail": null,
+        "title": "Hotel and Accommodation",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 20
+      },
+      {
+        "id": "19",
+        "active": true,
+        "category": "Daily English",
+        "content": "Describe your daily routine using Simple Present and adverbs of frequency:\n\nVocabulary List:\n- 'Wake up' vs 'Get up' (Waking up is opening eyes, getting up is leaving bed)\n- 'Commute': Travel to work or school.\n\nDaily Routine paragraph:\n- 'I usually wake up at 7 AM. I always brush my teeth and make a cup of coffee. Then, I commute to work by bus at 8:15 AM.'\n\nFrequency Adverbs:\n- Always (100%) -> Usually (80%) -> Often (60%) -> Sometimes (40%) -> Rarely (10%) -> Never (0%)\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:25.820Z",
+        "description": "Describe your morning routine and everyday activities naturally in English.",
+        "duration": 10,
+        "estimated_minutes": 15,
+        "featured": true,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Describe daily routine,Use frequency adverbs,Talk about time",
+        "order_index": 1,
+        "popular": true,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "None",
+        "skills": "Simple Present,Time Expressions,Daily Vocabulary",
+        "thumbnail": null,
+        "title": "Morning Routines",
+        "updated_at": "2026-07-27T05:26:07.188Z",
+        "xp_reward": 20
+      },
+      {
+        "id": "20",
+        "active": true,
+        "category": "Daily English",
+        "content": "Learn how to discuss ingredients and order food at a restaurant:\n\n1. Describing Tastes:\n- 'Sweet': Sugar, honey, ripe fruits.\n- 'Sour': Lemons, limes, vinegar.\n- 'Spicy': Chili peppers, hot curry.\n- 'Savory': Meat, mushrooms, cheese (salty/rich, not sweet).\n\n2. Ordering Food Dialogue:\n- Server: 'Are you ready to order?'\n- Customer: 'Yes, I'd like the grilled chicken with a side salad, please.'\n- Server: 'Would you like anything to drink?'\n- Customer: 'Just a glass of water, thank you.'\n",
+        "cover_image": null,
+        "created_at": "2026-07-22T17:52:25.970Z",
+        "description": "Discuss food preferences, order at restaurants, and describe dishes in English.",
+        "duration": 10,
+        "estimated_minutes": 20,
+        "featured": false,
+        "level": "Beginner",
+        "locked": false,
+        "objectives": "Describe food and taste,Order at a restaurant,Express food preferences",
+        "order_index": 2,
+        "popular": false,
+        "required_level": 1,
+        "requiredxp": 0,
+        "requirements": "Morning Routines",
+        "skills": "Vocabulary,Communication,Politeness",
+        "thumbnail": null,
+        "title": "Talking About Food",
+        "updated_at": "2026-07-27T05:26:07.189Z",
+        "xp_reward": 20
+      }
+    ]
+  },
+  "admins": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "email",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "full_name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "last_login",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "password",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "phone",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "profile_image",
+        "data_type": "text"
+      },
+      {
+        "column_name": "role",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "reset_otp",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "reset_otp_expiry",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "reset_password_token",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "reset_password_token_expiry",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "school_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "department",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "designation",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "language",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "location",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "theme",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "email_notifications",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "notifications_enabled",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "sidebar_collapsed",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "system_notifications",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "two_factor_enabled",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "session_timeout",
+        "data_type": "integer"
+      }
+    ],
+    "rowCount": 4,
+    "rows": [
+      {
+        "id": "4",
+        "created_at": "2026-07-29T02:49:21.365Z",
+        "email": "superadmin@speakmate.com",
+        "full_name": "Super Admin",
+        "last_login": "2026-07-29T11:25:30.829Z",
+        "password": "$2a$10$1H918icFQ7wGdB9hG0YX7uEz2zgFwzb6c9v38PrJrh8Gr8Td9g/bG",
+        "phone": null,
+        "profile_image": null,
+        "role": "SUPER_ADMIN",
+        "status": "ACTIVE",
+        "updated_at": "2026-07-29T11:25:30.848Z",
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "school_id": null,
+        "department": null,
+        "designation": null,
+        "language": null,
+        "location": null,
+        "theme": null,
+        "email_notifications": null,
+        "notifications_enabled": null,
+        "sidebar_collapsed": null,
+        "system_notifications": null,
+        "two_factor_enabled": null,
+        "session_timeout": 30
+      },
+      {
+        "id": "2",
+        "created_at": "2026-07-24T13:14:25.224Z",
+        "email": "ayushchandgude08@gmail.com",
+        "full_name": "Super Admin",
+        "last_login": "2026-07-30T06:45:37.548Z",
+        "password": "$2a$10$Dom5mO.juMnbp54.gSuOSOS67Z2qC6aNBncCPMGiAjOlk09d77tvi",
+        "phone": "9876543210",
+        "profile_image": "",
+        "role": "SUPER_ADMIN",
+        "status": "ACTIVE",
+        "updated_at": "2026-07-30T06:45:37.631Z",
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "school_id": null,
+        "department": "Engineering",
+        "designation": "Lead Developer",
+        "language": "fr",
+        "location": "San Francisco",
+        "theme": "DARK",
+        "email_notifications": true,
+        "notifications_enabled": true,
+        "sidebar_collapsed": true,
+        "system_notifications": false,
+        "two_factor_enabled": true,
+        "session_timeout": 60
+      },
+      {
+        "id": "1",
+        "created_at": "2026-07-24T11:36:44.335Z",
+        "email": "admin@speakmate.ai",
+        "full_name": "Super Admin",
+        "last_login": "2026-07-24T13:02:22.038Z",
+        "password": "$2a$10$6cfTzciTqloiUHgmFL1PJuDE4qmeqkR170ABPIndZEslAydUwgGu2",
+        "phone": "1234567890",
+        "profile_image": "",
+        "role": "SUPER_ADMIN",
+        "status": "ACTIVE",
+        "updated_at": "2026-07-24T13:11:10.476Z",
+        "reset_otp": "037389",
+        "reset_otp_expiry": "2026-07-24T13:21:10.474Z",
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "school_id": null,
+        "department": null,
+        "designation": null,
+        "language": null,
+        "location": null,
+        "theme": null,
+        "email_notifications": null,
+        "notifications_enabled": null,
+        "sidebar_collapsed": null,
+        "system_notifications": null,
+        "two_factor_enabled": null,
+        "session_timeout": 30
+      },
+      {
+        "id": "3",
+        "created_at": "2026-07-27T12:13:54.623Z",
+        "email": "admin@speakmateai.com",
+        "full_name": "Super Admin",
+        "last_login": null,
+        "password": "$2a$10$wl93qMSkvvL3WB4eN5Z7/.Tn2pR2x.7VVrybB4MAnC6WkayeAxZWW",
+        "phone": "+1234567890",
+        "profile_image": null,
+        "role": "ADMIN",
+        "status": "ACTIVE",
+        "updated_at": "2026-07-27T12:13:54.623Z",
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "school_id": null,
+        "department": null,
+        "designation": null,
+        "language": null,
+        "location": null,
+        "theme": null,
+        "email_notifications": null,
+        "notifications_enabled": null,
+        "sidebar_collapsed": null,
+        "system_notifications": null,
+        "two_factor_enabled": null,
+        "session_timeout": 30
+      }
+    ]
+  },
+  "subscription_plans": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "ai_practice_limit",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "currency",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "description",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "duration_months",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "features",
+        "data_type": "text"
+      },
+      {
+        "column_name": "grammar_practice_limit",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "is_active",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "max_lessons",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "max_tests",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "plan_name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "price",
+        "data_type": "numeric"
+      },
+      {
+        "column_name": "speaking_practice_limit",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "vocabulary_practice_limit",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "ai_minutes_limit",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "billing_cycle",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "student_limit",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "teacher_limit",
+        "data_type": "integer"
+      }
+    ],
+    "rowCount": 2,
+    "rows": [
+      {
+        "id": "2",
+        "ai_practice_limit": 1000,
+        "created_at": "2026-07-29T05:43:20.861Z",
+        "currency": "USD",
+        "description": "Unlock unlimited AI practice and priority support.",
+        "duration_months": 12,
+        "features": "Unlimited Lessons,Unlimited AI Speaking,Priority Support",
+        "grammar_practice_limit": 500,
+        "is_active": true,
+        "max_lessons": 500,
+        "max_tests": 100,
+        "plan_name": "Premium Pro",
+        "price": "149.99",
+        "speaking_practice_limit": 500,
+        "updated_at": "2026-07-29T05:43:20.861Z",
+        "vocabulary_practice_limit": 500,
+        "ai_minutes_limit": null,
+        "billing_cycle": null,
+        "student_limit": null,
+        "teacher_limit": null
+      },
+      {
+        "id": "1",
+        "ai_practice_limit": -1,
+        "created_at": "2026-07-27T11:09:10.869Z",
+        "currency": "USD",
+        "description": "Price drop for back to school season!",
+        "duration_months": 12,
+        "features": "Unlimited AI Practice, Unlimited Tests, Personal Vocabulary Coach",
+        "grammar_practice_limit": -1,
+        "is_active": false,
+        "max_lessons": -1,
+        "max_tests": -1,
+        "plan_name": "SpeakMate Pro (Updated)",
+        "price": "79.99",
+        "speaking_practice_limit": -1,
+        "updated_at": "2026-07-29T07:04:02.842Z",
+        "vocabulary_practice_limit": -1,
+        "ai_minutes_limit": null,
+        "billing_cycle": null,
+        "student_limit": null,
+        "teacher_limit": null
+      }
+    ]
+  },
+  "users": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "active",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "auth_provider",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "avatar",
+        "data_type": "text"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "daily_goal_minutes",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "email",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "english_level",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "expo_push_token",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "first_name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "interests",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "last_name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "learning_goal",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "native_language",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "onboarding_completed",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "password",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "preferred_accent",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "preferred_voice",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "reset_otp",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "reset_otp_expiry",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "reset_password_token",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "reset_password_token_expiry",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "role",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "welcome_completed",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "age_group",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "school_grade",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "division",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "parent_name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "parent_phone",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "phone",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "roll_number",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "school_name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "standard",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "user_type",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "school_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "student_id",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "email_verification_token",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "email_verified",
+        "data_type": "boolean"
+      }
+    ],
+    "rowCount": 8,
+    "rows": [
+      {
+        "id": "19",
+        "active": true,
+        "auth_provider": null,
+        "avatar": null,
+        "created_at": "2026-07-29T10:55:30.924Z",
+        "daily_goal_minutes": 30,
+        "email": "jane.smith@example.com",
+        "english_level": "BEGINNER",
+        "expo_push_token": null,
+        "first_name": "Jane",
+        "interests": null,
+        "last_name": "Smith",
+        "learning_goal": "Improve conversational skills for travel",
+        "native_language": "Spanish",
+        "onboarding_completed": false,
+        "password": "$2a$10$aTSwnppNJjnX1Rp3IsAAjepbiOgynYOcpoBGOccV31bWogZuRzpnS",
+        "preferred_accent": null,
+        "preferred_voice": null,
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "role": "USER",
+        "updated_at": "2026-07-29T10:55:30.924Z",
+        "welcome_completed": false,
+        "age_group": null,
+        "school_grade": null,
+        "division": null,
+        "parent_name": null,
+        "parent_phone": null,
+        "phone": null,
+        "roll_number": null,
+        "school_name": null,
+        "standard": null,
+        "user_type": "STANDARD",
+        "school_id": null,
+        "status": null,
+        "student_id": null,
+        "email_verification_token": null,
+        "email_verified": false
+      },
+      {
+        "id": "20",
+        "active": true,
+        "auth_provider": null,
+        "avatar": null,
+        "created_at": "2026-07-29T11:40:37.503Z",
+        "daily_goal_minutes": null,
+        "email": "alice.smith@greenwood.com",
+        "english_level": null,
+        "expo_push_token": null,
+        "first_name": "Alice",
+        "interests": null,
+        "last_name": "Smith",
+        "learning_goal": null,
+        "native_language": null,
+        "onboarding_completed": false,
+        "password": "$2a$10$TuyLwYSWlaOtLB52YmpWvekQOCOF8V6nj4gQWt7RscR9/EcX02TZy",
+        "preferred_accent": null,
+        "preferred_voice": null,
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "role": "SCHOOL_ADMIN",
+        "updated_at": "2026-07-29T11:40:37.503Z",
+        "welcome_completed": false,
+        "age_group": null,
+        "school_grade": null,
+        "division": null,
+        "parent_name": null,
+        "parent_phone": null,
+        "phone": null,
+        "roll_number": null,
+        "school_name": null,
+        "standard": null,
+        "user_type": null,
+        "school_id": "8",
+        "status": "ACTIVE",
+        "student_id": null,
+        "email_verification_token": "e405cde8-9c69-445c-b2bb-4ab69fc59dac",
+        "email_verified": false
+      },
+      {
+        "id": "22",
+        "active": true,
+        "auth_provider": null,
+        "avatar": null,
+        "created_at": "2026-07-29T12:03:16.033Z",
+        "daily_goal_minutes": null,
+        "email": "michael.scott@greenwoodstudent.com",
+        "english_level": null,
+        "expo_push_token": null,
+        "first_name": "Michael",
+        "interests": null,
+        "last_name": "Scott",
+        "learning_goal": null,
+        "native_language": null,
+        "onboarding_completed": false,
+        "password": "$2a$10$IixaZifodL9MIFqCWx17veG10hXNdHEfkF6cZ1y20.ULDjQuWTjlS",
+        "preferred_accent": null,
+        "preferred_voice": null,
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "role": "STUDENT",
+        "updated_at": "2026-07-29T12:03:16.033Z",
+        "welcome_completed": false,
+        "age_group": null,
+        "school_grade": null,
+        "division": null,
+        "parent_name": null,
+        "parent_phone": null,
+        "phone": null,
+        "roll_number": null,
+        "school_name": null,
+        "standard": null,
+        "user_type": null,
+        "school_id": "8",
+        "status": "ACTIVE",
+        "student_id": "STU-2026-7054",
+        "email_verification_token": null,
+        "email_verified": false
+      },
+      {
+        "id": "6",
+        "active": true,
+        "auth_provider": "LOCAL",
+        "avatar": null,
+        "created_at": "2026-07-28T23:52:54.663Z",
+        "daily_goal_minutes": null,
+        "email": "nikitaalgule1205@gmail.com",
+        "english_level": null,
+        "expo_push_token": null,
+        "first_name": "Nikita",
+        "interests": null,
+        "last_name": "Algule",
+        "learning_goal": null,
+        "native_language": null,
+        "onboarding_completed": true,
+        "password": "$2a$10$C0fcNSrq6y0Av3XVrUAzAevmCmz9A8vpXdKEWERL1VF70OeHSJurS",
+        "preferred_accent": null,
+        "preferred_voice": null,
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "role": "USER",
+        "updated_at": "2026-07-28T23:54:47.755Z",
+        "welcome_completed": false,
+        "age_group": null,
+        "school_grade": null,
+        "division": null,
+        "parent_name": null,
+        "parent_phone": null,
+        "phone": null,
+        "roll_number": null,
+        "school_name": null,
+        "standard": null,
+        "user_type": null,
+        "school_id": null,
+        "status": null,
+        "student_id": null,
+        "email_verification_token": null,
+        "email_verified": false
+      },
+      {
+        "id": "7",
+        "active": true,
+        "auth_provider": "LOCAL",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/png?seed=Max&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc",
+        "created_at": "2026-07-29T01:25:36.219Z",
+        "daily_goal_minutes": 20,
+        "email": "dnyanesh7803@gmail.com",
+        "english_level": "Intermediate",
+        "expo_push_token": null,
+        "first_name": "Rohit",
+        "interests": "Travel, Science",
+        "last_name": "Patil",
+        "learning_goal": "Study",
+        "native_language": "English",
+        "onboarding_completed": true,
+        "password": "$2a$10$YMJNeJckHK/zOcor1F7LyOyt67jmMlGk2NzA/hheKx6ukRkXHhRI6",
+        "preferred_accent": null,
+        "preferred_voice": "Friendly",
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "role": "USER",
+        "updated_at": "2026-07-29T01:27:02.520Z",
+        "welcome_completed": false,
+        "age_group": "Professional",
+        "school_grade": "3rd Std",
+        "division": null,
+        "parent_name": null,
+        "parent_phone": null,
+        "phone": null,
+        "roll_number": null,
+        "school_name": null,
+        "standard": null,
+        "user_type": null,
+        "school_id": null,
+        "status": null,
+        "student_id": null,
+        "email_verification_token": null,
+        "email_verified": false
+      },
+      {
+        "id": "24",
+        "active": true,
+        "auth_provider": "LOCAL",
+        "avatar": "https://api.dicebear.com/7.x/avataaars/png?seed=Aneka&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf",
+        "created_at": "2026-07-29T23:51:04.841Z",
+        "daily_goal_minutes": null,
+        "email": "dnyaneshwaralgule@gmail.com",
+        "english_level": null,
+        "expo_push_token": null,
+        "first_name": "Dnyaneshwar",
+        "interests": null,
+        "last_name": "Algule",
+        "learning_goal": null,
+        "native_language": null,
+        "onboarding_completed": false,
+        "password": "$2a$10$xtZWp9c/UJWdi.MbVU19uuq2C/BjWdava0AdBzehVt8jaIICdVY/m",
+        "preferred_accent": null,
+        "preferred_voice": null,
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "role": "USER",
+        "updated_at": "2026-07-30T00:01:13.033Z",
+        "welcome_completed": false,
+        "age_group": "Young Adult",
+        "school_grade": null,
+        "division": null,
+        "parent_name": null,
+        "parent_phone": null,
+        "phone": null,
+        "roll_number": null,
+        "school_name": null,
+        "standard": null,
+        "user_type": null,
+        "school_id": null,
+        "status": null,
+        "student_id": null,
+        "email_verification_token": null,
+        "email_verified": false
+      },
+      {
+        "id": "25",
+        "active": true,
+        "auth_provider": null,
+        "avatar": null,
+        "created_at": "2026-07-30T05:38:54.073Z",
+        "daily_goal_minutes": null,
+        "email": "john.doe@school.edu",
+        "english_level": null,
+        "expo_push_token": null,
+        "first_name": "John",
+        "interests": null,
+        "last_name": "Doe",
+        "learning_goal": null,
+        "native_language": null,
+        "onboarding_completed": false,
+        "password": "$2a$10$Z/7PqLnft/2iYmvgAqZQV.CTvcQxhDrm0X5YKNKM9azxAn6zqUIqa",
+        "preferred_accent": null,
+        "preferred_voice": null,
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "role": "STUDENT",
+        "updated_at": "2026-07-30T05:43:19.891Z",
+        "welcome_completed": false,
+        "age_group": null,
+        "school_grade": null,
+        "division": null,
+        "parent_name": null,
+        "parent_phone": null,
+        "phone": null,
+        "roll_number": null,
+        "school_name": null,
+        "standard": null,
+        "user_type": null,
+        "school_id": "8",
+        "status": "ACTIVE",
+        "student_id": "STU-2026-2088",
+        "email_verification_token": null,
+        "email_verified": false
+      },
+      {
+        "id": "4",
+        "active": false,
+        "auth_provider": "LOCAL",
+        "avatar": null,
+        "created_at": "2026-07-28T04:32:24.985Z",
+        "daily_goal_minutes": null,
+        "email": "ayushchandgude08@gmail.com",
+        "english_level": null,
+        "expo_push_token": null,
+        "first_name": "Aayush",
+        "interests": null,
+        "last_name": "Patil",
+        "learning_goal": null,
+        "native_language": null,
+        "onboarding_completed": true,
+        "password": "$2a$10$vywau/wJbF9RRMy33YRAietaLtsfelnVMbwuhJMPZ0hzhuvC1MAQy",
+        "preferred_accent": null,
+        "preferred_voice": null,
+        "reset_otp": null,
+        "reset_otp_expiry": null,
+        "reset_password_token": null,
+        "reset_password_token_expiry": null,
+        "role": "USER",
+        "updated_at": "2026-07-30T06:46:44.706Z",
+        "welcome_completed": false,
+        "age_group": null,
+        "school_grade": null,
+        "division": null,
+        "parent_name": null,
+        "parent_phone": null,
+        "phone": null,
+        "roll_number": null,
+        "school_name": null,
+        "standard": null,
+        "user_type": null,
+        "school_id": null,
+        "status": null,
+        "student_id": null,
+        "email_verification_token": null,
+        "email_verified": false
+      }
+    ]
+  },
+  "grammar_history": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "corrected_text",
+        "data_type": "text"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "explanation",
+        "data_type": "text"
+      },
+      {
+        "column_name": "grammar_score",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "original_text",
+        "data_type": "text"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 1,
+    "rows": [
+      {
+        "id": "7",
+        "corrected_text": "I eat an apple.",
+        "created_at": "2026-07-28T06:36:24.903Z",
+        "explanation": "1. [capitalization] The first word of the sentence 'i' should be capitalized. (Suggested: \"I eat apple\")\n2. [article] Missing article before the singular countable noun 'apple'. (Suggested: \"I eat an apple\")",
+        "grammar_score": 70,
+        "original_text": "i eat apple",
+        "user_id": "4"
+      }
+    ]
+  },
+  "lesson_progress": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "completed",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "completed_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "last_opened_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "last_section_index",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "progress_percent",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "time_spent_minutes",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "xp_earned",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "lesson_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "notification": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "is_read",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "message",
+        "data_type": "text"
+      },
+      {
+        "column_name": "title",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "progress": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "current_streak",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "level",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "longest_streak",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "total_grammar_checks",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "total_practice_minutes",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "total_speaking_sessions",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "total_vocabulary_words",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "xp",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 4,
+    "rows": [
+      {
+        "id": "30",
+        "created_at": "2026-07-28T04:32:25.687Z",
+        "current_streak": 0,
+        "level": 1,
+        "longest_streak": 0,
+        "total_grammar_checks": 1,
+        "total_practice_minutes": 0,
+        "total_speaking_sessions": 0,
+        "total_vocabulary_words": 0,
+        "updated_at": "2026-07-28T06:36:24.999Z",
+        "xp": 15,
+        "user_id": "4"
+      },
+      {
+        "id": "32",
+        "created_at": "2026-07-28T23:52:54.757Z",
+        "current_streak": 0,
+        "level": 1,
+        "longest_streak": 0,
+        "total_grammar_checks": 0,
+        "total_practice_minutes": 0,
+        "total_speaking_sessions": 0,
+        "total_vocabulary_words": 0,
+        "updated_at": "2026-07-28T23:52:54.757Z",
+        "xp": 0,
+        "user_id": "6"
+      },
+      {
+        "id": "33",
+        "created_at": "2026-07-29T01:25:36.817Z",
+        "current_streak": 0,
+        "level": 1,
+        "longest_streak": 0,
+        "total_grammar_checks": 0,
+        "total_practice_minutes": 0,
+        "total_speaking_sessions": 0,
+        "total_vocabulary_words": 0,
+        "updated_at": "2026-07-29T01:25:36.817Z",
+        "xp": 0,
+        "user_id": "7"
+      },
+      {
+        "id": "36",
+        "created_at": "2026-07-29T23:51:04.934Z",
+        "current_streak": 0,
+        "level": 1,
+        "longest_streak": 0,
+        "total_grammar_checks": 0,
+        "total_practice_minutes": 0,
+        "total_speaking_sessions": 0,
+        "total_vocabulary_words": 0,
+        "updated_at": "2026-07-29T23:51:04.934Z",
+        "xp": 0,
+        "user_id": "24"
+      }
+    ]
+  },
+  "settings": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "ai_voice",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "auto_play_audio",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "daily_reminder",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "dark_mode",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "language",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "notifications_enabled",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "sound_effects",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 4,
+    "rows": [
+      {
+        "id": "29",
+        "ai_voice": "Female",
+        "auto_play_audio": true,
+        "created_at": "2026-07-28T04:32:25.980Z",
+        "daily_reminder": true,
+        "dark_mode": false,
+        "language": "English",
+        "notifications_enabled": true,
+        "sound_effects": true,
+        "updated_at": "2026-07-28T04:32:25.980Z",
+        "user_id": "4"
+      },
+      {
+        "id": "31",
+        "ai_voice": "Female",
+        "auto_play_audio": true,
+        "created_at": "2026-07-28T23:52:54.952Z",
+        "daily_reminder": true,
+        "dark_mode": false,
+        "language": "English",
+        "notifications_enabled": true,
+        "sound_effects": true,
+        "updated_at": "2026-07-28T23:52:54.952Z",
+        "user_id": "6"
+      },
+      {
+        "id": "32",
+        "ai_voice": "Friendly",
+        "auto_play_audio": true,
+        "created_at": "2026-07-29T01:25:36.834Z",
+        "daily_reminder": true,
+        "dark_mode": false,
+        "language": "English",
+        "notifications_enabled": true,
+        "sound_effects": true,
+        "updated_at": "2026-07-29T01:27:01.922Z",
+        "user_id": "7"
+      },
+      {
+        "id": "35",
+        "ai_voice": "Friendly",
+        "auto_play_audio": true,
+        "created_at": "2026-07-29T23:51:04.941Z",
+        "daily_reminder": true,
+        "dark_mode": false,
+        "language": "English",
+        "notifications_enabled": true,
+        "sound_effects": true,
+        "updated_at": "2026-07-29T23:52:07.236Z",
+        "user_id": "24"
+      }
+    ]
+  },
+  "vocabulary": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "antonym",
+        "data_type": "text"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "example_sentence",
+        "data_type": "text"
+      },
+      {
+        "column_name": "favorite",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "meaning",
+        "data_type": "text"
+      },
+      {
+        "column_name": "synonym",
+        "data_type": "text"
+      },
+      {
+        "column_name": "word",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "user_subscriptions": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "amount_paid",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "expiry_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "payment_method",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "payment_status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "start_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "subscription_status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "transaction_id",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "subscription_plan_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "payments": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "amount",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "currency",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "payment_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "payment_gateway",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "payment_method",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "payment_status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "remarks",
+        "data_type": "text"
+      },
+      {
+        "column_name": "transaction_id",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "subscription_plan_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "chat_messages": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "better_sentence",
+        "data_type": "text"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "explanation",
+        "data_type": "text"
+      },
+      {
+        "column_name": "follow_up_question",
+        "data_type": "text"
+      },
+      {
+        "column_name": "grammar_correction",
+        "data_type": "text"
+      },
+      {
+        "column_name": "message",
+        "data_type": "text"
+      },
+      {
+        "column_name": "sender",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "vocabulary_suggestions",
+        "data_type": "text"
+      },
+      {
+        "column_name": "voice_enabled",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "session_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 3,
+    "rows": [
+      {
+        "id": "60",
+        "better_sentence": null,
+        "created_at": "2026-07-28T05:11:40.746Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "I'm SpeakMateAI, your friendly English tutor, and I'm excited to chat with you - what do you like to do in your free time?",
+        "sender": "ai",
+        "vocabulary_suggestions": null,
+        "voice_enabled": false,
+        "session_id": "22"
+      },
+      {
+        "id": "61",
+        "better_sentence": null,
+        "created_at": "2026-07-28T06:35:24.298Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "I'm SpeakMateAI, your friendly English tutor, and I'm excited to help you improve your grammar skills. What area of grammar would you like to focus on today, such as verb tenses, conditional sentences, or something else?",
+        "sender": "ai",
+        "vocabulary_suggestions": null,
+        "voice_enabled": false,
+        "session_id": "23"
+      },
+      {
+        "id": "62",
+        "better_sentence": null,
+        "created_at": "2026-07-28T06:35:24.298Z",
+        "explanation": null,
+        "follow_up_question": null,
+        "grammar_correction": null,
+        "message": "I'm SpeakMateAI, your friendly English tutor, and I'm excited to chat with you today. What's been the highlight of your week so far, anything interesting or exciting happen?",
+        "sender": "ai",
+        "vocabulary_suggestions": null,
+        "voice_enabled": false,
+        "session_id": "24"
+      }
+    ]
+  },
+  "conversation_feedbacks": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "better_sentences",
+        "data_type": "text"
+      },
+      {
+        "column_name": "grammar_corrections",
+        "data_type": "text"
+      },
+      {
+        "column_name": "summary",
+        "data_type": "text"
+      },
+      {
+        "column_name": "vocabulary_suggestions",
+        "data_type": "text"
+      },
+      {
+        "column_name": "session_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "conversation_messages": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "message",
+        "data_type": "text"
+      },
+      {
+        "column_name": "sender",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "timestamp",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "session_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "invoices": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "amount",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "due_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "invoice_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "invoice_number",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "invoice_status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "pdf_url",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "tax",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "total_amount",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "payment_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "refunds": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "refund_amount",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "refund_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "refund_reason",
+        "data_type": "text"
+      },
+      {
+        "column_name": "refund_status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "payment_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "ai_prompt_versions": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "active",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "created_by",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "model",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "prompt",
+        "data_type": "text"
+      },
+      {
+        "column_name": "prompt_type",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "temperature",
+        "data_type": "double precision"
+      },
+      {
+        "column_name": "version",
+        "data_type": "character varying"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "ai_usage_logs": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "audio_seconds",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "estimated_cost",
+        "data_type": "numeric"
+      },
+      {
+        "column_name": "input_tokens",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "model",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "output_tokens",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "request_time",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "school_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "service",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "assignment_progress": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "assignment_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "completed_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "score",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "started_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "student_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "assignments": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "class_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "description",
+        "data_type": "text"
+      },
+      {
+        "column_name": "due_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "lesson_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "minimum_score",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "school_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "target_minutes",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "teacher_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "title",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "type",
+        "data_type": "character varying"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "audit_logs": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "action",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "entity_id",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "entity_type",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "ip_address",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "new_value",
+        "data_type": "text"
+      },
+      {
+        "column_name": "old_value",
+        "data_type": "text"
+      },
+      {
+        "column_name": "role",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "school_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "timestamp",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "user_id",
+        "data_type": "bigint"
+      }
+    ],
+    "rowCount": 0,
+    "rows": []
+  },
+  "schools": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "admin_name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "created_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "location",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "school_code",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "school_name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "subscription_plan",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "subscription_status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "total_students",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "address",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "city",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "country",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "email",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "logo_url",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "max_students",
+        "data_type": "integer"
+      },
+      {
+        "column_name": "name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "phone",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "state",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "subscription_end_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "subscription_plan_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "subscription_start_date",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "contact_number",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "active",
+        "data_type": "boolean"
+      },
+      {
+        "column_name": "contact_phone",
+        "data_type": "character varying"
+      }
+    ],
+    "rowCount": 2,
+    "rows": [
+      {
+        "id": "4",
+        "admin_name": null,
+        "created_date": null,
+        "location": null,
+        "school_code": "TEST001",
+        "school_name": "Test School",
+        "status": "ACTIVE",
+        "subscription_plan": null,
+        "subscription_status": null,
+        "total_students": null,
+        "address": null,
+        "city": "Mumbai",
+        "country": "India",
+        "created_at": "2026-07-29T04:25:10.512Z",
+        "email": "school@test.com",
+        "logo_url": null,
+        "max_students": null,
+        "name": "Test School",
+        "phone": "9876543210",
+        "state": "Maharashtra",
+        "subscription_end_date": null,
+        "subscription_plan_id": null,
+        "subscription_start_date": null,
+        "updated_at": "2026-07-29T04:25:10.512Z",
+        "contact_number": null,
+        "active": true,
+        "contact_phone": null
+      },
+      {
+        "id": "8",
+        "admin_name": null,
+        "created_date": null,
+        "location": null,
+        "school_code": "SCH-BFC554A2",
+        "school_name": "Greenwood High School",
+        "status": null,
+        "subscription_plan": null,
+        "subscription_status": null,
+        "total_students": null,
+        "address": "123 Elm Street, Cityville",
+        "city": null,
+        "country": null,
+        "created_at": "2026-07-29T11:40:37.152Z",
+        "email": null,
+        "logo_url": null,
+        "max_students": null,
+        "name": "Greenwood High School",
+        "phone": null,
+        "state": null,
+        "subscription_end_date": null,
+        "subscription_plan_id": null,
+        "subscription_start_date": null,
+        "updated_at": "2026-07-29T11:40:37.152Z",
+        "contact_number": null,
+        "active": true,
+        "contact_phone": "+1555019283"
+      }
+    ]
+  },
+  "class_rooms": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "academic_year",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      },
+      {
+        "column_name": "grade",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "name",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "school_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "section",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "status",
+        "data_type": "character varying"
+      },
+      {
+        "column_name": "teacher_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "updated_at",
+        "data_type": "timestamp without time zone"
+      }
+    ],
+    "rowCount": 1,
+    "rows": [
+      {
+        "id": "1",
+        "academic_year": "2026-2027",
+        "created_at": "2026-07-30T06:46:14.364Z",
+        "grade": "5th Grade",
+        "name": "Grade 5 Beta (Updated)",
+        "school_id": "1",
+        "section": null,
+        "status": "ACTIVE",
+        "teacher_id": "3",
+        "updated_at": "2026-07-30T06:48:54.107Z"
+      }
+    ]
+  },
+  "class_students": {
+    "columns": [
+      {
+        "column_name": "id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "class_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "student_id",
+        "data_type": "bigint"
+      },
+      {
+        "column_name": "created_at",
+        "data_type": "timestamp without time zone"
+      }
+    ],
+    "rowCount": 4,
+    "rows": [
+      {
+        "id": "1",
+        "class_id": "1",
+        "student_id": "101",
+        "created_at": "2026-07-30T06:49:40.681Z"
+      },
+      {
+        "id": "2",
+        "class_id": "1",
+        "student_id": "102",
+        "created_at": "2026-07-30T06:49:40.993Z"
+      },
+      {
+        "id": "3",
+        "class_id": "1",
+        "student_id": "105",
+        "created_at": "2026-07-30T06:49:41.194Z"
+      },
+      {
+        "id": "4",
+        "class_id": "1",
+        "student_id": "25",
+        "created_at": "2026-07-30T06:50:09.457Z"
+      }
+    ]
+  }
+}
