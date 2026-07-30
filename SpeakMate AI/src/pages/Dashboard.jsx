@@ -6,7 +6,7 @@ import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 
-import { getLiveProgressStats, recordSpeakingSession } from "../utils/progressTracker";
+import { getLiveProgressStats, recordSpeakingSession, buyStreakFreeze } from "../utils/progressTracker";
 
 const MOTIVATIONAL_QUOTES = [
   { quote: "The limits of my language mean the limits of my world.", author: "Ludwig Wittgenstein" },
@@ -93,6 +93,13 @@ export function Dashboard() {
     setStats((prev) => ({ ...prev, xp: prev.xp + 50 }));
   };
 
+  const handleBuyFreeze = () => {
+    const res = buyStreakFreeze(100, user);
+    if (res.success) {
+      refreshStats();
+    }
+  };
+
   const currentQuote = MOTIVATIONAL_QUOTES[quoteIndex];
 
   return (
@@ -113,6 +120,9 @@ export function Dashboard() {
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-md">
                 🔥 {stats.streak}-Day Streak
+              </span>
+              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-cyan-400 text-slate-950 shadow-md">
+                ❄️ {stats.streakFreezes || 0} Freezes
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-emerald-400 text-slate-950 shadow-md">
                 ⭐ {stats.xp} XP Points
@@ -401,6 +411,35 @@ export function Dashboard() {
                 </span>
               )}
             </div>
+          </div>
+
+          {/* Streak & Freeze Protection Card */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-4 border border-cyan-500/30 bg-gradient-to-br from-[var(--bg-card)] to-cyan-500/5 shadow-xl">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-black text-cyan-500 uppercase tracking-wider">Streak Protection</span>
+              <span className="text-xs font-black text-cyan-500 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">
+                ❄️ {stats.streakFreezes || 0} Freezes Active
+              </span>
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-extrabold text-lg text-[var(--text-primary)]">Protect Your Streak ❄️</h3>
+              <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed">
+                Missed a day? A Streak Freeze automatically saves your streak! Spend 100 XP to add a Freeze to your reserve.
+              </p>
+            </div>
+
+            <button
+              onClick={handleBuyFreeze}
+              disabled={stats.xp < 100}
+              className={`w-full py-3.5 rounded-2xl font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 ${
+                stats.xp >= 100
+                  ? "bg-gradient-to-r from-cyan-500 to-[#6c63ff] text-white hover:scale-[1.02] active:scale-[0.98]"
+                  : "bg-gray-400/20 text-gray-400 cursor-not-allowed border border-gray-400/20"
+              }`}
+            >
+              <span>❄️ Buy 1 Freeze (100 XP)</span>
+            </button>
           </div>
 
           {/* Milestones & Achievements Card */}

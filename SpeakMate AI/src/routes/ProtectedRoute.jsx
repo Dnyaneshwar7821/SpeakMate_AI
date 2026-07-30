@@ -26,7 +26,7 @@ export function ProtectedRoute({ children }) {
   const storedGrade = localStorage.getItem("speakmate_school_grade");
   const storedAgeGroup = localStorage.getItem("speakmate_age_group");
   const isUserCompleted = Boolean(
-    user && (user.onboardingCompleted || user.schoolGrade || user.englishLevel)
+    user && (user.onboardingCompleted || user.schoolGrade || user.englishLevel || user.ageGroup || user.learningGoal)
   );
 
   const isCompleted = Boolean(
@@ -35,6 +35,10 @@ export function ProtectedRoute({ children }) {
 
   if (!isCompleted && location.pathname !== ROUTES.ONBOARDING) {
     return <Navigate to={ROUTES.ONBOARDING} replace />;
+  }
+
+  if (isCompleted && location.pathname === ROUTES.ONBOARDING) {
+    return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
 
   return children;

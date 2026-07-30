@@ -83,10 +83,17 @@ export function AuthProvider({ children }) {
   }, [restoreSession]);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEYS.token);
-    localStorage.removeItem(STORAGE_KEYS.user);
-    localStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
-    localStorage.removeItem("speakmate_school_grade");
+    try {
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith("speakmate_")) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch (e) {}
+
     setToken(null);
     setUser(null);
     setOnboardingCompleted(false);
@@ -105,7 +112,17 @@ export function AuthProvider({ children }) {
           syncSchoolGrade(response.user);
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
           setUser(response.user);
-          setOnboardingCompleted(Boolean(response.user.onboardingCompleted));
+          const isDone = Boolean(
+            response.user.onboardingCompleted ||
+            response.user.schoolGrade ||
+            response.user.englishLevel ||
+            response.user.ageGroup ||
+            response.user.learningGoal
+          );
+          setOnboardingCompleted(isDone);
+          if (isDone) {
+            localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
+          }
         }
         setToken(response.token);
       }

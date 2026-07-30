@@ -20,7 +20,20 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync } from 'expo-audio';
+
+// Safe lazy import of expo-audio to prevent native module crashes in Expo Go
+let useAudioRecorder = () => ({ prepareToRecordAsync: async () => {}, record: () => {}, stopAsync: async () => {}, uri: null });
+let RecordingPresets = { HIGH_QUALITY: {} };
+let requestRecordingPermissionsAsync = async () => ({ granted: true });
+
+try {
+  const expoAudio = require('expo-audio');
+  if (expoAudio) {
+    if (expoAudio.useAudioRecorder) useAudioRecorder = expoAudio.useAudioRecorder;
+    if (expoAudio.RecordingPresets) RecordingPresets = expoAudio.RecordingPresets;
+    if (expoAudio.requestRecordingPermissionsAsync) requestRecordingPermissionsAsync = expoAudio.requestRecordingPermissionsAsync;
+  }
+} catch (_) {}
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../context/ThemeContext';
 import { lessonModuleService, settingsService, aiService, progressService, speechService } from '../../services/appServices';

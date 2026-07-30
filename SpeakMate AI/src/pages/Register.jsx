@@ -115,7 +115,7 @@ export function Register() {
       setError(
         err.userMessage ||
         err.response?.data?.message ||
-        "Invalid OTP verification code. Please check your email or use 123456."
+        "Invalid OTP verification code. Please check your email and try again."
       );
     } finally {
       setLoading(false);
@@ -337,7 +337,7 @@ export function Register() {
                 Enter code sent to <span className="text-[#6c63ff] underline">{form.email}</span>
               </p>
               <p className="text-xs text-[var(--text-secondary)] font-medium">
-                (Master code: <strong>123456</strong>)
+                (Check your email inbox or spam folder for the 6-digit code)
               </p>
             </div>
 

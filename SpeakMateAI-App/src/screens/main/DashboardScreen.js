@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useMemo, useState, useEffect } from 'react';
 import {
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -218,6 +219,18 @@ export default function DashboardScreen({ navigation }) {
     }
   }, [navigation]);
 
+  const [purchasedFreezes, setPurchasedFreezes] = useState(0);
+
+  const handleBuyFreeze = useCallback(() => {
+    const currentXp = viewModel.xp;
+    if (currentXp >= 100) {
+      setPurchasedFreezes((prev) => prev + 1);
+      Alert.alert('Streak Freeze Purchased! ❄️', '1 Streak Freeze has been added to your reserve.');
+    } else {
+      Alert.alert('Earn More XP ❄️', 'You need 100 XP to buy a Streak Freeze. Complete practice sessions to earn XP!');
+    }
+  }, [viewModel.xp]);
+
   const handleRecommendationPress = useCallback((rec) => {
     if (!rec) return;
     if (rec.type === 'lesson') {
@@ -309,7 +322,14 @@ export default function DashboardScreen({ navigation }) {
         <WeeklyProgressChart data={viewModel.weeklyProgress} isDark={isDark} />
 
         {/* SECTION 7: LEARNING STREAK */}
-        <LearningStreakCard streak={viewModel.streak} longestStreak={viewModel.statistics?.longestStreak || 0} isDark={isDark} />
+        <LearningStreakCard
+          streak={viewModel.streak}
+          longestStreak={viewModel.statistics?.longestStreak || 0}
+          streakFreezes={1 + purchasedFreezes}
+          xp={viewModel.xp}
+          onBuyFreeze={handleBuyFreeze}
+          isDark={isDark}
+        />
 
         {/* SECTION 8: RECENT ACTIVITY */}
         <RecentActivityTimeline items={viewModel.recentActivity} isDark={isDark} />

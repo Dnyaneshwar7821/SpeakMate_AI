@@ -75,11 +75,13 @@ export default function App() {
   useEffect(() => {
     const registerExpoUrl = async () => {
       try {
-        const url = Linking.createURL('/');
-        console.log('[Registering Expo URL with Backend]:', url);
-        await api.post('/api/users/register-expo-url', { url });
+        if (typeof Linking.createURL === 'function') {
+          const url = Linking.createURL('/');
+          console.log('[Registering Expo URL with Backend]:', url);
+          await api.post('/api/users/register-expo-url', { url });
+        }
       } catch (err) {
-        console.warn('Failed to register Expo URL with backend:', err.message);
+        console.warn('Failed to register Expo URL with backend:', err?.message);
       }
     };
     registerExpoUrl();

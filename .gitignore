@@ -23,6 +23,8 @@ SpeakMateAI-App/yarn-error.log*
 
 # --- Web Landing/Admin Panel ---
 SpeakMate AI/node_modules/
+*.glb
+
 SpeakMate AI/dist/
 SpeakMate AI/.env
 

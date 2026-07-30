@@ -242,10 +242,10 @@ export function Profile() {
                 {accountType === "STUDENT" ? `🎓 ${schoolGrade || "1st Std"} Standard` : `👤 ${cefrLevel || "Intermediate"} Level`}
               </span>
               <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30">
-                ⭐ {user?.xp || 150} XP
+                ⭐ {user?.xp ?? 0} XP
               </span>
               <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30">
-                🔥 {user?.streak || 3} Day Streak
+                🔥 {user?.streak ?? 0} Day Streak
               </span>
             </div>
 

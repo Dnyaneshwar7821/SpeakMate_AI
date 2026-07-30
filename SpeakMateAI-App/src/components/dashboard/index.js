@@ -684,24 +684,43 @@ export const QuickActionsCard = memo(function QuickActionsCard({ navigation }) {
 });
 
 // SECTION 7: LEARNING STREAK
-export const LearningStreakCard = memo(function LearningStreakCard({ streak, longestStreak }) {
+export const LearningStreakCard = memo(function LearningStreakCard({
+  streak,
+  longestStreak,
+  streakFreezes = 1,
+  xp = 0,
+  onBuyFreeze,
+}) {
   const theme = useTheme();
   const currentDayOfWeek = (new Date().getDay() + 6) % 7; // 0=Mon, 6=Sun
   const WEEK_DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
   return (
     <View style={[styles.card, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-      <Text style={[styles.sectionEyebrow, { color: theme.textSecondary }]}>Streak Overview</Text>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <Text style={[styles.sectionEyebrow, { color: theme.textSecondary }]}>Streak & Protection ❄️</Text>
+        <View style={{ backgroundColor: '#06B6D420', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#06B6D440' }}>
+          <Text style={{ fontSize: 11, fontWeight: '800', color: '#06B6D4' }}>❄️ {streakFreezes} Freezes Active</Text>
+        </View>
+      </View>
+
       <View style={styles.streakMetricRow}>
         <View style={styles.streakColumn}>
-          <Ionicons name="flame" size={32} color="#F97316" />
+          <Ionicons name="flame" size={28} color="#F97316" />
           <View>
             <Text style={[styles.streakNumber, { color: theme.textPrimary }]}>{streak}</Text>
             <Text style={[styles.streakSubText, { color: theme.textSecondary }]}>Current Streak</Text>
           </View>
         </View>
         <View style={styles.streakColumn}>
-          <Ionicons name="trophy" size={30} color="#CA8A04" />
+          <Ionicons name="snow" size={26} color="#06B6D4" />
+          <View>
+            <Text style={[styles.streakNumber, { color: theme.textPrimary }]}>{streakFreezes}</Text>
+            <Text style={[styles.streakSubText, { color: theme.textSecondary }]}>Streak Freezes</Text>
+          </View>
+        </View>
+        <View style={styles.streakColumn}>
+          <Ionicons name="trophy" size={26} color="#CA8A04" />
           <View>
             <Text style={[styles.streakNumber, { color: theme.textPrimary }]}>{longestStreak}</Text>
             <Text style={[styles.streakSubText, { color: theme.textSecondary }]}>Longest Streak</Text>
@@ -709,7 +728,7 @@ export const LearningStreakCard = memo(function LearningStreakCard({ streak, lon
         </View>
       </View>
 
-      <Text style={[styles.streakSubText, { color: theme.textPrimary, marginBottom: 10 }]}>Weekly Heatmap</Text>
+      <Text style={[styles.streakSubText, { color: theme.textPrimary, marginBottom: 10, marginTop: 12 }]}>Weekly Heatmap</Text>
       <View style={styles.streakDaysRow}>
         {WEEK_DAYS_SHORT.map((day, idx) => {
           const isActive = idx <= currentDayOfWeek && streak > 0;
@@ -735,6 +754,28 @@ export const LearningStreakCard = memo(function LearningStreakCard({ streak, lon
           );
         })}
       </View>
+
+      {/* Buy Streak Freeze Button */}
+      <TouchableOpacity
+        onPress={onBuyFreeze}
+        disabled={xp < 100}
+        activeOpacity={0.8}
+        style={{
+          marginTop: 16,
+          backgroundColor: xp >= 100 ? '#06B6D4' : '#64748B40',
+          paddingVertical: 12,
+          borderRadius: 14,
+          alignItems: 'center',
+          flexDirection: 'row',
+          justifyContent: 'center',
+          gap: 6
+        }}
+      >
+        <Ionicons name="snow-outline" size={16} color="#FFFFFF" />
+        <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 12 }}>
+          {xp >= 100 ? 'Buy Streak Freeze (100 XP)' : 'Earn 100 XP to Buy Freeze'}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 });
