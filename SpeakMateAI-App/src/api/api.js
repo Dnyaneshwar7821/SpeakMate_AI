@@ -11,7 +11,7 @@ export const setLogoutCallback = (cb) => {
 
 const api = axios.create({
   baseURL: BASE_URL || 'https://speakmateai-backend.onrender.com',
-  timeout: 60000,
+  timeout: 120000, // 120s to allow Render free-tier cold starts
   headers: {
     'Content-Type': 'application/json',
   },
@@ -25,12 +25,11 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
-      console.error('Error fetching token for request:', error);
+      console.warn('Error fetching token for request:', error?.message);
     }
     return config;
   },
   (error) => {
-    console.error('[Axios Request Error]', error);
     return Promise.reject(error);
   }
 );
@@ -42,52 +41,36 @@ api.interceptors.response.use(
   async (error) => {
     const config = error.config;
     const status = error.response?.status;
-    const data = error.response?.data;
+
+    // Background endpoints that fail gracefully without error logs
+    const isBackgroundEndpoint = config?.url && (
+      config.url.includes('/register-expo-url') ||
+      config.url.includes('/count-unread') ||
+      config.url.includes('/push-token')
+    );
 
     // Retry once on network timeout or connection error (e.g. Render free tier cold start)
     const isNetworkError = !error.response || error.code === 'ECONNABORTED' || error.message === 'Network Error';
     if (config && isNetworkError && !config._retry) {
       config._retry = true;
-      console.warn(`[Axios] Network request failed/timed out. Retrying once (${config.url})...`);
+      if (!isBackgroundEndpoint) {
+        console.warn(`[Axios] Retrying request (${config.url})...`);
+      }
       await new Promise((resolve) => setTimeout(resolve, 3000));
       return api(config);
     }
 
-    if (status !== 401 && status !== 404) {
-      console.error('[Axios Response Error] Detailed logs:');
-      console.error('  error.message:', error.message);
-      console.error('  error.code:', error.code);
-      console.error('  error.response (Status):', status);
-      console.error('  error.response (Data):', data);
-      console.error('  error.request:', error.request ? JSON.stringify(error.request).substring(0, 1000) : 'None');
-      console.error('  error.config (URL):', error.config?.url);
-      console.error('  error.config (method):', error.config?.method);
-      console.error('  error.config (headers):', error.config?.headers);
-    }
-    let message = 'Something went wrong. Please try again.';
-
-    if (error.code === 'ECONNABORTED') {
-      message = 'Request timed out. Check your connection and try again.';
-    } else if (!error.response) {
-      message = 'Network error. Make sure the backend is running and reachable.';
-    } else if (status === 401) {
-      message = data?.message || 'Your session has expired. Please log in again.';
+    if (status === 401) {
+      try {
+        await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
+      } catch (_) {}
       if (logoutCallback) {
         logoutCallback();
       }
-    } else if (status === 403) {
-      message = data?.message || 'You do not have permission to perform this action.';
-    } else if (status >= 500) {
-      message = data?.message || 'Server error. Please try again later.';
-    } else if (typeof data === 'string') {
-      message = data;
-    } else if (data?.message) {
-      message = data.message;
-    } else if (data && typeof data === 'object') {
-      message = Object.values(data).join('\n');
+    } else if (!isBackgroundEndpoint && status !== 404) {
+      console.warn(`[Axios Error] ${config?.method?.toUpperCase()} ${config?.url} (${status || error.code || 'ERR_NETWORK'})`);
     }
 
-    error.userMessage = message;
     return Promise.reject(error);
   }
 );
