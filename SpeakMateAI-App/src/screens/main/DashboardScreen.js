@@ -198,10 +198,7 @@ export default function DashboardScreen({ navigation }) {
   const handleContinueLearningPress = useCallback((item) => {
     if (!item) return;
     if (item.module === 'Speaking Session') {
-      navigation.navigate('Speaking', {
-        screen: 'Conversation',
-        params: { sessionId: item.targetId, scenario: item.title }
-      });
+      navigation.navigate('Speaking');
     } else if (item.module === 'Lesson') {
       navigation.navigate('Lessons', {
         screen: 'LessonDetail',

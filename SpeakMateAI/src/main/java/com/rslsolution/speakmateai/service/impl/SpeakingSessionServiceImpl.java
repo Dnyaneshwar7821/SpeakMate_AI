@@ -579,12 +579,16 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 		// ── Trigger session-end notification ─────────────────────────────
 		try {
-			int sessionMinutes = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
-			notificationService.createSystemNotification(session.getUser(),
-					"Speaking Session Complete! 🎙️",
-					"Great job! You practiced \"" + session.getScenario() + "\" for " + sessionMinutes + " min and earned " + xp + " XP.");
-		} catch (Exception ignored) {}
-
+			if (session.getUser() != null) {
+				int sessionMinutes = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
+				notificationService.createSystemNotification(session.getUser(),
+						"Speaking Session Complete! 🎙️",
+						"Great job! You practiced \"" + session.getScenario() + "\" for " + sessionMinutes + " min and earned " + xp + " XP.");
+			}
+		} catch (Exception ex) {
+			System.err.println("⚠️ Could not create session notification: " + ex.getMessage());
+		}
+		
 		// Save feedback entity
 		ConversationFeedback feedback = ConversationFeedback.builder()
 				.session(session)
