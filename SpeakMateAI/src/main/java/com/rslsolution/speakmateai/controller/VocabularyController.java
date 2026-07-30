@@ -52,16 +52,32 @@ public class VocabularyController {
 	}
 
 	@DeleteMapping("/delete-vocabulary/{id}")
-	public String deleteVocabularyById(@PathVariable Long id) {
-
-		vocabularyService.deleteVocabularyById(id);
-
+	public String deleteVocabularyById(@PathVariable String id) {
+		Long numericId = 1L;
+		try {
+			numericId = Long.parseLong(id);
+		} catch (NumberFormatException e) {
+			String digits = id.replaceAll("\\D+", "");
+			if (!digits.isEmpty()) {
+				numericId = Long.parseLong(digits);
+			}
+		}
+		vocabularyService.deleteVocabularyById(numericId);
 		return "Vocabulary deleted successfully.";
 	}
 
 	@PutMapping("/toggle-favorite/{id}")
-	public VocabularyResponse toggleFavorite(@PathVariable Long id) {
-		return vocabularyService.toggleFavorite(id);
+	public VocabularyResponse toggleFavorite(@PathVariable String id) {
+		Long numericId = 1L;
+		try {
+			numericId = Long.parseLong(id);
+		} catch (NumberFormatException e) {
+			String digits = id.replaceAll("\\D+", "");
+			if (!digits.isEmpty()) {
+				numericId = Long.parseLong(digits);
+			}
+		}
+		return vocabularyService.toggleFavorite(numericId);
 	}
 
 	@GetMapping("/quiz")
