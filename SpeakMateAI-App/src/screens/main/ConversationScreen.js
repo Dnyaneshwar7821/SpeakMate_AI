@@ -606,11 +606,8 @@ export default function ConversationScreen({ navigation, route }) {
             } catch (e) {
               const calcXp = (dur) => {
                 if (!dur || dur < 60) return 0;
-                if (dur < 120) return 10;
-                if (dur < 180) return 12;
-                if (dur < 240) return 14;
-                if (dur < 300) return 15;
-                return Math.min(50, 20 + Math.floor((dur - 300) / 180) * 5);
+                const mins = Math.floor(dur / 60);
+                return Math.min(100, mins * 10);
               };
               const sessionDur = timer || 0;
               const fallbackSummary = {
