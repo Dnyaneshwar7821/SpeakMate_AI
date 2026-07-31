@@ -137,7 +137,7 @@ export function ConversationSession() {
       const initialText = messages[0].message;
       const timerId = setTimeout(() => {
         handleSpeakText(initialText);
-      }, 400);
+      }, 250);
       return () => clearTimeout(timerId);
     }
   }, [messages]);

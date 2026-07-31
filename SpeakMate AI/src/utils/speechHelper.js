@@ -317,7 +317,9 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 
   try {
     window.speechSynthesis.cancel();
-    window.speechSynthesis.resume();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
   } catch (e) {}
 
   const cleanText = text.replace(/[*_#`~]/g, "");
@@ -330,6 +332,7 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 
   const doSpeak = () => {
     try {
+      window.speechSynthesis.cancel();
       window.speechSynthesis.resume();
       applyGlobalVoiceSettings(utterance, speedMultiplier, options.overrideVoiceCode);
       window.speechSynthesis.speak(utterance);
@@ -343,9 +346,14 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
     window.speechSynthesis.onvoiceschanged = () => {
       doSpeak();
     };
-    setTimeout(doSpeak, 350);
+    setTimeout(doSpeak, 250);
   } else {
     doSpeak();
+    setTimeout(() => {
+      if (window.speechSynthesis.speaking && window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }, 150);
   }
 
   return utterance;
