@@ -77,6 +77,7 @@ const ITEM_ACCENT = {
   Speaking:     '#7C3AED',
   AIChat:       '#6366F1',
   Lessons:      '#0284C7',
+  Assignments:  '#EF4444',
   Vocabulary:   '#059669',
   Grammar:      '#D97706',
   Progress:     '#E11D48',
@@ -331,6 +332,21 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
     );
   };
 
+  const isStudentUser = Boolean(user?.schoolId || user?.role === 'STUDENT' || user?.isSchoolStudent);
+
+  const navSections = useMemo(() => {
+    return NAV_SECTIONS.map((sec) => {
+      if (sec.title === 'Learn') {
+        const items = [...sec.items];
+        if (isStudentUser && !items.some((i) => i.key === 'Assignments')) {
+          items.splice(1, 0, { key: 'Assignments', label: 'My Homework 📝', icon: 'document-text', tab: 'Assignments' });
+        }
+        return { ...sec, items };
+      }
+      return sec;
+    });
+  }, [isStudentUser]);
+
   const containerBg = isDark ? '#0F172A' : '#F8FAFC';
   const sectionTitleColor = isDark ? '#64748B' : '#94A3B8';
   const dividerColor = isDark ? '#334155' : '#E2E8F0';
@@ -355,7 +371,7 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
         bounces={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
       >
-        {NAV_SECTIONS.map((section) => (
+        {navSections.map((section) => (
           <View key={section.title} style={styles.section}>
             <Text style={[styles.sectionTitle, { color: sectionTitleColor }]}>{section.title}</Text>
             {section.items.map((item) => (
