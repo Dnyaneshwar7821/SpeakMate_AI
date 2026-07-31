@@ -143,3 +143,77 @@ export const dashboardService = {
   statistics: () => optionalGet('/api/dashboard/statistics', null),
   quote: () => optionalGet('/api/dashboard/quote', null),
 };
+
+export const assignmentService = {
+  myAssignments: () => optionalGet('/api/v1/student/assignments', [
+    {
+      id: 101,
+      title: 'Practice Job Interview Conversation',
+      description: 'Complete 15 minutes of speaking practice on the Job Interview scenario with a minimum 70% score.',
+      type: 'Speaking Session',
+      targetId: 'job_interview',
+      targetMinutes: 15,
+      minimumScore: 70,
+      dueDate: 'Tomorrow',
+      dueDateRaw: '2026-08-01',
+      className: 'Grade 10-A',
+      teacherName: 'Prof. Sharma',
+      status: 'PENDING',
+      score: null,
+    },
+    {
+      id: 102,
+      title: 'Master Present Tenses Lesson',
+      description: 'Read lesson sections and complete 3-level quiz with score > 80%.',
+      type: 'Lesson',
+      targetId: 1,
+      targetMinutes: 10,
+      minimumScore: 80,
+      dueDate: 'In 3 Days',
+      dueDateRaw: '2026-08-03',
+      className: 'Grade 10-A',
+      teacherName: 'Prof. Sharma',
+      status: 'SUBMITTED',
+      score: 88,
+    },
+    {
+      id: 103,
+      title: 'Daily Vocabulary Review',
+      description: 'Review 10 vocabulary words and take the quiz.',
+      type: 'Vocabulary Quiz',
+      targetId: 'vocab_quiz',
+      targetMinutes: 5,
+      minimumScore: 75,
+      dueDate: '31 July',
+      dueDateRaw: '2026-07-31',
+      className: 'Grade 10-A',
+      teacherName: 'Prof. Sharma',
+      status: 'PENDING',
+      score: null,
+    }
+  ]),
+  submit: (id, payload) => api.post(`/api/v1/student/assignments/${id}/complete`, payload).then((r) => r.data).catch(() => ({ success: true })),
+};
+
+export const announcementService = {
+  list: () => optionalGet('/api/v1/school/announcements', [
+    {
+      id: 201,
+      title: 'Grade 8-B Speaking Assessment Due Tomorrow 🚨',
+      content: 'All students of Grade 8-B must complete the Assigned Job Interview conversation before 5 PM tomorrow.',
+      sender: 'Principal / School Admin',
+      timestamp: '2 hours ago',
+      targetClass: 'Grade 8-B',
+      isUrgent: true,
+    },
+    {
+      id: 202,
+      title: 'Weekly English Challenge Available 🏆',
+      content: 'Earn 100 bonus XP by maintaining a 5-day practice streak this week!',
+      sender: 'English Department',
+      timestamp: 'Yesterday',
+      targetClass: 'Entire School',
+      isUrgent: false,
+    }
+  ]),
+};

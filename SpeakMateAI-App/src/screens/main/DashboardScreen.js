@@ -23,6 +23,8 @@ import {
   progressService,
   speakingService,
   vocabularyService,
+  assignmentService,
+  announcementService,
 } from '../../services/appServices';
 import {
   ContinueLearningCard,
@@ -41,6 +43,8 @@ import {
   UpcomingRecommendations,
   AchievementsCard,
   NotificationsCard,
+  AssignmentsCard,
+  SchoolAnnouncementsCard,
 } from '../../components/dashboard';
 import { StateView } from '../../components/ui';
 import { COLORS } from '../../constants/colors';
@@ -69,6 +73,9 @@ export default function DashboardScreen({ navigation }) {
     dashboard: DashboardCache.get(),
   }));
 
+  const [assignments, setAssignments] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+
   const loadDashboard = useCallback(async (refreshing = false) => {
     setState((current) => ({
       ...current,
@@ -78,7 +85,14 @@ export default function DashboardScreen({ navigation }) {
     }));
 
     try {
-      const dashboard = await dashboardService.summary();
+      const [dashboard, myAssignments, schoolAnnouncements] = await Promise.all([
+        dashboardService.summary(),
+        assignmentService.myAssignments().catch(() => []),
+        announcementService.list().catch(() => []),
+      ]);
+
+      setAssignments(myAssignments || []);
+      setAnnouncements(schoolAnnouncements || []);
 
       if (dashboard) {
         if (dashboard.profile) {
@@ -307,6 +321,24 @@ export default function DashboardScreen({ navigation }) {
 
         {/* SECTION 2: TODAY'S GOAL */}
         <DailyGoalCard goal={viewModel.dailyGoal} onContinue={() => handleContinueLearningPress(viewModel.continueLearning)} isDark={isDark} />
+
+        {/* SECTION 2.5: SCHOOL ANNOUNCEMENTS */}
+        <SchoolAnnouncementsCard announcements={announcements} />
+
+        {/* SECTION 2.6: MY ASSIGNMENTS */}
+        <AssignmentsCard
+          assignments={assignments}
+          onStartAssignment={(item) => {
+            if (item.type === 'Speaking Session') {
+              navigation.navigate('Speaking', { screen: 'ConversationScreen', params: { scenarioId: item.targetId } });
+            } else if (item.type === 'Lesson') {
+              navigation.navigate('Lessons', { screen: 'LessonDetail', params: { lessonId: item.targetId } });
+            } else {
+              navigation.navigate('Assignments');
+            }
+          }}
+          onViewAll={() => navigation.navigate('Assignments')}
+        />
 
         {/* SECTION 3: CONTINUE LEARNING */}
         {viewModel.continueLearning && (

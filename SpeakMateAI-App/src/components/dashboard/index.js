@@ -1838,3 +1838,111 @@ const styles = StyleSheet.create({
     fontWeight: '900',
   },
 });
+
+export const AssignmentsCard = memo(({ assignments = [], onStartAssignment, onViewAll }) => {
+  const { cardBg, cardBorder, textPrimary, textSecondary, isDark } = useTheme();
+  
+  if (!assignments || assignments.length === 0) return null;
+
+  const pendingAssignments = assignments.filter(a => a.status === 'PENDING');
+  const activeAssignment = pendingAssignments[0] || assignments[0];
+
+  return (
+    <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+      <View style={styles.cardHeader}>
+        <View style={styles.titleWithBadge}>
+          <Text style={[styles.cardTitle, { color: textPrimary }]}>My Assignments 📝</Text>
+          {pendingAssignments.length > 0 && (
+            <View style={{ backgroundColor: '#EF4444', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
+              <Text style={{ color: '#FFF', fontSize: 10, fontWeight: '900' }}>{pendingAssignments.length} PENDING</Text>
+            </View>
+          )}
+        </View>
+        {onViewAll && (
+          <TouchableOpacity onPress={onViewAll}>
+            <Text style={{ color: COLORS.primary, fontSize: 12, fontWeight: '800' }}>View All ➔</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {activeAssignment ? (
+        <View style={{ backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderRadius: 16, padding: 14, borderWidth: 1, borderColor: isDark ? '#334155' : '#E2E8F0' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+            <View style={{ backgroundColor: activeAssignment.status === 'SUBMITTED' ? '#DCFCE7' : '#FEF3C7', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
+              <Text style={{ color: activeAssignment.status === 'SUBMITTED' ? '#166534' : '#92400E', fontSize: 10, fontWeight: '900' }}>
+                {activeAssignment.status === 'SUBMITTED' ? 'SUBMITTED ✅' : `DUE: ${activeAssignment.dueDate}`}
+              </Text>
+            </View>
+            <Text style={{ fontSize: 11, color: '#64748B', fontWeight: '700' }}>{activeAssignment.teacherName} ({activeAssignment.className})</Text>
+          </View>
+
+          <Text style={{ fontSize: 15, fontWeight: '900', color: textPrimary, marginBottom: 4 }}>{activeAssignment.title}</Text>
+          <Text style={{ fontSize: 12, color: textSecondary, lineHeight: 16, marginBottom: 10 }}>{activeAssignment.description}</Text>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name="time-outline" size={14} color={COLORS.primary} />
+              <Text style={{ fontSize: 11, fontWeight: '800', color: textPrimary }}>Target: {activeAssignment.targetMinutes} Mins</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons name="ribbon-outline" size={14} color="#F59E0B" />
+              <Text style={{ fontSize: 11, fontWeight: '800', color: textPrimary }}>Min Score: {activeAssignment.minimumScore}%</Text>
+            </View>
+          </View>
+
+          {activeAssignment.status === 'PENDING' ? (
+            <TouchableOpacity
+              onPress={() => onStartAssignment && onStartAssignment(activeAssignment)}
+              style={{ backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 10, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Text style={{ color: '#FFF', fontWeight: '900', fontSize: 13 }}>Start Homework ➔</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={{ backgroundColor: '#F0FDF4', borderRadius: 12, paddingVertical: 8, alignItems: 'center', borderWidth: 1, borderColor: '#BBF7D0' }}>
+              <Text style={{ color: '#15803D', fontWeight: '900', fontSize: 12 }}>Completed & Submitted ({activeAssignment.score}% Score) 🎉</Text>
+            </View>
+          )}
+        </View>
+      ) : null}
+    </View>
+  );
+});
+
+export const SchoolAnnouncementsCard = memo(({ announcements = [] }) => {
+  const { cardBg, cardBorder, textPrimary, textSecondary, isDark } = useTheme();
+
+  if (!announcements || announcements.length === 0) return null;
+
+  return (
+    <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+      <View style={styles.cardHeader}>
+        <View style={styles.titleWithBadge}>
+          <Text style={[styles.cardTitle, { color: textPrimary }]}>School Announcements 🔔</Text>
+        </View>
+      </View>
+
+      {announcements.map((item) => (
+        <View
+          key={item.id}
+          style={{
+            backgroundColor: item.isUrgent ? (isDark ? '#451A03' : '#FEF2F2') : (isDark ? '#0F172A' : '#F8FAFC'),
+            borderRadius: 14,
+            padding: 12,
+            marginBottom: 8,
+            borderWidth: 1,
+            borderColor: item.isUrgent ? '#FCA5A5' : (isDark ? '#334155' : '#E2E8F0'),
+          }}
+        >
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+            <Text style={{ fontSize: 10, fontWeight: '900', color: item.isUrgent ? '#DC2626' : COLORS.primary }}>
+              {item.sender.toUpperCase()} • {item.targetClass}
+            </Text>
+            <Text style={{ fontSize: 10, color: '#94A3B8', fontWeight: '700' }}>{item.timestamp}</Text>
+          </View>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: textPrimary, marginBottom: 2 }}>{item.title}</Text>
+          <Text style={{ fontSize: 11, color: textSecondary, lineHeight: 15 }}>{item.content}</Text>
+        </View>
+      ))}
+    </View>
+  );
+});

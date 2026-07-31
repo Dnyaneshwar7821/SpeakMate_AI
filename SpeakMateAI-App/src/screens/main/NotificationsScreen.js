@@ -13,7 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Card, Screen, StateView } from '../../components/ui';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotifications } from '../../context/NotificationContext';
-import { notificationService } from '../../services/appServices';
+import { notificationService, announcementService } from '../../services/appServices';
 import { formatDate } from '../../utils/format';
 import { COLORS } from '../../constants/colors';
 
@@ -21,6 +21,7 @@ export default function NotificationsScreen() {
   const { isDark } = useTheme();
   const { refreshUnread } = useNotifications();
   const [state, setState] = useState({ loading: true, error: '', items: [] });
+  const [announcements, setAnnouncements] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'UNREAD'
 
@@ -31,7 +32,11 @@ export default function NotificationsScreen() {
       setRefreshing(true);
     }
     try {
-      const items = await notificationService.all();
+      const [items, schoolAnnouncements] = await Promise.all([
+        notificationService.all(),
+        announcementService.list().catch(() => []),
+      ]);
+      setAnnouncements(schoolAnnouncements || []);
       setState({ loading: false, error: '', items });
     } catch (error) {
       setState({ loading: false, error: error.userMessage || 'Unable to load notifications.', items: [] });
@@ -183,6 +188,38 @@ export default function NotificationsScreen() {
             />
           }
         >
+          {/* ── School & Class Announcements ── */}
+          {announcements.length > 0 && (
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ fontSize: 12, fontWeight: '900', color: isDark ? '#94A3B8' : '#64748B', marginBottom: 8, letterSpacing: 0.5 }}>
+                SCHOOL & CLASS ANNOUNCEMENTS 📢
+              </Text>
+              {announcements.map((anc) => (
+                <Card key={anc.id} style={[styles.notifCard, anc.isUrgent && { borderColor: '#FCA5A5', borderWidth: 1.5, backgroundColor: isDark ? '#451A03' : '#FEF2F2' }]}>
+                  <View style={styles.notifRow}>
+                    <View style={[styles.iconCircle, { backgroundColor: anc.isUrgent ? '#FEE2E2' : '#EEF2FF' }]}>
+                      <Ionicons name={anc.isUrgent ? 'alert-circle' : 'megaphone'} size={20} color={anc.isUrgent ? '#DC2626' : COLORS.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '900', color: anc.isUrgent ? '#DC2626' : COLORS.primary }}>
+                          {anc.sender.toUpperCase()} • {anc.targetClass}
+                        </Text>
+                        <Text style={{ fontSize: 10, color: '#94A3B8' }}>{anc.timestamp}</Text>
+                      </View>
+                      <Text style={[styles.notifTitleText, isDark && { color: '#F8FAFC' }, { fontWeight: '900' }]}>{anc.title}</Text>
+                      <Text style={[styles.notifMessageText, isDark && { color: '#94A3B8' }]}>{anc.content}</Text>
+                    </View>
+                  </View>
+                </Card>
+              ))}
+            </View>
+          )}
+
+          <Text style={{ fontSize: 12, fontWeight: '900', color: isDark ? '#94A3B8' : '#64748B', marginBottom: 8, letterSpacing: 0.5 }}>
+            GENERAL SYSTEM NOTIFICATIONS 🔔
+          </Text>
+
           {!filteredItems.length ? (
             <Text style={{ fontSize: 13, color: isDark ? '#94A3B8' : '#64748B', fontStyle: 'italic', textAlign: 'center', marginVertical: 24 }}>
               {filter === 'UNREAD' ? 'No unread notifications.' : 'No notifications.'}
