@@ -49,9 +49,12 @@ export default function AssignmentsScreen({ navigation }) {
 
   const handleStartAssignment = (item) => {
     if (item.type === 'Speaking Session') {
-      navigation.navigate('Speaking', {
-        screen: 'ConversationScreen',
-        params: { scenarioId: item.targetId, assignmentId: item.id },
+      navigation.navigate('BottomTabs', {
+        screen: 'Speaking',
+        params: {
+          screen: 'ConversationScreen',
+          params: { scenarioId: item.targetId, assignmentId: item.id },
+        },
       });
     } else if (item.type === 'Lesson') {
       navigation.navigate('Lessons', {

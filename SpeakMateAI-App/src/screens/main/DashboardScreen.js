@@ -342,7 +342,13 @@ export default function DashboardScreen({ navigation }) {
           assignments={assignments}
           onStartAssignment={(item) => {
             if (item.type === 'Speaking Session') {
-              navigation.navigate('Speaking', { screen: 'ConversationScreen', params: { scenarioId: item.targetId } });
+              navigation.navigate('BottomTabs', {
+                screen: 'Speaking',
+                params: {
+                  screen: 'ConversationScreen',
+                  params: { scenarioId: item.targetId, assignmentId: item.id },
+                },
+              });
             } else if (item.type === 'Lesson') {
               navigation.navigate('Lessons', { screen: 'LessonDetail', params: { lessonId: item.targetId } });
             } else {
