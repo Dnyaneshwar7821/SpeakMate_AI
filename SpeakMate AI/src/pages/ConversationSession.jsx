@@ -110,6 +110,7 @@ export function ConversationSession() {
 
   const handleSpeakText = (text) => {
     if (isMuted || !text) return;
+    warmupSpeechAutoplay();
     speakGlobalText(text, speechSpeed, {
       onstart: () => {
         setIsAiSpeaking(true);
@@ -132,16 +133,15 @@ export function ConversationSession() {
   };
 
   useEffect(() => {
-    if (!hasSpokenInitialRef.current && messages.length > 0) {
-      hasSpokenInitialRef.current = true;
-      const initialText = messages[0].message;
-      warmupSpeechAutoplay();
+    warmupSpeechAutoplay();
+    if (messages.length > 0) {
+      const initialText = getSpeakableText(messages[0]);
       const timerId = setTimeout(() => {
-        handleSpeakText(initialText);
-      }, 200);
+        handleSpeakText(initialText || messages[0].message);
+      }, 400);
       return () => clearTimeout(timerId);
     }
-  }, [messages]);
+  }, [sessionId]);
 
   useEffect(() => {
     let interval = null;
@@ -295,7 +295,10 @@ export function ConversationSession() {
       setCorrections(feedback);
 
       const fullSpeakableText = getSpeakableText(feedback);
-      handleSpeakText(fullSpeakableText);
+      warmupSpeechAutoplay();
+      setTimeout(() => {
+        handleSpeakText(fullSpeakableText);
+      }, 250);
     } catch (e) {
       setIsThinking(false);
     }
