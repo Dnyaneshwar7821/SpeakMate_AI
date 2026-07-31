@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 
-import { Canvas } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
 import ROUTES from "../constants/routes";
 import { chatService } from "../services/appServices";
-import { Avatar3D } from "../components/Avatar3D";
+import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
 import { speakGlobalText } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
 
@@ -317,13 +315,18 @@ export function ConversationChat() {
           </div>
         </div>
 
-        {/* 3D Avatar Card */}
+        {/* Live2D Avatar Card */}
         <div className="p-4 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl flex flex-col items-center justify-center text-center space-y-3 shrink-0 relative overflow-hidden">
-          <span className="text-[10px] font-black uppercase tracking-wider text-[#A5B4FC]">
-            SpeakMate AI Coach
-          </span>
+          <div className="flex items-center justify-between w-full px-2">
+            <span className="text-[10px] font-black uppercase tracking-wider text-[#A5B4FC]">
+              SpeakMate AI Live2D Coach
+            </span>
+            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#6c63ff] text-white shadow">
+              ✨ Live2D
+            </span>
+          </div>
 
-          <div className="flex items-center justify-center gap-3 relative">
+          <div className="flex items-center justify-center gap-3 relative w-full">
             {isAiSpeaking && (
               <div className="flex items-center gap-1 h-8">
                 <span className="w-1 bg-[#6c63ff] rounded-full animate-soundbar-1" />
@@ -335,14 +338,9 @@ export function ConversationChat() {
             <div className="relative group">
               <div className={`absolute -inset-2 rounded-full bg-gradient-to-tr from-[#6c63ff] via-[#8b85ff] to-[#ff6584] opacity-50 blur-lg transition-all ${isAiSpeaking ? "opacity-100 animate-pulse" : isListening ? "opacity-90 ring-4 ring-red-500/50" : ""}`} />
 
-              <div className={`relative grid h-32 w-32 md:h-36 md:w-36 place-items-center rounded-full bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
-                <div className="w-full h-full absolute inset-0">
-                  <Canvas camera={{ position: [0, 0, 3], fov: 40 }}>
-                    <ambientLight intensity={1.5} />
-                    <directionalLight position={[2, 2, 2]} intensity={2} />
-                    <Environment preset="city" />
-                    <Avatar3D viseme={viseme} isSpeaking={isAiSpeaking} />
-                  </Canvas>
+              <div className={`relative grid h-48 w-48 md:h-60 md:w-60 place-items-center rounded-3xl bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
+                <div className="w-full h-full absolute inset-0 flex items-center justify-center">
+                  <AvatarCanvas className="w-full h-full" />
                 </div>
               </div>
 

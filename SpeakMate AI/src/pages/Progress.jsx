@@ -35,8 +35,15 @@ export function Progress() {
   const level = Math.floor(xp / 100) + 1;
   const currentLevelBaseXp = (level - 1) * 100;
   const levelXpProgress = xp - currentLevelBaseXp;
-  const levelPercentage = Math.min(100, Math.max(0, (levelXpProgress / 100) * 100));
-
+  const weeklyData = liveStats.weeklyData || [
+    { day: "Mon", studyMinutes: 20 },
+    { day: "Tue", studyMinutes: 35 },
+    { day: "Wed", studyMinutes: 15 },
+    { day: "Thu", studyMinutes: 40 },
+    { day: "Fri", studyMinutes: 25 },
+    { day: "Sat", studyMinutes: 50 },
+    { day: "Sun", studyMinutes: 30 },
+  ];
   const maxMins = Math.max(10, ...weeklyData.map((w) => w.studyMinutes || 0));
 
   return (
