@@ -184,10 +184,10 @@ export function ConversationChat() {
     setSpeechSpeed(nextSpeed);
     localStorage.setItem("speakmate_voice_speed", String(nextSpeed));
 
-    // Replay latest AI message with new speed (Matches Mobile App VoiceService)
+    // Replay latest AI message with new speed
     const lastAiMsg = [...messages].reverse().find((m) => m.sender === "ai" || m.role === "assistant");
-    if (lastAiMsg && lastAiMsg.text) {
-      speakGlobalText(lastAiMsg.text, nextSpeed);
+    if (lastAiMsg && lastAiMsg.message) {
+      speakGlobalText(lastAiMsg.message, nextSpeed);
     }
   };
 
@@ -281,27 +281,72 @@ export function ConversationChat() {
   };
 
   return (
-    <div className="h-[calc(100vh-80px)] flex flex-col md:flex-row max-w-7xl mx-auto gap-4 p-2 sm:p-4 overflow-hidden">
-      {/* LEFT PANEL: Avatar & Controls */}
-      <div className="w-full md:w-80 lg:w-96 flex flex-col gap-3 shrink-0 overflow-y-auto pr-1">
-        {/* Top Header Card */}
-        <div className="p-3.5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] flex items-center justify-between gap-3 shadow-sm shrink-0">
+    <div className="h-[calc(100vh-80px)] flex flex-col max-w-5xl mx-auto overflow-hidden relative border border-white/10 rounded-3xl shadow-2xl ring-1 ring-black/20">
+      
+      {/* 1. FULL SCREEN/BACKGROUND AVATAR CANVAS LAYER */}
+      <div className="absolute inset-0 z-0 bg-[#0F172A] overflow-hidden">
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center">
+          <AvatarCanvas className="w-full h-full" framing="faceToChest" onModelLoaded={setModel} />
+        </div>
+
+        {/* Ambient Pulsing Soundbar Waves when AI speaks */}
+        {isAiSpeaking && (
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 flex items-center gap-1.5 h-10 px-4 py-1.5 rounded-full bg-slate-900/60 backdrop-blur-md border border-indigo-500/40 shadow-xl pointer-events-none">
+            <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-1 h-6" />
+            <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2 h-8" />
+            <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3 h-5" />
+            <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-4 h-7" />
+            <span className="text-[10px] font-black text-indigo-200 uppercase tracking-widest ml-1">AI Speaking</span>
+          </div>
+        )}
+
+        {/* Dark gradient overlays for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/50 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0F172A]/60 via-transparent to-transparent pointer-events-none" />
+      </div>
+
+      {/* 2. FLOATING UI LAYER (z-10) */}
+      <div className="relative z-10 flex-1 flex flex-col h-full p-2 sm:p-4 gap-3 pointer-events-none">
+        
+        {/* TOP HEADER (Title + Sound + Speed + Hints) */}
+        <div className="pointer-events-auto p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-white/10 flex items-center justify-between gap-3 shadow-2xl shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <Link
               to={ROUTES.AI_CHAT}
-              className="p-2 rounded-xl bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] shrink-0"
+              className="p-2 rounded-xl bg-slate-800/60 border border-white/10 text-slate-300 hover:text-white transition-colors shrink-0"
+              title="Back to Chat Modes"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </Link>
             <div className="min-w-0">
-              <h2 className="font-extrabold text-xs text-[var(--text-primary)] truncate">{title}</h2>
-              <p className="text-[10px] text-[var(--text-secondary)] font-semibold truncate">Mode: {mode}</p>
+              <div className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <h2 className="font-extrabold text-xs text-white truncate">{title}</h2>
+              </div>
+              <p className="text-[10px] text-[#A5B4FC] font-semibold truncate">Mode: {mode}</p>
             </div>
           </div>
 
+          {/* Quick Actions Header Toolbar */}
           <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={handleFetchHints}
+              disabled={loadingHints}
+              className="px-2.5 py-1 rounded-xl bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/40 text-indigo-300 text-[11px] font-extrabold transition-all"
+            >
+              💡 {loadingHints ? "..." : "AI Hint"}
+            </button>
+
+            <button
+              onClick={handleToggleSpeed}
+              className="px-2.5 py-1 rounded-xl bg-slate-800/60 border border-white/10 text-white text-[11px] font-extrabold transition-all hover:bg-slate-700/60"
+              title="Speech Speed"
+            >
+              ⏱️ {speechSpeed}x
+            </button>
+
             <button
               onClick={() => {
                 if (!isMuted && "speechSynthesis" in window) {
@@ -311,8 +356,8 @@ export function ConversationChat() {
                 }
                 setIsMuted(!isMuted);
               }}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-extrabold transition-all border ${
-                isMuted ? "bg-red-500/10 border-red-500/30 text-red-500" : "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)]"
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all border ${
+                isMuted ? "bg-red-500/20 border-red-500/40 text-red-400" : "bg-slate-800/60 border-white/10 text-white hover:bg-slate-700/60"
               }`}
             >
               {isMuted ? "🔇 Muted" : "🔊 Sound On"}
@@ -320,238 +365,176 @@ export function ConversationChat() {
           </div>
         </div>
 
-        {/* Live2D Avatar Card */}
-        <div className="p-4 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-xl flex flex-col items-center justify-center text-center space-y-3 shrink-0 relative overflow-hidden">
-          <div className="flex items-center justify-between w-full px-2">
-            <span className="text-[10px] font-black uppercase tracking-wider text-[#A5B4FC]">
-              SpeakMate AI Live2D Coach
+        {/* SPACER FOR AVATAR VISIBILITY */}
+        <div className="flex-1 min-h-0 pointer-events-none" />
+
+        {/* 3. CONVERSATION THREAD OVERLAY CARD */}
+        <div className="pointer-events-auto max-h-[48%] bg-slate-900/60 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col shrink-0">
+          
+          {/* Thread Header */}
+          <div className="px-4 py-2 border-b border-white/10 bg-slate-800/40 flex items-center justify-between shrink-0">
+            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+              💬 Conversation Thread
             </span>
-            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold bg-[#6c63ff] text-white shadow">
-              ✨ Live2D
+            <span className="text-[10px] font-extrabold text-indigo-400">
+              {messages.length} messages
             </span>
           </div>
 
-          <div className="flex items-center justify-center gap-3 relative w-full">
-            {isAiSpeaking && (
-              <div className="flex items-center gap-1 h-8">
-                <span className="w-1 bg-[#6c63ff] rounded-full animate-soundbar-1" />
-                <span className="w-1 bg-[#ff6584] rounded-full animate-soundbar-2" />
-                <span className="w-1 bg-emerald-400 rounded-full animate-soundbar-3" />
-              </div>
-            )}
+          {/* Messages List Container */}
+          <div className="flex-1 overflow-y-auto space-y-3 p-3.5">
+            {messages.map((m) => {
+              const isUser = m.sender === "user";
+              const hasGrammar = m.grammarCorrection && m.grammarCorrection !== "none";
+              const hasBetter = m.betterSentence && m.betterSentence !== "none";
+              const hasVocab = m.vocabularySuggestions && m.vocabularySuggestions !== "none";
 
-            <div className="relative group">
-              <div className={`absolute -inset-2 rounded-full bg-gradient-to-tr from-[#6c63ff] via-[#8b85ff] to-[#ff6584] opacity-50 blur-lg transition-all ${isAiSpeaking ? "opacity-100 animate-pulse" : isListening ? "opacity-90 ring-4 ring-red-500/50" : ""}`} />
-
-              <div className={`relative grid h-48 w-48 md:h-60 md:w-60 place-items-center rounded-3xl bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
-                <div className="w-full h-full absolute inset-0 flex items-center justify-center">
-                  <AvatarCanvas className="w-full h-full" framing="faceToChest" onModelLoaded={setModel} />
-                </div>
-              </div>
-
-              <span className={`absolute -bottom-1 -right-1 h-6 w-6 rounded-full border-2 border-[#0F172A] flex items-center justify-center text-[10px] shadow-lg ${isListening ? "bg-red-500 text-white animate-bounce" : isAiSpeaking ? "bg-[#6c63ff] text-white animate-pulse" : "bg-emerald-500 text-white"}`}>
-                {isListening ? "🎙️" : isAiSpeaking ? "🔊" : "✨"}
-              </span>
-            </div>
-
-            {isAiSpeaking && (
-              <div className="flex items-center gap-1 h-8">
-                <span className="w-1 bg-emerald-400 rounded-full animate-soundbar-3" />
-                <span className="w-1 bg-[#ff6584] rounded-full animate-soundbar-2" />
-                <span className="w-1 bg-[#6c63ff] rounded-full animate-soundbar-4" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Speed & Hints Card */}
-        <div className="p-4 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm flex flex-col gap-3 shrink-0">
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-[var(--text-secondary)]">Speech Settings</span>
-            <button
-              onClick={handleToggleSpeed}
-              className="px-3.5 py-1.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-extrabold text-[#6c63ff] hover:opacity-80 transition-all flex items-center gap-1.5"
-              title="Adjust Speech Speed"
-            >
-              <span>⏱️ {speechSpeed}x Speed</span>
-            </button>
-          </div>
-
-          <button
-            onClick={handleFetchHints}
-            disabled={loadingHints}
-            className="w-full py-2 px-3 rounded-xl bg-[#6c63ff]/10 hover:bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-bold transition-all border border-[#6c63ff]/20 flex items-center justify-center gap-1.5"
-          >
-            <span>💡 {loadingHints ? "Loading suggestions..." : "Get Smart AI Suggestion"}</span>
-          </button>
-        </div>
-      </div>
-
-      {/* RIGHT PANEL: Chat Thread */}
-      <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-3xl shadow-sm overflow-hidden">
-        {/* Right Panel Header */}
-        <div className="px-5 py-3 border-b border-[var(--border-default)] bg-[var(--bg-elevated)]/50 flex items-center justify-between shrink-0">
-          <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">
-            Conversation Thread
-          </span>
-          <span className="text-[11px] font-semibold text-[#6c63ff]">
-            {messages.length} messages
-          </span>
-        </div>
-
-        {/* Messages Thread Container */}
-        <div className="flex-1 overflow-y-auto space-y-4 p-4">
-          {messages.map((m) => {
-            const isUser = m.sender === "user";
-            const hasGrammar = m.grammarCorrection && m.grammarCorrection !== "none";
-            const hasBetter = m.betterSentence && m.betterSentence !== "none";
-            const hasVocab = m.vocabularySuggestions && m.vocabularySuggestions !== "none";
-
-            return (
-              <div key={m.id} className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
-                <div
-                  className={`max-w-lg p-3.5 rounded-2xl text-xs font-semibold shadow-sm space-y-1.5 relative group ${
-                    isUser
-                      ? "bg-[#6c63ff] text-white rounded-br-none"
-                      : "bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-bl-none"
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <span className="text-[10px] opacity-75 font-bold uppercase">{isUser ? "You" : "SpeakMate AI Tutor"}</span>
-                    <div className="flex items-center gap-2">
-                      {m.bookmarked && <span className="text-amber-400">⭐</span>}
-                      {!isUser && (
-                        <button onClick={() => handleSpeakText(getSpeakableText(m))} className="text-xs hover:scale-110" title="Play Voice & Correction">
-                          🔊
-                        </button>
-                      )}
-                      <button onClick={() => setSelectedMessage(m)} className="text-xs opacity-60 hover:opacity-100" title="Options">
-                        •••
-                      </button>
-                    </div>
-                  </div>
-
-                  <p className="leading-relaxed text-xs">{m.message}</p>
-
-                  {/* Inline Tutor Evaluation Feedback Card */}
-                  {!isUser && (hasGrammar || hasBetter || hasVocab) && (
-                    <div className="mt-2.5 p-3 rounded-xl bg-[#1E1B4B]/30 border border-[#6c63ff]/30 space-y-2 text-[11px]">
-                      <div className="flex items-center justify-between text-xs font-extrabold text-[#6c63ff]">
-                        <span>🎓 Tutor Feedback & Corrections</span>
-                        <button
-                          onClick={() => handleSpeakText(getSpeakableText(m))}
-                          className="px-2 py-0.5 rounded bg-[#6c63ff] text-white text-[9px] font-bold hover:bg-[#8b85ff]"
-                        >
-                          🔊 Listen Correction
+              return (
+                <div key={m.id} className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}>
+                  <div
+                    className={`max-w-xl p-3.5 rounded-2xl text-xs font-semibold shadow-lg space-y-1.5 relative group ${
+                      isUser
+                        ? "bg-[#6c63ff] text-white rounded-br-none"
+                        : "bg-slate-800/90 text-slate-100 border border-white/10 rounded-bl-none"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[10px] opacity-75 font-bold uppercase">{isUser ? "You" : "SpeakMate AI Tutor"}</span>
+                      <div className="flex items-center gap-2">
+                        {m.bookmarked && <span className="text-amber-400">⭐</span>}
+                        {!isUser && (
+                          <button onClick={() => handleSpeakText(getSpeakableText(m))} className="text-xs hover:scale-110" title="Play Voice & Correction">
+                            🔊
+                          </button>
+                        )}
+                        <button onClick={() => setSelectedMessage(m)} className="text-xs opacity-60 hover:opacity-100" title="Options">
+                          •••
                         </button>
                       </div>
-
-                      {hasGrammar && (
-                        <div>
-                          <span className="text-[9px] font-bold text-[#818CF8] uppercase">Grammar Correction</span>
-                          <p className="font-semibold text-emerald-500 mt-0.5">👉 {m.grammarCorrection}</p>
-                        </div>
-                      )}
-
-                      {hasBetter && (
-                        <div>
-                          <span className="text-[9px] font-bold text-[#818CF8] uppercase">Better Sentence</span>
-                          <p className="font-semibold text-[var(--text-primary)] mt-0.5">💡 "{m.betterSentence}"</p>
-                        </div>
-                      )}
-
-                      {m.explanation && (
-                        <p className="italic text-[var(--text-secondary)] border-t border-[var(--border-subtle)] pt-1 text-[10px]">
-                          {m.explanation}
-                        </p>
-                      )}
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
 
-          {evaluating && (
-            <div className="flex items-center gap-2 p-3 text-xs font-bold text-[var(--text-secondary)]">
-              <span className="h-2 w-2 rounded-full bg-[#6c63ff] animate-ping" />
-              SpeakMate AI thinking & evaluating syntax...
+                    <p className="leading-relaxed text-xs">{m.message}</p>
+
+                    {/* Inline Tutor Evaluation Feedback Card */}
+                    {!isUser && (hasGrammar || hasBetter || hasVocab) && (
+                      <div className="mt-2.5 p-3 rounded-xl bg-[#1E1B4B]/50 border border-[#6c63ff]/40 space-y-2 text-[11px]">
+                        <div className="flex items-center justify-between text-xs font-extrabold text-[#A5B4FC]">
+                          <span>🎓 Tutor Feedback & Corrections</span>
+                          <button
+                            onClick={() => handleSpeakText(getSpeakableText(m))}
+                            className="px-2 py-0.5 rounded bg-[#6c63ff] text-white text-[9px] font-bold hover:bg-[#8b85ff]"
+                          >
+                            🔊 Listen Correction
+                          </button>
+                        </div>
+
+                        {hasGrammar && (
+                          <div>
+                            <span className="text-[9px] font-bold text-indigo-300 uppercase">Grammar Correction</span>
+                            <p className="font-semibold text-emerald-400 mt-0.5">👉 {m.grammarCorrection}</p>
+                          </div>
+                        )}
+
+                        {hasBetter && (
+                          <div>
+                            <span className="text-[9px] font-bold text-indigo-300 uppercase">Better Sentence</span>
+                            <p className="font-semibold text-slate-200 mt-0.5">💡 "{m.betterSentence}"</p>
+                          </div>
+                        )}
+
+                        {m.explanation && (
+                          <p className="italic text-slate-400 border-t border-white/10 pt-1 text-[10px]">
+                            {m.explanation}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {evaluating && (
+              <div className="flex items-center gap-2 p-3 text-xs font-bold text-indigo-300">
+                <span className="h-2 w-2 rounded-full bg-[#6c63ff] animate-ping" />
+                SpeakMate AI tutor is typing & evaluating...
+              </div>
+            )}
+
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* AI Hints Suggestions Chips Tray */}
+          {hints.length > 0 && (
+            <div className="p-2.5 border-t border-white/10 bg-slate-800/40 flex items-center gap-2 overflow-x-auto shrink-0">
+              <span className="text-[10px] font-bold text-slate-400 shrink-0">Suggestions:</span>
+              {hints.map((hint, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleSendMessage(hint)}
+                  className="px-3 py-1 rounded-xl bg-slate-700/60 hover:bg-[#6c63ff] hover:text-white text-xs font-semibold text-slate-200 shrink-0 transition-all border border-white/10"
+                >
+                  {hint}
+                </button>
+              ))}
             </div>
           )}
 
-          <div ref={chatEndRef} />
-        </div>
-
-        {/* Hints Suggestions Tray */}
-        {hints.length > 0 && (
-          <div className="p-3 border-t border-[var(--border-default)] bg-[var(--bg-elevated)]/30 flex items-center gap-2 overflow-x-auto shrink-0">
-            <span className="text-[10px] font-bold text-[var(--text-secondary)] shrink-0">Suggestions:</span>
-            {hints.map((hint, idx) => (
+          {/* Integrated Text Input Bar */}
+          <div className="p-3 border-t border-white/10 bg-slate-900/80 shrink-0">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSendMessage();
+              }}
+              className="flex items-center gap-2"
+            >
               <button
-                key={idx}
-                onClick={() => handleSendMessage(hint)}
-                className="px-3 py-1.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6c63ff] hover:text-white text-xs font-semibold shrink-0 transition-all border border-[var(--border-default)]"
+                type="button"
+                onClick={handleToggleRecording}
+                className={`p-2.5 rounded-xl font-bold transition-all ${
+                  isListening ? "bg-red-500 text-white animate-pulse" : "bg-slate-800 border border-white/10 text-slate-300 hover:text-white"
+                }`}
+                title="Toggle Mic Recording"
               >
-                {hint}
+                🎙️
               </button>
-            ))}
+
+              <input
+                type="text"
+                placeholder={isListening ? "Listening to your voice..." : "Type response to tutor..."}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                disabled={evaluating}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 bg-slate-800/80 text-xs font-semibold focus:outline-none focus:border-[#6c63ff] text-white placeholder:text-slate-500"
+              />
+
+              <button
+                type="submit"
+                disabled={!inputText.trim() || evaluating}
+                className="px-5 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#8b85ff] disabled:opacity-50 text-white font-extrabold text-xs shadow-lg transition-all shrink-0"
+              >
+                Send →
+              </button>
+            </form>
           </div>
-        )}
-
-        {/* Bottom Input & Voice Control Bar */}
-        <div className="p-3.5 border-t border-[var(--border-default)] bg-[var(--bg-surface)] flex flex-col gap-2 shrink-0">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSendMessage();
-            }}
-            className="flex items-center gap-2"
-          >
-            <button
-              type="button"
-              onClick={handleToggleRecording}
-              className={`p-3 rounded-2xl font-bold transition-all ${
-                isListening ? "bg-red-500 text-white animate-pulse" : "bg-[var(--bg-elevated)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-              }`}
-              title="Toggle Mic Recording"
-            >
-              🎙️
-            </button>
-
-            <input
-              type="text"
-              placeholder={isListening ? "Listening to your voice..." : "Type response to tutor..."}
-              value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              disabled={evaluating}
-              className="flex-1 px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff] text-[var(--text-primary)]"
-            />
-
-            <button
-              type="submit"
-              disabled={!inputText.trim() || evaluating}
-              className="px-5 py-3 rounded-2xl bg-[#6c63ff] hover:bg-[#8b85ff] disabled:opacity-50 text-white font-extrabold text-xs shadow-md transition-all shrink-0"
-            >
-              Send →
-            </button>
-          </form>
         </div>
       </div>
 
       {/* Options Modal */}
       {selectedMessage && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-sm p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-2xl space-y-3">
-            <h3 className="text-sm font-extrabold text-[var(--text-primary)]">Message Options</h3>
-            <p className="text-xs text-[var(--text-secondary)] italic truncate">"{selectedMessage.message}"</p>
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm p-6 rounded-3xl bg-slate-900 border border-white/10 shadow-2xl space-y-3 text-white">
+            <h3 className="text-sm font-extrabold text-white">Message Options</h3>
+            <p className="text-xs text-slate-400 italic truncate">"{selectedMessage.message}"</p>
 
-            <div className="space-y-2 pt-2 border-t border-[var(--border-default)]">
+            <div className="space-y-2 pt-2 border-t border-white/10">
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(selectedMessage.message);
                   setSelectedMessage(null);
                 }}
-                className="w-full py-2.5 px-4 rounded-xl bg-[var(--bg-elevated)] text-xs font-extrabold text-[var(--text-primary)] text-left hover:bg-[#6c63ff] hover:text-white transition-all"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 text-xs font-extrabold text-white text-left hover:bg-[#6c63ff] transition-all"
               >
                 📋 Copy Message Text
               </button>
@@ -561,14 +544,14 @@ export function ConversationChat() {
                   handleSpeakText(getSpeakableText(selectedMessage));
                   setSelectedMessage(null);
                 }}
-                className="w-full py-2.5 px-4 rounded-xl bg-[var(--bg-elevated)] text-xs font-extrabold text-[var(--text-primary)] text-left hover:bg-[#6c63ff] hover:text-white transition-all"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 text-xs font-extrabold text-white text-left hover:bg-[#6c63ff] transition-all"
               >
                 🔊 Replay Voice Audio
               </button>
 
               <button
                 onClick={() => handleToggleBookmark(selectedMessage.id)}
-                className="w-full py-2.5 px-4 rounded-xl bg-[var(--bg-elevated)] text-xs font-extrabold text-amber-500 text-left hover:bg-amber-500 hover:text-white transition-all"
+                className="w-full py-2.5 px-4 rounded-xl bg-slate-800 text-xs font-extrabold text-amber-400 text-left hover:bg-amber-500 hover:text-white transition-all"
               >
                 ⭐ {selectedMessage.bookmarked ? "Remove Bookmark" : "Bookmark Tip"}
               </button>
@@ -577,7 +560,7 @@ export function ConversationChat() {
             <div className="pt-2 flex justify-end">
               <button
                 onClick={() => setSelectedMessage(null)}
-                className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] text-xs font-bold text-[var(--text-secondary)]"
+                className="px-4 py-2 rounded-xl bg-slate-800 text-xs font-bold text-slate-400 hover:text-white"
               >
                 Close
               </button>
