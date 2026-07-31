@@ -1,12 +1,10 @@
-import React, { useContext, useRef, useState, useEffect } from 'react';
+import React, { useContext, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
-  Alert,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   Pressable,
   Keyboard,
@@ -30,14 +28,24 @@ import {
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
 
+  const [loginType, setLoginType] = useState('STANDARD'); // 'STANDARD' | 'SCHOOL'
+  const [schoolCode, setSchoolCode] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  const emailRef = useRef(null);
   const passwordRef = useRef(null);
 
   const validate = () => {
+    if (loginType === 'SCHOOL') {
+      if (!schoolCode.trim()) return 'Please enter your School Code (e.g. SCH-1082).';
+      if (!email.trim()) return 'Please enter your Student ID or Email.';
+      if (!password) return 'Please enter your password.';
+      return null;
+    }
+
     if (!email.trim()) return 'Please enter your email address.';
     if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
     if (!password) return 'Please enter your password.';
@@ -55,9 +63,17 @@ export default function LoginScreen({ navigation }) {
     setError('');
     setLoading(true);
     try {
-      await login({ email: email.trim().toLowerCase(), password });
+      if (loginType === 'SCHOOL') {
+        await AsyncStorage.setItem('speakmate_account_type', 'STUDENT');
+        await AsyncStorage.setItem('speakmate_school_code', schoolCode.trim().toUpperCase());
+      }
+      await login({
+        email: email.trim().toLowerCase(),
+        password,
+        schoolCode: loginType === 'SCHOOL' ? schoolCode.trim().toUpperCase() : undefined,
+      });
     } catch (err) {
-      const serverMsg = err.response?.data?.message || err.userMessage || 'Invalid email or password. Please try again.';
+      const serverMsg = err.response?.data?.message || err.userMessage || 'Invalid login details. Please check your credentials and try again.';
       setError(serverMsg);
     } finally {
       setLoading(false);
@@ -106,28 +122,87 @@ export default function LoginScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* Tap-dismiss inner container to replace buggy outer wrapper */}
           <Pressable onPress={Keyboard.dismiss} style={styles.pressableContainer}>
             <AuthCard style={styles.card}>
+              
+              {/* LOGIN TYPE TAB SEGMENT */}
+              <View style={styles.tabContainer}>
+                <TouchableOpacity
+                  style={[styles.tabBtn, loginType === 'STANDARD' && styles.activeTabBtn]}
+                  onPress={() => { setLoginType('STANDARD'); setError(''); }}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons
+                    name="person-circle-outline"
+                    size={16}
+                    color={loginType === 'STANDARD' ? '#4F46E5' : '#64748B'}
+                  />
+                  <Text style={[styles.tabBtnText, loginType === 'STANDARD' && styles.activeTabBtnText]}>
+                    Standard
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.tabBtn, loginType === 'SCHOOL' && styles.activeTabBtn]}
+                  onPress={() => { setLoginType('SCHOOL'); setError(''); }}
+                  activeOpacity={0.85}
+                >
+                  <Ionicons
+                    name="school-outline"
+                    size={16}
+                    color={loginType === 'SCHOOL' ? '#4F46E5' : '#64748B'}
+                  />
+                  <Text style={[styles.tabBtnText, loginType === 'SCHOOL' && styles.activeTabBtnText]}>
+                    School Code 🏫
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
               {/* Form Validation Error Message */}
               <ErrorMessage message={error} />
 
-              <AuthInput
-                label="Email Address"
-                value={email}
-                onChangeText={(t) => { setEmail(t); if (error) setError(''); }}
-                placeholder="you@example.com"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                returnKeyType="next"
-                onSubmitEditing={() => passwordRef.current?.focus()}
-              />
+              {loginType === 'SCHOOL' ? (
+                <>
+                  <AuthInput
+                    label="School Code"
+                    value={schoolCode}
+                    onChangeText={(t) => { setSchoolCode(t.toUpperCase()); if (error) setError(''); }}
+                    placeholder="e.g. SCH-1082"
+                    autoCapitalize="characters"
+                    returnKeyType="next"
+                    onSubmitEditing={() => emailRef.current?.focus()}
+                  />
+
+                  <AuthInput
+                    label="Student ID or Email"
+                    value={email}
+                    onChangeText={(t) => { setEmail(t); if (error) setError(''); }}
+                    placeholder="e.g. STU-1082 or student@school.edu"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    returnKeyType="next"
+                    inputRef={emailRef}
+                    onSubmitEditing={() => passwordRef.current?.focus()}
+                  />
+                </>
+              ) : (
+                <AuthInput
+                  label="Email Address"
+                  value={email}
+                  onChangeText={(t) => { setEmail(t); if (error) setError(''); }}
+                  placeholder="you@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  returnKeyType="next"
+                  onSubmitEditing={() => passwordRef.current?.focus()}
+                />
+              )}
 
               <PasswordInput
                 label="Password"
                 value={password}
                 onChangeText={(t) => { setPassword(t); if (error) setError(''); }}
-                placeholder="Your password"
+                placeholder={loginType === 'SCHOOL' ? 'Enter student password' : 'Your password'}
                 returnKeyType="done"
                 onSubmitEditing={handleLogin}
                 inputRef={passwordRef}
@@ -145,7 +220,7 @@ export default function LoginScreen({ navigation }) {
 
               {/* Action Buttons */}
               <PrimaryButton
-                title="Sign In"
+                title={loginType === 'SCHOOL' ? 'Sign In as Student 🏫' : 'Sign In'}
                 onPress={handleLogin}
                 loading={loading}
                 disabled={loading}
@@ -264,6 +339,39 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 16,
+    padding: 4,
+    marginBottom: 18,
+  },
+  tabBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+  },
+  activeTabBtn: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  tabBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  activeTabBtnText: {
+    color: '#4F46E5',
+    fontWeight: '800',
+  },
   rememberForgotRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
@@ -280,37 +388,6 @@ const styles = StyleSheet.create({
   loginBtn: {
     marginBottom: 6,
   },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 18,
-    gap: 10,
-  },
-  googleButton: {
-    minHeight: 50,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 12,
-    backgroundColor: '#FFFFFF',
-  },
-  googleButtonText: {
-    color: '#0F172A',
-    fontWeight: '800',
-    fontSize: 15,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E2E8F0',
-  },
-  dividerText: {
-    color: '#94A3B8',
-    fontSize: 14,
-    fontWeight: '600',
-  },
   footer: {
     textAlign: 'center',
     color: '#94A3B8',
@@ -321,4 +398,3 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-

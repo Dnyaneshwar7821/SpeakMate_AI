@@ -18,6 +18,7 @@ import { COLORS } from '../../constants/colors';
 
 import { useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
+import { assignmentService } from '../../services/appServices';
 
 export default function SpeakingSummaryScreen({ navigation, route }) {
   const { isDark, theme } = useTheme();
@@ -36,6 +37,16 @@ export default function SpeakingSummaryScreen({ navigation, route }) {
       showToast(`Session Complete! +${xp} XP`, 'xp', `Practiced for ${mins}m ${secs}s`);
     } else {
       showToast('Session Complete! 🎙️', 'info', 'Keep practicing daily to earn XP!');
+    }
+
+    // Auto submit student homework assignment if completed
+    const assignmentId = summary?.assignmentId || route.params?.assignmentId || 101;
+    if (assignmentId && score >= 70) {
+      assignmentService.submit(assignmentId, { score: Math.round(score), status: 'SUBMITTED' })
+        .then(() => {
+          showToast('Homework Submitted to Teacher! 📝', 'success', `Scored ${Math.round(score)}% (Target >= 70%)`);
+        })
+        .catch(() => {});
     }
   }, []);
 
