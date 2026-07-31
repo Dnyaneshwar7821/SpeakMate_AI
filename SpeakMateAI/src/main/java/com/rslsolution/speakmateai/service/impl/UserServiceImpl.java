@@ -474,6 +474,11 @@ public class UserServiceImpl implements UserService {
 				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) || 
 				(user.getEnglishLevel() != null && !user.getEnglishLevel().trim().isEmpty());
 
+		boolean isStudent = (user.getSchoolId() != null) ||
+				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||
+				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
+				(user.getAgeGroup() != null && user.getAgeGroup().toLowerCase().contains("school"));
+
 		return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
 				.email(user.getEmail()).role(user.getRole()).avatar(user.getAvatar()).active(user.isActive())
 				.createdAt(user.getCreatedAt()).welcomeCompleted(user.isWelcomeCompleted())
@@ -481,7 +486,8 @@ public class UserServiceImpl implements UserService {
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
 				.englishLevel(effectiveLevel).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
-				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup()).schoolGrade(effectiveGrade).interests(user.getInterests()).build();
+				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup()).schoolGrade(effectiveGrade).interests(user.getInterests())
+				.schoolId(user.getSchoolId()).isSchoolStudent(isStudent).build();
 	}
 
 	private void validatePasswordStrength(String password) {

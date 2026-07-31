@@ -27,7 +27,17 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'UNREAD'
 
-  const isStudentUser = Boolean(user?.schoolId || user?.role === 'STUDENT' || user?.isSchoolStudent);
+  const isStudentUser = Boolean(
+    user?.schoolId ||
+    user?.schoolCode ||
+    user?.isSchoolStudent ||
+    user?.schoolGrade ||
+    user?.role === 'STUDENT' ||
+    user?.role === 'SCHOOL_STUDENT' ||
+    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('school')) ||
+    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('student')) ||
+    (user?.learningGoal && String(user.learningGoal).toLowerCase().includes('school'))
+  );
 
   const load = async (isRef = false) => {
     if (!isRef) {

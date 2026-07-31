@@ -332,7 +332,17 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
     );
   };
 
-  const isStudentUser = Boolean(user?.schoolId || user?.role === 'STUDENT' || user?.isSchoolStudent);
+  const isStudentUser = Boolean(
+    user?.schoolId ||
+    user?.schoolCode ||
+    user?.isSchoolStudent ||
+    user?.schoolGrade ||
+    user?.role === 'STUDENT' ||
+    user?.role === 'SCHOOL_STUDENT' ||
+    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('school')) ||
+    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('student')) ||
+    (user?.learningGoal && String(user.learningGoal).toLowerCase().includes('school'))
+  );
 
   const navSections = useMemo(() => {
     return NAV_SECTIONS.map((sec) => {

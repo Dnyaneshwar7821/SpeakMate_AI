@@ -55,6 +55,10 @@ public class UserResponse {
 
 	private String interests;
 
+	private Long schoolId;
+
+	private Boolean isSchoolStudent;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 
@@ -115,6 +119,12 @@ public class UserResponse {
 	public String getInterests() { return interests; }
 	public void setInterests(String interests) { this.interests = interests; }
 
+	public Long getSchoolId() { return schoolId; }
+	public void setSchoolId(Long schoolId) { this.schoolId = schoolId; }
+
+	public Boolean getIsSchoolStudent() { return isSchoolStudent; }
+	public void setIsSchoolStudent(Boolean isSchoolStudent) { this.isSchoolStudent = isSchoolStudent; }
+
 	public static UserResponseBuilder builder() {
 		return new UserResponseBuilder();
 	}
@@ -140,6 +150,8 @@ public class UserResponse {
 		private String ageGroup;
 		private String schoolGrade;
 		private String interests;
+		private Long schoolId;
+		private Boolean isSchoolStudent;
 
 		public UserResponseBuilder id(Long id) { this.id = id; return this; }
 		public UserResponseBuilder firstName(String firstName) { this.firstName = firstName; return this; }
@@ -161,6 +173,8 @@ public class UserResponse {
 		public UserResponseBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
 		public UserResponseBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
 		public UserResponseBuilder interests(String interests) { this.interests = interests; return this; }
+		public UserResponseBuilder schoolId(Long schoolId) { this.schoolId = schoolId; return this; }
+		public UserResponseBuilder isSchoolStudent(Boolean isSchoolStudent) { this.isSchoolStudent = isSchoolStudent; return this; }
 
 		public UserResponse build() {
             UserResponse obj = new UserResponse();
@@ -184,6 +198,8 @@ public class UserResponse {
             obj.setAgeGroup(ageGroup);
             obj.setSchoolGrade(schoolGrade);
             obj.setInterests(interests);
+            obj.setSchoolId(schoolId);
+            obj.setIsSchoolStudent(isSchoolStudent);
             return obj;
         }
 	}
