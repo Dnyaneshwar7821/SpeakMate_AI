@@ -221,7 +221,11 @@ public class UserServiceImpl implements UserService {
 					.totalGrammarChecks(0)
 					.totalVocabularyWords(0)
 					.build();
-			progressRepository.save(defaultProgress);
+			try {
+				progressRepository.save(defaultProgress);
+			} catch (Exception ex) {
+				System.err.println("[Provision Warning] Default progress save: " + ex.getMessage());
+			}
 		}
 
 		// Default Settings: all @Builder.Default values on the entity are used.
@@ -229,7 +233,11 @@ public class UserServiceImpl implements UserService {
 			Settings defaultSettings = Settings.builder()
 					.user(user)
 					.build();
-			settingsRepository.save(defaultSettings);
+			try {
+				settingsRepository.save(defaultSettings);
+			} catch (Exception ex) {
+				System.err.println("[Provision Warning] Default settings save: " + ex.getMessage());
+			}
 		}
 
 		// Default Onboarding: sensible defaults, marked as not yet completed.
@@ -244,7 +252,11 @@ public class UserServiceImpl implements UserService {
 					.interests("General")
 					.onboardingCompleted(false)
 					.build();
-			onboardingRepository.save(defaultOnboarding);
+			try {
+				onboardingRepository.save(defaultOnboarding);
+			} catch (Exception ex) {
+				System.err.println("[Provision Warning] Default onboarding save: " + ex.getMessage());
+			}
 		}
 	}
 
