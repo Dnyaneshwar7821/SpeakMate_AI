@@ -85,14 +85,16 @@ export default function DashboardScreen({ navigation }) {
     }));
 
     try {
+      const isStudentUser = Boolean(user?.schoolId || user?.role === 'STUDENT' || user?.isSchoolStudent);
+
       const [dashboard, myAssignments, schoolAnnouncements] = await Promise.all([
         dashboardService.summary(),
-        assignmentService.myAssignments().catch(() => []),
-        announcementService.list().catch(() => []),
+        isStudentUser ? assignmentService.myAssignments().catch(() => []) : Promise.resolve([]),
+        isStudentUser ? announcementService.list().catch(() => []) : Promise.resolve([]),
       ]);
 
-      setAssignments(myAssignments || []);
-      setAnnouncements(schoolAnnouncements || []);
+      setAssignments(isStudentUser ? (myAssignments || []) : []);
+      setAnnouncements(isStudentUser ? (schoolAnnouncements || []) : []);
 
       if (dashboard) {
         if (dashboard.profile) {

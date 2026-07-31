@@ -1,4 +1,5 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
+import { AuthContext } from '../../context/AuthContext';
 import {
   Alert,
   Text,
@@ -18,12 +19,15 @@ import { formatDate } from '../../utils/format';
 import { COLORS } from '../../constants/colors';
 
 export default function NotificationsScreen() {
+  const { user } = useContext(AuthContext);
   const { isDark } = useTheme();
   const { refreshUnread } = useNotifications();
   const [state, setState] = useState({ loading: true, error: '', items: [] });
   const [announcements, setAnnouncements] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'UNREAD'
+
+  const isStudentUser = Boolean(user?.schoolId || user?.role === 'STUDENT' || user?.isSchoolStudent);
 
   const load = async (isRef = false) => {
     if (!isRef) {
@@ -34,9 +38,9 @@ export default function NotificationsScreen() {
     try {
       const [items, schoolAnnouncements] = await Promise.all([
         notificationService.all(),
-        announcementService.list().catch(() => []),
+        isStudentUser ? announcementService.list().catch(() => []) : Promise.resolve([]),
       ]);
-      setAnnouncements(schoolAnnouncements || []);
+      setAnnouncements(isStudentUser ? (schoolAnnouncements || []) : []);
       setState({ loading: false, error: '', items });
     } catch (error) {
       setState({ loading: false, error: error.userMessage || 'Unable to load notifications.', items: [] });
