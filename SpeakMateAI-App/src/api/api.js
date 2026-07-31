@@ -46,7 +46,8 @@ api.interceptors.response.use(
     const isBackgroundEndpoint = config?.url && (
       config.url.includes('/register-expo-url') ||
       config.url.includes('/count-unread') ||
-      config.url.includes('/push-token')
+      config.url.includes('/push-token') ||
+      config.url.includes('/api/v1/')
     );
 
     // Retry once on network timeout or connection error (e.g. Render free tier cold start)
