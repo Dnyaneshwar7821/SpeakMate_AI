@@ -42,9 +42,10 @@ const NAV_SECTIONS = [
   {
     title: 'Learn',
     items: [
-      { key: 'Lessons',    label: 'Lessons',            icon: 'library',            tab: 'Lessons' },
-      { key: 'Vocabulary', label: 'Vocabulary',         icon: 'book',               tab: 'Vocabulary' },
-      { key: 'Grammar',    label: 'Grammar',            icon: 'create',             tab: 'Grammar' },
+      { key: 'Lessons',     label: 'Lessons',            icon: 'library',            tab: 'Lessons' },
+      { key: 'Assignments', label: 'My Homework 📝',    icon: 'document-text',      tab: 'Assignments' },
+      { key: 'Vocabulary',  label: 'Vocabulary',         icon: 'book',               tab: 'Vocabulary' },
+      { key: 'Grammar',     label: 'Grammar',            icon: 'create',             tab: 'Grammar' },
     ],
   },
   {
@@ -344,18 +345,7 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
     (user?.learningGoal && String(user.learningGoal).toLowerCase().includes('school'))
   );
 
-  const navSections = useMemo(() => {
-    return NAV_SECTIONS.map((sec) => {
-      if (sec.title === 'Learn') {
-        const items = [...sec.items];
-        if (isStudentUser && !items.some((i) => i.key === 'Assignments')) {
-          items.splice(1, 0, { key: 'Assignments', label: 'My Homework 📝', icon: 'document-text', tab: 'Assignments' });
-        }
-        return { ...sec, items };
-      }
-      return sec;
-    });
-  }, [isStudentUser]);
+  const navSections = NAV_SECTIONS;
 
   const containerBg = isDark ? '#0F172A' : '#F8FAFC';
   const sectionTitleColor = isDark ? '#64748B' : '#94A3B8';
