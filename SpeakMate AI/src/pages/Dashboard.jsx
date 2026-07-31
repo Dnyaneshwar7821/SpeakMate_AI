@@ -204,6 +204,8 @@ export function Dashboard() {
           <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Badges Unlocked</p>
           <p className="text-3xl font-black text-rose-500">{stats.badgesUnlocked || (stats.streak > 0 ? 1 : 0)} / 6</p>
         </div>
+      </motion.div>
+
       {/* School Student Specific Announcements & Assignments Cards */}
       {isStudent && (
         <motion.div
