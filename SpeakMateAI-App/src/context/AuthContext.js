@@ -35,12 +35,22 @@ export const AuthProvider = ({ children }) => {
       setWelcomeCompletedState(storedWelcome === "true");
 
       if (storedToken && storedToken !== "null" && storedToken !== "undefined" && storedUser) {
-        const me = await authService.me();
-        const nextOnboardingCompleted = Boolean(me?.onboardingCompleted);
+        const parsedUser = JSON.parse(storedUser);
+        const me = await authService.me().catch(() => null);
+        const activeUser = me || parsedUser;
+        const userEmail = activeUser?.email || "";
+        const userSpecificOnboarding = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
+        
+        const nextOnboardingCompleted = Boolean(
+          activeUser?.onboardingCompleted ||
+          storedOnboarding === "true" ||
+          userSpecificOnboarding === "true"
+        );
+
         setToken(storedToken);
-        setUser(me || JSON.parse(storedUser));
+        setUser(activeUser);
         setIsAuthenticated(true);
-        await AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(me || JSON.parse(storedUser)));
+        await AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(activeUser));
         await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(nextOnboardingCompleted));
         setOnboardingCompletedState(nextOnboardingCompleted);
       } else {
@@ -80,11 +90,10 @@ export const AuthProvider = ({ children }) => {
     try {
       await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
       await AsyncStorage.removeItem(STORAGE_KEYS.user);
-      await AsyncStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+      // Keep per-user onboarding history so subsequent logins go straight to Dashboard
       setToken(null);
       setUser(null);
       setIsAuthenticated(false);
-      setOnboardingCompletedState(false);
     } catch (error) {
     }
   }, []);
@@ -104,7 +113,14 @@ export const AuthProvider = ({ children }) => {
     async (credentials) => {
       try {
         const response = await authService.login(credentials);
-        const nextOnboardingCompleted = Boolean(response.user?.onboardingCompleted);
+        const userEmail = response.user?.email || credentials.email || "";
+        const userSpecificOnboarding = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
+        
+        const nextOnboardingCompleted = Boolean(
+          response.user?.onboardingCompleted ||
+          userSpecificOnboarding === "true"
+        );
+
         await persistAuth(response.token, response.user);
         setIsAuthenticated(true);
         await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(nextOnboardingCompleted));
@@ -130,6 +146,9 @@ export const AuthProvider = ({ children }) => {
 
   const completeOnboarding = useCallback(async () => {
     await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
+    if (user?.email) {
+      await AsyncStorage.setItem(`speakmate_onboarding_${user.email}`, "true");
+    }
     setOnboardingCompletedState(true);
     const updatedUser = { ...(user || {}), onboardingCompleted: true };
     setUser(updatedUser);
