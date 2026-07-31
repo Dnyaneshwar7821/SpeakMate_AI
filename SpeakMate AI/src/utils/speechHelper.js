@@ -312,6 +312,29 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   }
 };
 
+export const warmupSpeechAutoplay = () => {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  try {
+    window.speechSynthesis.resume();
+    const dummy = new SpeechSynthesisUtterance(" ");
+    dummy.volume = 0.01;
+    dummy.rate = 10;
+    window.speechSynthesis.speak(dummy);
+  } catch (_) {}
+};
+
+if (typeof window !== "undefined" && "speechSynthesis" in window) {
+  const unlockAudio = () => {
+    try {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    } catch (_) {}
+  };
+  window.addEventListener("click", unlockAudio, { passive: true });
+  window.addEventListener("touchstart", unlockAudio, { passive: true });
+}
+
 export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return null;
 

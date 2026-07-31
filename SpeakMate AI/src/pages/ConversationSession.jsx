@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams, useLocation, Link } from "react-router-do
 import ROUTES from "../constants/routes";
 import { speakingService } from "../services/appServices";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
-import { speakGlobalText } from "../utils/speechHelper";
+import { speakGlobalText, warmupSpeechAutoplay } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
 import { recordSpeakingSession } from "../utils/progressTracker";
 
@@ -135,9 +135,10 @@ export function ConversationSession() {
     if (!hasSpokenInitialRef.current && messages.length > 0) {
       hasSpokenInitialRef.current = true;
       const initialText = messages[0].message;
+      warmupSpeechAutoplay();
       const timerId = setTimeout(() => {
         handleSpeakText(initialText);
-      }, 250);
+      }, 200);
       return () => clearTimeout(timerId);
     }
   }, [messages]);

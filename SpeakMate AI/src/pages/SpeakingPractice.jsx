@@ -6,6 +6,7 @@ import { authService } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 import { useModal } from "../context/ModalContext";
 import { useToast } from "../context/ToastContext";
+import { warmupSpeechAutoplay } from "../utils/speechHelper";
 
 // ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 const AGE_SCENARIOS = {
@@ -225,6 +226,7 @@ export function SpeakingPractice() {
   });
 
   const handleStartScenario = (scenario) => {
+    warmupSpeechAutoplay();
     navigate(ROUTES.CONVERSATION_SESSION, {
       state: {
         scenarioId: scenario.id,
