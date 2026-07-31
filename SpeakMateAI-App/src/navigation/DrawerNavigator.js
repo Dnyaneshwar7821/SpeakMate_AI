@@ -22,6 +22,7 @@ import AchievementsScreen  from '../screens/main/AchievementsScreen';
 import NotificationsScreen from '../screens/main/NotificationsScreen';
 import SettingsScreen      from '../screens/main/SettingsScreen';
 import HelpScreen          from '../screens/main/HelpScreen';
+import AboutScreen         from '../screens/main/AboutScreen';
 import AssignmentsScreen   from '../screens/main/AssignmentsScreen';
 
 import { useTheme } from '../context/ThemeContext';
