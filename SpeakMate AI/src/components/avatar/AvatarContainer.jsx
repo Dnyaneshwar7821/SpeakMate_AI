@@ -82,6 +82,7 @@ export function AvatarContainer({
       <div className="w-full h-full flex-1 flex items-center justify-center relative">
         <AvatarCanvas
           modelPath={modelPath}
+          framing="faceToChest"
           onModelLoaded={(loadedModel) => {
             setModel(loadedModel);
             playIdle();

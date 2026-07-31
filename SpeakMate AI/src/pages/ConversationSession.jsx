@@ -345,7 +345,7 @@ export function ConversationSession() {
       {/* FULL SCREEN AVATAR BACKGROUND */}
       <div className="absolute inset-0 z-0 bg-[#0F172A] overflow-hidden">
         <div className="absolute inset-0 w-full h-full flex items-center justify-center">
-          <AvatarCanvas className="w-full h-full" onModelLoaded={setModel} />
+          <AvatarCanvas className="w-full h-full" onModelLoaded={setModel} framing="faceToChest" />
         </div>
         {/* Dark gradient overlays for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/40 to-transparent pointer-events-none" />

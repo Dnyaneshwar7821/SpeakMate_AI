@@ -340,7 +340,7 @@ export function ConversationChat() {
 
               <div className={`relative grid h-48 w-48 md:h-60 md:w-60 place-items-center rounded-3xl bg-gradient-to-b from-[#1E293B] to-[#0F172A] border-2 border-[#6c63ff]/50 shadow-2xl overflow-hidden ${isAiSpeaking ? "scale-105" : "animate-float"}`}>
                 <div className="w-full h-full absolute inset-0 flex items-center justify-center">
-                  <AvatarCanvas className="w-full h-full" />
+                  <AvatarCanvas className="w-full h-full" framing="faceToChest" />
                 </div>
               </div>
 

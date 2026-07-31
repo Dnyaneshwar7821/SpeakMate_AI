@@ -8,7 +8,7 @@ if (typeof window !== 'undefined' && !window.PIXI) {
   window.PIXI = PIXI;
 }
 
-export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = '' }) {
+export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = '', framing = 'faceToChest' }) {
   const containerRef = useRef(null);
   const pixiAppRef = useRef(null);
   const modelRef = useRef(null);
@@ -44,14 +44,15 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         const nativeHeight = model.internalModel?.height || model.height || 1000;
         const nativeWidth = model.internalModel?.width || model.width || 1000;
         
-        const scale = (height * 1.3) / nativeHeight;
+        const scaleMultiplier = framing === 'fullBody' ? 1.0 : 1.7;
+        const scale = (height * scaleMultiplier) / nativeHeight;
         model.scale.set(scale, scale);
         
         // Remove anchor offset just in case it was set elsewhere
         if (model.anchor) model.anchor.set(0, 0);
 
         model.x = (width - (nativeWidth * scale)) / 2;
-        model.y = height * 0.1;
+        model.y = framing === 'fullBody' ? height * 0.02 : height * 0.05;
       }
     };
 
