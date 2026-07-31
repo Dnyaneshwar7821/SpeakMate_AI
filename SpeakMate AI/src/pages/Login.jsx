@@ -7,6 +7,8 @@ export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [loginType, setLoginType] = useState("STANDARD"); // "STANDARD" | "SCHOOL"
+  const [schoolCode, setSchoolCode] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -16,18 +18,43 @@ export function Login() {
   const handleSubmit = async (event) => {
     if (event) event.preventDefault();
     setError("");
+
+    if (loginType === "SCHOOL" && !schoolCode.trim()) {
+      setError("Please enter your School Code (e.g. SCH-1082).");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await login(form);
-      if (res && res.user && !res.user.onboardingCompleted) {
+      if (loginType === "SCHOOL") {
+        localStorage.setItem("speakmate_account_type", "STUDENT");
+        localStorage.setItem("speakmate_school_code", schoolCode.trim().toUpperCase());
+      }
+
+      const res = await login({
+        email: form.email.trim(),
+        password: form.password,
+        schoolCode: loginType === "SCHOOL" ? schoolCode.trim().toUpperCase() : undefined,
+      });
+
+      const userEmail = res?.user?.email || form.email.trim();
+      const userDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
+      const isCompleted = Boolean(
+        res?.user?.onboardingCompleted ||
+        userDone ||
+        res?.user?.schoolGrade ||
+        res?.user?.englishLevel
+      );
+
+      if (res && res.user && !isCompleted) {
         navigate(ROUTES.ONBOARDING, { replace: true });
       } else {
         navigate(ROUTES.DASHBOARD, { replace: true });
       }
     } catch (err) {
       console.error("Login failed:", err);
-      setError(err.userMessage || err.response?.data?.message || "Invalid email or password. Please try again.");
+      setError(err.userMessage || err.response?.data?.message || "Invalid credentials. Please check your details and try again.");
     } finally {
       setLoading(false);
     }
@@ -64,6 +91,32 @@ export function Login() {
           </Link>
         </div>
 
+        {/* Login Method Sub-Toggle (Standard vs School Code) */}
+        <div className="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-[var(--bg-elevated)]/60 border border-[var(--border-default)]">
+          <button
+            type="button"
+            onClick={() => { setLoginType("STANDARD"); setError(""); }}
+            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 ${
+              loginType === "STANDARD"
+                ? "bg-[var(--bg-surface)] text-[#6c63ff] shadow border border-[var(--border-default)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            <span>👤 Standard Login</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setLoginType("SCHOOL"); setError(""); }}
+            className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 ${
+              loginType === "SCHOOL"
+                ? "bg-[var(--bg-surface)] text-[#6c63ff] shadow border border-[var(--border-default)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            <span>🏫 School Code Login</span>
+          </button>
+        </div>
+
         {/* Info Message Banner */}
         {infoMessage && (
           <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-sm font-bold text-emerald-600 dark:text-emerald-400 space-y-1 animate-in fade-in duration-200">
@@ -81,16 +134,35 @@ export function Login() {
         )}
 
         {/* Login Form */}
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          {loginType === "SCHOOL" && (
+            <div>
+              <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">
+                School Code
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-3.5 text-base text-[var(--text-secondary)]">🏫</span>
+                <input
+                  type="text"
+                  placeholder="e.g. SCH-1082"
+                  value={schoolCode}
+                  onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
+                  required
+                  className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all tracking-wider uppercase"
+                />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">
-              Email Address
+              {loginType === "SCHOOL" ? "Student ID or Email" : "Email Address"}
             </label>
             <div className="relative">
               <span className="absolute left-4 top-3.5 text-base text-[var(--text-secondary)]">✉️</span>
               <input
-                type="email"
-                placeholder="you@example.com"
+                type={loginType === "SCHOOL" ? "text" : "email"}
+                placeholder={loginType === "SCHOOL" ? "e.g. STU-1082 or student@school.edu" : "you@example.com"}
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
@@ -141,13 +213,12 @@ export function Login() {
               </>
             ) : (
               <>
-                <span>Log In to Account</span>
+                <span>{loginType === "SCHOOL" ? "Log In as School Student 🏫" : "Log In to Account"}</span>
                 <span>→</span>
               </>
             )}
           </button>
         </form>
-
       </div>
     </div>
   );

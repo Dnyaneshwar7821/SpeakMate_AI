@@ -204,7 +204,87 @@ export function Dashboard() {
           <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Badges Unlocked</p>
           <p className="text-3xl font-black text-rose-500">{stats.badgesUnlocked || (stats.streak > 0 ? 1 : 0)} / 6</p>
         </div>
-      </motion.div>
+      {/* School Student Specific Announcements & Assignments Cards */}
+      {isStudent && (
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {/* School Announcements Card */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-indigo-500/30 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🔔</span>
+                <h2 className="text-lg font-black text-[var(--text-primary)]">School Announcements</h2>
+              </div>
+              <span className="text-xs font-black px-3 py-1 rounded-full bg-rose-500/15 text-rose-500 border border-rose-500/30">
+                2 New
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 space-y-1">
+                <div className="flex items-center justify-between text-xs font-black text-rose-500">
+                  <span>PRINCIPAL / ADMIN • GRADE 8-B</span>
+                  <span className="text-[10px] opacity-75">2 hours ago</span>
+                </div>
+                <h3 className="font-extrabold text-sm text-[var(--text-primary)]">Grade 8-B speaking assessment due tomorrow 🚨</h3>
+                <p className="text-xs text-[var(--text-secondary)] font-medium">All students must complete the Job Interview conversation assignment before 5 PM.</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-1">
+                <div className="flex items-center justify-between text-xs font-black text-[#6c63ff]">
+                  <span>ENGLISH DEPT • ALL CLASSES</span>
+                  <span className="text-[10px] opacity-75">Yesterday</span>
+                </div>
+                <h3 className="font-extrabold text-sm text-[var(--text-primary)]">Weekly English Challenge Available 🏆</h3>
+                <p className="text-xs text-[var(--text-secondary)] font-medium">Earn +100 bonus XP by maintaining a 5-day speaking practice streak!</p>
+              </div>
+            </div>
+          </div>
+
+          {/* My Assignments Homework Card */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-emerald-500/30 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">📝</span>
+                <h2 className="text-lg font-black text-[var(--text-primary)]">My Homework Assignments</h2>
+              </div>
+              <span className="text-xs font-black px-3 py-1 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                1 Pending
+              </span>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3">
+              <div className="flex items-center justify-between text-xs font-black">
+                <span className="px-2.5 py-1 rounded-lg bg-amber-400/20 text-amber-500 border border-amber-400/30">
+                  DUE: TOMORROW
+                </span>
+                <span className="text-[var(--text-secondary)] font-bold">Prof. Sharma (Grade 10-A)</span>
+              </div>
+
+              <div>
+                <h3 className="font-black text-base text-[var(--text-primary)]">Practice Job Interview Conversation</h3>
+                <p className="text-xs text-[var(--text-secondary)] font-medium mt-1">Complete 15 minutes of speaking practice on the Job Interview scenario with a minimum 70% score.</p>
+              </div>
+
+              <div className="flex items-center gap-4 text-xs font-black text-[var(--text-primary)] pt-1">
+                <span className="flex items-center gap-1 text-[#6c63ff]">⏱️ Target: 15 Mins</span>
+                <span className="flex items-center gap-1 text-amber-500">🏆 Min Score: 70%</span>
+              </div>
+
+              <button
+                onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=job_interview&assignmentId=101`)}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white text-xs font-black shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+              >
+                <span>Start Homework ➔</span>
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       {/* Main Interactive Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

@@ -41,34 +41,37 @@ export function AuthProvider({ children }) {
 
       if (storedToken && storedToken !== "null" && storedToken !== "undefined") {
         setToken(storedToken);
+        let parsedUser = null;
         if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-          syncSchoolGrade(parsedUser);
-          if (parsedUser.onboardingCompleted || storedOnboardingCompleted || parsedUser.schoolGrade || parsedUser.englishLevel) {
-            setOnboardingCompleted(true);
-          }
+          try {
+            parsedUser = JSON.parse(storedUser);
+            setUser(parsedUser);
+            syncSchoolGrade(parsedUser);
+          } catch (e) {}
         }
 
-        try {
-          const me = await authService.me();
-          if (me) {
-            setUser(me);
-            syncSchoolGrade(me);
-            localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(me));
-            const isCompleted = Boolean(
-              me.onboardingCompleted ||
-              storedOnboardingCompleted ||
-              me.schoolGrade ||
-              me.englishLevel
-            );
-            setOnboardingCompleted(isCompleted);
-            if (isCompleted) {
-              localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
-            }
-          }
-        } catch (meError) {
-          console.warn("User session verification fallback:", meError.userMessage || meError.message);
+        const me = await authService.me().catch(() => null);
+        const activeUser = me || parsedUser;
+        const userEmail = activeUser?.email || "";
+        const userSpecificDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
+
+        const isCompleted = Boolean(
+          activeUser?.onboardingCompleted ||
+          storedOnboardingCompleted ||
+          userSpecificDone ||
+          activeUser?.schoolGrade ||
+          activeUser?.englishLevel
+        );
+
+        if (activeUser) {
+          setUser(activeUser);
+          syncSchoolGrade(activeUser);
+          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(activeUser));
+        }
+
+        setOnboardingCompleted(isCompleted);
+        if (isCompleted) {
+          localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
         }
       }
     } catch (error) {
@@ -87,7 +90,8 @@ export function AuthProvider({ children }) {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        if (key && key.startsWith("speakmate_")) {
+        // Do NOT delete speakmate_onboarding_done_<email> on logout so user bypasses onboarding on subsequent logins!
+        if (key && key.startsWith("speakmate_") && !key.startsWith("speakmate_onboarding_done_")) {
           keysToRemove.push(key);
         }
       }
@@ -112,80 +116,91 @@ export function AuthProvider({ children }) {
           syncSchoolGrade(response.user);
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
           setUser(response.user);
+
+          const userEmail = response.user.email || credentials.email || "";
+          const userSpecificDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
+
           const isDone = Boolean(
             response.user.onboardingCompleted ||
+            userSpecificDone ||
             response.user.schoolGrade ||
             response.user.englishLevel ||
             response.user.ageGroup ||
             response.user.learningGoal
           );
+
           setOnboardingCompleted(isDone);
           if (isDone) {
             localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
+            if (userEmail) localStorage.setItem(`speakmate_onboarding_done_${userEmail}`, "true");
           }
         }
-        setToken(response.token);
       }
       return response;
     } catch (error) {
+      console.error("AuthContext login error:", error);
       throw error;
     }
   };
 
-  const register = async (payload) => {
+  const register = async (userData) => {
     try {
-      return await authService.register(payload);
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const updateUser = (updatedUserData) => {
-    setUser((curr) => {
-      const next = { ...(curr || {}), ...updatedUserData };
-      syncSchoolGrade(next);
-      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(next));
-      return next;
-    });
-  };
-
-  const completeOnboarding = async (data) => {
-    try {
-      if (token) {
-        const updatedUser = await authService.completeOnboarding(data);
-        setUser(updatedUser);
-        syncSchoolGrade(updatedUser);
-        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));
-      } else {
-        if (user) {
-          updateUser({ ...data, onboardingCompleted: true });
+      const response = await authService.register(userData);
+      if (response && response.token) {
+        localStorage.setItem(STORAGE_KEYS.token, response.token);
+        if (response.user) {
+          syncSchoolGrade(response.user);
+          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
+          setUser(response.user);
+          setOnboardingCompleted(false);
+          localStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
         }
       }
+      return response;
     } catch (error) {
-      console.error("Failed to complete onboarding on server:", error);
-      if (user) {
-        updateUser({ ...data, onboardingCompleted: true });
-      }
+      console.error("AuthContext register error:", error);
+      throw error;
     }
-    setOnboardingCompleted(true);
-    localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
+  };
+
+  const completeOnboarding = async (onboardingData) => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
+      if (user?.email) {
+        localStorage.setItem(`speakmate_onboarding_done_${user.email}`, "true");
+      }
+      setOnboardingCompleted(true);
+      const updatedUser = { ...(user || {}), ...onboardingData, onboardingCompleted: true };
+      setUser(updatedUser);
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error("Complete onboarding error:", error);
+    }
+  };
+
+  const updateUser = (updatedFields) => {
+    setUser((prev) => {
+      const updated = { ...prev, ...updatedFields };
+      syncSchoolGrade(updated);
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const value = useMemo(
     () => ({
       user,
       token,
-      loading,
-      isAuthenticated: Boolean(token && user),
+      isAuthenticated: !!token && !!user,
       onboardingCompleted,
+      loading,
       login,
       register,
       logout,
-      updateUser,
       completeOnboarding,
-      restoreSession,
+      updateUser,
     }),
-    [user, token, loading, onboardingCompleted, logout, restoreSession]
+    [user, token, onboardingCompleted, loading, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
@@ -198,3 +213,5 @@ export function useAuth() {
   }
   return context;
 }
+
+export default AuthContext;
