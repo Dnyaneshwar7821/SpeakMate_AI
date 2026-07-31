@@ -104,7 +104,7 @@ export function Register() {
       };
 
       await authService.register(payload);
-      
+
       // Navigate to Login page (do not auto-login)
       navigate(ROUTES.LOGIN, {
         replace: true,
@@ -125,7 +125,7 @@ export function Register() {
   return (
     <div className="w-full max-w-2xl mx-auto relative z-10">
       <div className="bg-[var(--bg-surface)] p-8 sm:p-10 lg:p-12 rounded-3xl border border-[var(--border-default)] shadow-2xl space-y-8 relative animate-in fade-in duration-300">
-        
+
         {/* Brand App Badge Header */}
         <div className="text-center space-y-3">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] flex items-center justify-center text-3xl shadow-xl shadow-[#6c63ff]/30">
@@ -183,11 +183,10 @@ export function Register() {
                 <button
                   type="button"
                   onClick={() => setAccountType("INDIVIDUAL_USER")}
-                  className={`py-3.5 px-4 rounded-2xl border text-sm sm:text-base font-black transition-all flex items-center justify-center gap-2.5 ${
-                    accountType === "INDIVIDUAL_USER"
+                  className={`py-3.5 px-4 rounded-2xl border text-sm sm:text-base font-black transition-all flex items-center justify-center gap-2.5 ${accountType === "INDIVIDUAL_USER"
                       ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] ring-2 ring-[#6c63ff]/30 shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
+                    }`}
                 >
                   <span className="text-lg">👤</span>
                   <span>Individual Learner</span>
@@ -196,11 +195,10 @@ export function Register() {
                 <button
                   type="button"
                   onClick={() => setAccountType("STUDENT")}
-                  className={`py-3.5 px-4 rounded-2xl border text-sm sm:text-base font-black transition-all flex items-center justify-center gap-2.5 ${
-                    accountType === "STUDENT"
+                  className={`py-3.5 px-4 rounded-2xl border text-sm sm:text-base font-black transition-all flex items-center justify-center gap-2.5 ${accountType === "STUDENT"
                       ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] ring-2 ring-[#6c63ff]/30 shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
+                    }`}
                 >
                   <span className="text-lg">🎓</span>
                   <span>School Student</span>
