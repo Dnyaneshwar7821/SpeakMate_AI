@@ -54,7 +54,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.model:llama-3.3-70b-versatile}")
+	@Value("${groq.model:qwen-2.5-32b}")
 	private String model;
 
 	private final SpeakingSessionRepository speakingSessionRepository;
