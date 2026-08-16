@@ -185,18 +185,22 @@ export function SpeakingPractice() {
 
   useEffect(() => {
     let isMounted = true;
-    speakingService
-      .getHistory()
-      .then((data) => {
-        if (isMounted) {
-          setHistory(data || []);
-          setLoadingHistory(false);
-        }
-      })
-      .catch((err) => {
-        console.error("Failed to load speaking history:", err);
-        if (isMounted) setLoadingHistory(false);
-      });
+    const fetchHistory = speakingService.getHistory || speakingService.history;
+    if (typeof fetchHistory === "function") {
+      fetchHistory()
+        .then((data) => {
+          if (isMounted) {
+            setHistory(data || []);
+            setLoadingHistory(false);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load speaking history:", err);
+          if (isMounted) setLoadingHistory(false);
+        });
+    } else {
+      if (isMounted) setLoadingHistory(false);
+    }
     return () => {
       isMounted = false;
     };
@@ -227,7 +231,10 @@ export function SpeakingPractice() {
 
     if (confirmed) {
       try {
-        await speakingService.deleteHistory(id);
+        const removeFn = speakingService.deleteHistory || speakingService.remove;
+        if (typeof removeFn === "function") {
+          await removeFn(id);
+        }
         setHistory((prev) => prev.filter((h) => h.id !== id));
         toast.success("Practice record deleted successfully!");
       } catch (err) {
