@@ -1,12 +1,25 @@
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { EventBus, AVATAR_EVENTS } from '../services/live2d/EventBus';
 
-export function ProceduralAvatar({ viseme = "REST", isSpeaking = false }) {
+export function ProceduralAvatar({ viseme = "REST", isSpeaking: propIsSpeaking = false }) {
   const mouthRef = useRef();
   const headGroupRef = useRef();
   const leftArmRef = useRef();
   const rightArmRef = useRef();
+  const [eventSpeaking, setEventSpeaking] = useState(false);
+
+  useEffect(() => {
+    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => setEventSpeaking(true));
+    const unsubFinish = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => setEventSpeaking(false));
+    return () => {
+      unsubStart();
+      unsubFinish();
+    };
+  }, []);
+
+  const isSpeaking = propIsSpeaking || eventSpeaking;
 
   // Define viseme mouth scales (width, height, depth)
   const visemeScales = useMemo(() => ({
@@ -21,10 +34,15 @@ export function ProceduralAvatar({ viseme = "REST", isSpeaking = false }) {
   // Smoothly animate the mouth based on viseme
   useFrame((state, delta) => {
     if (mouthRef.current) {
-      const targetScale = visemeScales[viseme] || visemeScales.REST;
-      mouthRef.current.scale.x = THREE.MathUtils.lerp(mouthRef.current.scale.x, targetScale[0], 0.2);
-      mouthRef.current.scale.y = THREE.MathUtils.lerp(mouthRef.current.scale.y, targetScale[1], 0.2);
-      mouthRef.current.scale.z = THREE.MathUtils.lerp(mouthRef.current.scale.z, targetScale[2], 0.2);
+      let targetScale = visemeScales[viseme] || visemeScales.REST;
+      if (isSpeaking && viseme === "REST") {
+        const time = state.clock.getElapsedTime();
+        const openAmount = Math.abs(Math.sin(time * 10)) * 0.22 + 0.08;
+        targetScale = [0.3, openAmount, 0.1];
+      }
+      mouthRef.current.scale.x = THREE.MathUtils.lerp(mouthRef.current.scale.x, targetScale[0], 0.25);
+      mouthRef.current.scale.y = THREE.MathUtils.lerp(mouthRef.current.scale.y, targetScale[1], 0.25);
+      mouthRef.current.scale.z = THREE.MathUtils.lerp(mouthRef.current.scale.z, targetScale[2], 0.25);
     }
 
     if (headGroupRef.current) {
@@ -48,6 +66,7 @@ export function ProceduralAvatar({ viseme = "REST", isSpeaking = false }) {
       rightArmRef.current.rotation.z = -Math.sin(time) * 0.05 - 0.2;
     }
   });
+
 
   // Colors for a teenager avatar
   const skinColor = "#ffcd94";

@@ -8,7 +8,7 @@ const MAIN_ITEMS = [
     label: "Dashboard",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
       </svg>
     ),
   },
@@ -106,22 +106,22 @@ export function Sidebar() {
   const { user } = useAuth();
 
   return (
-    <aside className="w-64 lg:w-72 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] h-[calc(100vh-80px)] sticky top-20 flex flex-col justify-between p-4 overflow-y-auto z-30">
+    <aside className="w-64 lg:w-72 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)]/70 backdrop-blur-xl h-[calc(100vh-80px)] sticky top-20 flex flex-col justify-between p-4 overflow-y-auto z-30 transition-all duration-300">
       <div className="space-y-6">
         {/* SECTION 1: MAIN WORKSPACE */}
-        <div className="space-y-1.5">
-          <p className="px-3 text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
-            Main Workspace
+        <div className="space-y-1">
+          <p className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
+            Workspace
           </p>
           {MAIN_ITEMS.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-extrabold transition-all duration-200 ${
+                `flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/30 scale-[1.02]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1.5"
+                    ? "bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/25 scale-[1.02]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1"
                 }`
               }
             >
@@ -130,7 +130,7 @@ export function Sidebar() {
                 <span className="truncate">{item.label}</span>
               </div>
               {item.badge && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[9px] font-black uppercase tracking-wider animate-pulse">
                   {item.badge}
                 </span>
               )}
@@ -139,8 +139,8 @@ export function Sidebar() {
         </div>
 
         {/* SECTION 2: LEARNING MODULES */}
-        <div className="space-y-1.5 pt-3 border-t border-[var(--border-subtle)]">
-          <p className="px-3 text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
+        <div className="space-y-1 pt-3 border-t border-[var(--border-subtle)]">
+          <p className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
             Learning Modules
           </p>
           {MODULE_ITEMS.map((item) => (
@@ -148,10 +148,10 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-extrabold transition-all duration-200 ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/30 scale-[1.02]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1.5"
+                    ? "bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/25 scale-[1.02]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1"
                 }`
               }
             >
@@ -162,8 +162,8 @@ export function Sidebar() {
         </div>
 
         {/* SECTION 3: ACCOUNT & SETTINGS */}
-        <div className="space-y-1.5 pt-3 border-t border-[var(--border-subtle)]">
-          <p className="px-3 text-[11px] font-black uppercase tracking-wider text-[var(--text-secondary)]">
+        <div className="space-y-1 pt-3 border-t border-[var(--border-subtle)]">
+          <p className="px-3 py-1 text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)]">
             Account & Settings
           </p>
           {ACCOUNT_ITEMS.map((item) => (
@@ -171,10 +171,10 @@ export function Sidebar() {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-extrabold transition-all duration-200 ${
+                `flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-extrabold transition-all duration-200 ${
                   isActive
-                    ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/30 scale-[1.02]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1.5"
+                    ? "bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 text-white shadow-md shadow-indigo-500/25 scale-[1.02]"
+                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1"
                 }`
               }
             >
@@ -185,15 +185,15 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* USER BOTTOM CARD */}
-      <div className="pt-4 border-t border-[var(--border-subtle)]">
-        <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white font-extrabold text-sm shadow-sm">
+      {/* USER BOTTOM PROFILE CARD */}
+      <div className="pt-3 border-t border-[var(--border-subtle)]">
+        <div className="p-3 rounded-2xl bg-[var(--bg-elevated)]/60 border border-[var(--border-default)] flex items-center gap-3 backdrop-blur-md hover:border-indigo-500/30 transition-all">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-indigo-600 to-pink-500 text-white font-extrabold text-xs shadow-sm">
             {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
           </div>
           <div className="min-w-0 flex-1">
             <p className="font-extrabold text-xs text-[var(--text-primary)] truncate">{user?.name || "Learner"}</p>
-            <p className="text-[10px] font-bold text-[#6c63ff] truncate">
+            <p className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 truncate">
               {localStorage.getItem("speakmate_account_type") === "STUDENT" && (user?.schoolGrade || localStorage.getItem("speakmate_school_grade"))
                 ? `Standard: ${user?.schoolGrade || localStorage.getItem("speakmate_school_grade")}`
                 : `Level: ${user?.englishLevel || "Intermediate"}`}

@@ -1,4 +1,6 @@
 // src/utils/speechHelper.js
+import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
+
 
 export const VOICE_PROFILES = [
   { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male', previewText: 'Hello, I am your American Male English tutor.' },
@@ -335,6 +337,15 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
   window.addEventListener("touchstart", unlockAudio, { passive: true });
 }
 
+export const cancelGlobalSpeech = () => {
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (_) {}
+  }
+  EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED, {});
+};
+
 export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return null;
 
@@ -348,10 +359,25 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   const cleanText = text.replace(/[*_#`~]/g, "");
   const utterance = new SpeechSynthesisUtterance(cleanText);
 
-  if (options.onstart) utterance.onstart = options.onstart;
-  if (options.onboundary) utterance.onboundary = options.onboundary;
-  if (options.onend) utterance.onend = options.onend;
-  if (options.onerror) utterance.onerror = options.onerror;
+  utterance.onstart = (e) => {
+    EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText });
+    if (options.onstart) options.onstart(e);
+  };
+
+  utterance.onboundary = (e) => {
+    EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, { event: e, charIndex: e.charIndex, name: e.name });
+    if (options.onboundary) options.onboundary(e);
+  };
+
+  utterance.onend = (e) => {
+    EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED, {});
+    if (options.onend) options.onend(e);
+  };
+
+  utterance.onerror = (e) => {
+    EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED, {});
+    if (options.onerror) options.onerror(e);
+  };
 
   const doSpeak = () => {
     try {
@@ -361,6 +387,7 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
       window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.warn("Speech synthesis execution error:", e);
+      EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED, {});
     }
   };
 
@@ -381,3 +408,4 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 
   return utterance;
 };
+

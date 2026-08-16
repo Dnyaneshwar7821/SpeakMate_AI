@@ -58,88 +58,64 @@ const DEFAULT_LESSONS = [
     level: "Beginner",
     difficulty: "Beginner",
     estimatedMinutes: 15,
-    xpReward: 20,
-    description: "Expand your word bank with 50 high-frequency nouns, verbs, and adjectives used in daily conversations.",
+    xpReward: 25,
+    description: "Learn 50 high-frequency conversational words with interactive pronunciation visualizer audio.",
   },
   {
     id: "5",
-    title: "Idioms & Phrasal Verbs for Natural Speech",
-    category: "Speaking",
+    title: "Travel & Airport Conversations",
+    category: "Daily Life",
     level: "Intermediate",
     difficulty: "Intermediate",
     estimatedMinutes: 18,
     xpReward: 30,
-    description: "Sound like a native speaker using popular English idioms, phrasal verbs, and expressive collocations.",
+    description: "Practice airport check-in, customs declarations, and hotel booking conversations seamlessly.",
   },
   {
     id: "6",
-    title: "Past & Present Perfect Tense Drills",
-    category: "Grammar",
-    level: "Intermediate",
-    difficulty: "Intermediate",
-    estimatedMinutes: 20,
-    xpReward: 35,
-    description: "Understand the subtle differences between simple past and present perfect with step-by-step quizzes.",
-  },
-  {
-    id: "7",
-    title: "10th Board Oral Exam & Public Speaking Prep",
+    title: "Academic Writing & Essay Structure",
     category: "Academic",
     level: "Advanced",
     difficulty: "Advanced",
     estimatedMinutes: 30,
     xpReward: 60,
-    description: "Comprehensive public speaking prep, keynote delivery, and oral presentation mastery for 10th standard students.",
-  },
-  {
-    id: "8",
-    title: "Social Small Talk & Networking Confidence",
-    category: "Daily Life",
-    level: "Beginner",
-    difficulty: "Beginner",
-    estimatedMinutes: 15,
-    xpReward: 25,
-    description: "Break the ice easily at social gatherings, coffee shops, and campus events with effortless small talk.",
+    description: "Structure thesis statements, transition phrases, and academic arguments for IELTS / TOEFL.",
   },
 ];
 
 export function Lessons() {
   const navigate = useNavigate();
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [lessons, setLessons] = useState(DEFAULT_LESSONS);
-  const [continueItems, setContinueItems] = useState([DEFAULT_LESSONS[0]]);
-  const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState("");
-  const [searchResults, setSearchResults] = useState(null);
+  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [continueItems, setContinueItems] = useState([]);
   const [activeTab, setActiveTab] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState(null);
-
-  const loadData = async () => {
-    try {
-      const fetchWithTimeout = (promise, ms = 2000) =>
-        Promise.race([
-          promise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
-        ]);
-
-      const [cats, cont, list] = await Promise.all([
-        fetchWithTimeout(lessonModuleService.categories()).catch(() => null),
-        fetchWithTimeout(lessonModuleService.continueLearning()).catch(() => null),
-        fetchWithTimeout(lessonModuleService.list({})).catch(() => null),
-      ]);
-
-      if (cats && Array.isArray(cats) && cats.length > 0) setCategories(cats);
-      if (cont && Array.isArray(cont) && cont.length > 0) setContinueItems(cont);
-      if (list && Array.isArray(list) && list.length > 0) setLessons(list);
-    } catch (e) {
-      console.warn("Using default CEFR lessons fallback:", e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [searchText, setSearchText] = useState("");
+  const [searchResults, setSearchResults] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadData();
+    let isMounted = true;
+    Promise.all([
+      lessonModuleService.list().catch(() => null),
+      lessonModuleService.categories().catch(() => null),
+      lessonModuleService.continueLearning().catch(() => null),
+    ]).then(([listRes, catRes, contRes]) => {
+      if (!isMounted) return;
+      if (listRes && Array.isArray(listRes) && listRes.length > 0) {
+        setLessons(listRes);
+      }
+      if (catRes && Array.isArray(catRes) && catRes.length > 0) {
+        setCategories(catRes);
+      }
+      if (contRes && Array.isArray(contRes) && contRes.length > 0) {
+        setContinueItems(contRes);
+      }
+      setLoading(false);
+    });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredLessons = useMemo(() => {
@@ -179,16 +155,16 @@ export function Lessons() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4">
+    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4 animate-in fade-in duration-300">
       {/* Top Banner Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4338ca] p-6 sm:p-10 text-white shadow-2xl space-y-6">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-tr from-indigo-800 via-indigo-700 to-purple-700 p-6 sm:p-10 text-white shadow-2xl space-y-6">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-80 h-80 rounded-full bg-pink-500/20 blur-3xl pointer-events-none" />
         <div className="relative z-10 space-y-3 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
             🎓 Structured CEFR Path
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">CEFR English Lessons</h1>
-          <p className="text-sm sm:text-base text-indigo-200 font-medium leading-relaxed">
+          <p className="text-sm sm:text-base text-indigo-100/90 font-medium leading-relaxed">
             Bite-sized interactive lessons covering grammar, vocabulary, business communication, and natural speaking drills.
           </p>
         </div>
@@ -200,13 +176,13 @@ export function Lessons() {
             placeholder="🔍 Search lessons, topics, categories..."
             value={searchText}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-5 pr-4 py-3.5 rounded-2xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm font-bold focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
+            className="w-full pl-5 pr-4 py-3.5 rounded-2xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm font-bold focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all backdrop-blur-md"
           />
         </div>
       </div>
 
       {/* Difficulty Level Tabs */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-2.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
           <span className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider px-2 shrink-0">
             Level Tier:
@@ -217,7 +193,7 @@ export function Lessons() {
               onClick={() => setActiveTab(tab)}
               className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black shrink-0 transition-all ${
                 activeTab === tab
-                  ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-md shadow-[#6c63ff]/25 scale-102"
+                  ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25 scale-102"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
               }`}
             >
@@ -229,7 +205,7 @@ export function Lessons() {
 
       {/* Continue Learning Banner */}
       {continueItems.length > 0 && searchResults === null && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="space-y-2 text-center sm:text-left">
             <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-3.5 py-1 rounded-full border border-white/20">
               📚 Continue Learning
@@ -241,7 +217,7 @@ export function Lessons() {
           </div>
           <button
             onClick={() => navigate(`/lessons/${continueItems[0].id}`)}
-            className="px-8 py-4 rounded-2xl bg-white text-[#6c63ff] font-black text-sm shadow-xl hover:scale-105 transition-all shrink-0"
+            className="px-8 py-4 rounded-2xl bg-white text-indigo-700 font-black text-sm shadow-xl hover:scale-105 transition-all shrink-0"
           >
             Resume Lesson ▶
           </button>
@@ -254,7 +230,7 @@ export function Lessons() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black text-[var(--text-primary)]">Lesson Categories</h2>
             {selectedCategory && (
-              <button onClick={() => setSelectedCategory(null)} className="text-xs font-black text-[#6c63ff] hover:underline">
+              <button onClick={() => setSelectedCategory(null)} className="text-xs font-black text-indigo-500 hover:underline">
                 Clear Filter ({selectedCategory})
               </button>
             )}
@@ -267,8 +243,8 @@ export function Lessons() {
                 onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
                 className={`p-5 rounded-2xl border shadow-sm cursor-pointer transition-all text-center space-y-2 ${
                   selectedCategory === cat.name
-                    ? "bg-gradient-to-br from-[#6c63ff] to-[#4f46e5] border-[#6c63ff] text-white shadow-xl scale-102"
-                    : "glass-card glass-card-hover border-[var(--border-default)]"
+                    ? "bg-gradient-to-br from-indigo-600 to-purple-600 border-indigo-500 text-white shadow-xl scale-102"
+                    : "glass-card-interactive border-[var(--border-default)]"
                 }`}
               >
                 <p className="text-3xl">📂</p>
@@ -289,7 +265,7 @@ export function Lessons() {
         {loading ? (
           <div className="p-16 text-center font-extrabold text-sm text-[var(--text-secondary)]">Loading lessons...</div>
         ) : filteredLessons.length === 0 ? (
-          <div className="p-12 text-center text-[var(--text-secondary)] space-y-2 glass-card rounded-3xl">
+          <div className="p-12 text-center text-[var(--text-secondary)] space-y-2 glass-panel rounded-3xl">
             <p className="text-4xl">📖</p>
             <p className="font-extrabold text-base text-[var(--text-primary)]">No lessons found matching your filters.</p>
           </div>
@@ -304,11 +280,11 @@ export function Lessons() {
                     recordLessonCompleted(90);
                     navigate(`/lessons/${l.id}`);
                   }}
-                  className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all duration-300"
+                  className="group glass-card-interactive p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-indigo-500/50 shadow-md hover:shadow-xl transition-all duration-300"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-[#6c63ff]/15 text-[#6c63ff]">
+                      <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-indigo-500/15 text-indigo-500 dark:text-indigo-300">
                         {l.category || "General"}
                       </span>
                       <span className={`text-[10px] font-black px-3 py-1 rounded-full ${diffBadge.bg} ${diffBadge.text}`}>
@@ -316,7 +292,7 @@ export function Lessons() {
                       </span>
                     </div>
 
-                    <h3 className="font-black text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                    <h3 className="font-black text-lg text-[var(--text-primary)] group-hover:text-indigo-500 transition-colors">
                       {l.title}
                     </h3>
                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium line-clamp-2">{l.description}</p>
@@ -326,7 +302,7 @@ export function Lessons() {
                     <span className="text-xs text-[var(--text-secondary)] font-bold">
                       ⏱️ {l.estimatedMinutes || l.duration || 15} mins • +{l.xpReward || 25} XP
                     </span>
-                    <button className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] group-hover:opacity-90 text-white font-extrabold text-xs shadow-md transition-all">
+                    <button className="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 group-hover:opacity-90 text-white font-extrabold text-xs shadow-md transition-all">
                       Start →
                     </button>
                   </div>

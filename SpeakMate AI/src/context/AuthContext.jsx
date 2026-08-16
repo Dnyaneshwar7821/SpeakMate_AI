@@ -112,6 +112,7 @@ export function AuthProvider({ children }) {
       const response = await authService.login(credentials);
       if (response && response.token) {
         localStorage.setItem(STORAGE_KEYS.token, response.token);
+        setToken(response.token);
         if (response.user) {
           syncSchoolGrade(response.user);
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
@@ -148,6 +149,7 @@ export function AuthProvider({ children }) {
       const response = await authService.register(userData);
       if (response && response.token) {
         localStorage.setItem(STORAGE_KEYS.token, response.token);
+        setToken(response.token);
         if (response.user) {
           syncSchoolGrade(response.user);
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));

@@ -4,6 +4,7 @@
  */
 
 import { DEFAULT_AI_CONFIG, AI_PROVIDERS } from '../../config/AIConfig';
+import { SmartChatEngine } from './SmartChatEngine';
 
 export class AIService {
   constructor(config = {}) {
@@ -14,8 +15,9 @@ export class AIService {
    * Send user text prompt to AI provider and return textual response
    * @param {string} prompt User message text
    * @param {Array} history Conversation history array [{role, content}]
+   * @param {object} options Extra options { mode, scenario, level }
    */
-  async generateResponse(prompt, history = []) {
+  async generateResponse(prompt, history = [], options = {}) {
     if (!prompt || !prompt.trim()) return '';
 
     try {
@@ -24,11 +26,11 @@ export class AIService {
       } else if (this.config.provider === AI_PROVIDERS.OPENAI_DIRECT) {
         return await this._callOpenAI(prompt, history);
       } else {
-        return this._generateMockResponse(prompt);
+        return this._generateMockResponse(prompt, history, options);
       }
     } catch (err) {
-      console.warn('[AIService] API call failed, falling back to graceful local response:', err);
-      return this._generateMockResponse(prompt);
+      console.warn('[AIService] API call failed, falling back to dynamic smart response:', err);
+      return this._generateMockResponse(prompt, history, options);
     }
   }
 
@@ -86,19 +88,9 @@ export class AIService {
     return data.choices?.[0]?.message?.content || 'I am ready to practice speaking with you!';
   }
 
-  _generateMockResponse(prompt) {
-    const lower = prompt.toLowerCase();
-
-    if (lower.includes('hello') || lower.includes('hi')) {
-      return "Hello! I am your SpeakMate AI assistant. I'm excited to practice English speaking with you today! How are you feeling?";
-    } else if (lower.includes('name')) {
-      return "I am SpeakMate AI, your personal real-time Live2D language companion!";
-    } else if (lower.includes('how are you')) {
-      return "I'm doing wonderful! Ready to help you master speaking with full confidence!";
-    } else if (lower.includes('grammar') || lower.includes('vocabulary')) {
-      return "That's great! Practicing daily conversation is the fastest way to improve your grammar and vocabulary.";
-    } else {
-      return `That is very interesting! You said: "${prompt}". Tell me more about that!`;
-    }
+  _generateMockResponse(prompt, history = [], options = {}) {
+    const feedback = SmartChatEngine.generateFeedback(prompt, { ...options, history });
+    return feedback.aiReply || feedback.message;
   }
 }
+

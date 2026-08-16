@@ -4,15 +4,13 @@ import { achievementService } from "../services/appServices";
 export function Achievements() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   const loadAchievements = async () => {
     setLoading(true);
-    setError("");
     try {
       const data = await achievementService.all();
       setItems(data || []);
-    } catch (e) {
+    } catch (_err) {
       setItems([
         { id: "1", title: "First Words", description: "Complete your 1st speaking conversation.", unlocked: true, unlockedAt: "2026-07-20", xpReward: 50, tier: 1 },
         { id: "2", title: "3-Day Streak", description: "Maintain a 3-day consecutive learning streak.", unlocked: true, unlockedAt: "2026-07-22", xpReward: 50, tier: 1 },
