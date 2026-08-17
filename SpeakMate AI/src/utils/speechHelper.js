@@ -149,8 +149,21 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     pitch,
     rateMultiplier: parseFloat(customRate),
     lang: targetLang,
-    baseRate,
   };
+};
+
+export const getCurrentVoiceGender = () => {
+  try {
+    const settings = getSavedVoiceSettings();
+    return settings.gender || 'female';
+  } catch (err) {
+    return 'female';
+  }
+};
+
+export const notifyGenderChange = (newGender) => {
+  const gender = newGender || getCurrentVoiceGender();
+  EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender });
 };
 
 export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overrideVoiceCode = null) => {

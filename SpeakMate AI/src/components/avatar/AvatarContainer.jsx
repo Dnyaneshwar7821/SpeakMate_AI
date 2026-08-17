@@ -9,9 +9,11 @@ import { useExpressions } from '../../hooks/useExpressions';
 import { useMotion } from '../../hooks/useMotion';
 import { useSpeech } from '../../hooks/useSpeech';
 import { AIService } from '../../services/ai/AIService';
+import { getCurrentVoiceGender } from '../../utils/speechHelper';
+import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
 
 export function AvatarContainer({
-  modelPath,
+  modelPath: propModelPath,
   showControls = true,
   className = '',
   onSpeechComplete,
@@ -21,6 +23,18 @@ export function AvatarContainer({
   const [status, setStatus] = useState('Idle');
   const [aiInput, setAiInput] = useState('');
   const [lastResponse, setLastResponse] = useState('');
+  const [gender, setGender] = useState(() => getCurrentVoiceGender());
+
+  useEffect(() => {
+    const unsubGender = EventBus.on(AVATAR_EVENTS.GENDER_CHANGED, (data) => {
+      setGender(data?.gender || getCurrentVoiceGender());
+    });
+    return () => unsubGender();
+  }, []);
+
+  const defaultFemalePath = "/models/avatar/haru/haru_greeter_t03.model3.json";
+  const defaultMalePath = "/models/avatar/mark/mark.model3.json";
+  const activeModelPath = propModelPath || (gender === 'male' ? defaultMalePath : defaultFemalePath);
 
   // Reusable Hooks & Services
   const { speechService, isSpeaking, speak, stop } = useSpeech();
@@ -82,7 +96,7 @@ export function AvatarContainer({
       {/* Main PixiJS Live2D Canvas */}
       <div className="w-full h-full flex-1 flex items-center justify-center relative">
         <AvatarCanvas
-          modelPath={modelPath}
+          modelPath={activeModelPath}
           framing="faceToChest"
           onModelLoaded={(loadedModel) => {
             setModel(loadedModel);

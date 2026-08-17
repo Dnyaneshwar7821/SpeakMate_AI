@@ -2,6 +2,7 @@ import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { EventBus, AVATAR_EVENTS } from '../services/live2d/EventBus';
+import { getCurrentVoiceGender } from '../utils/speechHelper';
 
 export function ProceduralAvatar({ viseme = "REST", isSpeaking: propIsSpeaking = false }) {
   const mouthRef = useRef();
@@ -9,13 +10,19 @@ export function ProceduralAvatar({ viseme = "REST", isSpeaking: propIsSpeaking =
   const leftArmRef = useRef();
   const rightArmRef = useRef();
   const [eventSpeaking, setEventSpeaking] = useState(false);
+  const [gender, setGender] = useState(() => getCurrentVoiceGender());
 
   useEffect(() => {
     const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => setEventSpeaking(true));
     const unsubFinish = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => setEventSpeaking(false));
+    const unsubGender = EventBus.on(AVATAR_EVENTS.GENDER_CHANGED, (data) => {
+      if (data?.gender) setGender(data.gender);
+      else setGender(getCurrentVoiceGender());
+    });
     return () => {
       unsubStart();
       unsubFinish();
+      unsubGender();
     };
   }, []);
 
