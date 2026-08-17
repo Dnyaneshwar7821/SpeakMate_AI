@@ -47,7 +47,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     pixiAppRef.current = app;
     container.appendChild(app.view);
 
-    // Resize Handler
+    // Resize & Framing Handler
     const handleResize = () => {
       if (!app || !app.renderer || !container) return;
       const width = container.clientWidth;
@@ -56,17 +56,26 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
 
       if (modelRef.current) {
         const model = modelRef.current;
+        const isMark = targetModelPath.includes('mark') || targetModelPath.includes('Mark');
+        
+        // Internal dimensions
         const nativeHeight = model.internalModel?.height || model.height || 1000;
-        const nativeWidth = model.internalModel?.width || model.width || 1000;
-        
-        const scaleMultiplier = framing === 'fullBody' ? 1.0 : 1.7;
-        const scale = (height * scaleMultiplier) / nativeHeight;
-        model.scale.set(scale, scale);
-        
-        if (model.anchor) model.anchor.set(0, 0);
 
-        model.x = (width - (nativeWidth * scale)) / 2;
-        model.y = framing === 'fullBody' ? height * 0.02 : height * 0.05;
+        if (isMark) {
+          // Centered framing specifically tuned for Mark model bounds
+          if (model.anchor) model.anchor.set(0.5, 0.25);
+          const scale = (height * 1.1) / nativeHeight;
+          model.scale.set(scale, scale);
+          model.x = width / 2;
+          model.y = height * 0.25;
+        } else {
+          // Standard framing for Haru female model
+          if (model.anchor) model.anchor.set(0.5, 0.2);
+          const scale = (height * 1.6) / nativeHeight;
+          model.scale.set(scale, scale);
+          model.x = width / 2;
+          model.y = height * 0.2;
+        }
       }
     };
 
