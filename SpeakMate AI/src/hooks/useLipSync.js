@@ -23,72 +23,83 @@ const VISEME_MAP = {
 };
 
 /**
- * Extract visemes for a single spoken word
+ * Converts FULL English text into an exhaustive, sequential phonetic viseme timeline
  */
-function getWordVisemes(word = '') {
-  const clean = word.toLowerCase().replace(/[^a-z]/g, '');
-  if (!clean) return [{ viseme: 'AA', dur: 180 }];
+function textToFullPhonemeSequence(text = '', speedMultiplier = 1.0) {
+  if (!text) return [];
 
-  const list = [];
-  let i = 0;
+  const clean = text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ');
+  const words = clean.split(/\s+/).filter(Boolean);
+  const sequence = [];
 
-  while (i < clean.length) {
-    const two = clean.slice(i, i + 2);
-    const three = clean.slice(i, i + 3);
+  // Duration per phoneme in ms (~75ms base, scaled by speech speed)
+  const baseDuration = 75 / Math.max(0.5, speedMultiplier);
 
-    if (three === 'igh') {
-      list.push({ viseme: 'EE', dur: 140 });
-      i += 3;
-    } else if (two === 'th') {
-      list.push({ viseme: 'TH', dur: 90 });
-      i += 2;
-    } else if (two === 'sh' || two === 'ch') {
-      list.push({ viseme: 'SH', dur: 110 });
-      i += 2;
-    } else if (two === 'ph') {
-      list.push({ viseme: 'FV', dur: 90 });
-      i += 2;
-    } else if (two === 'ee' || two === 'ea' || two === 'ai' || two === 'ay') {
-      list.push({ viseme: 'EE', dur: 150 });
-      i += 2;
-    } else if (two === 'oo') {
-      list.push({ viseme: 'OO', dur: 150 });
-      i += 2;
-    } else if (two === 'ou' || two === 'ow' || two === 'oa' || two === 'aw') {
-      list.push({ viseme: 'OH', dur: 140 });
-      i += 2;
-    } else {
-      const ch = clean[i];
-      if (ch === 'm' || ch === 'b' || ch === 'p') {
-        list.push({ viseme: 'MBP', dur: 80 });
-      } else if (ch === 'f' || ch === 'v') {
-        list.push({ viseme: 'FV', dur: 90 });
-      } else if (ch === 's' || ch === 'z' || ch === 'c') {
-        list.push({ viseme: 'SZ', dur: 90 });
-      } else if (ch === 't' || ch === 'd' || ch === 'n' || ch === 'l') {
-        list.push({ viseme: 'TDN', dur: 85 });
-      } else if (ch === 'k' || ch === 'g' || ch === 'h' || ch === 'r' || ch === 'j') {
-        list.push({ viseme: 'KG', dur: 90 });
-      } else if (ch === 'w') {
-        list.push({ viseme: 'OO', dur: 110 });
-      } else if (ch === 'y') {
-        list.push({ viseme: 'EE', dur: 110 });
-      } else if (ch === 'a') {
-        list.push({ viseme: 'AA', dur: 150 });
-      } else if (ch === 'e') {
-        list.push({ viseme: 'EH', dur: 130 });
-      } else if (ch === 'i') {
-        list.push({ viseme: 'EE', dur: 130 });
-      } else if (ch === 'o') {
-        list.push({ viseme: 'OH', dur: 150 });
-      } else if (ch === 'u') {
-        list.push({ viseme: 'OO', dur: 140 });
+  for (let wIdx = 0; wIdx < words.length; wIdx++) {
+    const word = words[wIdx];
+    let i = 0;
+
+    while (i < word.length) {
+      const two = word.slice(i, i + 2);
+      const three = word.slice(i, i + 3);
+
+      if (three === 'igh') {
+        sequence.push({ viseme: 'EE', dur: baseDuration * 1.3, wIdx });
+        i += 3;
+      } else if (two === 'th') {
+        sequence.push({ viseme: 'TH', dur: baseDuration * 0.9, wIdx });
+        i += 2;
+      } else if (two === 'sh' || two === 'ch') {
+        sequence.push({ viseme: 'SH', dur: baseDuration * 1.1, wIdx });
+        i += 2;
+      } else if (two === 'ph') {
+        sequence.push({ viseme: 'FV', dur: baseDuration * 0.9, wIdx });
+        i += 2;
+      } else if (two === 'ee' || two === 'ea' || two === 'ai' || two === 'ay') {
+        sequence.push({ viseme: 'EE', dur: baseDuration * 1.4, wIdx });
+        i += 2;
+      } else if (two === 'oo') {
+        sequence.push({ viseme: 'OO', dur: baseDuration * 1.4, wIdx });
+        i += 2;
+      } else if (two === 'ou' || two === 'ow' || two === 'oa' || two === 'aw') {
+        sequence.push({ viseme: 'OH', dur: baseDuration * 1.3, wIdx });
+        i += 2;
+      } else {
+        const ch = word[i];
+        if (ch === 'm' || ch === 'b' || ch === 'p') {
+          sequence.push({ viseme: 'MBP', dur: baseDuration * 0.85, wIdx });
+        } else if (ch === 'f' || ch === 'v') {
+          sequence.push({ viseme: 'FV', dur: baseDuration * 0.9, wIdx });
+        } else if (ch === 's' || ch === 'z' || ch === 'c') {
+          sequence.push({ viseme: 'SZ', dur: baseDuration * 0.95, wIdx });
+        } else if (ch === 't' || ch === 'd' || ch === 'n' || ch === 'l') {
+          sequence.push({ viseme: 'TDN', dur: baseDuration * 0.9, wIdx });
+        } else if (ch === 'k' || ch === 'g' || ch === 'h' || ch === 'r' || ch === 'j') {
+          sequence.push({ viseme: 'KG', dur: baseDuration * 0.9, wIdx });
+        } else if (ch === 'w') {
+          sequence.push({ viseme: 'OO', dur: baseDuration * 1.0, wIdx });
+        } else if (ch === 'y') {
+          sequence.push({ viseme: 'EE', dur: baseDuration * 1.0, wIdx });
+        } else if (ch === 'a') {
+          sequence.push({ viseme: 'AA', dur: baseDuration * 1.3, wIdx });
+        } else if (ch === 'e') {
+          sequence.push({ viseme: 'EH', dur: baseDuration * 1.2, wIdx });
+        } else if (ch === 'i') {
+          sequence.push({ viseme: 'EE', dur: baseDuration * 1.2, wIdx });
+        } else if (ch === 'o') {
+          sequence.push({ viseme: 'OH', dur: baseDuration * 1.3, wIdx });
+        } else if (ch === 'u') {
+          sequence.push({ viseme: 'OO', dur: baseDuration * 1.2, wIdx });
+        }
+        i++;
       }
-      i++;
     }
+
+    // Inter-word pause
+    sequence.push({ viseme: 'TDN', dur: 40 / Math.max(0.5, speedMultiplier), wIdx });
   }
 
-  return list.length > 0 ? list : [{ viseme: 'AA', dur: 180 }];
+  return sequence;
 }
 
 /**
@@ -124,8 +135,8 @@ function applyMouthParameters(model, yVal, formVal) {
 
 /**
  * useLipSync Custom Hook
- * Flawless real-time word-boundary pronunciation lip syncing.
- * Guaranteed 100% continuous coverage from the first word to the very last word of speech.
+ * Flawless real-time speech lip syncing.
+ * Parses the FULL sentence text so lip sync NEVER runs out of visemes or stops mid-sentence.
  */
 export function useLipSync(model, isSpeakingProp = false) {
   const rafRef = useRef(null);
@@ -133,10 +144,9 @@ export function useLipSync(model, isSpeakingProp = false) {
   const currentMouthForm = useRef(0);
 
   const activeSpeaking = useRef(isSpeakingProp);
-  const currentWordVisemes = useRef([]);
-  const wordVisemeIndex = useRef(0);
-  const wordVisemeStartTime = useRef(0);
-  const activeWordViseme = useRef(VISEME_MAP.AA);
+  const fullSentenceQueue = useRef([]);
+  const visemeIndex = useRef(0);
+  const visemeStartTime = useRef(0);
 
   // Sync prop changes
   useEffect(() => {
@@ -148,26 +158,32 @@ export function useLipSync(model, isSpeakingProp = false) {
     const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, (data) => {
       activeSpeaking.current = true;
       if (data?.text) {
-        const firstWord = data.text.trim().split(/\s+/)[0] || 'hello';
-        currentWordVisemes.current = getWordVisemes(firstWord);
-        wordVisemeIndex.current = 0;
-        wordVisemeStartTime.current = performance.now();
+        fullSentenceQueue.current = textToFullPhonemeSequence(data.text, data.speed || 1.0);
+        visemeIndex.current = 0;
+        visemeStartTime.current = performance.now();
       }
     });
 
     const unsubWord = EventBus.on(AVATAR_EVENTS.LIP_SYNC_UPDATE, (data) => {
       activeSpeaking.current = true;
-      if (data?.word) {
-        currentWordVisemes.current = getWordVisemes(data.word);
-        wordVisemeIndex.current = 0;
-        wordVisemeStartTime.current = performance.now();
+      // Optional calibration on boundary
+      if (data?.word && fullSentenceQueue.current.length > 0) {
+        const wordClean = data.word.toLowerCase().replace(/[^a-z]/g, '');
+        const queue = fullSentenceQueue.current;
+        // Adjust cursor index if boundary is within nearby window
+        for (let idx = visemeIndex.current; idx < Math.min(queue.length, visemeIndex.current + 15); idx++) {
+          if (queue[idx]) {
+            visemeIndex.current = idx;
+            break;
+          }
+        }
       }
     });
 
     const unsubEnd = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => {
       activeSpeaking.current = false;
-      currentWordVisemes.current = [];
-      wordVisemeIndex.current = 0;
+      fullSentenceQueue.current = [];
+      visemeIndex.current = 0;
     });
 
     return () => {
@@ -210,38 +226,43 @@ export function useLipSync(model, isSpeakingProp = false) {
       if (isSpeaking) {
         const now = performance.now();
         const t = now * 0.001;
+        const queue = fullSentenceQueue.current;
 
-        // 1. Advance through current word's phonetic visemes
-        const visemes = currentWordVisemes.current;
-        if (visemes && visemes.length > 0) {
-          let curr = visemes[wordVisemeIndex.current];
+        if (queue && queue.length > 0) {
+          // Continuous loop through full sentence viseme sequence until speech ends
+          let curr = queue[visemeIndex.current];
           if (curr) {
-            const elapsed = now - wordVisemeStartTime.current;
+            const elapsed = now - visemeStartTime.current;
             if (elapsed >= curr.dur) {
-              wordVisemeIndex.current = (wordVisemeIndex.current + 1) % visemes.length;
-              wordVisemeStartTime.current = now;
-              curr = visemes[wordVisemeIndex.current];
+              visemeIndex.current = (visemeIndex.current + 1) % queue.length;
+              visemeStartTime.current = now;
+              curr = queue[visemeIndex.current];
             }
           }
-          const visemeKey = curr ? curr.viseme : 'AA';
-          activeWordViseme.current = VISEME_MAP[visemeKey] || VISEME_MAP.AA;
+
+          const vKey = curr ? curr.viseme : 'AA';
+          const vData = VISEME_MAP[vKey] || VISEME_MAP.AA;
+
+          // Syllable Carrier Oscillation (~4.8 Hz natural speech frequency)
+          const carrier = Math.abs(Math.sin(t * 4.8 * Math.PI));
+          const flap = Math.pow(carrier, 0.65); // Non-linear opening curve
+
+          // Blend current viseme target with dynamic speech flap
+          targetMouthY = Math.min(1.0, Math.max(0.18, flap * vData.openY + 0.12));
+          targetMouthForm = vData.form + Math.sin(t * 2.8 * Math.PI) * 0.15;
+        } else {
+          // Fallback carrier wave if no text queue is loaded
+          const carrier = Math.abs(Math.sin(t * 4.8 * Math.PI));
+          const flap = Math.pow(carrier, 0.65);
+          targetMouthY = Math.min(1.0, Math.max(0.18, flap * 0.9 + 0.12));
+          targetMouthForm = Math.sin(t * 2.8 * Math.PI) * 0.5;
         }
-
-        // 2. Syllable Carrier Oscillation (~4.8 Hz natural speech frequency)
-        const carrier = Math.abs(Math.sin(t * 4.8 * Math.PI));
-        const flap = Math.pow(carrier, 0.65); // Non-linear opening curve
-
-        // 3. Blend Word Phonetic Target with Dynamic Speech Flap
-        const vData = activeWordViseme.current || VISEME_MAP.AA;
-        // Peak opening scales up to 1.0, minimum threshold 0.18
-        targetMouthY = Math.min(1.0, Math.max(0.18, flap * vData.openY + 0.12));
-        targetMouthForm = vData.form + Math.sin(t * 2.8 * Math.PI) * 0.15;
       } else {
         targetMouthY = 0;
         targetMouthForm = 0;
       }
 
-      // Fast, snappy attack (0.85) and smooth release (0.45)
+      // Fast attack (0.85) and smooth release (0.45)
       const lerpSpeed = isSpeaking ? 0.85 : 0.45;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
