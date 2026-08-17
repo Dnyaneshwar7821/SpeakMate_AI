@@ -3,8 +3,8 @@ import { EventBus, AVATAR_EVENTS } from '../services/live2d/EventBus';
 
 /**
  * Universal Parameter Applier for Cubism 2 (Chitose) and Cubism 4 (Haru)
- * Directly updates parameter memory slots on both coreModel and internalModel,
- * adding realistic vocal head-nods and posture dynamics during continuous speech.
+ * Updates parameter memory slots directly on coreModel and internalModel,
+ * adding realistic vocal head tilts and body posture dynamics during continuous speech.
  */
 function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   if (!model || !model.internalModel) return;
@@ -12,8 +12,9 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   const cm = im.coreModel;
 
   const t = performance.now() * 0.001;
-  const vocalHeadY = isSpeaking ? Math.sin(t * 4.2) * 2.8 : 0;
-  const vocalHeadZ = isSpeaking ? Math.sin(t * 1.8) * 1.5 : 0;
+  const vocalHeadY = isSpeaking ? Math.sin(t * 3.8) * 3.5 : 0;
+  const vocalHeadZ = isSpeaking ? Math.sin(t * 2.0) * 2.2 : 0;
+  const vocalBodyX = isSpeaking ? Math.sin(t * 1.5) * 1.5 : 0;
 
   if (cm) {
     // Cubism 4 (Haru)
@@ -23,8 +24,9 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
       try { cm.setParameterValueById('PARAM_MOUTH_OPEN_Y', yVal, 1.0); } catch (_) {}
       try { cm.setParameterValueById('PARAM_MOUTH_FORM', formVal, 1.0); } catch (_) {}
       if (isSpeaking) {
-        try { cm.setParameterValueById('ParamAngleY', vocalHeadY, 0.4); } catch (_) {}
-        try { cm.setParameterValueById('ParamAngleZ', vocalHeadZ, 0.4); } catch (_) {}
+        try { cm.setParameterValueById('ParamAngleY', vocalHeadY, 0.45); } catch (_) {}
+        try { cm.setParameterValueById('ParamAngleZ', vocalHeadZ, 0.45); } catch (_) {}
+        try { cm.setParameterValueById('ParamBodyAngleX', vocalBodyX, 0.35); } catch (_) {}
       }
     }
     // Cubism 2 (Chitose)
@@ -34,8 +36,9 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
       try { cm.setParamFloat('ParamMouthOpenY', yVal, 1.0); } catch (_) {}
       try { cm.setParamFloat('ParamMouthForm', formVal, 1.0); } catch (_) {}
       if (isSpeaking) {
-        try { cm.setParamFloat('PARAM_ANGLE_Y', vocalHeadY, 0.4); } catch (_) {}
-        try { cm.setParamFloat('PARAM_ANGLE_Z', vocalHeadZ, 0.4); } catch (_) {}
+        try { cm.setParamFloat('PARAM_ANGLE_Y', vocalHeadY, 0.45); } catch (_) {}
+        try { cm.setParamFloat('PARAM_ANGLE_Z', vocalHeadZ, 0.45); } catch (_) {}
+        try { cm.setParamFloat('PARAM_BODY_ANGLE_X', vocalBodyX, 0.35); } catch (_) {}
       }
     }
   }
@@ -50,9 +53,8 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
 
 /**
  * useLipSync Custom Hook
- * Flawless Whole-Sentence Live2D Lip Syncing & Vocal Posture for Haru and Chitose.
- * Uses a guaranteed duration window (speechDeadline) so lip syncing never stops mid-talk,
- * animating continuously from the first word to the very last word of the sentence.
+ * State-of-the-Art Whole-Sentence Live2D Lip Syncing & Vocal Posture for Haru and Chitose.
+ * Features 3-layer harmonic speech wave generator, dual-axis mouth shaping, and sentence duration guarantee.
  */
 export function useLipSync(model, isSpeakingProp = false) {
   const rafRef = useRef(null);
@@ -65,7 +67,7 @@ export function useLipSync(model, isSpeakingProp = false) {
   useEffect(() => {
     activeSpeaking.current = isSpeakingProp;
     if (isSpeakingProp) {
-      speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 4000);
+      speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 4500);
     }
   }, [isSpeakingProp]);
 
@@ -76,15 +78,14 @@ export function useLipSync(model, isSpeakingProp = false) {
       const text = data?.text || '';
       const wordCount = text.trim().split(/\s+/).filter(Boolean).length || 10;
       const speed = data?.speed || 1.0;
-      // Calculate guaranteed sentence duration window (e.g., 15 words at 1.0x = ~8.5s)
-      const durationMs = Math.max(3500, ((wordCount / (2.0 * speed)) * 1000) + 2200);
+      // Sentence duration guarantee (e.g. 15 words = ~8.5 seconds)
+      const durationMs = Math.max(3800, ((wordCount / (2.0 * speed)) * 1000) + 2400);
       speechDeadline.current = performance.now() + durationMs;
     });
 
     const unsubWord = EventBus.on(AVATAR_EVENTS.LIP_SYNC_UPDATE, () => {
       activeSpeaking.current = true;
-      // Extend sentence window on every word boundary event
-      speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 1800);
+      speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 2000);
     });
 
     const unsubEnd = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => {
@@ -99,7 +100,7 @@ export function useLipSync(model, isSpeakingProp = false) {
     };
   }, []);
 
-  // Wrap internalModel.update to ensure mouth parameters override idle animations
+  // Post-Motion Engine Hook: Wrap internalModel.update
   useEffect(() => {
     if (!model || !model.internalModel) return;
 
@@ -143,28 +144,27 @@ export function useLipSync(model, isSpeakingProp = false) {
       let targetMouthForm = 0;
 
       if (isSpeaking) {
-        // Continuous monotonic time base
         const t = now * 0.001;
 
-        // Primary speech carrier oscillator (~5.0 Hz natural vocal frequency)
-        const carrier = Math.abs(Math.sin(t * 5.0 * Math.PI));
-        // Non-linear power curve for wide open vowel peaks
-        const flap = Math.pow(carrier, 0.6);
+        // Multi-Layer Harmonic Speech Engine
+        const carrier1 = Math.abs(Math.sin(t * 4.8 * Math.PI));
+        const carrier2 = Math.abs(Math.sin(t * 2.1 * Math.PI)) * 0.25;
+        const flap = Math.pow(carrier1 + carrier2, 0.55);
 
         // Vocal vibration micro-tremor
-        const microTremor = Math.sin(t * 13.5 * Math.PI) * 0.12;
+        const microTremor = Math.sin(t * 15.0 * Math.PI) * 0.1;
 
-        // Big, prominent mouth opening calculation (Range: 0.25 to 1.0 max opening!)
-        targetMouthY = Math.min(1.0, Math.max(0.25, flap * 0.9 + 0.15 + microTremor));
+        // Big, expressive mouth opening calculation (0.22 to 1.0 max opening)
+        targetMouthY = Math.min(1.0, Math.max(0.22, flap * 0.95 + 0.15 + microTremor));
 
-        // Horizontal mouth shape modulation (-0.75 to +0.75)
-        targetMouthForm = Math.sin(t * 3.0 * Math.PI) * 0.75;
+        // Horizontal mouth shape formant modulation (-0.8 to +0.8)
+        targetMouthForm = Math.sin(t * 3.4 * Math.PI) * 0.8;
       } else {
         targetMouthY = 0;
         targetMouthForm = 0;
       }
 
-      // Fast, snappy attack (0.85) and smooth natural release (0.4)
+      // Fast attack (0.85) and smooth release (0.4)
       const lerpSpeed = isSpeaking ? 0.85 : 0.4;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
