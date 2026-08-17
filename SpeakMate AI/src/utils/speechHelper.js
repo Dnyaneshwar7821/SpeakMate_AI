@@ -363,7 +363,7 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   };
 
   utterance.onstart = (e) => {
-    EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText });
+    EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
 
     // Chrome keep-alive heartbeat to prevent speech pausing mid-sentence
     keepAliveInterval = setInterval(() => {
