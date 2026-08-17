@@ -1,7 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as PIXI from 'pixi.js';
 import { ModelLoader } from '../../services/live2d/ModelLoader';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
+import { getCurrentVoiceGender } from '../../utils/speechHelper';
+import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
+import { Avatar2D } from '../Avatar2D';
 
 // Make PIXI available on window for Live2D SDK Cubism integration
 if (typeof window !== 'undefined' && !window.PIXI) {
@@ -12,14 +15,22 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
   const containerRef = useRef(null);
   const pixiAppRef = useRef(null);
   const modelRef = useRef(null);
+  const [gender, setGender] = useState(() => getCurrentVoiceGender());
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const unsubGender = EventBus.on(AVATAR_EVENTS.GENDER_CHANGED, (data) => {
+      setGender(data?.gender || getCurrentVoiceGender());
+    });
+    return () => unsubGender();
+  }, []);
+
+  useEffect(() => {
+    if (!containerRef.current || gender === 'male') return;
 
     let isMounted = true;
     const container = containerRef.current;
 
-    // Create PixiJS Application
+    // Create PixiJS Application for female Live2D model
     const app = new PIXI.Application({
       width: container.clientWidth || DEFAULT_AVATAR_CONFIG.canvas.width,
       height: container.clientHeight || DEFAULT_AVATAR_CONFIG.canvas.height,
@@ -58,7 +69,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
 
     window.addEventListener('resize', handleResize);
 
-    // Load Live2D Model
+    // Load Live2D Model (Haru)
     ModelLoader.loadModel(modelPath || DEFAULT_AVATAR_CONFIG.modelPath, app)
       .then((loadedModel) => {
         if (!isMounted) return;
@@ -103,7 +114,15 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         }
       }
     };
-  }, [modelPath]);
+  }, [modelPath, gender]);
+
+  if (gender === 'male') {
+    return (
+      <div className={`relative w-full h-full min-h-[350px] flex items-center justify-center overflow-hidden ${className}`}>
+        <Avatar2D />
+      </div>
+    );
+  }
 
   return (
     <div
@@ -113,3 +132,4 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     />
   );
 }
+
