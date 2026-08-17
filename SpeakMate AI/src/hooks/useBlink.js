@@ -20,27 +20,13 @@ export function useBlink(model) {
 
       // Close eyes
       try {
-        const coreModel = model.internalModel?.coreModel;
-        const internal = model.internalModel;
-        if (coreModel) {
-          if (typeof coreModel.setParameterValueById === 'function') {
-            coreModel.setParameterValueById('ParamEyeLOpen', 0);
-            coreModel.setParameterValueById('ParamEyeROpen', 0);
-            coreModel.setParameterValueById('PARAM_EYE_L_OPEN', 0);
-            coreModel.setParameterValueById('PARAM_EYE_R_OPEN', 0);
-          }
-          if (typeof coreModel.setParamFloat === 'function') {
-            coreModel.setParamFloat('PARAM_EYE_L_OPEN', 0);
-            coreModel.setParamFloat('PARAM_EYE_R_OPEN', 0);
-            coreModel.setParamFloat('ParamEyeLOpen', 0);
-            coreModel.setParamFloat('ParamEyeROpen', 0);
-          }
-        }
-        if (internal && typeof internal.setParamFloat === 'function') {
-          internal.setParamFloat('PARAM_EYE_L_OPEN', 0);
-          internal.setParamFloat('PARAM_EYE_R_OPEN', 0);
-          internal.setParamFloat('ParamEyeLOpen', 0);
-          internal.setParamFloat('ParamEyeROpen', 0);
+        const coreModel = model.internalModel.coreModel;
+        if (typeof coreModel.setParameterValueById === 'function') {
+          coreModel.setParameterValueById(AVATAR_PARAMS.EYE_L_OPEN, 0);
+          coreModel.setParameterValueById(AVATAR_PARAMS.EYE_R_OPEN, 0);
+        } else if (typeof coreModel.setParamFloat === 'function') {
+          coreModel.setParamFloat(AVATAR_PARAMS.EYE_L_OPEN, 0);
+          coreModel.setParamFloat(AVATAR_PARAMS.EYE_R_OPEN, 0);
         }
       } catch (e) {
         // ignore
@@ -51,26 +37,12 @@ export function useBlink(model) {
         if (!model.internalModel) return;
         try {
           const coreModel = model.internalModel.coreModel;
-          const internal = model.internalModel;
-          if (coreModel) {
-            if (typeof coreModel.setParameterValueById === 'function') {
-              coreModel.setParameterValueById('ParamEyeLOpen', 1.0);
-              coreModel.setParameterValueById('ParamEyeROpen', 1.0);
-              coreModel.setParameterValueById('PARAM_EYE_L_OPEN', 1.0);
-              coreModel.setParameterValueById('PARAM_EYE_R_OPEN', 1.0);
-            }
-            if (typeof coreModel.setParamFloat === 'function') {
-              coreModel.setParamFloat('PARAM_EYE_L_OPEN', 1.0);
-              coreModel.setParamFloat('PARAM_EYE_R_OPEN', 1.0);
-              coreModel.setParamFloat('ParamEyeLOpen', 1.0);
-              coreModel.setParamFloat('ParamEyeROpen', 1.0);
-            }
-          }
-          if (internal && typeof internal.setParamFloat === 'function') {
-            internal.setParamFloat('PARAM_EYE_L_OPEN', 1.0);
-            internal.setParamFloat('PARAM_EYE_R_OPEN', 1.0);
-            internal.setParamFloat('ParamEyeLOpen', 1.0);
-            internal.setParamFloat('ParamEyeROpen', 1.0);
+          if (typeof coreModel.setParameterValueById === 'function') {
+            coreModel.setParameterValueById(AVATAR_PARAMS.EYE_L_OPEN, 1.0);
+            coreModel.setParameterValueById(AVATAR_PARAMS.EYE_R_OPEN, 1.0);
+          } else if (typeof coreModel.setParamFloat === 'function') {
+            coreModel.setParamFloat(AVATAR_PARAMS.EYE_L_OPEN, 1.0);
+            coreModel.setParamFloat(AVATAR_PARAMS.EYE_R_OPEN, 1.0);
           }
         } catch (e) {
           // ignore

@@ -1,25 +1,12 @@
-import React, { useRef, useMemo, useEffect, useState } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import modelUrl from '../assets/modelToUse.glb?url';
-import { EventBus, AVATAR_EVENTS } from '../services/live2d/EventBus';
 
-export function Avatar3D({ viseme = "REST", isSpeaking: propIsSpeaking = false }) {
+export function Avatar3D({ viseme = "REST", isSpeaking = false }) {
   const group = useRef();
   const { scene } = useGLTF(modelUrl);
-  const [eventSpeaking, setEventSpeaking] = useState(false);
-
-  useEffect(() => {
-    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => setEventSpeaking(true));
-    const unsubFinish = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => setEventSpeaking(false));
-    return () => {
-      unsubStart();
-      unsubFinish();
-    };
-  }, []);
-
-  const isSpeaking = propIsSpeaking || eventSpeaking;
 
   // Apply colorful materials to the model
   useEffect(() => {
@@ -59,22 +46,16 @@ export function Avatar3D({ viseme = "REST", isSpeaking: propIsSpeaking = false }
       0.1
     );
 
-    // Perform Muppet-style lip-syncing by squishing/stretching the model based on the viseme or continuous speech wave
-    let targetScale = visemeScale["REST"];
-    if (isSpeaking) {
-      if (viseme !== "REST") {
-        targetScale = visemeScale[viseme] || visemeScale["OO"];
-      } else {
-        const pulse = Math.abs(Math.sin(time * 12)) * 0.15 + 0.92;
-        targetScale = [pulse, 2 - pulse, 1];
-      }
-    }
+    // Perform Muppet-style lip-syncing by squishing/stretching the model based on the viseme
+    const targetScale = (isSpeaking && viseme !== "REST") 
+      ? (visemeScale[viseme] || visemeScale["OO"])
+      : visemeScale["REST"];
 
     group.current.scale.x = THREE.MathUtils.lerp(group.current.scale.x, targetScale[0], 0.3);
     group.current.scale.y = THREE.MathUtils.lerp(group.current.scale.y, targetScale[1], 0.3);
     group.current.scale.z = THREE.MathUtils.lerp(group.current.scale.z, targetScale[2], 0.3);
 
-    if (isSpeaking) {
+    if (isSpeaking && viseme !== "REST") {
       group.current.rotation.y = THREE.MathUtils.lerp(
         group.current.rotation.y,
         Math.sin(time * 6) * 0.15,
@@ -88,7 +69,6 @@ export function Avatar3D({ viseme = "REST", isSpeaking: propIsSpeaking = false }
       );
     }
   });
-
 
   return (
     <group ref={group} dispose={null}>

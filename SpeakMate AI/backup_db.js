@@ -3,7 +3,7 @@ const { Client } = pkg;
 import fs from 'fs';
 import path from 'path';
 
-const connectionString = "postgres://neondb_owner:npg_rj6FX9QgReyV@ep-summer-boat-azuqu2ws.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require";
+const connectionString = "postgres://neondb_owner:npg_tpRx70fTHDdc@ep-summer-boat-azuqu2ws.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require";
 
 async function dumpDatabase() {
   const client = new Client({ connectionString });

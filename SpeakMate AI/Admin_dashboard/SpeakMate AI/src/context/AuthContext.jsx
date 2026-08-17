@@ -1,0 +1,212 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { authService } from "../services/authService";
+import { setLogoutCallback } from "../services/api";
+
+const AuthContext = createContext(null);
+
+const STORAGE_KEYS = {
+  token: "speakmate_token",
+  user: "speakmate_user",
+  onboardingCompleted: "speakmate_onboarding_completed",
+};
+
+const mockUser = {
+  name: "Dnyaneshwar",
+  email: "learner@speakmate.ai",
+  streak: 7,
+  dailyGoal: 20,
+  role: "ADMIN",
+};
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.user);
+      return stored ? JSON.parse(stored) : null;
+    } catch { return null; }
+  });
+  const [token, setToken] = useState(() => localStorage.getItem(STORAGE_KEYS.token) || null);
+  const [onboardingCompleted, setOnboardingCompleted] = useState(() => {
+    return localStorage.getItem(STORAGE_KEYS.onboardingCompleted) === "true";
+  });
+  const [loading, setLoading] = useState(true);
+
+  const syncSchoolGrade = (userData) => {
+    if (!userData) return;
+    let effectiveGrade = userData.schoolGrade;
+    if (!effectiveGrade || !effectiveGrade.includes("Std")) {
+      const stored = localStorage.getItem("speakmate_school_grade");
+      if (stored && stored.includes("Std")) {
+        effectiveGrade = stored;
+      } else if (userData.englishLevel && userData.englishLevel.includes("Std")) {
+        effectiveGrade = userData.englishLevel;
+      } else {
+        effectiveGrade = "5th Std";
+      }
+    }
+    localStorage.setItem("speakmate_school_grade", effectiveGrade);
+  };
+
+  const restoreSession = useCallback(async () => {
+    try {
+      setLoading(true);
+      const storedToken = localStorage.getItem(STORAGE_KEYS.token);
+      const storedUser = localStorage.getItem(STORAGE_KEYS.user);
+
+      if (storedToken && storedToken !== "null" && storedToken !== "undefined") {
+        setToken(storedToken);
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          syncSchoolGrade(parsedUser);
+        }
+
+        try {
+          const me = await authService.me();
+          if (me) {
+            setUser(me);
+            syncSchoolGrade(me);
+            localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(me));
+            setOnboardingCompleted(Boolean(me.onboardingCompleted));
+          }
+        } catch (meError) {
+          console.warn("User session verification fallback:", meError.userMessage || meError.message);
+        }
+      }
+    } catch (error) {
+      console.error("Session restore error:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    restoreSession();
+  }, [restoreSession]);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEYS.token);
+    localStorage.removeItem(STORAGE_KEYS.user);
+    localStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+    localStorage.removeItem("speakmate_school_grade");
+    setToken(null);
+    setUser(null);
+    setOnboardingCompleted(false);
+  }, []);
+
+  useEffect(() => {
+    setLogoutCallback(logout);
+  }, [logout]);
+
+  const login = async (credentials) => {
+    try {
+      const response = await authService.login(credentials);
+      if (response && response.token) {
+        localStorage.setItem(STORAGE_KEYS.token, response.token);
+        if (response.user) {
+          syncSchoolGrade(response.user);
+          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
+          setUser(response.user);
+          setOnboardingCompleted(Boolean(response.user.onboardingCompleted));
+        }
+        setToken(response.token);
+      }
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const mockLogin = async ({ email, role }) => {
+    const nextUser = {
+      ...mockUser,
+      email: email || mockUser.email,
+      role: role || mockUser.role,
+    };
+    setUser(nextUser);
+    localStorage.setItem(STORAGE_KEYS.token, "mock-token");
+    setToken("mock-token");
+    return nextUser;
+  };
+
+  const register = async (payload) => {
+    try {
+      return await authService.register(payload);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const mockRegister = async ({ name, email }) => {
+    const nextUser = {
+      ...mockUser,
+      name: name || mockUser.name,
+      email: email || mockUser.email,
+      streak: 0,
+    };
+    setUser(nextUser);
+    localStorage.setItem(STORAGE_KEYS.token, "mock-token");
+    setToken("mock-token");
+    return nextUser;
+  };
+
+  const updateUser = (updatedUserData) => {
+    setUser((curr) => {
+      const next = { ...(curr || {}), ...updatedUserData };
+      syncSchoolGrade(next);
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const completeOnboarding = async (data) => {
+    try {
+      if (token) {
+        const updatedUser = await authService.completeOnboarding(data);
+        setUser(updatedUser);
+        syncSchoolGrade(updatedUser);
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));
+      } else {
+        if (user) {
+          updateUser({ ...data, onboardingCompleted: true });
+        }
+      }
+    } catch (error) {
+      console.error("Failed to complete onboarding on server:", error);
+      if (user) {
+        updateUser({ ...data, onboardingCompleted: true });
+      }
+    }
+    setOnboardingCompleted(true);
+    localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
+  };
+
+  const value = useMemo(
+    () => ({
+      user,
+      token,
+      loading,
+      isAuthenticated: Boolean(token && user),
+      onboardingCompleted,
+      login,
+      mockLogin,
+      register,
+      mockRegister,
+      logout,
+      updateUser,
+      completeOnboarding,
+      restoreSession,
+    }),
+    [user, token, loading, onboardingCompleted, logout, restoreSession]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}

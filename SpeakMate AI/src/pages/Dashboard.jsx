@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
+
 import { getLiveProgressStats, recordSpeakingSession, buyStreakFreeze } from "../utils/progressTracker";
 
 const MOTIVATIONAL_QUOTES = [
@@ -108,21 +109,19 @@ export function Dashboard() {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-tr from-indigo-700 via-indigo-600 to-purple-600 text-white shadow-2xl shadow-indigo-500/20"
+        className="relative overflow-hidden p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-[#4f46e5] via-[#6c63ff] to-[#8b5cf6] text-white shadow-2xl"
       >
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-96 h-96 rounded-full bg-pink-500/20 blur-3xl pointer-events-none animate-pulse-glow" />
-        <div className="absolute bottom-0 left-1/3 -mb-10 w-72 h-72 rounded-full bg-cyan-400/10 blur-3xl pointer-events-none" />
-
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-3.5 max-w-2xl">
+          <div className="space-y-3 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20">
+              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20">
                 {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 Level: ${activeAgeGroup}`}
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-md">
                 🔥 {stats.streak}-Day Streak
               </span>
-              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-cyan-300 text-slate-950 shadow-md">
+              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-cyan-400 text-slate-950 shadow-md">
                 ❄️ {stats.streakFreezes || 0} Freezes
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-emerald-400 text-slate-950 shadow-md">
@@ -133,7 +132,7 @@ export function Dashboard() {
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
               Welcome back, {user?.firstName || user?.name || "Learner"}! 👋
             </h1>
-            <p className="text-sm sm:text-base text-indigo-100/90 leading-relaxed font-medium">
+            <p className="text-sm sm:text-base text-indigo-100 leading-relaxed font-medium">
               Your AI English tutor is ready. Practice live speaking, test dynamic vocabulary quizzes, check grammar, or track your progress analytics!
             </p>
           </div>
@@ -141,15 +140,15 @@ export function Dashboard() {
           <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto shrink-0">
             <button
               onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=free-speak`)}
-              className="px-6 py-4 rounded-2xl bg-white text-indigo-700 font-black text-sm shadow-xl hover:bg-indigo-50 hover:scale-105 active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+              className="px-6 py-4 rounded-2xl bg-white text-[#4f46e5] font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all text-center"
             >
-              <span>🎙️</span> Start Live AI Voice Chat
+              🎙️ Start Live AI Voice Chat
             </button>
             <button
               onClick={() => navigate(ROUTES.PROGRESS)}
-              className="px-6 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-black text-sm backdrop-blur-md border border-white/25 text-center transition-all flex items-center justify-center gap-2"
+              className="px-6 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-black text-sm backdrop-blur-md border border-white/25 text-center transition-all"
             >
-              <span>📊</span> Progress Analytics
+              📊 Progress Analytics
             </button>
           </div>
         </div>
@@ -162,48 +161,48 @@ export function Dashboard() {
         transition={{ duration: 0.4, delay: 0.1 }}
         className="grid grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        <div className="glass-card-interactive p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+        <div className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-3xl p-3 rounded-2xl bg-indigo-500/15">🗣️</span>
-            <span className="text-[10px] font-black uppercase text-indigo-500 tracking-wider px-2.5 py-1 rounded-full bg-indigo-500/10">
+            <span className="text-3xl p-2.5 rounded-2xl bg-[#6c63ff]/10">🗣️</span>
+            <span className="text-[10px] font-black uppercase text-[#6c63ff] tracking-wider px-2.5 py-1 rounded-full bg-[#6c63ff]/10">
               Practice Time
             </span>
           </div>
           <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Total Hours</p>
-          <p className="text-3xl font-black text-indigo-500 dark:text-indigo-400">{stats.totalHours} hrs</p>
+          <p className="text-3xl font-black text-[#6c63ff]">{stats.totalHours} hrs</p>
         </div>
 
-        <div className="glass-card-interactive p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+        <div className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-3xl p-3 rounded-2xl bg-emerald-500/15">🎯</span>
+            <span className="text-3xl p-2.5 rounded-2xl bg-emerald-500/10">🎯</span>
             <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10">
               Fluency Rate
             </span>
           </div>
           <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Accuracy Score</p>
-          <p className="text-3xl font-black text-emerald-500 dark:text-emerald-400">{stats.accuracy}%</p>
+          <p className="text-3xl font-black text-emerald-500">{stats.accuracy}%</p>
         </div>
 
-        <div className="glass-card-interactive p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+        <div className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-3xl p-3 rounded-2xl bg-amber-500/15">📚</span>
+            <span className="text-3xl p-2.5 rounded-2xl bg-amber-500/10">📚</span>
             <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider px-2.5 py-1 rounded-full bg-amber-500/10">
               Vocabulary
             </span>
           </div>
           <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Words Mastered</p>
-          <p className="text-3xl font-black text-amber-500 dark:text-amber-400">{stats.wordsLearned}</p>
+          <p className="text-3xl font-black text-amber-500">{stats.wordsLearned}</p>
         </div>
 
-        <div className="glass-card-interactive p-6 rounded-3xl space-y-2 border border-[var(--border-default)]">
+        <div className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-3xl p-3 rounded-2xl bg-pink-500/15">🏆</span>
-            <span className="text-[10px] font-black uppercase text-pink-500 tracking-wider px-2.5 py-1 rounded-full bg-pink-500/10">
+            <span className="text-3xl p-2.5 rounded-2xl bg-rose-500/10">🏆</span>
+            <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider px-2.5 py-1 rounded-full bg-rose-500/10">
               Milestones
             </span>
           </div>
           <p className="text-xs font-extrabold text-[var(--text-secondary)] uppercase tracking-wider pt-1">Badges Unlocked</p>
-          <p className="text-3xl font-black text-pink-500 dark:text-pink-400">{stats.badgesUnlocked || (stats.streak > 0 ? 1 : 0)} / 6</p>
+          <p className="text-3xl font-black text-rose-500">{stats.badgesUnlocked || (stats.streak > 0 ? 1 : 0)} / 6</p>
         </div>
       </motion.div>
 
@@ -216,7 +215,7 @@ export function Dashboard() {
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
           {/* School Announcements Card */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-indigo-500/30 space-y-4 shadow-xl">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-indigo-500/30 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">🔔</span>
@@ -238,7 +237,7 @@ export function Dashboard() {
               </div>
 
               <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-1">
-                <div className="flex items-center justify-between text-xs font-black text-indigo-500">
+                <div className="flex items-center justify-between text-xs font-black text-[#6c63ff]">
                   <span>ENGLISH DEPT • ALL CLASSES</span>
                   <span className="text-[10px] opacity-75">Yesterday</span>
                 </div>
@@ -248,8 +247,8 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* My Homework Assignments Card */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-emerald-500/30 space-y-4 shadow-xl">
+          {/* My Assignments Homework Card */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-emerald-500/30 space-y-4 shadow-xl">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">📝</span>
@@ -274,13 +273,13 @@ export function Dashboard() {
               </div>
 
               <div className="flex items-center gap-4 text-xs font-black text-[var(--text-primary)] pt-1">
-                <span className="flex items-center gap-1 text-indigo-500">⏱️ Target: 15 Mins</span>
+                <span className="flex items-center gap-1 text-[#6c63ff]">⏱️ Target: 15 Mins</span>
                 <span className="flex items-center gap-1 text-amber-500">🏆 Min Score: 70%</span>
               </div>
 
               <button
                 onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=job_interview&assignmentId=101`)}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-black shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white text-xs font-black shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
               >
                 <span>Start Homework ➔</span>
               </button>
@@ -294,10 +293,10 @@ export function Dashboard() {
         {/* Left Column (8 Cols) */}
         <div className="lg:col-span-8 space-y-8">
           {/* Daily Goal & Interactive Warmup Drill */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-6 border border-[var(--border-default)] shadow-xl">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 border border-[var(--border-default)] shadow-xl">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs font-black text-indigo-500 uppercase tracking-wider">Daily Target</span>
+                <span className="text-xs font-black text-[#6c63ff] uppercase tracking-wider">Daily Target</span>
                 <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] mt-1">
                   Practice for {stats.dailyGoalMins} Minutes Today
                 </h2>
@@ -310,7 +309,7 @@ export function Dashboard() {
             {/* Progress Bar */}
             <div className="w-full bg-[var(--bg-elevated)] h-3.5 rounded-full overflow-hidden p-0.5 border border-[var(--border-subtle)]">
               <div
-                className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 h-full rounded-full transition-all duration-500 shadow-md"
+                className="bg-gradient-to-r from-[#6c63ff] via-[#8b85ff] to-[#ff6584] h-full rounded-full transition-all duration-500 shadow-md"
                 style={{ width: `${Math.min(100, (stats.completedMins / stats.dailyGoalMins) * 100)}%` }}
               />
             </div>
@@ -318,7 +317,7 @@ export function Dashboard() {
             {/* Interactive 5-Min Warmup Timer Drill Card */}
             <div className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className={`grid h-14 w-14 place-items-center rounded-2xl ${timerActive ? "bg-rose-500 text-white animate-pulse" : "bg-indigo-500/15 text-indigo-500"} text-2xl font-bold shrink-0 shadow-md`}>
+                <div className={`grid h-14 w-14 place-items-center rounded-2xl ${timerActive ? "bg-rose-500 text-white animate-pulse" : "bg-[#6c63ff]/15 text-[#6c63ff]"} text-2xl font-bold shrink-0 shadow-md`}>
                   ⏱️
                 </div>
                 <div>
@@ -336,7 +335,7 @@ export function Dashboard() {
                     setTimerActive(true);
                     setTimerCompleted(false);
                   }}
-                  className="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black shadow-lg shrink-0 w-full sm:w-auto transition-all"
+                  className="px-6 py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#7c74ff] text-white text-xs font-black shadow-lg shrink-0 w-full sm:w-auto transition-all"
                 >
                   {timerCompleted ? "Restart Warmup" : "Start Warmup"}
                 </button>
@@ -359,14 +358,14 @@ export function Dashboard() {
               {/* Module 1: Speaking Practice */}
               <div
                 onClick={() => navigate(ROUTES.SPEAKING)}
-                className="glass-card-interactive p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-indigo-500/15 group-hover:scale-110 transition-transform">🗣️</span>
-                  <span className="text-xs font-black text-indigo-500 group-hover:translate-x-1 transition-transform">Practice →</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-[#6c63ff]/15 group-hover:scale-110 transition-transform">🗣️</span>
+                  <span className="text-xs font-black text-[#6c63ff] group-hover:translate-x-1 transition-transform">Practice →</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-indigo-500 transition-colors">Speaking Practice</h3>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">Speaking Practice</h3>
                   <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
                     {isStudent ? `Curated ${activeGrade} grade scenarios & phonics.` : "Real-world conversations, interviews & speeches."}
                   </p>
@@ -376,7 +375,7 @@ export function Dashboard() {
               {/* Module 2: Grammar Practice */}
               <div
                 onClick={() => navigate(ROUTES.GRAMMAR)}
-                className="glass-card-interactive p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-3xl p-3 rounded-2xl bg-emerald-500/15 group-hover:scale-110 transition-transform">✍️</span>
@@ -391,7 +390,7 @@ export function Dashboard() {
               {/* Module 3: CEFR Lessons */}
               <div
                 onClick={() => navigate(ROUTES.LESSONS)}
-                className="glass-card-interactive p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-3xl p-3 rounded-2xl bg-rose-500/15 group-hover:scale-110 transition-transform">📖</span>
@@ -406,7 +405,7 @@ export function Dashboard() {
               {/* Module 4: Vocabulary Builder */}
               <div
                 onClick={() => navigate(ROUTES.VOCABULARY)}
-                className="glass-card-interactive p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-3xl p-3 rounded-2xl bg-amber-500/15 group-hover:scale-110 transition-transform">📚</span>
@@ -421,7 +420,7 @@ export function Dashboard() {
               {/* Module 5: Progress & Analytics */}
               <div
                 onClick={() => navigate(ROUTES.PROGRESS)}
-                className="glass-card-interactive p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-3xl p-3 rounded-2xl bg-cyan-500/15 group-hover:scale-110 transition-transform">📊</span>
@@ -436,14 +435,14 @@ export function Dashboard() {
               {/* Module 6: AI Chat Coach */}
               <div
                 onClick={() => navigate(`${ROUTES.CONVERSATION_SESSION}?scenario=free-speak`)}
-                className="glass-card-interactive p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card-premium glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-purple-500/15 group-hover:scale-110 transition-transform">💬</span>
-                  <span className="text-xs font-black text-purple-500 group-hover:translate-x-1 transition-transform">Chat →</span>
+                  <span className="text-3xl p-3 rounded-2xl bg-indigo-500/15 group-hover:scale-110 transition-transform">💬</span>
+                  <span className="text-xs font-black text-indigo-500 group-hover:translate-x-1 transition-transform">Chat →</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-purple-500 transition-colors">AI Voice Chat Coach</h3>
+                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-indigo-500 transition-colors">AI Voice Chat Coach</h3>
                   <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Freeform voice conversation with speed controls.</p>
                 </div>
               </div>
@@ -454,12 +453,12 @@ export function Dashboard() {
         {/* Right Column (4 Cols) */}
         <div className="lg:col-span-4 space-y-8">
           {/* Daily Motivation & Audio Quote Card */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-indigo-500/30 space-y-5 shadow-xl">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#6c63ff]/30 space-y-5 shadow-xl">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-indigo-500 uppercase tracking-wider">Daily Inspiration</span>
+              <span className="text-xs font-black text-[#6c63ff] uppercase tracking-wider">Daily Inspiration</span>
               <button
                 onClick={() => setQuoteIndex((i) => (i + 1) % MOTIVATIONAL_QUOTES.length)}
-                className="text-xs font-bold text-[var(--text-secondary)] hover:text-indigo-500 transition-colors"
+                className="text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 title="Next Quote"
               >
                 ↻ Next Quote
@@ -470,13 +469,13 @@ export function Dashboard() {
               <p className="text-base font-extrabold text-[var(--text-primary)] italic leading-relaxed">
                 "{currentQuote.quote}"
               </p>
-              <p className="text-xs font-black text-indigo-500">— {currentQuote.author}</p>
+              <p className="text-xs font-black text-[#6c63ff]">— {currentQuote.author}</p>
             </div>
 
             <div className="pt-2 flex items-center justify-between gap-3 flex-wrap">
               <button
                 onClick={() => handleSpeakQuote(currentQuote.quote)}
-                className="px-4 py-2.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-black text-[var(--text-primary)] hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-2 shadow-sm"
+                className="px-4 py-2.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-black text-[var(--text-primary)] hover:bg-[#6c63ff] hover:text-white transition-all flex items-center gap-2 shadow-sm"
               >
                 <span>🔊 Listen Quote</span>
               </button>
@@ -484,7 +483,7 @@ export function Dashboard() {
               {!challengeClaimed ? (
                 <button
                   onClick={handleAcceptChallenge}
-                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-pink-500 text-white text-xs font-black shadow-md transition-all hover:scale-105"
+                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-black shadow-md transition-all hover:scale-105"
                 >
                   Accept Goal (+50 XP)
                 </button>
@@ -497,7 +496,7 @@ export function Dashboard() {
           </div>
 
           {/* Streak & Freeze Protection Card */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-4 border border-cyan-500/30 shadow-xl">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-4 border border-cyan-500/30 bg-gradient-to-br from-[var(--bg-card)] to-cyan-500/5 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-cyan-500 uppercase tracking-wider">Streak Protection</span>
               <span className="text-xs font-black text-cyan-500 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">
@@ -517,7 +516,7 @@ export function Dashboard() {
               disabled={stats.xp < 100}
               className={`w-full py-3.5 rounded-2xl font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 ${
                 stats.xp >= 100
-                  ? "bg-gradient-to-r from-cyan-500 to-indigo-600 text-white hover:scale-[1.02] active:scale-[0.98]"
+                  ? "bg-gradient-to-r from-cyan-500 to-[#6c63ff] text-white hover:scale-[1.02] active:scale-[0.98]"
                   : "bg-gray-400/20 text-gray-400 cursor-not-allowed border border-gray-400/20"
               }`}
             >
@@ -526,10 +525,10 @@ export function Dashboard() {
           </div>
 
           {/* Milestones & Achievements Card */}
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
             <div className="flex items-center justify-between">
               <h3 className="font-black text-lg text-[var(--text-primary)]">Milestones</h3>
-              <Link to={ROUTES.ACHIEVEMENTS} className="text-xs font-black text-indigo-500 hover:underline">
+              <Link to={ROUTES.ACHIEVEMENTS} className="text-xs font-black text-[#6c63ff] hover:underline">
                 View All →
               </Link>
             </div>
@@ -548,7 +547,7 @@ export function Dashboard() {
 
               <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl p-2 rounded-xl bg-indigo-500/10">📚</span>
+                  <span className="text-2xl p-2 rounded-xl bg-[#6c63ff]/10">📚</span>
                   <div>
                     <p className="font-black text-xs text-[var(--text-primary)]">Vocabulary Virtuoso</p>
                     <p className="text-[11px] text-emerald-500 font-bold mt-0.5">Unlocked ✓</p>

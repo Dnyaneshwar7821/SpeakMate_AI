@@ -10,19 +10,22 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.5.7",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "axios": "^1.18.1",
     "framer-motion": "^12.42.2",
-    "live2d-widget-model-chitose": "^1.0.5",
-    "live2d-widget-model-haruto": "^1.0.5",
+    "lucide-react": "^1.31.0",
     "pg": "^8.22.0",
     "pixi-live2d-display": "^0.4.0",
     "pixi.js": "^7.4.3",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-hook-form": "^7.83.0",
     "react-router-dom": "^7.18.1",
-    "three": "^0.185.1"
+    "recharts": "^3.10.0",
+    "three": "^0.185.1",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.2",

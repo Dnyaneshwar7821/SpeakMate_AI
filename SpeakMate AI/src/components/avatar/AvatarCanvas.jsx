@@ -1,10 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { ModelLoader } from '../../services/live2d/ModelLoader';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
-import { getCurrentVoiceGender } from '../../utils/speechHelper';
-import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
-import { Avatar2D } from '../Avatar2D';
 
 // Make PIXI available on window for Live2D SDK Cubism integration
 if (typeof window !== 'undefined' && !window.PIXI) {
@@ -15,18 +12,6 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
   const containerRef = useRef(null);
   const pixiAppRef = useRef(null);
   const modelRef = useRef(null);
-  const [gender, setGender] = useState(() => getCurrentVoiceGender());
-
-  useEffect(() => {
-    const unsubGender = EventBus.on(AVATAR_EVENTS.GENDER_CHANGED, (data) => {
-      setGender(data?.gender || getCurrentVoiceGender());
-    });
-    return () => unsubGender();
-  }, []);
-
-  const femaleModelPath = "/models/avatar/haru/haru_greeter_t03.model3.json";
-  const maleModelPath = "/models/avatar/chitose/chitose.model.json";
-  const targetModelPath = modelPath || (gender === 'male' ? maleModelPath : femaleModelPath);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -47,7 +32,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     pixiAppRef.current = app;
     container.appendChild(app.view);
 
-    // Resize & Framing Handler
+    // Resize Handler
     const handleResize = () => {
       if (!app || !app.renderer || !container) return;
       const width = container.clientWidth;
@@ -56,29 +41,25 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
 
       if (modelRef.current) {
         const model = modelRef.current;
-        
-        // Internal native dimensions
         const nativeHeight = model.internalModel?.height || model.height || 1000;
-
-        // Top-centered anchor for predictable portrait framing
-        if (model.anchor) {
-          model.anchor.set(0.5, 0);
-        }
-
-        // Scale comfortably so full face, head, and chest fit inside container
-        const scale = (height * 1.18) / nativeHeight;
+        const nativeWidth = model.internalModel?.width || model.width || 1000;
+        
+        const scaleMultiplier = framing === 'fullBody' ? 1.0 : 1.7;
+        const scale = (height * scaleMultiplier) / nativeHeight;
         model.scale.set(scale, scale);
+        
+        // Remove anchor offset just in case it was set elsewhere
+        if (model.anchor) model.anchor.set(0, 0);
 
-        // Center horizontally and offset down from top header bar
-        model.x = width / 2;
-        model.y = Math.max(36, height * 0.08);
+        model.x = (width - (nativeWidth * scale)) / 2;
+        model.y = framing === 'fullBody' ? height * 0.02 : height * 0.05;
       }
     };
 
     window.addEventListener('resize', handleResize);
 
     // Load Live2D Model
-    ModelLoader.loadModel(targetModelPath, app)
+    ModelLoader.loadModel(modelPath || DEFAULT_AVATAR_CONFIG.modelPath, app)
       .then((loadedModel) => {
         if (!isMounted) return;
         modelRef.current = loadedModel;
@@ -122,7 +103,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         }
       }
     };
-  }, [targetModelPath, gender]);
+  }, [modelPath]);
 
   return (
     <div
@@ -132,6 +113,3 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     />
   );
 }
-
-
-

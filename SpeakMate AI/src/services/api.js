@@ -41,7 +41,7 @@ api.interceptors.response.use(
     if (error.code === "ECONNABORTED") {
       message = "Request timed out. Check your connection and try again.";
     } else if (!error.response) {
-      message = "Network error. Unable to reach SpeakMate AI backend (https://speakmateai-backend.onrender.com). If the server was idle, please wait ~30 seconds for Render to wake up.";
+      message = "Network error. Make sure your Spring Boot backend is running at http://localhost:9091.";
     } else if (status === 401) {
       message = data?.message || "Your session has expired. Please log in again.";
       if (logoutCallback) {

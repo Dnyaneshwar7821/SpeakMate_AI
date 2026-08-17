@@ -10,18 +10,14 @@ export function Input({ label, error, className = "", type, ...props }) {
   }, [isPassword, showPassword, type]);
 
   return (
-    <label className="block w-full">
-      {label && (
-        <span className="mb-2 block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider">
-          {label}
-        </span>
-      )}
+    <label className="block">
+      {label && <span className="mb-2 block text-sm font-medium text-slate-700">{label}</span>}
 
-      <div className="relative w-full">
+      <div className="relative">
         <input
           type={inputType}
-          className={`h-12 w-full rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] px-4 text-sm sm:text-base font-bold text-[var(--text-primary)] outline-none transition-all placeholder:text-[var(--text-secondary)]/60 focus:border-[#6c63ff] focus:ring-4 focus:ring-[#6c63ff]/15 ${
-            isPassword ? "pr-12" : ""
+          className={`h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 ${
+            isPassword ? "pr-11" : ""
           } ${className}`}
           {...props}
         />
@@ -31,10 +27,10 @@ export function Input({ label, error, className = "", type, ...props }) {
             type="button"
             aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-xl text-[var(--text-secondary)] hover:text-[#6c63ff] hover:bg-[#6c63ff]/10 focus:outline-none transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 focus:outline-none focus:ring-4 focus:ring-indigo-100"
           >
             {showPassword ? (
-              // Eye OPEN (when password is shown)
+              // Eye open
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -49,7 +45,7 @@ export function Input({ label, error, className = "", type, ...props }) {
                 <circle cx="12" cy="12" r="3" />
               </svg>
             ) : (
-              // Eye SLASH / CLOSED (when password is hidden)
+              // Eye closed
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -60,17 +56,17 @@ export function Input({ label, error, className = "", type, ...props }) {
                 strokeLinejoin="round"
                 className="h-5 w-5"
               >
-                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                <line x1="2" y1="2" x2="22" y2="22" />
+                <path d="M3 3l18 18" />
+                <path d="M10.58 10.58A3 3 0 0 0 12 15a3 3 0 0 0 2.42-4.42" />
+                <path d="M9.88 5.08A10.43 10.43 0 0 1 12 5c6.5 0 10 7 10 7a18.43 18.43 0 0 1-3.12 4.16" />
+                <path d="M6.1 6.1C3.2 8.1 2 12 2 12s3.5 7 10 7c1.21 0 2.33-.22 3.34-.6" />
               </svg>
             )}
           </button>
         )}
       </div>
 
-      {error && <span className="mt-2 block text-xs font-bold text-rose-500">{error}</span>}
+      {error && <span className="mt-2 block text-sm text-rose-600">{error}</span>}
     </label>
   );
 }

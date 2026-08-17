@@ -4,10 +4,7 @@ import { useNavigate, useSearchParams, useLocation, Link } from "react-router-do
 import ROUTES from "../constants/routes";
 import { speakingService } from "../services/appServices";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
-import { speakGlobalText, cancelGlobalSpeech, warmupSpeechAutoplay } from "../utils/speechHelper";
-import { SmartChatEngine } from "../services/ai/SmartChatEngine";
-
-
+import { speakGlobalText, warmupSpeechAutoplay } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
 import { recordSpeakingSession } from "../utils/progressTracker";
 
@@ -55,7 +52,7 @@ export function ConversationSession() {
   useLipSync(model, isAiSpeaking);
   useBlink(model);
   useMouseTracking(model, containerRef);
-  useExpressions(model);
+  const { setExpression } = useExpressions(model);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [hints, setHints] = useState([]);
   const [loadingHints, setLoadingHints] = useState(false);
@@ -67,6 +64,7 @@ export function ConversationSession() {
 
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
+  const hasSpokenInitialRef = useRef(false);
 
   // Real-Time Phonetic Lip-Sync Loop
   useEffect(() => {
@@ -212,19 +210,14 @@ export function ConversationSession() {
     if (isPaused) return;
     setLoadingHints(true);
     try {
-      const data = await speakingService.getHints(sessionId).catch(() => {
-        const lastMsg = [...messages].reverse().find((m) => m.sender === "user")?.message || "";
-        const hintObj = SmartChatEngine.generateFeedback(lastMsg || scenario, { scenario, history: messages, level: chatLevel });
-        return [
-          hintObj.followUpQuestion || `What is your opinion on ${scenario}?`,
-          `Could you tell me more details about your experience?`,
-          `How would you express that in formal English?`,
-        ];
-      });
+      const data = await speakingService.getHints(sessionId).catch(() => [
+        "I would like to practice speaking about my hobbies and work experience.",
+        "Could you ask me a question about my daily routine?",
+      ]);
       setHints(data || []);
     } catch (e) {
       console.warn("Failed to fetch hints:", e);
-    } finally {
+    } fontFinally: {
       setLoadingHints(false);
     }
   };
@@ -232,7 +225,7 @@ export function ConversationSession() {
   const handleStartListening = () => {
     if (isPaused) return;
     if ("speechSynthesis" in window) {
-      cancelGlobalSpeech();
+      window.speechSynthesis.cancel();
       setIsAiSpeaking(false);
       setViseme("REST");
     }
@@ -281,20 +274,21 @@ export function ConversationSession() {
         sessionId,
         message: text,
         level: chatLevel,
-      }).catch(() => {
-        return SmartChatEngine.generateFeedback(text, {
-          scenario,
-          level: chatLevel,
-          history: messages,
-        });
-      });
+      }).catch(() => ({
+        aiReply: "That is a fantastic point! Practicing every day with SpeakMate AI builds natural fluency.",
+        grammarCorrection: "I want to improve my spoken English skills.",
+        betterSentence: "I would like to enhance my English speaking proficiency.",
+        vocabularySuggestions: "Proficiency, Natural fluency, Accent",
+        explanation: "Using 'enhance' adds a formal tone to your conversation.",
+        followUpQuestion: "What is your main goal for practicing English?",
+      }));
 
       setIsThinking(false);
 
       const aiMsg = {
         id: Date.now() + 1,
         sender: "ai",
-        message: feedback.aiReply || feedback.message,
+        message: feedback.aiReply,
       };
 
       setMessages((prev) => [...prev, aiMsg]);
@@ -309,7 +303,6 @@ export function ConversationSession() {
       setIsThinking(false);
     }
   };
-
 
   const handleEndSession = async () => {
     if ("speechSynthesis" in window) {

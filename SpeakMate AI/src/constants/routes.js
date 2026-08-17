@@ -24,6 +24,47 @@ export const ROUTES = {
   SETTINGS: "/settings",
   HELP: "/help",
   ABOUT: "/about",
+
+  // Super Admin
+  ADMIN_LOGIN: "/admin/login",
+  ADMIN_FORGOT_PASSWORD: "/admin/forgot-password",
+  ADMIN_VERIFY_OTP: "/admin/verify-otp",
+  ADMIN_RESET_PASSWORD: "/admin/reset-password",
+  ADMIN_DASHBOARD: "/admin/dashboard",
+  ADMIN_USERS: "/admin/users",
+  ADMIN_SCHOOL_USERS: "/admin/school-users",
+  ADMIN_ADD_SCHOOL: "/admin/add-school",
+  ADMIN_TEACHERS: "/admin/teachers",
+  ADMIN_SUBSCRIPTION: "/admin/subscription-billing",
+  ADMIN_PROFILE: "/admin/profile",
+  ADMIN_SETTINGS: "/admin/settings",
+
+  // School Admin
+  SCHOOL_ADMIN_LOGIN: "/school-admin/login",
+  SCHOOL_ADMIN_FORGOT_PASSWORD: "/school-admin/forgot-password",
+  SCHOOL_ADMIN_VERIFY_OTP: "/school-admin/verify-otp",
+  SCHOOL_ADMIN_RESET_PASSWORD: "/school-admin/reset-password",
+  SCHOOL_ADMIN_DASHBOARD: "/school-admin/dashboard",
+  SCHOOL_ADMIN_STUDENTS: "/school-admin/students",
+  SCHOOL_ADMIN_TEACHERS: "/school-admin/teachers",
+  SCHOOL_ADMIN_RESULTS: "/school-admin/results",
+  SCHOOL_ADMIN_INSIGHTS: "/school-admin/insights",
+  SCHOOL_ADMIN_ADD_TEACHER: "/school-admin/add-teacher",
+  SCHOOL_ADMIN_PROFILE: "/school-admin/profile",
+  SCHOOL_ADMIN_SETTINGS: "/school-admin/settings",
+
+  // Teacher
+  TEACHER_LOGIN: "/teacher/login",
+  TEACHER_FORGOT_PASSWORD: "/teacher/forgot-password",
+  TEACHER_VERIFY_OTP: "/teacher/verify-otp",
+  TEACHER_RESET_PASSWORD: "/teacher/reset-password",
+  TEACHER_DASHBOARD: "/teacher/dashboard",
+  TEACHER_STUDENTS: "/teacher/students",
+  TEACHER_STUDENT_DETAILS: "/teacher/students/:studentId",
+  TEACHER_ANALYTICS: "/teacher/analytics",
+  TEACHER_REPORTS: "/teacher/reports",
+  TEACHER_PROFILE: "/teacher/profile",
+
   NOT_FOUND: "/404",
 };
 

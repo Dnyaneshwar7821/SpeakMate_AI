@@ -41,32 +41,10 @@ export function useMouseTracking(model, containerRef) {
 
         try {
           const coreModel = model.internalModel.coreModel;
-          const internal = model.internalModel;
-          if (coreModel) {
-            if (typeof coreModel.setParameterValueById === 'function') {
-              coreModel.setParameterValueById('ParamAngleX', angleX);
-              coreModel.setParameterValueById('ParamAngleY', angleY);
-              coreModel.setParameterValueById('ParamAngleZ', angleZ);
-              coreModel.setParameterValueById('PARAM_ANGLE_X', angleX);
-              coreModel.setParameterValueById('PARAM_ANGLE_Y', angleY);
-              coreModel.setParameterValueById('PARAM_ANGLE_Z', angleZ);
-            }
-            if (typeof coreModel.setParamFloat === 'function') {
-              coreModel.setParamFloat('PARAM_ANGLE_X', angleX);
-              coreModel.setParamFloat('PARAM_ANGLE_Y', angleY);
-              coreModel.setParamFloat('PARAM_ANGLE_Z', angleZ);
-              coreModel.setParamFloat('ParamAngleX', angleX);
-              coreModel.setParamFloat('ParamAngleY', angleY);
-              coreModel.setParamFloat('ParamAngleZ', angleZ);
-            }
-          }
-          if (internal && typeof internal.setParamFloat === 'function') {
-            internal.setParamFloat('PARAM_ANGLE_X', angleX);
-            internal.setParamFloat('PARAM_ANGLE_Y', angleY);
-            internal.setParamFloat('PARAM_ANGLE_Z', angleZ);
-            internal.setParamFloat('ParamAngleX', angleX);
-            internal.setParamFloat('ParamAngleY', angleY);
-            internal.setParamFloat('ParamAngleZ', angleZ);
+          if (coreModel && typeof coreModel.setParamFloat === 'function') {
+            coreModel.setParamFloat(AVATAR_PARAMS.ANGLE_X, angleX);
+            coreModel.setParamFloat(AVATAR_PARAMS.ANGLE_Y, angleY);
+            coreModel.setParamFloat(AVATAR_PARAMS.ANGLE_Z, angleZ);
           }
         } catch (e) {
           // ignore

@@ -21,6 +21,8 @@ export default defineConfig({
       "@assets": path.resolve(__dirname, "./src/assets"),
       "@styles": path.resolve(__dirname, "./src/styles"),
       "@routes": path.resolve(__dirname, "./src/routes"),
+      "@admin": path.resolve(__dirname, "./src/frontend/admin-dashboard"),
+      "@school-admin": path.resolve(__dirname, "./src/frontend/school-admin-dashboard"),
     },
   },
   server: {

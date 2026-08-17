@@ -25,7 +25,7 @@ export function Layout({ children }) {
   const showFooter = NO_SIDEBAR_PATHS.includes(location.pathname);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[var(--bg-base)] text-[var(--text-primary)] relative bg-mesh-radial selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[var(--bg-base)] text-[var(--text-primary)] relative">
       <Navbar />
 
       <div className="flex-1 flex flex-row min-w-0">

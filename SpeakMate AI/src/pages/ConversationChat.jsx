@@ -1,17 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 
 import ROUTES from "../constants/routes";
 import { chatService } from "../services/appServices";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
 import { useLipSync } from "../hooks/useLipSync";
-import { speakGlobalText, cancelGlobalSpeech } from "../utils/speechHelper";
-import { SmartChatEngine } from "../services/ai/SmartChatEngine";
-
-
+import { speakGlobalText } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
 
 export function ConversationChat() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const sessionIdParam = searchParams.get("sessionId");
   const mode = searchParams.get("mode") || "General English";
@@ -29,6 +27,7 @@ export function ConversationChat() {
   const [isMuted, setIsMuted] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState("");
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [model, setModel] = useState(null);
 
@@ -36,7 +35,7 @@ export function ConversationChat() {
   useLipSync(model, isAiSpeaking);
 
   // Dynamic Real-Time Phonetic Viseme State ("REST", "AA", "EE", "OO", "IH", "OH")
-  const [, setViseme] = useState("REST");
+  const [viseme, setViseme] = useState("REST");
 
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -195,15 +194,10 @@ export function ConversationChat() {
   const handleFetchHints = async () => {
     setLoadingHints(true);
     try {
-      const data = await chatService.getHints(sessionId).catch(() => {
-        const lastMsg = [...messages].reverse().find((m) => m.sender === "user")?.message || "";
-        const hintObj = SmartChatEngine.generateFeedback(lastMsg || mode, { mode, history: messages, level: chatLevel });
-        return [
-          hintObj.followUpQuestion || `Could you give me an example about ${mode}?`,
-          `How can I improve my phrasing for this scenario?`,
-          `What are key vocabulary terms for ${mode}?`,
-        ];
-      });
+      const data = await chatService.getHints(sessionId).catch(() => [
+        "Could you explain the grammar rules for present perfect tense?",
+        "How can I sound more natural in professional emails?",
+      ]);
       setHints(data || []);
     } catch (e) {
       console.warn("Fetch hints error:", e);
@@ -218,7 +212,7 @@ export function ConversationChat() {
       setIsListening(false);
     } else {
       if ("speechSynthesis" in window) {
-        cancelGlobalSpeech();
+        window.speechSynthesis.cancel();
         setIsAiSpeaking(false);
         setViseme("REST");
       }
@@ -252,13 +246,16 @@ export function ConversationChat() {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
-      const response = await chatService.send(sessionId, cleanText, !isMuted, chatLevel).catch(() => {
-        return SmartChatEngine.generateFeedback(cleanText, {
-          mode,
-          level: chatLevel,
-          history: messages,
-        });
-      });
+      const response = await chatService.send(sessionId, cleanText, !isMuted, chatLevel).catch(() => ({
+        id: Date.now() + 1,
+        sender: "ai",
+        message: "That is a well-structured sentence! Here is a tip to refine your phrasing.",
+        grammarCorrection: "I want to improve my sentence structure. ✅ Correct!",
+        betterSentence: "I aim to refine my sentence composition and vocabulary range.",
+        vocabularySuggestions: "Refine, Composition, Vocabulary range",
+        explanation: "Using 'refine' and 'composition' elevates your formal expression.",
+        followUpQuestion: "Would you like to practice more examples on this topic?",
+      }));
 
       setMessages((prev) => [...prev, response]);
       setEvaluating(false);
@@ -269,7 +266,6 @@ export function ConversationChat() {
       setEvaluating(false);
     }
   };
-
 
   const handleToggleBookmark = async (msgId) => {
     try {

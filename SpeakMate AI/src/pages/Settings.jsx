@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { speakGlobalText, VOICE_PROFILES, ACCENT_LIST, notifyGenderChange } from "../utils/speechHelper";
+import { speakGlobalText, VOICE_PROFILES, ACCENT_LIST } from "../utils/speechHelper";
 
 export function Settings() {
   const toast = useToast();
@@ -76,8 +76,6 @@ export function Settings() {
       localStorage.setItem("speakmate_age_group", selectedAgeGroup);
       localStorage.setItem("speakmate_daily_goal", dailyGoal);
 
-      notifyGenderChange();
-
       try {
         await completeOnboarding({
           preferredVoice: selectedVoice,
@@ -94,7 +92,7 @@ export function Settings() {
       }
 
       setSaved(true);
-      toast.success("Settings saved successfully! Voice preferences & avatar gender applied globally across all AI modules.");
+      toast.success("Settings saved successfully! Voice preferences applied globally across all AI modules.");
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       console.error("Save settings error:", err);

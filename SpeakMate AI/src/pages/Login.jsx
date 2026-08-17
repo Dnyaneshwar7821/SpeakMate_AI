@@ -62,11 +62,11 @@ export function Login() {
 
   return (
     <div className="w-full max-w-xl mx-auto relative z-10">
-      <div className="glass-panel p-8 sm:p-10 lg:p-12 rounded-3xl border border-[var(--border-default)] shadow-2xl space-y-8 relative animate-in fade-in duration-300">
+      <div className="bg-[var(--bg-surface)] p-8 sm:p-10 lg:p-12 rounded-3xl border border-[var(--border-default)] shadow-2xl space-y-8 relative animate-in fade-in duration-300">
         
         {/* Brand App Badge Header */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-indigo-600 to-pink-500 flex items-center justify-center text-3xl shadow-xl shadow-indigo-500/30">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] flex items-center justify-center text-3xl shadow-xl shadow-[#6c63ff]/30">
             🗣️
           </div>
           <div>
@@ -79,7 +79,7 @@ export function Login() {
         <div className="flex items-center gap-2 p-2 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
           <button
             type="button"
-            className="flex-1 py-3 rounded-xl text-sm sm:text-base font-black bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25 text-center transition-all"
+            className="flex-1 py-3 rounded-xl text-sm sm:text-base font-black bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-md shadow-[#6c63ff]/25 text-center transition-all"
           >
             🔑 Log In
           </button>
@@ -98,7 +98,7 @@ export function Login() {
             onClick={() => { setLoginType("STANDARD"); setError(""); }}
             className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 ${
               loginType === "STANDARD"
-                ? "bg-[var(--bg-surface)] text-indigo-500 shadow border border-[var(--border-default)]"
+                ? "bg-[var(--bg-surface)] text-[#6c63ff] shadow border border-[var(--border-default)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
@@ -109,7 +109,7 @@ export function Login() {
             onClick={() => { setLoginType("SCHOOL"); setError(""); }}
             className={`py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-1.5 ${
               loginType === "SCHOOL"
-                ? "bg-[var(--bg-surface)] text-indigo-500 shadow border border-[var(--border-default)]"
+                ? "bg-[var(--bg-surface)] text-[#6c63ff] shadow border border-[var(--border-default)]"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
@@ -148,7 +148,7 @@ export function Login() {
                   value={schoolCode}
                   onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all tracking-wider uppercase"
+                  className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all tracking-wider uppercase"
                 />
               </div>
             </div>
@@ -166,7 +166,7 @@ export function Login() {
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
-                className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
               />
             </div>
           </div>
@@ -176,7 +176,7 @@ export function Login() {
               <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider">
                 Password
               </label>
-              <Link to={ROUTES.FORGOT_PASSWORD} className="text-xs sm:text-sm font-black text-indigo-500 hover:underline">
+              <Link to={ROUTES.FORGOT_PASSWORD} className="text-xs sm:text-sm font-black text-[#6c63ff] hover:underline">
                 Forgot password?
               </Link>
             </div>
@@ -188,45 +188,15 @@ export function Login() {
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 required
-                className="w-full pl-12 pr-12 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                className="w-full pl-12 pr-12 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-3 text-[var(--text-secondary)] hover:text-indigo-500 hover:bg-indigo-500/10 p-1.5 rounded-xl transition-colors"
+                className="absolute right-4 top-3.5 text-[var(--text-secondary)] hover:text-[#6c63ff] transition-colors text-base"
                 title={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5"
-                  >
-                    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
-                    <circle cx="12" cy="12" r="3" />
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5"
-                  >
-                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                    <path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3.5 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                    <line x1="2" y1="2" x2="22" y2="22" />
-                  </svg>
-                )}
+                {showPassword ? "👁️" : "🙈"}
               </button>
             </div>
           </div>
@@ -234,7 +204,7 @@ export function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white font-black text-sm sm:text-base shadow-xl shadow-indigo-500/25 transition-all flex items-center justify-center gap-2 mt-4"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-95 active:scale-[0.99] disabled:opacity-50 text-white font-black text-sm sm:text-base shadow-xl shadow-[#6c63ff]/25 transition-all flex items-center justify-center gap-2 mt-4"
           >
             {loading ? (
               <>

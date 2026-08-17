@@ -112,12 +112,10 @@ export const speakingService = {
   start: (payload) => api.post("/api/speaking/start", payload).then((res) => res.data),
   sendMessage: (payload) => api.post("/api/speaking/message", payload).then((res) => res.data),
   end: (id) => api.post(`/api/speaking/end/${id}`).then((res) => res.data),
-  history: () => optionalGet("/api/speaking/history", []),
-  getHistory: () => optionalGet("/api/speaking/history", []),
-  detail: (id) => optionalGet(`/api/speaking/session/${id}`, null),
+  history: () => api.get("/api/speaking/history").then((res) => res.data),
+  detail: (id) => api.get(`/api/speaking/session/${id}`).then((res) => res.data),
   remove: (id) => api.delete(`/api/speaking/${id}`).then((res) => res.data),
-  deleteHistory: (id) => api.delete(`/api/speaking/${id}`).then((res) => res.data).catch(() => ({ success: true })),
-  getHints: (id) => optionalGet(`/api/speaking/hint/${id}`, []),
+  getHints: (id) => api.get(`/api/speaking/hint/${id}`).then((res) => res.data),
 };
 
 export const progressService = {

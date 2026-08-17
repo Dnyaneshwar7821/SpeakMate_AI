@@ -12,7 +12,6 @@ export const AVATAR_EVENTS = {
   MOTION_STARTED: 'MotionStarted',
   MOTION_FINISHED: 'MotionFinished',
   LIP_SYNC_UPDATE: 'LipSyncUpdate',
-  GENDER_CHANGED: 'GenderChanged',
 };
 
 class EventBusService {

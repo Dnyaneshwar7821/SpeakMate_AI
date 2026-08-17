@@ -5,7 +5,7 @@
  */
 
 import * as PIXI from 'pixi.js';
-import { Live2DModel } from 'pixi-live2d-display';
+import { Live2DModel } from 'pixi-live2d-display/cubism4';
 import { EventBus, AVATAR_EVENTS } from './EventBus';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 
@@ -83,6 +83,15 @@ export class ModelLoader {
     } catch (error) {
       console.warn('[ModelLoader] Failed to load specified model path:', path, error);
       EventBus.emit(AVATAR_EVENTS.MODEL_ERROR, { error, path });
+
+      // Fallback model check if primary fails and stage is still valid
+      if (pixiApp && pixiApp.stage && path !== DEFAULT_AVATAR_CONFIG.fallbackModelPath) {
+        try {
+          return await ModelLoader.loadModel(DEFAULT_AVATAR_CONFIG.fallbackModelPath, pixiApp);
+        } catch (fallbackErr) {
+          console.warn('[ModelLoader] Fallback model load attempt failed:', fallbackErr);
+        }
+      }
 
       throw error;
     }

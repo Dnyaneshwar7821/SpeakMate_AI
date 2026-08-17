@@ -24,6 +24,7 @@ export function AiChat() {
   const { showConfirm } = useModal();
   const toast = useToast();
   const [history, setHistory] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const [renameTargetSession, setRenameTargetSession] = useState(null);

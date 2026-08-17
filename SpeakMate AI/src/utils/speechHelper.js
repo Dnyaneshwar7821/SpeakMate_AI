@@ -1,6 +1,4 @@
 // src/utils/speechHelper.js
-import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
-
 
 export const VOICE_PROFILES = [
   { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male', previewText: 'Hello, I am your American Male English tutor.' },
@@ -147,39 +145,19 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     gender,
     selectedVoiceName,
     pitch,
-    rateMultiplier: isNaN(parseFloat(customRate)) ? 1.0 : parseFloat(customRate),
+    rateMultiplier: parseFloat(customRate),
     lang: targetLang,
-    baseRate: baseRate || 1.0,
+    baseRate,
   };
-};
-
-export const getCurrentVoiceGender = () => {
-  try {
-    const settings = getSavedVoiceSettings();
-    return settings.gender || 'female';
-  } catch (err) {
-    return 'female';
-  }
-};
-
-export const notifyGenderChange = (newGender) => {
-  const gender = newGender || getCurrentVoiceGender();
-  EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender });
 };
 
 export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overrideVoiceCode = null) => {
   if (!utterance || typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
   const settings = getSavedVoiceSettings(overrideVoiceCode);
-  utterance.lang = settings.lang || "en-US";
-
-  const safePitch = typeof settings.pitch === "number" && !isNaN(settings.pitch) ? settings.pitch : 1.0;
-  const safeBaseRate = typeof settings.baseRate === "number" && !isNaN(settings.baseRate) ? settings.baseRate : 1.0;
-  const safeRateMult = typeof settings.rateMultiplier === "number" && !isNaN(settings.rateMultiplier) ? settings.rateMultiplier : 1.0;
-  const safeSpeed = typeof speedMultiplier === "number" && !isNaN(speedMultiplier) ? speedMultiplier : 1.0;
-
-  utterance.pitch = Math.max(0.5, Math.min(2.0, safePitch));
-  utterance.rate = Math.max(0.5, Math.min(2.0, safeBaseRate * safeRateMult * safeSpeed));
+  utterance.lang = settings.lang;
+  utterance.pitch = settings.pitch;
+  utterance.rate = settings.baseRate * settings.rateMultiplier * speedMultiplier;
 
   const voices = window.speechSynthesis.getVoices();
   if (voices && voices.length > 0) {
@@ -357,15 +335,6 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
   window.addEventListener("touchstart", unlockAudio, { passive: true });
 }
 
-export const cancelGlobalSpeech = () => {
-  if (typeof window !== "undefined" && "speechSynthesis" in window) {
-    try {
-      window.speechSynthesis.cancel();
-    } catch (_) {}
-  }
-  EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED, {});
-};
-
 export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   if (typeof window === "undefined" || !("speechSynthesis" in window) || !text) return null;
 
@@ -379,25 +348,10 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   const cleanText = text.replace(/[*_#`~]/g, "");
   const utterance = new SpeechSynthesisUtterance(cleanText);
 
-  utterance.onstart = (e) => {
-    EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText });
-    if (options.onstart) options.onstart(e);
-  };
-
-  utterance.onboundary = (e) => {
-    EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, { event: e, charIndex: e.charIndex, name: e.name });
-    if (options.onboundary) options.onboundary(e);
-  };
-
-  utterance.onend = (e) => {
-    EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED, {});
-    if (options.onend) options.onend(e);
-  };
-
-  utterance.onerror = (e) => {
-    EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED, {});
-    if (options.onerror) options.onerror(e);
-  };
+  if (options.onstart) utterance.onstart = options.onstart;
+  if (options.onboundary) utterance.onboundary = options.onboundary;
+  if (options.onend) utterance.onend = options.onend;
+  if (options.onerror) utterance.onerror = options.onerror;
 
   const doSpeak = () => {
     try {
@@ -407,7 +361,6 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
       window.speechSynthesis.speak(utterance);
     } catch (e) {
       console.warn("Speech synthesis execution error:", e);
-      EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED, {});
     }
   };
 
@@ -428,4 +381,3 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 
   return utterance;
 };
-

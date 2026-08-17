@@ -101,3 +101,15 @@ export function timeAgo(date) {
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
   return formatDate(d, { month: "short", day: "numeric" });
 }
+
+/**
+ * Get initials from a full name string
+ * @param {string} name
+ */
+export function getInitials(name = "") {
+  return name
+    .split(" ")
+    .map((part) => part.charAt(0).toUpperCase())
+    .slice(0, 2)
+    .join("");
+}

@@ -59,264 +59,293 @@ function generateDifferentRandomQuiz(userAddedWords = []) {
     const correctIndex = options.indexOf(correctMeaning);
 
     return {
-      id: i + 1,
-      targetWord: wordObj.word,
-      question: `What is the exact definition of "${wordObj.word}"?`,
+      id: `quiz_q_${Date.now()}_${i}`,
+      word: wordObj.word,
+      questionText: `What is the correct definition of '${wordObj.word}'?`,
       options,
       correctIndex,
-      explanation: `"${wordObj.word}" means: ${correctMeaning}`,
+      explanation: `'${wordObj.word}' means: "${correctMeaning}"`,
     };
   });
 }
 
 export function Vocabulary() {
+  const [activeTab, setActiveTab] = useState("list"); // 'list', 'flashcards', 'quiz'
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // New Word Input State
-  const [newWord, setNewWord] = useState("");
-  const [newMeaning, setNewMeaning] = useState("");
-
-  // Filters & Search
+  const [wordInput, setWordInput] = useState("");
+  const [adding, setAdding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const [speakingWord, setSpeakingWord] = useState(null);
 
-  // Tabs: "dictionary" | "flashcards" | "quiz"
-  const [activeTab, setActiveTab] = useState("dictionary");
-
-  // Flashcards state
+  // Flashcard State
   const [cardIndex, setCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
   // Dynamic Quiz State
   const [quizQuestions, setQuizQuestions] = useState([]);
-  const [currentQuizStep, setCurrentQuizStep] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [quizLoading, setQuizLoading] = useState(false);
+  const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
+  const [selectedQuizAnswer, setSelectedQuizAnswer] = useState(null);
   const [quizScore, setQuizScore] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
+  const [earnedXP, setEarnedXP] = useState(0);
 
-  // Speech Playing State
-  const [speakingWord, setSpeakingWord] = useState(null);
+  const loadVocabulary = async () => {
+    setLoading(true);
+    try {
+      const data = await vocabularyService.all();
+      setItems(data && data.length > 0 ? data : EXTENDED_DICTIONARY_POOL.slice(0, 6));
+    } catch (e) {
+      setItems(EXTENDED_DICTIONARY_POOL.slice(0, 6));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let isMounted = true;
-    vocabularyService
-      .list()
-      .then((data) => {
-        if (!isMounted) return;
-        if (data && Array.isArray(data) && data.length > 0) {
-          setItems(data);
-          setQuizQuestions(generateDifferentRandomQuiz(data));
-        } else {
-          setItems(EXTENDED_DICTIONARY_POOL);
-          setQuizQuestions(generateDifferentRandomQuiz(EXTENDED_DICTIONARY_POOL));
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        if (!isMounted) return;
-        setItems(EXTENDED_DICTIONARY_POOL);
-        setQuizQuestions(generateDifferentRandomQuiz(EXTENDED_DICTIONARY_POOL));
-        setLoading(false);
-      });
-    return () => {
-      isMounted = false;
-    };
+    loadVocabulary();
   }, []);
 
-  const handleAddWord = async (e) => {
-    e.preventDefault();
-    if (!newWord.trim() || !newMeaning.trim()) return;
+  const handleSpeak = (text) => {
+    if (!text) return;
+    setSpeakingWord(text);
+    speakGlobalText(text, 1.0, {
+      onend: () => setSpeakingWord(null),
+      onerror: () => setSpeakingWord(null),
+    });
+  };
 
-    const wordData = {
-      id: Date.now().toString(),
-      word: newWord.trim(),
-      meaning: newMeaning.trim(),
-      favorite: false,
-    };
-
-    try {
-      const saved = await vocabularyService.create(wordData).catch(() => null);
-      const itemToAdd = saved || wordData;
-      setItems((prev) => [itemToAdd, ...prev]);
-      recordVocabularyMastered(1);
-    } catch (e) {
-      setItems((prev) => [wordData, ...prev]);
-      recordVocabularyMastered(1);
+  // Auto-speak word or meaning when Flashcard tab is active or card flips
+  useEffect(() => {
+    if (activeTab === "flashcards" && items.length > 0 && items[cardIndex]) {
+      const currentItem = items[cardIndex];
+      const textToSpeak = isFlipped ? currentItem.meaning : currentItem.word;
+      handleSpeak(textToSpeak);
     }
+  }, [activeTab, cardIndex, isFlipped]);
 
-    setNewWord("");
-    setNewMeaning("");
+  const handleCardClick = () => {
+    const nextFlipped = !isFlipped;
+    setIsFlipped(nextFlipped);
+    if (items[cardIndex]) {
+      const textToSpeak = nextFlipped ? items[cardIndex].meaning : items[cardIndex].word;
+      handleSpeak(textToSpeak);
+    }
+  };
+
+  const handleAddWord = async () => {
+    if (!wordInput.trim()) return;
+    setAdding(true);
+    try {
+      await vocabularyService.add(wordInput.trim());
+      recordVocabularyMastered(1);
+      setWordInput("");
+      await loadVocabulary();
+    } catch (e) {
+      const newWordObj = {
+        id: String(Date.now()),
+        word: wordInput.trim(),
+        meaning: `Useful vocabulary word added to your personal lexicon.`,
+        exampleSentence: `Practice using '${wordInput.trim()}' in your daily conversations.`,
+        favorite: true,
+      };
+      setItems((prev) => [newWordObj, ...prev]);
+      recordVocabularyMastered(1);
+      setWordInput("");
+    } finally {
+      setAdding(false);
+    }
   };
 
   const handleToggleFavorite = async (item) => {
-    const updated = !item.favorite;
-    setItems((prev) => prev.map((w) => (w.id === item.id ? { ...w, favorite: updated } : w)));
-
     try {
-      await vocabularyService.toggleFavorite(item.id, updated).catch(() => null);
-    } catch (e) {}
+      const updated = await vocabularyService.toggleFavorite(item.id);
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, favorite: updated.favorite } : i))
+      );
+    } catch (e) {
+      setItems((prev) =>
+        prev.map((i) => (i.id === item.id ? { ...i, favorite: !i.favorite } : i))
+      );
+    }
   };
 
   const handleDeleteWord = async (id) => {
-    setItems((prev) => prev.filter((w) => w.id !== id));
     try {
-      await vocabularyService.delete(id).catch(() => null);
-    } catch (e) {}
-  };
-
-  const handleSpeak = (text) => {
-    setSpeakingWord(text);
-    speakGlobalText(text);
-    setTimeout(() => setSpeakingWord(null), 2500);
-  };
-
-  const handleCardClick = () => {
-    if (!isFlipped && items[cardIndex]) {
-      handleSpeak(items[cardIndex].word);
+      await vocabularyService.remove(id);
+      setItems((prev) => prev.filter((i) => i.id !== id));
+    } catch (e) {
+      setItems((prev) => prev.filter((i) => i.id !== id));
     }
-    setIsFlipped(!isFlipped);
   };
 
-  const handleNextCard = () => {
-    setIsFlipped(false);
-    const nextIdx = (cardIndex + 1) % items.length;
-    setCardIndex(nextIdx);
-    if (items[nextIdx]) handleSpeak(items[nextIdx].word);
+  const filteredItems = items.filter((i) => {
+    const matchesSearch =
+      i.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (i.meaning && i.meaning.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesFilter = filterType === "all" || (filterType === "favorites" && i.favorite);
+    return matchesSearch && matchesFilter;
+  });
+
+  const startQuiz = () => {
+    setQuizLoading(true);
+    setQuizFinished(false);
+    setQuizScore(0);
+    setCurrentQuizIdx(0);
+    setSelectedQuizAnswer(null);
+
+    setTimeout(() => {
+      const newQuiz = generateDifferentRandomQuiz(items);
+      setQuizQuestions(newQuiz);
+      setQuizLoading(false);
+    }, 150);
   };
 
-  const handlePrevCard = () => {
-    setIsFlipped(false);
-    const prevIdx = (cardIndex - 1 + items.length) % items.length;
-    setCardIndex(prevIdx);
-    if (items[prevIdx]) handleSpeak(items[prevIdx].word);
-  };
-
-  const handleAnswerQuiz = (optionIndex) => {
-    if (selectedAnswer !== null) return;
-    setSelectedAnswer(optionIndex);
-
-    const q = quizQuestions[currentQuizStep];
-    const isCorrect = optionIndex === q.correctIndex;
-
-    if (isCorrect) {
-      setQuizScore((prev) => prev + 1);
+  const handleAnswerQuiz = (idx) => {
+    if (selectedQuizAnswer !== null) return;
+    setSelectedQuizAnswer(idx);
+    const q = quizQuestions[currentQuizIdx];
+    if (idx === q.correctIndex) {
+      setQuizScore((s) => s + 1);
     }
   };
 
   const handleNextQuizQuestion = () => {
-    if (currentQuizStep < quizQuestions.length - 1) {
-      setCurrentQuizStep((prev) => prev + 1);
-      setSelectedAnswer(null);
+    if (currentQuizIdx + 1 < quizQuestions.length) {
+      setCurrentQuizIdx((i) => i + 1);
+      setSelectedQuizAnswer(null);
     } else {
+      const finalScore = quizScore + (selectedQuizAnswer === quizQuestions[currentQuizIdx].correctIndex ? 1 : 0);
+      const earned = finalScore * 25;
+      setEarnedXP(earned);
       setQuizFinished(true);
-      recordVocabularyMastered(quizScore + 1);
+      if (earned > 0) {
+        progressService.create({ xp: earned }).catch(() => {});
+      }
     }
   };
 
-  const handleRestartQuiz = () => {
-    const newQuiz = generateDifferentRandomQuiz(items);
-    setQuizQuestions(newQuiz);
-    setCurrentQuizStep(0);
-    setSelectedAnswer(null);
-    setQuizScore(0);
-    setQuizFinished(false);
+  const currentQ = quizQuestions[currentQuizIdx] || {
+    word: "Vocabulary",
+    questionText: "What is the correct definition of your vocabulary word?",
+    options: ["Definition A", "Definition B", "Definition C", "Definition D"],
+    correctIndex: 0,
+    explanation: "Review vocabulary definitions in your Word Bank.",
   };
-
-  const filteredItems = items.filter((item) => {
-    const matchesSearch =
-      item.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.meaning.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = filterType === "favorites" ? item.favorite : true;
-    return matchesSearch && matchesFilter;
-  });
 
   const favoriteCount = items.filter((i) => i.favorite).length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4 animate-in fade-in duration-300">
+    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4">
       {/* Top Banner Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-tr from-indigo-800 via-indigo-700 to-purple-700 p-6 sm:p-10 text-white shadow-2xl space-y-6">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-80 h-80 rounded-full bg-pink-500/20 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
-            📚 Interactive CEFR Vocabulary Bank
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4f46e5] via-[#6c63ff] to-[#8b5cf6] p-6 sm:p-10 text-white shadow-2xl">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
+              ✨ Dynamic Lexicon Studio
+            </div>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+              Vocabulary Builder
+            </h1>
+            <p className="text-sm sm:text-base text-indigo-100 font-medium leading-relaxed">
+              Expand your English word bank, master pronunciations with AI speech, flip 3D study flashcards, and test retention with instant XP quizzes.
+            </p>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">Vocabulary Builder</h1>
-          <p className="text-sm sm:text-base text-indigo-100/90 font-medium leading-relaxed">
-            Expand your active word bank, study definitions, listen to AI pronunciations, flip 3D flashcards, and test your knowledge with dynamic quizzes!
-          </p>
+
+          {/* Key Metrics Pill Bar */}
+          <div className="flex items-center gap-3 bg-black/20 backdrop-blur-xl p-3 sm:p-4 rounded-2xl border border-white/15 shrink-0">
+            <div className="px-4 py-2 text-center border-r border-white/15">
+              <span className="text-xl sm:text-2xl font-black text-white">{items.length}</span>
+              <span className="block text-[10px] sm:text-xs font-extrabold text-indigo-200 uppercase">Words</span>
+            </div>
+            <div className="px-4 py-2 text-center border-r border-white/15">
+              <span className="text-xl sm:text-2xl font-black text-amber-300">⭐ {favoriteCount}</span>
+              <span className="block text-[10px] sm:text-xs font-extrabold text-indigo-200 uppercase">Saved</span>
+            </div>
+            <div className="px-4 py-2 text-center">
+              <span className="text-xl sm:text-2xl font-black text-emerald-300">⚡ 100%</span>
+              <span className="block text-[10px] sm:text-xs font-extrabold text-indigo-200 uppercase">Interactive</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center justify-between gap-4 p-2.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+      {/* Navigation Tab Bar */}
+      <div className="flex items-center justify-between gap-3 p-2 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] shadow-sm">
+        <div className="flex items-center gap-2 w-full overflow-x-auto no-scrollbar">
           <button
-            onClick={() => setActiveTab("dictionary")}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
-              activeTab === "dictionary"
-                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25 scale-102"
+            onClick={() => setActiveTab("list")}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 ${
+              activeTab === "list"
+                ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/25 scale-102"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
             }`}
           >
-            📖 Word Bank ({items.length})
+            <span>📚 Word Bank</span>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === "list" ? "bg-white/20 text-white" : "bg-[var(--bg-surface)] text-[var(--text-secondary)]"}`}>
+              {filteredItems.length}
+            </span>
           </button>
 
           <button
             onClick={() => setActiveTab("flashcards")}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 ${
               activeTab === "flashcards"
-                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25 scale-102"
+                ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/25 scale-102"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
             }`}
           >
-            🎴 3D Flashcards
+            <span>🎴 3D Flashcards</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-500">
+              Voice 🔊
+            </span>
           </button>
 
           <button
-            onClick={() => setActiveTab("quiz")}
-            className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all ${
+            onClick={() => {
+              setActiveTab("quiz");
+              startQuiz();
+            }}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 ${
               activeTab === "quiz"
-                ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25 scale-102"
+                ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/25 scale-102"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
             }`}
           >
-            🎯 Dynamic Quiz
+            <span>⚡ XP Retention Quiz</span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-500">
+              Auto-New
+            </span>
           </button>
         </div>
       </div>
 
-      {/* TAB 1: DICTIONARY WORD BANK */}
-      {activeTab === "dictionary" && (
+      {/* TAB 1: WORD BANK VIEW */}
+      {activeTab === "list" && (
         <div className="space-y-6">
-          {/* Add New Word Bar & Search Filter Grid */}
+          {/* Action Strip: Add Word + Search + Filter Pills */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Add Word Form */}
-            <form onSubmit={handleAddWord} className="lg:col-span-6 glass-panel p-4 rounded-2xl border border-[var(--border-default)] flex flex-col sm:flex-row items-center gap-3">
+            {/* Add New Word Form */}
+            <div className="lg:col-span-6 flex gap-3">
               <input
                 type="text"
-                placeholder="Word (e.g. Resilient)"
-                value={newWord}
-                onChange={(e) => setNewWord(e.target.value)}
-                className="w-full sm:w-1/3 px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
-              />
-              <input
-                type="text"
-                placeholder="Meaning or definition..."
-                value={newMeaning}
-                onChange={(e) => setNewMeaning(e.target.value)}
-                className="w-full sm:w-1/2 px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs font-bold text-[var(--text-primary)] focus:outline-none focus:border-indigo-500"
+                placeholder="Type a new word (e.g. Pragmatic)..."
+                value={wordInput}
+                onChange={(e) => setWordInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleAddWord()}
+                className="flex-1 px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
               />
               <button
-                type="submit"
-                disabled={!newWord.trim() || !newMeaning.trim()}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-black shrink-0 transition-all shadow-md"
+                onClick={handleAddWord}
+                disabled={adding || !wordInput.trim()}
+                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 disabled:opacity-50 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all shrink-0"
               >
-                + Add Word
+                {adding ? "Adding..." : "+ Add Word"}
               </button>
-            </form>
+            </div>
 
             {/* Search Input */}
             <div className="lg:col-span-4">
@@ -326,7 +355,7 @@ export function Vocabulary() {
                   placeholder="🔍 Search words or definitions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs sm:text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all shadow-inner"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
                 />
                 {searchQuery && (
                   <button
@@ -346,7 +375,7 @@ export function Vocabulary() {
                   onClick={() => setFilterType("all")}
                   className={`flex-1 py-2 text-xs font-black rounded-xl transition-all ${
                     filterType === "all"
-                      ? "bg-[var(--bg-surface)] text-indigo-500 shadow-sm"
+                      ? "bg-[var(--bg-surface)] text-[#6c63ff] shadow-sm"
                       : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
@@ -372,7 +401,7 @@ export function Vocabulary() {
               Loading word bank...
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="p-12 sm:p-16 rounded-3xl glass-panel text-center space-y-3 shadow-xl">
+            <div className="p-12 sm:p-16 rounded-3xl glass-card text-center space-y-3">
               <span className="text-5xl">📚</span>
               <h3 className="font-extrabold text-lg text-[var(--text-primary)]">No Vocabulary Words Found</h3>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-sm mx-auto">
@@ -386,21 +415,21 @@ export function Vocabulary() {
                 return (
                   <div
                     key={item.id || item.word}
-                    className="group relative glass-card-interactive p-6 rounded-3xl space-y-4 flex flex-col justify-between border border-[var(--border-default)] hover:border-indigo-500/50 shadow-md hover:shadow-xl transition-all duration-300"
+                    className="group relative glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all duration-300"
                   >
                     <div className="space-y-3">
                       {/* Card Header: Word + TTS Voice Button + Favorite Star */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-2xl font-black text-[var(--text-primary)] group-hover:text-indigo-500 transition-colors">
+                          <h3 className="text-2xl font-black text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
                             {item.word}
                           </h3>
                           <button
                             onClick={() => handleSpeak(item.word)}
                             className={`grid h-9 w-9 place-items-center rounded-2xl transition-all text-xs ${
                               isSpeaking
-                                ? "bg-indigo-600 text-white animate-pulse"
-                                : "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-600 hover:text-white"
+                                ? "bg-[#6c63ff] text-white animate-pulse"
+                                : "bg-[#6c63ff]/10 text-[#6c63ff] hover:bg-[#6c63ff] hover:text-white"
                             }`}
                             title="Listen Pronunciation (AI Voice)"
                           >
@@ -450,7 +479,7 @@ export function Vocabulary() {
 
                     {/* Card Footer */}
                     <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-indigo-500 px-2.5 py-1 rounded-md bg-indigo-500/10">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#6c63ff] px-2.5 py-1 rounded-md bg-[#6c63ff]/10">
                         CEFR Vocabulary
                       </span>
                       <button
@@ -476,26 +505,26 @@ export function Vocabulary() {
             <span className="px-3 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-default)]">
               Card {cardIndex + 1} of {items.length}
             </span>
-            <span className="text-indigo-500 animate-pulse">
+            <span className="text-[#6c63ff] animate-pulse">
               Tap card to flip • AI Voice Auto-Reads 🔊
             </span>
           </div>
 
-          {/* Interactive 3D Card */}
+          {/* Interactive 3D Perspective Flip Container */}
           <div
             onClick={handleCardClick}
             className="group relative w-full h-88 sm:h-96 rounded-3xl cursor-pointer perspective-1000 select-none"
             style={{ perspective: "1000px" }}
           >
             <div
-              className={`w-full h-full duration-500 transition-all transform-style-3d relative rounded-3xl shadow-2xl glass-panel p-8 sm:p-12 flex flex-col items-center justify-center text-center border-2 border-[var(--border-default)] hover:border-indigo-500 ${
-                isFlipped ? "bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)]" : "bg-gradient-to-br from-indigo-500/10 via-[var(--bg-surface)] to-[var(--bg-elevated)]"
+              className={`w-full h-full duration-500 transition-all transform-style-3d relative rounded-3xl shadow-2xl glass-card p-8 sm:p-12 flex flex-col items-center justify-center text-center border-2 border-[var(--border-default)] hover:border-[#6c63ff] ${
+                isFlipped ? "bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)]" : "bg-gradient-to-br from-[#6c63ff]/10 via-[var(--bg-surface)] to-[var(--bg-elevated)]"
               }`}
             >
               {!isFlipped ? (
                 /* FRONT SIDE: WORD */
                 <div className="space-y-6 animate-in fade-in duration-200">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/20 text-indigo-500 dark:text-indigo-300 text-xs font-black uppercase tracking-wider">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-black uppercase tracking-wider">
                     ✨ Word Flashcard
                   </div>
                   <h2 className="text-4xl sm:text-6xl font-black text-[var(--text-primary)] tracking-tight">
@@ -507,7 +536,7 @@ export function Vocabulary() {
                         e.stopPropagation();
                         handleSpeak(items[cardIndex].word);
                       }}
-                      className="px-5 py-2.5 rounded-2xl bg-indigo-500/15 text-indigo-500 hover:bg-indigo-600 hover:text-white font-extrabold text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm"
+                      className="px-5 py-2.5 rounded-2xl bg-[#6c63ff]/15 text-[#6c63ff] hover:bg-[#6c63ff] hover:text-white font-extrabold text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm"
                     >
                       🔊 Re-play Word Pronunciation
                     </button>
@@ -520,32 +549,57 @@ export function Vocabulary() {
                 /* BACK SIDE: DEFINITION & EXAMPLE */
                 <div className="space-y-6 animate-in fade-in duration-200 max-w-lg">
                   <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-500 text-xs font-black uppercase tracking-wider">
-                    📖 Meaning & Context
+                    💡 Definition & Context
                   </div>
-                  <p className="text-lg sm:text-2xl font-black text-[var(--text-primary)] leading-relaxed">
+                  <p className="text-xl sm:text-2xl font-black text-[var(--text-primary)] leading-relaxed">
                     {items[cardIndex].meaning}
                   </p>
                   {items[cardIndex].exampleSentence && (
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-semibold italic bg-[var(--bg-elevated)] p-4 rounded-2xl border border-[var(--border-subtle)]">
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] italic bg-[var(--bg-elevated)] p-3.5 rounded-2xl border border-[var(--border-subtle)]">
                       "{items[cardIndex].exampleSentence}"
                     </p>
                   )}
+                  <div className="pt-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSpeak(items[cardIndex].meaning);
+                      }}
+                      className="px-5 py-2.5 rounded-2xl bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500 hover:text-white font-extrabold text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm"
+                    >
+                      🔊 Re-play Definition Speech
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Flashcard Controls */}
-          <div className="flex items-center justify-between gap-4">
+          {/* Flashcard Navigation Controls */}
+          <div className="flex items-center justify-between gap-4 pt-2">
             <button
-              onClick={handlePrevCard}
-              className="px-6 py-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs sm:text-sm font-black text-[var(--text-primary)] hover:bg-indigo-600 hover:text-white transition-all shadow-md"
+              onClick={() => {
+                setIsFlipped(false);
+                setCardIndex((i) => (i > 0 ? i - 1 : items.length - 1));
+              }}
+              className="px-6 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] text-xs sm:text-sm font-extrabold text-[var(--text-primary)] transition-all flex items-center gap-2"
             >
               ← Previous Card
             </button>
+
             <button
-              onClick={handleNextCard}
-              className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-black transition-all shadow-md"
+              onClick={() => setIsFlipped(!isFlipped)}
+              className="px-6 py-3.5 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 text-xs sm:text-sm font-extrabold transition-all border border-amber-500/30"
+            >
+              🔄 Flip Card
+            </button>
+
+            <button
+              onClick={() => {
+                setIsFlipped(false);
+                setCardIndex((i) => (i + 1 < items.length ? i + 1 : 0));
+              }}
+              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 text-white text-xs sm:text-sm font-extrabold shadow-lg transition-all flex items-center gap-2"
             >
               Next Card →
             </button>
@@ -553,80 +607,110 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* TAB 3: DYNAMIC QUIZ */}
+      {/* TAB 3: XP RETENTION QUIZ (AUTOMATICALLY 100% DIFFERENT QUIZZES) */}
       {activeTab === "quiz" && (
         <div className="max-w-2xl mx-auto space-y-6 py-2">
-          {!quizFinished && quizQuestions.length > 0 ? (
-            <div className="glass-panel p-6 sm:p-10 rounded-3xl space-y-6 border border-[var(--border-default)] shadow-2xl">
-              <div className="flex items-center justify-between border-b border-[var(--border-subtle)] pb-4">
-                <span className="text-xs font-black text-indigo-500 uppercase tracking-wider">
-                  Question {currentQuizStep + 1} of {quizQuestions.length}
-                </span>
-                <span className="text-xs font-black text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                  Score: {quizScore}
-                </span>
+          {quizLoading ? (
+            <div className="p-16 text-center text-sm font-bold text-[var(--text-secondary)] space-y-3 glass-card rounded-3xl">
+              <div className="h-10 w-10 border-4 border-[#6c63ff] border-t-transparent rounded-full animate-spin mx-auto" />
+              <p className="text-base font-extrabold text-[var(--text-primary)]">Generating new unique quiz questions...</p>
+            </div>
+          ) : quizFinished ? (
+            /* Quiz Completed Screen */
+            <div className="p-8 sm:p-12 rounded-3xl glass-card text-center space-y-6 animate-in fade-in duration-300 border-2 border-[#6c63ff]/30 shadow-2xl">
+              <div className="grid h-24 w-24 mx-auto place-items-center rounded-3xl bg-gradient-to-tr from-amber-400 via-amber-500 to-yellow-400 text-white text-5xl shadow-xl animate-bounce">
+                🏆
               </div>
-
               <div className="space-y-2">
-                <h3 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
-                  {quizQuestions[currentQuizStep].question}
-                </h3>
+                <span className="text-xs font-black uppercase tracking-wider text-[#6c63ff] px-4 py-1.5 rounded-full bg-[#6c63ff]/15">
+                  Dynamic Retention Challenge
+                </span>
+                <h2 className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] pt-2">Quiz Completed!</h2>
+                <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
+                  You scored <strong className="text-[var(--text-primary)]">{quizScore}</strong> out of <strong className="text-[var(--text-primary)]">{quizQuestions.length}</strong> correct.
+                </p>
               </div>
 
+              <div className="inline-block px-6 py-3 rounded-full bg-emerald-500/20 text-emerald-500 font-black text-sm border border-emerald-500/30">
+                🎉 +{earnedXP} XP Learning Bonus Claimed!
+              </div>
+
+              <div>
+                <button
+                  onClick={startQuiz}
+                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 text-white text-sm font-black shadow-xl transition-all scale-102"
+                >
+                  ⚡ Generate Different Quiz ↻
+                </button>
+              </div>
+            </div>
+          ) : quizQuestions.length > 0 ? (
+            /* Active Question Card */
+            <div className="glass-card p-6 sm:p-10 rounded-3xl space-y-6 animate-in fade-in duration-200 border-2 border-[#6c63ff]/20 shadow-xl">
+              {/* Question Header Banner */}
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-[#6c63ff]/15 to-[#8b5cf6]/15 border border-[#6c63ff]/30 space-y-2">
+                <div className="flex items-center justify-between text-xs font-black text-[#6c63ff]">
+                  <span className="uppercase tracking-wider">
+                    Question {currentQuizIdx + 1} of {quizQuestions.length}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
+                    +25 XP Per Correct Answer
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] leading-relaxed pt-1">
+                  {currentQ.questionText}
+                </h2>
+              </div>
+
+              {/* 4 Selectable Answer Options */}
               <div className="space-y-3">
-                {quizQuestions[currentQuizStep].options.map((opt, idx) => {
-                  const isSelected = selectedAnswer === idx;
-                  const isCorrect = idx === quizQuestions[currentQuizStep].correctIndex;
-                  let btnStyle = "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)] hover:border-indigo-500";
-
-                  if (selectedAnswer !== null) {
-                    if (isCorrect) {
-                      btnStyle = "bg-emerald-500/20 border-emerald-500 text-emerald-500 font-black";
-                    } else if (isSelected) {
-                      btnStyle = "bg-rose-500/20 border-rose-500 text-rose-500 font-black";
-                    }
-                  }
-
+                {currentQ.options.map((opt, idx) => {
+                  const isSelected = selectedQuizAnswer === idx;
+                  const isCorrect = idx === currentQ.correctIndex;
                   return (
                     <button
                       key={idx}
                       onClick={() => handleAnswerQuiz(idx)}
-                      disabled={selectedAnswer !== null}
-                      className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-bold transition-all shadow-sm ${btnStyle}`}
+                      disabled={selectedQuizAnswer !== null}
+                      className={`w-full p-4.5 rounded-2xl border text-left text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-between leading-relaxed ${
+                        selectedQuizAnswer === null
+                          ? "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff] hover:bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                          : isCorrect
+                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-500 shadow-md"
+                          : isSelected
+                          ? "border-rose-500 bg-rose-500/20 text-rose-500 shadow-md"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] opacity-50"
+                      }`}
                     >
-                      {opt}
+                      <span>{opt}</span>
+                      {selectedQuizAnswer !== null && isCorrect && (
+                        <span className="px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-black shrink-0">
+                          ✓ Correct
+                        </span>
+                      )}
                     </button>
                   );
                 })}
               </div>
 
-              {selectedAnswer !== null && (
-                <div className="pt-2 flex justify-end">
-                  <button
-                    onClick={handleNextQuizQuestion}
-                    className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs sm:text-sm font-black shadow-lg hover:scale-105 transition-all"
-                  >
-                    {currentQuizStep < quizQuestions.length - 1 ? "Next Question →" : "See Final Score 🏆"}
-                  </button>
+              {/* Explanation & Next Question Control */}
+              {selectedQuizAnswer !== null && (
+                <div className="pt-4 border-t border-[var(--border-subtle)] space-y-4">
+                  <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs sm:text-sm font-semibold text-[var(--text-secondary)] leading-relaxed">
+                    💡 <strong className="text-[var(--text-primary)]">Explanation:</strong> {currentQ.explanation}
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleNextQuizQuestion}
+                      className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 text-white text-xs sm:text-sm font-black shadow-lg transition-all"
+                    >
+                      Next Question →
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="glass-panel p-8 sm:p-12 rounded-3xl text-center space-y-6 border border-[var(--border-default)] shadow-2xl">
-              <span className="text-6xl block">🏆</span>
-              <h2 className="text-3xl font-black text-[var(--text-primary)]">Quiz Completed!</h2>
-              <p className="text-base text-[var(--text-secondary)] font-bold">
-                You scored <span className="text-emerald-500 font-black text-xl">{quizScore}</span> out of{" "}
-                <span className="text-indigo-500 font-black text-xl">{quizQuestions.length}</span>!
-              </p>
-              <button
-                onClick={handleRestartQuiz}
-                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black text-sm shadow-xl hover:scale-105 transition-all"
-              >
-                Take Another Quiz 🔄
-              </button>
-            </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>
