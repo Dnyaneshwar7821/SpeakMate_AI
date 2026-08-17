@@ -25,7 +25,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
   }, []);
 
   const femaleModelPath = "/models/avatar/haru/haru_greeter_t03.model3.json";
-  const maleModelPath = "/models/avatar/mark/Mark.model3.json";
+  const maleModelPath = "/models/avatar/chitose/chitose.model.json";
   const targetModelPath = modelPath || (gender === 'male' ? maleModelPath : femaleModelPath);
 
   useEffect(() => {
@@ -56,32 +56,28 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
 
       if (modelRef.current) {
         const model = modelRef.current;
-        const isMark = targetModelPath.includes('mark') || targetModelPath.includes('Mark');
         
-        // Internal dimensions
+        // Internal native dimensions
         const nativeHeight = model.internalModel?.height || model.height || 1000;
 
-        if (isMark) {
-          // Centered framing specifically tuned for Mark model bounds
-          if (model.anchor) model.anchor.set(0.5, 0.25);
-          const scale = (height * 1.1) / nativeHeight;
-          model.scale.set(scale, scale);
-          model.x = width / 2;
-          model.y = height * 0.25;
-        } else {
-          // Standard framing for Haru female model
-          if (model.anchor) model.anchor.set(0.5, 0.2);
-          const scale = (height * 1.6) / nativeHeight;
-          model.scale.set(scale, scale);
-          model.x = width / 2;
-          model.y = height * 0.2;
+        // Top-centered anchor for predictable portrait framing
+        if (model.anchor) {
+          model.anchor.set(0.5, 0);
         }
+
+        // Scale comfortably so full face, head, and chest fit inside container
+        const scale = (height * 1.18) / nativeHeight;
+        model.scale.set(scale, scale);
+
+        // Center horizontally and offset down from top header bar
+        model.x = width / 2;
+        model.y = Math.max(36, height * 0.08);
       }
     };
 
     window.addEventListener('resize', handleResize);
 
-    // Load Live2D Model (Mao for male, Haru for female)
+    // Load Live2D Model
     ModelLoader.loadModel(targetModelPath, app)
       .then((loadedModel) => {
         if (!isMounted) return;
@@ -127,14 +123,6 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
       }
     };
   }, [targetModelPath, gender]);
-
-  if (gender === 'male') {
-    return (
-      <div className={`relative w-full h-full min-h-[350px] flex items-center justify-center overflow-hidden ${className}`}>
-        <Avatar2D />
-      </div>
-    );
-  }
 
   return (
     <div

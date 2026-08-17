@@ -33,7 +33,7 @@ export function AvatarContainer({
   }, []);
 
   const defaultFemalePath = "/models/avatar/haru/haru_greeter_t03.model3.json";
-  const defaultMalePath = "/models/avatar/mark/mark.model3.json";
+  const defaultMalePath = "/models/avatar/chitose/chitose.model.json";
   const activeModelPath = propModelPath || (gender === 'male' ? defaultMalePath : defaultFemalePath);
 
   // Reusable Hooks & Services

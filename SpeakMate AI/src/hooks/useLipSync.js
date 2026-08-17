@@ -53,15 +53,35 @@ export function useLipSync(model, isSpeaking) {
 
     const applyParameters = () => {
       const coreModel = model?.internalModel?.coreModel;
-      if (!coreModel) return;
+      const internalModel = model?.internalModel;
+      if (!coreModel && !internalModel) return;
+
+      const yVal = currentMouthY.current;
+      const formVal = currentMouthForm.current;
 
       try {
-        if (typeof coreModel.setParameterValueById === 'function') {
-          coreModel.setParameterValueById(AVATAR_PARAMS.MOUTH_OPEN_Y, currentMouthY.current);
-          coreModel.setParameterValueById(AVATAR_PARAMS.MOUTH_FORM, currentMouthForm.current);
-        } else if (typeof coreModel.setParamFloat === 'function') {
-          coreModel.setParamFloat(AVATAR_PARAMS.MOUTH_OPEN_Y, currentMouthY.current);
-          coreModel.setParamFloat(AVATAR_PARAMS.MOUTH_FORM, currentMouthForm.current);
+        if (coreModel) {
+          // Cubism 4 setter
+          if (typeof coreModel.setParameterValueById === 'function') {
+            coreModel.setParameterValueById('ParamMouthOpenY', yVal);
+            coreModel.setParameterValueById('ParamMouthForm', formVal);
+            coreModel.setParameterValueById('PARAM_MOUTH_OPEN_Y', yVal);
+            coreModel.setParameterValueById('PARAM_MOUTH_FORM', formVal);
+          }
+          // Cubism 2 & 4 setParamFloat setter
+          if (typeof coreModel.setParamFloat === 'function') {
+            coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', yVal);
+            coreModel.setParamFloat('PARAM_MOUTH_FORM', formVal);
+            coreModel.setParamFloat('ParamMouthOpenY', yVal);
+            coreModel.setParamFloat('ParamMouthForm', formVal);
+          }
+        }
+        // Direct internal model parameter helper
+        if (internalModel && typeof internalModel.setParamFloat === 'function') {
+          internalModel.setParamFloat('PARAM_MOUTH_OPEN_Y', yVal);
+          internalModel.setParamFloat('PARAM_MOUTH_FORM', formVal);
+          internalModel.setParamFloat('ParamMouthOpenY', yVal);
+          internalModel.setParamFloat('ParamMouthForm', formVal);
         }
       } catch (e) {
         // ignore
