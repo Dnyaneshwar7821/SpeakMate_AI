@@ -215,11 +215,15 @@ export function Profile() {
         <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left z-10">
           <div
             onClick={() => setShowAvatarModal(true)}
-            className="group relative cursor-pointer grid h-24 w-24 place-items-center rounded-3xl bg-white/20 backdrop-blur-md border-2 border-white/40 text-4xl shadow-inner shrink-0 hover:scale-105 transition-all"
-            title="Click to change avatar icon"
+            className="group relative cursor-pointer grid h-24 w-24 place-items-center rounded-3xl bg-white/20 backdrop-blur-md border-2 border-white/40 shadow-inner shrink-0 hover:scale-105 transition-all overflow-hidden"
+            title="Click to change avatar"
           >
-            <span>{selectedAvatar}</span>
-            <div className="absolute inset-0 bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 transition-all grid place-items-center text-xs font-black text-white">
+            {selectedAvatar && (selectedAvatar.startsWith("http") || selectedAvatar.startsWith("/")) ? (
+              <img src={selectedAvatar} alt="Profile Avatar" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-4xl">{selectedAvatar || "🎓"}</span>
+            )}
+            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-all grid place-items-center text-xs font-black text-white">
               ✏️ Edit
             </div>
           </div>
