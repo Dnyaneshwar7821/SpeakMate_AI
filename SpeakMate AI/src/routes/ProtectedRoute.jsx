@@ -6,12 +6,13 @@ export function ProtectedRoute({ children }) {
   const { isAuthenticated, user, onboardingCompleted, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) {
+  const hasToken = Boolean(localStorage.getItem("speakmate_token"));
+
+  if (loading && !hasToken) {
     return (
       <div className="min-h-screen grid place-items-center bg-[var(--bg-base)] text-[var(--text-primary)]">
         <div className="flex flex-col items-center gap-3">
           <div className="h-10 w-10 border-4 border-[#6c63ff] border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-extrabold text-[var(--text-secondary)]">Restoring Session...</span>
         </div>
       </div>
     );

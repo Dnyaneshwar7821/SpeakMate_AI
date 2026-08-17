@@ -21,7 +21,14 @@ export function AuthProvider({ children }) {
   const [onboardingCompleted, setOnboardingCompleted] = useState(() => {
     return localStorage.getItem(STORAGE_KEYS.onboardingCompleted) === "true";
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => {
+    try {
+      const storedToken = localStorage.getItem(STORAGE_KEYS.token);
+      return !storedToken;
+    } catch {
+      return false;
+    }
+  });
 
   const syncSchoolGrade = (userData) => {
     if (!userData) return;

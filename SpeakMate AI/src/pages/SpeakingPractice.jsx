@@ -169,7 +169,7 @@ export function SpeakingPractice() {
   const isStudent = accountType === "STUDENT" || Boolean(user?.schoolGrade);
 
   const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
