@@ -5,8 +5,8 @@ import { speakingService } from "../services/appServices";
 import { authService } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
 import { useModal } from "../context/ModalContext";
-import { useToast } from "../context/ToastContext";
 import { warmupSpeechAutoplay } from "../utils/speechHelper";
+import { getLiveProgressStats } from "../utils/progressTracker";
 
 // ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 const AGE_SCENARIOS = {
@@ -210,6 +210,7 @@ export function SpeakingPractice() {
   const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
   const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
   const totalSessions = history.length;
+  const streakDays = getLiveProgressStats().streak || 1;
 
   const currentScenarios = isStudent
     ? (STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS["1st Std"])
