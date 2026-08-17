@@ -2,42 +2,15 @@ import { useEffect, useRef } from 'react';
 import { EventBus, AVATAR_EVENTS } from '../services/live2d/EventBus';
 
 /**
- * Phoneme Target Extractor
- * Maps English word sounds to Live2D vertical openness (Y: 0.0-1.0) and horizontal shaping (Form: -1.0 to 1.0)
- */
-function analyzeWordPhoneme(word = '') {
-  const clean = word.toLowerCase().trim();
-  if (!clean) return { openY: 0.95, form: 0.0 };
-
-  // Bilabial consonants (closed lips: m, p, b)
-  if (/^[mpb]/.test(clean) || /[mpb]$/.test(clean)) {
-    return { openY: 0.2, form: 0.0 };
-  }
-
-  // Open round vowels (o, u, ow, oo, aw)
-  if (/[ou]|ow|oo|aw/.test(clean)) {
-    return { openY: 1.0, form: -0.75 };
-  }
-
-  // Wide spread vowels (e, i, ee, ea, ay)
-  if (/[ei]|ee|ea|ay|ai/.test(clean)) {
-    return { openY: 0.92, form: 0.85 };
-  }
-
-  // Open central vowels (a, ah)
-  if (/a|ah/.test(clean)) {
-    return { openY: 1.0, form: 0.4 };
-  }
-
-  // Default natural vowel opening
-  return { openY: 0.95, form: 0.1 };
-}
-
-/**
  * useLipSync Custom Hook
- * Near-perfect, high-amplitude, organic Live2D lip synchronization for Haru & Chitose.
- * Overrides Live2D internalModel.update pipeline post-motion to guarantee parameters
- * are never flattened or overwritten by idle animations or physics.
+ * Near-perfect, continuous, high-amplitude Live2D lip synchronization for Haru & Chitose.
+ * 
+ * Features:
+ * - Autonomous multi-syllable speech envelope engine (~4.2 syllables/sec).
+ * - Asymmetrical vowel articulation (fast attack, sustained resonance, smooth closure).
+ * - Per-syllable pseudo-random height variation (0.65 to 1.0 max opening).
+ * - Immune to browser speech synthesis GC stalls or boundary event drops.
+ * - Post-motion internalModel.update pipeline override (immune to idle motion resets).
  */
 export function useLipSync(model, isSpeakingProp = false) {
   const rafRef = useRef(null);
@@ -45,7 +18,6 @@ export function useLipSync(model, isSpeakingProp = false) {
   const currentMouthForm = useRef(0);
 
   const activeSpeaking = useRef(isSpeakingProp);
-  const targetPhoneme = useRef({ openY: 0.95, form: 0.0 });
   const speechStartTime = useRef(0);
 
   // Sync prop changes
@@ -60,26 +32,21 @@ export function useLipSync(model, isSpeakingProp = false) {
 
   // Subscribe to SpeechSynthesis EventBus lifecycle
   useEffect(() => {
-    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, (data) => {
+    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => {
       activeSpeaking.current = true;
       speechStartTime.current = performance.now();
-      if (data?.text) {
-        const firstWord = data.text.trim().split(/\s+/)[0] || '';
-        targetPhoneme.current = analyzeWordPhoneme(firstWord);
-      }
     });
 
-    const unsubWord = EventBus.on(AVATAR_EVENTS.LIP_SYNC_UPDATE, (data) => {
+    const unsubWord = EventBus.on(AVATAR_EVENTS.LIP_SYNC_UPDATE, () => {
       activeSpeaking.current = true;
-      if (data?.word) {
-        targetPhoneme.current = analyzeWordPhoneme(data.word);
+      if (speechStartTime.current === 0) {
+        speechStartTime.current = performance.now();
       }
     });
 
     const unsubEnd = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => {
       activeSpeaking.current = false;
       speechStartTime.current = 0;
-      targetPhoneme.current = { openY: 0, form: 0 };
     });
 
     return () => {
@@ -98,17 +65,18 @@ export function useLipSync(model, isSpeakingProp = false) {
 
     if (originalUpdate) {
       internalModel.update = function (delta, now) {
+        // 1. Evaluate internal motions, physics, and expressions
         originalUpdate(delta, now);
 
-        // Apply our mouth parameters immediately AFTER motion & physics evaluations
-        const isSynthesizing = typeof window !== 'undefined' && Boolean(window.speechSynthesis?.speaking && !window.speechSynthesis?.paused);
+        // 2. Force mouth parameters IMMEDIATELY after motions to guarantee visibility
+        const isSynthesizing = typeof window !== 'undefined' && Boolean(window.speechSynthesis?.speaking);
         const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing);
 
         const yVal = currentMouthY.current;
         const formVal = currentMouthForm.current;
         const coreModel = internalModel.coreModel;
 
-        if (coreModel && (isSpeaking || yVal > 0.001)) {
+        if (coreModel && (isSpeaking || yVal > 0.005)) {
           try {
             // Cubism 4 (Haru)
             if (typeof coreModel.setParameterValueById === 'function') {
@@ -145,36 +113,51 @@ export function useLipSync(model, isSpeakingProp = false) {
 
     const updateLipSync = () => {
       const now = performance.now();
-      const isSynthesizing = typeof window !== 'undefined' && Boolean(window.speechSynthesis?.speaking && !window.speechSynthesis?.paused);
+      const isSynthesizing = typeof window !== 'undefined' && Boolean(window.speechSynthesis?.speaking);
       const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing);
 
       if (isSpeaking) {
         if (speechStartTime.current === 0) speechStartTime.current = now;
         const elapsed = (now - speechStartTime.current) * 0.001;
 
-        // 1. Dynamic Syllable Rhythmic Pulse (~5.4 syllables per second with non-linear sharp opening)
-        const carrier = Math.abs(Math.sin(elapsed * 5.4 * Math.PI));
-        const flap = Math.pow(carrier, 0.7); // Non-linear curve: keeps mouth wide longer during vowels
-        const microTremor = Math.sin(elapsed * 13.5 * Math.PI) * 0.12;
+        // Syllable Cadence Engine: ~4.2 syllables per second (238ms per syllable)
+        const syllableRate = 4.2;
+        const phase = (elapsed * syllableRate) % 1.0;
 
-        // 2. Phoneme Multiplier
-        const phonemeOpen = targetPhoneme.current.openY || 0.95;
-        const phonemeForm = targetPhoneme.current.form || 0.0;
+        // Asymmetrical Natural Speech Curve:
+        // 0.00 - 0.35: Rapid Vowel Attack (opens widely)
+        // 0.35 - 0.60: Vowel Resonance Sustain (holds open)
+        // 0.60 - 1.00: Smooth Consonant Closure (dips closed)
+        let openAmount = 0;
+        if (phase < 0.35) {
+          openAmount = Math.sin((phase / 0.35) * (Math.PI / 2));
+        } else if (phase < 0.6) {
+          openAmount = 1.0 - (phase - 0.35) * 0.3;
+        } else {
+          const closePhase = (phase - 0.6) / 0.4;
+          openAmount = 0.77 * Math.cos(closePhase * (Math.PI / 2));
+        }
 
-        // Big, prominent mouth opening calculation (peaks at 1.0, baseline 0.3)
-        const rawOpen = Math.min(1.0, Math.max(0.2, (flap * 0.95 + 0.15 + microTremor) * phonemeOpen));
-        targetMouthY = rawOpen;
+        // Pseudo-random peak opening variation per syllable (0.75 to 1.0)
+        const syllableIndex = Math.floor(elapsed * syllableRate);
+        const pseudoRandom = Math.sin(syllableIndex * 719.3) * 0.5 + 0.5;
+        const peakHeight = 0.75 + 0.25 * pseudoRandom;
 
-        // Dynamic horizontal vowel width
-        const dynamicForm = phonemeForm + Math.sin(elapsed * 3.6 * Math.PI) * 0.3;
-        targetMouthForm = Math.max(-0.85, Math.min(0.85, dynamicForm));
+        // Micro-tremor vibration during vocal resonance
+        const microTremor = Math.sin(elapsed * 15.0 * Math.PI) * 0.08;
+
+        // Final calculated target opening (continuous oscillation, no dead spots!)
+        targetMouthY = Math.max(0.1, Math.min(1.0, (openAmount * peakHeight) + microTremor));
+
+        // Horizontal mouth shape transition (-0.65 to +0.65)
+        targetMouthForm = Math.sin(elapsed * 2.8 * Math.PI) * 0.65;
       } else {
         targetMouthY = 0;
         targetMouthForm = 0;
       }
 
-      // Punchy attack (0.75) and smooth release (0.4)
-      const lerpSpeed = isSpeaking ? 0.75 : 0.4;
+      // Responsive lerping: attack 0.8, release 0.4
+      const lerpSpeed = isSpeaking ? 0.8 : 0.4;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
 
@@ -183,7 +166,7 @@ export function useLipSync(model, isSpeakingProp = false) {
         currentMouthForm.current = 0;
       }
 
-      // Also apply directly in RAF loop as fallback
+      // Also apply directly in RAF as immediate fallback
       if (model?.internalModel?.coreModel) {
         const coreModel = model.internalModel.coreModel;
         const yVal = currentMouthY.current;
