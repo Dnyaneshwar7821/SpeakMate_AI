@@ -24,13 +24,17 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     return () => unsubGender();
   }, []);
 
+  const femaleModelPath = "/models/avatar/haru/haru_greeter_t03.model3.json";
+  const maleModelPath = "/models/avatar/mao/Mao.model3.json";
+  const targetModelPath = modelPath || (gender === 'male' ? maleModelPath : femaleModelPath);
+
   useEffect(() => {
-    if (!containerRef.current || gender === 'male') return;
+    if (!containerRef.current) return;
 
     let isMounted = true;
     const container = containerRef.current;
 
-    // Create PixiJS Application for female Live2D model
+    // Create PixiJS Application
     const app = new PIXI.Application({
       width: container.clientWidth || DEFAULT_AVATAR_CONFIG.canvas.width,
       height: container.clientHeight || DEFAULT_AVATAR_CONFIG.canvas.height,
@@ -59,7 +63,6 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         const scale = (height * scaleMultiplier) / nativeHeight;
         model.scale.set(scale, scale);
         
-        // Remove anchor offset just in case it was set elsewhere
         if (model.anchor) model.anchor.set(0, 0);
 
         model.x = (width - (nativeWidth * scale)) / 2;
@@ -69,8 +72,8 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
 
     window.addEventListener('resize', handleResize);
 
-    // Load Live2D Model (Haru)
-    ModelLoader.loadModel(modelPath || DEFAULT_AVATAR_CONFIG.modelPath, app)
+    // Load Live2D Model (Mao for male, Haru for female)
+    ModelLoader.loadModel(targetModelPath, app)
       .then((loadedModel) => {
         if (!isMounted) return;
         modelRef.current = loadedModel;
@@ -114,15 +117,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         }
       }
     };
-  }, [modelPath, gender]);
-
-  if (gender === 'male') {
-    return (
-      <div className={`relative w-full h-full min-h-[350px] flex items-center justify-center overflow-hidden ${className}`}>
-        <Avatar2D />
-      </div>
-    );
-  }
+  }, [targetModelPath, gender]);
 
   return (
     <div
@@ -132,4 +127,5 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     />
   );
 }
+
 
