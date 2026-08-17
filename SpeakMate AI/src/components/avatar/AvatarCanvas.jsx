@@ -25,7 +25,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
   }, []);
 
   const femaleModelPath = "/models/avatar/haru/haru_greeter_t03.model3.json";
-  const maleModelPath = "/models/avatar/mao/Mao.model3.json";
+  const maleModelPath = "/models/avatar/mark/Mark.model3.json";
   const targetModelPath = modelPath || (gender === 'male' ? maleModelPath : femaleModelPath);
 
   useEffect(() => {
