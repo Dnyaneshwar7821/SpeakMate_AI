@@ -7,37 +7,36 @@ import { EventBus, AVATAR_EVENTS } from '../services/live2d/EventBus';
  */
 function analyzeWordPhoneme(word = '') {
   const clean = word.toLowerCase().trim();
-  if (!clean) return { openY: 0.7, form: 0.0 };
+  if (!clean) return { openY: 0.9, form: 0.0 };
 
   // Bilabial consonants (closed lips: m, p, b)
   if (/^[mpb]/.test(clean) || /[mpb]$/.test(clean)) {
-    return { openY: 0.25, form: 0.0 };
+    return { openY: 0.32, form: 0.0 };
   }
 
   // Open round vowels (o, u, ow, oo, aw)
   if (/[ou]|ow|oo|aw/.test(clean)) {
-    return { openY: 0.88, form: -0.6 };
+    return { openY: 0.98, form: -0.6 };
   }
 
   // Wide spread vowels (e, i, ee, ea, ay)
   if (/[ei]|ee|ea|ay|ai/.test(clean)) {
-    return { openY: 0.72, form: 0.75 };
+    return { openY: 0.88, form: 0.8 };
   }
 
   // Open central vowels (a, ah)
   if (/a|ah/.test(clean)) {
-    return { openY: 0.95, form: 0.3 };
+    return { openY: 1.0, form: 0.35 };
   }
 
   // Default natural vowel opening
-  return { openY: 0.75, form: 0.1 };
+  return { openY: 0.9, form: 0.1 };
 }
 
 /**
  * useLipSync Custom Hook
- * Uninterrupted, organic Live2D lip synchronization for both Haru (Cubism 4) and Chitose (Cubism 2).
- * Prevents mid-speech stalling by continuously verifying window.speechSynthesis state,
- * SpeechSynthesis word events, and maintaining a resilient multi-frequency carrier oscillator.
+ * Uninterrupted, organic Live2D lip synchronization with enhanced expressive mouth opening.
+ * Supports both Haru (Cubism 4) and Chitose (Cubism 2).
  */
 export function useLipSync(model, isSpeakingProp = false) {
   const rafRef = useRef(null);
@@ -45,7 +44,7 @@ export function useLipSync(model, isSpeakingProp = false) {
   const currentMouthForm = useRef(0);
 
   const activeSpeaking = useRef(isSpeakingProp);
-  const targetPhoneme = useRef({ openY: 0.75, form: 0.0 });
+  const targetPhoneme = useRef({ openY: 0.9, form: 0.0 });
   const speechStartTime = useRef(0);
 
   // Sync prop changes
@@ -104,7 +103,6 @@ export function useLipSync(model, isSpeakingProp = false) {
       }
 
       const now = performance.now();
-      // Continuous multi-source speaking validation to prevent mid-speech stalling
       const isSynthesizing = typeof window !== 'undefined' && Boolean(window.speechSynthesis?.speaking && !window.speechSynthesis?.paused);
       const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing);
 
@@ -112,27 +110,27 @@ export function useLipSync(model, isSpeakingProp = false) {
         if (speechStartTime.current === 0) speechStartTime.current = now;
         const elapsed = (now - speechStartTime.current) * 0.001;
 
-        // 1. Primary Speech Carrier Oscillator (~5.2 Hz natural vowel rhythm)
-        const carrier = Math.abs(Math.sin(elapsed * 5.2 * Math.PI));
+        // 1. Primary Speech Carrier Oscillator (~5.0 Hz natural vowel rhythm)
+        const carrier = Math.abs(Math.sin(elapsed * 5.0 * Math.PI));
         const secondary = Math.sin(elapsed * 11.5 * Math.PI) * 0.15;
-        const baseShape = 0.25 + 0.75 * carrier + secondary;
+        const baseShape = 0.35 + 0.65 * carrier + secondary;
 
-        // 2. Blend with Current Phoneme Target
-        const phonemeOpen = targetPhoneme.current.openY || 0.75;
+        // 2. Blend with Current Phoneme Target (Bigger & Clearer Openings)
+        const phonemeOpen = targetPhoneme.current.openY || 0.9;
         const phonemeForm = targetPhoneme.current.form || 0.0;
 
-        const rawOpen = Math.max(0.18, Math.min(0.98, baseShape * phonemeOpen));
+        const rawOpen = Math.max(0.28, Math.min(1.0, baseShape * phonemeOpen * 1.25));
         targetMouthY = rawOpen;
 
-        const dynamicForm = phonemeForm + Math.sin(elapsed * 3.4 * Math.PI) * 0.2;
-        targetMouthForm = Math.max(-0.8, Math.min(0.8, dynamicForm));
+        const dynamicForm = phonemeForm + Math.sin(elapsed * 3.4 * Math.PI) * 0.25;
+        targetMouthForm = Math.max(-0.85, Math.min(0.85, dynamicForm));
       } else {
         targetMouthY = 0;
         targetMouthForm = 0;
       }
 
-      // Fast attack (0.45), smooth release (0.28)
-      const lerpSpeed = isSpeaking ? 0.45 : 0.28;
+      // Fast, responsive attack (0.52) for prominent mouth shapes
+      const lerpSpeed = isSpeaking ? 0.52 : 0.32;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
 
