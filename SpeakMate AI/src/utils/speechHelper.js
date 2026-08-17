@@ -388,14 +388,19 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 
   utterance.onend = (e) => {
     cleanupKeepAlive();
-    EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
-    if (options.onend) options.onend(e);
+    // Chromium fires onend when text is queued; 900ms delay matches OS speaker buffer output
+    setTimeout(() => {
+      EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
+      if (options.onend) options.onend(e);
+    }, 900);
   };
 
   utterance.onerror = (e) => {
     cleanupKeepAlive();
-    EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
-    if (options.onerror) options.onerror(e);
+    setTimeout(() => {
+      EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
+      if (options.onerror) options.onerror(e);
+    }, 500);
   };
 
   const doSpeak = () => {
