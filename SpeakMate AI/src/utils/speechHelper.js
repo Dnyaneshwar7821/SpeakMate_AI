@@ -349,8 +349,33 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   const cleanText = text.replace(/[*_#`~]/g, "");
   const utterance = new SpeechSynthesisUtterance(cleanText);
 
+  // Prevent Chromium garbage-collection bug that kills long speech
+  window._activeUtterance = utterance;
+
+  let keepAliveInterval = null;
+
+  const cleanupKeepAlive = () => {
+    if (keepAliveInterval) {
+      clearInterval(keepAliveInterval);
+      keepAliveInterval = null;
+    }
+    window._activeUtterance = null;
+  };
+
   utterance.onstart = (e) => {
     EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText });
+
+    // Chrome keep-alive heartbeat to prevent speech pausing mid-sentence
+    keepAliveInterval = setInterval(() => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        if (!window.speechSynthesis.speaking) {
+          cleanupKeepAlive();
+        } else if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      }
+    }, 4000);
+
     if (options.onstart) options.onstart(e);
   };
 
@@ -364,11 +389,13 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   };
 
   utterance.onend = (e) => {
+    cleanupKeepAlive();
     EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
     if (options.onend) options.onend(e);
   };
 
   utterance.onerror = (e) => {
+    cleanupKeepAlive();
     EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
     if (options.onerror) options.onerror(e);
   };
