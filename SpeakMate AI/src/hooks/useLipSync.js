@@ -50,32 +50,46 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
 
 /**
  * useLipSync Custom Hook
- * Realistic Whole-Sentence Live2D Lip Syncing & Vocal Posture for Haru and Chitose.
- * Guarantees prominent, continuous, human-like speech articulation throughout the entire AI talk.
+ * Flawless Whole-Sentence Live2D Lip Syncing & Vocal Posture for Haru and Chitose.
+ * Uses a guaranteed duration window (speechDeadline) so lip syncing never stops mid-talk,
+ * animating continuously from the first word to the very last word of the sentence.
  */
 export function useLipSync(model, isSpeakingProp = false) {
   const rafRef = useRef(null);
   const currentMouthY = useRef(0);
   const currentMouthForm = useRef(0);
   const activeSpeaking = useRef(isSpeakingProp);
+  const speechDeadline = useRef(0);
 
   // Keep ref updated with prop
   useEffect(() => {
     activeSpeaking.current = isSpeakingProp;
+    if (isSpeakingProp) {
+      speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 4000);
+    }
   }, [isSpeakingProp]);
 
   // Subscribe to EventBus avatar events
   useEffect(() => {
-    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => {
+    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, (data) => {
       activeSpeaking.current = true;
+      const text = data?.text || '';
+      const wordCount = text.trim().split(/\s+/).filter(Boolean).length || 10;
+      const speed = data?.speed || 1.0;
+      // Calculate guaranteed sentence duration window (e.g., 15 words at 1.0x = ~8.5s)
+      const durationMs = Math.max(3500, ((wordCount / (2.0 * speed)) * 1000) + 2200);
+      speechDeadline.current = performance.now() + durationMs;
     });
 
     const unsubWord = EventBus.on(AVATAR_EVENTS.LIP_SYNC_UPDATE, () => {
       activeSpeaking.current = true;
+      // Extend sentence window on every word boundary event
+      speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 1800);
     });
 
     const unsubEnd = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => {
       activeSpeaking.current = false;
+      speechDeadline.current = 0;
     });
 
     return () => {
@@ -96,10 +110,12 @@ export function useLipSync(model, isSpeakingProp = false) {
       internalModel.update = function (delta, now) {
         originalUpdate(delta, now);
 
+        const currentTime = performance.now();
+        const isWithinDeadline = currentTime < speechDeadline.current;
         const isSynthesizing = typeof window !== 'undefined' && Boolean(
           (window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending))
         );
-        const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing);
+        const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing || isWithinDeadline);
 
         applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isSpeaking);
       };
@@ -115,18 +131,20 @@ export function useLipSync(model, isSpeakingProp = false) {
   // 60 FPS Continuous Lip Sync Loop
   useEffect(() => {
     const updateLipSync = () => {
+      const now = performance.now();
+      const isWithinDeadline = now < speechDeadline.current;
       const isSynthesizing = typeof window !== 'undefined' && Boolean(
         (window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending))
       );
 
-      const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing);
+      const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing || isWithinDeadline);
 
       let targetMouthY = 0;
       let targetMouthForm = 0;
 
       if (isSpeaking) {
         // Continuous monotonic time base
-        const t = performance.now() * 0.001;
+        const t = now * 0.001;
 
         // Primary speech carrier oscillator (~5.0 Hz natural vocal frequency)
         const carrier = Math.abs(Math.sin(t * 5.0 * Math.PI));
