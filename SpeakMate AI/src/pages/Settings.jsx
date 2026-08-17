@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { speakGlobalText, VOICE_PROFILES, ACCENT_LIST } from "../utils/speechHelper";
+import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 
 export function Settings() {
   const toast = useToast();
@@ -13,7 +14,7 @@ export function Settings() {
   const savedAgeGroup = localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional";
   const savedDailyGoal = localStorage.getItem("speakmate_daily_goal") || "15 min";
 
-  // DRAFT STATES (Selections update local draft state, ONLY applied globally when 'Save All Settings' is clicked)
+  // DRAFT STATES
   const [accent, setAccent] = useState(savedAccent);
   const [selectedVoice, setSelectedVoice] = useState(savedVoice);
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(savedAgeGroup);
@@ -60,10 +61,18 @@ export function Settings() {
     });
   };
 
-  // Automatic test AI voice on option click in modal
+  // Automatic test AI voice on option click in modal & update avatar gender
   const handleSelectVoiceCode = (voiceCode, previewText) => {
     setSelectedVoice(voiceCode);
     playVoicePreview(voiceCode, previewText);
+
+    const profile = VOICE_PROFILES.find((p) => p.code === voiceCode);
+    const gender = profile?.gender || (voiceCode.toLowerCase().includes("male") && !voiceCode.toLowerCase().includes("female") ? "male" : "female");
+
+    localStorage.setItem("speakmate_ai_voice", voiceCode);
+    localStorage.setItem("speakmate_voice_code", voiceCode);
+    localStorage.setItem("speakmate_voice_gender", gender);
+    EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender });
   };
 
   const handleSaveSettings = async (e) => {
@@ -71,10 +80,17 @@ export function Settings() {
     setSaving(true);
 
     try {
+      const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
+      const gender = profile?.gender || (selectedVoice.toLowerCase().includes("male") && !selectedVoice.toLowerCase().includes("female") ? "male" : "female");
+
       localStorage.setItem("speakmate_ai_voice", selectedVoice);
+      localStorage.setItem("speakmate_voice_code", selectedVoice);
+      localStorage.setItem("speakmate_voice_gender", gender);
       localStorage.setItem("speakmate_voice_accent", accent);
       localStorage.setItem("speakmate_age_group", selectedAgeGroup);
       localStorage.setItem("speakmate_daily_goal", dailyGoal);
+
+      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender });
 
       try {
         await completeOnboarding({

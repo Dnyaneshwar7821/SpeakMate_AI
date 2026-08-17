@@ -5,6 +5,7 @@ import { useToast } from "../context/ToastContext";
 import { authService } from "../services/authService";
 import { profileService } from "../services/appServices";
 import { getLiveProgressStats } from "../utils/progressTracker";
+import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 import ROUTES from "../constants/routes";
 
 const PRESET_AVATARS = [
@@ -126,6 +127,7 @@ export function Profile() {
       localStorage.setItem("speakmate_daily_goal", dailyGoal.toString());
       localStorage.setItem("speakmate_accent", preferredAccent);
       localStorage.setItem("speakmate_voice_gender", preferredVoice);
+      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender: preferredVoice });
 
       const updatedProfile = await profileService.update({
         firstName: cleanFirstName,

@@ -385,11 +385,25 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 export function getCurrentVoiceGender() {
   if (typeof window === 'undefined') return 'female';
   try {
-    const savedVoice = localStorage.getItem('speakmate_voice_code') || localStorage.getItem('speakmate_voice');
+    const directGender = localStorage.getItem('speakmate_voice_gender');
+    if (directGender === 'male' || directGender === 'female') return directGender;
+
+    const savedVoice =
+      localStorage.getItem('speakmate_ai_voice') ||
+      localStorage.getItem('speakmate_voice_code') ||
+      localStorage.getItem('speakmate_voice') ||
+      localStorage.getItem('speakmate_voice_persona');
+
     if (savedVoice) {
       const match = VOICE_PROFILES.find((p) => p.code === savedVoice || p.label === savedVoice);
       if (match?.gender) return match.gender;
-      if (savedVoice.toLowerCase().includes('male') && !savedVoice.toLowerCase().includes('female')) return 'male';
+
+      const personaMatch = VOICE_PERSONAS.find((p) => p.key === savedVoice || p.label === savedVoice);
+      if (personaMatch?.gender) return personaMatch.gender;
+
+      const lower = savedVoice.toLowerCase();
+      if (lower.includes('male') && !lower.includes('female')) return 'male';
+      if (lower === 'professional' || lower === 'calm') return 'male';
     }
   } catch (e) {}
   return 'female';
