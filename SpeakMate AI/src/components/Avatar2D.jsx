@@ -88,14 +88,14 @@ export function Avatar2D({ isSpeaking: propIsSpeaking = false }) {
   const isMale = gender === 'male';
 
   return (
-    <div className="relative w-64 h-64 mx-auto flex items-center justify-center">
+    <div className="relative w-72 h-72 sm:w-96 sm:h-96 mx-auto flex items-center justify-center">
       {/* Background glowing/pulsing ring (Soundwave effect) */}
       {activeSpeaking && (
         <>
           <motion.div
-            className="absolute inset-0 rounded-full bg-blue-500/20"
+            className="absolute inset-0 rounded-3xl bg-blue-500/20"
             initial={{ scale: 1, opacity: 0.8 }}
-            animate={{ scale: [1, 1.4, 1], opacity: [0.8, 0, 0.8] }}
+            animate={{ scale: [1, 1.2, 1], opacity: [0.8, 0, 0.8] }}
             transition={{
               duration: 1.5,
               repeat: Infinity,
@@ -103,9 +103,9 @@ export function Avatar2D({ isSpeaking: propIsSpeaking = false }) {
             }}
           />
           <motion.div
-            className="absolute inset-0 rounded-full bg-purple-500/20"
+            className="absolute inset-0 rounded-3xl bg-purple-500/20"
             initial={{ scale: 1, opacity: 0.6 }}
-            animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }}
+            animate={{ scale: [1, 1.35, 1], opacity: [0.6, 0, 0.6] }}
             transition={{
               duration: 2,
               repeat: Infinity,
@@ -119,13 +119,13 @@ export function Avatar2D({ isSpeaking: propIsSpeaking = false }) {
       {/* Main Avatar Container */}
       <motion.div
         key={gender}
-        className="relative w-56 h-56 rounded-full overflow-hidden border-4 border-[var(--bg-card)] shadow-2xl bg-gradient-to-b from-blue-100 to-purple-100 z-10"
+        className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-3xl overflow-hidden border-4 border-indigo-500/30 shadow-2xl bg-slate-900 z-10"
         // Idle / Speaking animation
         animate={activeSpeaking ? {
-          y: [0, -5, 0],
-          scale: [1, 1.03, 1],
+          y: [0, -4, 0],
+          scale: [1, 1.02, 1],
         } : {
-          y: [0, -15, 0],
+          y: [0, -8, 0],
         }}
         transition={activeSpeaking ? {
           duration: 0.25,
@@ -142,8 +142,8 @@ export function Avatar2D({ isSpeaking: propIsSpeaking = false }) {
             <MaleAvatarSVG />
           ) : (
             <img
-              src="/teenager_male_2d.png"
-              alt="Male AI Tutor (Mark)"
+              src="/male_tutor_adult_2d.png"
+              alt="Male AI English Tutor"
               className="w-full h-full object-cover"
               onError={() => setImageError(true)}
             />
@@ -163,10 +163,10 @@ export function Avatar2D({ isSpeaking: propIsSpeaking = false }) {
         {/* Dynamic Animated Mouth (Lip Sync Overlay) when AI is speaking */}
         {activeSpeaking && (
           <motion.div
-            className="absolute bottom-[28%] left-1/2 -translate-x-1/2 w-6 bg-[#6b2737] rounded-full border border-[#4a1824] shadow-inner"
+            className="absolute bottom-[35%] left-1/2 -translate-x-1/2 w-7 bg-[#501c27] rounded-full border border-[#7a2839] shadow-inner"
             animate={{
-              height: [4, 14, 6, 18, 4],
-              width: [22, 16, 24, 18, 22],
+              height: [4, 12, 5, 15, 4],
+              width: [20, 16, 22, 18, 20],
               borderRadius: ["9999px", "40%", "9999px", "30%", "9999px"],
             }}
             transition={{
@@ -181,5 +181,6 @@ export function Avatar2D({ isSpeaking: propIsSpeaking = false }) {
     </div>
   );
 }
+
 
 

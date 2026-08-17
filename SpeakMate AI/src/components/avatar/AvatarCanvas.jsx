@@ -128,6 +128,14 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     };
   }, [targetModelPath, gender]);
 
+  if (gender === 'male') {
+    return (
+      <div className={`relative w-full h-full min-h-[350px] flex items-center justify-center overflow-hidden ${className}`}>
+        <Avatar2D />
+      </div>
+    );
+  }
+
   return (
     <div
       ref={containerRef}
@@ -136,5 +144,6 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     />
   );
 }
+
 
 
