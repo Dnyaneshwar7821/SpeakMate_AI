@@ -7,36 +7,37 @@ import { EventBus, AVATAR_EVENTS } from '../services/live2d/EventBus';
  */
 function analyzeWordPhoneme(word = '') {
   const clean = word.toLowerCase().trim();
-  if (!clean) return { openY: 0.9, form: 0.0 };
+  if (!clean) return { openY: 0.95, form: 0.0 };
 
   // Bilabial consonants (closed lips: m, p, b)
   if (/^[mpb]/.test(clean) || /[mpb]$/.test(clean)) {
-    return { openY: 0.32, form: 0.0 };
+    return { openY: 0.2, form: 0.0 };
   }
 
   // Open round vowels (o, u, ow, oo, aw)
   if (/[ou]|ow|oo|aw/.test(clean)) {
-    return { openY: 0.98, form: -0.6 };
+    return { openY: 1.0, form: -0.75 };
   }
 
   // Wide spread vowels (e, i, ee, ea, ay)
   if (/[ei]|ee|ea|ay|ai/.test(clean)) {
-    return { openY: 0.88, form: 0.8 };
+    return { openY: 0.92, form: 0.85 };
   }
 
   // Open central vowels (a, ah)
   if (/a|ah/.test(clean)) {
-    return { openY: 1.0, form: 0.35 };
+    return { openY: 1.0, form: 0.4 };
   }
 
   // Default natural vowel opening
-  return { openY: 0.9, form: 0.1 };
+  return { openY: 0.95, form: 0.1 };
 }
 
 /**
  * useLipSync Custom Hook
- * Uninterrupted, organic Live2D lip synchronization with enhanced expressive mouth opening.
- * Supports both Haru (Cubism 4) and Chitose (Cubism 2).
+ * Near-perfect, high-amplitude, organic Live2D lip synchronization for Haru & Chitose.
+ * Overrides Live2D internalModel.update pipeline post-motion to guarantee parameters
+ * are never flattened or overwritten by idle animations or physics.
  */
 export function useLipSync(model, isSpeakingProp = false) {
   const rafRef = useRef(null);
@@ -44,7 +45,7 @@ export function useLipSync(model, isSpeakingProp = false) {
   const currentMouthForm = useRef(0);
 
   const activeSpeaking = useRef(isSpeakingProp);
-  const targetPhoneme = useRef({ openY: 0.9, form: 0.0 });
+  const targetPhoneme = useRef({ openY: 0.95, form: 0.0 });
   const speechStartTime = useRef(0);
 
   // Sync prop changes
@@ -88,20 +89,61 @@ export function useLipSync(model, isSpeakingProp = false) {
     };
   }, []);
 
-  // Main high-precision animation loop
+  // Post-Motion Engine Hook: Overrides internalModel.update directly
   useEffect(() => {
     if (!model || !model.internalModel) return;
 
+    const internalModel = model.internalModel;
+    const originalUpdate = internalModel.update ? internalModel.update.bind(internalModel) : null;
+
+    if (originalUpdate) {
+      internalModel.update = function (delta, now) {
+        originalUpdate(delta, now);
+
+        // Apply our mouth parameters immediately AFTER motion & physics evaluations
+        const isSynthesizing = typeof window !== 'undefined' && Boolean(window.speechSynthesis?.speaking && !window.speechSynthesis?.paused);
+        const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing);
+
+        const yVal = currentMouthY.current;
+        const formVal = currentMouthForm.current;
+        const coreModel = internalModel.coreModel;
+
+        if (coreModel && (isSpeaking || yVal > 0.001)) {
+          try {
+            // Cubism 4 (Haru)
+            if (typeof coreModel.setParameterValueById === 'function') {
+              coreModel.setParameterValueById('ParamMouthOpenY', yVal, 1.0);
+              coreModel.setParameterValueById('ParamMouthForm', formVal, 1.0);
+              coreModel.setParameterValueById('PARAM_MOUTH_OPEN_Y', yVal, 1.0);
+              coreModel.setParameterValueById('PARAM_MOUTH_FORM', formVal, 1.0);
+            }
+            // Cubism 2 (Chitose)
+            if (typeof coreModel.setParamFloat === 'function') {
+              coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', yVal, 1.0);
+              coreModel.setParamFloat('PARAM_MOUTH_FORM', formVal, 1.0);
+              coreModel.setParamFloat('ParamMouthOpenY', yVal, 1.0);
+              coreModel.setParamFloat('ParamMouthForm', formVal, 1.0);
+            }
+          } catch (e) {
+            // ignore
+          }
+        }
+      };
+    }
+
+    return () => {
+      if (originalUpdate && internalModel) {
+        internalModel.update = originalUpdate;
+      }
+    };
+  }, [model, isSpeakingProp]);
+
+  // Main high-precision animation loop for calculating dynamic mouth values
+  useEffect(() => {
     let targetMouthY = 0;
     let targetMouthForm = 0;
 
     const updateLipSync = () => {
-      const coreModel = model.internalModel?.coreModel;
-      if (!coreModel) {
-        rafRef.current = requestAnimationFrame(updateLipSync);
-        return;
-      }
-
       const now = performance.now();
       const isSynthesizing = typeof window !== 'undefined' && Boolean(window.speechSynthesis?.speaking && !window.speechSynthesis?.paused);
       const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing);
@@ -110,27 +152,29 @@ export function useLipSync(model, isSpeakingProp = false) {
         if (speechStartTime.current === 0) speechStartTime.current = now;
         const elapsed = (now - speechStartTime.current) * 0.001;
 
-        // 1. Primary Speech Carrier Oscillator (~5.0 Hz natural vowel rhythm)
-        const carrier = Math.abs(Math.sin(elapsed * 5.0 * Math.PI));
-        const secondary = Math.sin(elapsed * 11.5 * Math.PI) * 0.15;
-        const baseShape = 0.35 + 0.65 * carrier + secondary;
+        // 1. Dynamic Syllable Rhythmic Pulse (~5.4 syllables per second with non-linear sharp opening)
+        const carrier = Math.abs(Math.sin(elapsed * 5.4 * Math.PI));
+        const flap = Math.pow(carrier, 0.7); // Non-linear curve: keeps mouth wide longer during vowels
+        const microTremor = Math.sin(elapsed * 13.5 * Math.PI) * 0.12;
 
-        // 2. Blend with Current Phoneme Target (Bigger & Clearer Openings)
-        const phonemeOpen = targetPhoneme.current.openY || 0.9;
+        // 2. Phoneme Multiplier
+        const phonemeOpen = targetPhoneme.current.openY || 0.95;
         const phonemeForm = targetPhoneme.current.form || 0.0;
 
-        const rawOpen = Math.max(0.28, Math.min(1.0, baseShape * phonemeOpen * 1.25));
+        // Big, prominent mouth opening calculation (peaks at 1.0, baseline 0.3)
+        const rawOpen = Math.min(1.0, Math.max(0.2, (flap * 0.95 + 0.15 + microTremor) * phonemeOpen));
         targetMouthY = rawOpen;
 
-        const dynamicForm = phonemeForm + Math.sin(elapsed * 3.4 * Math.PI) * 0.25;
+        // Dynamic horizontal vowel width
+        const dynamicForm = phonemeForm + Math.sin(elapsed * 3.6 * Math.PI) * 0.3;
         targetMouthForm = Math.max(-0.85, Math.min(0.85, dynamicForm));
       } else {
         targetMouthY = 0;
         targetMouthForm = 0;
       }
 
-      // Fast, responsive attack (0.52) for prominent mouth shapes
-      const lerpSpeed = isSpeaking ? 0.52 : 0.32;
+      // Punchy attack (0.75) and smooth release (0.4)
+      const lerpSpeed = isSpeaking ? 0.75 : 0.4;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
 
@@ -139,27 +183,22 @@ export function useLipSync(model, isSpeakingProp = false) {
         currentMouthForm.current = 0;
       }
 
-      const yVal = currentMouthY.current;
-      const formVal = currentMouthForm.current;
+      // Also apply directly in RAF loop as fallback
+      if (model?.internalModel?.coreModel) {
+        const coreModel = model.internalModel.coreModel;
+        const yVal = currentMouthY.current;
+        const formVal = currentMouthForm.current;
 
-      try {
-        // ── Haru (Cubism 4 API) ──
-        if (typeof coreModel.setParameterValueById === 'function') {
-          coreModel.setParameterValueById('ParamMouthOpenY', yVal);
-          coreModel.setParameterValueById('ParamMouthForm', formVal);
-          coreModel.setParameterValueById('PARAM_MOUTH_OPEN_Y', yVal);
-          coreModel.setParameterValueById('PARAM_MOUTH_FORM', formVal);
-        }
-
-        // ── Chitose (Cubism 2 setParamFloat API) ──
-        if (typeof coreModel.setParamFloat === 'function') {
-          coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', yVal);
-          coreModel.setParamFloat('PARAM_MOUTH_FORM', formVal);
-          coreModel.setParamFloat('ParamMouthOpenY', yVal);
-          coreModel.setParamFloat('ParamMouthForm', formVal);
-        }
-      } catch (e) {
-        // ignore parameter discrepancies
+        try {
+          if (typeof coreModel.setParameterValueById === 'function') {
+            coreModel.setParameterValueById('ParamMouthOpenY', yVal, 1.0);
+            coreModel.setParameterValueById('ParamMouthForm', formVal, 1.0);
+          }
+          if (typeof coreModel.setParamFloat === 'function') {
+            coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', yVal, 1.0);
+            coreModel.setParamFloat('PARAM_MOUTH_FORM', formVal, 1.0);
+          }
+        } catch (e) {}
       }
 
       rafRef.current = requestAnimationFrame(updateLipSync);
