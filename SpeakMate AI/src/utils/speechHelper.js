@@ -147,8 +147,9 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     gender,
     selectedVoiceName,
     pitch,
-    rateMultiplier: parseFloat(customRate),
+    rateMultiplier: isNaN(parseFloat(customRate)) ? 1.0 : parseFloat(customRate),
     lang: targetLang,
+    baseRate: baseRate || 1.0,
   };
 };
 
@@ -170,9 +171,15 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   if (!utterance || typeof window === "undefined" || !("speechSynthesis" in window)) return;
 
   const settings = getSavedVoiceSettings(overrideVoiceCode);
-  utterance.lang = settings.lang;
-  utterance.pitch = settings.pitch;
-  utterance.rate = settings.baseRate * settings.rateMultiplier * speedMultiplier;
+  utterance.lang = settings.lang || "en-US";
+
+  const safePitch = typeof settings.pitch === "number" && !isNaN(settings.pitch) ? settings.pitch : 1.0;
+  const safeBaseRate = typeof settings.baseRate === "number" && !isNaN(settings.baseRate) ? settings.baseRate : 1.0;
+  const safeRateMult = typeof settings.rateMultiplier === "number" && !isNaN(settings.rateMultiplier) ? settings.rateMultiplier : 1.0;
+  const safeSpeed = typeof speedMultiplier === "number" && !isNaN(speedMultiplier) ? speedMultiplier : 1.0;
+
+  utterance.pitch = Math.max(0.5, Math.min(2.0, safePitch));
+  utterance.rate = Math.max(0.5, Math.min(2.0, safeBaseRate * safeRateMult * safeSpeed));
 
   const voices = window.speechSynthesis.getVoices();
   if (voices && voices.length > 0) {
