@@ -381,3 +381,16 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 
   return utterance;
 };
+
+export function getCurrentVoiceGender() {
+  if (typeof window === 'undefined') return 'female';
+  try {
+    const savedVoice = localStorage.getItem('speakmate_voice_code') || localStorage.getItem('speakmate_voice');
+    if (savedVoice) {
+      const match = VOICE_PROFILES.find((p) => p.code === savedVoice || p.label === savedVoice);
+      if (match?.gender) return match.gender;
+      if (savedVoice.toLowerCase().includes('male') && !savedVoice.toLowerCase().includes('female')) return 'male';
+    }
+  } catch (e) {}
+  return 'female';
+}

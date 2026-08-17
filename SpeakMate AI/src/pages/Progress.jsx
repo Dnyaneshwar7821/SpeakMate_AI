@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { dashboardService } from "../services/appServices";
 import ROUTES from "../constants/routes";
-
 import { getLiveProgressStats } from "../utils/progressTracker";
 
 const SKILLS = [
@@ -15,26 +13,43 @@ const SKILLS = [
 
 export function Progress() {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [liveStats, setLiveStats] = useState(() => getLiveProgressStats());
 
-  useEffect(() => {
-    const updateStats = () => {
+  const updateStats = () => {
+    try {
+      setLoading(true);
+      setError(null);
       setLiveStats(getLiveProgressStats());
-    };
+    } catch (err) {
+      setError("Failed to load progress stats.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     updateStats();
     window.addEventListener("focus", updateStats);
     return () => window.removeEventListener("focus", updateStats);
   }, []);
 
-  const totalHours = liveStats.totalHours || 0;
+  const totalHours = liveStats.totalHours || liveStats.totalStudyHours || 0;
   const accuracy = liveStats.accuracy || 0;
-  const wordsLearned = liveStats.wordsLearned || 0;
-  const streak = liveStats.streak || 0;
+  const wordsLearned = liveStats.wordsLearned || liveStats.vocabularyLearned || 0;
+  const streak = liveStats.streak || liveStats.currentStreak || 0;
+  const longestStreak = liveStats.longestStreak || Math.max(streak, 1);
   const xp = liveStats.xp || 0;
+  const speakingSessions = liveStats.speakingSessions || 0;
+  const grammarExercises = liveStats.grammarExercises || 0;
+  const completedLessons = liveStats.completedLessons || 0;
 
   const level = Math.floor(xp / 100) + 1;
   const currentLevelBaseXp = (level - 1) * 100;
+  const nextLevelXp = level * 100;
   const levelXpProgress = xp - currentLevelBaseXp;
+  const levelPercentage = Math.min(100, Math.max(0, (levelXpProgress / 100) * 100));
+
   const weeklyData = liveStats.weeklyData || [
     { day: "Mon", studyMinutes: 20 },
     { day: "Tue", studyMinutes: 35 },
@@ -47,7 +62,7 @@ export function Progress() {
   const maxMins = Math.max(10, ...weeklyData.map((w) => w.studyMinutes || 0));
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300">
+    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in duration-300 p-4 sm:p-6">
       {/* Header Banner */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6c63ff] via-[#4f46e5] to-[#312e81] text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>
@@ -57,8 +72,8 @@ export function Progress() {
           </p>
         </div>
         <button
-          onClick={loadProgressData}
-          className="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-black border border-white/20 transition-all shrink-0 flex items-center gap-2"
+          onClick={updateStats}
+          className="px-4 py-2.5 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-xs font-black border border-white/20 transition-all shrink-0 flex items-center gap-2 cursor-pointer"
         >
           <span>🔄 Refresh Data</span>
         </button>
@@ -75,7 +90,7 @@ export function Progress() {
         <div className="p-6 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-rose-600 dark:text-rose-400 text-xs font-black text-center space-y-3">
           <p>⚠️ {error}</p>
           <button
-            onClick={loadProgressData}
+            onClick={updateStats}
             className="px-4 py-2 rounded-xl bg-rose-500 text-white text-xs font-black"
           >
             Retry Loading
@@ -126,7 +141,7 @@ export function Progress() {
               <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-500 grid place-items-center text-xl">
                 ⏱️
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{stats.totalStudyHours || 0}h</p>
+              <p className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{totalHours}h</p>
               <p className="text-xs font-black uppercase text-[var(--text-secondary)] tracking-wider">Study Hours</p>
             </div>
 
@@ -134,7 +149,7 @@ export function Progress() {
               <div className="h-10 w-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 grid place-items-center text-xl">
                 🎙️
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{stats.speakingSessions || 0}</p>
+              <p className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{speakingSessions}</p>
               <p className="text-xs font-black uppercase text-[var(--text-secondary)] tracking-wider">Speaking Sessions</p>
             </div>
 
@@ -142,7 +157,7 @@ export function Progress() {
               <div className="h-10 w-10 rounded-2xl bg-pink-500/10 border border-pink-500/20 text-pink-500 grid place-items-center text-xl">
                 📚
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{stats.vocabularyLearned || 0}</p>
+              <p className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{wordsLearned}</p>
               <p className="text-xs font-black uppercase text-[var(--text-secondary)] tracking-wider">Words Saved</p>
             </div>
 
@@ -150,7 +165,7 @@ export function Progress() {
               <div className="h-10 w-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 grid place-items-center text-xl">
                 ✍️
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{stats.grammarExercises || 0}</p>
+              <p className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{grammarExercises}</p>
               <p className="text-xs font-black uppercase text-[var(--text-secondary)] tracking-wider">Grammar Checks</p>
             </div>
           </div>
@@ -160,9 +175,9 @@ export function Progress() {
             <div className="flex items-center gap-4">
               <span className="text-4xl">🔥</span>
               <div>
-                <h3 className="text-lg font-black text-white">{p.currentStreak || 0} Day Learning Streak</h3>
+                <h3 className="text-lg font-black text-white">{streak} Day Learning Streak</h3>
                 <p className="text-xs text-indigo-200 font-medium mt-0.5">
-                  Longest streak achieved: <strong>{p.longestStreak || 0} days</strong>. Keep practice active daily!
+                  Longest streak achieved: <strong>{longestStreak} days</strong>. Keep practice active daily!
                 </p>
               </div>
             </div>
@@ -241,7 +256,7 @@ export function Progress() {
               <h2 className="text-lg font-black text-[var(--text-primary)]">Monthly Overview Report</h2>
             </div>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
-              You have completed <strong>{stats.completedLessons || 0} lessons</strong> and spent <strong>{stats.totalStudyHours || 0} study hours</strong> during this learning cycle. Keep practicing speaking scenarios daily to boost your CEFR fluency grade!
+              You have completed <strong>{completedLessons} lessons</strong> and spent <strong>{totalHours} study hours</strong> during this learning cycle. Keep practicing speaking scenarios daily to boost your CEFR fluency grade!
             </p>
           </div>
         </>

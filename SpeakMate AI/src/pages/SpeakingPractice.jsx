@@ -207,11 +207,9 @@ export function SpeakingPractice() {
     loadData();
   }, []);
 
-  // 4-Stat Calculations (Matches Mobile App Dashboard Header)
   const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
   const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
   const totalSessions = history.length;
-  const streakDays = history.length > 0 ? 3 : 0; // Simulated active streak
 
   const currentScenarios = isStudent
     ? (STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS["1st Std"])

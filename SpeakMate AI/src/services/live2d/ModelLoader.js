@@ -1,17 +1,26 @@
 /**
  * ModelLoader Service
- * Loads Live2D .model3.json model assets using pixi-live2d-display and PixiJS
+ * Loads Live2D model assets using pixi-live2d-display and PixiJS
  * with error handling and resource disposal.
  */
 
 import * as PIXI from 'pixi.js';
-import { Live2DModel } from 'pixi-live2d-display/cubism4';
+import { Live2DModel } from 'pixi-live2d-display';
 import { EventBus, AVATAR_EVENTS } from './EventBus';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 
-// Polyfill for PixiJS v7 + pixi-live2d-display compatibility
-if (!PIXI.DisplayObject.prototype.isInteractive) {
+// Polyfill for PixiJS v7 + pixi-live2d-display interaction compatibility
+if (typeof window !== 'undefined') {
+  window.PIXI = PIXI;
+}
+
+if (PIXI?.DisplayObject && !PIXI.DisplayObject.prototype.isInteractive) {
   PIXI.DisplayObject.prototype.isInteractive = function() {
+    return this.interactive || this.eventMode === 'static' || this.eventMode === 'dynamic';
+  };
+}
+if (PIXI?.Container && !PIXI.Container.prototype.isInteractive) {
+  PIXI.Container.prototype.isInteractive = function() {
     return this.interactive || this.eventMode === 'static' || this.eventMode === 'dynamic';
   };
 }
@@ -26,7 +35,7 @@ try {
 export class ModelLoader {
   /**
    * Loads a Live2D model asynchronously onto a Pixi stage
-   * @param {string} modelPath URL or path to .model3.json
+   * @param {string} modelPath URL or path to .model3.json or .model.json
    * @param {PIXI.Application} pixiApp PixiJS Application instance
    */
   static async loadModel(modelPath, pixiApp) {
@@ -53,25 +62,25 @@ export class ModelLoader {
       const screenWidth = pixiApp?.screen?.width || pixiApp?.renderer?.width || 600;
       const screenHeight = pixiApp?.screen?.height || pixiApp?.renderer?.height || 700;
 
-      // Remove anchor to avoid bounding box bugs
-      // Calculate scale based on internal native height
-      const nativeHeight = model.internalModel.height || model.height || 1000;
-      const nativeWidth = model.internalModel.width || model.width || 1000;
+      // Native dimensions
+      const nativeHeight = model.internalModel?.height || model.height || 1000;
+      const nativeWidth = model.internalModel?.width || model.width || 1000;
       
-      // Zoom in to show upper body
-      const scale = (screenHeight * 1.3) / nativeHeight;
+      // Top-centered anchor & framing
+      if (model.anchor) {
+        model.anchor.set(0.5, 0);
+      }
+      const scale = (screenHeight * 1.18) / nativeHeight;
       model.scale.set(scale, scale);
 
-      // Center horizontally using scaled width
-      model.x = (screenWidth - (nativeWidth * scale)) / 2;
-      
-      // Align to top, then push down slightly in case of empty top bounds
-      model.y = screenHeight * 0.1;
+      model.x = screenWidth / 2;
+      model.y = Math.max(36, screenHeight * 0.08);
 
       // Disable PixiJS interactive flag to avoid isInteractive error in Pixi 7
       if ('eventMode' in model) {
         model.eventMode = 'none';
       }
+      model.interactive = false;
 
       // Add to stage if stage is active
       if (pixiApp && pixiApp.stage && !pixiApp.stage.destroyed) {
@@ -83,16 +92,6 @@ export class ModelLoader {
     } catch (error) {
       console.warn('[ModelLoader] Failed to load specified model path:', path, error);
       EventBus.emit(AVATAR_EVENTS.MODEL_ERROR, { error, path });
-
-      // Fallback model check if primary fails and stage is still valid
-      if (pixiApp && pixiApp.stage && path !== DEFAULT_AVATAR_CONFIG.fallbackModelPath) {
-        try {
-          return await ModelLoader.loadModel(DEFAULT_AVATAR_CONFIG.fallbackModelPath, pixiApp);
-        } catch (fallbackErr) {
-          console.warn('[ModelLoader] Fallback model load attempt failed:', fallbackErr);
-        }
-      }
-
       throw error;
     }
   }
