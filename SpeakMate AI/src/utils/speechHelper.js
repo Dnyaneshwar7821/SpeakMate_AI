@@ -365,16 +365,14 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   utterance.onstart = (e) => {
     EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
 
-    // Chrome keep-alive heartbeat to prevent speech pausing mid-sentence
+    // Chrome keep-alive heartbeat (safely resumes without stopping speech)
     keepAliveInterval = setInterval(() => {
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        if (!window.speechSynthesis.speaking) {
-          cleanupKeepAlive();
-        } else if (window.speechSynthesis.paused) {
+        if (window.speechSynthesis.paused) {
           window.speechSynthesis.resume();
         }
       }
-    }, 4000);
+    }, 2500);
 
     if (options.onstart) options.onstart(e);
   };
