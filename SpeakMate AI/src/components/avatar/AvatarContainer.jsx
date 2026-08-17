@@ -32,7 +32,7 @@ export function AvatarContainer({
   // Attach continuous posture dynamics
   useMouseTracking(model, containerRef);
   useBlink(model);
-  useLipSync(model, speechService);
+  useLipSync(model, isSpeaking);
 
   // Synchronize state badge when speaking state changes
   useEffect(() => {

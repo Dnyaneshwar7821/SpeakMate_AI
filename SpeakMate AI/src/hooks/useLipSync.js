@@ -1,71 +1,91 @@
 import { useEffect, useRef } from 'react';
-import { AVATAR_PARAMS } from '../config/AvatarConfig';
 
 /**
  * useLipSync Custom Hook
- * Provides continuous, text-cadence matched, hyper-smooth Live2D lip syncing.
- * Combines multi-frequency syllable envelope generators, phoneme shapes (ParamMouthForm),
- * and exponential dampening for natural vocal articulation.
+ * Provides continuous, organic, speech-cadence matched Live2D lip syncing.
+ * Supports both Cubism 2 (Chitose) and Cubism 4 (Haru).
+ * Features:
+ * - Multi-octave syllable rhythm generator (~4-6 syllables/sec)
+ * - Phonetic vowel/consonant mouth shaping (ParamMouthForm & PARAM_MOUTH_FORM)
+ * - Micro vocal-bobbing dynamics during active speech
+ * - Smooth exponential decay to closed mouth on pause/stop
  */
 export function useLipSync(model, isSpeaking) {
   const rafRef = useRef(null);
   const currentMouthY = useRef(0);
   const currentMouthForm = useRef(0);
+  const speechStartTime = useRef(0);
 
   useEffect(() => {
-    if (!model || !model.internalModel || !model.internalModel.coreModel) return;
+    if (!model || !model.internalModel) return;
+
+    if (isSpeaking && speechStartTime.current === 0) {
+      speechStartTime.current = performance.now();
+    } else if (!isSpeaking) {
+      speechStartTime.current = 0;
+    }
 
     let targetMouthY = 0;
     let targetMouthForm = 0;
 
     const updateLipSync = () => {
       const coreModel = model.internalModel.coreModel;
+      if (!coreModel) return;
+
+      const now = performance.now();
 
       if (isSpeaking) {
-        // High-precision time cadence matching natural human speech rate (~5.5 syllables/sec)
-        const time = performance.now() * 0.011;
+        // Time elapsed since speaking started (in seconds)
+        const elapsed = (now - (speechStartTime.current || now)) * 0.001;
 
-        // Syllable Envelope (Main wave + harmonic vowels/consonants modulation)
-        const wave1 = Math.abs(Math.sin(time * 0.9));
-        const wave2 = Math.abs(Math.sin(time * 2.1)) * 0.4;
-        const wave3 = Math.cos(time * 0.45) * 0.2;
+        // Primary speech carrier rhythm (5.2 syllables per second)
+        const carrier = Math.sin(elapsed * 5.2 * Math.PI);
+        // Secondary harmonic modulation (vowel transition rhythm)
+        const harmonic1 = Math.sin(elapsed * 2.8 * Math.PI) * 0.35;
+        const harmonic2 = Math.sin(elapsed * 8.4 * Math.PI) * 0.2;
 
-        const rawOpen = (wave1 + wave2 + wave3) * 0.75;
+        // Combine waves and rectify (mouth opening is positive)
+        const rawPulse = Math.abs(carrier) * 0.75 + harmonic1 + harmonic2;
 
-        // Clamp between natural open boundaries (0.12 to 0.95)
-        targetMouthY = Math.max(0.12, Math.min(0.95, rawOpen));
+        // Organic syllable envelope (dynamic speech variation)
+        const syllableNoise = Math.sin(elapsed * 1.4) * 0.15;
+        const finalOpen = Math.max(0, Math.min(1.0, rawPulse + syllableNoise));
 
-        // Dynamic Mouth Shaping (ParamMouthForm: -1.0 narrow 'OO/EE' to +1.0 wide 'AA/OH')
-        const formWave = Math.sin(time * 1.3);
-        targetMouthForm = formWave * 0.5;
+        // Set target opening (range: 0.15 to 0.95 during vocalization)
+        targetMouthY = finalOpen > 0.08 ? Math.min(0.95, finalOpen * 1.15) : 0.05;
+
+        // Dynamic Mouth Shaping (-1.0 narrow 'OO/EE' to +1.0 wide 'AA/OH')
+        const formPulse = Math.sin(elapsed * 3.6 * Math.PI);
+        targetMouthForm = Math.max(-0.8, Math.min(0.8, formPulse * 0.6));
       } else {
         targetMouthY = 0;
         targetMouthForm = 0;
       }
 
-      // Smooth exponential lerp filter (prevents mechanical jittering)
-      const lerpSpeed = isSpeaking ? 0.35 : 0.2;
+      // Smooth exponential easing (fast attack 0.42, natural release 0.28)
+      const lerpSpeed = isSpeaking ? 0.42 : 0.28;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
 
-      // Close completely if very small threshold
-      if (!isSpeaking && currentMouthY.current < 0.01) {
+      // Snap to absolute zero if below silence threshold
+      if (!isSpeaking && currentMouthY.current < 0.015) {
         currentMouthY.current = 0;
         currentMouthForm.current = 0;
       }
 
-      try {
-        const yVal = currentMouthY.current;
-        const formVal = currentMouthForm.current;
+      const yVal = currentMouthY.current;
+      const formVal = currentMouthForm.current;
 
-        // Cubism 4 API
+      try {
+        // ── 1. Cubism 4 Core API (Haru / modern models) ──
         if (typeof coreModel.setParameterValueById === 'function') {
           coreModel.setParameterValueById('ParamMouthOpenY', yVal);
           coreModel.setParameterValueById('ParamMouthForm', formVal);
           coreModel.setParameterValueById('PARAM_MOUTH_OPEN_Y', yVal);
           coreModel.setParameterValueById('PARAM_MOUTH_FORM', formVal);
         }
-        // Cubism 2 & 4 setParamFloat API
+
+        // ── 2. Cubism 2 / Universal setParamFloat API (Chitose) ──
         if (typeof coreModel.setParamFloat === 'function') {
           coreModel.setParamFloat('PARAM_MOUTH_OPEN_Y', yVal);
           coreModel.setParamFloat('PARAM_MOUTH_FORM', formVal);
@@ -73,7 +93,7 @@ export function useLipSync(model, isSpeaking) {
           coreModel.setParamFloat('ParamMouthForm', formVal);
         }
       } catch (e) {
-        // ignore
+        // suppress parameter mismatch logs
       }
 
       rafRef.current = requestAnimationFrame(updateLipSync);
@@ -88,3 +108,5 @@ export function useLipSync(model, isSpeaking) {
     };
   }, [model, isSpeaking]);
 }
+
+export default useLipSync;
