@@ -3,12 +3,17 @@ import { EventBus, AVATAR_EVENTS } from '../services/live2d/EventBus';
 
 /**
  * Universal Parameter Applier for Cubism 2 (Chitose) and Cubism 4 (Haru)
- * Directly updates parameter memory slots on both coreModel and internalModel.
+ * Directly updates parameter memory slots on both coreModel and internalModel,
+ * adding realistic vocal head-nods and posture dynamics during continuous speech.
  */
-function applyMouthParameters(model, yVal, formVal) {
+function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   if (!model || !model.internalModel) return;
   const im = model.internalModel;
   const cm = im.coreModel;
+
+  const t = performance.now() * 0.001;
+  const vocalHeadY = isSpeaking ? Math.sin(t * 4.2) * 2.8 : 0;
+  const vocalHeadZ = isSpeaking ? Math.sin(t * 1.8) * 1.5 : 0;
 
   if (cm) {
     // Cubism 4 (Haru)
@@ -17,6 +22,10 @@ function applyMouthParameters(model, yVal, formVal) {
       try { cm.setParameterValueById('ParamMouthForm', formVal, 1.0); } catch (_) {}
       try { cm.setParameterValueById('PARAM_MOUTH_OPEN_Y', yVal, 1.0); } catch (_) {}
       try { cm.setParameterValueById('PARAM_MOUTH_FORM', formVal, 1.0); } catch (_) {}
+      if (isSpeaking) {
+        try { cm.setParameterValueById('ParamAngleY', vocalHeadY, 0.4); } catch (_) {}
+        try { cm.setParameterValueById('ParamAngleZ', vocalHeadZ, 0.4); } catch (_) {}
+      }
     }
     // Cubism 2 (Chitose)
     if (typeof cm.setParamFloat === 'function') {
@@ -24,6 +33,10 @@ function applyMouthParameters(model, yVal, formVal) {
       try { cm.setParamFloat('PARAM_MOUTH_FORM', formVal, 1.0); } catch (_) {}
       try { cm.setParamFloat('ParamMouthOpenY', yVal, 1.0); } catch (_) {}
       try { cm.setParamFloat('ParamMouthForm', formVal, 1.0); } catch (_) {}
+      if (isSpeaking) {
+        try { cm.setParamFloat('PARAM_ANGLE_Y', vocalHeadY, 0.4); } catch (_) {}
+        try { cm.setParamFloat('PARAM_ANGLE_Z', vocalHeadZ, 0.4); } catch (_) {}
+      }
     }
   }
 
@@ -37,8 +50,8 @@ function applyMouthParameters(model, yVal, formVal) {
 
 /**
  * useLipSync Custom Hook
- * Bulletproof, zero-failure Live2D Lip Sync for Haru and Chitose.
- * Guarantees prominent, continuous, big mouth opening whenever AI is speaking.
+ * Realistic Whole-Sentence Live2D Lip Syncing & Vocal Posture for Haru and Chitose.
+ * Guarantees prominent, continuous, human-like speech articulation throughout the entire AI talk.
  */
 export function useLipSync(model, isSpeakingProp = false) {
   const rafRef = useRef(null);
@@ -82,7 +95,13 @@ export function useLipSync(model, isSpeakingProp = false) {
     if (originalUpdate) {
       internalModel.update = function (delta, now) {
         originalUpdate(delta, now);
-        applyMouthParameters(model, currentMouthY.current, currentMouthForm.current);
+
+        const isSynthesizing = typeof window !== 'undefined' && Boolean(
+          (window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending))
+        );
+        const isSpeaking = Boolean(activeSpeaking.current || isSpeakingProp || isSynthesizing);
+
+        applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isSpeaking);
       };
     }
 
@@ -91,7 +110,7 @@ export function useLipSync(model, isSpeakingProp = false) {
         internalModel.update = originalUpdate;
       }
     };
-  }, [model]);
+  }, [model, isSpeakingProp]);
 
   // 60 FPS Continuous Lip Sync Loop
   useEffect(() => {
@@ -137,7 +156,7 @@ export function useLipSync(model, isSpeakingProp = false) {
         currentMouthForm.current = 0;
       }
 
-      applyMouthParameters(model, currentMouthY.current, currentMouthForm.current);
+      applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isSpeaking);
 
       rafRef.current = requestAnimationFrame(updateLipSync);
     };
