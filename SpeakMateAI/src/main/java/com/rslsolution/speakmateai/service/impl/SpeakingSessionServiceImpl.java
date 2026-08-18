@@ -95,40 +95,46 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 	}
 
+	private static final List<String> FALLBACK_MODELS = List.of(
+			"qwen/qwen3.6-27b",
+			"llama-3.1-8b-instant",
+			"mixtral-8x7b-32768",
+			"gemma2-9b-it"
+	);
+
 	private String callGroqChat(List<GroqRequest.Message> messages) {
-		try {
-			GroqRequest request = new GroqRequest(model, messages, 0.7);
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.setBearerAuth(apiKey);
-
-			HttpEntity<GroqRequest> entity = new HttpEntity<>(request, headers);
-			ResponseEntity<GroqResponse> response = restTemplate.postForEntity(apiUrl, entity, GroqResponse.class);
-			GroqResponse body = response.getBody();
-
-			if (body == null || body.getChoices() == null || body.getChoices().isEmpty()) {
-				throw new GroqException("No response received from Groq.");
-			}
-
-			return body.getChoices().get(0).getMessage().getContent();
-		} catch (Exception e) {
-			if (!"qwen/qwen3.6-27b".equals(model)) {
-				try {
-					GroqRequest request = new GroqRequest("qwen/qwen3.6-27b", messages, 0.7);
-					HttpHeaders headers = new HttpHeaders();
-					headers.setContentType(MediaType.APPLICATION_JSON);
-					headers.setBearerAuth(apiKey);
-					HttpEntity<GroqRequest> entity = new HttpEntity<>(request, headers);
-					ResponseEntity<GroqResponse> response = restTemplate.postForEntity(apiUrl, entity, GroqResponse.class);
-					GroqResponse body = response.getBody();
-					if (body != null && body.getChoices() != null && !body.getChoices().isEmpty()) {
-						return body.getChoices().get(0).getMessage().getContent();
-					}
-				} catch (Exception ignored) {}
-			}
-			throw new GroqException("Groq API Call failed: " + e.getMessage());
+		List<String> modelsToTry = new ArrayList<>();
+		if (model != null && !model.trim().isEmpty()) {
+			modelsToTry.add(model.trim());
 		}
+		for (String fb : FALLBACK_MODELS) {
+			if (!modelsToTry.contains(fb)) {
+				modelsToTry.add(fb);
+			}
+		}
+
+		Exception lastException = null;
+		for (String targetModel : modelsToTry) {
+			try {
+				GroqRequest request = new GroqRequest(targetModel, messages, 0.7);
+
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_JSON);
+				headers.setBearerAuth(apiKey);
+
+				HttpEntity<GroqRequest> entity = new HttpEntity<>(request, headers);
+				ResponseEntity<GroqResponse> response = restTemplate.postForEntity(apiUrl, entity, GroqResponse.class);
+				GroqResponse body = response.getBody();
+
+				if (body != null && body.getChoices() != null && !body.getChoices().isEmpty()) {
+					return body.getChoices().get(0).getMessage().getContent();
+				}
+			} catch (Exception e) {
+				lastException = e;
+				// If 429 rate limit or error, automatically try the next model in the cascade!
+			}
+		}
+		throw new GroqException("Groq API Call failed on all models: " + (lastException != null ? lastException.getMessage() : "Unknown"));
 	}
 
 	private String stripReasoning(String text) {
