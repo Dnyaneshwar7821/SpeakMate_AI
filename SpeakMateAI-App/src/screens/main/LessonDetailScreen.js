@@ -251,6 +251,7 @@ function MicWaveBar({ baseHeight, isRecording, delay = 0 }) {
 
 export default function LessonDetailScreen({ navigation, route }) {
   const { isDark, theme } = useTheme();
+  const { showToast, triggerConfetti } = useToast();
   const { lessonId } = route.params || {};
 
   const [lesson, setLesson] = useState(null);

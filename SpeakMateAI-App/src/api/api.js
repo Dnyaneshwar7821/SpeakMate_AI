@@ -69,7 +69,8 @@ api.interceptors.response.use(
         logoutCallback();
       }
     } else if (!isBackgroundEndpoint && status !== 404) {
-      console.warn(`[Axios Error] ${config?.method?.toUpperCase()} ${config?.url} (${status || error.code || 'ERR_NETWORK'})`);
+      const errorMsg = error.response?.data?.message || (typeof error.response?.data === 'string' ? error.response?.data : JSON.stringify(error.response?.data));
+      console.warn(`[Axios Error] ${config?.method?.toUpperCase()} ${config?.url} (${status || error.code || 'ERR_NETWORK'}): ${errorMsg || ''}`);
     }
 
     return Promise.reject(error);

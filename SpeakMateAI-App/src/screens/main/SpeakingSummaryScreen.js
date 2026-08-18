@@ -51,10 +51,15 @@ export default function SpeakingSummaryScreen({ navigation, route }) {
   }, []);
 
   const handleFinish = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'SpeakingHome' }],
-    });
+    try {
+      if (navigation.canGoBack()) {
+        navigation.popToTop();
+      } else {
+        navigation.navigate('SpeakingHome');
+      }
+    } catch (_) {
+      navigation.navigate('SpeakingHome');
+    }
   };
 
   return (
