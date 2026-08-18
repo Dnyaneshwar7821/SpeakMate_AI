@@ -52,7 +52,7 @@ export default function AssignmentsScreen({ navigation }) {
       navigation.navigate('BottomTabs', {
         screen: 'Speaking',
         params: {
-          screen: 'ConversationScreen',
+          screen: 'Conversation',
           params: { scenarioId: item.targetId, assignmentId: item.id },
         },
       });
