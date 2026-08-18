@@ -291,7 +291,12 @@ export default function ConversationScreen({ navigation, route }) {
         text = text.substring(idx).trim();
       }
     }
-    // If there is a native phrasing improvement, speak it aloud so the learner hears how to say it properly!
+    if (msg.followUpQuestion && !text.includes(msg.followUpQuestion)) {
+      text += ` ${msg.followUpQuestion}`;
+    }
+    return text;
+  };
+
   const formatVocabulary = (text) => {
     if (!text) return '';
     let clean = String(text);
