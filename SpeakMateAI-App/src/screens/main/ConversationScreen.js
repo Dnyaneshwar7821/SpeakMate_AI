@@ -291,10 +291,86 @@ export default function ConversationScreen({ navigation, route }) {
         text = text.substring(idx).trim();
       }
     }
-    if (msg.followUpQuestion) {
-      text += ` ${msg.followUpQuestion}`;
+    // If there is a native phrasing improvement, speak it aloud so the learner hears how to say it properly!
+  const formatVocabulary = (text) => {
+    if (!text) return '';
+    let clean = String(text);
+    clean = clean.replace(/[\[\]{}"']/g, '');
+    clean = clean.replace(/^(vocabulary|words|suggestions)\s*:\s*/i, '');
+    return clean.replace(/\s+/g, ' ').trim();
+  };
+
+  const speakAiWithCoaching = (aiMsg) => {
+    if (!aiMsg || isPausedRef.current || isMuted) return;
+
+    let mainReply = aiMsg.message || aiMsg.aiReply || '';
+    if (aiMsg.followUpQuestion && !mainReply.includes(aiMsg.followUpQuestion)) {
+      mainReply += ` ${aiMsg.followUpQuestion}`;
     }
-    return text;
+
+    const cleanBetter = aiMsg.betterSentence && typeof aiMsg.betterSentence === 'string'
+      ? aiMsg.betterSentence.replace(/[\[\]"]/g, '').trim()
+      : null;
+
+    const hasBetter = cleanBetter &&
+      cleanBetter.toLowerCase() !== 'null' &&
+      cleanBetter.toLowerCase() !== 'none' &&
+      !cleanBetter.includes('✅');
+
+    pausedAiText.current = mainReply;
+
+    // Stage 1: Speak in-character conversational response
+    VoiceService.speak(mainReply, {
+      isMuted,
+      voiceType: preferredVoice,
+      speechSpeed,
+      availableVoices,
+      onStart: () => {
+        setStatusText('Speaking');
+        setIsSpeaking(true);
+      },
+      onDone: () => {
+        // Stage 2: 1.2s natural conversational gap before speaking coaching tip
+        if (hasBetter && !isPausedRef.current && !isMuted) {
+          setStatusText('Coaching Tip');
+          setTimeout(() => {
+            if (!isPausedRef.current && !isMuted) {
+              const coachingPhrase = `A better way to say that is: ${cleanBetter}`;
+              pausedAiText.current = coachingPhrase;
+              VoiceService.speak(coachingPhrase, {
+                isMuted,
+                voiceType: preferredVoice,
+                speechSpeed,
+                availableVoices,
+                onStart: () => {
+                  setStatusText('Coaching Tip');
+                  setIsSpeaking(true);
+                },
+                onDone: () => {
+                  setStatusText('Waiting for Response');
+                  setIsSpeaking(false);
+                  wasSpeakingOnPause.current = false;
+                },
+                onError: () => {
+                  setStatusText('Waiting for Response');
+                  setIsSpeaking(false);
+                  wasSpeakingOnPause.current = false;
+                }
+              });
+            }
+          }, 1200); // 1.2 second natural conversational gap
+        } else {
+          setStatusText('Waiting for Response');
+          setIsSpeaking(false);
+          wasSpeakingOnPause.current = false;
+        }
+      },
+      onError: () => {
+        setStatusText('Waiting for Response');
+        setIsSpeaking(false);
+        wasSpeakingOnPause.current = false;
+      }
+    });
   };
 
   const speakTextWithVoice = (text, voiceOverride = preferredVoice, voicesList = availableVoices, speedOverride = null) => {
@@ -695,8 +771,8 @@ export default function ConversationScreen({ navigation, route }) {
         setTimeout(() => setAvatarExpression(undefined), 3500);
       }
 
-      // Speak AI response cleanly
-      speakText(getSpeakableText(aiMessage));
+      // Speak AI in-character response, pause 1.2s, then speak coaching phrasing
+      speakAiWithCoaching(aiMessage);
     } catch (err) {
       console.warn('Backend speaking message failed, using resilient fallback:', err);
       const fallbackAiMsg = {
@@ -717,7 +793,7 @@ export default function ConversationScreen({ navigation, route }) {
       setMessages((prev) => [...prev, fallbackAiMsg]);
       setCorrections(fallbackAiMsg);
       setHints(fallbackAiMsg.suggestedResponses);
-      speakText(getSpeakableText(fallbackAiMsg));
+      speakAiWithCoaching(fallbackAiMsg);
     } finally {
       setLoading(false);
       setStatusText('Waiting for Response');
@@ -959,7 +1035,7 @@ export default function ConversationScreen({ navigation, route }) {
                 {showVocab && (
                   <View style={styles.correctionSection}>
                     <Text style={styles.correctionLabel}>Vocabulary Upgrade</Text>
-                    <Text style={styles.correctionContent}>✨ {corrections.vocabularySuggestions}</Text>
+                    <Text style={styles.correctionContent}>✨ {formatVocabulary(corrections.vocabularySuggestions)}</Text>
                   </View>
                 )}
 
@@ -979,34 +1055,38 @@ export default function ConversationScreen({ navigation, route }) {
         )}
       />
 
+      {/* ── Attractive Floating AI Hint Button (Positioned above the bottom black controls area at right) ── */}
+      <View style={styles.floatingHintContainer} pointerEvents="box-none">
+        <TouchableOpacity
+          style={styles.floatingHintBtn}
+          onPress={handleFetchHints}
+          activeOpacity={0.85}
+          disabled={loadingHints}
+        >
+          <LinearGradient
+            colors={hints.length > 0 ? ['#4F46E5', '#3730A3'] : ['#8B5CF6', '#6366F1', '#4F46E5']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.floatingHintGradient}
+          >
+            {loadingHints ? (
+              <ActivityIndicator size="small" color="#FFF" />
+            ) : (
+              <>
+                <View style={styles.hintIconAura}>
+                  <Ionicons name="bulb" size={11} color="#FDE047" />
+                </View>
+                <Text style={styles.floatingHintText}>
+                  {hints.length > 0 ? 'Hide Hints' : 'AI Hint ✨'}
+                </Text>
+              </>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+
       {/* ── Bottom Controls ── */}
       <View style={styles.controlsBar}>
-        {/* Floating AI Hint Button positioned above controls */}
-        <View style={styles.floatingHintContainer} pointerEvents="box-none">
-          <TouchableOpacity
-            style={styles.floatingHintBtn}
-            onPress={handleFetchHints}
-            activeOpacity={0.8}
-            disabled={loadingHints}
-          >
-            <LinearGradient
-              colors={hints.length > 0 ? ['#4338CA', '#3730A3'] : ['#6366F1', '#4F46E5']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.floatingHintGradient}
-            >
-              {loadingHints ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <>
-                  <Ionicons name={hints.length > 0 ? "bulb" : "bulb-outline"} size={14} color="#FDE047" />
-                  <Text style={styles.floatingHintText}>{hints.length > 0 ? "Hide Hints" : "AI Hint"}</Text>
-                </>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
-
         {/* Interactive Quick-Reply Speech Chips */}
         {hints.length > 0 && (
           <View style={styles.hintsContainer}>
@@ -1185,33 +1265,43 @@ const styles = StyleSheet.create({
   },
   avatarCircle: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', shadowColor: '#4F46E5', shadowOpacity: 0.25, shadowRadius: 10, elevation: 5 },
 
-  // Floating AI Hint Button (Top Right of controls bar)
+  // Floating AI Hint Button (Above the black controls bar, aligned at right)
   floatingHintContainer: {
     alignItems: 'flex-end',
-    paddingHorizontal: 4,
-    marginBottom: 8,
+    paddingHorizontal: 16,
+    marginBottom: 4,
+    zIndex: 99,
   },
   floatingHintBtn: {
-    shadowColor: '#6366F1',
-    shadowOffset: { width: 0, height: 3 },
+    borderRadius: 14,
+    shadowColor: '#8B5CF6',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
     shadowRadius: 6,
-    elevation: 6,
+    elevation: 5,
   },
   floatingHintGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 18,
+    paddingVertical: 4.5,
+    paddingHorizontal: 9,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    gap: 5,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    gap: 4,
+  },
+  hintIconAura: {
+    width: 17,
+    height: 17,
+    borderRadius: 8.5,
+    backgroundColor: 'rgba(253, 224, 71, 0.25)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   floatingHintText: {
     color: '#FFF',
-    fontSize: 12,
-    fontWeight: '700',
+    fontSize: 11,
+    fontWeight: '800',
     letterSpacing: 0.2,
   },
 
