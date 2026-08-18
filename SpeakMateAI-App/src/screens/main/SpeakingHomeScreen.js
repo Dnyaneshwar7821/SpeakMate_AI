@@ -183,28 +183,90 @@ const DIFF_COLORS = {
 
 export const getScenarioInitialGreeting = (title = '') => {
   const t = title.toLowerCase();
-  if (t.includes('restaurant') || t.includes('food') || t.includes('burger')) {
-    return "Hello! Welcome to our restaurant. Can I get a table ready for you, or would you like to see the menu?";
-  } else if (t.includes('coffee') || t.includes('cafe')) {
-    return "Hi there! Welcome to the coffee house. What can I brew for you today?";
-  } else if (t.includes('hotel') || t.includes('check-in')) {
-    return "Good day and welcome to our hotel! Are you checking in today?";
-  } else if (t.includes('airport') || t.includes('customs') || t.includes('travel')) {
-    return "Good day! Welcome to airport check-in. May I see your passport and boarding pass, please?";
-  } else if (t.includes('interview') || t.includes('job')) {
-    return "Welcome and thank you for joining us today! To begin, could you please tell me a little about yourself?";
-  } else if (t.includes('shopping') || t.includes('clothes') || t.includes('store')) {
-    return "Hi! Welcome to our store. Are you looking for anything specific today?";
-  } else if (t.includes('zoo') || t.includes('animal')) {
-    return "Hello! Welcome to the city zoo. What is your favorite animal that you would like to see today?";
-  } else if (t.includes('school') || t.includes('exam') || t.includes('homework') || t.includes('starter')) {
-    return "Hello there! Welcome to our English speaking practice. What fun topic would you like to talk about today?";
-  } else if (t.includes('meeting') || t.includes('presentation') || t.includes('business')) {
-    return "Good morning! Thank you all for joining. Shall we kick off our agenda for today?";
-  } else if (t.includes('show & tell') || t.includes('superhero')) {
-    return "Hi! I am so excited for Show and Tell today! What awesome story or item would you like to share?";
+
+  // Kids Scenarios
+  if (t.includes('show & tell') || t.includes('superhero') || t.includes('favorite toy')) {
+    return "Hi there! I am so excited for Show and Tell today! What awesome toy, superhero, or story do you want to share with me?";
+  } else if (t.includes('zoo') || t.includes('animal friends') || t.includes('zoo guide')) {
+    return "Hello! Welcome to the city zoo! We have roaring lions, playful monkeys, and huge elephants. What animal do you want to visit first?";
+  } else if (t.includes('ice cream')) {
+    return "Hi! Welcome to the ice cream parlor! We have delicious chocolate, creamy vanilla, and fresh strawberry. What flavor would you like?";
+  } else if (t.includes('school lunch') || t.includes('canteen')) {
+    return "Hey! Welcome to lunchtime. I have a tasty sandwich and fruit juice today. What did you bring for lunch?";
+  } else if (t.includes('space adventure') || t.includes('space rocket')) {
+    return "Greetings, astronaut! We are about to launch our rocket into outer space. Are you ready for countdown in 3, 2, 1?";
+  } else if (t.includes('park') || t.includes('playground') || t.includes('swings')) {
+    return "Hello friend! The weather is so nice at the park. Do you want to play on the swings or kick the football first?";
+  } else if (t.includes('birthday party')) {
+    return "Happy Birthday! Welcome to the celebration! Would you like some cake, or should we play party games first?";
+  } else if (t.includes('doctor') || t.includes('pharmacy') || t.includes('health')) {
+    return "Hello! Come on in and have a seat. How are you feeling today, and how can I help you feel better?";
+  } else if (t.includes('bedtime story')) {
+    return "Good evening! Let's create a wonderful bedtime adventure story together. Once upon a time, where should our journey begin?";
   }
-  return `Hello! Welcome to our ${title} practice session. How are you doing today?`;
+
+  // School Standards (1st - 10th Std)
+  else if (t.includes('alphabet') || t.includes('phonics') || t.includes('sounds fun')) {
+    return "Hello young learner! Welcome to fun with letters and sounds. Which letter of the alphabet is your favorite?";
+  } else if (t.includes('colors & drawing')) {
+    return "Hello artist! I love drawing and painting. What bright colors do you like to color your pictures with?";
+  } else if (t.includes('school greetings') || t.includes('morning routine')) {
+    return "Good morning! It is wonderful to see you today. How did you start your morning routine before coming to school?";
+  } else if (t.includes('classroom objects') || t.includes('stationery')) {
+    return "Good day! Welcome to our classroom. Could you tell me what stationery items you have in your school bag today?";
+  } else if (t.includes('science project') || t.includes('robotics')) {
+    return "Welcome to the science and innovation lab! What exciting project or model are you preparing to demonstrate?";
+  } else if (t.includes('water conservation') || t.includes('environmental care') || t.includes('climate')) {
+    return "Hello! Thank you for joining our environmental session. In your opinion, what is the best way we can save water and protect nature?";
+  } else if (t.includes('debate')) {
+    return "Welcome to today's formal debate session. The floor is yours—please present your opening statement on the topic.";
+  } else if (t.includes('student council') || t.includes('leadership')) {
+    return "Welcome candidate! Thank you for stepping up for student council leadership. What positive changes do you plan to bring to our school?";
+  } else if (t.includes('board oral exam') || t.includes('oratory mastery') || t.includes('keynote')) {
+    return "Welcome to the formal oral examination. Please begin by introducing yourself and stating your primary speaking topic.";
+  }
+
+  // Teens & Young Adults
+  else if (t.includes('high school') || t.includes('first day')) {
+    return "Hey! Welcome to the new school term. I'm excited to be your classmate! How has your first day been going so far?";
+  } else if (t.includes('fast food') || t.includes('burger')) {
+    return "Hey! Welcome to Burger Express. Are you ready to order, or would you like to check out our combo meals today?";
+  } else if (t.includes('gaming') || t.includes('hobbies')) {
+    return "Hey there! It's great to connect. What video games, music, or hobbies have you been enjoying recently?";
+  } else if (t.includes('homework help')) {
+    return "Hi! Don't worry, we can work through this assignment together. Which question or topic is giving you trouble?";
+  } else if (t.includes('coffee') || t.includes('cafe')) {
+    return "Hi there! Welcome to the cafe. What specialty coffee or tea can I brew for you today?";
+  } else if (t.includes('hotel') || t.includes('check-in')) {
+    return "Good day and welcome to our hotel! Are you checking in under a reservation today?";
+  } else if (t.includes('airport') || t.includes('customs') || t.includes('backpacking')) {
+    return "Good day! Welcome to airport check-in. May I see your passport and travel documents, please?";
+  } else if (t.includes('job interview') || t.includes('admission interview') || t.includes('part-time job')) {
+    return "Welcome and thank you for meeting with us today! To begin, could you please introduce yourself and tell us what interests you about this role?";
+  } else if (t.includes('roommate') || t.includes('hostel') || t.includes('apartment')) {
+    return "Hi there! It's great to meet you. Shall we discuss our room layout, shared chores, and daily schedules?";
+  } else if (t.includes('restaurant') || t.includes('dining') || t.includes('food')) {
+    return "Hello! Welcome to our restaurant. Can I get a table ready for you, or would you like to see our dinner menu?";
+  } else if (t.includes('shopping') || t.includes('clothes') || t.includes('store')) {
+    return "Hi! Welcome to our store. Are you looking for a specific size, color, or style today?";
+  }
+
+  // Professionals & Seniors
+  else if (t.includes('office small talk') || t.includes('business meeting')) {
+    return "Good morning! Thank you for joining our session today. Shall we review the key project milestones and agenda items?";
+  } else if (t.includes('salary') || t.includes('contract negotiation')) {
+    return "Good afternoon. Thank you for taking the time to discuss the offer. What aspects of the compensation package would you like to review?";
+  } else if (t.includes('presentation skills')) {
+    return "Welcome! The stage is set for your presentation. Whenever you're ready, please deliver your opening hook and slide overview.";
+  } else if (t.includes('tea time') || t.includes('gardening')) {
+    return "Good afternoon! A warm cup of tea is ready. How are your garden plants and home projects doing these days?";
+  } else if (t.includes('museum tour') || t.includes('life stories')) {
+    return "Welcome to the guided cultural tour! We have fascinating historical exhibits ahead. What period of history interests you most?";
+  } else if (t.includes('customer support')) {
+    return "Hello! Thank you for calling customer support. My name is Alex. How may I assist you with your account today?";
+  }
+
+  return `Hello! Welcome to our ${title} conversation practice. How can I assist you today?`;
 };
 
 export default function SpeakingHomeScreen({ navigation }) {
@@ -273,9 +335,11 @@ export default function SpeakingHomeScreen({ navigation }) {
         ? scenario.xp
         : parseInt(String(scenario?.xp || '10').replace(/\D/g, ''), 10) || 10;
 
+      const effectiveCategory = accountType === 'STUDENT' ? selectedGrade : userAgeGroup;
+
       const session = await speakingService.start({
         scenario: scenarioName,
-        difficulty: scenario?.difficulty || 'Intermediate',
+        difficulty: scenario?.difficulty || (accountType === 'STUDENT' ? selectedGrade : 'Intermediate'),
         estimatedDuration: durationNum,
         xpReward: xpNum,
       });
@@ -284,6 +348,9 @@ export default function SpeakingHomeScreen({ navigation }) {
         scenario: scenarioName,
         xpReward: xpNum,
         initialGreeting: defaultGreeting,
+        ageGroup: userAgeGroup,
+        standard: selectedGrade,
+        accountType: accountType,
       });
     } catch (error) {
       console.warn('Backend session creation failed, proceeding locally:', error);
@@ -295,6 +362,9 @@ export default function SpeakingHomeScreen({ navigation }) {
         scenario: scenarioName,
         xpReward: xpNum,
         initialGreeting: defaultGreeting,
+        ageGroup: userAgeGroup,
+        standard: selectedGrade,
+        accountType: accountType,
       });
     } finally {
       setLoading(false);

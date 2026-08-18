@@ -270,25 +270,89 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	private String getDefaultScenarioOpening(String scenario) {
 		if (scenario == null) return "Hello! Welcome to our speaking practice session. How are you doing today?";
 		String s = scenario.toLowerCase();
-		if (s.contains("restaurant") || s.contains("food") || s.contains("burger")) {
-			return "Hello! Welcome to our restaurant. Can I get a table ready for you, or would you like to see the menu?";
-		} else if (s.contains("coffee") || s.contains("cafe")) {
-			return "Hi there! Welcome to the coffee house. What can I brew for you today?";
-		} else if (s.contains("hotel")) {
-			return "Good day and welcome to our hotel! Are you checking in today?";
-		} else if (s.contains("airport") || s.contains("customs") || s.contains("travel")) {
-			return "Good day, traveler! May I see your passport and boarding pass, please?";
-		} else if (s.contains("interview") || s.contains("job")) {
-			return "Welcome and thank you for joining us today! To begin, could you please tell me a little about yourself?";
-		} else if (s.contains("shopping") || s.contains("clothes") || s.contains("store")) {
-			return "Hi! Welcome to our store. Are you looking for anything specific today?";
+
+		// Kids
+		if (s.contains("show & tell") || s.contains("superhero") || s.contains("toy")) {
+			return "Hi there! I am so excited for Show and Tell today! What awesome toy, superhero, or story do you want to share with me?";
 		} else if (s.contains("zoo") || s.contains("animal")) {
-			return "Hello! Welcome to the city zoo. What is your favorite animal to see today?";
-		} else if (s.contains("school") || s.contains("exam") || s.contains("homework")) {
-			return "Hey! Good to see you in class today. What topic would you like to work on together?";
-		} else if (s.contains("meeting") || s.contains("presentation") || s.contains("business")) {
-			return "Good morning team! Thank you all for joining. Shall we kick off our agenda for today?";
+			return "Hello! Welcome to the city zoo! We have roaring lions, playful monkeys, and huge elephants. What animal do you want to visit first?";
+		} else if (s.contains("ice cream")) {
+			return "Hi! Welcome to the ice cream parlor! We have delicious chocolate, creamy vanilla, and fresh strawberry. What flavor would you like?";
+		} else if (s.contains("school lunch") || s.contains("canteen")) {
+			return "Hey! Welcome to lunchtime. I have a tasty sandwich and fruit juice today. What did you bring for lunch?";
+		} else if (s.contains("space adventure") || s.contains("space rocket")) {
+			return "Greetings, astronaut! We are about to launch our rocket into outer space. Are you ready for countdown in 3, 2, 1?";
+		} else if (s.contains("park") || s.contains("playground") || s.contains("swings")) {
+			return "Hello friend! The weather is so nice at the park. Do you want to play on the swings or kick the football first?";
+		} else if (s.contains("birthday party")) {
+			return "Happy Birthday! Welcome to the celebration! Would you like some cake, or should we play party games first?";
+		} else if (s.contains("doctor") || s.contains("pharmacy") || s.contains("health")) {
+			return "Hello! Come on in and have a seat. How are you feeling today, and how can I help you feel better?";
+		} else if (s.contains("bedtime story")) {
+			return "Good evening! Let's create a wonderful bedtime adventure story together. Once upon a time, where should our journey begin?";
 		}
+
+		// School Standards (1st to 10th Std)
+		else if (s.contains("alphabet") || s.contains("phonics") || s.contains("sounds fun")) {
+			return "Hello young learner! Welcome to fun with letters and sounds. Which letter of the alphabet is your favorite?";
+		} else if (s.contains("colors & drawing")) {
+			return "Hello artist! I love drawing and painting. What bright colors do you like to color your pictures with?";
+		} else if (s.contains("school greetings") || s.contains("morning routine")) {
+			return "Good morning! It is wonderful to see you today. How did you start your morning routine before coming to school?";
+		} else if (s.contains("classroom objects") || s.contains("stationery")) {
+			return "Good day! Welcome to our classroom. Could you tell me what stationery items you have in your school bag today?";
+		} else if (s.contains("science project") || s.contains("robotics")) {
+			return "Welcome to the science and innovation lab! What exciting project or model are you preparing to demonstrate?";
+		} else if (s.contains("water conservation") || s.contains("environmental care") || s.contains("climate")) {
+			return "Hello! Thank you for joining our environmental session. In your opinion, what is the best way we can save water and protect nature?";
+		} else if (s.contains("debate")) {
+			return "Welcome to today's formal debate session. The floor is yours—please present your opening statement on the topic.";
+		} else if (s.contains("student council") || s.contains("leadership")) {
+			return "Welcome candidate! Thank you for stepping up for student council leadership. What positive changes do you plan to bring to our school?";
+		} else if (s.contains("board oral exam") || s.contains("oratory mastery") || s.contains("keynote")) {
+			return "Welcome to the formal oral examination. Please begin by introducing yourself and stating your primary speaking topic.";
+		}
+
+		// Teens & Young Adults
+		else if (s.contains("high school") || s.contains("first day")) {
+			return "Hey! Welcome to the new school term. I'm excited to be your classmate! How has your first day been going so far?";
+		} else if (s.contains("fast food") || s.contains("burger")) {
+			return "Hey! Welcome to Burger Express. Are you ready to order, or would you like to check out our combo meals today?";
+		} else if (s.contains("gaming") || s.contains("hobbies")) {
+			return "Hey there! It's great to connect. What video games, music, or hobbies have you been enjoying recently?";
+		} else if (s.contains("homework help")) {
+			return "Hi! Don't worry, we can work through this assignment together. Which question or topic is giving you trouble?";
+		} else if (s.contains("coffee") || s.contains("cafe")) {
+			return "Hi there! Welcome to the cafe. What specialty coffee or tea can I brew for you today?";
+		} else if (s.contains("hotel") || s.contains("check-in")) {
+			return "Good day and welcome to our hotel! Are you checking in under a reservation today?";
+		} else if (s.contains("airport") || s.contains("customs") || s.contains("backpacking") || s.contains("travel")) {
+			return "Good day! Welcome to airport check-in. May I see your passport and travel documents, please?";
+		} else if (s.contains("job interview") || s.contains("admission interview") || s.contains("part-time job") || s.contains("interview")) {
+			return "Welcome and thank you for meeting with us today! To begin, could you please introduce yourself and tell us what interests you about this role?";
+		} else if (s.contains("roommate") || s.contains("hostel") || s.contains("apartment")) {
+			return "Hi there! It's great to meet you. Shall we discuss our room layout, shared chores, and daily schedules?";
+		} else if (s.contains("restaurant") || s.contains("dining") || s.contains("food")) {
+			return "Hello! Welcome to our restaurant. Can I get a table ready for you, or would you like to see our dinner menu?";
+		} else if (s.contains("shopping") || s.contains("clothes") || s.contains("store")) {
+			return "Hi! Welcome to our store. Are you looking for a specific size, color, or style today?";
+		}
+
+		// Professionals & Seniors
+		else if (s.contains("office small talk") || s.contains("business meeting") || s.contains("meeting") || s.contains("business")) {
+			return "Good morning! Thank you for joining our session today. Shall we review the key project milestones and agenda items?";
+		} else if (s.contains("salary") || s.contains("contract negotiation")) {
+			return "Good afternoon. Thank you for taking the time to discuss the offer. What aspects of the compensation package would you like to review?";
+		} else if (s.contains("presentation skills") || s.contains("presentation")) {
+			return "Welcome! The stage is set for your presentation. Whenever you're ready, please deliver your opening hook and slide overview.";
+		} else if (s.contains("tea time") || s.contains("gardening")) {
+			return "Good afternoon! A warm cup of tea is ready. How are your garden plants and home projects doing these days?";
+		} else if (s.contains("museum tour") || s.contains("life stories")) {
+			return "Welcome to the guided cultural tour! We have fascinating historical exhibits ahead. What period of history interests you most?";
+		} else if (s.contains("customer support")) {
+			return "Hello! Thank you for calling customer support. My name is Alex. How may I assist you with your account today?";
+		}
+
 		return "Hello! Welcome to our " + scenario + " conversation practice. What would you like to start with?";
 	}
 
@@ -384,25 +448,57 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		// 2. Fetch full conversation history for context
 		List<ConversationMessage> history = messageRepository.findBySessionOrderByTimestampAsc(session);
 
-		// 3. Determine Level
+		// 3. Determine Level / Standard / Pedagogical instruction
 		String chatLevel = request.getLevel();
 		if (chatLevel == null || chatLevel.trim().isEmpty()) {
-			chatLevel = session.getUser().getEnglishLevel();
+			chatLevel = session.getUser() != null ? session.getUser().getEnglishLevel() : "Beginner";
 		}
 		if (chatLevel == null || chatLevel.trim().isEmpty()) {
 			chatLevel = "Beginner";
 		}
 
 		String levelInstruction = "";
-		if ("Beginner".equalsIgnoreCase(chatLevel)) {
-			levelInstruction = "Current Learner English Level: Beginner.\n" +
-					"Instructions: Use extremely simple, clear, and common vocabulary (A1-A2 levels). Speak in very short, basic sentences. Keep your grammar explanations as simple and concrete as possible.\n";
-		} else if ("Intermediate".equalsIgnoreCase(chatLevel)) {
-			levelInstruction = "Current Learner English Level: Intermediate.\n" +
-					"Instructions: Use everyday conversational English, standard sentence lengths, and B1-B2 vocabulary. Introduce occasional common idioms with clear, practical explanations.\n";
+		String cl = chatLevel.toLowerCase();
+
+		if (cl.contains("1st std") || cl.contains("starter")) {
+			levelInstruction = "Student Grade: 1st Standard (Ages 6-7 Starter).\n" +
+					"Pedagogy: Use ONLY ultra-simple primary words (phonics, simple animal/color words, 3-5 word sentences). Greet warmly like a kind primary teacher. Keep all replies cheerful and very easy.";
+		} else if (cl.contains("2nd std")) {
+			levelInstruction = "Student Grade: 2nd Standard (Ages 7-8 Elementary).\n" +
+					"Pedagogy: Use basic classroom & daily routine vocabulary, simple short sentences (4-7 words), and clear questions.";
+		} else if (cl.contains("3rd std")) {
+			levelInstruction = "Student Grade: 3rd Standard (Ages 8-9 Upper Elementary).\n" +
+					"Pedagogy: Focus on action verbs, telling time, community helpers, and clear sentence structure.";
+		} else if (cl.contains("4th std")) {
+			levelInstruction = "Student Grade: 4th Standard (Ages 9-10 Pre-Intermediate).\n" +
+					"Pedagogy: Introduce comparative words, simple directions, canteen orders, and short paragraph conversation.";
+		} else if (cl.contains("5th std")) {
+			levelInstruction = "Student Grade: 5th Standard (Ages 10-11 Intermediate).\n" +
+					"Pedagogy: Practice intermediate sentence structures, future tense (will / going to), and school project explanations.";
+		} else if (cl.contains("6th std")) {
+			levelInstruction = "Student Grade: 6th Standard (Ages 11-12 Upper Intermediate).\n" +
+					"Pedagogy: Practice debate reasoning, club interviews, polite questions to teachers, and complex sentences.";
+		} else if (cl.contains("7th std")) {
+			levelInstruction = "Student Grade: 7th Standard (Ages 12-13 Intermediate).\n" +
+					"Pedagogy: Focus on environmental discussions, book/film reviews, and formal polite requests (Could you please, I would appreciate).";
+		} else if (cl.contains("8th std")) {
+			levelInstruction = "Student Grade: 8th Standard (Ages 13-14 Upper Intermediate).\n" +
+					"Pedagogy: Encourage structured debate arguments, leadership interviews, technology discussions, and public discourse.";
+		} else if (cl.contains("9th std")) {
+			levelInstruction = "Student Grade: 9th Standard (Ages 14-15 Advanced).\n" +
+					"Pedagogy: Focus on mock admission interviews, structured keynote presentations, current affairs, and diplomatic conflict resolution.";
+		} else if (cl.contains("10th std") || cl.contains("board prep")) {
+			levelInstruction = "Student Grade: 10th Standard (Board Exam Prep & Oratory Mastery).\n" +
+					"Pedagogy: Simulate formal board oral examinations, academic pitch defenses, advanced idioms, and CEFR C1 oratory fluency.";
+		} else if ("beginner".equalsIgnoreCase(chatLevel)) {
+			levelInstruction = "Current Learner English Level: Beginner (A1-A2).\n" +
+					"Instructions: Use extremely simple, clear, and common vocabulary. Speak in very short, basic sentences. Keep your grammar explanations simple and concrete.";
+		} else if ("intermediate".equalsIgnoreCase(chatLevel)) {
+			levelInstruction = "Current Learner English Level: Intermediate (B1-B2).\n" +
+					"Instructions: Use everyday conversational English, standard sentence lengths, and B1-B2 vocabulary. Introduce occasional common idioms with practical explanations.";
 		} else { // Advanced
-			levelInstruction = "Current Learner English Level: Advanced.\n" +
-					"Instructions: Use sophisticated, professional, and diverse vocabulary (C1-C2 levels). Use complex and varied sentence structures, advanced idioms, and academic or business terms. Challenge the learner with nuanced phrasing and detailed stylistic suggestions.\n";
+			levelInstruction = "Current Learner English Level: Advanced (C1-C2).\n" +
+					"Instructions: Use sophisticated, professional, and diverse vocabulary. Use complex sentence structures, advanced idioms, and nuanced stylistic suggestions.";
 		}
 
 		User user = session.getUser();

@@ -335,7 +335,7 @@ export default function ConversationScreen({ navigation, route }) {
         setIsSpeaking(true);
       },
       onDone: () => {
-        // Stage 2: 1.2s natural conversational gap before speaking coaching tip
+        // Stage 2: 1.0s natural conversational gap before speaking coaching tip
         if (hasBetter && !isPausedRef.current && !isMuted) {
           setStatusText('Coaching Tip');
           setTimeout(() => {
@@ -363,7 +363,7 @@ export default function ConversationScreen({ navigation, route }) {
                 }
               });
             }
-          }, 1200); // 1.2 second natural conversational gap
+          }, 1000); // 1.0 second natural conversational gap
         } else {
           setStatusText('Waiting for Response');
           setIsSpeaking(false);
