@@ -27,10 +27,10 @@ public class AiServiceImpl implements AiService {
 	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.model.chat:${groq.model:qwen/qwen3.6-27b}}")
+	@Value("${groq.model.chat:${groq.model:llama-3.1-8b-instant}}")
 	private String chatModel;
 
-	@Value("${groq.model.analysis:${groq.model:qwen/qwen3.6-27b}}")
+	@Value("${groq.model.analysis:${groq.model:llama-3.1-8b-instant}}")
 	private String analysisModel;
 
 	private final RestTemplate restTemplate;
@@ -109,9 +109,9 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 		try {
 			return executeGroqCall(targetModel, messages, 0.0);
 		} catch (Exception e) {
-			if (!"qwen/qwen3.6-27b".equals(targetModel)) {
+			if (!"llama-3.1-8b-instant".equals(targetModel)) {
 				try {
-					return executeGroqCall("qwen/qwen3.6-27b", messages, 0.0);
+					return executeGroqCall("llama-3.1-8b-instant", messages, 0.0);
 				} catch (Exception ex) {
 					throw new GroqException(ex.getMessage());
 				}
@@ -208,9 +208,9 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 		try {
 			return executeGroqCall(targetModel, List.of(new GroqRequest.Message("user", prompt)), temperature);
 		} catch (Exception e) {
-			if (!"qwen/qwen3.6-27b".equals(targetModel)) {
+			if (!"llama-3.1-8b-instant".equals(targetModel)) {
 				try {
-					return executeGroqCall("qwen/qwen3.6-27b", List.of(new GroqRequest.Message("user", prompt)), temperature);
+					return executeGroqCall("llama-3.1-8b-instant", List.of(new GroqRequest.Message("user", prompt)), temperature);
 				} catch (Exception ex) {
 					throw new GroqException(ex.getMessage());
 				}

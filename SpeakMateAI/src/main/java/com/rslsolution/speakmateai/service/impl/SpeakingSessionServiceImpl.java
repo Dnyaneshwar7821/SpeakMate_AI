@@ -54,7 +54,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.model.chat:${groq.model:qwen/qwen3.6-27b}}")
+	@Value("${groq.model.chat:${groq.model:llama-3.1-8b-instant}}")
 	private String model;
 
 	private final SpeakingSessionRepository speakingSessionRepository;
@@ -96,8 +96,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	}
 
 	private static final List<String> FALLBACK_MODELS = List.of(
-			"qwen/qwen3.6-27b",
 			"llama-3.1-8b-instant",
+			"qwen/qwen3.6-27b",
 			"mixtral-8x7b-32768",
 			"gemma2-9b-it"
 	);
