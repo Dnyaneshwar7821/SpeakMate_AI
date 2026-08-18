@@ -19,20 +19,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
-// Safe lazy import of expo-audio to prevent native module crashes in Expo Go
-let useAudioRecorder = () => ({ prepareToRecordAsync: async () => {}, record: () => {}, stopAsync: async () => {}, uri: null });
-let RecordingPresets = { HIGH_QUALITY: {} };
-let requestRecordingPermissionsAsync = async () => ({ granted: true });
-
-try {
-  const expoAudio = require('expo-audio');
-  if (expoAudio) {
-    if (expoAudio.useAudioRecorder) useAudioRecorder = expoAudio.useAudioRecorder;
-    if (expoAudio.RecordingPresets) RecordingPresets = expoAudio.RecordingPresets;
-    if (expoAudio.requestRecordingPermissionsAsync) requestRecordingPermissionsAsync = expoAudio.requestRecordingPermissionsAsync;
-  }
-} catch (_) {}
+import { Audio } from 'expo-av';
 import { COLORS } from '../../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { chatService, speechService, settingsService, profileService } from '../../services/appServices';
@@ -124,13 +111,10 @@ export default function ConversationChatScreen({ navigation, route }) {
   const [selectedMessage, setSelectedMessage] = useState(null);
 
   const flatListRef = useRef(null);
-  const audioRecorder = useAudioRecorder({
-    ...RecordingPresets.HIGH_QUALITY,
-    isMeteringEnabled: true,
-  });
+  const recordingRef = useRef(null);
+  const wasSpeakingOnPause = useRef(false);
 
   // VAD / Silence Auto-Stop refs
-  const vadIntervalRef = useRef(null);
   const speechDetectedRef = useRef(false);
   const silenceTimerRef = useRef(0);
   const initialSilenceTimerRef = useRef(0);
@@ -369,38 +353,137 @@ export default function ConversationChatScreen({ navigation, route }) {
     }
   };
 
+  const startRecording = async () => {
+    try {
+      VoiceService.stop();
+      setIsSpeaking(false);
+
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== 'granted') {
+        Alert.alert('Microphone Access Denied', 'Please allow microphone access to use voice chat.');
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      if (recordingRef.current) {
+        try {
+          await recordingRef.current.stopAndUnloadAsync();
+        } catch (_) {}
+        recordingRef.current = null;
+      }
+
+      const recordingInstance = new Audio.Recording();
+      await recordingInstance.prepareToRecordAsync({
+        android: {
+          extension: '.m4a',
+          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.m4a',
+          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+          audioQuality: Audio.IOSAudioQuality.HIGH,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+        web: {
+          mimeType: 'audio/webm',
+          bitsPerSecond: 128000,
+        },
+      });
+
+      speechDetectedRef.current = false;
+      silenceTimerRef.current = 0;
+      initialSilenceTimerRef.current = 0;
+      stoppingRef.current = false;
+
+      recordingInstance.setProgressUpdateInterval(250);
+      recordingInstance.setOnRecordingStatusUpdate((status) => {
+        if (!status.isRecording || stoppingRef.current) return;
+
+        const metering = status.metering ?? -100;
+        if (metering > -42) {
+          speechDetectedRef.current = true;
+          silenceTimerRef.current = 0;
+        } else if (speechDetectedRef.current) {
+          silenceTimerRef.current += 250;
+          if (silenceTimerRef.current >= 1500) { // 1.5s silence auto stop
+            stopRecordingAndSend();
+          }
+        } else {
+          initialSilenceTimerRef.current += 250;
+          if (initialSilenceTimerRef.current >= 6000) {
+            stopRecordingAndSend();
+          }
+        }
+      });
+
+      await recordingInstance.startAsync();
+      recordingRef.current = recordingInstance;
+      setRecording(true);
+      setStatusText('Listening');
+    } catch (err) {
+      console.warn('Voice chat recording start failed:', err);
+      Alert.alert('Microphone error', 'Could not initialize recording. Please try again.');
+      setRecording(false);
+      setStatusText('Waiting for Response');
+    }
+  };
+
   const stopRecordingAndSend = async () => {
     if (stoppingRef.current) return;
     stoppingRef.current = true;
-    if (vadIntervalRef.current) {
-      clearInterval(vadIntervalRef.current);
-      vadIntervalRef.current = null;
-    }
 
     setRecording(false);
     setStatusText('Thinking');
     setLoading(true);
+
     try {
-      if (audioRecorder.isRecording) {
-        await audioRecorder.stop();
+      const rec = recordingRef.current;
+      if (!rec) {
+        setLoading(false);
+        setStatusText('Waiting for Response');
+        stoppingRef.current = false;
+        return;
       }
-      const uri = audioRecorder.uri;
+
+      await rec.stopAndUnloadAsync();
+      const uri = rec.getURI();
+      recordingRef.current = null;
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+      });
+
       if (!uri) throw new Error('Recording URI not found');
 
       const res = await speechService.speechToText({
         uri,
         name: 'chat_recording.m4a',
-        type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mpeg',
+        type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mp4',
       });
 
-      if (res.transcript && res.transcript.trim()) {
+      if (res && res.transcript && res.transcript.trim()) {
         setInputText(res.transcript.trim());
-        setStatusText('Waiting for Response');
+        handleSendMessage(res.transcript.trim());
       } else {
         Alert.alert('Silence Detected', 'Could not hear any speech. Please try speaking again.');
         setStatusText('Waiting for Response');
       }
     } catch (err) {
+      console.warn('Voice chat transcription failed:', err);
       Alert.alert('Transcription Failed', 'Make sure you have an active internet connection.');
       setStatusText('Waiting for Response');
     } finally {
@@ -409,66 +492,11 @@ export default function ConversationChatScreen({ navigation, route }) {
     }
   };
 
-  const startVADLoop = () => {
-    speechDetectedRef.current = false;
-    silenceTimerRef.current = 0;
-    initialSilenceTimerRef.current = 0;
-    stoppingRef.current = false;
-
-    if (vadIntervalRef.current) clearInterval(vadIntervalRef.current);
-
-    vadIntervalRef.current = setInterval(async () => {
-      if (!audioRecorder.isRecording || stoppingRef.current) {
-        if (vadIntervalRef.current) {
-          clearInterval(vadIntervalRef.current);
-          vadIntervalRef.current = null;
-        }
-        return;
-      }
-
-      try {
-        const status = await audioRecorder.getStatusAsync?.().catch(() => null);
-        const metering = status?.metering ?? audioRecorder.metering ?? -100;
-
-        if (metering > -40) {
-          speechDetectedRef.current = true;
-          silenceTimerRef.current = 0;
-        } else if (speechDetectedRef.current) {
-          silenceTimerRef.current += 300;
-          if (silenceTimerRef.current >= 1500) { // 1.5s of silence after speech -> AUTO STOP
-            stopRecordingAndSend();
-          }
-        } else {
-          initialSilenceTimerRef.current += 300;
-          if (initialSilenceTimerRef.current >= 6000) { // 6s initial silence -> AUTO STOP
-            stopRecordingAndSend();
-          }
-        }
-      } catch (e) {
-        // Fallback polling
-      }
-    }, 300);
-  };
-
-  const handleToggleRecording = async () => {
-    if (audioRecorder.isRecording || recording) {
+  const handleToggleRecording = () => {
+    if (recording) {
       stopRecordingAndSend();
     } else {
-      try {
-        VoiceService.stop();
-        const perm = await requestRecordingPermissionsAsync();
-        if (!perm.granted) {
-          Alert.alert('Access Denied', 'Microphone permissions are required for voice chat.');
-          return;
-        }
-        await audioRecorder.prepareToRecordAsync();
-        audioRecorder.record();
-        setRecording(true);
-        setStatusText('Listening');
-        startVADLoop();
-      } catch (e) {
-        Alert.alert('Microphone initialization failed.');
-      }
+      startRecording();
     }
   };
 

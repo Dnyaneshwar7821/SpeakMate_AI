@@ -24,20 +24,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
-
-// Safe lazy import of expo-audio to prevent native module crashes in Expo Go
-let useAudioRecorder = () => ({ prepareToRecordAsync: async () => {}, record: () => {}, stopAsync: async () => {}, uri: null });
-let RecordingPresets = { HIGH_QUALITY: {} };
-let requestRecordingPermissionsAsync = async () => ({ granted: true });
-
-try {
-  const expoAudio = require('expo-audio');
-  if (expoAudio) {
-    if (expoAudio.useAudioRecorder) useAudioRecorder = expoAudio.useAudioRecorder;
-    if (expoAudio.RecordingPresets) RecordingPresets = expoAudio.RecordingPresets;
-    if (expoAudio.requestRecordingPermissionsAsync) requestRecordingPermissionsAsync = expoAudio.requestRecordingPermissionsAsync;
-  }
-} catch (_) {}
+import { Audio } from 'expo-av';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { speechService, speakingService, settingsService, profileService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
@@ -132,16 +119,13 @@ export default function ConversationScreen({ navigation, route }) {
 
   const flatListRef = useRef(null);
   const timerInterval = useRef(null);
-  const audioRecorder = useAudioRecorder({
-    ...RecordingPresets.HIGH_QUALITY,
-    isMeteringEnabled: true,
-  });
+  const recordingRef = useRef(null);
+  const [isRecording, setIsRecording] = useState(false);
   const wasSpeakingOnPause = useRef(false);
   const pausedAiText = useRef('');
   const isPausedRef = useRef(false);
 
   // VAD / Silence Auto-Stop refs
-  const vadIntervalRef = useRef(null);
   const speechDetectedRef = useRef(false);
   const silenceTimerRef = useRef(0);
   const initialSilenceTimerRef = useRef(0);
@@ -411,43 +395,146 @@ export default function ConversationScreen({ navigation, route }) {
     }
   };
 
-  // ── Recording Handling (Mic STT with Silence Auto-Stop VAD) ──────
+  // ── Recording Handling (expo-av with 1.5s Silence Auto-Stop VAD) ──────
+  const startRecording = async () => {
+    try {
+      // Stop any AI speech immediately
+      VoiceService.stop();
+      setIsSpeaking(false);
+
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== 'granted') {
+        Alert.alert('Microphone Access Denied', 'Please grant microphone permissions to speak with your AI tutor.');
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      if (recordingRef.current) {
+        try {
+          await recordingRef.current.stopAndUnloadAsync();
+        } catch (_) {}
+        recordingRef.current = null;
+      }
+
+      const recording = new Audio.Recording();
+      await recording.prepareToRecordAsync({
+        android: {
+          extension: '.m4a',
+          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.m4a',
+          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
+          audioQuality: Audio.IOSAudioQuality.HIGH,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+        web: {
+          mimeType: 'audio/webm',
+          bitsPerSecond: 128000,
+        },
+      });
+
+      speechDetectedRef.current = false;
+      silenceTimerRef.current = 0;
+      initialSilenceTimerRef.current = 0;
+      stoppingRef.current = false;
+
+      recording.setProgressUpdateInterval(250);
+      recording.setOnRecordingStatusUpdate((status) => {
+        if (!status.isRecording || stoppingRef.current) return;
+
+        const metering = status.metering ?? -100;
+        // User speaking detected if metering > -42 dB
+        if (metering > -42) {
+          speechDetectedRef.current = true;
+          silenceTimerRef.current = 0;
+        } else if (speechDetectedRef.current) {
+          // User spoke and is now silent
+          silenceTimerRef.current += 250;
+          if (silenceTimerRef.current >= 1500) { // 1.5s silence after speaking -> Auto stop and send
+            stopRecordingAndSend();
+          }
+        } else {
+          // Initial silence before speaking
+          initialSilenceTimerRef.current += 250;
+          if (initialSilenceTimerRef.current >= 6000) { // 6s initial silence
+            stopRecordingAndSend();
+          }
+        }
+      });
+
+      await recording.startAsync();
+      recordingRef.current = recording;
+      setIsRecording(true);
+      setStatusText('Listening');
+    } catch (error) {
+      console.warn('Failed to start recording:', error);
+      Alert.alert('Recording failed', 'Could not initialize microphone. Please check permissions.');
+      setIsRecording(false);
+      setStatusText('Waiting for Response');
+    }
+  };
+
   const stopRecordingAndSend = async () => {
     if (stoppingRef.current) return;
     stoppingRef.current = true;
 
-    if (vadIntervalRef.current) {
-      clearInterval(vadIntervalRef.current);
-      vadIntervalRef.current = null;
-    }
-
+    setIsRecording(false);
     setLoading(true);
     setStatusText('Thinking');
 
     try {
-      if (audioRecorder.isRecording) {
-        await audioRecorder.stop();
+      const recording = recordingRef.current;
+      if (!recording) {
+        setLoading(false);
+        setStatusText('Waiting for Response');
+        stoppingRef.current = false;
+        return;
       }
-      const uri = audioRecorder.uri;
-      if (!uri) throw new Error('Recording uri missing');
 
-      // Send to Whisper speech-to-text
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      recordingRef.current = null;
+
+      // Reset audio mode for normal speaker playback
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+      });
+
+      if (!uri) throw new Error('Recording URI missing');
+
+      // Send audio file to Whisper STT
       const stt = await speechService.speechToText({
         uri: uri,
         name: 'recording.m4a',
-        type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mpeg',
+        type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mp4',
       });
 
-      if (!stt.transcript || !stt.transcript.trim()) {
+      if (!stt || !stt.transcript || !stt.transcript.trim()) {
         Alert.alert('Silence Detected 🤫', 'Could not hear any speech. Tap mic and try speaking again.');
         setStatusText('Waiting for Response');
         return;
       }
 
-      // Send transcript to tutoring assistant
+      // Send transcript to AI tutor for response & tips
       await sendUserText(stt.transcript);
     } catch (error) {
-      Alert.alert('Transcription Failed', 'Make sure you have active network connection and try again.');
+      console.warn('Transcription failed:', error);
+      Alert.alert('Transcription Failed', 'Make sure you have an active network connection and try again.');
       setStatusText('Waiting for Response');
     } finally {
       setLoading(false);
@@ -455,77 +542,16 @@ export default function ConversationScreen({ navigation, route }) {
     }
   };
 
-  const startVADLoop = () => {
-    speechDetectedRef.current = false;
-    silenceTimerRef.current = 0;
-    initialSilenceTimerRef.current = 0;
-    stoppingRef.current = false;
-
-    if (vadIntervalRef.current) clearInterval(vadIntervalRef.current);
-
-    vadIntervalRef.current = setInterval(async () => {
-      if (!audioRecorder.isRecording || stoppingRef.current) {
-        if (vadIntervalRef.current) {
-          clearInterval(vadIntervalRef.current);
-          vadIntervalRef.current = null;
-        }
-        return;
-      }
-
-      try {
-        const status = await audioRecorder.getStatusAsync?.().catch(() => null);
-        const metering = status?.metering ?? audioRecorder.metering ?? -100;
-
-        // Check if user is actively speaking (metering > -40 dB)
-        if (metering > -40) {
-          speechDetectedRef.current = true;
-          silenceTimerRef.current = 0;
-        } else if (speechDetectedRef.current) {
-          // User started speaking and is now silent (pause)
-          silenceTimerRef.current += 300;
-          if (silenceTimerRef.current >= 1500) { // 1.5s of silence after speech -> AUTO STOP
-            stopRecordingAndSend();
-          }
-        } else {
-          // User hasn't started speaking yet
-          initialSilenceTimerRef.current += 300;
-          if (initialSilenceTimerRef.current >= 6000) { // 6s of initial silence -> AUTO STOP
-            stopRecordingAndSend();
-          }
-        }
-      } catch (e) {
-        // Fallback polling
-      }
-    }, 300);
-  };
-
-  const handleToggleRecording = async () => {
+  const handleToggleRecording = () => {
     if (isPaused) {
       Alert.alert('Session Paused ⏸️', 'Please tap Resume to start recording or speaking practice.');
       return;
     }
 
-    if (audioRecorder.isRecording) {
+    if (isRecording) {
       stopRecordingAndSend();
     } else {
-      try {
-        VoiceService.stop();
-        setIsSpeaking(false);
-        setStatusText('Listening');
-
-        const perm = await requestRecordingPermissionsAsync();
-        if (!perm.granted) {
-          Alert.alert('Microphone Access Denied', 'Microphone permissions are required for speaking practice.');
-          setStatusText('Waiting for Response');
-          return;
-        }
-        await audioRecorder.prepareToRecordAsync();
-        audioRecorder.record();
-        setStatusText('Listening');
-        startVADLoop();
-      } catch (e) {
-        Alert.alert('Recording failed', 'Could not initialize or start recording.');
-      }
+      startRecording();
     }
   };
 
@@ -679,8 +705,8 @@ export default function ConversationScreen({ navigation, route }) {
     ? '✨ Tutor speaking...'
     : loading
     ? '✨ Tutor thinking...'
-    : audioRecorder.isRecording
-    ? '✨ Tutor listening...'
+    : isRecording
+    ? '✨ Tutor listening (speak now)...'
     : '✨ Tap mic to speak';
 
   // ── Feedback helpers (used in FlatList footer) ────────────────────────
@@ -703,7 +729,7 @@ export default function ConversationScreen({ navigation, route }) {
     ? 'speaking'
     : loading
     ? 'thinking'
-    : audioRecorder.isRecording
+    : isRecording
     ? 'listening'
     : 'idle';
 
@@ -906,7 +932,7 @@ export default function ConversationScreen({ navigation, route }) {
               <ActivityIndicator size="large" color="#FFF" />
             ) : (
               <TouchableOpacity onPress={handleToggleRecording} activeOpacity={0.8}>
-                <SoundWave isRecording={audioRecorder.isRecording} />
+                <SoundWave isRecording={isRecording} />
               </TouchableOpacity>
             )}
           </View>
