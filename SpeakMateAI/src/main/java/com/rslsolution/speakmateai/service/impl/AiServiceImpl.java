@@ -27,7 +27,7 @@ public class AiServiceImpl implements AiService {
 	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.model.chat:${groq.model:openai/gpt-oss-20b}}")
+	@Value("${groq.model.chat:${groq.model:qwen/qwen3.6-27b}}")
 	private String chatModel;
 
 	@Value("${groq.model.analysis:${groq.model:qwen/qwen3.6-27b}}")
@@ -97,34 +97,20 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 	}
 
 	private AiResponse callGroqWithSystem(String targetModel, String systemPrompt, String userPrompt) {
+		List<GroqRequest.Message> messages = List.of(
+				new GroqRequest.Message("system", systemPrompt),
+				new GroqRequest.Message("user", userPrompt));
 		try {
-			GroqRequest.Message systemMessage = new GroqRequest.Message("system", systemPrompt);
-			GroqRequest.Message userMessage = new GroqRequest.Message("user", userPrompt);
-
-			GroqRequest request = new GroqRequest(targetModel, List.of(systemMessage, userMessage), 0.0); // 0 temperature for deterministic checks
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.setBearerAuth(apiKey);
-
-			HttpEntity<GroqRequest> entity = new HttpEntity<>(request, headers);
-
-			ResponseEntity<GroqResponse> response = restTemplate.postForEntity(apiUrl, entity, GroqResponse.class);
-
-			GroqResponse body = response.getBody();
-
-			if (body == null || body.getChoices() == null || body.getChoices().isEmpty()) {
-				throw new GroqException("No response received from Groq.");
-			}
-
-			String result = body.getChoices().get(0).getMessage().getContent();
-
-			return AiResponse.builder().response(result).build();
-
-		} catch (HttpClientErrorException e) {
-			throw new GroqException(e.getResponseBodyAsString());
+			return executeGroqCall(targetModel, messages, 0.0);
 		} catch (Exception e) {
-			throw new GroqException(e.getMessage());
+			if (!"qwen/qwen3.6-27b".equals(targetModel)) {
+				try {
+					return executeGroqCall("qwen/qwen3.6-27b", messages, 0.0);
+				} catch (Exception ex) {
+					throw new GroqException(ex.getMessage());
+				}
+			}
+			throw (e instanceof GroqException ge) ? ge : new GroqException(e.getMessage());
 		}
 	}
 
@@ -181,8 +167,22 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 
 	private AiResponse callGroq(String targetModel, String prompt, double temperature) {
 		try {
-			GroqRequest.Message message = new GroqRequest.Message("user", prompt);
-			GroqRequest request = new GroqRequest(targetModel, List.of(message), temperature);
+			return executeGroqCall(targetModel, List.of(new GroqRequest.Message("user", prompt)), temperature);
+		} catch (Exception e) {
+			if (!"qwen/qwen3.6-27b".equals(targetModel)) {
+				try {
+					return executeGroqCall("qwen/qwen3.6-27b", List.of(new GroqRequest.Message("user", prompt)), temperature);
+				} catch (Exception ex) {
+					throw new GroqException(ex.getMessage());
+				}
+			}
+			throw (e instanceof GroqException ge) ? ge : new GroqException(e.getMessage());
+		}
+	}
+
+	private AiResponse executeGroqCall(String modelName, List<GroqRequest.Message> messages, double temperature) {
+		try {
+			GroqRequest request = new GroqRequest(modelName, messages, temperature);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);

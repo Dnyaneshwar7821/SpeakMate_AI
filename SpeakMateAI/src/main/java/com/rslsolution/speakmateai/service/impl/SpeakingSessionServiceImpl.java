@@ -54,7 +54,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.model.chat:${groq.model:openai/gpt-oss-20b}}")
+	@Value("${groq.model.chat:${groq.model:qwen/qwen3.6-27b}}")
 	private String model;
 
 	private final SpeakingSessionRepository speakingSessionRepository;
@@ -113,6 +113,20 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 			return body.getChoices().get(0).getMessage().getContent();
 		} catch (Exception e) {
+			if (!"qwen/qwen3.6-27b".equals(model)) {
+				try {
+					GroqRequest request = new GroqRequest("qwen/qwen3.6-27b", messages, 0.7);
+					HttpHeaders headers = new HttpHeaders();
+					headers.setContentType(MediaType.APPLICATION_JSON);
+					headers.setBearerAuth(apiKey);
+					HttpEntity<GroqRequest> entity = new HttpEntity<>(request, headers);
+					ResponseEntity<GroqResponse> response = restTemplate.postForEntity(apiUrl, entity, GroqResponse.class);
+					GroqResponse body = response.getBody();
+					if (body != null && body.getChoices() != null && !body.getChoices().isEmpty()) {
+						return body.getChoices().get(0).getMessage().getContent();
+					}
+				} catch (Exception ignored) {}
+			}
 			throw new GroqException("Groq API Call failed: " + e.getMessage());
 		}
 	}
