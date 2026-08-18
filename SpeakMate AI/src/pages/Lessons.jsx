@@ -179,13 +179,13 @@ export function Lessons() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4">
+    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
       {/* Top Banner Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e1b4b] via-[#312e81] to-[#4338ca] p-6 sm:p-10 text-white shadow-2xl space-y-6">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 space-y-3 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
-            🎓 Structured CEFR Path
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E1B4B] via-[#312E81] to-[#4338CA] p-6 sm:p-10 text-white shadow-2xl space-y-6 border border-white/10">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="relative z-10 space-y-3.5 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
+            🎓 Structured CEFR Curriculum
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">CEFR English Lessons</h1>
           <p className="text-sm sm:text-base text-indigo-200 font-medium leading-relaxed">
@@ -200,7 +200,7 @@ export function Lessons() {
             placeholder="🔍 Search lessons, topics, categories..."
             value={searchText}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-5 pr-4 py-3.5 rounded-2xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm font-bold focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all"
+            className="w-full pl-5 pr-4 py-3.5 rounded-2xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm font-bold focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all shadow-inner"
           />
         </div>
       </div>
@@ -215,9 +215,9 @@ export function Lessons() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black shrink-0 transition-all ${
+              className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black shrink-0 transition-all active:scale-95 ${
                 activeTab === tab
-                  ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-md shadow-[#6c63ff]/25 scale-102"
+                  ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-md shadow-[#6C63FF]/25 scale-102"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
               }`}
             >
@@ -229,7 +229,7 @@ export function Lessons() {
 
       {/* Continue Learning Banner */}
       {continueItems.length > 0 && searchResults === null && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6C63FF] via-[#7C74FF] to-[#FF6584] text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10">
           <div className="space-y-2 text-center sm:text-left">
             <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-3.5 py-1 rounded-full border border-white/20">
               📚 Continue Learning
@@ -241,7 +241,7 @@ export function Lessons() {
           </div>
           <button
             onClick={() => navigate(`/lessons/${continueItems[0].id}`)}
-            className="px-8 py-4 rounded-2xl bg-white text-[#6c63ff] font-black text-sm shadow-xl hover:scale-105 transition-all shrink-0"
+            className="px-8 py-4 rounded-2xl bg-white text-[#6C63FF] font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all shrink-0"
           >
             Resume Lesson ▶
           </button>
@@ -254,7 +254,7 @@ export function Lessons() {
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-black text-[var(--text-primary)]">Lesson Categories</h2>
             {selectedCategory && (
-              <button onClick={() => setSelectedCategory(null)} className="text-xs font-black text-[#6c63ff] hover:underline">
+              <button onClick={() => setSelectedCategory(null)} className="text-xs font-black text-[#6C63FF] hover:underline">
                 Clear Filter ({selectedCategory})
               </button>
             )}
@@ -267,13 +267,13 @@ export function Lessons() {
                 onClick={() => setSelectedCategory(selectedCategory === cat.name ? null : cat.name)}
                 className={`p-5 rounded-2xl border shadow-sm cursor-pointer transition-all text-center space-y-2 ${
                   selectedCategory === cat.name
-                    ? "bg-gradient-to-br from-[#6c63ff] to-[#4f46e5] border-[#6c63ff] text-white shadow-xl scale-102"
+                    ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] border-[#6C63FF] text-white shadow-xl scale-102"
                     : "glass-card glass-card-hover border-[var(--border-default)]"
                 }`}
               >
                 <p className="text-3xl">📂</p>
                 <p className="font-black text-xs sm:text-sm truncate">{cat.name}</p>
-                <p className="text-[10px] opacity-80 font-extrabold">{cat.lessonCount || 8} lessons</p>
+                <p className="text-[10px] opacity-80 font-black">{cat.lessonCount || 8} lessons</p>
               </div>
             ))}
           </div>
@@ -304,11 +304,11 @@ export function Lessons() {
                     recordLessonCompleted(90);
                     navigate(`/lessons/${l.id}`);
                   }}
-                  className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all duration-300"
+                  className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all duration-300"
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-[#6c63ff]/15 text-[#6c63ff]">
+                      <span className="text-[10px] font-black uppercase px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF]">
                         {l.category || "General"}
                       </span>
                       <span className={`text-[10px] font-black px-3 py-1 rounded-full ${diffBadge.bg} ${diffBadge.text}`}>
@@ -316,17 +316,17 @@ export function Lessons() {
                       </span>
                     </div>
 
-                    <h3 className="font-black text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                    <h3 className="font-black text-lg text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
                       {l.title}
                     </h3>
                     <p className="text-xs text-[var(--text-secondary)] leading-relaxed font-medium line-clamp-2">{l.description}</p>
                   </div>
 
-                  <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
-                    <span className="text-xs text-[var(--text-secondary)] font-bold">
+                  <div className="pt-4 border-t border-[var(--border-default)] flex items-center justify-between">
+                    <span className="text-xs text-[var(--text-secondary)] font-extrabold">
                       ⏱️ {l.estimatedMinutes || l.duration || 15} mins • +{l.xpReward || 25} XP
                     </span>
-                    <button className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] group-hover:opacity-90 text-white font-extrabold text-xs shadow-md transition-all">
+                    <button className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] group-hover:opacity-95 text-white font-black text-xs shadow-md transition-all">
                       Start →
                     </button>
                   </div>

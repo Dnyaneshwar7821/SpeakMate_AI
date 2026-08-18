@@ -8,7 +8,7 @@ export function BottomNav() {
       label: "Dashboard",
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 001 1v4a1 1 0 001 1m-6 0h6" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
         </svg>
       ),
     },
@@ -26,7 +26,7 @@ export function BottomNav() {
       label: "AI Chat",
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
         </svg>
       ),
     },
@@ -39,24 +39,33 @@ export function BottomNav() {
         </svg>
       ),
     },
+    {
+      path: ROUTES.VOCABULARY,
+      label: "Vocab",
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      ),
+    },
   ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 sm:left-64 lg:left-72 right-0 z-50 border-t border-[var(--border-default)] bg-[var(--bg-surface)]/95 backdrop-blur-md px-3 py-2 grid grid-cols-4 gap-1 items-center shadow-2xl">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 border-t border-[var(--border-default)] bg-[var(--bg-surface)]/90 backdrop-blur-xl px-2 py-2 grid grid-cols-5 gap-1 items-center shadow-2xl">
       {tabs.map((t) => (
         <NavLink
           key={t.path}
           to={t.path}
           className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-1 py-1.5 px-2 rounded-xl text-[11px] font-extrabold transition-all text-center ${
+            `flex flex-col items-center justify-center gap-1 py-2 px-1 rounded-2xl text-[10px] font-black transition-all text-center ${
               isActive
-                ? "text-[#6c63ff] bg-[#6c63ff]/10"
+                ? "text-white bg-gradient-to-tr from-[#6C63FF] to-[#8B5CF6] shadow-md shadow-[#6C63FF]/30 scale-105"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`
           }
         >
           {t.icon}
-          <span className="truncate w-full text-center">{t.label}</span>
+          <span className="truncate w-full text-center tracking-tight">{t.label}</span>
         </NavLink>
       ))}
     </div>

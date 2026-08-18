@@ -13,6 +13,7 @@ import { useLipSync } from "../hooks/useLipSync";
 import { useBlink } from "../hooks/useBlink";
 import { useMouseTracking } from "../hooks/useMouseTracking";
 import { useExpressions } from "../hooks/useExpressions";
+import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 
 export function ConversationSession() {
   const navigate = useNavigate();
@@ -66,21 +67,29 @@ export function ConversationSession() {
   const chatEndRef = useRef(null);
   const hasSpokenInitialRef = useRef(false);
 
-  // Real-Time Phonetic Lip-Sync Loop
+  // Phonetic Lip-Sync Event Bus Listener
   useEffect(() => {
-    let visemeInterval = null;
-    if (isAiSpeaking) {
-      const VISEMES = ["AA", "EE", "IH", "OO", "AA", "OH", "EE", "REST"];
-      let idx = 0;
-      visemeInterval = setInterval(() => {
-        idx = (idx + 1) % VISEMES.length;
-        setViseme(VISEMES[idx]);
-      }, 120);
-    } else {
+    const unsubUpdate = EventBus.on(AVATAR_EVENTS.LIP_SYNC_UPDATE, (data) => {
+      if (data?.viseme) {
+        setViseme(data.viseme);
+      }
+    });
+
+    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => {
+      setIsAiSpeaking(true);
+    });
+
+    const unsubFinish = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => {
+      setIsAiSpeaking(false);
       setViseme("REST");
-    }
-    return () => clearInterval(visemeInterval);
-  }, [isAiSpeaking]);
+    });
+
+    return () => {
+      unsubUpdate();
+      unsubStart();
+      unsubFinish();
+    };
+  }, []);
 
   const getSpeakableText = (feedback) => {
     if (!feedback) return "";
@@ -114,12 +123,6 @@ export function ConversationSession() {
     speakGlobalText(text, speechSpeed, {
       onstart: () => {
         setIsAiSpeaking(true);
-        setViseme("AA");
-      },
-      onboundary: () => {
-        const VISEMES = ["AA", "EE", "IH", "OO", "OH"];
-        const nextViseme = VISEMES[Math.floor(Math.random() * VISEMES.length)];
-        setViseme(nextViseme);
       },
       onend: () => {
         setIsAiSpeaking(false);

@@ -78,24 +78,29 @@ export class AudioAnalyzer {
   }
 
   /**
-   * Get current normalized amplitude value (0.0 to 1.0) with exponential smoothing
+   * Get current normalized amplitude value (0.0 to 1.0) with vocal band filtering & envelope smoothing
    */
   getAmplitude() {
     if (!this.analyser || !this.dataArray || !this.isActive) {
-      this.smoothAmplitude = this.smoothAmplitude * 0.8;
+      this.smoothAmplitude = this.smoothAmplitude * 0.75;
       return Math.max(0, this.smoothAmplitude);
     }
 
     this.analyser.getByteFrequencyData(this.dataArray);
 
-    // Sum frequencies in voice range (approx 80Hz - 4kHz)
+    // Sum frequencies strictly in human speech range (~80Hz - 4kHz)
+    // For sampleRate = 44100/48000 and fftSize = 512, each bin is ~86Hz - 93Hz wide
+    const startBin = 1; // ~86 Hz
+    const endBin = Math.min(this.dataArray.length - 1, 45); // ~4000 Hz
     let sum = 0;
-    const len = this.dataArray.length;
-    for (let i = 0; i < len; i++) {
+    let count = 0;
+
+    for (let i = startBin; i <= endBin; i++) {
       sum += this.dataArray[i];
+      count++;
     }
 
-    const average = sum / len;
+    const average = count > 0 ? sum / count : 0;
     let rawNormalized = average / 255.0; // 0.0 .. 1.0
 
     // Apply Noise Gate Threshold
@@ -107,8 +112,9 @@ export class AudioAnalyzer {
     let scaled = rawNormalized * this.amplitudeMultiplier;
     scaled = Math.min(1.0, Math.max(0.0, scaled));
 
-    // Exponential Moving Average Smoothing
-    this.smoothAmplitude = (this.smoothAmplitude * this.smoothingFactor) + (scaled * (1 - this.smoothingFactor));
+    // Dynamic Attack (0.85 fast response) and Decay (0.45 smooth release)
+    const factor = scaled > this.smoothAmplitude ? 0.85 : 0.45;
+    this.smoothAmplitude = (this.smoothAmplitude * (1 - factor)) + (scaled * factor);
 
     return this.smoothAmplitude;
   }

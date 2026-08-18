@@ -211,9 +211,9 @@ export function Profile() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-300 p-4 sm:p-6">
+    <div className="w-full max-w-5xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
       {/* Header Profile Card with Glassmorphism */}
-      <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#6c63ff] via-[#4f46e5] to-[#312e81] text-white shadow-2xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#6C63FF] via-[#4F46E5] to-[#312E81] text-white shadow-2xl relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10">
         <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left z-10">
           <div
             onClick={() => setShowAvatarModal(true)}
@@ -238,10 +238,10 @@ export function Profile() {
               <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30">
                 {isStudent ? `🎓 ${schoolGrade}` : `👤 ${cefrLevel}`}
               </span>
-              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30">
+              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 text-amber-300">
                 ⭐ {liveStats.xp || 0} XP
               </span>
-              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30">
+              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 text-rose-300">
                 🔥 {liveStats.streak || 0} Day Streak
               </span>
             </div>
@@ -257,23 +257,23 @@ export function Profile() {
         <div className="flex sm:flex-col gap-2 z-10 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab("general")}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer ${
-              activeTab === "general" ? "bg-white text-[#6c63ff] shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
+            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
+              activeTab === "general" ? "bg-white text-[#6C63FF] shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
             }`}
           >
             👤 General Details
           </button>
           <button
             onClick={() => setActiveTab("preferences")}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer ${
-              activeTab === "preferences" ? "bg-white text-[#6c63ff] shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
+            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
+              activeTab === "preferences" ? "bg-white text-[#6C63FF] shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
             }`}
           >
-            🎯 Preferences & Goals
+            🎯 Goals & Voices
           </button>
           <button
             onClick={() => setActiveTab("security")}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
               activeTab === "security" ? "bg-white text-rose-600 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
             }`}
           >
@@ -290,7 +290,7 @@ export function Profile() {
 
       {/* TAB 1: GENERAL PROFILE DETAILS */}
       {activeTab === "general" && (
-        <div className="p-6 sm:p-10 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
+        <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
           <div>
             <h2 className="text-xl font-black text-[var(--text-primary)]">Personal Details</h2>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
@@ -307,7 +307,7 @@ export function Profile() {
                   value={form.firstName}
                   onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                   required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
                 />
               </div>
 
@@ -318,7 +318,7 @@ export function Profile() {
                   value={form.lastName}
                   onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                   required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
                 />
               </div>
             </div>
@@ -331,7 +331,7 @@ export function Profile() {
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
                 />
               </div>
 
@@ -341,7 +341,7 @@ export function Profile() {
                   type="text"
                   value={form.nativeLanguage}
                   onChange={(e) => setForm({ ...form, nativeLanguage: e.target.value })}
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
                 />
               </div>
             </div>
@@ -355,7 +355,7 @@ export function Profile() {
                   <select
                     value={schoolGrade}
                     onChange={(e) => setSchoolGrade(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
                   >
                     {SCHOOL_GRADES.map((g) => (
                       <option key={g} value={g}>🎓 {g} Standard</option>
@@ -370,7 +370,7 @@ export function Profile() {
                   <select
                     value={cefrLevel}
                     onChange={(e) => setCefrLevel(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff]"
+                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
                   >
                     {ENGLISH_LEVELS.map((lvl) => (
                       <option key={lvl} value={lvl}>👤 {lvl}</option>
@@ -384,7 +384,7 @@ export function Profile() {
               <button
                 type="submit"
                 disabled={saving}
-                className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6c63ff]/25 transition-all cursor-pointer"
+                className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6C63FF]/25 transition-all cursor-pointer active:scale-95"
               >
                 {saving ? "Saving Changes..." : "Save Profile Details"}
               </button>
@@ -395,7 +395,7 @@ export function Profile() {
 
       {/* TAB 2: PREFERENCES & LEARNING GOALS */}
       {activeTab === "preferences" && (
-        <div className="p-6 sm:p-10 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
+        <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
           <div>
             <h2 className="text-xl font-black text-[var(--text-primary)]">Learning Goals & Voice Settings</h2>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
@@ -414,9 +414,9 @@ export function Profile() {
                     key={mins}
                     type="button"
                     onClick={() => setDailyGoal(mins)}
-                    className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer ${
+                    className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
                       dailyGoal === mins
-                        ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] shadow-md"
+                        ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
                         : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                     }`}
                   >
@@ -437,9 +437,9 @@ export function Profile() {
                     key={acc.code}
                     type="button"
                     onClick={() => setPreferredAccent(acc.code)}
-                    className={`p-3.5 rounded-2xl border text-center font-black transition-all cursor-pointer ${
+                    className={`p-3.5 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
                       preferredAccent === acc.code
-                        ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] shadow-md"
+                        ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
                         : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                     }`}
                   >
@@ -458,9 +458,9 @@ export function Profile() {
                 <button
                   type="button"
                   onClick={() => setPreferredVoice("female")}
-                  className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer ${
+                  className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
                     preferredVoice === "female"
-                      ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] shadow-md"
+                      ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                   }`}
                 >
@@ -471,9 +471,9 @@ export function Profile() {
                 <button
                   type="button"
                   onClick={() => setPreferredVoice("male")}
-                  className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer ${
+                  className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
                     preferredVoice === "male"
-                      ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] shadow-md"
+                      ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                   }`}
                 >
@@ -487,7 +487,7 @@ export function Profile() {
               <button
                 type="submit"
                 disabled={saving}
-                className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6c63ff]/25 transition-all cursor-pointer"
+                className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6C63FF]/25 transition-all cursor-pointer active:scale-95"
               >
                 {saving ? "Saving Preferences..." : "Save Preferences"}
               </button>
@@ -498,7 +498,7 @@ export function Profile() {
 
       {/* TAB 3: SECURITY & ACCOUNT DELETION */}
       {activeTab === "security" && (
-        <div className="p-6 sm:p-10 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl space-y-6">
+        <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
           <div>
             <h2 className="text-xl font-black text-rose-500">Security & Danger Zone</h2>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
@@ -516,7 +516,7 @@ export function Profile() {
             </p>
             <button
               onClick={handleOpenDeleteModal}
-              className="py-3 px-6 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all cursor-pointer shadow-lg shadow-rose-600/25"
+              className="py-3 px-6 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-black transition-all cursor-pointer shadow-lg shadow-rose-600/25 active:scale-95"
             >
               Request Account Deletion →
             </button>
@@ -527,7 +527,7 @@ export function Profile() {
       {/* ── PRESET AVATAR SELECTOR MODAL ── */}
       {showAvatarModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="max-w-md w-full glass-card p-6 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-5 bg-[var(--bg-surface)]">
+          <div className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-5 bg-[var(--bg-surface)]">
             <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
               <h3 className="font-black text-lg text-[var(--text-primary)]">Choose Profile Avatar</h3>
               <button
@@ -546,10 +546,10 @@ export function Profile() {
                     setSelectedAvatar(emoji);
                     setShowAvatarModal(false);
                   }}
-                  className={`h-12 text-2xl rounded-2xl border-2 flex items-center justify-center transition-all cursor-pointer ${
+                  className={`h-12 text-2xl rounded-2xl border-2 flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     selectedAvatar === emoji
-                      ? "border-[#6c63ff] bg-[#6c63ff]/15 scale-105"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff]/50"
+                      ? "border-[#6C63FF] bg-[#6C63FF]/15 scale-105"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
                   }`}
                 >
                   {emoji}
@@ -616,7 +616,7 @@ export function Profile() {
                   <button
                     onClick={handleSendDeleteOtp}
                     disabled={sendingOtp || !deleteEmail.trim()}
-                    className="flex-1 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-black shadow-lg shadow-rose-600/30 transition-all cursor-pointer"
+                    className="flex-1 py-3 rounded-2xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-black shadow-lg shadow-rose-600/30 transition-all cursor-pointer active:scale-95"
                   >
                     {sendingOtp ? "Sending OTP..." : "Send Verification OTP →"}
                   </button>
@@ -654,7 +654,7 @@ export function Profile() {
                   <button
                     type="submit"
                     disabled={deletingAccount || !deleteOtp.trim()}
-                    className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:opacity-90 disabled:opacity-50 text-white text-xs font-black shadow-xl shadow-rose-600/30 transition-all cursor-pointer"
+                    className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:opacity-90 disabled:opacity-50 text-white text-xs font-black shadow-xl shadow-rose-600/30 transition-all cursor-pointer active:scale-95"
                   >
                     {deletingAccount ? "Deleting..." : "Verify & Permanently Delete"}
                   </button>

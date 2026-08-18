@@ -117,7 +117,6 @@ export function Vocabulary() {
     });
   };
 
-  // Auto-speak word or meaning when Flashcard tab is active or card flips
   useEffect(() => {
     if (activeTab === "flashcards" && items.length > 0 && items[cardIndex]) {
       const currentItem = items[cardIndex];
@@ -238,13 +237,13 @@ export function Vocabulary() {
   const favoriteCount = items.filter((i) => i.favorite).length;
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4">
+    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
       {/* Top Banner Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4f46e5] via-[#6c63ff] to-[#8b5cf6] p-6 sm:p-10 text-white shadow-2xl">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4F46E5] via-[#6C63FF] to-[#8B5CF6] p-6 sm:p-10 text-white shadow-2xl border border-white/10">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
+          <div className="space-y-3.5 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
               ✨ Dynamic Lexicon Studio
             </div>
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
@@ -256,18 +255,18 @@ export function Vocabulary() {
           </div>
 
           {/* Key Metrics Pill Bar */}
-          <div className="flex items-center gap-3 bg-black/20 backdrop-blur-xl p-3 sm:p-4 rounded-2xl border border-white/15 shrink-0">
+          <div className="flex items-center gap-3 bg-black/20 backdrop-blur-xl p-3 sm:p-4 rounded-2xl border border-white/15 shrink-0 shadow-inner">
             <div className="px-4 py-2 text-center border-r border-white/15">
               <span className="text-xl sm:text-2xl font-black text-white">{items.length}</span>
-              <span className="block text-[10px] sm:text-xs font-extrabold text-indigo-200 uppercase">Words</span>
+              <span className="block text-[10px] sm:text-xs font-black text-indigo-200 uppercase">Words</span>
             </div>
             <div className="px-4 py-2 text-center border-r border-white/15">
               <span className="text-xl sm:text-2xl font-black text-amber-300">⭐ {favoriteCount}</span>
-              <span className="block text-[10px] sm:text-xs font-extrabold text-indigo-200 uppercase">Saved</span>
+              <span className="block text-[10px] sm:text-xs font-black text-indigo-200 uppercase">Saved</span>
             </div>
             <div className="px-4 py-2 text-center">
               <span className="text-xl sm:text-2xl font-black text-emerald-300">⚡ 100%</span>
-              <span className="block text-[10px] sm:text-xs font-extrabold text-indigo-200 uppercase">Interactive</span>
+              <span className="block text-[10px] sm:text-xs font-black text-indigo-200 uppercase">Interactive</span>
             </div>
           </div>
         </div>
@@ -278,9 +277,9 @@ export function Vocabulary() {
         <div className="flex items-center gap-2 w-full overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("list")}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 ${
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 active:scale-95 ${
               activeTab === "list"
-                ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/25 scale-102"
+                ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/25 scale-102"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
             }`}
           >
@@ -292,9 +291,9 @@ export function Vocabulary() {
 
           <button
             onClick={() => setActiveTab("flashcards")}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 ${
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 active:scale-95 ${
               activeTab === "flashcards"
-                ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/25 scale-102"
+                ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/25 scale-102"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
             }`}
           >
@@ -309,9 +308,9 @@ export function Vocabulary() {
               setActiveTab("quiz");
               startQuiz();
             }}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 ${
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 active:scale-95 ${
               activeTab === "quiz"
-                ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-lg shadow-[#6c63ff]/25 scale-102"
+                ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/25 scale-102"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
             }`}
           >
@@ -336,12 +335,12 @@ export function Vocabulary() {
                 value={wordInput}
                 onChange={(e) => setWordInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddWord()}
-                className="flex-1 px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
+                className="flex-1 px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all shadow-inner"
               />
               <button
                 onClick={handleAddWord}
                 disabled={adding || !wordInput.trim()}
-                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 disabled:opacity-50 text-white font-extrabold text-xs sm:text-sm shadow-md transition-all shrink-0"
+                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-90 disabled:opacity-50 text-white font-black text-xs sm:text-sm shadow-md transition-all shrink-0 active:scale-95"
               >
                 {adding ? "Adding..." : "+ Add Word"}
               </button>
@@ -355,7 +354,7 @@ export function Vocabulary() {
                   placeholder="🔍 Search words or definitions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
+                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all shadow-inner"
                 />
                 {searchQuery && (
                   <button
@@ -375,7 +374,7 @@ export function Vocabulary() {
                   onClick={() => setFilterType("all")}
                   className={`flex-1 py-2 text-xs font-black rounded-xl transition-all ${
                     filterType === "all"
-                      ? "bg-[var(--bg-surface)] text-[#6c63ff] shadow-sm"
+                      ? "bg-[var(--bg-surface)] text-[#6C63FF] shadow-sm"
                       : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
@@ -401,35 +400,35 @@ export function Vocabulary() {
               Loading word bank...
             </div>
           ) : filteredItems.length === 0 ? (
-            <div className="p-12 sm:p-16 rounded-3xl glass-card text-center space-y-3">
+            <div className="p-12 sm:p-16 rounded-3xl glass-card text-center space-y-3 border border-[var(--border-default)]">
               <span className="text-5xl">📚</span>
               <h3 className="font-extrabold text-lg text-[var(--text-primary)]">No Vocabulary Words Found</h3>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-sm mx-auto">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-sm mx-auto font-medium">
                 Type a new word in the input box above to start building your personal word bank.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item) => {
                 const isSpeaking = speakingWord === item.word;
                 return (
                   <div
                     key={item.id || item.word}
-                    className="group relative glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all duration-300"
+                    className="group relative glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all duration-300"
                   >
                     <div className="space-y-3">
                       {/* Card Header: Word + TTS Voice Button + Favorite Star */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-2xl font-black text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                          <h3 className="text-2xl font-black text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
                             {item.word}
                           </h3>
                           <button
                             onClick={() => handleSpeak(item.word)}
-                            className={`grid h-9 w-9 place-items-center rounded-2xl transition-all text-xs ${
+                            className={`grid h-9 w-9 place-items-center rounded-2xl transition-all text-xs active:scale-95 ${
                               isSpeaking
-                                ? "bg-[#6c63ff] text-white animate-pulse"
-                                : "bg-[#6c63ff]/10 text-[#6c63ff] hover:bg-[#6c63ff] hover:text-white"
+                                ? "bg-[#6C63FF] text-white animate-pulse"
+                                : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white"
                             }`}
                             title="Listen Pronunciation (AI Voice)"
                           >
@@ -478,8 +477,8 @@ export function Vocabulary() {
                     </div>
 
                     {/* Card Footer */}
-                    <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#6c63ff] px-2.5 py-1 rounded-md bg-[#6c63ff]/10">
+                    <div className="pt-4 border-t border-[var(--border-default)] flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#6C63FF] px-2.5 py-1 rounded-md bg-[#6C63FF]/10">
                         CEFR Vocabulary
                       </span>
                       <button
@@ -502,11 +501,11 @@ export function Vocabulary() {
         <div className="max-w-2xl mx-auto space-y-6 py-2">
           {/* Deck Status Bar */}
           <div className="flex items-center justify-between text-xs sm:text-sm font-black text-[var(--text-secondary)]">
-            <span className="px-3 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+            <span className="px-3.5 py-1.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-default)]">
               Card {cardIndex + 1} of {items.length}
             </span>
-            <span className="text-[#6c63ff] animate-pulse">
-              Tap card to flip • AI Voice Auto-Reads 🔊
+            <span className="text-[#6C63FF] font-black animate-pulse">
+              Tap card to flip • AI Voice Reads 🔊
             </span>
           </div>
 
@@ -517,14 +516,14 @@ export function Vocabulary() {
             style={{ perspective: "1000px" }}
           >
             <div
-              className={`w-full h-full duration-500 transition-all transform-style-3d relative rounded-3xl shadow-2xl glass-card p-8 sm:p-12 flex flex-col items-center justify-center text-center border-2 border-[var(--border-default)] hover:border-[#6c63ff] ${
-                isFlipped ? "bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)]" : "bg-gradient-to-br from-[#6c63ff]/10 via-[var(--bg-surface)] to-[var(--bg-elevated)]"
+              className={`w-full h-full duration-500 transition-all transform-style-3d relative rounded-3xl shadow-2xl glass-card p-8 sm:p-12 flex flex-col items-center justify-center text-center border-2 border-[var(--border-default)] hover:border-[#6C63FF] ${
+                isFlipped ? "bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)]" : "bg-gradient-to-br from-[#6C63FF]/10 via-[var(--bg-surface)] to-[var(--bg-elevated)]"
               }`}
             >
               {!isFlipped ? (
                 /* FRONT SIDE: WORD */
-                <div className="space-y-6 animate-in fade-in duration-200">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#6c63ff]/20 text-[#6c63ff] text-xs font-black uppercase tracking-wider">
+                <div className="space-y-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#6C63FF]/20 text-[#6C63FF] text-xs font-black uppercase tracking-wider">
                     ✨ Word Flashcard
                   </div>
                   <h2 className="text-4xl sm:text-6xl font-black text-[var(--text-primary)] tracking-tight">
@@ -536,7 +535,7 @@ export function Vocabulary() {
                         e.stopPropagation();
                         handleSpeak(items[cardIndex].word);
                       }}
-                      className="px-5 py-2.5 rounded-2xl bg-[#6c63ff]/15 text-[#6c63ff] hover:bg-[#6c63ff] hover:text-white font-extrabold text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm"
+                      className="px-5 py-2.5 rounded-2xl bg-[#6C63FF]/15 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white font-black text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm active:scale-95"
                     >
                       🔊 Re-play Word Pronunciation
                     </button>
@@ -547,7 +546,7 @@ export function Vocabulary() {
                 </div>
               ) : (
                 /* BACK SIDE: DEFINITION & EXAMPLE */
-                <div className="space-y-6 animate-in fade-in duration-200 max-w-lg">
+                <div className="space-y-6 max-w-lg">
                   <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-500 text-xs font-black uppercase tracking-wider">
                     💡 Definition & Context
                   </div>
@@ -555,7 +554,7 @@ export function Vocabulary() {
                     {items[cardIndex].meaning}
                   </p>
                   {items[cardIndex].exampleSentence && (
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] italic bg-[var(--bg-elevated)] p-3.5 rounded-2xl border border-[var(--border-subtle)]">
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] italic bg-[var(--bg-elevated)] p-3.5 rounded-2xl border border-[var(--border-subtle)] font-medium">
                       "{items[cardIndex].exampleSentence}"
                     </p>
                   )}
@@ -565,7 +564,7 @@ export function Vocabulary() {
                         e.stopPropagation();
                         handleSpeak(items[cardIndex].meaning);
                       }}
-                      className="px-5 py-2.5 rounded-2xl bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500 hover:text-white font-extrabold text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm"
+                      className="px-5 py-2.5 rounded-2xl bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500 hover:text-white font-black text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm active:scale-95"
                     >
                       🔊 Re-play Definition Speech
                     </button>
@@ -582,14 +581,14 @@ export function Vocabulary() {
                 setIsFlipped(false);
                 setCardIndex((i) => (i > 0 ? i - 1 : items.length - 1));
               }}
-              className="px-6 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] text-xs sm:text-sm font-extrabold text-[var(--text-primary)] transition-all flex items-center gap-2"
+              className="px-6 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] text-xs sm:text-sm font-black text-[var(--text-primary)] transition-all flex items-center gap-2 active:scale-95"
             >
               ← Previous Card
             </button>
 
             <button
               onClick={() => setIsFlipped(!isFlipped)}
-              className="px-6 py-3.5 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 text-xs sm:text-sm font-extrabold transition-all border border-amber-500/30"
+              className="px-6 py-3.5 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 text-xs sm:text-sm font-black transition-all border border-amber-500/30 active:scale-95"
             >
               🔄 Flip Card
             </button>
@@ -599,7 +598,7 @@ export function Vocabulary() {
                 setIsFlipped(false);
                 setCardIndex((i) => (i + 1 < items.length ? i + 1 : 0));
               }}
-              className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 text-white text-xs sm:text-sm font-extrabold shadow-lg transition-all flex items-center gap-2"
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-lg shadow-[#6C63FF]/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
             >
               Next Card →
             </button>
@@ -607,110 +606,98 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* TAB 3: XP RETENTION QUIZ (AUTOMATICALLY 100% DIFFERENT QUIZZES) */}
+      {/* TAB 3: DYNAMIC XP RETENTION QUIZ */}
       {activeTab === "quiz" && (
         <div className="max-w-2xl mx-auto space-y-6 py-2">
           {quizLoading ? (
-            <div className="p-16 text-center text-sm font-bold text-[var(--text-secondary)] space-y-3 glass-card rounded-3xl">
-              <div className="h-10 w-10 border-4 border-[#6c63ff] border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-base font-extrabold text-[var(--text-primary)]">Generating new unique quiz questions...</p>
+            <div className="p-16 rounded-3xl glass-card text-center space-y-3">
+              <span className="text-4xl animate-spin block">⏳</span>
+              <p className="font-extrabold text-base text-[var(--text-primary)]">Generating Dynamic Retention Quiz...</p>
             </div>
           ) : quizFinished ? (
-            /* Quiz Completed Screen */
-            <div className="p-8 sm:p-12 rounded-3xl glass-card text-center space-y-6 animate-in fade-in duration-300 border-2 border-[#6c63ff]/30 shadow-2xl">
-              <div className="grid h-24 w-24 mx-auto place-items-center rounded-3xl bg-gradient-to-tr from-amber-400 via-amber-500 to-yellow-400 text-white text-5xl shadow-xl animate-bounce">
-                🏆
-              </div>
+            <div className="p-8 sm:p-12 rounded-3xl glass-card text-center space-y-6 border border-emerald-500/30 shadow-2xl">
+              <span className="text-6xl block animate-bounce">🏆</span>
               <div className="space-y-2">
-                <span className="text-xs font-black uppercase tracking-wider text-[#6c63ff] px-4 py-1.5 rounded-full bg-[#6c63ff]/15">
-                  Dynamic Retention Challenge
-                </span>
-                <h2 className="text-3xl sm:text-4xl font-black text-[var(--text-primary)] pt-2">Quiz Completed!</h2>
-                <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium">
-                  You scored <strong className="text-[var(--text-primary)]">{quizScore}</strong> out of <strong className="text-[var(--text-primary)]">{quizQuestions.length}</strong> correct.
+                <h2 className="text-3xl font-black text-[var(--text-primary)]">Quiz Completed!</h2>
+                <p className="text-sm font-bold text-[var(--text-secondary)]">
+                  You scored <span className="text-emerald-500 font-black">{quizScore}</span> out of <span className="font-black">{quizQuestions.length}</span>!
+                </p>
+                <p className="text-xl font-black text-amber-500 pt-2">
+                  +{earnedXP} Bonus XP Earned ⭐
                 </p>
               </div>
 
-              <div className="inline-block px-6 py-3 rounded-full bg-emerald-500/20 text-emerald-500 font-black text-sm border border-emerald-500/30">
-                🎉 +{earnedXP} XP Learning Bonus Claimed!
-              </div>
-
-              <div>
+              <div className="flex justify-center gap-4 pt-2">
                 <button
                   onClick={startQuiz}
-                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 text-white text-sm font-black shadow-xl transition-all scale-102"
+                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all"
                 >
-                  ⚡ Generate Different Quiz ↻
+                  Generate New Quiz ↻
                 </button>
               </div>
             </div>
-          ) : quizQuestions.length > 0 ? (
-            /* Active Question Card */
-            <div className="glass-card p-6 sm:p-10 rounded-3xl space-y-6 animate-in fade-in duration-200 border-2 border-[#6c63ff]/20 shadow-xl">
-              {/* Question Header Banner */}
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-[#6c63ff]/15 to-[#8b5cf6]/15 border border-[#6c63ff]/30 space-y-2">
-                <div className="flex items-center justify-between text-xs font-black text-[#6c63ff]">
-                  <span className="uppercase tracking-wider">
-                    Question {currentQuizIdx + 1} of {quizQuestions.length}
-                  </span>
-                  <span className="px-2.5 py-1 rounded-full bg-[#6c63ff]/20 text-[#6c63ff]">
-                    +25 XP Per Correct Answer
-                  </span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] leading-relaxed pt-1">
+          ) : (
+            <div className="p-6 sm:p-10 rounded-3xl glass-card space-y-6 border border-[var(--border-default)] shadow-xl">
+              <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
+                <span className="text-xs font-black uppercase text-[#6C63FF] tracking-wider">
+                  Question {currentQuizIdx + 1} of {quizQuestions.length}
+                </span>
+                <span className="text-xs font-black px-3 py-1 rounded-full bg-amber-500/15 text-amber-500">
+                  +25 XP per correct answer
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
                   {currentQ.questionText}
                 </h2>
               </div>
 
-              {/* 4 Selectable Answer Options */}
-              <div className="space-y-3">
-                {currentQ.options.map((opt, idx) => {
+              <div className="space-y-3 pt-2">
+                {currentQ.options.map((option, idx) => {
                   const isSelected = selectedQuizAnswer === idx;
                   const isCorrect = idx === currentQ.correctIndex;
+                  const showResult = selectedQuizAnswer !== null;
+
+                  let btnStyle = "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]";
+                  if (showResult) {
+                    if (isCorrect) {
+                      btnStyle = "border-emerald-500 bg-emerald-500/15 text-emerald-500 font-black";
+                    } else if (isSelected && !isCorrect) {
+                      btnStyle = "border-rose-500 bg-rose-500/15 text-rose-500 font-black";
+                    }
+                  }
+
                   return (
                     <button
                       key={idx}
                       onClick={() => handleAnswerQuiz(idx)}
-                      disabled={selectedQuizAnswer !== null}
-                      className={`w-full p-4.5 rounded-2xl border text-left text-xs sm:text-sm font-extrabold transition-all duration-200 flex items-center justify-between leading-relaxed ${
-                        selectedQuizAnswer === null
-                          ? "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6c63ff] hover:bg-[var(--bg-surface)] text-[var(--text-primary)]"
-                          : isCorrect
-                          ? "border-emerald-500 bg-emerald-500/20 text-emerald-500 shadow-md"
-                          : isSelected
-                          ? "border-rose-500 bg-rose-500/20 text-rose-500 shadow-md"
-                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] opacity-50"
-                      }`}
+                      disabled={showResult}
+                      className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between ${btnStyle}`}
                     >
-                      <span>{opt}</span>
-                      {selectedQuizAnswer !== null && isCorrect && (
-                        <span className="px-3 py-1 rounded-full bg-emerald-500 text-white text-xs font-black shrink-0">
-                          ✓ Correct
-                        </span>
-                      )}
+                      <span>{option}</span>
+                      {showResult && isCorrect && <span>✓</span>}
+                      {showResult && isSelected && !isCorrect && <span>✕</span>}
                     </button>
                   );
                 })}
               </div>
 
-              {/* Explanation & Next Question Control */}
               {selectedQuizAnswer !== null && (
-                <div className="pt-4 border-t border-[var(--border-subtle)] space-y-4">
-                  <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs sm:text-sm font-semibold text-[var(--text-secondary)] leading-relaxed">
-                    💡 <strong className="text-[var(--text-primary)]">Explanation:</strong> {currentQ.explanation}
-                  </div>
-                  <div className="flex justify-end">
-                    <button
-                      onClick={handleNextQuizQuestion}
-                      className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-90 text-white text-xs sm:text-sm font-black shadow-lg transition-all"
-                    >
-                      Next Question →
-                    </button>
-                  </div>
+                <div className="p-4 rounded-2xl bg-[#6C63FF]/10 border border-[#6C63FF]/20 space-y-3 animate-in fade-in duration-200">
+                  <p className="text-xs text-[var(--text-primary)] font-bold">
+                    💡 {currentQ.explanation}
+                  </p>
+                  <button
+                    onClick={handleNextQuizQuestion}
+                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-xs sm:text-sm shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
+                  >
+                    {currentQuizIdx + 1 < quizQuestions.length ? "Next Question →" : "Finish Quiz & Claim XP 🎉"}
+                  </button>
                 </div>
               )}
             </div>
-          ) : null}
+          )}
         </div>
       )}
     </div>

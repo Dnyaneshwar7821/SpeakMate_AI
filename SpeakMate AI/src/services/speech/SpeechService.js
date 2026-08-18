@@ -6,6 +6,7 @@
 import { EventBus, AVATAR_EVENTS } from '../live2d/EventBus';
 import { DEFAULT_SPEECH_CONFIG, SPEECH_PROVIDERS } from '../../config/SpeechConfig';
 import { AudioAnalyzer } from '../../utils/AudioAnalyzer';
+import { getPrimaryVisemeForWord } from '../../utils/PhoneticVisemeEngine';
 
 export class SpeechService {
   constructor(config = {}) {
@@ -68,6 +69,20 @@ export class SpeechService {
         const preferredVoice = voices.find(v => v.name.includes(this.config.voiceName) || v.lang === utterance.lang) || voices[0];
         utterance.voice = preferredVoice;
       }
+
+      utterance.onboundary = (e) => {
+        if (e.name === 'word' || e.charIndex !== undefined) {
+          const remaining = text.substring(e.charIndex, e.charIndex + (e.charLength || 8));
+          const word = remaining.split(/\s+/)[0] || '';
+          const visemeObj = getPrimaryVisemeForWord(word);
+          EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, {
+            word,
+            viseme: visemeObj.viseme,
+            yVal: visemeObj.yVal,
+            formVal: visemeObj.formVal,
+          });
+        }
+      };
 
       utterance.onend = () => {
         this._onSpeechEnded();

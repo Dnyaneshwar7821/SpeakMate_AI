@@ -7,6 +7,7 @@ import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
 import { useLipSync } from "../hooks/useLipSync";
 import { speakGlobalText } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
+import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 
 export function ConversationChat() {
   const navigate = useNavigate();
@@ -41,21 +42,29 @@ export function ConversationChat() {
   const chatEndRef = useRef(null);
   const hasSpokenInitialRef = useRef(false);
 
-  // Real-Time Phonetic Lip-Sync Loop
+  // Phonetic Lip-Sync Event Bus Listener
   useEffect(() => {
-    let visemeInterval = null;
-    if (isAiSpeaking) {
-      const VISEMES = ["AA", "EE", "IH", "OO", "AA", "OH", "EE", "REST"];
-      let idx = 0;
-      visemeInterval = setInterval(() => {
-        idx = (idx + 1) % VISEMES.length;
-        setViseme(VISEMES[idx]);
-      }, 120);
-    } else {
+    const unsubUpdate = EventBus.on(AVATAR_EVENTS.LIP_SYNC_UPDATE, (data) => {
+      if (data?.viseme) {
+        setViseme(data.viseme);
+      }
+    });
+
+    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => {
+      setIsAiSpeaking(true);
+    });
+
+    const unsubFinish = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => {
+      setIsAiSpeaking(false);
       setViseme("REST");
-    }
-    return () => clearInterval(visemeInterval);
-  }, [isAiSpeaking]);
+    });
+
+    return () => {
+      unsubUpdate();
+      unsubStart();
+      unsubFinish();
+    };
+  }, []);
 
   const getSpeakableText = (msg) => {
     if (!msg) return "";
@@ -88,12 +97,6 @@ export function ConversationChat() {
     speakGlobalText(text, speechSpeed, {
       onstart: () => {
         setIsAiSpeaking(true);
-        setViseme("AA");
-      },
-      onboundary: () => {
-        const VISEMES = ["AA", "EE", "IH", "OO", "OH"];
-        const nextViseme = VISEMES[Math.floor(Math.random() * VISEMES.length)];
-        setViseme(nextViseme);
       },
       onend: () => {
         setIsAiSpeaking(false);

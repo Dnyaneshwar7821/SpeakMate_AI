@@ -21,87 +21,91 @@ export function SpeakingSummary() {
   const secs = summary.duration ? summary.duration % 60 : 0;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Top Header Banner matching SpeakingSummaryScreen.js */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#6c63ff] text-white shadow-xl flex flex-col items-center justify-center text-center space-y-4">
-        <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/10 px-3 py-1 rounded-full">
+    <div className="max-w-3xl mx-auto space-y-6 py-4 px-2">
+      {/* Top Header Banner */}
+      <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#6C63FF] text-white shadow-2xl flex flex-col items-center justify-center text-center space-y-5 border border-white/10 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 blur-3xl pointer-events-none rounded-full" />
+        
+        <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20">
           Session Results & Feedback
         </span>
 
         {/* Score Ring */}
-        <div className="grid h-28 w-28 place-items-center rounded-full bg-white/10 border-4 border-[#6c63ff] shadow-inner my-2">
+        <div className="grid h-32 w-32 place-items-center rounded-full bg-white/10 border-4 border-[#6C63FF] shadow-2xl my-2">
           <div>
-            <span className="text-3xl font-extrabold">{score}%</span>
-            <p className="text-[9px] font-bold uppercase opacity-75">Overall Score</p>
+            <span className="text-4xl font-black">{score}%</span>
+            <p className="text-[9px] font-bold uppercase opacity-80 mt-0.5">Fluency Score</p>
           </div>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold">Excellent Work! 🎉</h1>
-        <p className="text-xs text-[#A5B4FC] max-w-md">
-          {summary.motivationalMessage || "Keep practicing every day to sound more natural and confident."}
-        </p>
+        <div className="space-y-1 max-w-md">
+          <h1 className="text-2xl sm:text-3xl font-black">Outstanding Effort! 🎉</h1>
+          <p className="text-xs sm:text-sm text-indigo-200 font-medium">
+            {summary.motivationalMessage || "Keep practicing daily to build lasting spoken confidence."}
+          </p>
+        </div>
       </div>
 
       {/* Key Metrics Row */}
       <div className="grid grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm text-center">
-          <span className="text-xl">⚡</span>
-          <p className="text-lg font-extrabold text-amber-500 mt-1">+{xp} XP</p>
-          <p className="text-[10px] font-bold text-[var(--text-secondary)]">XP Awarded</p>
+        <div className="glass-card p-5 rounded-3xl text-center space-y-1 border border-[var(--border-default)] shadow-sm">
+          <span className="text-2xl">⚡</span>
+          <p className="text-xl font-black text-amber-500">+{xp} XP</p>
+          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">XP Earned</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm text-center">
-          <span className="text-xl">⏱️</span>
-          <p className="text-lg font-extrabold text-[#6c63ff] mt-1">
+        <div className="glass-card p-5 rounded-3xl text-center space-y-1 border border-[var(--border-default)] shadow-sm">
+          <span className="text-2xl">⏱️</span>
+          <p className="text-xl font-black text-[#6C63FF]">
             {mins > 0 ? `${mins}m ` : ""}{secs}s
           </p>
-          <p className="text-[10px] font-bold text-[var(--text-secondary)]">Time Spent</p>
+          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Speaking Time</p>
         </div>
 
-        <div className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm text-center">
-          <span className="text-xl">💬</span>
-          <p className="text-lg font-extrabold text-emerald-500 mt-1">{summary.messagesExchanged || 0}</p>
-          <p className="text-[10px] font-bold text-[var(--text-secondary)]">Turns Made</p>
+        <div className="glass-card p-5 rounded-3xl text-center space-y-1 border border-[var(--border-default)] shadow-sm">
+          <span className="text-2xl">💬</span>
+          <p className="text-xl font-black text-emerald-500">{summary.messagesExchanged || 0}</p>
+          <p className="text-[10px] font-black uppercase tracking-wider text-[var(--text-secondary)]">Dialogue Turns</p>
         </div>
       </div>
 
       {/* Feedback Sections */}
       <div className="space-y-4">
         {/* Session Summary */}
-        <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-2">
-          <h2 className="text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-            <span>📄 Session Summary</span>
+        <div className="glass-card p-6 sm:p-7 rounded-3xl border border-[var(--border-default)] space-y-2 shadow-sm">
+          <h2 className="text-xs font-black uppercase tracking-wider text-[var(--text-secondary)] flex items-center gap-2">
+            <span>📄 Comprehensive Evaluation</span>
           </h2>
-          <p className="text-xs font-semibold text-[var(--text-secondary)] leading-relaxed">{summary.summary}</p>
+          <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] leading-relaxed">{summary.summary}</p>
         </div>
 
         {/* Vocabulary Suggested */}
         {summary.vocabularyLearned && (
-          <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-2">
-            <h2 className="text-sm font-extrabold text-amber-500 flex items-center gap-2">
-              <span>💡 Vocabulary Suggested</span>
+          <div className="glass-card p-6 sm:p-7 rounded-3xl border border-amber-500/30 space-y-2 shadow-sm bg-amber-500/5">
+            <h2 className="text-xs font-black uppercase tracking-wider text-amber-500 flex items-center gap-2">
+              <span>💡 Vocabulary & Synonyms Suggested</span>
             </h2>
-            <p className="text-xs font-semibold text-[var(--text-primary)]">{summary.vocabularyLearned}</p>
+            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">{summary.vocabularyLearned}</p>
           </div>
         )}
 
         {/* Grammar Notes */}
         {summary.grammarCorrections && (
-          <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-2">
-            <h2 className="text-sm font-extrabold text-emerald-500 flex items-center gap-2">
-              <span>✓ Grammar Notes</span>
+          <div className="glass-card p-6 sm:p-7 rounded-3xl border border-emerald-500/30 space-y-2 shadow-sm bg-emerald-500/5">
+            <h2 className="text-xs font-black uppercase tracking-wider text-emerald-500 flex items-center gap-2">
+              <span>✓ Grammar Doctor Recommendations</span>
             </h2>
-            <p className="text-xs font-semibold text-[var(--text-primary)]">{summary.grammarCorrections}</p>
+            <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">{summary.grammarCorrections}</p>
           </div>
         )}
 
         {/* Native Expressions */}
         {summary.betterSentences && (
-          <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-2">
-            <h2 className="text-sm font-extrabold text-[#6c63ff] flex items-center gap-2">
-              <span>📈 Native Expressions</span>
+          <div className="glass-card p-6 sm:p-7 rounded-3xl border border-[#6C63FF]/30 space-y-2 shadow-sm bg-[#6C63FF]/5">
+            <h2 className="text-xs font-black uppercase tracking-wider text-[#6C63FF] flex items-center gap-2">
+              <span>📈 Recommended Native Phrasing</span>
             </h2>
-            <p className="text-xs font-semibold text-[var(--text-primary)]">💡 "{summary.betterSentences}"</p>
+            <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">💡 "{summary.betterSentences}"</p>
           </div>
         )}
       </div>
@@ -110,9 +114,9 @@ export function SpeakingSummary() {
       <div className="pt-4 flex justify-center">
         <Link
           to={ROUTES.SPEAKING}
-          className="w-full py-3.5 rounded-2xl bg-[#6c63ff] hover:bg-[#8b85ff] text-white font-extrabold text-sm shadow-lg text-center"
+          className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#6C63FF] via-[#7C74FF] to-[#8B5CF6] hover:from-[#7C74FF] hover:to-[#9D71FB] text-white font-black text-sm shadow-xl shadow-[#6C63FF]/25 text-center active:scale-95 transition-all"
         >
-          Return to Speaking Practice Home
+          Return to Speaking Practice Studio →
         </Link>
       </div>
     </div>

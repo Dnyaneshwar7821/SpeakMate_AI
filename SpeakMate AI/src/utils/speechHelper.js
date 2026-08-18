@@ -1,5 +1,6 @@
 // src/utils/speechHelper.js
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
+import { getPrimaryVisemeForWord } from "./PhoneticVisemeEngine";
 
 export const VOICE_PROFILES = [
   { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male', previewText: 'Hello, I am your American Male English tutor.' },
@@ -346,13 +347,28 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
     }
   } catch (e) {}
 
-  const cleanText = text.replace(/[*_#`~]/g, "");
-  const utterance = new SpeechSynthesisUtterance(cleanText);
+  const cleanText = text.replace(/[*_#`~]/g, "").trim();
+  if (!cleanText) return null;
 
-  // Prevent Chromium garbage-collection bug that kills long speech
-  window._activeUtterance = utterance;
+  // Global Speech Lock flag
+  window._speakmate_ai_is_speaking = true;
+
+  // Split long text into natural clause / sentence chunks to prevent Chromium 15s freeze
+  const rawChunks = cleanText.match(/[^.!?]+[.!?]+|[^.!?]+/g) || [cleanText];
+  const chunks = rawChunks.map((c) => c.trim()).filter(Boolean);
 
   let keepAliveInterval = null;
+
+  EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
+
+  // Chrome keep-alive heartbeat (safely resumes without stopping speech)
+  keepAliveInterval = setInterval(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+    }
+  }, 1000);
 
   const cleanupKeepAlive = () => {
     if (keepAliveInterval) {
@@ -362,74 +378,78 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
     window._activeUtterance = null;
   };
 
-  utterance.onstart = (e) => {
-    EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
-
-    // Chrome keep-alive heartbeat (safely resumes without stopping speech)
-    keepAliveInterval = setInterval(() => {
-      if (typeof window !== "undefined" && "speechSynthesis" in window) {
-        if (window.speechSynthesis.paused) {
-          window.speechSynthesis.resume();
+  const speakChunk = (index) => {
+    if (index >= chunks.length) {
+      cleanupKeepAlive();
+      // Keep Speech Lock active for 1000ms speaker audio buffer safety margin
+      setTimeout(() => {
+        if (!window.speechSynthesis?.speaking && !window.speechSynthesis?.pending) {
+          window._speakmate_ai_is_speaking = false;
         }
-      }
-    }, 2500);
-
-    if (options.onstart) options.onstart(e);
-  };
-
-  utterance.onboundary = (e) => {
-    if (e.name === "word" || e.charIndex !== undefined) {
-      const remaining = cleanText.substring(e.charIndex, e.charIndex + (e.charLength || 8));
-      const word = remaining.split(/\s+/)[0] || "";
-      EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, { word });
+        EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
+        if (options.onend) options.onend();
+      }, 1000);
+      return;
     }
-    if (options.onboundary) options.onboundary(e);
-  };
 
-  utterance.onend = (e) => {
-    cleanupKeepAlive();
-    // Chromium fires onend when text is queued; 900ms delay matches OS speaker buffer output
-    setTimeout(() => {
-      EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
-      if (options.onend) options.onend(e);
-    }, 900);
-  };
+    const chunkText = chunks[index];
+    const utterance = new SpeechSynthesisUtterance(chunkText);
+    window._activeUtterance = utterance;
 
-  utterance.onerror = (e) => {
-    cleanupKeepAlive();
-    setTimeout(() => {
-      EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
-      if (options.onerror) options.onerror(e);
-    }, 500);
-  };
-
-  const doSpeak = () => {
-    try {
-      window.speechSynthesis.cancel();
-      window.speechSynthesis.resume();
-      applyGlobalVoiceSettings(utterance, speedMultiplier, options.overrideVoiceCode);
-      window.speechSynthesis.speak(utterance);
-    } catch (e) {
-      console.warn("Speech synthesis execution error:", e);
-    }
-  };
-
-  const voices = window.speechSynthesis.getVoices();
-  if (!voices || voices.length === 0) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      doSpeak();
+    utterance.onstart = (e) => {
+      window._speakmate_ai_is_speaking = true;
+      if (options.onstart && index === 0) options.onstart(e);
     };
-    setTimeout(doSpeak, 250);
-  } else {
-    doSpeak();
-    setTimeout(() => {
-      if (window.speechSynthesis.speaking && window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      }
-    }, 150);
-  }
 
-  return utterance;
+    utterance.onboundary = (e) => {
+      window._speakmate_ai_is_speaking = true;
+      if (e.name === "word" || e.charIndex !== undefined) {
+        const remaining = chunkText.substring(e.charIndex, e.charIndex + (e.charLength || 8));
+        const word = remaining.split(/\s+/)[0] || "";
+        const visemeObj = getPrimaryVisemeForWord(word);
+        EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, {
+          word,
+          viseme: visemeObj.viseme,
+          yVal: visemeObj.yVal,
+          formVal: visemeObj.formVal,
+        });
+      }
+      if (options.onboundary) options.onboundary(e);
+    };
+
+    utterance.onend = () => {
+      speakChunk(index + 1);
+    };
+
+    utterance.onerror = (err) => {
+      console.warn("[speechHelper] Speech chunk playback warning:", err);
+      speakChunk(index + 1);
+    };
+
+    const doSpeakChunk = () => {
+      try {
+        window.speechSynthesis.resume();
+        applyGlobalVoiceSettings(utterance, speedMultiplier, options.overrideVoiceCode);
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn("[speechHelper] Chunk speech execution error:", e);
+        speakChunk(index + 1);
+      }
+    };
+
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        doSpeakChunk();
+      };
+      setTimeout(doSpeakChunk, 200);
+    } else {
+      doSpeakChunk();
+    }
+  };
+
+  speakChunk(0);
+  return window._activeUtterance;
 };
 
 export function getCurrentVoiceGender() {

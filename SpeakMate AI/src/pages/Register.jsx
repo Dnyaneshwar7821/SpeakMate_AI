@@ -5,7 +5,6 @@ import { authService } from "../services/authService";
 import ROUTES from "../constants/routes";
 
 export function Register() {
-  const { login } = useAuth();
   const navigate = useNavigate();
 
   // Step 1: Input details, Step 2: Input OTP
@@ -16,7 +15,7 @@ export function Register() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [accountType, setAccountType] = useState("INDIVIDUAL_USER");
-  const [schoolName, setSchoolName] = useState(""); // 'INDIVIDUAL_USER' | 'STUDENT'
+  const [schoolName, setSchoolName] = useState("");
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -105,10 +104,10 @@ export function Register() {
 
       await authService.register(payload);
 
-      // Navigate to Login page (do not auto-login)
+      // Navigate to Login page
       navigate(ROUTES.LOGIN, {
         replace: true,
-        state: { infoMessage: "Account created successfully! Please log in to your account." },
+        state: { infoMessage: "Account created successfully! Please log in to start practicing." },
       });
     } catch (err) {
       console.error("Registration failed:", err);
@@ -123,33 +122,33 @@ export function Register() {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto relative z-10">
-      <div className="bg-[var(--bg-surface)] p-8 sm:p-10 lg:p-12 rounded-3xl border border-[var(--border-default)] shadow-2xl space-y-8 relative animate-in fade-in duration-300">
+    <div className="w-full max-w-xl mx-auto relative z-10">
+      <div className="glass-card p-8 sm:p-10 lg:p-12 rounded-3xl border border-[var(--border-default)] shadow-2xl space-y-7 relative">
 
         {/* Brand App Badge Header */}
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] flex items-center justify-center text-3xl shadow-xl shadow-[#6c63ff]/30">
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-tr from-[#6C63FF] via-[#7C74FF] to-[#FF6584] flex items-center justify-center text-3xl shadow-xl shadow-[#6C63FF]/30">
             🗣️
           </div>
           <div>
-            <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">Create Account</h1>
-            <p className="text-sm sm:text-base text-[var(--text-secondary)] font-medium mt-1">
-              {step === 1 ? "Start your journey to English fluency with SpeakMate AI" : `Enter the 6-digit OTP code sent to ${form.email}`}
+            <h1 className="text-3xl font-black text-[var(--text-primary)] tracking-tight">Create Free Account</h1>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-1">
+              {step === 1 ? "Start your journey to fluent English with SpeakMate AI" : `Enter the 6-digit OTP code sent to ${form.email}`}
             </p>
           </div>
         </div>
 
         {/* Tab Segmented Control */}
-        <div className="flex items-center gap-2 p-2 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
           <Link
             to={ROUTES.LOGIN}
-            className="flex-1 py-3 rounded-xl text-sm sm:text-base font-black text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-center transition-all"
+            className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-center transition-all"
           >
             🔑 Log In
           </Link>
           <button
             type="button"
-            className="flex-1 py-3 rounded-xl text-sm sm:text-base font-black bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-md shadow-[#6c63ff]/25 text-center transition-all"
+            className="flex-1 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-md shadow-[#6C63FF]/25 text-center transition-all"
           >
             ✨ Register
           </button>
@@ -157,135 +156,135 @@ export function Register() {
 
         {/* Info Message Banner */}
         {infoMessage && (
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-sm font-bold text-emerald-600 dark:text-emerald-400 space-y-1 animate-in fade-in duration-200">
-            <p className="font-black">📧 OTP Sent Successfully!</p>
-            <p className="font-semibold opacity-90">{infoMessage}</p>
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 space-y-1">
+            <p className="font-black">📧 OTP Code Sent</p>
+            <p className="font-medium opacity-90">{infoMessage}</p>
           </div>
         )}
 
         {/* Error Message Banner */}
         {error && (
-          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-sm font-bold text-rose-600 dark:text-rose-400 space-y-1 animate-in fade-in duration-200">
-            <p className="font-black">⚠️ Registration Error</p>
-            <p className="font-semibold opacity-90">{error}</p>
+          <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs sm:text-sm font-bold text-rose-600 dark:text-rose-400 space-y-1">
+            <p className="font-black">⚠️ Registration Notice</p>
+            <p className="font-medium opacity-90">{error}</p>
           </div>
         )}
 
         {/* STEP 1: FORM */}
         {step === 1 && (
-          <form className="space-y-6" onSubmit={handleSendOtp}>
+          <form className="space-y-4" onSubmit={handleSendOtp}>
             {/* Account Type Selector Cards */}
             <div>
-              <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">
-                I am signing up as:
+              <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">
+                Signing up as:
               </label>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => setAccountType("INDIVIDUAL_USER")}
-                  className={`py-3.5 px-4 rounded-2xl border text-sm sm:text-base font-black transition-all flex items-center justify-center gap-2.5 ${accountType === "INDIVIDUAL_USER"
-                      ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] ring-2 ring-[#6c63ff]/30 shadow-md"
+                  className={`py-3 px-3 rounded-2xl border text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 ${
+                    accountType === "INDIVIDUAL_USER"
+                      ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] ring-2 ring-[#6C63FF]/30 shadow-sm"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    }`}
+                  }`}
                 >
-                  <span className="text-lg">👤</span>
-                  <span>Individual Learner</span>
+                  <span>👤 Individual</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setAccountType("STUDENT")}
-                  className={`py-3.5 px-4 rounded-2xl border text-sm sm:text-base font-black transition-all flex items-center justify-center gap-2.5 ${accountType === "STUDENT"
-                      ? "border-[#6c63ff] bg-[#6c63ff]/15 text-[#6c63ff] ring-2 ring-[#6c63ff]/30 shadow-md"
+                  className={`py-3 px-3 rounded-2xl border text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 ${
+                    accountType === "STUDENT"
+                      ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] ring-2 ring-[#6C63FF]/30 shadow-sm"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    }`}
+                  }`}
                 >
-                  <span className="text-lg">🎓</span>
-                  <span>School Student</span>
+                  <span>🎓 School Student</span>
                 </button>
               </div>
             </div>
 
             {/* School Name Field for Students */}
             {accountType === "STUDENT" && (
-              <div className="animate-in fade-in duration-200">
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">
+              <div>
+                <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">
                   School Name
                 </label>
                 <div className="relative">
-                  <span className="absolute left-4 top-3.5 text-base text-[var(--text-secondary)]">🏫</span>
+                  <span className="absolute left-4 top-3.5 text-base text-[var(--text-muted)]">🏫</span>
                   <input
                     type="text"
                     placeholder="Enter your school name"
                     value={schoolName}
                     onChange={(e) => setSchoolName(e.target.value)}
                     required
-                    className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
+                    className="w-full pl-12 pr-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
                   />
                 </div>
               </div>
             )}
 
             {/* Name Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">First Name</label>
+                <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-1.5">First Name</label>
                 <input
                   type="text"
                   placeholder="First name"
                   value={form.firstName}
                   onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                   required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
+                  className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">Last Name</label>
+                <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-1.5">Last Name</label>
                 <input
                   type="text"
                   placeholder="Last name"
                   value={form.lastName}
                   onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                   required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
+                  className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
                 />
               </div>
             </div>
 
             {/* Email Field */}
             <div>
-              <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">Email Address</label>
+              <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-1.5">Email Address</label>
               <div className="relative">
-                <span className="absolute left-4 top-3.5 text-base text-[var(--text-secondary)]">✉️</span>
+                <span className="absolute left-4 top-3.5 text-base text-[var(--text-muted)]">✉️</span>
                 <input
                   type="email"
                   placeholder="you@example.com"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   required
-                  className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm sm:text-base font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
+                  className="w-full pl-12 pr-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
                 />
               </div>
             </div>
 
             {/* Password Fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">Password</label>
+                <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-1.5">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Min 8 chars, 1 Upper, 1 Spec"
+                    placeholder="Min 8 chars, 1 Upp, 1 Spec"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     required
-                    className="w-full pl-4 pr-10 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
+                    className="w-full pl-4 pr-10 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3.5 text-[var(--text-secondary)] hover:text-[#6c63ff] transition-colors text-base"
+                    className="absolute right-3.5 top-3 text-[var(--text-muted)] hover:text-[#6C63FF] transition-colors text-sm"
                     title={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? "👁️" : "🙈"}
@@ -294,14 +293,14 @@ export function Register() {
               </div>
 
               <div>
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">Confirm Password</label>
+                <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-1.5">Confirm Password</label>
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Re-enter password"
                   value={form.confirmPassword}
                   onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                   required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] focus:ring-2 focus:ring-[#6c63ff]/20 transition-all"
+                  className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
                 />
               </div>
             </div>
@@ -309,7 +308,7 @@ export function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-95 active:scale-[0.99] disabled:opacity-50 text-white font-black text-sm sm:text-base shadow-xl shadow-[#6c63ff]/25 transition-all flex items-center justify-center gap-2 mt-4"
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#6C63FF] via-[#7C74FF] to-[#8B5CF6] hover:from-[#7C74FF] hover:to-[#9D71FB] active:scale-[0.99] disabled:opacity-50 text-white font-black text-sm shadow-xl shadow-[#6C63FF]/25 transition-all flex items-center justify-center gap-2 mt-4"
             >
               {loading ? (
                 <>
@@ -328,14 +327,14 @@ export function Register() {
 
         {/* STEP 2: 6-DIGIT OTP VERIFICATION */}
         {step === 2 && (
-          <form className="space-y-6 animate-in fade-in duration-200" onSubmit={handleVerifyOtpAndRegister}>
-            <div className="p-5 rounded-2xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 text-center space-y-2">
-              <span className="text-xs font-black uppercase text-[#6c63ff] tracking-widest block">Security Verification Code</span>
+          <form className="space-y-5" onSubmit={handleVerifyOtpAndRegister}>
+            <div className="p-5 rounded-2xl bg-[#6C63FF]/10 border border-[#6C63FF]/25 text-center space-y-1.5">
+              <span className="text-xs font-black uppercase text-[#6C63FF] tracking-widest block">Security Verification</span>
               <p className="text-sm font-black text-[var(--text-primary)]">
-                Enter code sent to <span className="text-[#6c63ff] underline">{form.email}</span>
+                Enter code sent to <span className="text-[#6C63FF] underline">{form.email}</span>
               </p>
               <p className="text-xs text-[var(--text-secondary)] font-medium">
-                (Check your email inbox or spam folder for the 6-digit code)
+                (Please check your email inbox or spam folder for the code)
               </p>
             </div>
 
@@ -347,19 +346,19 @@ export function Register() {
                 value={form.otp}
                 onChange={(e) => setForm({ ...form, otp: e.target.value })}
                 required
-                className="w-full px-4 py-4 rounded-2xl border-2 border-[#6c63ff] bg-[var(--bg-elevated)] text-center text-3xl font-black tracking-[0.4em] text-[#6c63ff] focus:outline-none shadow-inner"
+                className="w-full px-4 py-4 rounded-2xl border-2 border-[#6C63FF] bg-[var(--bg-elevated)] text-center text-3xl font-black tracking-[0.4em] text-[#6C63FF] focus:outline-none shadow-inner"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading || !form.otp.trim()}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] hover:opacity-95 active:scale-[0.99] disabled:opacity-50 text-white font-black text-sm sm:text-base shadow-xl shadow-[#6c63ff]/25 transition-all flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#6C63FF] via-[#7C74FF] to-[#8B5CF6] hover:from-[#7C74FF] hover:to-[#9D71FB] active:scale-[0.99] disabled:opacity-50 text-white font-black text-sm shadow-xl shadow-[#6C63FF]/25 transition-all flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
                   <span className="animate-spin">⏳</span>
-                  <span>Verifying...</span>
+                  <span>Verifying Code...</span>
                 </>
               ) : (
                 <>
@@ -369,7 +368,7 @@ export function Register() {
               )}
             </button>
 
-            <div className="flex items-center justify-between text-xs font-bold pt-2 border-t border-[var(--border-subtle)]">
+            <div className="flex items-center justify-between text-xs font-bold pt-2 border-t border-[var(--border-default)]">
               <button
                 type="button"
                 onClick={() => setStep(1)}
@@ -382,7 +381,7 @@ export function Register() {
                 type="button"
                 onClick={handleSendOtp}
                 disabled={loading}
-                className="text-[#6c63ff] hover:underline"
+                className="text-[#6C63FF] hover:underline"
               >
                 Resend OTP ↻
               </button>

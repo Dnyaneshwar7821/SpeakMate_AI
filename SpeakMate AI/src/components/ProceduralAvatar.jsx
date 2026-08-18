@@ -1,51 +1,60 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { VISEME_TYPES } from '../utils/PhoneticVisemeEngine';
 
 export function ProceduralAvatar({ viseme = "REST", isSpeaking = false }) {
   const mouthRef = useRef();
   const headGroupRef = useRef();
   const leftArmRef = useRef();
   const rightArmRef = useRef();
+  const eyebrowsRef = useRef();
 
-  // Define viseme mouth scales (width, height, depth)
+  // Define viseme mouth scales (width, height, depth) - BIG & PROMINENT
   const visemeScales = useMemo(() => ({
-    REST: [0.3, 0.02, 0.1], // Closed mouth
-    AA: [0.25, 0.25, 0.1],  // Open wide
-    EE: [0.4, 0.1, 0.1],    // Wide smile
-    OO: [0.15, 0.2, 0.1],   // Pursed lips
-    IH: [0.3, 0.15, 0.1],   // Slightly open
-    OH: [0.2, 0.3, 0.1],    // Tall oval
+    [VISEME_TYPES.REST]: [0.3, 0.02, 0.1],   // Closed mouth
+    [VISEME_TYPES.MBP]: [0.34, 0.22, 0.1],   // Slight lip contact, prominent opening
+    [VISEME_TYPES.AA]: [0.32, 0.48, 0.1],    // HUGE open wide mouth
+    [VISEME_TYPES.EE]: [0.48, 0.28, 0.1],    // Wide smile open
+    [VISEME_TYPES.IH]: [0.38, 0.38, 0.1],    // Big open mouth
+    [VISEME_TYPES.OO]: [0.22, 0.38, 0.1],    // Pursed narrow lips
+    [VISEME_TYPES.OH]: [0.28, 0.52, 0.1],    // HUGE tall oval
+    [VISEME_TYPES.FV]: [0.36, 0.24, 0.1],    // Labiodental tuck
+    [VISEME_TYPES.LNT]: [0.40, 0.30, 0.1],   // Alveolar dental
   }), []);
 
-  // Smoothly animate the mouth based on viseme
+  // Smoothly animate the mouth and posture based on viseme
   useFrame((state, delta) => {
     if (mouthRef.current) {
-      const targetScale = visemeScales[viseme] || visemeScales.REST;
-      mouthRef.current.scale.x = THREE.MathUtils.lerp(mouthRef.current.scale.x, targetScale[0], 0.2);
-      mouthRef.current.scale.y = THREE.MathUtils.lerp(mouthRef.current.scale.y, targetScale[1], 0.2);
-      mouthRef.current.scale.z = THREE.MathUtils.lerp(mouthRef.current.scale.z, targetScale[2], 0.2);
+      const activeViseme = isSpeaking ? (viseme === VISEME_TYPES.REST ? VISEME_TYPES.IH : viseme) : VISEME_TYPES.REST;
+      const targetScale = visemeScales[activeViseme] || visemeScales[VISEME_TYPES.IH];
+
+      mouthRef.current.scale.x = THREE.MathUtils.lerp(mouthRef.current.scale.x, targetScale[0], 0.15);
+      mouthRef.current.scale.y = THREE.MathUtils.lerp(mouthRef.current.scale.y, targetScale[1], 0.15);
+      mouthRef.current.scale.z = THREE.MathUtils.lerp(mouthRef.current.scale.z, targetScale[2], 0.15);
     }
 
     if (headGroupRef.current) {
-      // Gentle head bobbing when idle or speaking
       const time = state.clock.getElapsedTime();
-      const bobbing = isSpeaking ? Math.sin(time * 5) * 0.05 : Math.sin(time * 2) * 0.02;
+      const bobbing = isSpeaking ? Math.sin(time * 4) * 0.04 : Math.sin(time * 1.8) * 0.02;
       headGroupRef.current.position.y = 1.4 + bobbing;
       
-      // Slight head rotation when speaking
+      // Vocal head rotation & pitch
       if (isSpeaking) {
-        headGroupRef.current.rotation.y = Math.sin(time * 3) * 0.1;
+        headGroupRef.current.rotation.y = Math.sin(time * 3) * 0.08;
+        headGroupRef.current.rotation.z = Math.sin(time * 2) * 0.03;
       } else {
         headGroupRef.current.rotation.y = THREE.MathUtils.lerp(headGroupRef.current.rotation.y, 0, 0.1);
+        headGroupRef.current.rotation.z = THREE.MathUtils.lerp(headGroupRef.current.rotation.z, 0, 0.1);
       }
     }
 
-    // Arm idle animation
+    // Arm gestures
     if (leftArmRef.current && rightArmRef.current) {
       const time = state.clock.getElapsedTime();
-      leftArmRef.current.rotation.z = Math.sin(time) * 0.05 + 0.2;
-      rightArmRef.current.rotation.z = -Math.sin(time) * 0.05 - 0.2;
+      const armGesture = isSpeaking ? Math.sin(time * 3) * 0.08 : 0;
+      leftArmRef.current.rotation.z = Math.sin(time) * 0.05 + 0.2 + armGesture;
+      rightArmRef.current.rotation.z = -Math.sin(time) * 0.05 - 0.2 - armGesture;
     }
   });
 
@@ -89,7 +98,7 @@ export function ProceduralAvatar({ viseme = "REST", isSpeaking = false }) {
         </mesh>
       </group>
 
-      {/* Head Group (moves and bobs) */}
+      {/* Head Group */}
       <group ref={headGroupRef} position={[0, 1.4, 0]}>
         {/* Neck */}
         <mesh position={[0, -0.3, 0]}>
@@ -147,14 +156,16 @@ export function ProceduralAvatar({ viseme = "REST", isSpeaking = false }) {
         </group>
 
         {/* Eyebrows */}
-        <mesh position={[-0.18, 0.25, 0.42]}>
-          <boxGeometry args={[0.15, 0.03, 0.02]} />
-          <meshStandardMaterial color={hairColor} />
-        </mesh>
-        <mesh position={[0.18, 0.25, 0.42]}>
-          <boxGeometry args={[0.15, 0.03, 0.02]} />
-          <meshStandardMaterial color={hairColor} />
-        </mesh>
+        <group ref={eyebrowsRef}>
+          <mesh position={[-0.18, 0.25, 0.42]}>
+            <boxGeometry args={[0.15, 0.03, 0.02]} />
+            <meshStandardMaterial color={hairColor} />
+          </mesh>
+          <mesh position={[0.18, 0.25, 0.42]}>
+            <boxGeometry args={[0.15, 0.03, 0.02]} />
+            <meshStandardMaterial color={hairColor} />
+          </mesh>
+        </group>
 
         {/* Nose */}
         <mesh position={[0, -0.05, 0.45]}>
@@ -162,7 +173,7 @@ export function ProceduralAvatar({ viseme = "REST", isSpeaking = false }) {
           <meshStandardMaterial color={skinColor} roughness={0.5} />
         </mesh>
 
-        {/* Dynamic Mouth (Lip Sync) */}
+        {/* Dynamic Mouth (Phonetic Lip Sync) */}
         <mesh ref={mouthRef} position={[0, -0.25, 0.41]}>
           <boxGeometry args={[1, 1, 1]} />
           <meshStandardMaterial color="#4a0f0f" />

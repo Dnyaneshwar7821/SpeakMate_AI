@@ -267,20 +267,20 @@ export function SpeakingPractice() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-4 animate-in fade-in duration-300">
-      {/* Hero Banner with 4-Stat Bar (Matches Mobile App Gradient Header & Cards) */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#312e81] p-6 sm:p-10 text-white shadow-2xl space-y-6">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
+      {/* Hero Banner with 4-Stat Bar */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0F172A] via-[#1E1B4B] to-[#312E81] p-6 sm:p-10 text-white shadow-2xl space-y-6 border border-white/10">
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
+          <div className="space-y-3.5 max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
               {isStudent ? `🎓 School Grade: ${selectedGrade}` : `👤 Target Profile: ${selectedAgeGroup}`}
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">Speaking Practice</h1>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">Speaking Practice Studio</h1>
             <p className="text-sm sm:text-base text-indigo-200 font-medium leading-relaxed">
               Interactive AI conversation scenarios tailored to your{" "}
-              <strong>{isStudent ? selectedGrade : selectedAgeGroup}</strong> curriculum and goals.
+              <strong className="text-white">{isStudent ? selectedGrade : selectedAgeGroup}</strong> curriculum and fluency goals.
             </p>
           </div>
         </div>
@@ -288,30 +288,30 @@ export function SpeakingPractice() {
         {/* 4-Stat Dashboard Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-2">
           <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-center">
-            <span className="text-xl sm:text-2xl font-black text-amber-400">{streakDays} 🔥</span>
-            <span className="text-[11px] font-bold text-indigo-200 uppercase tracking-wider mt-1">Streak Days</span>
+            <span className="text-2xl sm:text-3xl font-black text-amber-400">{streakDays} 🔥</span>
+            <span className="text-[10px] sm:text-xs font-black text-indigo-200 uppercase tracking-wider mt-1">Streak Days</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-center">
-            <span className="text-xl sm:text-2xl font-black text-sky-300">{totalMinutes}m</span>
-            <span className="text-[11px] font-bold text-indigo-200 uppercase tracking-wider mt-1">Total Mins</span>
+            <span className="text-2xl sm:text-3xl font-black text-sky-300">{totalMinutes}m</span>
+            <span className="text-[10px] sm:text-xs font-black text-indigo-200 uppercase tracking-wider mt-1">Total Mins</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-center">
-            <span className="text-xl sm:text-2xl font-black text-amber-300">{totalXP} ⭐</span>
-            <span className="text-[11px] font-bold text-indigo-200 uppercase tracking-wider mt-1">XP Earned</span>
+            <span className="text-2xl sm:text-3xl font-black text-amber-300">{totalXP} ⭐</span>
+            <span className="text-[10px] sm:text-xs font-black text-indigo-200 uppercase tracking-wider mt-1">XP Earned</span>
           </div>
 
           <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col items-center justify-center text-center">
-            <span className="text-xl sm:text-2xl font-black text-white">{totalSessions}</span>
-            <span className="text-[11px] font-bold text-indigo-200 uppercase tracking-wider mt-1">Sessions</span>
+            <span className="text-2xl sm:text-3xl font-black text-white">{totalSessions}</span>
+            <span className="text-[10px] sm:text-xs font-black text-indigo-200 uppercase tracking-wider mt-1">Sessions Done</span>
           </div>
         </div>
       </div>
 
       {/* Student Badge Indicator */}
       {isStudent && (
-        <div className="px-4 py-2.5 rounded-2xl bg-[#6c63ff]/15 border border-[#6c63ff]/30 text-[#6c63ff] font-extrabold text-xs sm:text-sm inline-flex items-center gap-2 shadow-sm">
+        <div className="px-4 py-2.5 rounded-2xl bg-[#6C63FF]/15 border border-[#6C63FF]/30 text-[#6C63FF] font-extrabold text-xs sm:text-sm inline-flex items-center gap-2 shadow-sm">
           <span>🎓 School Grade Curriculum Level: <strong>{selectedGrade}</strong></span>
         </div>
       )}
@@ -323,9 +323,9 @@ export function SpeakingPractice() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black shrink-0 transition-all ${
+              className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black shrink-0 transition-all active:scale-95 ${
                 selectedCategory === cat
-                  ? "bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] text-white shadow-md shadow-[#6c63ff]/25 scale-102"
+                  ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-md shadow-[#6C63FF]/25 scale-102"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
               }`}
             >
@@ -340,7 +340,7 @@ export function SpeakingPractice() {
           placeholder="🔍 Search conversation scenarios..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs sm:text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6c63ff] w-full sm:w-72 shadow-inner"
+          className="px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs sm:text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] w-full sm:w-72 shadow-inner"
         />
       </div>
 
@@ -350,7 +350,7 @@ export function SpeakingPractice() {
           <h3 className="text-xl font-black text-[var(--text-primary)] flex items-center gap-2.5">
             <span>{isStudent ? `🏫 ${selectedGrade} Practice Scenarios` : `🗣️ ${selectedAgeGroup} Conversation Scenarios`}</span>
           </h3>
-          <span className="text-xs font-bold text-[var(--text-secondary)]">
+          <span className="text-xs font-extrabold text-[var(--text-secondary)]">
             {filteredScenarios.length} Scenarios Available
           </span>
         </div>
@@ -360,7 +360,7 @@ export function SpeakingPractice() {
             <div
               key={scenario.id}
               onClick={() => handleStartScenario(scenario)}
-              className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6c63ff]/60 hover:shadow-xl transition-all duration-300"
+              className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6C63FF]/60 hover:shadow-xl transition-all duration-300"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
@@ -368,7 +368,7 @@ export function SpeakingPractice() {
                     {scenario.icon}
                   </span>
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-[#6c63ff]/15 text-[#6c63ff]">
+                    <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF]">
                       {scenario.category}
                     </span>
                     <span className="text-[10px] font-black px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-500">
@@ -378,7 +378,7 @@ export function SpeakingPractice() {
                 </div>
 
                 <div>
-                  <h4 className="font-black text-base sm:text-lg text-[var(--text-primary)] group-hover:text-[#6c63ff] transition-colors">
+                  <h4 className="font-black text-base sm:text-lg text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
                     {scenario.title}
                   </h4>
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1.5 line-clamp-2 font-medium">
@@ -387,11 +387,11 @@ export function SpeakingPractice() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[var(--border-subtle)] flex items-center justify-between">
-                <span className="text-xs text-[var(--text-secondary)] font-bold">
+              <div className="pt-4 border-t border-[var(--border-default)] flex items-center justify-between">
+                <span className="text-xs text-[var(--text-secondary)] font-extrabold">
                   ⏱️ {scenario.duration} mins • {isStudent ? selectedGrade : scenario.difficulty}
                 </span>
-                <button className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#4f46e5] group-hover:opacity-90 text-white font-extrabold text-xs shadow-md transition-all">
+                <button className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] group-hover:opacity-95 text-white font-black text-xs shadow-md transition-all">
                   Start Practice →
                 </button>
               </div>
@@ -425,14 +425,14 @@ export function SpeakingPractice() {
               <div
                 key={item.id}
                 onClick={() => navigate(`${ROUTES.SPEAKING_HISTORY_DETAIL}?sessionId=${item.id}`)}
-                className="group p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-[#6c63ff]/50 transition-all flex items-start justify-between gap-4 cursor-pointer shadow-sm hover:shadow-md"
+                className="group p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all flex items-start justify-between gap-4 cursor-pointer shadow-sm hover:shadow-md"
               >
                 <div className="flex items-start gap-3.5 min-w-0">
-                  <div className="p-3 rounded-xl bg-[#6c63ff]/15 text-[#6c63ff] text-xl shrink-0">
+                  <div className="p-3 rounded-xl bg-[#6C63FF]/15 text-[#6C63FF] text-xl shrink-0">
                     💬
                   </div>
                   <div className="min-w-0">
-                    <h4 className="font-black text-sm text-[var(--text-primary)] truncate group-hover:text-[#6c63ff] transition-colors">
+                    <h4 className="font-black text-sm text-[var(--text-primary)] truncate group-hover:text-[#6C63FF] transition-colors">
                       {item.scenario || "Speaking Practice Session"}
                     </h4>
                     <p className="text-[11px] text-[var(--text-secondary)] font-bold mt-0.5">
