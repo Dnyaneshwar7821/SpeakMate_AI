@@ -317,6 +317,47 @@ export const VoiceService = {
     return selected;
   },
 
+  sanitizeTextForSpeech: (rawText) => {
+    if (!rawText) return '';
+    let t = String(rawText);
+
+    // 1. If JSON, extract message or aiReply
+    if (t.includes('{') && t.includes('}')) {
+      try {
+        const s = t.indexOf('{');
+        const e = t.lastIndexOf('}');
+        const parsed = JSON.parse(t.substring(s, e + 1));
+        if (parsed.aiReply) t = parsed.aiReply;
+        else if (parsed.message) t = parsed.message;
+        else if (parsed.response) t = parsed.response;
+      } catch (_) {}
+    }
+
+    // 2. Remove tagged blocks e.g. [GRAMMAR]... [BETTER_SENTENCE]...
+    t = t.replace(/\[(GRAMMAR|BETTER_SENTENCE|VOCABULARY|EXPLANATION|FOLLOWUP|REPLY)\][\s\S]*?(?=\[|$)/gi, (match, tag) => {
+      if (tag.toUpperCase() === 'REPLY') {
+        return match.replace(/\[REPLY\]/i, '').trim();
+      }
+      return '';
+    });
+
+    // 3. Remove Markdown markers & code fences
+    t = t.replace(/```[\s\S]*?```/g, '');
+    t = t.replace(/`([^`]+)`/g, '$1');
+    t = t.replace(/[*#_~]/g, '');
+
+    // 4. Remove stage directions / parentheticals e.g. (laughs), (smiling), (1-2 sentences)
+    t = t.replace(/\([^)]{1,40}\)/g, '');
+
+    // 5. Remove Emojis & special symbols
+    t = t.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '');
+
+    // 6. Clean up quotes, slashes, whitespace
+    t = t.replace(/\\"/g, '"').replace(/\s+/g, ' ').trim();
+
+    return t;
+  },
+
   speak: async (text, {
     isMuted        = false,
     voiceType      = 'Friendly',
@@ -327,6 +368,9 @@ export const VoiceService = {
     onError,
   } = {}) => {
     if (isMuted) return;
+
+    const cleanedText = VoiceService.sanitizeTextForSpeech(text);
+    if (!cleanedText) return;
 
     // Load saved speech speed from AsyncStorage if not provided explicitly
     let effectiveSpeed = speechSpeed;
@@ -421,7 +465,7 @@ export const VoiceService = {
     // ── 7. Speak ──────────────────────────────────────────────────────────────
     try {
       Speech.stop();
-      Speech.speak(text, options);
+      Speech.speak(cleanedText, options);
     } catch (e) {
       console.warn('[VoiceService] Speech.speak failed:', e);
       if (onError) onError(e);

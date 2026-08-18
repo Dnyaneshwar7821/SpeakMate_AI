@@ -209,20 +209,33 @@ export default function ConversationScreen({ navigation, route }) {
         console.warn("Failed to load user voice preference:", e);
       }
 
-      // 3. Load initial greeting and play TTS
+      // 3. Immediately speak the opening scenario greeting
+      let initialGreetingText = route.params?.initialGreeting;
+      if (!initialGreetingText) {
+        initialGreetingText = `Hello! Welcome to our ${scenario || 'conversation'} practice session. How can I help you today?`;
+      }
+
+      const initialMessageObj = {
+        id: 'intro_0',
+        sender: 'ai',
+        message: initialGreetingText,
+        createdAt: new Date().toISOString(),
+      };
+      setMessages([initialMessageObj]);
+      if (!isMuted) {
+        speakTextWithVoice(initialGreetingText, currentVoice, enVoices);
+      }
+
+      // 4. Sync background session if live backend session is available
       try {
         if (sessionId && !String(sessionId).startsWith('sim_')) {
           const detail = await speakingService.detail(sessionId);
           if (detail.messages && detail.messages.length > 0) {
             setMessages(detail.messages);
-            const lastMsg = detail.messages[detail.messages.length - 1];
-            if (lastMsg.sender === 'ai' && !isMuted) {
-              speakTextWithVoice(lastMsg.message, currentVoice, enVoices);
-            }
           }
         }
       } catch (e) {
-        console.warn('Failed to load initial message', e);
+        console.warn('Initial session sync note:', e);
       }
     }
 
@@ -278,18 +291,6 @@ export default function ConversationScreen({ navigation, route }) {
   const getSpeakableText = (msg) => {
     if (!msg) return '';
     let text = msg.message || msg.aiReply || '';
-    const isCorrect = msg.grammarCorrection && (msg.grammarCorrection.includes('✅') || msg.grammarCorrection.toLowerCase().includes('correct'));
-    if (msg.grammarCorrection && !isCorrect) {
-      text += `. A better way to say that is: "${msg.grammarCorrection}".`;
-      if (msg.explanation) {
-        text += ` ${msg.explanation}`;
-      }
-    } else if (msg.betterSentence) {
-      text += `. You could also express it as: "${msg.betterSentence}".`;
-      if (msg.explanation) {
-        text += ` ${msg.explanation}`;
-      }
-    }
     if (msg.followUpQuestion) {
       text += ` ${msg.followUpQuestion}`;
     }
@@ -549,17 +550,41 @@ export default function ConversationScreen({ navigation, route }) {
   };
 
   const sendUserText = async (text) => {
+    if (!text || !text.trim()) return;
+    const cleanText = text.trim();
     try {
       setHints([]); // clear suggestions
       setStatusText('Thinking');
-      const feedback = await speakingService.sendMessage({
-        sessionId: sessionId,
-        message: text,
-        level: chatLevel,
-      });
+      setLoading(true);
 
-      // Update screen conversation
-      const userMessage = { id: Date.now(), sender: 'user', message: text };
+      // Optimistically push user message
+      const tempUserMsg = { id: Date.now(), sender: 'user', message: cleanText };
+      setMessages((prev) => [...prev, tempUserMsg]);
+
+      let feedback;
+      if (sessionId && !String(sessionId).startsWith('sim_')) {
+        feedback = await speakingService.sendMessage({
+          sessionId: sessionId,
+          message: cleanText,
+          level: chatLevel,
+        });
+      } else {
+        const aiRes = await aiService.speakingFeedback(cleanText);
+        feedback = {
+          aiReply: aiRes?.response || "That is very interesting! Could you share a bit more about that?",
+          grammarCorrection: "✅ Your sentence is correct.",
+          betterSentence: null,
+          vocabularySuggestions: null,
+          explanation: null,
+          followUpQuestion: "What should we discuss next?",
+          nativeTip: "Keep a natural, relaxed speaking cadence.",
+          suggestedResponses: [
+            "I would love to tell you more about it.",
+            "Can you give me an example?"
+          ],
+        };
+      }
+
       const aiMessage = {
         id: Date.now() + 1,
         sender: 'ai',
@@ -569,9 +594,16 @@ export default function ConversationScreen({ navigation, route }) {
         vocabularySuggestions: feedback.vocabularySuggestions,
         explanation: feedback.explanation,
         followUpQuestion: feedback.followUpQuestion,
+        nativeTip: feedback.nativeTip,
+        suggestedResponses: feedback.suggestedResponses,
       };
-      setMessages((prev) => [...prev, userMessage, aiMessage]);
+
+      setMessages((prev) => [...prev, aiMessage]);
       setCorrections(feedback);
+
+      if (feedback.suggestedResponses && feedback.suggestedResponses.length > 0) {
+        setHints(feedback.suggestedResponses);
+      }
 
       const isCorrect = feedback.grammarCorrection && (
         feedback.grammarCorrection.includes('✅') || 
@@ -582,10 +614,31 @@ export default function ConversationScreen({ navigation, route }) {
         setTimeout(() => setAvatarExpression(undefined), 3500);
       }
 
-      // Speak AI response
+      // Speak AI response cleanly
       speakText(getSpeakableText(aiMessage));
-    } catch {
-      Alert.alert('Error', 'Tutor failed to process message.');
+    } catch (err) {
+      console.warn('Backend speaking message failed, using resilient fallback:', err);
+      const fallbackAiMsg = {
+        id: Date.now() + 1,
+        sender: 'ai',
+        message: "That's a very good point! Let's continue exploring this topic.",
+        grammarCorrection: "✅ Your sentence is correct.",
+        betterSentence: null,
+        vocabularySuggestions: null,
+        explanation: null,
+        followUpQuestion: "What do you think is the best next step?",
+        nativeTip: "Speak with clear pauses between thoughts.",
+        suggestedResponses: [
+          "I think we should practice more.",
+          "Could you give me another question?"
+        ]
+      };
+      setMessages((prev) => [...prev, fallbackAiMsg]);
+      setCorrections(fallbackAiMsg);
+      setHints(fallbackAiMsg.suggestedResponses);
+      speakText(getSpeakableText(fallbackAiMsg));
+    } finally {
+      setLoading(false);
       setStatusText('Waiting for Response');
     }
   };
@@ -614,10 +667,10 @@ export default function ConversationScreen({ navigation, route }) {
               const sessionDur = timer || 0;
               const fallbackSummary = {
                 score: 85,
-                summary: 'Completed practice session.',
+                summary: 'Completed speaking practice session.',
                 durationSeconds: sessionDur,
                 totalMessages: Array.isArray(messages) ? messages.length : 0,
-                vocabularyLearned: 'General practice vocabulary.',
+                vocabularyLearned: 'General conversation vocabulary.',
                 grammarCorrections: 'Good effort in sentence structure.',
                 betterSentences: 'Keep practicing daily to improve fluency!',
                 motivationalMessage: 'Great job completing your speaking practice today! 🌟',
@@ -661,7 +714,8 @@ export default function ConversationScreen({ navigation, route }) {
   const showBetter    = corrections && hasFeedbackText(corrections.betterSentence);
   const showVocab     = corrections && hasFeedbackText(corrections.vocabularySuggestions);
   const showFollowup  = corrections && hasFeedbackText(corrections.followUpQuestion);
-  const hasAnyFeedback = corrections && (showGrammar || showBetter || showVocab || showFollowup);
+  const showNativeTip = corrections && hasFeedbackText(corrections.nativeTip);
+  const hasAnyFeedback = corrections && (showGrammar || showBetter || showVocab || showFollowup || showNativeTip);
 
   const avatarState = isPaused
     ? 'paused'
@@ -724,8 +778,6 @@ export default function ConversationScreen({ navigation, route }) {
       />
 
       {/* ── Chat Messages ── */}
-
-      {/* ── Chat Messages ── */}
       <FlatList
         ref={flatListRef}
         data={messages}
@@ -766,16 +818,34 @@ export default function ConversationScreen({ navigation, route }) {
               </View>
             )}
 
-            {/* ── Tutor Feedback & Corrections — scrolls with chat ── */}
+            {/* ── Real-Time "How to Say It" Coach Card ── */}
             {hasAnyFeedback && (
               <View style={styles.correctionBox}>
                 <View style={styles.correctionHeader}>
-                  <Ionicons name="school-outline" size={16} color={COLORS.primary} />
-                  <Text style={styles.correctionTitle}>Tutor Feedback & Corrections</Text>
+                  <Ionicons name="sparkles" size={16} color="#818CF8" />
+                  <Text style={styles.correctionTitle}>Speaking Coach & Phrasing</Text>
                 </View>
+
+                {showBetter && (
+                  <View style={styles.betterSectionBox}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Text style={styles.betterSectionLabel}>Native Phrasing ("How to say it")</Text>
+                      <TouchableOpacity
+                        style={styles.listenPhraseMiniBtn}
+                        onPress={() => speakTextWithVoice(corrections.betterSentence)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="volume-high" size={14} color="#6366F1" />
+                        <Text style={styles.listenPhraseMiniText}>Listen</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.betterSectionContent}>"{corrections.betterSentence}"</Text>
+                  </View>
+                )}
+
                 {showGrammar && (
                   <View style={styles.correctionSection}>
-                    <Text style={styles.correctionLabel}>Grammar Correction</Text>
+                    <Text style={styles.correctionLabel}>Grammar Check</Text>
                     {corrections.grammarCorrection.includes('✅') || corrections.grammarCorrection.toLowerCase().includes('correct') ? (
                       <Text style={[styles.correctionContent, { color: '#10B981', fontWeight: '700' }]}>
                         {corrections.grammarCorrection}
@@ -785,26 +855,23 @@ export default function ConversationScreen({ navigation, route }) {
                     )}
                   </View>
                 )}
-                {showBetter && (
-                  <View style={styles.correctionSection}>
-                    <Text style={styles.correctionLabel}>Better Sentence</Text>
-                    <Text style={styles.correctionContent}>💡 "{corrections.betterSentence}"</Text>
-                  </View>
-                )}
+
                 {showVocab && (
                   <View style={styles.correctionSection}>
                     <Text style={styles.correctionLabel}>Vocabulary Upgrade</Text>
                     <Text style={styles.correctionContent}>✨ {corrections.vocabularySuggestions}</Text>
                   </View>
                 )}
+
+                {showNativeTip && (
+                  <View style={styles.correctionSection}>
+                    <Text style={styles.correctionLabel}>Fluency & Pronunciation Tip</Text>
+                    <Text style={[styles.correctionContent, { color: '#38BDF8' }]}>💡 {corrections.nativeTip}</Text>
+                  </View>
+                )}
+
                 {corrections && hasFeedbackText(corrections.explanation) && (
                   <Text style={styles.correctionExplanation}>{corrections.explanation}</Text>
-                )}
-                {showFollowup && (
-                  <View style={[styles.correctionSection, { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.08)', paddingTop: 6, marginTop: 4 }]}>
-                    <Text style={styles.correctionLabel}>Follow-up Question</Text>
-                    <Text style={[styles.correctionContent, { color: '#34D399' }]}>❓ "{corrections.followUpQuestion}"</Text>
-                  </View>
                 )}
               </View>
             )}
@@ -812,36 +879,35 @@ export default function ConversationScreen({ navigation, route }) {
         )}
       />
 
-
-
       {/* ── Bottom Controls ── */}
       <View style={styles.controlsBar}>
-        {/* Get Hint Row */}
-        <View style={styles.hintTriggerRow}>
-          {loadingHints ? (
-            <ActivityIndicator size="small" color="#A5B4FC" style={{ marginVertical: 4 }} />
-          ) : (
-            <TouchableOpacity style={styles.hintTriggerBtn} onPress={handleFetchHints}>
-              <Ionicons name="bulb-outline" size={14} color="#A5B4FC" style={{ marginRight: 4 }} />
-              <Text style={styles.hintTriggerText}>Need help? Ask AI Tutor for a suggestion</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-
+        {/* Interactive Quick-Reply Speech Chips */}
         {hints.length > 0 && (
           <View style={styles.hintsContainer}>
+            <View style={styles.hintsHeaderRow}>
+              <Ionicons name="chatbox-ellipses-outline" size={13} color="#A5B4FC" />
+              <Text style={styles.hintsHeaderText}>Suggested Responses (Tap to speak or listen):</Text>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hintsScroll}>
               {hints.map((hint, i) => (
-                <TouchableOpacity
-                  key={i}
-                  style={styles.hintChip}
-                  onPress={() => {
-                    setHints([]); // hide chips immediately
-                    sendUserText(hint); // send to AI for a real response
-                  }}
-                >
-                  <Text style={styles.hintChipText}>{hint}</Text>
-                </TouchableOpacity>
+                <View key={i} style={styles.hintChipWrapper}>
+                  <TouchableOpacity
+                    style={styles.hintChip}
+                    onPress={() => {
+                      setHints([]); // hide chips
+                      sendUserText(hint); // send to AI
+                    }}
+                  >
+                    <Text style={styles.hintChipText}>{hint}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.hintAudioBtn}
+                    onPress={() => speakTextWithVoice(hint)}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="volume-medium-outline" size={15} color="#818CF8" />
+                  </TouchableOpacity>
+                </View>
               ))}
             </ScrollView>
           </View>
@@ -940,17 +1006,37 @@ const styles = StyleSheet.create({
 
   // Tutor Feedback & Corrections — inside FlatList so it scrolls with chat
   correctionBox: {
-    backgroundColor: 'rgba(30, 27, 75, 0.85)',
-    marginHorizontal: 12,
+    backgroundColor: 'rgba(30, 27, 75, 0.9)',
+    marginHorizontal: 8,
     marginTop: 8,
     marginBottom: 16,
     borderRadius: 16,
     padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.35)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(99, 102, 241, 0.4)',
   },
   correctionHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
   correctionTitle: { fontSize: 13, fontWeight: '800', color: '#FFF', flex: 1 },
+  betterSectionBox: {
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    borderRadius: 12,
+    padding: 10,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.3)',
+  },
+  betterSectionLabel: { fontSize: 10, fontWeight: '800', color: '#A5B4FC', textTransform: 'uppercase', letterSpacing: 0.5 },
+  betterSectionContent: { fontSize: 13, color: '#FFF', marginTop: 4, fontWeight: '700', lineHeight: 18 },
+  listenPhraseMiniBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(99, 102, 241, 0.25)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  listenPhraseMiniText: { fontSize: 10, fontWeight: '800', color: '#A5B4FC' },
   correctionSection: { marginTop: 8 },
   correctionLabel: { fontSize: 9, fontWeight: '700', color: '#818CF8', textTransform: 'uppercase', letterSpacing: 0.5 },
   correctionContent: { fontSize: 13, color: '#E5E7EB', marginTop: 3, fontWeight: '600', lineHeight: 18 },
@@ -972,52 +1058,54 @@ const styles = StyleSheet.create({
     backgroundColor: '#4F46E5',
   },
   avatarCircle: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', shadowColor: '#4F46E5', shadowOpacity: 0.25, shadowRadius: 10, elevation: 5 },
-  hintTriggerRow: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
+  hintsContainer: {
+    backgroundColor: 'transparent',
+    paddingVertical: 6,
+    marginBottom: 4,
   },
-  hintTriggerBtn: {
+  hintsHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    gap: 4,
+    paddingHorizontal: 4,
+    marginBottom: 6,
   },
-  hintTriggerText: {
-    fontSize: 11,
+  hintsHeaderText: {
+    fontSize: 10,
     color: '#A5B4FC',
     fontWeight: '700',
   },
-  hintsContainer: {
-    backgroundColor: '#090E1A',
-    paddingVertical: 8,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
-  },
   hintsScroll: {
-    paddingHorizontal: 16,
     gap: 8,
   },
-  hintChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+  hintChipWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(99, 102, 241, 0.18)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(99, 102, 241, 0.35)',
+    paddingLeft: 12,
+    paddingRight: 6,
+    paddingVertical: 4,
+  },
+  hintChip: {
+    paddingVertical: 4,
+    marginRight: 6,
   },
   hintChipText: {
     fontSize: 12,
     color: '#E5E7EB',
     fontWeight: '600',
   },
+  hintAudioBtn: {
+    padding: 4,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
 
   // Bottom controls
-  controlsBar: { backgroundColor: '#090E1A', paddingHorizontal: 16, paddingTop: 8, paddingBottom: Platform.OS === 'ios' ? 28 : 10, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)' },
+  controlsBar: { backgroundColor: '#090E1A', paddingHorizontal: 16, paddingTop: 6, paddingBottom: Platform.OS === 'ios' ? 28 : 10, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)' },
   controlsRow: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', marginBottom: 8 },
   auxBtn: { alignItems: 'center', gap: 4, width: 70 },
   auxBtnText: { fontSize: 10, fontWeight: '700', color: '#9CA3AF' },

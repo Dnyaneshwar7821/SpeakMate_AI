@@ -1,5 +1,6 @@
 package com.rslsolution.speakmateai.dto.response;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,12 +14,14 @@ public class SpeakingMessageResponse {
 
 	private String aiReply;
 
-	// Tutor correction feedback
+	// Tutor correction feedback & Native guidance
 	private String grammarCorrection;
-	private String betterSentence;
+	private String betterSentence; // "How to say it"
 	private String vocabularySuggestions;
 	private String explanation;
 	private String followUpQuestion;
+	private String nativeTip;
+	private List<String> suggestedResponses; // 2-3 interactive response prompts
 
 	public String getAiReply() { return aiReply; }
 	public void setAiReply(String aiReply) { this.aiReply = aiReply; }
@@ -38,6 +41,12 @@ public class SpeakingMessageResponse {
 	public String getFollowUpQuestion() { return followUpQuestion; }
 	public void setFollowUpQuestion(String followUpQuestion) { this.followUpQuestion = followUpQuestion; }
 
+	public String getNativeTip() { return nativeTip; }
+	public void setNativeTip(String nativeTip) { this.nativeTip = nativeTip; }
+
+	public List<String> getSuggestedResponses() { return suggestedResponses; }
+	public void setSuggestedResponses(List<String> suggestedResponses) { this.suggestedResponses = suggestedResponses; }
+
 	public static SpeakingMessageResponseBuilder builder() {
 		return new SpeakingMessageResponseBuilder();
 	}
@@ -49,6 +58,8 @@ public class SpeakingMessageResponse {
 		private String vocabularySuggestions;
 		private String explanation;
 		private String followUpQuestion;
+		private String nativeTip;
+		private List<String> suggestedResponses;
 
 		public SpeakingMessageResponseBuilder aiReply(String aiReply) { this.aiReply = aiReply; return this; }
 		public SpeakingMessageResponseBuilder grammarCorrection(String grammarCorrection) { this.grammarCorrection = grammarCorrection; return this; }
@@ -56,6 +67,8 @@ public class SpeakingMessageResponse {
 		public SpeakingMessageResponseBuilder vocabularySuggestions(String vocabularySuggestions) { this.vocabularySuggestions = vocabularySuggestions; return this; }
 		public SpeakingMessageResponseBuilder explanation(String explanation) { this.explanation = explanation; return this; }
 		public SpeakingMessageResponseBuilder followUpQuestion(String followUpQuestion) { this.followUpQuestion = followUpQuestion; return this; }
+		public SpeakingMessageResponseBuilder nativeTip(String nativeTip) { this.nativeTip = nativeTip; return this; }
+		public SpeakingMessageResponseBuilder suggestedResponses(List<String> suggestedResponses) { this.suggestedResponses = suggestedResponses; return this; }
 
 		public SpeakingMessageResponse build() {
             SpeakingMessageResponse obj = new SpeakingMessageResponse();
@@ -65,6 +78,8 @@ public class SpeakingMessageResponse {
             obj.setVocabularySuggestions(vocabularySuggestions);
             obj.setExplanation(explanation);
             obj.setFollowUpQuestion(followUpQuestion);
+            obj.setNativeTip(nativeTip);
+            obj.setSuggestedResponses(suggestedResponses);
             return obj;
         }
 	}

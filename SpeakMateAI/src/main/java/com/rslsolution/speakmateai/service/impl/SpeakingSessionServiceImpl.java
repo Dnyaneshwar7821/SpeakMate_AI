@@ -251,6 +251,31 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 	// ── Phase 2 — Speaking practice module ────────────────────────────
 
+	private String getDefaultScenarioOpening(String scenario) {
+		if (scenario == null) return "Hello! Welcome to our speaking practice session. How are you doing today?";
+		String s = scenario.toLowerCase();
+		if (s.contains("restaurant") || s.contains("food") || s.contains("burger")) {
+			return "Hello! Welcome to our restaurant. Can I get a table ready for you, or would you like to see the menu?";
+		} else if (s.contains("coffee") || s.contains("cafe")) {
+			return "Hi there! Welcome to the coffee house. What can I brew for you today?";
+		} else if (s.contains("hotel")) {
+			return "Good day and welcome to our hotel! Are you checking in today?";
+		} else if (s.contains("airport") || s.contains("customs") || s.contains("travel")) {
+			return "Good day, traveler! May I see your passport and boarding pass, please?";
+		} else if (s.contains("interview") || s.contains("job")) {
+			return "Welcome and thank you for joining us today! To begin, could you please tell me a little about yourself?";
+		} else if (s.contains("shopping") || s.contains("clothes") || s.contains("store")) {
+			return "Hi! Welcome to our store. Are you looking for anything specific today?";
+		} else if (s.contains("zoo") || s.contains("animal")) {
+			return "Hello! Welcome to the city zoo. What is your favorite animal to see today?";
+		} else if (s.contains("school") || s.contains("exam") || s.contains("homework")) {
+			return "Hey! Good to see you in class today. What topic would you like to work on together?";
+		} else if (s.contains("meeting") || s.contains("presentation") || s.contains("business")) {
+			return "Good morning team! Thank you all for joining. Shall we kick off our agenda for today?";
+		}
+		return "Hello! Welcome to our " + scenario + " conversation practice. What would you like to start with?";
+	}
+
 	@Override
 	public SpeakingSessionResponse startSession(SpeakingStartRequest request) {
 		User user = currentUser();
@@ -276,20 +301,21 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		try {
 			List<GroqRequest.Message> messages = new ArrayList<>();
 			String sysPrompt = String.format(
-					"You are an English tutor simulating the scenario: '%s'. " +
-					"Greet the student, briefly introduce the scenario, and ask an opening question to start the practice conversation. " +
-					"Do not give any corrections yet. Keep it warm, natural, and under 2 sentences.",
+					"You are an English tutor roleplaying the opening of the scenario: '%s'.\n" +
+					"Immediately greet the student in-character (e.g. as a friendly waiter, interviewer, hotel clerk, or conversation partner).\n" +
+					"Ask an engaging opening question to start the dialogue.\n" +
+					"Keep it warm, natural, and under 2 sentences. Never output JSON or formatting tags.",
 					scenarioName
 			);
 			messages.add(new GroqRequest.Message("system", sysPrompt));
-			messages.add(new GroqRequest.Message("user", "Hello tutor, let's start."));
+			messages.add(new GroqRequest.Message("user", "Hello! Let's start the conversation."));
 
 			intro = callGroqChat(messages);
-			if (intro == null || intro.trim().isEmpty()) {
-				intro = "Hello! Welcome to our " + scenarioName + " practice session. How are you doing today?";
+			if (intro == null || intro.trim().isEmpty() || intro.contains("{")) {
+				intro = getDefaultScenarioOpening(scenarioName);
 			}
 		} catch (Exception e) {
-			intro = "Hello! Welcome to our " + scenarioName + " practice session. How are you doing today?";
+			intro = getDefaultScenarioOpening(scenarioName);
 		}
 
 		// Save the AI message
@@ -371,10 +397,12 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				"{\n" +
 				"  \"aiReply\": \"Your natural conversational response as the roleplayer (1-2 sentences, keep it moving). IMPORTANT: Do not include the follow-up question in this section!\",\n" +
 				"  \"grammarCorrection\": \"Corrected version of the user's sentence if they made a mistake, otherwise null.\",\n" +
-				"  \"betterSentence\": \"A more native or natural way to express the user's sentence, otherwise null.\",\n" +
-				"  \"vocabularySuggestions\": \"Alternative words to enrich their vocabulary, otherwise null.\",\n" +
+				"  \"betterSentence\": \"A natural native phrasing alternative ('How you should say it') for the user's sentence, otherwise null.\",\n" +
+				"  \"vocabularySuggestions\": \"1-2 alternative words to enrich their vocabulary, otherwise null.\",\n" +
 				"  \"explanation\": \"A short (1 sentence) tutoring explanation of the correction or vocab suggestion, otherwise null.\",\n" +
-				"  \"followUpQuestion\": \"A natural follow-up question to keep the chat moving forward.\"\n" +
+				"  \"followUpQuestion\": \"A natural follow-up question to keep the chat moving forward.\",\n" +
+				"  \"nativeTip\": \"A short tip on pronunciation or natural cadence, otherwise null.\",\n" +
+				"  \"suggestedResponses\": [\"Short sample reply option 1\", \"Short sample reply option 2\"]\n" +
 				"}\n\n" +
 				"Important: Escape any double quotes inside string values as \\\" to ensure the JSON is valid.",
 				session.getScenario(),
@@ -407,6 +435,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				response.setVocabularySuggestions(extractFieldFromJson(cleanJson, "vocabularySuggestions"));
 				response.setExplanation(extractFieldFromJson(cleanJson, "explanation"));
 				response.setFollowUpQuestion(extractFieldFromJson(cleanJson, "followUpQuestion"));
+				response.setNativeTip(extractFieldFromJson(cleanJson, "nativeTip"));
 			} else {
 				// If we can't extract the aiReply field, check if it looks like JSON
 				if (cleanJson.contains("{") || cleanJson.contains("\"") || cleanJson.contains("aiReply")) {
@@ -444,6 +473,14 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		}
 		if (response.getFollowUpQuestion() != null && (response.getFollowUpQuestion().equalsIgnoreCase("none") || response.getFollowUpQuestion().equalsIgnoreCase("null") || response.getFollowUpQuestion().trim().isEmpty())) {
 			response.setFollowUpQuestion(null);
+		}
+
+		// Provide smart suggested response chips if empty
+		if (response.getSuggestedResponses() == null || response.getSuggestedResponses().isEmpty()) {
+			response.setSuggestedResponses(List.of(
+				"Could you tell me more about that?",
+				"That sounds great, let's proceed."
+			));
 		}
 
 		// Deduplicate follow-up from reply

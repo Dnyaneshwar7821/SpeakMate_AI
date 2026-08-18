@@ -232,11 +232,38 @@ export default function SpeakingHomeScreen({ navigation }) {
     }, [])
   );
 
+export const getScenarioInitialGreeting = (title = '') => {
+  const t = title.toLowerCase();
+  if (t.includes('restaurant') || t.includes('food') || t.includes('burger')) {
+    return "Hello! Welcome to our restaurant. Can I get a table ready for you, or would you like to see the menu?";
+  } else if (t.includes('coffee') || t.includes('cafe')) {
+    return "Hi there! Welcome to the coffee house. What can I brew for you today?";
+  } else if (t.includes('hotel') || t.includes('check-in')) {
+    return "Good day and welcome to our hotel! Are you checking in today?";
+  } else if (t.includes('airport') || t.includes('customs') || t.includes('travel')) {
+    return "Good day! Welcome to airport check-in. May I see your passport and boarding pass, please?";
+  } else if (t.includes('interview') || t.includes('job')) {
+    return "Welcome and thank you for joining us today! To begin, could you please tell me a little about yourself?";
+  } else if (t.includes('shopping') || t.includes('clothes') || t.includes('store')) {
+    return "Hi! Welcome to our store. Are you looking for anything specific today?";
+  } else if (t.includes('zoo') || t.includes('animal')) {
+    return "Hello! Welcome to the city zoo. What is your favorite animal that you would like to see today?";
+  } else if (t.includes('school') || t.includes('exam') || t.includes('homework') || t.includes('starter')) {
+    return "Hello there! Welcome to our English speaking practice. What fun topic would you like to talk about today?";
+  } else if (t.includes('meeting') || t.includes('presentation') || t.includes('business')) {
+    return "Good morning! Thank you all for joining. Shall we kick off our agenda for today?";
+  } else if (t.includes('show & tell') || t.includes('superhero')) {
+    return "Hi! I am so excited for Show and Tell today! What awesome story or item would you like to share?";
+  }
+  return `Hello! Welcome to our ${title} practice session. How are you doing today?`;
+};
+
   const startScenario = async (scenario) => {
     triggerStart(scenario.title, scenario);
   };
 
   const triggerStart = async (scenarioName, scenario) => {
+    const defaultGreeting = getScenarioInitialGreeting(scenarioName);
     try {
       setLoading(true);
       const durationNum = typeof scenario?.duration === 'number'
@@ -256,6 +283,7 @@ export default function SpeakingHomeScreen({ navigation }) {
         sessionId: session.id,
         scenario: scenarioName,
         xpReward: xpNum,
+        initialGreeting: defaultGreeting,
       });
     } catch (error) {
       console.warn('Backend session creation failed, proceeding locally:', error);
@@ -266,6 +294,7 @@ export default function SpeakingHomeScreen({ navigation }) {
         sessionId: 'sim_' + Date.now(),
         scenario: scenarioName,
         xpReward: xpNum,
+        initialGreeting: defaultGreeting,
       });
     } finally {
       setLoading(false);
