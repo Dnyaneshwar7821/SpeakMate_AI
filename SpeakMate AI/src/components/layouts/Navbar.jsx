@@ -130,10 +130,16 @@ export function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-base shadow-md shadow-[#6C63FF]/30 hover:scale-105 active:scale-95 transition-all"
+                  className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-base shadow-md shadow-[#6C63FF]/30 hover:scale-105 active:scale-95 transition-all overflow-hidden"
                   aria-label="Open user menu"
                 >
-                  {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  {user?.avatar && (user.avatar.startsWith("data:image/") || user.avatar.startsWith("http") || user.avatar.startsWith("/")) ? (
+                    <img src={user.avatar} alt="User Avatar" className="w-full h-full object-cover" />
+                  ) : user?.avatar ? (
+                    <span className="text-xl">{user.avatar}</span>
+                  ) : (
+                    user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.name ? user.name.charAt(0).toUpperCase() : "U"
+                  )}
                 </button>
 
                 {dropdownOpen && (

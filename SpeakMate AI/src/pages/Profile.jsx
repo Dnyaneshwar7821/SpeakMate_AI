@@ -40,6 +40,18 @@ const getRankTier = (xp = 0) => {
   return { name: "Gold Master", icon: "👑", badgeColor: "from-amber-400 to-yellow-600", nextXp: 3000 };
 };
 
+export const isImageAvatar = (avatar) => {
+  if (!avatar || typeof avatar !== "string") return false;
+  const clean = avatar.trim();
+  return (
+    clean.startsWith("http://") ||
+    clean.startsWith("https://") ||
+    clean.startsWith("/") ||
+    clean.startsWith("data:image/") ||
+    clean.startsWith("blob:")
+  );
+};
+
 export function Profile() {
   const { user, updateUser, logout } = useAuth();
   const toast = useToast();
@@ -220,7 +232,7 @@ export function Profile() {
             className="group relative cursor-pointer grid h-24 w-24 place-items-center rounded-3xl bg-white/20 backdrop-blur-md border-2 border-white/40 shadow-inner shrink-0 hover:scale-105 transition-all overflow-hidden"
             title="Click to change avatar"
           >
-            {selectedAvatar && (selectedAvatar.startsWith("http") || selectedAvatar.startsWith("/")) ? (
+            {isImageAvatar(selectedAvatar) ? (
               <img src={selectedAvatar} alt="Profile Avatar" className="w-full h-full object-cover" />
             ) : (
               <span className="text-4xl">{selectedAvatar || "🎓"}</span>
@@ -538,7 +550,52 @@ export function Profile() {
               </button>
             </div>
 
-            <div className="grid grid-cols-6 gap-3 p-2">
+            {/* Custom Photo Upload Option */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+              <div className="flex items-center gap-3">
+                <div className="h-11 w-11 rounded-2xl overflow-hidden grid place-items-center bg-[#6C63FF]/20 border border-[#6C63FF]/30 shrink-0">
+                  {isImageAvatar(selectedAvatar) ? (
+                    <img src={selectedAvatar} alt="Current" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-xl">📸</span>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xs font-black text-[var(--text-primary)]">Custom Photo</p>
+                  <p className="text-[10px] text-[var(--text-secondary)] font-medium">Upload JPG or PNG from device</p>
+                </div>
+              </div>
+              <label className="py-2 px-3.5 rounded-xl bg-[#6C63FF] hover:bg-[#5B52E0] text-white text-xs font-black cursor-pointer shadow-md shadow-[#6C63FF]/25 active:scale-95 transition-all">
+                Upload Photo
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      if (file.size > 4 * 1024 * 1024) {
+                        toast.error("Image size must be less than 4MB.");
+                        return;
+                      }
+                      const reader = new FileReader();
+                      reader.onload = () => {
+                        if (reader.result) {
+                          setSelectedAvatar(reader.result);
+                          setShowAvatarModal(false);
+                          toast.success("Photo selected! Click 'Save Profile Changes' to save.");
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+
+            <div className="text-xs font-bold text-[var(--text-secondary)] px-1">Or select an emoji avatar:</div>
+
+            <div className="grid grid-cols-6 gap-3 p-1 max-h-48 overflow-y-auto">
               {PRESET_AVATARS.map((emoji) => (
                 <button
                   key={emoji}
