@@ -29,7 +29,8 @@ jwt.expiration=86400000
 groq.api.key=YOUR_GROQ_API_KEY
 
 groq.api.url=https://api.groq.com/openai/v1/chat/completions
-groq.model=${GROQ_MODEL:qwen/qwen3.6-27b}
+groq.model.chat=${GROQ_MODEL_CHAT:openai/gpt-oss-20b}
+groq.model.analysis=${GROQ_MODEL_ANALYSIS:qwen/qwen3.6-27b}
 groq.whisper.url=https://api.groq.com/openai/v1/audio/transcriptions
 groq.whisper.model=whisper-large-v3-turbo
 

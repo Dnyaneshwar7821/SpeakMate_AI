@@ -27,8 +27,11 @@ public class AiServiceImpl implements AiService {
 	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.model:qwen-3.6-27b}")
-	private String model;
+	@Value("${groq.model.chat:${groq.model:openai/gpt-oss-20b}}")
+	private String chatModel;
+
+	@Value("${groq.model.analysis:${groq.model:qwen/qwen3.6-27b}}")
+	private String analysisModel;
 
 	private final RestTemplate restTemplate;
 
@@ -38,7 +41,7 @@ public class AiServiceImpl implements AiService {
 
 	@Override
 	public AiResponse chat(AiRequest request) {
-		return callGroq(request.getPrompt());
+		return callGroq(chatModel, request.getPrompt(), 0.7);
 	}
 
 	private static final String GRAMMAR_CORRECTION_SYSTEM_PROMPT = """
@@ -90,15 +93,15 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 
 	@Override
 	public AiResponse grammarCorrection(AiRequest request) {
-		return callGroqWithSystem(GRAMMAR_CORRECTION_SYSTEM_PROMPT, "Input: \"" + request.getPrompt() + "\"");
+		return callGroqWithSystem(analysisModel, GRAMMAR_CORRECTION_SYSTEM_PROMPT, "Input: \"" + request.getPrompt() + "\"");
 	}
 
-	private AiResponse callGroqWithSystem(String systemPrompt, String userPrompt) {
+	private AiResponse callGroqWithSystem(String targetModel, String systemPrompt, String userPrompt) {
 		try {
 			GroqRequest.Message systemMessage = new GroqRequest.Message("system", systemPrompt);
 			GroqRequest.Message userMessage = new GroqRequest.Message("user", userPrompt);
 
-			GroqRequest request = new GroqRequest(model, List.of(systemMessage, userMessage), 0.0); // Set temperature to 0 for deterministic checks
+			GroqRequest request = new GroqRequest(targetModel, List.of(systemMessage, userMessage), 0.0); // 0 temperature for deterministic checks
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
@@ -128,19 +131,23 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 	@Override
 	public AiResponse vocabularyAssistant(AiRequest request) {
 		return callGroq(
-				"Explain the meaning, synonyms, antonyms and give example sentences for:\n\n" + request.getPrompt());
+				chatModel,
+				"Explain the meaning, synonyms, antonyms and give example sentences for:\n\n" + request.getPrompt(),
+				0.5);
 	}
 
 	@Override
 	public AiResponse improveSentence(AiRequest request) {
-		return callGroq("Improve the following English sentence:\n\n" + request.getPrompt());
+		return callGroq(chatModel, "Improve the following English sentence:\n\n" + request.getPrompt(), 0.5);
 	}
 
 	@Override
 	public AiResponse speakingFeedback(AiRequest request) {
 		return callGroq(
+				chatModel,
 				"Evaluate the following spoken English text. Give grammar feedback, fluency feedback and suggestions:\n\n"
-						+ request.getPrompt());
+						+ request.getPrompt(),
+				0.5);
 	}
 
 	@Override
@@ -156,7 +163,7 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 				+ "    \"explanation\": \"Short explanation why Option A is correct.\"\n"
 				+ "  }\n"
 				+ "]\n";
-		return callGroq(prompt);
+		return callGroq(analysisModel, prompt, 0.3);
 	}
 
 	@Override
@@ -165,20 +172,20 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 				+ "Teach the student interactively about the following lesson section / topic:\n\n"
 				+ request.getPrompt()
 				+ "\n\nProvide a clear, engaging explanation, 2 practical real-world examples, and 1 practice question for the student.";
-		return callGroq(prompt);
+		return callGroq(analysisModel, prompt, 0.7);
 	}
 
 	private AiResponse callGroq(String prompt) {
+		return callGroq(chatModel, prompt, 0.7);
+	}
 
+	private AiResponse callGroq(String targetModel, String prompt, double temperature) {
 		try {
-
 			GroqRequest.Message message = new GroqRequest.Message("user", prompt);
-
-			GroqRequest request = new GroqRequest(model, List.of(message), 0.7);
+			GroqRequest request = new GroqRequest(targetModel, List.of(message), temperature);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-
 			headers.setBearerAuth(apiKey);
 
 			HttpEntity<GroqRequest> entity = new HttpEntity<>(request, headers);
@@ -188,7 +195,6 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 			GroqResponse body = response.getBody();
 
 			if (body == null || body.getChoices() == null || body.getChoices().isEmpty()) {
-
 				throw new GroqException("No response received from Groq.");
 			}
 
@@ -197,11 +203,8 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 			return AiResponse.builder().response(result).build();
 
 		} catch (HttpClientErrorException e) {
-
 			throw new GroqException(e.getResponseBodyAsString());
-
 		} catch (Exception e) {
-
 			throw new GroqException(e.getMessage());
 		}
 	}
