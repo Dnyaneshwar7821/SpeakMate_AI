@@ -343,26 +343,26 @@ export const VoiceService = {
       } catch (_) {}
     }
 
-    // 2. Remove tagged blocks e.g. [GRAMMAR]... [BETTER_SENTENCE]...
-    t = t.replace(/\[(GRAMMAR|BETTER_SENTENCE|VOCABULARY|EXPLANATION|FOLLOWUP|REPLY)\][\s\S]*?(?=\[|$)/gi, (match, tag) => {
-      if (tag.toUpperCase() === 'REPLY') {
-        return match.replace(/\[REPLY\]/i, '').trim();
-      }
-      return '';
-    });
+    // 2. Remove all bracketed tags e.g. [article], [grammar], [better_sentence], [vocabulary], etc.
+    t = t.replace(/\[[^\]]*\]/g, '');
 
-    // 3. Remove Markdown markers & code fences
+    // 3. Remove literal "dot dot dot", ellipses "...", "…", ".."
+    t = t.replace(/\bdot\s*dot\s*dot\b/gi, '');
+    t = t.replace(/\.{2,}/g, '');
+    t = t.replace(/…/g, '');
+
+    // 4. Remove Markdown markers & code fences
     t = t.replace(/```[\s\S]*?```/g, '');
     t = t.replace(/`([^`]+)`/g, '$1');
     t = t.replace(/[*#_~]/g, '');
 
-    // 4. Remove stage directions / parentheticals e.g. (laughs), (smiling), (1-2 sentences)
+    // 5. Remove stage directions / parentheticals e.g. (laughs), (smiling), (1-2 sentences)
     t = t.replace(/\([^)]{1,40}\)/g, '');
 
-    // 5. Remove Emojis & special symbols
+    // 6. Remove Emojis & special symbols
     t = t.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1FA70}-\u{1FAFF}]/gu, '');
 
-    // 6. Clean up quotes, slashes, whitespace
+    // 7. Clean up quotes, slashes, whitespace
     t = t.replace(/\\"/g, '"').replace(/\s+/g, ' ').trim();
 
     return t;

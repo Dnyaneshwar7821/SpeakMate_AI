@@ -350,6 +350,24 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		return mapToResponse(saved);
 	}
 
+	private String sanitizeSpokenText(String text) {
+		if (text == null) return null;
+		String clean = text.trim();
+		// 1. Remove all bracket tags like [article], [GRAMMAR], [BETTER_SENTENCE], etc.
+		clean = clean.replaceAll("\\[.*?\\]", "");
+		// 2. Remove literal "dot dot dot", ellipses "...", "…"
+		clean = clean.replaceAll("(?i)\\bdot\\s*dot\\s*dot\\b", "");
+		clean = clean.replaceAll("\\.{2,}", "");
+		clean = clean.replaceAll("…", "");
+		// 3. Remove markdown markers like ** or * or _
+		clean = clean.replaceAll("[*#_~`]", "");
+		// 4. Remove stage directions like (smiling), (laughs), (excited)
+		clean = clean.replaceAll("\\([^)]*\\)", "");
+		// 5. Clean excess whitespace
+		clean = clean.replaceAll("\\s+", " ").trim();
+		return clean.isEmpty() ? null : clean;
+	}
+
 	@Override
 	public SpeakingMessageResponse processMessage(SpeakingMessageRequest request) {
 		SpeakingSession session = speakingSessionRepository.findById(request.getSessionId())
@@ -404,15 +422,18 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
-				"You are a friendly, encouraging English tutor roleplaying with the student in the scenario: '%s'.\n" +
-				"You must act as the role required (e.g. waiter in a restaurant, interviewer in a job interview) and keep the conversation natural and flowing.\n" +
-				"Evaluate the user's LATEST message for grammar and vocabulary improvements.\n" +
+				"You are an English conversation partner roleplaying with the student in the scenario: '%s'.\n" +
+				"ROLEPLAY & COACHING RULES:\n" +
+				"1. Act authentically as the in-character role (e.g. barista in cafe, interviewer, receptionist, friend) in 'aiReply'.\n" +
+				"2. In 'betterSentence', provide the learner with a natural native phrasing alternative ('How you should say it') for what they expressed.\n" +
+				"3. In 'grammarCorrection', evaluate the user's sentence without any bracket tags or meta-symbols.\n" +
+				"4. CRITICAL: Never output bracketed tags like [article], [grammar], [better_sentence], etc. Never use '...' or ellipses that cause speech synthesis to say 'dot dot dot'. Never output stage directions like (smiling) or (laughs).\n" +
 				"%s\n" +
 				"%s\n" +
 				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks. Do not include any text, notes, or explanations outside the JSON object.\n" +
 				"The JSON must have these exact fields and structure:\n" +
 				"{\n" +
-				"  \"aiReply\": \"Your natural conversational response as the roleplayer (1-2 sentences, keep it moving). IMPORTANT: Do not include the follow-up question in this section!\",\n" +
+				"  \"aiReply\": \"Your natural conversational dialogue response (1-2 sentences). Do not include the follow-up question here.\",\n" +
 				"  \"grammarCorrection\": \"Corrected version of the user's sentence if they made a mistake, otherwise null.\",\n" +
 				"  \"betterSentence\": \"A natural native phrasing alternative ('How you should say it') for the user's sentence, otherwise null.\",\n" +
 				"  \"vocabularySuggestions\": \"1-2 alternative words to enrich their vocabulary, otherwise null.\",\n" +
@@ -468,6 +489,13 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			}
 		}
 
+		// Thoroughly sanitize all text fields from brackets, dot-dot-dot, and markdown
+		response.setAiReply(sanitizeSpokenText(response.getAiReply()));
+		response.setBetterSentence(sanitizeSpokenText(response.getBetterSentence()));
+		response.setGrammarCorrection(sanitizeSpokenText(response.getGrammarCorrection()));
+		response.setExplanation(sanitizeSpokenText(response.getExplanation()));
+		response.setNativeTip(sanitizeSpokenText(response.getNativeTip()));
+
 		// Grammar correction logic
 		String userClean = request.getMessage().trim().replaceAll("[\\p{Punct}&&[^']]+", "").replaceAll("\\s+", " ").toLowerCase();
 		String grammarClean = (response.getGrammarCorrection() != null) ? response.getGrammarCorrection().trim().replaceAll("[\\p{Punct}&&[^']]+", "").replaceAll("\\s+", " ").toLowerCase() : "";
@@ -498,6 +526,15 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				"Could you tell me more about that?",
 				"That sounds great, let's proceed."
 			));
+		} else {
+			List<String> cleanSuggested = new ArrayList<>();
+			for (String sug : response.getSuggestedResponses()) {
+				String sClean = sanitizeSpokenText(sug);
+				if (sClean != null && !sClean.isEmpty()) {
+					cleanSuggested.add(sClean);
+				}
+			}
+			response.setSuggestedResponses(cleanSuggested.isEmpty() ? List.of("Could you tell me more about that?", "That sounds great, let's proceed.") : cleanSuggested);
 		}
 
 		// Deduplicate follow-up from reply
@@ -811,7 +848,17 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			String cleanJson = cleanJsonResponse(rawReply);
 			com.fasterxml.jackson.databind.JsonNode node = objectMapper.readTree(cleanJson);
 			if (node.has("hints")) {
-				return objectMapper.convertValue(node.get("hints"), new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+				List<String> rawHints = objectMapper.convertValue(node.get("hints"), new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+				if (rawHints != null && !rawHints.isEmpty()) {
+					List<String> cleanList = new ArrayList<>();
+					for (String h : rawHints) {
+						String c = sanitizeSpokenText(h);
+						if (c != null && !c.isEmpty()) {
+							cleanList.add(c);
+						}
+					}
+					if (!cleanList.isEmpty()) return cleanList;
+				}
 			}
 		} catch (Exception e) {
 			// ignore and fallback

@@ -329,7 +329,7 @@ export default function ConversationScreen({ navigation, route }) {
   };
 
   const toggleSpeechSpeed = async () => {
-    const speeds = [0.75, 1.0, 1.25, 1.5];
+    const speeds = [0.5, 0.75, 1.0, 1.5, 2.0];
     const currentIndex = speeds.indexOf(speechSpeed);
     const nextIndex = (currentIndex + 1) % speeds.length;
     const nextSpeed = speeds[nextIndex];
@@ -359,9 +359,15 @@ export default function ConversationScreen({ navigation, route }) {
     isPausedRef.current = nextPaused;
 
     if (nextPaused) {
-      if (audioRecorder.isRecording) {
-        audioRecorder.stop();
+      // 1. Immediately stop recording if active
+      if (isRecording) {
+        try {
+          recordingRef.current?.stopAndUnloadAsync();
+        } catch (_) {}
+        recordingRef.current = null;
+        setIsRecording(false);
       }
+      // 2. Immediately stop AI voice playback
       if (isSpeaking) {
         wasSpeakingOnPause.current = true;
         VoiceService.stop();
@@ -369,27 +375,96 @@ export default function ConversationScreen({ navigation, route }) {
       } else {
         wasSpeakingOnPause.current = false;
       }
-      setStatusText('Paused');
+      setStatusText('Session Paused');
     } else {
+      // 3. Resume session
       setStatusText('Waiting for Response');
-      if (wasSpeakingOnPause.current && pausedAiText.current) {
-        speakText(pausedAiText.current);
+      if (wasSpeakingOnPause.current && pausedAiText.current && !isMuted) {
+        wasSpeakingOnPause.current = false;
+        setTimeout(() => {
+          speakTextWithVoice(pausedAiText.current, preferredVoice, availableVoices, speechSpeed);
+        }, 150);
       }
     }
   };
 
+  const getScenarioHints = (scenarioTitle = '') => {
+    const t = (scenarioTitle || '').toLowerCase();
+    if (t.includes('restaurant') || t.includes('food') || t.includes('burger')) {
+      return [
+        "Could I please see the dinner menu?",
+        "What do you recommend as today's special?",
+        "Could we get a table for two, please?"
+      ];
+    } else if (t.includes('coffee') || t.includes('cafe')) {
+      return [
+        "I'd like a cappuccino with oat milk, please.",
+        "Do you have any fresh pastries today?",
+        "Can I get this to go, please?"
+      ];
+    } else if (t.includes('hotel') || t.includes('check-in')) {
+      return [
+        "Hi, I have a reservation under my name.",
+        "What time is breakfast served tomorrow?",
+        "Could you tell me the Wi-Fi password, please?"
+      ];
+    } else if (t.includes('airport') || t.includes('customs') || t.includes('travel')) {
+      return [
+        "Here are my passport and boarding pass.",
+        "I am traveling for a short vacation.",
+        "Which gate does my connecting flight depart from?"
+      ];
+    } else if (t.includes('interview') || t.includes('job')) {
+      return [
+        "I have three years of experience in project management.",
+        "My greatest strength is problem-solving under pressure.",
+        "I am excited about this role because of your team culture."
+      ];
+    } else if (t.includes('shopping') || t.includes('store') || t.includes('clothes')) {
+      return [
+        "Excuse me, do you have this in a medium size?",
+        "Where are the fitting rooms located?",
+        "Is this item currently on sale?"
+      ];
+    } else if (t.includes('zoo') || t.includes('animal')) {
+      return [
+        "Where can we find the elephant enclosure?",
+        "What time is the animal feeding show?",
+        "My favorite animals are the giant pandas!"
+      ];
+    }
+    return [
+      "Could you tell me a bit more about that?",
+      "That sounds interesting! What should we do next?",
+      "Could you give me an example of that?"
+    ];
+  };
+
   const handleFetchHints = async () => {
     if (loadingHints || isPaused) {
-      if (isPaused) Alert.alert('Session Paused ⏸️', 'Please tap Resume to request suggestions.');
+      if (isPaused) Alert.alert('Session Paused ⏸️', 'Please tap Resume to view suggestions.');
       return;
     }
+
+    // Toggle off if already showing
+    if (hints.length > 0) {
+      setHints([]);
+      return;
+    }
+
     setLoadingHints(true);
     try {
-      const data = await speakingService.getHints(sessionId);
-      setHints(data || []);
+      if (sessionId && !String(sessionId).startsWith('sim_')) {
+        const data = await speakingService.getHints(sessionId);
+        if (data && data.length > 0) {
+          setHints(data);
+          return;
+        }
+      }
+      setHints(getScenarioHints(scenario));
     } catch (e) {
-      console.warn("Failed to fetch hints:", e);
-      Alert.alert('Hint Failed', 'Could not load suggestions.');
+      console.warn("Failed to fetch hints, using fallback hints:", e);
+      setHints(getScenarioHints(scenario));
     } finally {
       setLoadingHints(false);
     }
@@ -733,6 +808,23 @@ export default function ConversationScreen({ navigation, route }) {
     ? 'listening'
     : 'idle';
 
+  const formatDisplayMessage = (text) => {
+    if (!text) return '';
+    let t = String(text);
+    if (t.includes('Analyze User Input:') || t.includes('Context:') || t.includes('Identify Key Constraints:')) {
+      const idx = t.lastIndexOf('\n\n');
+      if (idx !== -1 && idx < t.length - 1) {
+        t = t.substring(idx).trim();
+      }
+    }
+    t = t.replace(/\[[^\]]*\]/g, '');
+    t = t.replace(/\bdot\s*dot\s*dot\b/gi, '');
+    t = t.replace(/\.{2,}/g, '');
+    t = t.replace(/…/g, '');
+    t = t.replace(/[*#_~`]/g, '');
+    return t.replace(/\s+/g, ' ').trim() || text;
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.root}
@@ -802,7 +894,9 @@ export default function ConversationScreen({ navigation, route }) {
                 </View>
               )}
               <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
-                <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>{item.message}</Text>
+                <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
+                  {formatDisplayMessage(item.message)}
+                </Text>
               </View>
             </View>
           );
@@ -887,6 +981,32 @@ export default function ConversationScreen({ navigation, route }) {
 
       {/* ── Bottom Controls ── */}
       <View style={styles.controlsBar}>
+        {/* Floating AI Hint Button positioned above controls */}
+        <View style={styles.floatingHintContainer} pointerEvents="box-none">
+          <TouchableOpacity
+            style={styles.floatingHintBtn}
+            onPress={handleFetchHints}
+            activeOpacity={0.8}
+            disabled={loadingHints}
+          >
+            <LinearGradient
+              colors={hints.length > 0 ? ['#4338CA', '#3730A3'] : ['#6366F1', '#4F46E5']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.floatingHintGradient}
+            >
+              {loadingHints ? (
+                <ActivityIndicator size="small" color="#FFF" />
+              ) : (
+                <>
+                  <Ionicons name={hints.length > 0 ? "bulb" : "bulb-outline"} size={14} color="#FDE047" />
+                  <Text style={styles.floatingHintText}>{hints.length > 0 ? "Hide Hints" : "AI Hint"}</Text>
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
         {/* Interactive Quick-Reply Speech Chips */}
         {hints.length > 0 && (
           <View style={styles.hintsContainer}>
@@ -1064,6 +1184,37 @@ const styles = StyleSheet.create({
     backgroundColor: '#4F46E5',
   },
   avatarCircle: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', shadowColor: '#4F46E5', shadowOpacity: 0.25, shadowRadius: 10, elevation: 5 },
+
+  // Floating AI Hint Button (Top Right of controls bar)
+  floatingHintContainer: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 4,
+    marginBottom: 8,
+  },
+  floatingHintBtn: {
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.35,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  floatingHintGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+    gap: 5,
+  },
+  floatingHintText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+
   hintsContainer: {
     backgroundColor: 'transparent',
     paddingVertical: 6,
