@@ -321,6 +321,16 @@ export const VoiceService = {
     if (!rawText) return '';
     let t = String(rawText);
 
+    // 0. Filter out reasoning / chain-of-thought blocks
+    if (t.includes('Analyze User Input:') || t.includes('Identify Key Constraints:') || t.includes('Context:')) {
+      const idx = t.lastIndexOf('\n\n');
+      if (idx !== -1 && idx < t.length - 1) {
+        t = t.substring(idx).trim();
+      } else {
+        t = '';
+      }
+    }
+
     // 1. If JSON, extract message or aiReply
     if (t.includes('{') && t.includes('}')) {
       try {

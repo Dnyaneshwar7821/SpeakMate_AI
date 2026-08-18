@@ -131,9 +131,25 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		}
 	}
 
+	private String stripReasoning(String text) {
+		if (text == null) return "";
+		String clean = text.replaceAll("(?s)<think>.*?</think>", "").trim();
+		if (clean.contains("Analyze User Input:") || clean.contains("Identify Key Constraints:") || clean.contains("Context:") || clean.contains("**Analyze")) {
+			int idx = clean.lastIndexOf("\n\n");
+			if (idx != -1 && idx < clean.length() - 1) {
+				String candidate = clean.substring(idx).trim();
+				if (!candidate.contains("Analyze") && !candidate.contains("Context:") && !candidate.contains("**")) {
+					return candidate;
+				}
+			}
+			return null;
+		}
+		return clean;
+	}
+
 	private String cleanJsonResponse(String response) {
 		if (response == null) return "{}";
-		String trimmed = response.trim();
+		String trimmed = response.replaceAll("(?s)<think>.*?</think>", "").trim();
 
 		// Find first '{' and last '}' to extract JSON block cleanly
 		int start = trimmed.indexOf('{');
@@ -304,14 +320,15 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 					"You are an English tutor roleplaying the opening of the scenario: '%s'.\n" +
 					"Immediately greet the student in-character (e.g. as a friendly waiter, interviewer, hotel clerk, or conversation partner).\n" +
 					"Ask an engaging opening question to start the dialogue.\n" +
-					"Keep it warm, natural, and under 2 sentences. Never output JSON or formatting tags.",
+					"Keep it warm, natural, and under 2 sentences. Never output JSON, chain of thought, or formatting tags.",
 					scenarioName
 			);
 			messages.add(new GroqRequest.Message("system", sysPrompt));
 			messages.add(new GroqRequest.Message("user", "Hello! Let's start the conversation."));
 
-			intro = callGroqChat(messages);
-			if (intro == null || intro.trim().isEmpty() || intro.contains("{")) {
+			String rawIntro = callGroqChat(messages);
+			intro = stripReasoning(rawIntro);
+			if (intro == null || intro.trim().isEmpty() || intro.contains("{") || intro.contains("Analyze")) {
 				intro = getDefaultScenarioOpening(scenarioName);
 			}
 		} catch (Exception e) {

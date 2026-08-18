@@ -214,6 +214,28 @@ export default function ConversationScreen({ navigation, route }) {
       if (!initialGreetingText) {
         initialGreetingText = `Hello! Welcome to our ${scenario || 'conversation'} practice session. How can I help you today?`;
       }
+      
+      // 4. Sync background session if live backend session is available
+      try {
+        if (sessionId && !String(sessionId).startsWith('sim_')) {
+          const detail = await speakingService.detail(sessionId);
+          if (detail && detail.messages && detail.messages.length > 0) {
+            const cleanMsgs = detail.messages.map((m) => {
+              if (m.sender === 'ai' && (m.message.includes('Analyze User Input:') || m.message.includes('Context:') || m.message.includes('Requirements:'))) {
+                const idx = m.message.lastIndexOf('\n\n');
+                return {
+                  ...m,
+                  message: (idx !== -1 && idx < m.message.length - 1) ? m.message.substring(idx).trim() : initialGreetingText
+                };
+              }
+              return m;
+            });
+            setMessages(cleanMsgs);
+          }
+        }
+      } catch (e) {
+        console.warn('Initial session sync note:', e);
+      }
 
       const initialMessageObj = {
         id: 'intro_0',
@@ -221,21 +243,9 @@ export default function ConversationScreen({ navigation, route }) {
         message: initialGreetingText,
         createdAt: new Date().toISOString(),
       };
-      setMessages([initialMessageObj]);
+      if (messages.length === 0) setMessages([initialMessageObj]);
       if (!isMuted) {
         speakTextWithVoice(initialGreetingText, currentVoice, enVoices);
-      }
-
-      // 4. Sync background session if live backend session is available
-      try {
-        if (sessionId && !String(sessionId).startsWith('sim_')) {
-          const detail = await speakingService.detail(sessionId);
-          if (detail.messages && detail.messages.length > 0) {
-            setMessages(detail.messages);
-          }
-        }
-      } catch (e) {
-        console.warn('Initial session sync note:', e);
       }
     }
 
@@ -291,6 +301,12 @@ export default function ConversationScreen({ navigation, route }) {
   const getSpeakableText = (msg) => {
     if (!msg) return '';
     let text = msg.message || msg.aiReply || '';
+    if (text.includes('Analyze User Input:') || text.includes('Context:')) {
+      const idx = text.lastIndexOf('\n\n');
+      if (idx !== -1 && idx < text.length - 1) {
+        text = text.substring(idx).trim();
+      }
+    }
     if (msg.followUpQuestion) {
       text += ` ${msg.followUpQuestion}`;
     }
@@ -329,93 +345,51 @@ export default function ConversationScreen({ navigation, route }) {
   };
 
   const toggleSpeechSpeed = async () => {
-    const SPEEDS = [0.5, 0.75, 1.0, 1.5, 2.0];
-    const idx = SPEEDS.indexOf(speechSpeed);
-    const nextSpeed = SPEEDS[(idx + 1) % SPEEDS.length];
+    const speeds = [0.75, 1.0, 1.25, 1.5];
+    const currentIndex = speeds.indexOf(speechSpeed);
+    const nextIndex = (currentIndex + 1) % speeds.length;
+    const nextSpeed = speeds[nextIndex];
     setSpeechSpeed(nextSpeed);
     await AsyncStorage.setItem('speakmate_voice_speed', String(nextSpeed));
 
-    if (isPausedRef.current) return;
-
-    const lastAi = [...messages].reverse().find((m) => m.sender === 'ai');
-    if (lastAi) {
-      speakTextWithVoice(getSpeakableText(lastAi), preferredVoice, availableVoices, nextSpeed);
+    if (isSpeaking && pausedAiText.current) {
+      VoiceService.stop();
+      speakTextWithVoice(pausedAiText.current, preferredVoice, availableVoices, nextSpeed);
     }
   };
 
   const handleToggleMute = () => {
-    if (!isMuted) {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    if (nextMuted) {
       VoiceService.stop();
-    } else if (!isPausedRef.current) {
-      // Replay last AI message only if session is not paused
-      const lastAi = [...messages].reverse().find((m) => m.sender === 'ai');
-      if (lastAi) speakText(getSpeakableText(lastAi));
+      setIsSpeaking(false);
+      setStatusText('Waiting for Response');
     }
-    setIsMuted(!isMuted);
-  };
-
-  const handleAdjustSpeed = () => {
-    const nextSpeed = speechSpeed >= 1.2 ? 0.7 : speechSpeed + 0.15;
-    setSpeechSpeed(nextSpeed);
-    if (isPausedRef.current) return;
-    // Replay last AI message with new speed
-    const lastAi = [...messages].reverse().find((m) => m.sender === 'ai');
-    if (lastAi) speakText(getSpeakableText(lastAi));
   };
 
   // ── Pause / Resume Handler ─────────────────────────────────────────
-  const handleTogglePause = async () => {
-    const nextPaused = !isPausedRef.current;
-    updateIsPaused(nextPaused);
+  const handleTogglePause = () => {
+    const nextPaused = !isPaused;
+    setIsPaused(nextPaused);
+    isPausedRef.current = nextPaused;
 
     if (nextPaused) {
-      // ── PAUSE SESSION ──────────────────────────────────────────────
-      // 1. Capture whether AI tutor was speaking when pause was clicked
-      wasSpeakingOnPause.current = isSpeaking;
-      const lastAi = [...messages].reverse().find((m) => m.sender === 'ai');
-      if (lastAi) {
-        pausedAiText.current = getSpeakableText(lastAi);
-      }
-
-      // 2. Immediately stop session timer
-      if (timerInterval.current) {
-        clearInterval(timerInterval.current);
-        timerInterval.current = null;
-      }
-
-      // 3. Immediately stop AI TTS speech
-      try {
-        VoiceService.stop();
-        Speech.stop();
-      } catch (e) {
-        console.warn("Failed to stop voice service on pause:", e);
-      }
-      setIsSpeaking(false);
-
-      // 4. Immediately stop mic recording if actively listening
       if (audioRecorder.isRecording) {
-        try {
-          await audioRecorder.stop();
-        } catch (e) {
-          console.warn("Failed to stop audio recording on pause:", e);
-        }
+        audioRecorder.stop();
       }
-
-      // 5. Update status text to 'Session Paused'
-      setStatusText('Session Paused');
-    } else {
-      // ── RESUME SESSION ─────────────────────────────────────────────
-      setStatusText('Waiting for Response');
-
-      // If AI tutor was speaking or interrupted when paused, resume AI speech from where it was paused!
-      const textToResume = pausedAiText.current;
-      const shouldResumeSpeaking = (wasSpeakingOnPause.current || textToResume) && !isMuted;
-
-      if (shouldResumeSpeaking && textToResume) {
+      if (isSpeaking) {
+        wasSpeakingOnPause.current = true;
+        VoiceService.stop();
+        setIsSpeaking(false);
+      } else {
         wasSpeakingOnPause.current = false;
-        setTimeout(() => {
-          speakTextWithVoice(textToResume, preferredVoice, availableVoices);
-        }, 100);
+      }
+      setStatusText('Paused');
+    } else {
+      setStatusText('Waiting for Response');
+      if (wasSpeakingOnPause.current && pausedAiText.current) {
+        speakText(pausedAiText.current);
       }
     }
   };
@@ -441,13 +415,15 @@ export default function ConversationScreen({ navigation, route }) {
   const stopRecordingAndSend = async () => {
     if (stoppingRef.current) return;
     stoppingRef.current = true;
+
     if (vadIntervalRef.current) {
       clearInterval(vadIntervalRef.current);
       vadIntervalRef.current = null;
     }
 
-    setStatusText('Thinking');
     setLoading(true);
+    setStatusText('Thinking');
+
     try {
       if (audioRecorder.isRecording) {
         await audioRecorder.stop();
@@ -533,10 +509,14 @@ export default function ConversationScreen({ navigation, route }) {
       stopRecordingAndSend();
     } else {
       try {
-        Speech.stop();
+        VoiceService.stop();
+        setIsSpeaking(false);
+        setStatusText('Listening');
+
         const perm = await requestRecordingPermissionsAsync();
         if (!perm.granted) {
           Alert.alert('Microphone Access Denied', 'Microphone permissions are required for speaking practice.');
+          setStatusText('Waiting for Response');
           return;
         }
         await audioRecorder.prepareToRecordAsync();
