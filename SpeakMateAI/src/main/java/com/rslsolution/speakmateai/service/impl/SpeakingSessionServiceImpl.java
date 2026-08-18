@@ -97,9 +97,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 	private static final List<String> FALLBACK_MODELS = List.of(
 			"llama-3.1-8b-instant",
-			"qwen/qwen3.6-27b",
-			"mixtral-8x7b-32768",
-			"gemma2-9b-it"
+			"qwen/qwen3.6-27b"
 	);
 
 	private String callGroqChat(List<GroqRequest.Message> messages) {
