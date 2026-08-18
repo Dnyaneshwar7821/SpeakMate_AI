@@ -211,12 +211,14 @@ export default function ConversationScreen({ navigation, route }) {
 
       // 3. Load initial greeting and play TTS
       try {
-        const detail = await speakingService.detail(sessionId);
-        if (detail.messages && detail.messages.length > 0) {
-          setMessages(detail.messages);
-          const lastMsg = detail.messages[detail.messages.length - 1];
-          if (lastMsg.sender === 'ai' && !isMuted) {
-            speakTextWithVoice(lastMsg.message, currentVoice, enVoices);
+        if (sessionId && !String(sessionId).startsWith('sim_')) {
+          const detail = await speakingService.detail(sessionId);
+          if (detail.messages && detail.messages.length > 0) {
+            setMessages(detail.messages);
+            const lastMsg = detail.messages[detail.messages.length - 1];
+            if (lastMsg.sender === 'ai' && !isMuted) {
+              speakTextWithVoice(lastMsg.message, currentVoice, enVoices);
+            }
           }
         }
       } catch (e) {

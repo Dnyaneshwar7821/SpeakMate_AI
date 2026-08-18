@@ -21,22 +21,22 @@ public class Onboarding {
 	@JoinColumn(name = "user_id", nullable = false, unique = true, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
 	private User user;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String englishLevel;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String learningGoal;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private Integer dailyGoalMinutes;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String nativeLanguage;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String preferredLearningTime;
 
-	@Column(nullable = false)
+	@Column(nullable = true)
 	private String interests;
 
 	private String ageGroup;

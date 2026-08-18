@@ -255,10 +255,14 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	public SpeakingSessionResponse startSession(SpeakingStartRequest request) {
 		User user = currentUser();
 
+		String scenarioName = (request != null && request.getScenario() != null && !request.getScenario().trim().isEmpty())
+				? request.getScenario().trim()
+				: "Daily Conversation";
+
 		SpeakingSession session = SpeakingSession.builder()
 				.user(user)
-				.topic(request.getScenario())
-				.scenario(request.getScenario())
+				.topic(scenarioName)
+				.scenario(scenarioName)
 				.duration(0)
 				.xpEarned(0)
 				.score(0.0)
@@ -268,17 +272,25 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		SpeakingSession saved = speakingSessionRepository.save(session);
 
 		// AI introduces the conversation scenario
-		List<GroqRequest.Message> messages = new ArrayList<>();
-		String sysPrompt = String.format(
-				"You are an English tutor simulating the scenario: '%s'. " +
-				"Greet the student, briefly introduce the scenario, and ask an opening question to start the practice conversation. " +
-				"Do not give any corrections yet. Keep it warm, natural, and under 2 sentences.",
-				request.getScenario()
-		);
-		messages.add(new GroqRequest.Message("system", sysPrompt));
-		messages.add(new GroqRequest.Message("user", "Hello tutor, let's start."));
+		String intro;
+		try {
+			List<GroqRequest.Message> messages = new ArrayList<>();
+			String sysPrompt = String.format(
+					"You are an English tutor simulating the scenario: '%s'. " +
+					"Greet the student, briefly introduce the scenario, and ask an opening question to start the practice conversation. " +
+					"Do not give any corrections yet. Keep it warm, natural, and under 2 sentences.",
+					scenarioName
+			);
+			messages.add(new GroqRequest.Message("system", sysPrompt));
+			messages.add(new GroqRequest.Message("user", "Hello tutor, let's start."));
 
-		String intro = callGroqChat(messages);
+			intro = callGroqChat(messages);
+			if (intro == null || intro.trim().isEmpty()) {
+				intro = "Hello! Welcome to our " + scenarioName + " practice session. How are you doing today?";
+			}
+		} catch (Exception e) {
+			intro = "Hello! Welcome to our " + scenarioName + " practice session. How are you doing today?";
+		}
 
 		// Save the AI message
 		ConversationMessage aiMsg = ConversationMessage.builder()
