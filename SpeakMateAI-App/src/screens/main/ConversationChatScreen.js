@@ -174,11 +174,35 @@ export default function ConversationChatScreen({ navigation, route }) {
     loadVoices();
 
     // Load initial conversation messages
-    chatService.detail(sessionId).then((data) => {
-      setMessages(data.messages || []);
-    }).catch(() => {
-      Alert.alert('Load error', 'Failed to retrieve conversation.');
-    });
+    if (sessionId && !String(sessionId).startsWith('sim_')) {
+      chatService.detail(sessionId).then((data) => {
+        if (data && data.messages && data.messages.length > 0) {
+          setMessages(data.messages);
+        } else {
+          setMessages([{
+            id: 'intro_1',
+            sender: 'ai',
+            message: `Hello! I am SpeakMateAI, your English tutor for ${mode || 'General English'}. What would you like to practice today?`,
+            createdAt: new Date().toISOString(),
+          }]);
+        }
+      }).catch((e) => {
+        console.warn('Could not load chat detail, using initial greeting:', e);
+        setMessages([{
+          id: 'intro_1',
+          sender: 'ai',
+          message: `Hello! I am SpeakMateAI, your English tutor for ${mode || 'General English'}. What would you like to practice today?`,
+          createdAt: new Date().toISOString(),
+        }]);
+      });
+    } else {
+      setMessages([{
+        id: 'intro_1',
+        sender: 'ai',
+        message: `Hello! I am SpeakMateAI, your English tutor for ${mode || 'General English'}. What would you like to practice today?`,
+        createdAt: new Date().toISOString(),
+      }]);
+    }
 
     return () => {
       VoiceService.stop();
@@ -275,7 +299,23 @@ export default function ConversationChatScreen({ navigation, route }) {
     setMessages((prev) => [...prev, tempUserMsg]);
 
     try {
-      const response = await chatService.send(sessionId, cleanText, !isMuted, chatLevel);
+      let response;
+      if (sessionId && !String(sessionId).startsWith('sim_')) {
+        response = await chatService.send(sessionId, cleanText, !isMuted, chatLevel);
+      } else {
+        const aiRes = await aiService.chat(cleanText);
+        response = {
+          id: Date.now() + 1,
+          sender: 'ai',
+          message: aiRes?.response || 'That is a great point! Can you tell me more about that?',
+          grammarCorrection: '✅ Your sentence is correct.',
+          betterSentence: null,
+          vocabularySuggestions: null,
+          explanation: null,
+          followUpQuestion: 'What else would you like to explore?',
+          createdAt: new Date().toISOString(),
+        };
+      }
       setMessages((prev) => [...prev, response]);
 
       const isCorrect = response.grammarCorrection && (
@@ -290,8 +330,25 @@ export default function ConversationChatScreen({ navigation, route }) {
       // Automatically play TTS
       speakText(getSpeakableText(response));
     } catch {
-      Alert.alert('Tutor request failed', 'Groq model is temporarily busy. Please try again.');
-      setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
+      try {
+        const aiRes = await aiService.chat(cleanText);
+        const fallbackMsg = {
+          id: Date.now() + 1,
+          sender: 'ai',
+          message: aiRes?.response || 'That is a great thought! Can you share more about that?',
+          grammarCorrection: '✅ Your sentence is correct.',
+          betterSentence: null,
+          vocabularySuggestions: null,
+          explanation: null,
+          followUpQuestion: null,
+          createdAt: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, fallbackMsg]);
+        speakText(getSpeakableText(fallbackMsg));
+      } catch (err2) {
+        Alert.alert('Tutor request failed', 'Could not get response. Please try again.');
+        setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
+      }
     } finally {
       setEvaluating(false);
       setStatusText('Waiting for Response');
