@@ -239,23 +239,33 @@ export default function SpeakingHomeScreen({ navigation }) {
   const triggerStart = async (scenarioName, scenario) => {
     try {
       setLoading(true);
+      const durationNum = typeof scenario?.duration === 'number'
+        ? scenario.duration
+        : parseInt(String(scenario?.duration || '5').replace(/\D/g, ''), 10) || 5;
+      const xpNum = typeof scenario?.xp === 'number'
+        ? scenario.xp
+        : parseInt(String(scenario?.xp || '10').replace(/\D/g, ''), 10) || 10;
+
       const session = await speakingService.start({
         scenario: scenarioName,
-        difficulty: scenario.difficulty,
-        estimatedDuration: scenario.duration,
-        xpReward: scenario.xp,
+        difficulty: scenario?.difficulty || 'Intermediate',
+        estimatedDuration: durationNum,
+        xpReward: xpNum,
       });
       navigation.navigate('Conversation', {
         sessionId: session.id,
         scenario: scenarioName,
-        xpReward: scenario.xp,
+        xpReward: xpNum,
       });
     } catch (error) {
       console.warn('Backend session creation failed, proceeding locally:', error);
+      const xpNum = typeof scenario?.xp === 'number'
+        ? scenario.xp
+        : parseInt(String(scenario?.xp || '10').replace(/\D/g, ''), 10) || 10;
       navigation.navigate('Conversation', {
         sessionId: 'sim_' + Date.now(),
         scenario: scenarioName,
-        xpReward: scenario.xp,
+        xpReward: xpNum,
       });
     } finally {
       setLoading(false);

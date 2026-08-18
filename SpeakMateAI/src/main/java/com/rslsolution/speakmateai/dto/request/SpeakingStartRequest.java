@@ -17,9 +17,9 @@ public class SpeakingStartRequest {
 
 	private String difficulty; // Beginner / Intermediate / Advanced
 
-	private Integer estimatedDuration; // in minutes
+	private Object estimatedDuration; // in minutes (accepts number or string)
 
-	private Integer xpReward;
+	private Object xpReward;
 
 	public String getScenario() { return scenario; }
 	public void setScenario(String scenario) { this.scenario = scenario; }
@@ -27,34 +27,25 @@ public class SpeakingStartRequest {
 	public String getDifficulty() { return difficulty; }
 	public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
 
-	public Integer getEstimatedDuration() { return estimatedDuration; }
-	public void setEstimatedDuration(Integer estimatedDuration) { this.estimatedDuration = estimatedDuration; }
-
-	public Integer getXpReward() { return xpReward; }
-	public void setXpReward(Integer xpReward) { this.xpReward = xpReward; }
-
-	public static SpeakingStartRequestBuilder builder() {
-		return new SpeakingStartRequestBuilder();
+	public Integer getEstimatedDuration() {
+		if (estimatedDuration == null) return 5;
+		if (estimatedDuration instanceof Number) return ((Number) estimatedDuration).intValue();
+		try {
+			return Integer.parseInt(estimatedDuration.toString().replaceAll("\\D", ""));
+		} catch (Exception e) {
+			return 5;
+		}
 	}
+	public void setEstimatedDuration(Object estimatedDuration) { this.estimatedDuration = estimatedDuration; }
 
-	public static class SpeakingStartRequestBuilder {
-		private String scenario;
-		private String difficulty;
-		private Integer estimatedDuration;
-		private Integer xpReward;
-
-		public SpeakingStartRequestBuilder scenario(String scenario) { this.scenario = scenario; return this; }
-		public SpeakingStartRequestBuilder difficulty(String difficulty) { this.difficulty = difficulty; return this; }
-		public SpeakingStartRequestBuilder estimatedDuration(Integer estimatedDuration) { this.estimatedDuration = estimatedDuration; return this; }
-		public SpeakingStartRequestBuilder xpReward(Integer xpReward) { this.xpReward = xpReward; return this; }
-
-		public SpeakingStartRequest build() {
-            SpeakingStartRequest obj = new SpeakingStartRequest();
-            obj.setScenario(scenario);
-            obj.setDifficulty(difficulty);
-            obj.setEstimatedDuration(estimatedDuration);
-            obj.setXpReward(xpReward);
-            return obj;
-        }
+	public Integer getXpReward() {
+		if (xpReward == null) return 10;
+		if (xpReward instanceof Number) return ((Number) xpReward).intValue();
+		try {
+			return Integer.parseInt(xpReward.toString().replaceAll("\\D", ""));
+		} catch (Exception e) {
+			return 10;
+		}
 	}
+	public void setXpReward(Object xpReward) { this.xpReward = xpReward; }
 }
