@@ -463,16 +463,16 @@ public class AIChatServiceImpl implements AIChatService {
 		// Build context for suggestions
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
-				"You are an expert English tutor observing a practice chat under the mode: '%s'.\n" +
-				"Based on the conversation history, suggest EXACTLY 3 short, natural, and distinct alternative responses the student could say next to keep the conversation flowing.\n" +
-				"Each suggestion must be simple, direct, natural, and maximum 8 words.\n" +
-				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks. Do not include any explanations, notes, or text outside the JSON object.\n" +
-				"The JSON must have this exact field and structure:\n" +
+				"You are an expert English tutor observing a live practice chat in mode: '%s'.\n" +
+				"Based on the conversation history, provide EXACTLY 3 short, natural, and distinct alternative responses the student could say next.\n" +
+				"Each suggestion must be a complete, realistic spoken sentence (under 10 words). DO NOT write 'Suggestion 1' or labels.\n" +
+				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
+				"The JSON must have this exact structure:\n" +
 				"{\n" +
 				"  \"hints\": [\n" +
-				"    \"Suggestion one\",\n" +
-				"    \"Suggestion two\",\n" +
-				"    \"Suggestion three\"\n" +
+				"    \"Could you please give me an example?\",\n" +
+				"    \"That sounds interesting, tell me more.\",\n" +
+				"    \"What should we focus on next?\"\n" +
 				"  ]\n" +
 				"}",
 				session.getMode()
@@ -500,16 +500,30 @@ public class AIChatServiceImpl implements AIChatService {
 
 			com.fasterxml.jackson.databind.JsonNode node = objectMapper.readTree(cleanJson);
 			if (node.has("hints")) {
-				return objectMapper.convertValue(node.get("hints"), new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+				List<String> raw = objectMapper.convertValue(node.get("hints"), new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+				if (raw != null && !raw.isEmpty()) {
+					List<String> cleanList = new ArrayList<>();
+					for (String h : raw) {
+						if (h != null) {
+							String c = h.replaceAll("(?i)^(suggestion|option|hint|choice)\\s*\\d*\\s*[:\\-.]?\\s*", "")
+										.replaceAll("^\\d+[\\.\\)]\\s*", "")
+										.replaceAll("^[\"']+|[\"']+$", "").trim();
+							if (!c.isEmpty() && !c.toLowerCase().startsWith("suggestion") && !cleanList.contains(c)) {
+								cleanList.add(c);
+							}
+						}
+					}
+					if (cleanList.size() >= 2) return cleanList;
+				}
 			}
 		} catch (Exception e) {
 			// ignore and fallback
 		}
 
 		return List.of(
-				"Could you please explain that?",
-				"Yes, that makes sense to me.",
-				"What do you suggest we do next?"
+				"Could you please explain that in more detail?",
+				"That makes total sense, what do you recommend?",
+				"Could you give me another example?"
 		);
 	}
 

@@ -471,9 +471,44 @@ export default function ConversationScreen({ navigation, route }) {
     }
   };
 
+  const cleanHintText = (raw) => {
+    if (!raw) return null;
+    let str = String(raw).trim();
+    // Strip prefixes like "Suggestion 1:", "Option 1 -", "1. ", "Hint 1:"
+    str = str.replace(/^(suggestion|option|hint|response|choice)\s*\d*\s*[:\-.]?\s*/i, '');
+    str = str.replace(/^\d+[\.\)]\s*/, '');
+    str = str.replace(/^["'`]|["'`]$/g, '').trim();
+    if (!str) return null;
+    const lower = str.toLowerCase();
+    if (
+      lower === 'suggestion one' ||
+      lower === 'suggestion two' ||
+      lower === 'suggestion three' ||
+      lower.startsWith('suggestion ') ||
+      lower.startsWith('option ') ||
+      lower === 'simple option' ||
+      lower === 'natural idiom option' ||
+      lower === 'follow-up question option' ||
+      lower === 'first realistic sentence student can speak' ||
+      lower === 'second realistic sentence student can speak' ||
+      lower === 'third realistic sentence student can speak' ||
+      lower === 'none' ||
+      lower === 'null'
+    ) {
+      return null;
+    }
+    return str;
+  };
+
   const getScenarioHints = (scenarioTitle = '') => {
     const t = (scenarioTitle || '').toLowerCase();
-    if (t.includes('restaurant') || t.includes('food') || t.includes('burger')) {
+    if (t.includes('daily conversation') || t.includes('small talk') || t.includes('routine') || t.includes('relaxed daily')) {
+      return [
+        "I've had a busy but really good day!",
+        "How has your day been going so far?",
+        "I'm planning to relax with some music later."
+      ];
+    } else if (t.includes('restaurant') || t.includes('food') || t.includes('burger') || t.includes('dining')) {
       return [
         "Could I please see the dinner menu?",
         "What do you recommend as today's special?",
@@ -491,29 +526,53 @@ export default function ConversationScreen({ navigation, route }) {
         "What time is breakfast served tomorrow?",
         "Could you tell me the Wi-Fi password, please?"
       ];
-    } else if (t.includes('airport') || t.includes('customs') || t.includes('travel')) {
+    } else if (t.includes('airport') || t.includes('customs') || t.includes('travel') || t.includes('flight')) {
       return [
         "Here are my passport and boarding pass.",
         "I am traveling for a short vacation.",
         "Which gate does my connecting flight depart from?"
       ];
-    } else if (t.includes('interview') || t.includes('job')) {
+    } else if (t.includes('interview') || t.includes('job') || t.includes('career')) {
       return [
-        "I have three years of experience in project management.",
-        "My greatest strength is problem-solving under pressure.",
-        "I am excited about this role because of your team culture."
+        "I have strong hands-on experience in problem solving.",
+        "My greatest strength is communicating under pressure.",
+        "I am excited about this role and your team culture."
       ];
     } else if (t.includes('shopping') || t.includes('store') || t.includes('clothes')) {
       return [
         "Excuse me, do you have this in a medium size?",
         "Where are the fitting rooms located?",
-        "Is this item currently on sale?"
+        "Is this item currently on discount?"
+      ];
+    } else if (t.includes('doctor') || t.includes('pharmacy') || t.includes('health') || t.includes('hospital')) {
+      return [
+        "I've had a mild headache since yesterday.",
+        "How often should I take this medication?",
+        "Thank you for the helpful advice, doctor."
       ];
     } else if (t.includes('zoo') || t.includes('animal')) {
       return [
         "Where can we find the elephant enclosure?",
         "What time is the animal feeding show?",
         "My favorite animals are the giant pandas!"
+      ];
+    } else if (t.includes('school') || t.includes('class') || t.includes('grade') || t.includes('std')) {
+      return [
+        "Good morning! I finished my homework assignment.",
+        "Could you please explain that question again?",
+        "My favorite subjects are science and English."
+      ];
+    } else if (t.includes('meeting') || t.includes('business') || t.includes('presentation')) {
+      return [
+        "Let's review the main milestones on the agenda.",
+        "I agree with that strategy and propose next steps.",
+        "Does anyone have questions on this slide?"
+      ];
+    } else if (t.includes('hobbies') || t.includes('gaming') || t.includes('music')) {
+      return [
+        "I love playing strategy games and listening to music.",
+        "Have you played any good video games recently?",
+        "I enjoy spending my free time outdoors."
       ];
     }
     return [
@@ -540,8 +599,11 @@ export default function ConversationScreen({ navigation, route }) {
       if (sessionId && !String(sessionId).startsWith('sim_')) {
         const data = await speakingService.getHints(sessionId);
         if (data && data.length > 0) {
-          setHints(data);
-          return;
+          const cleanList = data.map(cleanHintText).filter(Boolean);
+          if (cleanList.length >= 2) {
+            setHints(cleanList);
+            return;
+          }
         }
       }
       setHints(getScenarioHints(scenario));
@@ -766,7 +828,10 @@ export default function ConversationScreen({ navigation, route }) {
       setCorrections(feedback);
 
       if (feedback.suggestedResponses && feedback.suggestedResponses.length > 0) {
-        setHints(feedback.suggestedResponses);
+        const cleanList = feedback.suggestedResponses.map(cleanHintText).filter(Boolean);
+        if (cleanList.length > 0) {
+          setHints(cleanList);
+        }
       }
 
       const isCorrect = feedback.grammarCorrection && (

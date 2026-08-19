@@ -441,6 +441,112 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		return clean.isEmpty() ? null : clean;
 	}
 
+	private String cleanAndSanitizeHint(String raw) {
+		if (raw == null) return null;
+		String text = sanitizeSpokenText(raw);
+		if (text == null) return null;
+		// Strip prefixes like "Suggestion 1:", "Option 1 -", "1. ", "Hint 1:"
+		text = text.replaceAll("(?i)^(suggestion|option|hint|response|choice)\\s*\\d*\\s*[:\\-.]?\\s*", "");
+		text = text.replaceAll("^\\d+[\\.\\)]\\s*", "");
+		text = text.replaceAll("^[\"']+|[\"']+$", "").trim();
+		if (text.isEmpty()) return null;
+
+		String lower = text.toLowerCase();
+		if (lower.equals("suggestion one") || lower.equals("suggestion two") || lower.equals("suggestion three")
+				|| lower.startsWith("suggestion ") || lower.startsWith("option ") || lower.equals("simple option")
+				|| lower.equals("natural idiom option") || lower.equals("follow-up question option")
+				|| lower.equals("simple direct response") || lower.equals("natural native response")
+				|| lower.equals("engaging follow up question") || lower.equals("first realistic sentence student can speak")
+				|| lower.equals("second realistic sentence student can speak") || lower.equals("third realistic sentence student can speak")
+				|| lower.equals("none") || lower.equals("null")) {
+			return null;
+		}
+		return text;
+	}
+
+	private List<String> getDefaultScenarioHints(String scenario) {
+		if (scenario == null) {
+			return List.of(
+				"Could you please tell me more about that?",
+				"That sounds great, what should we do next?",
+				"What do you recommend in this case?"
+			);
+		}
+		String s = scenario.toLowerCase();
+		if (s.contains("daily conversation") || s.contains("small talk") || s.contains("routine")) {
+			return List.of(
+				"I've had a busy but great day!",
+				"How has your day been going so far?",
+				"I'm planning to relax and listen to music later."
+			);
+		} else if (s.contains("restaurant") || s.contains("dining") || s.contains("food") || s.contains("burger")) {
+			return List.of(
+				"Could I please see the dinner menu?",
+				"What do you recommend as today's special?",
+				"Could we get the check, please?"
+			);
+		} else if (s.contains("coffee") || s.contains("cafe")) {
+			return List.of(
+				"I'd like a medium iced latte with oat milk, please.",
+				"Do you have any fresh pastries today?",
+				"Can I get this to go, please?"
+			);
+		} else if (s.contains("hotel") || s.contains("check-in")) {
+			return List.of(
+				"Hi, I have a reservation under my name.",
+				"What time is breakfast served in the morning?",
+				"Could you tell me the Wi-Fi password?"
+			);
+		} else if (s.contains("airport") || s.contains("flight") || s.contains("travel")) {
+			return List.of(
+				"Here are my passport and boarding pass.",
+				"I am traveling for a short vacation.",
+				"Which gate does my flight depart from?"
+			);
+		} else if (s.contains("interview") || s.contains("job") || s.contains("career")) {
+			return List.of(
+				"I have hands-on experience in problem solving.",
+				"My greatest strength is communicating under pressure.",
+				"I am excited about this role and your team culture."
+			);
+		} else if (s.contains("shopping") || s.contains("store") || s.contains("clothes")) {
+			return List.of(
+				"Excuse me, do you have this in a medium size?",
+				"Where are the fitting rooms located?",
+				"Is this item currently on discount?"
+			);
+		} else if (s.contains("doctor") || s.contains("health") || s.contains("hospital")) {
+			return List.of(
+				"I've been having a mild headache since yesterday.",
+				"How often should I take this medication?",
+				"Thank you for the helpful advice, doctor."
+			);
+		} else if (s.contains("zoo") || s.contains("animal")) {
+			return List.of(
+				"Where can we find the elephant exhibit?",
+				"What time is the animal feeding show?",
+				"My favorite animals are the giant pandas!"
+			);
+		} else if (s.contains("school") || s.contains("class") || s.contains("grade") || s.contains("std")) {
+			return List.of(
+				"Good morning! I finished my homework assignment.",
+				"Could you please explain that question again?",
+				"My favorite subjects are science and English."
+			);
+		} else if (s.contains("meeting") || s.contains("business") || s.contains("presentation")) {
+			return List.of(
+				"Let's review the main milestones on our agenda.",
+				"I agree with that strategy and propose next steps.",
+				"Does anyone have any questions on this slide?"
+			);
+		}
+		return List.of(
+			"Could you tell me a bit more about that?",
+			"That sounds interesting, what should we do next?",
+			"Could you give me an example of that?"
+		);
+	}
+
 	@Override
 	public SpeakingMessageResponse processMessage(SpeakingMessageRequest request) {
 		SpeakingSession session = speakingSessionRepository.findById(request.getSessionId())
@@ -529,29 +635,26 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		String systemPrompt = String.format(
 				"You are an expert English conversation tutor roleplaying authentically with the student in the scenario: '%s'.\n" +
 				"ROLEPLAY & CONVERSATIONAL IMMERSION:\n" +
-				"1. IN-CHARACTER DIALOGUE ('aiReply'): Fully inhabit the scenario role (e.g. barista, interviewer, doctor, travel guide, debating partner, or peer). Speak naturally in 1-2 engaging sentences without robotic formality.\n" +
-				"2. NATIVE PHRASING ('betterSentence'): If the user's sentence could be said in a more natural, idiomatic native way, provide the ideal phrasing ('How you should say it'). If they spoke perfectly, set this to null.\n" +
-				"3. GRAMMAR EVALUATION ('grammarCorrection'): Correct any grammatical or syntactic errors. If their sentence is correct, set to null.\n" +
-				"4. DYNAMIC SUGGESTED RESPONSES ('suggestedResponses'): Provide EXACTLY 3 short, distinct response options for the user:\n" +
-				"   - Option 1: Simple & direct response (3-5 words).\n" +
-				"   - Option 2: Natural conversational/idiomatic response.\n" +
-				"   - Option 3: Curious question or conversational pivot.\n" +
-				"5. CRITICAL CLEAN TEXT RULES: Never output bracketed metadata tags (e.g. [grammar], [better_sentence]). Never output ellipses '...' that cause TTS engines to say 'dot dot dot'. Never output stage directions like (smiling) or (laughs).\n" +
+				"1. IN-CHARACTER DIALOGUE ('aiReply'): Inhabit your persona (e.g. friendly barista, job interviewer, doctor, tour guide, peer, or teacher). Respond naturally in 1-2 lively, empathetic sentences. Keep the conversation engaging and fluid.\n" +
+				"2. NATIVE PHRASING ('betterSentence'): If the student's expression could be polished into a natural native idiom ('How a native speaker says it'), provide it here. If they spoke naturally and cleanly, set to null.\n" +
+				"3. GRAMMAR EVALUATION ('grammarCorrection'): Provide a corrected version only if there were grammatical errors, otherwise set to null.\n" +
+				"4. DYNAMIC SPOKEN HINTS ('suggestedResponses'): Provide EXACTLY 3 complete, realistic phrases the student can literally speak out loud next. CRITICAL: Never write 'Suggestion 1', 'Option 1', or placeholder labels. Each must be a real sentence tailored directly to this dialogue.\n" +
+				"5. CLEAN TEXT RULES: Never output bracketed meta tags (e.g. [grammar]), never output ellipses '...', and never output stage directions like (smiling).\n" +
 				"%s\n" +
 				"%s\n" +
-				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks. Do not include any text, notes, or explanations outside the JSON object.\n" +
+				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
 				"The JSON must have these exact fields and structure:\n" +
 				"{\n" +
-				"  \"aiReply\": \"Your natural conversational dialogue response (1-2 sentences). Do not include the follow-up question here.\",\n" +
-				"  \"grammarCorrection\": \"Corrected version of the user's sentence if they made a mistake, otherwise null.\",\n" +
-				"  \"betterSentence\": \"A natural native phrasing alternative ('How you should say it') for the user's sentence, otherwise null.\",\n" +
-				"  \"vocabularySuggestions\": \"1-2 alternative words to enrich their vocabulary, otherwise null.\",\n" +
-				"  \"explanation\": \"A short (1 sentence) tutoring explanation of the correction or vocab suggestion, otherwise null.\",\n" +
-				"  \"followUpQuestion\": \"A natural follow-up question to keep the chat moving forward.\",\n" +
-				"  \"nativeTip\": \"A short tip on pronunciation or natural cadence, otherwise null.\",\n" +
-				"  \"suggestedResponses\": [\"Simple option\", \"Natural idiom option\", \"Follow-up question option\"]\n" +
+				"  \"aiReply\": \"Your natural in-character conversational response (1-2 sentences).\",\n" +
+				"  \"grammarCorrection\": \"Corrected version if mistake made, otherwise null.\",\n" +
+				"  \"betterSentence\": \"Natural native phrasing alternative ('How to say it'), otherwise null.\",\n" +
+				"  \"vocabularySuggestions\": \"1-2 vocabulary enrichment words, otherwise null.\",\n" +
+				"  \"explanation\": \"A short 1-sentence tutoring note, otherwise null.\",\n" +
+				"  \"followUpQuestion\": \"A natural follow-up question to keep the dialogue flowing.\",\n" +
+				"  \"nativeTip\": \"A short pronunciation or cadence tip, otherwise null.\",\n" +
+				"  \"suggestedResponses\": [\"First realistic sentence student can speak\", \"Second realistic sentence student can speak\", \"Third realistic sentence student can speak\"]\n" +
 				"}\n\n" +
-				"Important: Escape any double quotes inside string values as \\\" to ensure the JSON is valid.",
+				"Important: Escape any double quotes inside string values as \\\" to ensure valid JSON.",
 				session.getScenario(),
 				levelInstruction,
 				ageInstruction
@@ -629,22 +732,25 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			response.setFollowUpQuestion(null);
 		}
 
-		// Provide smart suggested response chips if empty
-		if (response.getSuggestedResponses() == null || response.getSuggestedResponses().isEmpty()) {
-			response.setSuggestedResponses(List.of(
-				"Could you tell me more about that?",
-				"That sounds great, let's proceed."
-			));
-		} else {
-			List<String> cleanSuggested = new ArrayList<>();
+		// Provide smart suggested response chips if empty or sanitize
+		List<String> cleanSuggested = new ArrayList<>();
+		if (response.getSuggestedResponses() != null) {
 			for (String sug : response.getSuggestedResponses()) {
-				String sClean = sanitizeSpokenText(sug);
-				if (sClean != null && !sClean.isEmpty()) {
+				String sClean = cleanAndSanitizeHint(sug);
+				if (sClean != null && !sClean.isEmpty() && !cleanSuggested.contains(sClean)) {
 					cleanSuggested.add(sClean);
 				}
 			}
-			response.setSuggestedResponses(cleanSuggested.isEmpty() ? List.of("Could you tell me more about that?", "That sounds great, let's proceed.") : cleanSuggested);
 		}
+		if (cleanSuggested.size() < 2) {
+			List<String> fallbacks = getDefaultScenarioHints(session.getScenario());
+			for (String fb : fallbacks) {
+				if (!cleanSuggested.contains(fb)) {
+					cleanSuggested.add(fb);
+				}
+			}
+		}
+		response.setSuggestedResponses(cleanSuggested);
 
 		// Deduplicate follow-up from reply
 		String reply = response.getAiReply();
@@ -964,23 +1070,19 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				if (rawHints != null && !rawHints.isEmpty()) {
 					List<String> cleanList = new ArrayList<>();
 					for (String h : rawHints) {
-						String c = sanitizeSpokenText(h);
-						if (c != null && !c.isEmpty()) {
+						String c = cleanAndSanitizeHint(h);
+						if (c != null && !c.isEmpty() && !cleanList.contains(c)) {
 							cleanList.add(c);
 						}
 					}
-					if (!cleanList.isEmpty()) return cleanList;
+					if (cleanList.size() >= 2) return cleanList;
 				}
 			}
 		} catch (Exception e) {
 			// ignore and fallback
 		}
 
-		return List.of(
-				"Could you please explain that?",
-				"Yes, that makes sense to me.",
-				"What do you suggest we do next?"
-		);
+		return getDefaultScenarioHints(session.getScenario());
 	}
 
 	// Helper inner class for Jackson deserialization
