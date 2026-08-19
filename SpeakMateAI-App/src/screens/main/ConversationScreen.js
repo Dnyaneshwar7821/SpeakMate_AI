@@ -10,6 +10,7 @@ import {
   Alert,
   Animated,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -117,6 +118,8 @@ export default function ConversationScreen({ navigation, route }) {
   const [hints, setHints] = useState([]);
   const [loadingHints, setLoadingHints] = useState(false);
 
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
   const flatListRef = useRef(null);
   const timerInterval = useRef(null);
   const recordingRef = useRef(null);
@@ -130,6 +133,25 @@ export default function ConversationScreen({ navigation, route }) {
   const silenceTimerRef = useRef(0);
   const initialSilenceTimerRef = useRef(0);
   const stoppingRef = useRef(false);
+
+  // Auto-collapse top avatar on keyboard show to maximize chat view
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const updateIsPaused = (val) => {
     isPausedRef.current = val;
@@ -976,7 +998,7 @@ export default function ConversationScreen({ navigation, route }) {
   return (
     <KeyboardAvoidingView
       style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={0}
     >
     <LinearGradient colors={['#0B0F19', '#111827', '#1E1B4B']} style={{ flex: 1 }}>
@@ -1001,27 +1023,31 @@ export default function ConversationScreen({ navigation, route }) {
         </SafeAreaView>
       </View>
 
-      {/* ─── 3D AI Tutor Avatar ─── */}
-      <View style={styles.avatarContainer}>
-        <AIAvatar
-          gender={avatarGender}
-          isSpeaking={isSpeaking && !isPaused}
-          state={avatarState}
-          expression={avatarExpression}
-          style={styles.avatar3d}
-          hideStatusPill={true}
-        />
-      </View>
+      {/* ─── 3D AI Tutor Avatar (collapses when keyboard is active) ─── */}
+      {!isKeyboardVisible && (
+        <>
+          <View style={styles.avatarContainer}>
+            <AIAvatar
+              gender={avatarGender}
+              isSpeaking={isSpeaking && !isPaused}
+              state={avatarState}
+              expression={avatarExpression}
+              style={styles.avatar3d}
+              hideStatusPill={true}
+            />
+          </View>
 
-      {/* Status Pill directly below AI Avatar */}
-      <AIAvatar
-        gender={avatarGender}
-        isSpeaking={isSpeaking && !isPaused}
-        state={avatarState}
-        expression={avatarExpression}
-        showOnlyPill={true}
-        style={{ marginTop: 2, marginBottom: 6 }}
-      />
+          {/* Status Pill directly below AI Avatar */}
+          <AIAvatar
+            gender={avatarGender}
+            isSpeaking={isSpeaking && !isPaused}
+            state={avatarState}
+            expression={avatarExpression}
+            showOnlyPill={true}
+            style={{ marginTop: 2, marginBottom: 6 }}
+          />
+        </>
+      )}
 
       {/* ── Chat Messages ── */}
       <FlatList

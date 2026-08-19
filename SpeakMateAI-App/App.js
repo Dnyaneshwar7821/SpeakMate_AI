@@ -65,12 +65,19 @@ const linking = {
   },
 };
 
+import { StatusBar } from 'expo-status-bar';
 import { ToastProvider } from './src/context/ToastContext';
 
 // Inner component so hooks work inside providers
 function AppContent() {
+  const { isDark } = useTheme();
   usePushNotifications();
-  return <AppNavigator />;
+  return (
+    <>
+      <StatusBar style={isDark ? 'light' : 'dark'} translucent={true} backgroundColor="transparent" />
+      <AppNavigator />
+    </>
+  );
 }
 
 export default function App() {

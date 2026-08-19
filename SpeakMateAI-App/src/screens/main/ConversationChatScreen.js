@@ -4,6 +4,7 @@ import {
   Alert,
   Animated,
   FlatList,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -106,6 +107,8 @@ export default function ConversationChatScreen({ navigation, route }) {
   const [statusText, setStatusText] = useState('Waiting for Response');
   const [isSpeaking, setIsSpeaking] = useState(false);
 
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
   // Long-press Actions Modal
   const [menuVisible, setMenuVisible] = useState(false);
   const [selectedMessage, setSelectedMessage] = useState(null);
@@ -119,6 +122,25 @@ export default function ConversationChatScreen({ navigation, route }) {
   const silenceTimerRef = useRef(0);
   const initialSilenceTimerRef = useRef(0);
   const stoppingRef = useRef(false);
+
+  // Auto-collapse top avatar on keyboard show to maximize chat view
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setKeyboardVisible(true);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   // ─── Fetch Voice Preference ───
   useEffect(() => {
@@ -596,22 +618,22 @@ export default function ConversationChatScreen({ navigation, route }) {
         </SafeAreaView>
       </View>
 
-      {/* ─── 3D AI Tutor Avatar ─── */}
-      <View style={styles.avatarContainer}>
-        <AIAvatar
-          gender={avatarGender}
-          isSpeaking={isSpeaking}
-          state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
-          expression={avatarExpression}
-          style={styles.avatar3d}
-        />
-      </View>
-
-
+      {/* ─── 3D AI Tutor Avatar (collapses when keyboard is active) ─── */}
+      {!isKeyboardVisible && (
+        <View style={styles.avatarContainer}>
+          <AIAvatar
+            gender={avatarGender}
+            isSpeaking={isSpeaking}
+            state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
+            expression={avatarExpression}
+            style={styles.avatar3d}
+          />
+        </View>
+      )}
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         {/* ─── Messages List ─── */}
