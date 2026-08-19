@@ -28,11 +28,13 @@ import com.rslsolution.speakmateai.dto.groq.GroqResponse;
 import com.rslsolution.speakmateai.entity.ChatBookmark;
 import com.rslsolution.speakmateai.entity.ChatMessage;
 import com.rslsolution.speakmateai.entity.ChatSession;
+import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.exception.UserNotFoundException;
 import com.rslsolution.speakmateai.repository.ChatBookmarkRepository;
 import com.rslsolution.speakmateai.repository.ChatMessageRepository;
 import com.rslsolution.speakmateai.repository.ChatSessionRepository;
+import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.service.AIChatService;
 
