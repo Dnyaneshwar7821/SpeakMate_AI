@@ -264,9 +264,13 @@ export const getScenarioInitialGreeting = (title = '') => {
     return "Welcome to the guided cultural tour! We have fascinating historical exhibits ahead. What period of history interests you most?";
   } else if (t.includes('customer support')) {
     return "Hello! Thank you for calling customer support. My name is Alex. How may I assist you with your account today?";
+  } else if (t.includes('daily conversation') || t.includes('relaxed daily')) {
+    return "Hello! Welcome to our daily conversation practice. How has your day been going so far?";
   }
 
-  return `Hello! Welcome to our ${title} conversation practice. How can I assist you today?`;
+  const cleanTitle = (title || '').replace(/\b(conversation|practice|session)\b/gi, '').trim();
+  const scenarioLabel = cleanTitle ? `${cleanTitle} ` : '';
+  return `Hello! Welcome to our ${scenarioLabel}conversation practice. How can I assist you today?`;
 };
 
 export default function SpeakingHomeScreen({ navigation }) {

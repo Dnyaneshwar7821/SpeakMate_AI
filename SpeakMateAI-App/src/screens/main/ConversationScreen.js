@@ -196,7 +196,9 @@ export default function ConversationScreen({ navigation, route }) {
       // 3. Immediately speak the opening scenario greeting
       let initialGreetingText = route.params?.initialGreeting;
       if (!initialGreetingText) {
-        initialGreetingText = `Hello! Welcome to our ${scenario || 'conversation'} practice session. How can I help you today?`;
+        const cleanScn = (scenario || '').replace(/\b(conversation|practice|session)\b/gi, '').trim();
+        const scnLabel = cleanScn ? `${cleanScn} ` : '';
+        initialGreetingText = `Hello! Welcome to our ${scnLabel}conversation practice. How can I help you today?`;
       }
       
       // 4. Sync background session if live backend session is available

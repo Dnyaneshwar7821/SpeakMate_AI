@@ -96,8 +96,9 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	}
 
 	private static final List<String> FALLBACK_MODELS = List.of(
-			"llama-3.1-8b-instant",
-			"qwen/qwen3.6-27b"
+			"openai/gpt-oss-120b",
+			"qwen/qwen3.6-27b",
+			"openai/gpt-oss-20b"
 	);
 
 	private String callGroqChat(List<GroqRequest.Message> messages) {
@@ -355,9 +356,13 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			return "Welcome to the guided cultural tour! We have fascinating historical exhibits ahead. What period of history interests you most?";
 		} else if (s.contains("customer support")) {
 			return "Hello! Thank you for calling customer support. My name is Alex. How may I assist you with your account today?";
+		} else if (s.contains("daily conversation") || s.contains("relaxed daily")) {
+			return "Hello! Welcome to our daily conversation practice. How has your day been going so far?";
 		}
 
-		return "Hello! Welcome to our " + scenario + " conversation practice. What would you like to start with?";
+		String cleanScenario = (scenario != null ? scenario : "").replaceAll("(?i)\\b(conversation|practice|session)\\b", "").trim();
+		String prefix = cleanScenario.isEmpty() ? "" : cleanScenario + " ";
+		return "Hello! Welcome to our " + prefix + "conversation practice. What would you like to start with?";
 	}
 
 	@Override
@@ -522,12 +527,16 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
-				"You are an English conversation partner roleplaying with the student in the scenario: '%s'.\n" +
-				"ROLEPLAY & COACHING RULES:\n" +
-				"1. Act authentically as the in-character role (e.g. barista in cafe, interviewer, receptionist, friend) in 'aiReply'.\n" +
-				"2. In 'betterSentence', provide the learner with a natural native phrasing alternative ('How you should say it') for what they expressed.\n" +
-				"3. In 'grammarCorrection', evaluate the user's sentence without any bracket tags or meta-symbols.\n" +
-				"4. CRITICAL: Never output bracketed tags like [article], [grammar], [better_sentence], etc. Never use '...' or ellipses that cause speech synthesis to say 'dot dot dot'. Never output stage directions like (smiling) or (laughs).\n" +
+				"You are an expert English conversation tutor roleplaying authentically with the student in the scenario: '%s'.\n" +
+				"ROLEPLAY & CONVERSATIONAL IMMERSION:\n" +
+				"1. IN-CHARACTER DIALOGUE ('aiReply'): Fully inhabit the scenario role (e.g. barista, interviewer, doctor, travel guide, debating partner, or peer). Speak naturally in 1-2 engaging sentences without robotic formality.\n" +
+				"2. NATIVE PHRASING ('betterSentence'): If the user's sentence could be said in a more natural, idiomatic native way, provide the ideal phrasing ('How you should say it'). If they spoke perfectly, set this to null.\n" +
+				"3. GRAMMAR EVALUATION ('grammarCorrection'): Correct any grammatical or syntactic errors. If their sentence is correct, set to null.\n" +
+				"4. DYNAMIC SUGGESTED RESPONSES ('suggestedResponses'): Provide EXACTLY 3 short, distinct response options for the user:\n" +
+				"   - Option 1: Simple & direct response (3-5 words).\n" +
+				"   - Option 2: Natural conversational/idiomatic response.\n" +
+				"   - Option 3: Curious question or conversational pivot.\n" +
+				"5. CRITICAL CLEAN TEXT RULES: Never output bracketed metadata tags (e.g. [grammar], [better_sentence]). Never output ellipses '...' that cause TTS engines to say 'dot dot dot'. Never output stage directions like (smiling) or (laughs).\n" +
 				"%s\n" +
 				"%s\n" +
 				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks. Do not include any text, notes, or explanations outside the JSON object.\n" +
@@ -540,7 +549,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				"  \"explanation\": \"A short (1 sentence) tutoring explanation of the correction or vocab suggestion, otherwise null.\",\n" +
 				"  \"followUpQuestion\": \"A natural follow-up question to keep the chat moving forward.\",\n" +
 				"  \"nativeTip\": \"A short tip on pronunciation or natural cadence, otherwise null.\",\n" +
-				"  \"suggestedResponses\": [\"Short sample reply option 1\", \"Short sample reply option 2\"]\n" +
+				"  \"suggestedResponses\": [\"Simple option\", \"Natural idiom option\", \"Follow-up question option\"]\n" +
 				"}\n\n" +
 				"Important: Escape any double quotes inside string values as \\\" to ensure the JSON is valid.",
 				session.getScenario(),
@@ -919,16 +928,19 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		// Build context for suggestions
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
-				"You are an expert English tutor observing a practice conversation under the scenario: '%s'.\n" +
-				"Based on the conversation history, suggest EXACTLY 3 short, natural, and distinct alternative responses the student could say next to keep the conversation flowing.\n" +
-				"Each suggestion must be simple, direct, natural, and maximum 8 words.\n" +
-				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks. Do not include any explanations, notes, or text outside the JSON object.\n" +
-				"The JSON must have this exact field and structure:\n" +
+				"You are an expert English tutor observing a live practice conversation under the scenario: '%s'.\n" +
+				"Based on the conversation history and the latest turn, provide EXACTLY 3 short, distinct, high-impact alternative responses the student could say next:\n" +
+				"1. Simple & direct option (3-5 words)\n" +
+				"2. Natural & idiomatic conversational option\n" +
+				"3. Thoughtful follow-up question or pivot\n" +
+				"Keep each suggestion under 8 words. Do not use punctuation tags or emojis.\n" +
+				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
+				"The JSON must have this exact structure:\n" +
 				"{\n" +
 				"  \"hints\": [\n" +
-				"    \"Suggestion one\",\n" +
-				"    \"Suggestion two\",\n" +
-				"    \"Suggestion three\"\n" +
+				"    \"Simple direct response\",\n" +
+				"    \"Natural native response\",\n" +
+				"    \"Engaging follow up question\"\n" +
 				"  ]\n" +
 				"}",
 				session.getScenario()

@@ -27,10 +27,10 @@ public class AiServiceImpl implements AiService {
 	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
 	private String apiUrl;
 
-	@Value("${groq.model.chat:${groq.model:llama-3.1-8b-instant}}")
+	@Value("${groq.model.chat:${groq.model:openai/gpt-oss-120b}}")
 	private String chatModel;
 
-	@Value("${groq.model.analysis:${groq.model:llama-3.1-8b-instant}}")
+	@Value("${groq.model.analysis:${groq.model:qwen/qwen3.6-27b}}")
 	private String analysisModel;
 
 	private final RestTemplate restTemplate;

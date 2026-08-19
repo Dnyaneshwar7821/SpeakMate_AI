@@ -53,7 +53,7 @@ public class AIChatServiceImpl implements AIChatService {
 	@Value("${groq.api.key:}")
 	private String apiKey;
 
-	@Value("${groq.model.chat:${groq.model:llama-3.1-8b-instant}}")
+	@Value("${groq.model.chat:${groq.model:openai/gpt-oss-120b}}")
 	private String model;
 
 	public AIChatServiceImpl(
@@ -533,9 +533,9 @@ public class AIChatServiceImpl implements AIChatService {
 
 			return body.getChoices().get(0).getMessage().getContent();
 		} catch (Exception e) {
-			if (!"llama-3.1-8b-instant".equals(model)) {
+			if (!"qwen/qwen3.6-27b".equals(model)) {
 				try {
-					GroqRequest request = new GroqRequest("llama-3.1-8b-instant", messages, 0.7);
+					GroqRequest request = new GroqRequest("qwen/qwen3.6-27b", messages, 0.7);
 					HttpHeaders headers = new HttpHeaders();
 					headers.setContentType(MediaType.APPLICATION_JSON);
 					headers.setBearerAuth(apiKey);
