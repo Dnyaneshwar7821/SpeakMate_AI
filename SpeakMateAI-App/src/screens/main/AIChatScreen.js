@@ -74,39 +74,23 @@ export default function AIChatScreen({ navigation }) {
   );
 
   const handleStartSession = async (mode) => {
+    setLoading(true);
     try {
-      Alert.alert(
-        'Start Lesson 🎓',
-        `Ready to start a new ${mode} tutoring session?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          {
-            text: 'Start',
-            onPress: async () => {
-              setLoading(true);
-              try {
-                const session = await chatService.start(mode);
-                navigation.navigate('ConversationChat', {
-                  sessionId: session.id,
-                  mode: session.mode,
-                  title: session.title,
-                });
-              } catch (e) {
-                console.warn('Backend chat start sync note, opening session directly:', e);
-                navigation.navigate('ConversationChat', {
-                  sessionId: 'sim_' + Date.now(),
-                  mode: mode,
-                  title: mode + ' Session',
-                });
-              } finally {
-                setLoading(false);
-              }
-            },
-          },
-        ]
-      );
-    } catch (err) {
-      console.error(err);
+      const session = await chatService.start(mode);
+      navigation.navigate('ConversationChat', {
+        sessionId: session.id,
+        mode: session.mode,
+        title: session.title,
+      });
+    } catch (e) {
+      console.warn('Backend chat start sync note, opening session directly:', e);
+      navigation.navigate('ConversationChat', {
+        sessionId: 'sim_' + Date.now(),
+        mode: mode,
+        title: mode + ' Session',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 

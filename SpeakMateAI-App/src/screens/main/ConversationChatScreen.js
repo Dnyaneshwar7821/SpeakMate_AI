@@ -582,6 +582,95 @@ export default function ConversationChatScreen({ navigation, route }) {
     if (lastAi) speakText(getSpeakableText(lastAi), nextSpeed);
   };
 
+  const getModeHints = (m, lastAiMsg) => {
+    const modeStr = (m || '').toLowerCase();
+    const aiText = (lastAiMsg?.message || '').toLowerCase();
+
+    if (aiText.includes('name') || aiText.includes('who are you') || aiText.includes('introduce')) {
+      return [
+        "Hi! Nice to meet you. I'm excited to practice English with you!",
+        "Hello! I'm practicing to speak more fluently and confidently.",
+        "Could you introduce yourself as well?"
+      ];
+    }
+    if (aiText.includes('hobby') || aiText.includes('free time') || aiText.includes('weekend')) {
+      return [
+        "In my free time, I love reading books and listening to music.",
+        "I usually enjoy playing games and spending time outdoors.",
+        "What do you recommend doing on weekends?"
+      ];
+    }
+    if (aiText.includes('job') || aiText.includes('work') || aiText.includes('career') || aiText.includes('interview')) {
+      return [
+        "I have experience in problem solving and teamwork.",
+        "I am always eager to learn new skills and contribute to the team.",
+        "Could you give me feedback on my answer?"
+      ];
+    }
+    if (modeStr.includes('travel') || aiText.includes('trip') || aiText.includes('flight') || aiText.includes('hotel')) {
+      return [
+        "Could you help me find the nearest subway station?",
+        "I would like to make a reservation for two nights, please.",
+        "What are the most popular sights to visit here?"
+      ];
+    }
+    if (modeStr.includes('grammar') || modeStr.includes('coach')) {
+      return [
+        "Could you explain the difference between past simple and present perfect?",
+        "Is there a more natural way to express this thought?",
+        "Could you give me another example sentence to practice?"
+      ];
+    }
+    if (modeStr.includes('vocabulary') || modeStr.includes('vocab')) {
+      return [
+        "Could you teach me 3 useful idioms for daily conversation?",
+        "What are common native synonyms for 'interesting' and 'good'?",
+        "Can we practice making sentences with these new words?"
+      ];
+    }
+    if (modeStr.includes('business') || modeStr.includes('meeting')) {
+      return [
+        "Let's review the main agenda items for today's meeting.",
+        "I agree with that approach and propose we finalize the action items.",
+        "Could you provide your feedback on this proposal?"
+      ];
+    }
+    if (modeStr.includes('ielts')) {
+      return [
+        "In my opinion, technology has both advantages and disadvantages.",
+        "From my personal experience, consistent practice is the key.",
+        "Could you score my response based on IELTS criteria?"
+      ];
+    }
+    if (modeStr.includes('debate')) {
+      return [
+        "While I understand that perspective, there is another angle to consider.",
+        "The primary evidence supports taking a proactive approach.",
+        "How would you address the counter-arguments against that point?"
+      ];
+    }
+    return [
+      "That makes a lot of sense! Could you tell me more?",
+      "I understand. What do you suggest I focus on next?",
+      "Could you give me an example of how a native speaker would say that?"
+    ];
+  };
+
+  const handleFetchHints = () => {
+    if (loadingHints || evaluating) return;
+    if (hints.length > 0) {
+      setHints([]);
+      return;
+    }
+    setLoadingHints(true);
+    const lastAi = [...messages].reverse().find((m) => m.sender === 'ai');
+    const dynamicHints = getModeHints(mode, lastAi);
+    setTimeout(() => {
+      setHints(dynamicHints);
+      setLoadingHints(false);
+    }, 200);
+  };
+
   const subtitleText = isSpeaking
     ? '✨ Tutor speaking...'
     : evaluating
@@ -603,7 +692,26 @@ export default function ConversationChatScreen({ navigation, route }) {
             </TouchableOpacity>
             <View style={{ flex: 1, alignItems: 'center' }}>
               <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
-              <Text style={styles.headerSubtitle}>{subtitleText}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+                    const nextIdx = (LEVELS.indexOf(chatLevel) + 1) % LEVELS.length;
+                    setChatLevel(LEVELS[nextIdx]);
+                  }}
+                  style={{
+                    backgroundColor: 'rgba(99, 102, 241, 0.25)',
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: 'rgba(99, 102, 241, 0.4)',
+                  }}
+                >
+                  <Text style={{ fontSize: 10, color: '#A5B4FC', fontWeight: '800' }}>⚡ {chatLevel}</Text>
+                </TouchableOpacity>
+                <Text style={styles.headerSubtitle}>{subtitleText}</Text>
+              </View>
             </View>
             <TouchableOpacity
               style={styles.muteBtn}
