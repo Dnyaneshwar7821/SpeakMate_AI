@@ -363,20 +363,6 @@ export default function ConversationChatScreen({ navigation, route }) {
     }
   };
 
-  const handleFetchHints = async () => {
-    if (loadingHints || evaluating) return;
-    setLoadingHints(true);
-    try {
-      const data = await chatService.getHints(sessionId);
-      setHints(data || []);
-    } catch (e) {
-      console.warn("Failed to fetch hints:", e);
-      Alert.alert('Hint Failed', 'Could not load suggestions.');
-    } finally {
-      setLoadingHints(false);
-    }
-  };
-
   const startRecording = async () => {
     try {
       VoiceService.stop();
