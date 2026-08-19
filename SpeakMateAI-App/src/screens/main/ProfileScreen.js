@@ -442,7 +442,7 @@ export default function ProfileScreen({ navigation }) {
           <View style={styles.levelSegmentRow}>
             {(accountType === 'STUDENT'
               ? ['1st Std', '5th Std', '8th Std', '10th Std']
-              : ['Beginner', 'Elementary', 'Intermediate', 'Advanced', 'Fluent']
+              : ['Beginner', 'Intermediate', 'Advanced']
             ).map((lvl) => {
               const active = currentEnglishLevel.toLowerCase() === lvl.toLowerCase();
               return (
