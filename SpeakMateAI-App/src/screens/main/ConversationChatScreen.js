@@ -325,6 +325,72 @@ export default function ConversationChatScreen({ navigation, route }) {
     });
   };
 
+  const speakAiWithCoaching = (aiMsg) => {
+    if (!aiMsg || isMuted) return;
+
+    let mainReply = aiMsg.message || '';
+    if (aiMsg.followUpQuestion && !mainReply.includes(aiMsg.followUpQuestion)) {
+      mainReply += ` ${aiMsg.followUpQuestion}`;
+    }
+
+    const cleanBetter = aiMsg.betterSentence && typeof aiMsg.betterSentence === 'string'
+      ? aiMsg.betterSentence.replace(/[\[\]"]/g, '').trim()
+      : null;
+
+    const hasBetter = cleanBetter &&
+      cleanBetter.toLowerCase() !== 'null' &&
+      cleanBetter.toLowerCase() !== 'none' &&
+      !cleanBetter.includes('✅');
+
+    // Stage 1: Speak in-character conversational response
+    VoiceService.speak(mainReply, {
+      isMuted,
+      voiceType: preferredVoice,
+      speechSpeed,
+      availableVoices,
+      onStart: () => {
+        setStatusText('Speaking');
+        setIsSpeaking(true);
+      },
+      onDone: () => {
+        // Stage 2: 0.45s natural conversational gap before speaking coaching tip
+        if (hasBetter && !isMuted) {
+          setStatusText('Coaching Tip');
+          setTimeout(() => {
+            if (!isMuted) {
+              const coachingPhrase = `A better way to say that is: "${cleanBetter}"`;
+              VoiceService.speak(coachingPhrase, {
+                isMuted,
+                voiceType: preferredVoice,
+                speechSpeed,
+                availableVoices,
+                onStart: () => {
+                  setStatusText('Coaching Tip');
+                  setIsSpeaking(true);
+                },
+                onDone: () => {
+                  setStatusText('Waiting for Response');
+                  setIsSpeaking(false);
+                },
+                onError: () => {
+                  setStatusText('Waiting for Response');
+                  setIsSpeaking(false);
+                },
+              });
+            }
+          }, 450); // 0.45 second natural conversational gap
+        } else {
+          setStatusText('Waiting for Response');
+          setIsSpeaking(false);
+        }
+      },
+      onError: () => {
+        setStatusText('Waiting for Response');
+        setIsSpeaking(false);
+      },
+    });
+  };
+
   const handleSendMessage = async (textToSend = inputText) => {
     const cleanText = textToSend.trim();
     if (!cleanText) return;
@@ -372,8 +438,8 @@ export default function ConversationChatScreen({ navigation, route }) {
         setTimeout(() => setAvatarExpression(undefined), 3500);
       }
 
-      // Automatically play TTS
-      speakText(getSpeakableText(response));
+      // Automatically play TTS with 0.45s coaching pause
+      speakAiWithCoaching(response);
     } catch {
       try {
         const aiRes = await aiService.chat(cleanText);
@@ -389,7 +455,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           createdAt: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, fallbackMsg]);
-        speakText(getSpeakableText(fallbackMsg));
+        speakAiWithCoaching(fallbackMsg);
       } catch (err2) {
         Alert.alert('Tutor request failed', 'Could not get response. Please try again.');
         setMessages((prev) => prev.filter((m) => m.id !== tempUserMsg.id));
