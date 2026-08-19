@@ -6,7 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
 import { AuthProvider } from './src/context/AuthContext';
 import { DrawerProvider } from './src/context/DrawerContext';
-import { ThemeProvider } from './src/context/ThemeContext';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { NotificationProvider } from './src/context/NotificationContext';
 import { usePushNotifications } from './src/hooks/usePushNotifications';
 import AppNavigator from './src/navigation/AppNavigator';
