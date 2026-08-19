@@ -225,6 +225,28 @@ export const DashboardHeader = memo(function DashboardHeader({
                 </View>
               )}
             </View>
+
+            {/* Level XP Progress Mini Bar */}
+            <View style={{ marginTop: 8, width: '100%' }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 }}>
+                <Text style={{ fontSize: 10.5, color: '#CBD5E1', fontWeight: '700' }}>
+                  Progress to Level {(Number(level) || 1) + 1}
+                </Text>
+                <Text style={{ fontSize: 10.5, color: '#FDE68A', fontWeight: '800' }}>
+                  {(Number(xp) || 0) % 500} / 500 XP
+                </Text>
+              </View>
+              <View style={{ height: 4.5, backgroundColor: 'rgba(255,255,255,0.18)', borderRadius: 3, overflow: 'hidden' }}>
+                <View
+                  style={{
+                    height: '100%',
+                    width: `${Math.min(100, Math.max(4, (((Number(xp) || 0) % 500) / 500) * 100))}%`,
+                    backgroundColor: '#FCD34D',
+                    borderRadius: 3,
+                  }}
+                />
+              </View>
+            </View>
           </View>
         </View>
         {!!rank && (

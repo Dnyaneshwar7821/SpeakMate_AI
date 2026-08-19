@@ -78,7 +78,14 @@ public class ProgressServiceImpl implements ProgressService {
 					return progressRepository.save(newProgress);
 				});
 
-		return ProgressResponse.builder().id(progress.getId()).xp(progress.getXp()).level(progress.getLevel())
+		int totalXp = progress.getXp() != null ? progress.getXp() : 0;
+		int calculatedLevel = Math.max(1, (totalXp / 500) + 1);
+		if (progress.getLevel() == null || progress.getLevel() != calculatedLevel) {
+			progress.setLevel(calculatedLevel);
+			progressRepository.save(progress);
+		}
+
+		return ProgressResponse.builder().id(progress.getId()).xp(totalXp).level(calculatedLevel)
 				.currentStreak(progress.getCurrentStreak()).longestStreak(progress.getLongestStreak())
 				.totalPracticeMinutes(progress.getTotalPracticeMinutes())
 				.totalSpeakingSessions(progress.getTotalSpeakingSessions())

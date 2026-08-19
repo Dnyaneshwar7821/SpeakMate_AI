@@ -56,17 +56,21 @@ public class AIChatServiceImpl implements AIChatService {
 	@Value("${groq.model.chat:${groq.model:openai/gpt-oss-120b}}")
 	private String model;
 
+	private final ProgressRepository progressRepository;
+
 	public AIChatServiceImpl(
 			ChatSessionRepository chatSessionRepository,
 			ChatMessageRepository chatMessageRepository,
 			ChatBookmarkRepository chatBookmarkRepository,
 			UserRepository userRepository,
-			RestTemplate restTemplate) {
+			RestTemplate restTemplate,
+			ProgressRepository progressRepository) {
 		this.chatSessionRepository = chatSessionRepository;
 		this.chatMessageRepository = chatMessageRepository;
 		this.chatBookmarkRepository = chatBookmarkRepository;
 		this.userRepository = userRepository;
 		this.restTemplate = restTemplate;
+		this.progressRepository = progressRepository;
 	}
 
 	private User currentUser() {
@@ -204,6 +208,26 @@ public class AIChatServiceImpl implements AIChatService {
 				.voiceEnabled(request.isVoiceEnabled())
 				.build();
 		ChatMessage savedUserMsg = chatMessageRepository.save(userMsg);
+
+		// Credit +5 XP for active conversation turn
+		try {
+			Progress progress = progressRepository.findByUser(user)
+					.orElseGet(() -> Progress.builder()
+							.user(user)
+							.xp(0)
+							.level(1)
+							.currentStreak(0)
+							.longestStreak(0)
+							.totalPracticeMinutes(0)
+							.totalSpeakingSessions(0)
+							.totalGrammarChecks(0)
+							.totalVocabularyWords(0)
+							.build());
+			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 5;
+			progress.setXp(newXp);
+			progress.setLevel(Math.max(1, (newXp / 500) + 1));
+			progressRepository.save(progress);
+		} catch (Exception ignored) {}
 
 
 		// 2. Determine Level

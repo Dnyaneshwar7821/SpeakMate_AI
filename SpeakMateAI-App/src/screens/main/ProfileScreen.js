@@ -26,13 +26,14 @@ import { COLORS } from '../../constants/colors';
 const PRESET_AVATARS = ['🎓', '🦁', '🚀', '🦉', '👑', '⚡', '🦊', '🎯', '💎', '🌟', '🔥', '🏆'];
 
 const getRankTier = (xp = 0) => {
-  if (xp < 100) return { name: 'Bronze III', icon: '🥉', colors: ['#CD7F32', '#A0522D'] };
-  if (xp < 300) return { name: 'Bronze II', icon: '🥉', colors: ['#D2691E', '#8B4513'] };
-  if (xp < 600) return { name: 'Bronze I', icon: '🥉', colors: ['#CD7F32', '#B8860B'] };
-  if (xp < 1000) return { name: 'Silver III', icon: '🥈', colors: ['#94A3B8', '#64748B'] };
-  if (xp < 1500) return { name: 'Silver II', icon: '🥈', colors: ['#CBD5E1', '#64748B'] };
-  if (xp < 2100) return { name: 'Silver I', icon: '🥈', colors: ['#E2E8F0', '#475569'] };
-  return { name: 'Gold I', icon: '🥇', colors: ['#F59E0B', '#D97706'] };
+  if (xp < 200) return { name: 'Novice Speaker', icon: '🥉', colors: ['#CD7F32', '#A0522D'] };
+  if (xp < 500) return { name: 'Bronze III', icon: '🥉', colors: ['#D2691E', '#8B4513'] };
+  if (xp < 1000) return { name: 'Bronze I', icon: '🥉', colors: ['#CD7F32', '#B8860B'] };
+  if (xp < 1800) return { name: 'Silver II', icon: '🥈', colors: ['#94A3B8', '#64748B'] };
+  if (xp < 2800) return { name: 'Silver I', icon: '🥈', colors: ['#CBD5E1', '#475569'] };
+  if (xp < 4200) return { name: 'Gold I', icon: '🥇', colors: ['#F59E0B', '#D97706'] };
+  if (xp < 6000) return { name: 'Platinum Master', icon: '💎', colors: ['#06B6D4', '#0284C7'] };
+  return { name: 'Diamond Orator', icon: '👑', colors: ['#8B5CF6', '#6D28D9'] };
 };
 
 export default function ProfileScreen({ navigation }) {

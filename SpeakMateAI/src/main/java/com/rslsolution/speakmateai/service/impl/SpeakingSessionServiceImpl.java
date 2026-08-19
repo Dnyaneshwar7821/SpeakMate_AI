@@ -884,10 +884,15 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			System.err.println("⚠️ Groq final evaluation failed, using fallback metrics: " + e.getMessage());
 		}
 
-		// Calculate XP reward: 10 XP for every full minute (1 min = 10 XP, 5 mins = 50 XP)
-		// Must spend at least 60s (1 min) to earn XP (0s - 59s = 0 XP).
+		// Calculate XP reward:
+		// Base: 10 XP if session had dialogue or lasted >= 15 seconds
+		// Time bonus: 10 XP per full minute
+		// Performance bonus: +5 XP for score >= 80%, +10 XP for score >= 90%
+		int baseReward = (session.getMessages() != null && session.getMessages().size() >= 2) || durationSeconds >= 15 ? 10 : 5;
 		long minutes = durationSeconds / 60;
-		int xp = (int) Math.min(100, minutes * 10);
+		int timeBonus = (int) (minutes * 10);
+		int scoreBonus = (score >= 90.0) ? 10 : (score >= 80.0 ? 5 : 0);
+		int xp = Math.min(100, baseReward + timeBonus + scoreBonus);
 
 		// Update session fields
 		session.setDuration((int) durationSeconds);
@@ -916,12 +921,12 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 							.totalGrammarChecks(0)
 							.totalVocabularyWords(0)
 							.build());
-			int sessionMinutes = (int) Math.ceil(durationSeconds / 60.0);
+			int sessionMinutes = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
 			progress.setTotalPracticeMinutes((progress.getTotalPracticeMinutes() == null ? 0 : progress.getTotalPracticeMinutes()) + sessionMinutes);
 			progress.setTotalSpeakingSessions((progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
 			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + xp;
 			progress.setXp(newXp);
-			progress.setLevel((newXp / 500) + 1);
+			progress.setLevel(Math.max(1, (newXp / 500) + 1));
 			progressRepository.save(progress);
 		} catch (Exception ex) {
 			// Ignore progress update errors
