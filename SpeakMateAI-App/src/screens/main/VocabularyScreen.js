@@ -135,16 +135,18 @@ export default function VocabularyScreen() {
 
   const loadSettingsAndVoices = async () => {
     try {
-      const [s, voices, onboardingVoice, savedGrade, savedAccType] = await Promise.all([
+      const [s, voices, onboardingVoice, savedGrade, savedAccType, savedVoice] = await Promise.all([
         settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
         AsyncStorage.getItem('speakmate_school_grade'),
         AsyncStorage.getItem('speakmate_account_type'),
+        AsyncStorage.getItem('speakmate_selected_voice'),
       ]);
       const effAccType = savedAccType || 'INDIVIDUAL_USER';
       setAccountType(effAccType);
-      setSettings({ ...s, onboardingVoice });
+      const effectiveVoice = savedVoice || s?.aiVoice || 'Default';
+      setSettings({ ...s, aiVoice: effectiveVoice, onboardingVoice });
       setAvailableVoices(voices);
       if (savedGrade) {
         setUserGrade(savedGrade);

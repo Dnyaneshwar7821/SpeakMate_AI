@@ -131,14 +131,14 @@ export default function ConversationChatScreen({ navigation, route }) {
       }
 
       try {
-        const [settings, onboardingVoice, profile] = await Promise.all([
-          settingsService.get(),
+        const [settings, onboardingVoice, profile, savedVoice] = await Promise.all([
+          settingsService.get().catch(() => null),
           AsyncStorage.getItem('speakmate_onboarding_voice'),
           profileService.get().catch(() => null),
+          AsyncStorage.getItem('speakmate_selected_voice'),
         ]);
-        if (settings && settings.aiVoice) {
-          setPreferredVoice(settings.aiVoice);
-        }
+        const effectiveVoice = savedVoice || settings?.aiVoice || 'Default';
+        setPreferredVoice(effectiveVoice);
         if (onboardingVoice) {
           setOnboardingVoiceStyle(onboardingVoice);
         }
@@ -197,13 +197,15 @@ export default function ConversationChatScreen({ navigation, route }) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
       try {
-        const [settings, voices, onboardingVoice] = await Promise.all([
-          settingsService.get(),
+        const [settings, voices, onboardingVoice, savedVoice] = await Promise.all([
+          settingsService.get().catch(() => null),
           VoiceService.getAvailableEnglishVoices(),
           AsyncStorage.getItem('speakmate_onboarding_voice'),
+          AsyncStorage.getItem('speakmate_selected_voice'),
         ]);
-        if (settings && settings.aiVoice) {
-          setPreferredVoice(settings.aiVoice);
+        const effectiveVoice = savedVoice || settings?.aiVoice;
+        if (effectiveVoice) {
+          setPreferredVoice(effectiveVoice);
         }
         if (voices && voices.length > 0) {
           setAvailableVoices(voices);

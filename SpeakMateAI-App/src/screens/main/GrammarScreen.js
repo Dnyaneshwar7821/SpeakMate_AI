@@ -301,11 +301,16 @@ export default function GrammarScreen() {
   };
 
   const getActiveVoiceType = async () => {
+    try {
+      const saved = await AsyncStorage.getItem('speakmate_selected_voice');
+      if (saved) return saved;
+    } catch (e) {}
+
     if (userSettings && userSettings.aiVoice) {
       return userSettings.aiVoice;
     }
     try {
-      const s = await settingsService.get();
+      const s = await settingsService.get().catch(() => null);
       if (s) setUserSettings(s);
       if (s && s.aiVoice) return s.aiVoice;
     } catch (e) {}

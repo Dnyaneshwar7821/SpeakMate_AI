@@ -333,12 +333,14 @@ export default function LessonDetailScreen({ navigation, route }) {
   // ── Load ────────────────────────────────────────────────────────────
   const loadSettingsAndVoices = async () => {
     try {
-      const [s, voices, onboardingVoice] = await Promise.all([
-        settingsService.get(),
+      const [s, voices, onboardingVoice, savedVoice] = await Promise.all([
+        settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
+        AsyncStorage.getItem('speakmate_selected_voice'),
       ]);
-      setSettings({ ...s, onboardingVoice });
+      const effectiveVoice = savedVoice || s?.aiVoice || 'Default';
+      setSettings({ ...s, aiVoice: effectiveVoice, onboardingVoice });
       setAvailableVoices(voices);
     } catch (e) {
       console.warn("Failed to load settings in lesson detail screen:", e);
@@ -354,12 +356,14 @@ export default function LessonDetailScreen({ navigation, route }) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
       try {
-        const [s, voices, onboardingVoice] = await Promise.all([
-          settingsService.get(),
+        const [s, voices, onboardingVoice, savedVoice] = await Promise.all([
+          settingsService.get().catch(() => null),
           VoiceService.getAvailableEnglishVoices(),
           AsyncStorage.getItem('speakmate_onboarding_voice'),
+          AsyncStorage.getItem('speakmate_selected_voice'),
         ]);
-        setSettings({ ...s, onboardingVoice });
+        const effectiveVoice = savedVoice || s?.aiVoice || 'Default';
+        setSettings({ ...s, aiVoice: effectiveVoice, onboardingVoice });
         if (voices && voices.length > 0) {
           setAvailableVoices(voices);
         }

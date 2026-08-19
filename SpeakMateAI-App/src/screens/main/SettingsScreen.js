@@ -81,15 +81,17 @@ export default function SettingsScreen({ navigation }) {
 
   const load = async () => {
     try {
-      const [settings, voices, onboardingVoice, onboardingData, savedType] = await Promise.all([
-        settingsService.get(),
+      const [settings, voices, onboardingVoice, onboardingData, savedType, savedVoice] = await Promise.all([
+        settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
         onboardingService.get().catch(() => null),
         AsyncStorage.getItem('speakmate_account_type'),
+        AsyncStorage.getItem('speakmate_selected_voice'),
       ]);
       if (savedType) setAccountType(savedType);
-      setForm({ ...defaults, ...settings, ageGroup: onboardingData?.ageGroup || 'Professional' });
+      const effectiveVoice = savedVoice || settings?.aiVoice || defaults.aiVoice;
+      setForm({ ...defaults, ...settings, aiVoice: effectiveVoice, ageGroup: onboardingData?.ageGroup || 'Professional' });
       setAvailableVoices(voices);
       if (onboardingVoice) {
         setOnboardingVoiceStyle(onboardingVoice);
@@ -124,7 +126,13 @@ export default function SettingsScreen({ navigation }) {
         await setDarkMode(form.darkMode);
       }
 
-      // 2. Sync Age Group via Onboarding Service & AsyncStorage
+      // 2. Sync Voice to AsyncStorage
+      if (form.aiVoice) {
+        await AsyncStorage.setItem('speakmate_selected_voice', form.aiVoice);
+        await AsyncStorage.setItem('speakmate_ai_voice', form.aiVoice);
+      }
+
+      // 3. Sync Age Group via Onboarding Service & AsyncStorage
       if (form.ageGroup) {
         await AsyncStorage.setItem('speakmate_age_group', form.ageGroup);
         await onboardingService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Onboarding age sync warning:', e));
@@ -497,6 +505,13 @@ export default function SettingsScreen({ navigation }) {
                       ]}
                       onPress={async () => {
                         update('aiVoice', profile.code);
+                        try {
+                          await AsyncStorage.setItem('speakmate_selected_voice', profile.code);
+                          await AsyncStorage.setItem('speakmate_ai_voice', profile.code);
+                          settingsService.update({ ...form, aiVoice: profile.code }).catch(() => {});
+                        } catch (e) {
+                          console.warn('Failed to save selected voice preference:', e);
+                        }
 
                         if (profile.code === 'Default') {
                           // Load the exact saved onboarding voice config and play it
