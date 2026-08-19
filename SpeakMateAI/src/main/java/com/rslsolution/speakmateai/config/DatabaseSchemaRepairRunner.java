@@ -22,8 +22,17 @@ public class DatabaseSchemaRepairRunner implements CommandLineRunner {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    @jakarta.annotation.PostConstruct
+    public void init() {
+        repairSchema();
+    }
+
     @Override
     public void run(String... args) {
+        repairSchema();
+    }
+
+    public void repairSchema() {
         logger.info("[Schema Repair] Starting database schema foreign key constraint repair...");
 
         try {

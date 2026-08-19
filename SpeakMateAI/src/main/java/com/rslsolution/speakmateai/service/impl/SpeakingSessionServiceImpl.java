@@ -65,6 +65,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	private final ObjectMapper objectMapper;
 	private final ProgressRepository progressRepository;
 	private final NotificationService notificationService;
+	private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
 
 	public SpeakingSessionServiceImpl(SpeakingSessionRepository speakingSessionRepository,
 			ConversationMessageRepository messageRepository,
@@ -73,7 +74,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			RestTemplate restTemplate,
 			ObjectMapper objectMapper,
 			ProgressRepository progressRepository,
-			NotificationService notificationService) {
+			NotificationService notificationService,
+			org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
 		this.speakingSessionRepository = speakingSessionRepository;
 		this.messageRepository = messageRepository;
 		this.feedbackRepository = feedbackRepository;
@@ -82,6 +84,21 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		this.objectMapper = objectMapper;
 		this.progressRepository = progressRepository;
 		this.notificationService = notificationService;
+		this.jdbcTemplate = jdbcTemplate;
+	}
+
+	private SpeakingSession safeSaveSession(SpeakingSession session) {
+		try {
+			return speakingSessionRepository.save(session);
+		} catch (Exception e) {
+			// If legacy foreign key constraint pointing to students table is encountered, drop it dynamically and retry
+			try {
+				if (jdbcTemplate != null) {
+					jdbcTemplate.execute("ALTER TABLE IF EXISTS speaking_sessions DROP CONSTRAINT IF EXISTS fkbtsorovntca8vl5eslvcwfwf3 CASCADE");
+				}
+			} catch (Exception ignored) {}
+			return speakingSessionRepository.save(session);
+		}
 	}
 
 	// ── Helpers ───────────────────────────────────────────────────────
@@ -228,7 +245,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				.score(80.0)
 				.build();
 
-		SpeakingSession savedSession = speakingSessionRepository.save(session);
+		SpeakingSession savedSession = safeSaveSession(session);
 		return mapToResponse(savedSession);
 	}
 
@@ -383,7 +400,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				.transcript("")
 				.build();
 
-		SpeakingSession saved = speakingSessionRepository.save(session);
+		SpeakingSession saved = safeSaveSession(session);
 
 		// AI introduces the conversation scenario
 		String intro;
@@ -418,7 +435,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 		// Return session response (with transcript populated with intro)
 		saved.setTranscript(intro);
-		speakingSessionRepository.save(saved);
+		saved = safeSaveSession(saved);
 
 		return mapToResponse(saved);
 	}
