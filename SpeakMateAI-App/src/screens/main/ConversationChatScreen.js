@@ -177,37 +177,74 @@ export default function ConversationChatScreen({ navigation, route }) {
         console.warn("Failed to load user voice preferences:", e);
       }
     }
-    loadVoices();
+    const speakInitialMessage = (text) => {
+      setTimeout(async () => {
+        try {
+          const [savedVoice, voices] = await Promise.all([
+            AsyncStorage.getItem('speakmate_selected_voice'),
+            VoiceService.getAvailableEnglishVoices().catch(() => []),
+          ]);
+          VoiceService.speak(text, {
+            isMuted: false,
+            voiceType: savedVoice || preferredVoice || 'Friendly',
+            speechSpeed: 1.0,
+            availableVoices: voices && voices.length > 0 ? voices : availableVoices,
+            onStart: () => {
+              setStatusText('Speaking');
+              setIsSpeaking(true);
+            },
+            onDone: () => {
+              setStatusText('Waiting for Response');
+              setIsSpeaking(false);
+            },
+            onError: () => {
+              setStatusText('Waiting for Response');
+              setIsSpeaking(false);
+            },
+          });
+        } catch (err) {
+          console.warn('Auto speak 1st message note:', err);
+        }
+      }, 550);
+    };
 
     // Load initial conversation messages
+    const defaultGreeting = `Hello! I am SpeakMateAI, your English tutor for ${mode || 'General English'}. What would you like to practice today?`;
     if (sessionId && !String(sessionId).startsWith('sim_')) {
       chatService.detail(sessionId).then((data) => {
         if (data && data.messages && data.messages.length > 0) {
           setMessages(data.messages);
+          const lastAi = [...data.messages].reverse().find((m) => m.sender === 'ai');
+          if (lastAi && lastAi.message) {
+            speakInitialMessage(lastAi.message);
+          }
         } else {
           setMessages([{
             id: 'intro_1',
             sender: 'ai',
-            message: `Hello! I am SpeakMateAI, your English tutor for ${mode || 'General English'}. What would you like to practice today?`,
+            message: defaultGreeting,
             createdAt: new Date().toISOString(),
           }]);
+          speakInitialMessage(defaultGreeting);
         }
       }).catch((e) => {
         console.warn('Could not load chat detail, using initial greeting:', e);
         setMessages([{
           id: 'intro_1',
           sender: 'ai',
-          message: `Hello! I am SpeakMateAI, your English tutor for ${mode || 'General English'}. What would you like to practice today?`,
+          message: defaultGreeting,
           createdAt: new Date().toISOString(),
         }]);
+        speakInitialMessage(defaultGreeting);
       });
     } else {
       setMessages([{
         id: 'intro_1',
         sender: 'ai',
-        message: `Hello! I am SpeakMateAI, your English tutor for ${mode || 'General English'}. What would you like to practice today?`,
+        message: defaultGreeting,
         createdAt: new Date().toISOString(),
       }]);
+      speakInitialMessage(defaultGreeting);
     }
 
     return () => {
