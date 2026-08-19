@@ -277,12 +277,13 @@ export default function DashboardScreen({ navigation }) {
     }
   }, [navigation]);
 
-  const safeBg = isDark ? '#0F172A' : '#F8FAFC';
+  const topSafeBg = '#0F172A';
+  const contentBg = isDark ? '#0F172A' : '#F8FAFC';
 
   if (state.loading) {
     return (
-      <SafeAreaView style={[styles.safeContainer, { backgroundColor: safeBg }]} edges={['top', 'left', 'right']}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
+        <ScrollView style={[styles.scroll, { backgroundColor: contentBg }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <DashboardSkeleton />
         </ScrollView>
       </SafeAreaView>
@@ -291,7 +292,7 @@ export default function DashboardScreen({ navigation }) {
 
   if (state.error && !state.dashboard) {
     return (
-      <SafeAreaView style={[styles.safeContainer, { backgroundColor: safeBg }]} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
         <View style={styles.errorContainer}>
           <StateView error={state.error} onRetry={() => loadDashboard(false)} />
         </View>
@@ -300,9 +301,9 @@ export default function DashboardScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={[styles.safeContainer, { backgroundColor: safeBg }]} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
       <ScrollView
-        style={styles.scroll}
+        style={[styles.scroll, { backgroundColor: contentBg }]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={

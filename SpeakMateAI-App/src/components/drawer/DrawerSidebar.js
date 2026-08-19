@@ -165,7 +165,7 @@ function DrawerItem({ item, isActive, onPress, isDark, badge }) {
 }
 
 // ─── Drawer Header ────────────────────────────────────────────────────────────
-function DrawerHeader({ user, profile, progress, isLoading, isDark }) {
+function DrawerHeader({ user, profile, progress, isLoading, isDark, topInset = 0 }) {
   const getInitials = () => {
     const name = profile
       ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
@@ -201,7 +201,7 @@ function DrawerHeader({ user, profile, progress, isLoading, isDark }) {
       colors={gradientColors}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
-      style={styles.headerGradient}
+      style={[styles.headerGradient, { paddingTop: Math.max(topInset, 20) + 12 }]}
     >
       {/* Decorative glowing blobs */}
       <View style={styles.blob1} />
@@ -352,17 +352,24 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
   const dividerColor = isDark ? '#334155' : '#E2E8F0';
 
   return (
-    <View style={[styles.nativeDrawerContainer, { backgroundColor: containerBg, paddingTop: insets.top }]}>
+    <View style={[styles.nativeDrawerContainer, { backgroundColor: containerBg }]}>
       {/* Close button */}
       <TouchableOpacity
-        style={styles.closeBtn}
+        style={[styles.closeBtn, { top: (insets.top || 20) + 12 }]}
         onPress={() => navigation?.closeDrawer && navigation.closeDrawer()}
       >
         <Ionicons name="close" size={22} color="rgba(255,255,255,0.85)" />
       </TouchableOpacity>
 
       {/* Header */}
-      <DrawerHeader user={user} profile={profile} progress={progress} isLoading={isSummaryLoading} isDark={isDark} />
+      <DrawerHeader
+        user={user}
+        profile={profile}
+        progress={progress}
+        isLoading={isSummaryLoading}
+        isDark={isDark}
+        topInset={insets.top}
+      />
 
       {/* Scrollable nav items */}
       <ScrollView

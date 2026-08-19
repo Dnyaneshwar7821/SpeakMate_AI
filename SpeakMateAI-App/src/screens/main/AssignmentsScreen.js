@@ -2,12 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   FlatList,
   RefreshControl,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
@@ -17,6 +17,7 @@ import { useToast } from '../../context/ToastContext';
 
 export default function AssignmentsScreen({ navigation }) {
   const { isDark, theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const { showToast } = useToast();
   
   const [assignments, setAssignments] = useState([]);
@@ -142,9 +143,9 @@ export default function AssignmentsScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.bg }]}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       {/* ── Top Gradient Header ── */}
-      <LinearGradient colors={['#1E1B4B', '#312E81']} style={styles.header}>
+      <LinearGradient colors={['#1E1B4B', '#312E81']} style={[styles.header, { paddingTop: (insets.top || 20) + 12 }]}>
         <View style={styles.headerTop}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
@@ -204,7 +205,7 @@ export default function AssignmentsScreen({ navigation }) {
           )
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
