@@ -6,7 +6,7 @@ import { speakGlobalText } from "../utils/speechHelper";
 // ONBOARDING CALIBRATED VOCABULARY CURRICULUMS (STUDENTS & INDIVIDUAL USERS)
 // =========================================================================
 const CURRICULUM_DATA = {
-  // Students by Grade
+  // Students by Grade (1st to 10th Std)
   "1st Std": [
     { id: "v1_1", word: "Apple", phonetic: "/ˈæp.əl/", partOfSpeech: "noun", meaning: "A sweet round fruit that grows on trees.", exampleSentence: "An apple a day keeps the doctor away.", synonym: "Fruit", favorite: true },
     { id: "v1_2", word: "Friend", phonetic: "/frend/", partOfSpeech: "noun", meaning: "A person you like and spend time with.", exampleSentence: "Sita is my best school friend.", synonym: "Companion", favorite: false },
@@ -225,12 +225,11 @@ export function Vocabulary() {
     const nextFlipped = !isFlipped;
     setIsFlipped(nextFlipped);
     if (currentCard) {
-      // If flipping to back -> speaks meaning! If flipping to front -> speaks word!
       handleSpeak(nextFlipped ? currentCard.meaning : currentCard.word);
     }
   };
 
-  // Next-Level Multi-Format Quiz
+  // Next-Level Multi-Format High-Accuracy Quiz
   const startQuiz = () => {
     setCurrentQuizIdx(0);
     setSelectedQuizAnswer(null);
@@ -242,60 +241,102 @@ export function Vocabulary() {
     setShowMistakes(false);
     setEarnedXP(0);
 
-    const sourcePool = [...items, ...CURRICULUM_DATA["1st Std"], ...CURRICULUM_DATA["Young Adult"]];
+    const allPools = [
+      ...items,
+      ...CURRICULUM_DATA["1st Std"],
+      ...CURRICULUM_DATA["3rd Std"],
+      ...CURRICULUM_DATA["5th Std"],
+      ...CURRICULUM_DATA["7th Std"],
+      ...CURRICULUM_DATA["10th Std"],
+      ...CURRICULUM_DATA["Young Adult"],
+      ...CURRICULUM_DATA["Professional"],
+    ];
+
     const uniquePool = [];
-    const seen = new Set();
-    for (const w of sourcePool) {
-      if (w.word && !seen.has(w.word.toLowerCase())) {
-        seen.add(w.word.toLowerCase());
+    const seenWords = new Set();
+    for (const w of allPools) {
+      if (w.word && !seenWords.has(w.word.toLowerCase().trim())) {
+        seenWords.add(w.word.toLowerCase().trim());
         uniquePool.push(w);
       }
     }
 
-    const shuffled = [...uniquePool].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 5);
-    const allMeanings = uniquePool.map((w) => w.meaning).filter(Boolean);
-    const allWords = uniquePool.map((w) => w.word).filter(Boolean);
+    const activePool = items.length >= 5 ? items : uniquePool;
+    const shuffledActive = [...activePool].sort(() => 0.5 - Math.random());
+    const selectedTargets = shuffledActive.slice(0, 5);
 
-    const questions = selected.map((item, idx) => {
+    const questions = selectedTargets.map((item, idx) => {
       const qType = idx % 4;
-      let questionTitle = "";
-      let promptText = "";
+      let questionBadge = "";
+      let promptTitle = "";
+      let promptSubtitle = "";
       let correctAnswer = "";
       let options = [];
 
-      if (qType === 0 && item.exampleSentence && item.exampleSentence.includes(item.word)) {
-        questionTitle = "📝 Fill in the Blank";
-        promptText = item.exampleSentence.replace(new RegExp(item.word, "gi"), "_______");
+      if (qType === 0 && item.exampleSentence) {
+        questionBadge = "📝 Sentence Context";
+        const regex = new RegExp(`\\b${item.word}\\b`, "gi");
+        promptTitle = item.exampleSentence.replace(regex, "_______");
+        promptSubtitle = "Choose the correct word to complete the sentence:";
         correctAnswer = item.word;
-        const distWords = allWords.filter((w) => w.toLowerCase() !== item.word.toLowerCase()).sort(() => 0.5 - Math.random()).slice(0, 3);
-        options = [item.word, ...distWords].sort(() => 0.5 - Math.random());
-      } else if (qType === 1 && item.synonym && item.synonym !== "None" && item.synonym !== "Companion") {
-        questionTitle = "🔀 Synonym Challenge";
-        promptText = `Which word is the closest synonym of "${item.word}"?`;
+
+        const otherWords = uniquePool
+          .filter((w) => w.word.toLowerCase() !== item.word.toLowerCase())
+          .map((w) => w.word)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
+
+        options = [item.word, ...otherWords].sort(() => 0.5 - Math.random());
+      } else if (qType === 1 && item.synonym && item.synonym !== "None" && item.synonym !== "Fruit") {
+        questionBadge = "🔀 Synonym Finder";
+        promptTitle = `Which word is the closest synonym for "${item.word}"?`;
+        promptSubtitle = "Select the word with the most similar meaning:";
         correctAnswer = item.synonym;
-        const distSynonyms = ["Opponent", "Disorder", "Inaction", "Obstacle"].sort(() => 0.5 - Math.random()).slice(0, 3);
-        options = [item.synonym, ...distSynonyms].sort(() => 0.5 - Math.random());
+
+        const otherSynonyms = uniquePool
+          .filter((w) => w.synonym && w.synonym !== "None" && w.synonym.toLowerCase() !== item.synonym.toLowerCase())
+          .map((w) => w.synonym)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
+
+        while (otherSynonyms.length < 3) {
+          otherSynonyms.push(["Hesitation", "Confusion", "Disruption", "Hesitant"][otherSynonyms.length]);
+        }
+
+        options = [item.synonym, ...otherSynonyms].sort(() => 0.5 - Math.random());
       } else if (qType === 2) {
-        questionTitle = "🔊 Listen & Identify";
-        promptText = `Listen to the pronunciation of "${item.word}". What does it mean?`;
+        questionBadge = "🔊 Listening Comprehension";
+        promptTitle = `Listen to the pronunciation of "${item.word}"`;
+        promptSubtitle = "What is the accurate definition of this word?";
         correctAnswer = item.meaning;
-        const dist = allMeanings.filter((m) => m !== item.meaning).sort(() => 0.5 - Math.random()).slice(0, 3);
-        while (dist.length < 3) dist.push("Expressing thoughts clearly in English.");
-        options = [item.meaning, ...dist].sort(() => 0.5 - Math.random());
+
+        const otherMeanings = uniquePool
+          .filter((w) => w.meaning && w.meaning !== item.meaning)
+          .map((w) => w.meaning)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
+
+        options = [item.meaning, ...otherMeanings].sort(() => 0.5 - Math.random());
       } else {
-        questionTitle = "📖 Meaning Definition";
-        promptText = `What is the correct definition of "${item.word}"?`;
+        questionBadge = "📖 Definition Match";
+        promptTitle = `What is the correct definition of "${item.word}"?`;
+        promptSubtitle = "Choose the precise meaning:";
         correctAnswer = item.meaning;
-        const dist = allMeanings.filter((m) => m !== item.meaning).sort(() => 0.5 - Math.random()).slice(0, 3);
-        while (dist.length < 3) dist.push("A standard communicative expression.");
-        options = [item.meaning, ...dist].sort(() => 0.5 - Math.random());
+
+        const otherMeanings = uniquePool
+          .filter((w) => w.meaning && w.meaning !== item.meaning)
+          .map((w) => w.meaning)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3);
+
+        options = [item.meaning, ...otherMeanings].sort(() => 0.5 - Math.random());
       }
 
       return {
         id: `q_${idx}_${Date.now()}`,
-        questionTitle,
-        promptText,
+        questionBadge,
+        promptTitle,
+        promptSubtitle,
         targetWord: item.word,
         correctAnswer,
         options,
@@ -425,7 +466,7 @@ export function Vocabulary() {
           <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-200 dark:border-indigo-800/40 rounded-3xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                ✨ Add to My Vocabulary
+                ✨ AI Word Lookup & Add
               </h2>
               <span className="bg-emerald-500 text-white text-xs font-black px-2.5 py-1 rounded-full">+10 XP</span>
             </div>
@@ -456,7 +497,7 @@ export function Vocabulary() {
             <div className="relative w-full sm:w-80">
               <input
                 type="text"
-                placeholder="Search vocabulary words..."
+                placeholder="Search words, meanings..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 pl-10 pr-4 py-2.5 rounded-2xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -652,7 +693,7 @@ export function Vocabulary() {
       )}
 
       {/* =========================================================================
-          TAB 3: NEXT-LEVEL MULTI-FORMAT INTERACTIVE QUIZ
+          TAB 3: NEXT-LEVEL MULTI-FORMAT HIGH-ACCURACY AI QUIZ
       ========================================================================= */}
       {activeTab === "quiz" && (
         <div className="max-w-xl mx-auto space-y-6">
@@ -683,21 +724,26 @@ export function Vocabulary() {
               </div>
 
               {/* Question Card */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-3">
+              <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-200 dark:border-indigo-800/40 rounded-3xl p-6 shadow-sm space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-xs uppercase font-extrabold px-2.5 py-1 rounded-lg">
-                    {quizQuestions[currentQuizIdx]?.questionTitle}
+                  <span className="bg-indigo-600 text-white text-xs uppercase font-extrabold px-2.5 py-1 rounded-lg">
+                    {quizQuestions[currentQuizIdx]?.questionBadge}
                   </span>
                   <button
-                    onClick={() => handleSpeak(quizQuestions[currentQuizIdx]?.promptText)}
-                    className="p-1 text-indigo-600 dark:text-indigo-400 hover:scale-110"
+                    onClick={() => handleSpeak(quizQuestions[currentQuizIdx]?.promptTitle)}
+                    className="p-1.5 bg-indigo-600 text-white rounded-full hover:scale-110 transition-all text-xs"
                   >
                     🔊
                   </button>
                 </div>
-                <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
-                  {quizQuestions[currentQuizIdx]?.promptText}
+                <h2 className="text-xl font-extrabold text-slate-900 dark:text-white leading-snug">
+                  {quizQuestions[currentQuizIdx]?.promptTitle}
                 </h2>
+                {quizQuestions[currentQuizIdx]?.promptSubtitle && (
+                  <p className="text-xs text-indigo-700 dark:text-indigo-300 font-medium">
+                    {quizQuestions[currentQuizIdx]?.promptSubtitle}
+                  </p>
+                )}
               </div>
 
               {/* Options */}
