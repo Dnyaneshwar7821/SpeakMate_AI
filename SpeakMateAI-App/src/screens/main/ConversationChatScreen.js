@@ -217,6 +217,11 @@ export default function ConversationChatScreen({ navigation, route }) {
           const lastAi = [...data.messages].reverse().find((m) => m.sender === 'ai');
           if (lastAi && lastAi.message) {
             speakInitialMessage(lastAi.message);
+            if (lastAi.suggestedResponses && lastAi.suggestedResponses.length > 0) {
+              setHints(lastAi.suggestedResponses);
+            } else {
+              setHints(getModeHints(mode, lastAi));
+            }
           }
         } else {
           setMessages([{
@@ -226,6 +231,7 @@ export default function ConversationChatScreen({ navigation, route }) {
             createdAt: new Date().toISOString(),
           }]);
           speakInitialMessage(defaultGreeting);
+          setHints(getModeHints(mode, { message: defaultGreeting }));
         }
       }).catch((e) => {
         console.warn('Could not load chat detail, using initial greeting:', e);
@@ -236,6 +242,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           createdAt: new Date().toISOString(),
         }]);
         speakInitialMessage(defaultGreeting);
+        setHints(getModeHints(mode, { message: defaultGreeting }));
       });
     } else {
       setMessages([{
@@ -245,6 +252,7 @@ export default function ConversationChatScreen({ navigation, route }) {
         createdAt: new Date().toISOString(),
       }]);
       speakInitialMessage(defaultGreeting);
+      setHints(getModeHints(mode, { message: defaultGreeting }));
     }
 
     return () => {
@@ -428,6 +436,12 @@ export default function ConversationChatScreen({ navigation, route }) {
         };
       }
       setMessages((prev) => [...prev, response]);
+
+      if (response.suggestedResponses && response.suggestedResponses.length > 0) {
+        setHints(response.suggestedResponses);
+      } else {
+        setHints(getModeHints(mode, response));
+      }
 
       const isCorrect = response.grammarCorrection && (
         response.grammarCorrection.includes('✅') || 
@@ -745,19 +759,25 @@ export default function ConversationChatScreen({ navigation, route }) {
     ];
   };
 
-  const handleFetchHints = () => {
+  const handleFetchHints = async () => {
     if (loadingHints || evaluating) return;
-    if (hints.length > 0) {
-      setHints([]);
-      return;
-    }
     setLoadingHints(true);
-    const lastAi = [...messages].reverse().find((m) => m.sender === 'ai');
-    const dynamicHints = getModeHints(mode, lastAi);
-    setTimeout(() => {
-      setHints(dynamicHints);
+    try {
+      if (sessionId && !String(sessionId).startsWith('sim_')) {
+        const data = await chatService.getHints(sessionId);
+        if (data && data.length > 0) {
+          setHints(data);
+          return;
+        }
+      }
+      const lastAi = [...messages].reverse().find((m) => m.sender === 'ai');
+      setHints(getModeHints(mode, lastAi));
+    } catch (e) {
+      const lastAi = [...messages].reverse().find((m) => m.sender === 'ai');
+      setHints(getModeHints(mode, lastAi));
+    } finally {
       setLoadingHints(false);
-    }, 200);
+    }
   };
 
   const subtitleText = isSpeaking
@@ -962,17 +982,50 @@ export default function ConversationChatScreen({ navigation, route }) {
       {/* ─── AI Hint Suggestions Drawer ─── */}
       {hints.length > 0 && (
         <View style={styles.hintsTray}>
+          <View style={styles.hintsHeader}>
+            <View style={styles.hintsHeaderTitleRow}>
+              <Ionicons name="sparkles" size={13} color="#818CF8" />
+              <Text style={styles.hintsHeaderTitle}>Suggested Responses</Text>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <TouchableOpacity
+                onPress={handleFetchHints}
+                disabled={loadingHints}
+                style={styles.hintHeaderBtn}
+              >
+                <Ionicons name="refresh" size={13} color="#A5B4FC" />
+                <Text style={styles.hintHeaderBtnText}>New ideas</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setHints([])}
+                style={styles.hintCloseBtn}
+              >
+                <Ionicons name="close" size={14} color="#94A3B8" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hintsScroll}>
             {hints.map((hint, idx) => (
-              <TouchableOpacity
-                key={idx}
-                style={styles.hintChip}
-                onPress={() => {
-                  handleSendMessage(hint);
-                }}
-              >
-                <Text style={styles.hintChipText}>{hint}</Text>
-              </TouchableOpacity>
+              <View key={idx} style={styles.hintCard}>
+                <TouchableOpacity
+                  style={styles.hintCardMain}
+                  onPress={() => handleSendMessage(hint)}
+                  disabled={evaluating || loading}
+                >
+                  <Ionicons name="chatbubble-ellipses-outline" size={13} color="#A5B4FC" style={{ marginRight: 6 }} />
+                  <Text style={styles.hintChipText} numberOfLines={2}>{hint}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.hintEditBtn}
+                  onPress={() => {
+                    setInputText(hint);
+                    setHints([]);
+                  }}
+                >
+                  <Ionicons name="pencil" size={12} color="#94A3B8" />
+                </TouchableOpacity>
+              </View>
             ))}
           </ScrollView>
         </View>
@@ -1180,26 +1233,87 @@ const styles = StyleSheet.create({
 
   // Hints Tray
   hintsTray: {
-    backgroundColor: '#090E1A',
-    paddingVertical: 8,
+    backgroundColor: '#0A0F1D',
+    paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  hintsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 8,
+  },
+  hintsHeaderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  hintsHeaderTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#E0E7FF',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  hintHeaderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(99, 102, 241, 0.15)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.25)',
+  },
+  hintHeaderBtnText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#A5B4FC',
+  },
+  hintCloseBtn: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   hintsScroll: {
     paddingHorizontal: 16,
     gap: 8,
   },
-  hintChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+  hintCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(30, 41, 59, 0.7)',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(99, 102, 241, 0.25)',
+    maxWidth: 260,
+    overflow: 'hidden',
+  },
+  hintCardMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingLeft: 12,
+    paddingRight: 8,
+    flex: 1,
+  },
+  hintEditBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255, 255, 255, 0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   hintChipText: {
     fontSize: 12,
-    color: '#E5E7EB',
+    color: '#F1F5F9',
     fontWeight: '600',
   },
 });

@@ -291,7 +291,8 @@ public class AIChatServiceImpl implements AIChatService {
 				"[FOLLOWUP] Your natural follow-up question to keep the conversation moving forward.\n\n" +
 				"Active Tutoring Mode: %s\n" +
 				"%s\n" +
-				"%s",
+				"%s\n\n" +
+				"[SUGGESTIONS] EXACTLY 3 short, realistic alternative responses (each under 10 words) separated by ' | ' that the student could say next to answer your question.",
 				session.getMode(),
 				levelInstruction,
 				ageInstruction
@@ -310,19 +311,37 @@ public class AIChatServiceImpl implements AIChatService {
 		try {
 			rawResponse = callGroqChat(groqMessages);
 			if (rawResponse == null || rawResponse.trim().isEmpty()) {
-				rawResponse = "[REPLY] That's a great thought! Can you share more about that?\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] What else comes to mind?";
+				rawResponse = "[REPLY] That's a great thought! Can you share more about that?\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] What else comes to mind?\n[SUGGESTIONS] I'd love to tell you more. | Could you give me an example? | What do you recommend?";
 			}
 		} catch (Exception e) {
-			rawResponse = "[REPLY] That's a great thought! Can you tell me a little more about that?\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] What would you like to explore next?";
+			rawResponse = "[REPLY] That's a great thought! Can you tell me a little more about that?\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] What would you like to explore next?\n[SUGGESTIONS] I'd love to share more. | What should we discuss next? | Could you give me an example?";
 		}
 
 		// 4. Parse tag contents
-		String reply = extractTagContent(rawResponse, "[REPLY]", "[GRAMMAR]", "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]");
-		String grammar = extractTagContent(rawResponse, "[GRAMMAR]", "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]");
-		String better = extractTagContent(rawResponse, "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]");
-		String vocab = extractTagContent(rawResponse, "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]");
-		String explanation = extractTagContent(rawResponse, "[EXPLANATION]", "[FOLLOWUP]");
-		String followup = extractTagContent(rawResponse, "[FOLLOWUP]");
+		String reply = extractTagContent(rawResponse, "[REPLY]", "[GRAMMAR]", "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]");
+		String grammar = extractTagContent(rawResponse, "[GRAMMAR]", "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]");
+		String better = extractTagContent(rawResponse, "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]");
+		String vocab = extractTagContent(rawResponse, "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]");
+		String explanation = extractTagContent(rawResponse, "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]");
+		String followup = extractTagContent(rawResponse, "[FOLLOWUP]", "[SUGGESTIONS]");
+		String suggestionsRaw = extractTagContent(rawResponse, "[SUGGESTIONS]");
+
+		// Parse dynamic suggestions
+		List<String> suggestedList = new ArrayList<>();
+		if (suggestionsRaw != null && !suggestionsRaw.equalsIgnoreCase("none") && !suggestionsRaw.trim().isEmpty()) {
+			String[] parts = suggestionsRaw.split("\\|");
+			for (String p : parts) {
+				String clean = p.replaceAll("(?i)^(suggestion|option|hint|choice)\\s*\\d*\\s*[:\\-.]?\\s*", "")
+								.replaceAll("^\\d+[\\.\\)]\\s*", "")
+								.replaceAll("^[\"']+|[\"']+$", "").trim();
+				if (!clean.isEmpty() && !clean.toLowerCase().startsWith("suggestion") && !suggestedList.contains(clean)) {
+					suggestedList.add(clean);
+				}
+			}
+		}
+		if (suggestedList.isEmpty()) {
+			suggestedList = generateContextualFallbacks(session.getMode(), reply, followup);
+		}
 
 		// Clean up defaults
 		if (reply == null || reply.trim().isEmpty()) {
@@ -390,6 +409,7 @@ public class AIChatServiceImpl implements AIChatService {
 				.vocabularySuggestions(savedAiMsg.getVocabularySuggestions())
 				.explanation(savedAiMsg.getExplanation())
 				.followUpQuestion(savedAiMsg.getFollowUpQuestion())
+				.suggestedResponses(suggestedList)
 				.bookmarked(false)
 				.createdAt(savedAiMsg.getCreatedAt())
 				.build();
@@ -600,5 +620,65 @@ public class AIChatServiceImpl implements AIChatService {
 		}
 
 		return text.substring(start, end).trim();
+	}
+
+	private List<String> generateContextualFallbacks(String mode, String reply, String followup) {
+		String m = mode != null ? mode.toLowerCase() : "";
+		String context = ((reply != null ? reply : "") + " " + (followup != null ? followup : "")).toLowerCase();
+
+		if (context.contains("name") || context.contains("who are you") || context.contains("introduce")) {
+			return List.of(
+					"Hi! Nice to meet you. I'm excited to practice!",
+					"Hello! I want to improve my speaking confidence.",
+					"Could you introduce yourself as well?"
+			);
+		}
+		if (m.contains("travel") || context.contains("flight") || context.contains("hotel") || context.contains("trip")) {
+			return List.of(
+					"Could you recommend the best places to visit?",
+					"I would like to book a reservation, please.",
+					"How do I get to the city center from here?"
+			);
+		}
+		if (m.contains("interview") || context.contains("job") || context.contains("career") || context.contains("experience")) {
+			return List.of(
+					"I have strong problem-solving and communication skills.",
+					"I'm eager to take on new challenges and learn.",
+					"Could you give me feedback on my response?"
+			);
+		}
+		if (m.contains("business") || context.contains("meeting") || context.contains("project")) {
+			return List.of(
+					"Let's review the primary action items for this project.",
+					"I agree with that strategy and propose we move forward.",
+					"Could you share your perspective on this proposal?"
+			);
+		}
+		if (m.contains("grammar") || context.contains("rule") || context.contains("tense")) {
+			return List.of(
+					"Could you explain the difference between these two tenses?",
+					"Is there a more natural way to phrase this?",
+					"Can we practice with another example sentence?"
+			);
+		}
+		if (m.contains("vocabulary") || context.contains("idiom") || context.contains("synonym")) {
+			return List.of(
+					"What are common native synonyms for this word?",
+					"Could you teach me a natural idiom for this situation?",
+					"Let's practice using these new words in sentences."
+			);
+		}
+		if (m.contains("ielts")) {
+			return List.of(
+					"In my opinion, there are several key benefits to consider.",
+					"From my personal experience, consistent effort is essential.",
+					"Could you evaluate my answer based on IELTS scoring?"
+			);
+		}
+		return List.of(
+				"That makes total sense! Could you tell me more?",
+				"I understand. What do you recommend I focus on next?",
+				"Could you give me an example of how a native would say that?"
+		);
 	}
 }

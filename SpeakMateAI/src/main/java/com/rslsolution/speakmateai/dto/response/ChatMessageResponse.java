@@ -19,6 +19,7 @@ public class ChatMessageResponse {
 	private String explanation;
 	private String followUpQuestion;
 	private boolean bookmarked;
+	private java.util.List<String> suggestedResponses;
 	private LocalDateTime createdAt;
 
 	public Long getId() { return id; }
@@ -51,6 +52,9 @@ public class ChatMessageResponse {
 	public boolean isBookmarked() { return bookmarked; }
 	public void setBookmarked(boolean bookmarked) { this.bookmarked = bookmarked; }
 
+	public java.util.List<String> getSuggestedResponses() { return suggestedResponses; }
+	public void setSuggestedResponses(java.util.List<String> suggestedResponses) { this.suggestedResponses = suggestedResponses; }
+
 	public LocalDateTime getCreatedAt() { return createdAt; }
 	public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -69,6 +73,7 @@ public class ChatMessageResponse {
 		private String explanation;
 		private String followUpQuestion;
 		private boolean bookmarked;
+		private java.util.List<String> suggestedResponses;
 		private LocalDateTime createdAt;
 
 		public ChatMessageResponseBuilder id(Long id) { this.id = id; return this; }
@@ -81,6 +86,7 @@ public class ChatMessageResponse {
 		public ChatMessageResponseBuilder explanation(String explanation) { this.explanation = explanation; return this; }
 		public ChatMessageResponseBuilder followUpQuestion(String followUpQuestion) { this.followUpQuestion = followUpQuestion; return this; }
 		public ChatMessageResponseBuilder bookmarked(boolean bookmarked) { this.bookmarked = bookmarked; return this; }
+		public ChatMessageResponseBuilder suggestedResponses(java.util.List<String> suggestedResponses) { this.suggestedResponses = suggestedResponses; return this; }
 		public ChatMessageResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 
 		public ChatMessageResponse build() {
@@ -95,6 +101,7 @@ public class ChatMessageResponse {
             obj.setExplanation(explanation);
             obj.setFollowUpQuestion(followUpQuestion);
             obj.setBookmarked(bookmarked);
+            obj.setSuggestedResponses(suggestedResponses);
             obj.setCreatedAt(createdAt);
             return obj;
         }
