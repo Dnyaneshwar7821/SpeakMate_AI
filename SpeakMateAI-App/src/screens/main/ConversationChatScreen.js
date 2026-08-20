@@ -431,21 +431,43 @@ export default function ConversationChatScreen({ navigation, route }) {
   const speakAiWithCoaching = (aiMsg) => {
     if (!aiMsg || isMuted) return;
 
+    // Stop any in-flight voice immediately
+    VoiceService.stop();
+
     let mainReply = aiMsg.message || '';
     if (aiMsg.followUpQuestion && !mainReply.includes(aiMsg.followUpQuestion)) {
       mainReply += ` ${aiMsg.followUpQuestion}`;
     }
 
+    // Determine if there is a coaching tip to speak
+    const isGrammarCorrect = !aiMsg.grammarCorrection ||
+      aiMsg.grammarCorrection.includes('✅') ||
+      aiMsg.grammarCorrection.toLowerCase().includes('correct') ||
+      aiMsg.grammarCorrection.toLowerCase() === 'none';
+
     const cleanBetter = aiMsg.betterSentence && typeof aiMsg.betterSentence === 'string'
       ? aiMsg.betterSentence.replace(/[\[\]"]/g, '').trim()
       : null;
-
     const hasBetter = cleanBetter &&
       cleanBetter.toLowerCase() !== 'null' &&
       cleanBetter.toLowerCase() !== 'none' &&
       !cleanBetter.includes('✅');
 
-    // Stage 1: Speak in-character conversational response
+    let coachingPhrase = null;
+    if (!isGrammarCorrect && aiMsg.grammarCorrection) {
+      const cleanCorrection = aiMsg.grammarCorrection.replace(/^👉\s*/, '').replace(/[\[\]"]/g, '').trim();
+      coachingPhrase = `A better way to say that is: "${cleanCorrection}"`;
+      if (aiMsg.explanation && aiMsg.explanation.toLowerCase() !== 'none' && !aiMsg.explanation.toLowerCase().includes('null')) {
+        coachingPhrase += `. ${aiMsg.explanation}`;
+      }
+    } else if (hasBetter) {
+      coachingPhrase = `A better way to say that is: "${cleanBetter}"`;
+      if (aiMsg.explanation && aiMsg.explanation.toLowerCase() !== 'none' && !aiMsg.explanation.toLowerCase().includes('null')) {
+        coachingPhrase += `. ${aiMsg.explanation}`;
+      }
+    }
+
+    // Stage 1: Speak ONLY the conversational tutor reply
     VoiceService.speak(mainReply, {
       isMuted,
       voiceType: preferredVoice,
@@ -456,12 +478,11 @@ export default function ConversationChatScreen({ navigation, route }) {
         setIsSpeaking(true);
       },
       onDone: () => {
-        // Stage 2: 0.45s natural conversational gap before speaking coaching tip
-        if (hasBetter && !isMuted) {
+        // Stage 2: EXACT 0.45s (450ms) natural gap before speaking coaching tip
+        if (coachingPhrase && !isMuted) {
           setStatusText('Coaching Tip');
           setTimeout(() => {
             if (!isMuted) {
-              const coachingPhrase = `A better way to say that is: "${cleanBetter}"`;
               VoiceService.speak(coachingPhrase, {
                 isMuted,
                 voiceType: preferredVoice,
@@ -481,7 +502,7 @@ export default function ConversationChatScreen({ navigation, route }) {
                 },
               });
             }
-          }, 450); // 0.45 second natural conversational gap
+          }, 450); // 0.45 second conversational gap
         } else {
           setStatusText('Waiting for Response');
           setIsSpeaking(false);
@@ -741,7 +762,7 @@ export default function ConversationChatScreen({ navigation, route }) {
 
   const handleReplayVoice = () => {
     if (selectedMessage) {
-      speakText(getSpeakableText(selectedMessage));
+      speakAiWithCoaching(selectedMessage);
       setMenuVisible(false);
     }
   };
