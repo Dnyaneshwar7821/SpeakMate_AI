@@ -1,98 +1,89 @@
 import { useState, useEffect, useRef } from "react";
 import { vocabularyService, progressService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
-import { recordVocabularyMastered } from "../utils/progressTracker";
 
-// ==========================================
-// COMPREHENSIVE CURATED DECKS FOR WEB APP
-// ==========================================
-export const CURATED_DECKS = {
-  // --- SCHOOL STANDARDS (1st to 10th Std) ---
+// =========================================================================
+// ONBOARDING CALIBRATED VOCABULARY CURRICULUMS (STUDENTS & INDIVIDUAL USERS)
+// =========================================================================
+const CURRICULUM_DATA = {
+  // Students by Grade
   "1st Std": [
-    { id: "v1_1", word: "Apple", phonetic: "/ˈæp.əl/", partOfSpeech: "noun", meaning: "A sweet round fruit that grows on trees.", exampleSentence: "An apple a day keeps the doctor away.", collocations: "fresh apple, apple tree", synonym: "Fruit", antonym: "None", favorite: true, mastered: false },
-    { id: "v1_2", word: "Friend", phonetic: "/frend/", partOfSpeech: "noun", meaning: "A person you like and spend time with.", exampleSentence: "Sita is my best school friend.", collocations: "best friend, close friend", synonym: "Companion", antonym: "Enemy", favorite: false, mastered: false },
-    { id: "v1_3", word: "Happy", phonetic: "/ˈhæp.i/", partOfSpeech: "adjective", meaning: "Feeling or showing pleasure and joy.", exampleSentence: "I feel very happy on my birthday.", collocations: "happy smile, happy day", synonym: "Joyful", antonym: "Sad", favorite: false, mastered: false },
-    { id: "v1_4", word: "Smile", phonetic: "/smaɪl/", partOfSpeech: "verb", meaning: "Form a happy facial expression with mouth.", exampleSentence: "Always smile when greeting your teacher.", collocations: "bright smile, gentle smile", synonym: "Beam", antonym: "Frown", favorite: false, mastered: false },
-    { id: "v1_5", word: "Sunny", phonetic: "/ˈsʌn.i/", partOfSpeech: "adjective", meaning: "Bright with sunlight and warm weather.", exampleSentence: "It is a sunny morning for playing in the park.", collocations: "sunny day, sunny morning", synonym: "Bright", antonym: "Cloudy", favorite: false, mastered: false },
+    { id: "v1_1", word: "Apple", phonetic: "/ˈæp.əl/", partOfSpeech: "noun", meaning: "A sweet round fruit that grows on trees.", exampleSentence: "An apple a day keeps the doctor away.", synonym: "Fruit", favorite: true },
+    { id: "v1_2", word: "Friend", phonetic: "/frend/", partOfSpeech: "noun", meaning: "A person you like and spend time with.", exampleSentence: "Sita is my best school friend.", synonym: "Companion", favorite: false },
+    { id: "v1_3", word: "Happy", phonetic: "/ˈhæp.i/", partOfSpeech: "adjective", meaning: "Feeling or showing pleasure and joy.", exampleSentence: "I feel very happy on my birthday.", synonym: "Joyful", favorite: false },
+    { id: "v1_4", word: "Smile", phonetic: "/smaɪl/", partOfSpeech: "verb", meaning: "Form a happy facial expression with mouth.", exampleSentence: "Always smile when greeting your teacher.", synonym: "Beam", favorite: false },
+    { id: "v1_5", word: "Sunny", phonetic: "/ˈsʌn.i/", partOfSpeech: "adjective", meaning: "Bright with sunlight and warm weather.", exampleSentence: "It is a sunny morning for playing in the park.", synonym: "Bright", favorite: false },
   ],
   "2nd Std": [
-    { id: "v2_1", word: "Routine", phonetic: "/ruːˈtiːn/", partOfSpeech: "noun", meaning: "A regular sequence of daily actions.", exampleSentence: "Brushing teeth is part of my morning routine.", collocations: "daily routine, morning routine", synonym: "Schedule", antonym: "Disorder", favorite: true, mastered: false },
-    { id: "v2_2", word: "Pencil", phonetic: "/ˈpen.səl/", partOfSpeech: "noun", meaning: "An instrument used for writing or drawing.", exampleSentence: "I sharpened my yellow pencil for class.", collocations: "lead pencil, color pencil", synonym: "Pen", antonym: "None", favorite: false, mastered: false },
-    { id: "v2_3", word: "Weather", phonetic: "/ˈweð.ər/", partOfSpeech: "noun", meaning: "The state of the atmosphere (sunny, rainy, etc.).", exampleSentence: "The weather today is sunny and bright.", collocations: "nice weather, rainy weather", synonym: "Climate", antonym: "None", favorite: false, mastered: false },
-    { id: "v2_4", word: "Playground", phonetic: "/ˈpleɪ.ɡraʊnd/", partOfSpeech: "noun", meaning: "An outdoor area for children to play games.", exampleSentence: "We play on the swings in the playground.", collocations: "school playground, outdoor playground", synonym: "Park", antonym: "None", favorite: false, mastered: false },
+    { id: "v2_1", word: "Routine", phonetic: "/ruːˈtiːn/", partOfSpeech: "noun", meaning: "A regular sequence of daily actions.", exampleSentence: "Brushing teeth is part of my morning routine.", synonym: "Schedule", favorite: true },
+    { id: "v2_2", word: "Pencil", phonetic: "/ˈpen.səl/", partOfSpeech: "noun", meaning: "An instrument used for writing or drawing.", exampleSentence: "I sharpened my yellow pencil for class.", synonym: "Pen", favorite: false },
+    { id: "v2_3", word: "Weather", phonetic: "/ˈweð.ər/", partOfSpeech: "noun", meaning: "The state of the atmosphere (sunny, rainy, etc.).", exampleSentence: "The weather today is sunny and bright.", synonym: "Climate", favorite: false },
+    { id: "v2_4", word: "Playground", phonetic: "/ˈpleɪ.ɡraʊnd/", partOfSpeech: "noun", meaning: "An outdoor area for children to play games.", exampleSentence: "We play on the swings in the playground.", synonym: "Park", favorite: false },
   ],
   "3rd Std": [
-    { id: "v3_1", word: "Helper", phonetic: "/ˈhel.pər/", partOfSpeech: "noun", meaning: "A person who helps or assists others.", exampleSentence: "Firefighters are brave community helpers.", collocations: "community helper, eager helper", synonym: "Assistant", antonym: "Opponent", favorite: true, mastered: false },
-    { id: "v3_2", word: "Action", phonetic: "/ˈæk.ʃən/", partOfSpeech: "noun", meaning: "The process of doing something or performing a verb.", exampleSentence: "Running and jumping are action words.", collocations: "take action, direct action", synonym: "Activity", antonym: "Inaction", favorite: false, mastered: false },
-    { id: "v3_3", word: "Polite", phonetic: "/pəˈlaɪt/", partOfSpeech: "adjective", meaning: "Having good manners and showing respect.", exampleSentence: "Saying \"thank you\" is very polite.", collocations: "polite request, polite greeting", synonym: "Courteous", antonym: "Rude", favorite: false, mastered: false },
-    { id: "v3_4", word: "Schedule", phonetic: "/ˈskedʒ.uːl/", partOfSpeech: "noun", meaning: "A plan that lists times for activities.", exampleSentence: "Check our school timetable schedule.", collocations: "busy schedule, daily schedule", synonym: "Timetable", antonym: "None", favorite: false, mastered: false },
+    { id: "v3_1", word: "Helper", phonetic: "/ˈhel.pər/", partOfSpeech: "noun", meaning: "A person who helps or assists others.", exampleSentence: "Firefighters are brave community helpers.", synonym: "Assistant", favorite: true },
+    { id: "v3_2", word: "Action", phonetic: "/ˈæk.ʃən/", partOfSpeech: "noun", meaning: "The process of doing something or performing a verb.", exampleSentence: "Running and jumping are action words.", synonym: "Activity", favorite: false },
+    { id: "v3_3", word: "Polite", phonetic: "/pəˈlaɪt/", partOfSpeech: "adjective", meaning: "Having good manners and showing respect.", exampleSentence: "Saying \"thank you\" is very polite.", synonym: "Courteous", favorite: false },
+    { id: "v3_4", word: "Schedule", phonetic: "/ˈskedʒ.uːl/", partOfSpeech: "noun", meaning: "A plan that lists times for activities.", exampleSentence: "Check our school timetable schedule.", synonym: "Timetable", favorite: false },
   ],
   "4th Std": [
-    { id: "v4_1", word: "Expedition", phonetic: "/ˌek.spəˈdɪʃ.ən/", partOfSpeech: "noun", meaning: "A journey undertaken for a specific purpose.", exampleSentence: "Astronauts launched a space expedition to Mars.", collocations: "scientific expedition, jungle expedition", synonym: "Journey", antonym: "Stay", favorite: true, mastered: false },
-    { id: "v4_2", word: "Direction", phonetic: "/daɪˈrek.ʃən/", partOfSpeech: "noun", meaning: "The course along which someone or something moves.", exampleSentence: "Turn left to find the school library direction.", collocations: "right direction, give directions", synonym: "Route", antonym: "None", favorite: false, mastered: false },
-    { id: "v4_3", word: "Habit", phonetic: "/ˈhæb.ɪt/", partOfSpeech: "noun", meaning: "A settled or regular tendency or practice.", exampleSentence: "Drinking water daily is a healthy habit.", collocations: "healthy habit, daily habit", synonym: "Practice", antonym: "None", favorite: false, mastered: false },
+    { id: "v4_1", word: "Expedition", phonetic: "/ˌek.spəˈdɪʃ.ən/", partOfSpeech: "noun", meaning: "A journey undertaken for a specific purpose.", exampleSentence: "Astronauts launched a space expedition to Mars.", synonym: "Journey", favorite: true },
+    { id: "v4_2", word: "Direction", phonetic: "/daɪˈrek.ʃən/", partOfSpeech: "noun", meaning: "The course along which someone or something moves.", exampleSentence: "Turn left to find the school library direction.", synonym: "Route", favorite: false },
+    { id: "v4_3", word: "Habit", phonetic: "/ˈhæb.ɪt/", partOfSpeech: "noun", meaning: "A settled or regular tendency or practice.", exampleSentence: "Drinking water daily is a healthy habit.", synonym: "Practice", favorite: false },
   ],
   "5th Std": [
-    { id: "v5_1", word: "Environment", phonetic: "/ɪnˈvaɪ.rən.mənt/", partOfSpeech: "noun", meaning: "The surroundings or conditions in which we live.", exampleSentence: "Planting trees protects our natural environment.", collocations: "clean environment, protect environment", synonym: "Surroundings", antonym: "None", favorite: true, mastered: false },
-    { id: "v5_2", word: "Experiment", phonetic: "/ɪkˈsper.ə.mənt/", partOfSpeech: "noun", meaning: "A scientific procedure undertaken to make a discovery.", exampleSentence: "We conducted a science experiment on plant growth.", collocations: "conduct experiment, science experiment", synonym: "Test", antonym: "Theory", favorite: false, mastered: false },
-    { id: "v5_3", word: "Recycle", phonetic: "/ˌriːˈsaɪ.kəl/", partOfSpeech: "verb", meaning: "Convert waste materials into reusable objects.", exampleSentence: "We recycle paper and plastic bottles at school.", collocations: "recycle plastic, recycle paper", synonym: "Reuse", antonym: "Waste", favorite: false, mastered: false },
+    { id: "v5_1", word: "Environment", phonetic: "/ɪnˈvaɪ.rən.mənt/", partOfSpeech: "noun", meaning: "The surroundings or conditions in which we live.", exampleSentence: "Planting trees protects our natural environment.", synonym: "Surroundings", favorite: true },
+    { id: "v5_2", word: "Experiment", phonetic: "/ɪkˈsper.ə.mənt/", partOfSpeech: "noun", meaning: "A scientific procedure undertaken to make a discovery.", exampleSentence: "We conducted a science experiment on plant growth.", synonym: "Test", favorite: false },
+    { id: "v5_3", word: "Recycle", phonetic: "/ˌriːˈsaɪ.kəl/", partOfSpeech: "verb", meaning: "Convert waste materials into reusable objects.", exampleSentence: "We recycle paper and plastic bottles at school.", synonym: "Reuse", favorite: false },
   ],
   "6th Std": [
-    { id: "v6_1", word: "Robotics", phonetic: "/roʊˈbɑː.t̬ɪks/", partOfSpeech: "noun", meaning: "The branch of technology dealing with robots.", exampleSentence: "She joined the school robotics club to build code.", collocations: "robotics club, advanced robotics", synonym: "Automation", antonym: "None", favorite: true, mastered: false },
-    { id: "v6_2", word: "Debate", phonetic: "/dɪˈbeɪt/", partOfSpeech: "noun", meaning: "A formal discussion on a particular topic in public.", exampleSentence: "Our team won the inter-school debate competition.", collocations: "lively debate, debate competition", synonym: "Discussion", antonym: "Agreement", favorite: false, mastered: false },
-    { id: "v6_3", word: "Assistance", phonetic: "/əˈsɪs.təns/", partOfSpeech: "noun", meaning: "Help or support given to someone.", exampleSentence: "The teacher offered polite assistance during the test.", collocations: "financial assistance, mutual assistance", synonym: "Aid", antonym: "Hindrance", favorite: false, mastered: false },
+    { id: "v6_1", word: "Robotics", phonetic: "/roʊˈbɑː.t̬ɪks/", partOfSpeech: "noun", meaning: "The branch of technology dealing with robots.", exampleSentence: "She joined the school robotics club to build code.", synonym: "Automation", favorite: true },
+    { id: "v6_2", word: "Debate", phonetic: "/dɪˈbeɪt/", partOfSpeech: "noun", meaning: "A formal discussion on a particular topic in public.", exampleSentence: "Our team won the inter-school debate competition.", synonym: "Discussion", favorite: false },
   ],
   "7th Std": [
-    { id: "v7_1", word: "Conservation", phonetic: "/ˌkɑːn.sɚˈveɪ.ʃən/", partOfSpeech: "noun", meaning: "Prevention of wasteful use of a resource.", exampleSentence: "Water conservation is vital for future generations.", collocations: "wildlife conservation, energy conservation", synonym: "Preservation", antonym: "Destruction", favorite: true, mastered: false },
-    { id: "v7_2", word: "Delegate", phonetic: "/ˈdel.ə.ɡeɪt/", partOfSpeech: "verb", meaning: "Entrust a task or responsibility to another person.", exampleSentence: "The leader delegates responsibilities to team members.", collocations: "delegate authority, delegate tasks", synonym: "Assign", antonym: "Withhold", favorite: false, mastered: false },
-    { id: "v7_3", word: "Perspective", phonetic: "/pɚˈspek.tɪv/", partOfSpeech: "noun", meaning: "A particular attitude toward or way of regarding something.", exampleSentence: "Reading history gives us a broader perspective on life.", collocations: "fresh perspective, unique perspective", synonym: "Viewpoint", antonym: "None", favorite: false, mastered: false },
+    { id: "v7_1", word: "Conservation", phonetic: "/ˌkɑːn.sɚˈveɪ.ʃən/", partOfSpeech: "noun", meaning: "Prevention of wasteful use of a resource.", exampleSentence: "Water conservation is vital for future generations.", synonym: "Preservation", favorite: true },
+    { id: "v7_2", word: "Perspective", phonetic: "/pɚˈspek.tɪv/", partOfSpeech: "noun", meaning: "A particular attitude toward or way of regarding something.", exampleSentence: "Reading history gives us a broader perspective on life.", synonym: "Viewpoint", favorite: false },
   ],
   "8th Std": [
-    { id: "v8_1", word: "Leadership", phonetic: "/ˈliː.dɚ.ʃɪp/", partOfSpeech: "noun", meaning: "The action of leading a group or organization.", exampleSentence: "Student council develops strong leadership qualities.", collocations: "strong leadership, leadership qualities", synonym: "Guidance", antonym: "Subordination", favorite: true, mastered: false },
-    { id: "v8_2", word: "Rebuttal", phonetic: "/rɪˈbʌt̬.əl/", partOfSpeech: "noun", meaning: "A refutation or contradiction in a formal debate.", exampleSentence: "She delivered a powerful rebuttal during the debate.", collocations: "effective rebuttal, offer rebuttal", synonym: "Refutation", antonym: "Confirmation", favorite: false, mastered: false },
-    { id: "v8_3", word: "Innovation", phonetic: "/ˌɪn.əˈveɪ.ʃən/", partOfSpeech: "noun", meaning: "A new method, idea, or product.", exampleSentence: "Artificial intelligence is a major technological innovation.", collocations: "technological innovation, foster innovation", synonym: "Novelty", antonym: "Stagnation", favorite: false, mastered: false },
+    { id: "v8_1", word: "Leadership", phonetic: "/ˈliː.dɚ.ʃɪp/", partOfSpeech: "noun", meaning: "The action of leading a group or organization.", exampleSentence: "Student council develops strong leadership qualities.", synonym: "Guidance", favorite: true },
+    { id: "v8_2", word: "Innovation", phonetic: "/ˌɪn.əˈveɪ.ʃən/", partOfSpeech: "noun", meaning: "A new method, idea, or product.", exampleSentence: "Artificial intelligence is a major technological innovation.", synonym: "Novelty", favorite: false },
   ],
   "9th Std": [
-    { id: "v9_1", word: "Diplomatic", phonetic: "/ˌdɪp.ləˈmæt̬.ɪk/", partOfSpeech: "adjective", meaning: "Handling sensitive situations tactfully and politely.", exampleSentence: "He used diplomatic language to resolve peer conflict.", collocations: "diplomatic approach, diplomatic relations", synonym: "Tactful", antonym: "Tactless", favorite: true, mastered: false },
-    { id: "v9_2", word: "Keynote", phonetic: "/ˈkiː.noʊt/", partOfSpeech: "noun", meaning: "A main speech outlining the central theme of a summit.", exampleSentence: "She delivered the opening keynote on climate change.", collocations: "keynote speaker, keynote address", synonym: "Main theme", antonym: "None", favorite: false, mastered: false },
-    { id: "v9_3", word: "Rhetoric", phonetic: "/ˈret.ər.ɪk/", partOfSpeech: "noun", meaning: "The art of effective or persuasive speaking and writing.", exampleSentence: "Mastering rhetoric enhances spoken essay presentations.", collocations: "persuasive rhetoric, political rhetoric", synonym: "Eloquence", antonym: "None", favorite: false, mastered: false },
+    { id: "v9_1", word: "Diplomatic", phonetic: "/ˌdɪp.ləˈmæt̬.ɪk/", partOfSpeech: "adjective", meaning: "Handling sensitive situations tactfully and politely.", exampleSentence: "He used diplomatic language to resolve peer conflict.", synonym: "Tactful", favorite: true },
+    { id: "v9_2", word: "Keynote", phonetic: "/ˈkiː.noʊt/", partOfSpeech: "noun", meaning: "A main speech outlining the central theme of a summit.", exampleSentence: "She delivered the opening keynote on climate change.", synonym: "Main theme", favorite: false },
   ],
   "10th Std": [
-    { id: "v10_1", word: "Oratory", phonetic: "/ˈɔːr.ə.tɔːr.i/", partOfSpeech: "noun", meaning: "Formal public speaking characterized by high eloquence.", exampleSentence: "CEFR C1 mastery requires spontaneous oratory skill.", collocations: "powerful oratory, political oratory", synonym: "Eloquence", antonym: "Inarticulacy", favorite: true, mastered: false },
-    { id: "v10_2", word: "Simulation", phonetic: "/ˌsɪm.jəˈleɪ.ʃən/", partOfSpeech: "noun", meaning: "Imitation of a situation or process in realistic conditions.", exampleSentence: "We completed a 10th Board oral exam simulation.", collocations: "computer simulation, realistic simulation", synonym: "Model", antonym: "Reality", favorite: false, mastered: false },
-    { id: "v10_3", word: "Modulation", phonetic: "/ˌmɑː.dʒəˈleɪ.ʃən/", partOfSpeech: "noun", meaning: "Varying the pitch or tone of voice for expressive effect.", exampleSentence: "Vocal modulation makes speeches captivating.", collocations: "voice modulation, tone modulation", synonym: "Inflection", antonym: "Monotone", favorite: false, mastered: false },
+    { id: "v10_1", word: "Oratory", phonetic: "/ˈɔːr.ə.tɔːr.i/", partOfSpeech: "noun", meaning: "Formal public speaking characterized by high eloquence.", exampleSentence: "CEFR C1 mastery requires spontaneous oratory skill.", synonym: "Eloquence", favorite: true },
+    { id: "v10_2", word: "Simulation", phonetic: "/ˌsɪm.jəˈleɪ.ʃən/", partOfSpeech: "noun", meaning: "Imitation of a situation or process in realistic conditions.", exampleSentence: "We completed a 10th Board oral exam simulation.", synonym: "Model", favorite: false },
+    { id: "v10_3", word: "Proficiency", phonetic: "/prəˈfɪʃ.ən.si/", partOfSpeech: "noun", meaning: "A high degree of skill and competence.", exampleSentence: "Fluency and accuracy demonstrate English proficiency.", synonym: "Competence", favorite: false },
   ],
 
-  // --- INDIVIDUAL USER THEMES ---
-  "Kids (6-12)": [
-    { id: "vk_1", word: "Cheerful", phonetic: "/ˈtʃɪr.fəl/", partOfSpeech: "adjective", meaning: "Noticeably happy and optimistic.", exampleSentence: "She greeted her classmates with a cheerful smile.", collocations: "cheerful voice, cheerful mood", synonym: "Joyful", antonym: "Gloomy", favorite: true, mastered: false },
-    { id: "vk_2", word: "Adventure", phonetic: "/ədˈven.tʃɚ/", partOfSpeech: "noun", meaning: "An unusual and exciting or daring experience.", exampleSentence: "We had a fun adventure in the treehouse.", collocations: "exciting adventure, space adventure", synonym: "Journey", antonym: "Routine", favorite: false, mastered: false },
-    { id: "vk_3", word: "Playful", phonetic: "/ˈpleɪ.fəl/", partOfSpeech: "adjective", meaning: "Fond of games and amusement; lighthearted.", exampleSentence: "The playful kitten jumped on the soft cushion.", collocations: "playful puppy, playful kitten", synonym: "Frisky", antonym: "Serious", favorite: false, mastered: false },
+  // Individual Users by Age Group
+  Kids: [
+    { id: "vk_1", word: "Cheerful", phonetic: "/ˈtʃɪr.fəl/", partOfSpeech: "adjective", meaning: "Noticeably happy and optimistic.", exampleSentence: "She greeted her classmates with a cheerful smile.", synonym: "Joyful", favorite: true },
+    { id: "vk_2", word: "Adventure", phonetic: "/ədˈven.tʃɚ/", partOfSpeech: "noun", meaning: "An unusual and exciting or daring experience.", exampleSentence: "We had a fun adventure in the treehouse.", synonym: "Journey", favorite: false },
+    { id: "vk_3", word: "Playful", phonetic: "/ˈpleɪ.fəl/", partOfSpeech: "adjective", meaning: "Fond of games and amusement; lighthearted.", exampleSentence: "The playful kitten jumped on the soft cushion.", synonym: "Frisky", favorite: false },
   ],
-  "Teens (13-17)": [
-    { id: "vt_1", word: "Relatable", phonetic: "/rɪˈleɪ.t̬ə.bəl/", partOfSpeech: "adjective", meaning: "Enabling a person to feel that they can understand or identify with it.", exampleSentence: "The singer lyrics are very relatable to teens.", collocations: "relatable story, relatable character", synonym: "Understandable", antonym: "Distant", favorite: true, mastered: false },
-    { id: "vt_2", word: "Spontaneous", phonetic: "/spɑːnˈteɪ.ni.əs/", partOfSpeech: "adjective", meaning: "Performed or occurring as a result of a sudden impulse without planning.", exampleSentence: "We took a spontaneous weekend bicycle trip.", collocations: "spontaneous decision, spontaneous reaction", synonym: "Unplanned", antonym: "Premeditated", favorite: false, mastered: false },
-    { id: "vt_3", word: "Collaborate", phonetic: "/kəˈlæb.ə.reɪt/", partOfSpeech: "verb", meaning: "Work jointly on an activity or project.", exampleSentence: "Our team collaborated to build the science project.", collocations: "collaborate closely, collaborate on", synonym: "Cooperate", antonym: "Compete", favorite: false, mastered: false },
+  Teens: [
+    { id: "vt_1", word: "Relatable", phonetic: "/rɪˈleɪ.t̬ə.bəl/", partOfSpeech: "adjective", meaning: "Enabling a person to feel that they can understand or identify with it.", exampleSentence: "The singer lyrics are very relatable to teens.", synonym: "Understandable", favorite: true },
+    { id: "vt_2", word: "Spontaneous", phonetic: "/spɑːnˈteɪ.ni.əs/", partOfSpeech: "adjective", meaning: "Performed or occurring as a result of a sudden impulse without planning.", exampleSentence: "We took a spontaneous weekend bicycle trip.", synonym: "Unplanned", favorite: false },
+    { id: "vt_3", word: "Collaborate", phonetic: "/kəˈlæb.ə.reɪt/", partOfSpeech: "verb", meaning: "Work jointly on an activity or project.", exampleSentence: "Our team collaborated to build the science project.", synonym: "Cooperate", favorite: false },
   ],
-  "Young Adults (18-24)": [
-    { id: "vy_1", word: "Articulate", phonetic: "/ɑːrˈtɪk.jə.lət/", partOfSpeech: "adjective", meaning: "Having or showing the ability to speak fluently and coherently.", exampleSentence: "An articulate speaker can convey complex ideas effortlessly.", collocations: "articulate speaker, articulate thoughts", synonym: "Eloquent", antonym: "Inarticulate", favorite: true, mastered: false },
-    { id: "vy_2", word: "Resilient", phonetic: "/rɪˈzɪl.jənt/", partOfSpeech: "adjective", meaning: "Able to withstand or recover quickly from difficult conditions.", exampleSentence: "She showed a resilient mindset throughout university.", collocations: "resilient mindset, resilient economy", synonym: "Tough", antonym: "Fragile", favorite: false, mastered: false },
-    { id: "vy_3", word: "Pragmatic", phonetic: "/præɡˈmæt̬.ɪk/", partOfSpeech: "adjective", meaning: "Dealing with things sensibly and realistically in a practical way.", exampleSentence: "They took a pragmatic approach to budget planning.", collocations: "pragmatic solution, pragmatic approach", synonym: "Practical", antonym: "Idealistic", favorite: false, mastered: false },
+  "Young Adult": [
+    { id: "vy_1", word: "Articulate", phonetic: "/ɑːrˈtɪk.jə.lət/", partOfSpeech: "adjective", meaning: "Having or showing the ability to speak fluently and coherently.", exampleSentence: "An articulate speaker can convey complex ideas effortlessly.", synonym: "Eloquent", favorite: true },
+    { id: "vy_2", word: "Resilient", phonetic: "/rɪˈzɪl.jənt/", partOfSpeech: "adjective", meaning: "Able to withstand or recover quickly from difficult conditions.", exampleSentence: "She showed a resilient mindset throughout university.", synonym: "Tough", favorite: false },
+    { id: "vy_3", word: "Pragmatic", phonetic: "/præɡˈmæt̬.ɪk/", partOfSpeech: "adjective", meaning: "Dealing with things sensibly and realistically in a practical way.", exampleSentence: "They took a pragmatic approach to budget planning.", synonym: "Practical", favorite: false },
+    { id: "vy_4", word: "Tenacious", phonetic: "/təˈneɪ.ʃəs/", partOfSpeech: "adjective", meaning: "Tending to keep a firm hold of something; persistent.", exampleSentence: "Her tenacious effort helped her master English speaking.", synonym: "Determined", favorite: false },
   ],
-  "Working Adults (25-50)": [
-    { id: "vw_1", word: "Strategic", phonetic: "/strəˈtiː.dʒɪk/", partOfSpeech: "adjective", meaning: "Carefully designed or planned to serve a particular purpose or advantage.", exampleSentence: "We established strategic milestones for quarterly goals.", collocations: "strategic planning, strategic decision", synonym: "Calculated", antonym: "Random", favorite: true, mastered: false },
-    { id: "vw_2", word: "Leverage", phonetic: "/ˈlev.ɚ.ɪdʒ/", partOfSpeech: "verb", meaning: "Use something to maximum advantage.", exampleSentence: "We leverage AI technology to accelerate English learning.", collocations: "leverage technology, leverage strengths", synonym: "Utilize", antonym: "Ignore", favorite: false, mastered: false },
-    { id: "vw_3", word: "Synergy", phonetic: "/ˈsɪn.ɚ.dʒi/", partOfSpeech: "noun", meaning: "The interaction of elements that when combined produce a total effect greater than the sum.", exampleSentence: "Team synergy enabled us to deliver the project ahead of schedule.", collocations: "team synergy, create synergy", synonym: "Collaboration", antonym: "Conflict", favorite: false, mastered: false },
+  Professional: [
+    { id: "vw_1", word: "Strategic", phonetic: "/strəˈtiː.dʒɪk/", partOfSpeech: "adjective", meaning: "Carefully designed or planned to serve a particular purpose or advantage.", exampleSentence: "We established strategic milestones for quarterly goals.", synonym: "Calculated", favorite: true },
+    { id: "vw_2", word: "Leverage", phonetic: "/ˈlev.ɚ.ɪdʒ/", partOfSpeech: "verb", meaning: "Use something to maximum advantage.", exampleSentence: "We leverage AI technology to accelerate English learning.", synonym: "Utilize", favorite: false },
+    { id: "vw_3", word: "Synergy", phonetic: "/ˈsɪn.ɚ.dʒi/", partOfSpeech: "noun", meaning: "The interaction of elements that when combined produce a total effect greater than the sum.", exampleSentence: "Team synergy enabled us to deliver the project ahead of schedule.", synonym: "Collaboration", favorite: false },
   ],
-  "Everyday Idioms": [
-    { id: "vi_1", word: "Break the ice", phonetic: "/breɪk ðiː aɪs/", partOfSpeech: "idiom", meaning: "Do or say something to relieve tension or get conversation started.", exampleSentence: "Playing a quick name game helped break the ice at the workshop.", collocations: "break the ice smoothly, break the ice with a joke", synonym: "Initiate conversation", antonym: "Freeze up", favorite: true, mastered: false },
-    { id: "vi_2", word: "Piece of cake", phonetic: "/piːs ʌv keɪk/", partOfSpeech: "idiom", meaning: "Something that is very easy to do.", exampleSentence: "The English vocabulary quiz was a piece of cake.", collocations: "absolute piece of cake, total piece of cake", synonym: "Effortless", antonym: "Hard task", favorite: false, mastered: false },
-    { id: "vi_3", word: "Bite the bullet", phonetic: "/baɪt ðə ˈbʊl.ɪt/", partOfSpeech: "idiom", meaning: "Face a difficult situation with courage and fortitude.", exampleSentence: "I decided to bite the bullet and give the live presentation.", collocations: "bite the bullet and speak", synonym: "Face bravely", antonym: "Hesitate", favorite: false, mastered: false },
-  ],
-  "IELTS Academic": [
-    { id: "vie_1", word: "Ubiquitous", phonetic: "/juːˈbɪk.wə.t̬əs/", partOfSpeech: "adjective", meaning: "Present, appearing, or found everywhere.", exampleSentence: "Smartphones have become ubiquitous in modern education.", collocations: "ubiquitous presence, become ubiquitous", synonym: "Omnipresent", antonym: "Rare", favorite: true, mastered: false },
-    { id: "vie_2", word: "Substantiate", phonetic: "/səbˈstæn.ʃi.eɪt/", partOfSpeech: "verb", meaning: "Provide evidence to support or prove the truth of.", exampleSentence: "You must substantiate your thesis arguments with credible data.", collocations: "substantiate claims, substantiate findings", synonym: "Validate", antonym: "Disprove", favorite: false, mastered: false },
-    { id: "vie_3", word: "Paramount", phonetic: "/ˈper.ə.maʊnt/", partOfSpeech: "adjective", meaning: "More important than anything else; supreme.", exampleSentence: "Consistent speaking practice is of paramount importance for fluency.", collocations: "paramount importance, paramount concern", synonym: "Supreme", antonym: "Trivial", favorite: false, mastered: false },
+  Senior: [
+    { id: "vs_1", word: "Serenity", phonetic: "/səˈren.ə.t̬i/", partOfSpeech: "noun", meaning: "The state of being calm, peaceful, and untroubled.", exampleSentence: "She enjoyed the morning serenity of her garden.", synonym: "Tranquility", favorite: true },
+    { id: "vs_2", word: "Nostalgia", phonetic: "/nɑːˈstæl.dʒə/", partOfSpeech: "noun", meaning: "A sentimental longing or affection for the past.", exampleSentence: "Looking at old family photos brought a wave of nostalgia.", synonym: "Reminiscence", favorite: false },
+    { id: "vs_3", word: "Wisdom", phonetic: "/ˈwɪz.dəm/", partOfSpeech: "noun", meaning: "The quality of having experience, knowledge, and good judgment.", exampleSentence: "Her grandmother shared timeless wisdom on life and patience.", synonym: "Insight", favorite: false },
   ],
 };
 
@@ -104,28 +95,61 @@ export function Vocabulary() {
   const [adding, setAdding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
-  const [speakingWord, setSpeakingWord] = useState(null);
-  const [selectedDeck, setSelectedDeck] = useState("1st Std");
+  const [userProfileTitle, setUserProfileTitle] = useState("My Vocabulary");
 
   // Flashcard State
   const [cardIndex, setCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Dynamic Quiz State
+  // Next-Level Quiz State
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState(null);
   const [quizScore, setQuizScore] = useState(0);
+  const [streakCount, setStreakCount] = useState(0);
+  const [maxStreak, setMaxStreak] = useState(0);
   const [quizFinished, setQuizFinished] = useState(false);
   const [earnedXP, setEarnedXP] = useState(0);
+  const [mistakesList, setMistakesList] = useState([]);
+  const [showMistakes, setShowMistakes] = useState(false);
 
   const loadVocabulary = async () => {
     setLoading(true);
     try {
-      const data = await vocabularyService.all();
-      setItems(data || []);
+      const savedAccType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+      const savedGrade = localStorage.getItem("speakmate_school_grade") || "1st Std";
+      const savedAge = localStorage.getItem("speakmate_age_group") || "Young Adult";
+
+      let profileKey = "1st Std";
+      let title = "Vocabulary";
+
+      if (savedAccType === "STUDENT") {
+        profileKey = savedGrade;
+        title = `Student Standard: ${savedGrade}`;
+      } else {
+        if (savedAge.toLowerCase().includes("kid")) profileKey = "Kids";
+        else if (savedAge.toLowerCase().includes("teen")) profileKey = "Teens";
+        else if (savedAge.toLowerCase().includes("senior")) profileKey = "Senior";
+        else if (savedAge.toLowerCase().includes("pro") || savedAge.toLowerCase().includes("work")) profileKey = "Professional";
+        else profileKey = "Young Adult";
+        title = `Age Group: ${savedAge}`;
+      }
+
+      setUserProfileTitle(title);
+
+      const curatedBase = CURRICULUM_DATA[profileKey] || CURRICULUM_DATA["1st Std"];
+      const backendWords = await vocabularyService.all().catch(() => []);
+
+      const combined = [...(backendWords || [])];
+      for (const cw of curatedBase) {
+        if (!combined.some((w) => w.word.toLowerCase() === cw.word.toLowerCase())) {
+          combined.push(cw);
+        }
+      }
+
+      setItems(combined);
     } catch (e) {
-      setItems([]);
+      setItems(CURRICULUM_DATA["1st Std"]);
     } finally {
       setLoading(false);
     }
@@ -137,35 +161,24 @@ export function Vocabulary() {
 
   const handleSpeak = (text) => {
     if (!text) return;
-    setSpeakingWord(text);
-    speakGlobalText(text, 1.0, {
-      onend: () => setSpeakingWord(null),
-      onerror: () => setSpeakingWord(null),
-    });
+    speakGlobalText(text, 1.0);
   };
 
-  // Active Words
-  const getActiveDeckWords = () => {
-    if (selectedDeck === "My Custom Words") {
-      return items;
+  // Play audio on initial card mount in Flashcards tab
+  useEffect(() => {
+    if (activeTab === "flashcards" && items.length > 0 && items[cardIndex] && !isFlipped) {
+      handleSpeak(items[cardIndex].word);
     }
-    return CURATED_DECKS[selectedDeck] || CURATED_DECKS["1st Std"];
-  };
+  }, [activeTab, cardIndex]);
 
-  const activeWords = getActiveDeckWords();
-  const filteredItems = activeWords.filter((item) => {
+  const filteredItems = items.filter((item) => {
     const q = searchQuery.toLowerCase().trim();
     const matchesSearch =
       !q ||
       (item.word && item.word.toLowerCase().includes(q)) ||
-      (item.meaning && item.meaning.toLowerCase().includes(q)) ||
-      (item.collocations && item.collocations.toLowerCase().includes(q));
+      (item.meaning && item.meaning.toLowerCase().includes(q));
 
-    let matchesFilter = true;
-    if (filterType === "favorites") matchesFilter = Boolean(item.favorite);
-    if (filterType === "mastered") matchesFilter = Boolean(item.mastered);
-    if (filterType === "review") matchesFilter = !item.mastered;
-
+    const matchesFilter = filterType === "all" || (filterType === "favorites" && item.favorite);
     return matchesSearch && matchesFilter;
   });
 
@@ -186,9 +199,7 @@ export function Vocabulary() {
         partOfSpeech: "word",
         meaning: `Definition and usage for ${wordInput.trim()}`,
         exampleSentence: `Practice using "${wordInput.trim()}" in daily English.`,
-        collocations: `practice ${wordInput.trim().toLowerCase()}`,
         favorite: false,
-        mastered: false,
       };
       setItems((prev) => [fallback, ...prev]);
       setWordInput("");
@@ -204,42 +215,34 @@ export function Vocabulary() {
       }
       const updated = !item.favorite;
       setItems((prev) => prev.map((w) => (w.id === item.id ? { ...w, favorite: updated } : w)));
-      if (CURATED_DECKS[selectedDeck]) {
-        const found = CURATED_DECKS[selectedDeck].find((w) => w.id === item.id);
-        if (found) found.favorite = updated;
-      }
     } catch (e) {
-      item.favorite = !item.favorite;
+      setItems((prev) => prev.map((w) => (w.id === item.id ? { ...w, favorite: !item.favorite } : w)));
     }
   };
 
-  const toggleMastered = async (item) => {
-    const nextMastered = !item.mastered;
-    try {
-      if (typeof item.id === "number" || !String(item.id).startsWith("v")) {
-        await vocabularyService.toggleMastered(item.id);
-      }
-      setItems((prev) => prev.map((w) => (w.id === item.id ? { ...w, mastered: nextMastered } : w)));
-      if (CURATED_DECKS[selectedDeck]) {
-        const found = CURATED_DECKS[selectedDeck].find((w) => w.id === item.id);
-        if (found) found.mastered = nextMastered;
-      }
-      if (nextMastered) {
-        recordVocabularyMastered(item.word);
-      }
-    } catch (e) {
-      item.mastered = nextMastered;
+  // 3D Flashcard Flip & Audio Trigger
+  const handleCardClick = () => {
+    const nextFlipped = !isFlipped;
+    setIsFlipped(nextFlipped);
+    if (currentCard) {
+      // If flipping to back -> speaks meaning! If flipping to front -> speaks word!
+      handleSpeak(nextFlipped ? currentCard.meaning : currentCard.word);
     }
   };
 
+  // Next-Level Multi-Format Quiz
   const startQuiz = () => {
     setCurrentQuizIdx(0);
     setSelectedQuizAnswer(null);
     setQuizScore(0);
+    setStreakCount(0);
+    setMaxStreak(0);
     setQuizFinished(false);
+    setMistakesList([]);
+    setShowMistakes(false);
     setEarnedXP(0);
 
-    const sourcePool = [...activeWords, ...CURATED_DECKS["1st Std"], ...CURATED_DECKS["Young Adults (18-24)"]];
+    const sourcePool = [...items, ...CURRICULUM_DATA["1st Std"], ...CURRICULUM_DATA["Young Adult"]];
     const uniquePool = [];
     const seen = new Set();
     for (const w of sourcePool) {
@@ -252,27 +255,52 @@ export function Vocabulary() {
     const shuffled = [...uniquePool].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 5);
     const allMeanings = uniquePool.map((w) => w.meaning).filter(Boolean);
+    const allWords = uniquePool.map((w) => w.word).filter(Boolean);
 
     const questions = selected.map((item, idx) => {
-      const correctMeaning = item.meaning;
-      const distractors = allMeanings
-        .filter((m) => m !== correctMeaning)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3);
+      const qType = idx % 4;
+      let questionTitle = "";
+      let promptText = "";
+      let correctAnswer = "";
+      let options = [];
 
-      while (distractors.length < 3) {
-        distractors.push("Expressing thoughts naturally in conversation.");
+      if (qType === 0 && item.exampleSentence && item.exampleSentence.includes(item.word)) {
+        questionTitle = "📝 Fill in the Blank";
+        promptText = item.exampleSentence.replace(new RegExp(item.word, "gi"), "_______");
+        correctAnswer = item.word;
+        const distWords = allWords.filter((w) => w.toLowerCase() !== item.word.toLowerCase()).sort(() => 0.5 - Math.random()).slice(0, 3);
+        options = [item.word, ...distWords].sort(() => 0.5 - Math.random());
+      } else if (qType === 1 && item.synonym && item.synonym !== "None" && item.synonym !== "Companion") {
+        questionTitle = "🔀 Synonym Challenge";
+        promptText = `Which word is the closest synonym of "${item.word}"?`;
+        correctAnswer = item.synonym;
+        const distSynonyms = ["Opponent", "Disorder", "Inaction", "Obstacle"].sort(() => 0.5 - Math.random()).slice(0, 3);
+        options = [item.synonym, ...distSynonyms].sort(() => 0.5 - Math.random());
+      } else if (qType === 2) {
+        questionTitle = "🔊 Listen & Identify";
+        promptText = `Listen to the pronunciation of "${item.word}". What does it mean?`;
+        correctAnswer = item.meaning;
+        const dist = allMeanings.filter((m) => m !== item.meaning).sort(() => 0.5 - Math.random()).slice(0, 3);
+        while (dist.length < 3) dist.push("Expressing thoughts clearly in English.");
+        options = [item.meaning, ...dist].sort(() => 0.5 - Math.random());
+      } else {
+        questionTitle = "📖 Meaning Definition";
+        promptText = `What is the correct definition of "${item.word}"?`;
+        correctAnswer = item.meaning;
+        const dist = allMeanings.filter((m) => m !== item.meaning).sort(() => 0.5 - Math.random()).slice(0, 3);
+        while (dist.length < 3) dist.push("A standard communicative expression.");
+        options = [item.meaning, ...dist].sort(() => 0.5 - Math.random());
       }
 
-      const options = [correctMeaning, ...distractors].sort(() => 0.5 - Math.random());
       return {
         id: `q_${idx}_${Date.now()}`,
-        word: item.word,
-        phonetic: item.phonetic,
-        partOfSpeech: item.partOfSpeech,
-        correctAnswer: correctMeaning,
+        questionTitle,
+        promptText,
+        targetWord: item.word,
+        correctAnswer,
         options,
         exampleSentence: item.exampleSentence,
+        meaning: item.meaning,
       };
     });
 
@@ -283,19 +311,27 @@ export function Vocabulary() {
   const submitQuizAnswer = (opt) => {
     if (selectedQuizAnswer !== null) return;
     setSelectedQuizAnswer(opt);
-    const isCorrect = opt === quizQuestions[currentQuizIdx]?.correctAnswer;
+    const currentQ = quizQuestions[currentQuizIdx];
+    const isCorrect = opt === currentQ.correctAnswer;
+
     if (isCorrect) {
       setQuizScore((prev) => prev + 1);
+      const newStreak = streakCount + 1;
+      setStreakCount(newStreak);
+      if (newStreak > maxStreak) setMaxStreak(newStreak);
+    } else {
+      setStreakCount(0);
+      setMistakesList((prev) => [...prev, { ...currentQ, userAnswer: opt }]);
     }
   };
 
   const finishQuiz = async () => {
     setQuizFinished(true);
-    const finalScore = quizScore;
     const totalQ = quizQuestions.length;
-    const baseXP = finalScore * 20;
-    const bonus = finalScore === totalQ && totalQ > 0 ? 30 : 0;
-    const totalAwarded = baseXP + bonus;
+    const baseXP = quizScore * 20;
+    const streakBonus = maxStreak >= 3 ? 25 : 0;
+    const perfectBonus = quizScore === totalQ && totalQ > 0 ? 30 : 0;
+    const totalAwarded = baseXP + streakBonus + perfectBonus;
     setEarnedXP(totalAwarded);
 
     try {
@@ -304,7 +340,7 @@ export function Vocabulary() {
         await progressService.update({
           ...prog,
           xp: (prog.xp || 0) + totalAwarded,
-          totalVocabularyWords: (prog.totalVocabularyWords || 0) + finalScore,
+          totalVocabularyWords: (prog.totalVocabularyWords || 0) + quizScore,
         });
       }
     } catch (e) {
@@ -321,15 +357,8 @@ export function Vocabulary() {
     }
   };
 
-  const allDecks = [
-    "1st Std", "2nd Std", "3rd Std", "4th Std", "5th Std",
-    "6th Std", "7th Std", "8th Std", "9th Std", "10th Std",
-    "Kids (6-12)", "Teens (13-17)", "Young Adults (18-24)", "Working Adults (25-50)",
-    "Everyday Idioms", "IELTS Academic", "My Custom Words"
-  ];
-
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-4 py-8">
+    <div className="space-y-6 max-w-5xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -339,8 +368,8 @@ export function Vocabulary() {
             </span>
             Vocabulary Master
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Standard Curriculums (1st–10th Std) & Curated Decks • 3D Flashcards & Adaptive AI Quizzes
+          <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">
+            {userProfileTitle} • 3D Flashcards & Interactive AI Quizzes
           </p>
         </div>
 
@@ -354,12 +383,12 @@ export function Vocabulary() {
                 : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            📖 Word Bank
+            📖 My List
           </button>
           <button
             onClick={() => {
               if (!filteredItems.length) {
-                alert("Please select a deck with vocabulary words to start flashcards.");
+                alert("Please add vocabulary words to start flashcards.");
                 return;
               }
               setCardIndex(0);
@@ -387,47 +416,21 @@ export function Vocabulary() {
         </div>
       </div>
 
-      {/* Deck Selector Bar */}
-      {activeTab !== "quiz" && (
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {allDecks.map((deck) => {
-            const isSel = selectedDeck === deck;
-            return (
-              <button
-                key={deck}
-                onClick={() => {
-                  setSelectedDeck(deck);
-                  setCardIndex(0);
-                  setIsFlipped(false);
-                }}
-                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
-                  isSel
-                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20"
-                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300"
-                }`}
-              >
-                {deck}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {/* ==========================================
-          TAB 1: WORD BANK
-      ========================================== */}
+      {/* =========================================================================
+          TAB 1: MY LIST (WORD BANK WITH SAMPLE EXAMPLES & FAVORITE STARS)
+      ========================================================================= */}
       {activeTab === "list" && (
         <div className="space-y-6">
-          {/* AI Instant Lookup Box */}
+          {/* Add Word Box */}
           <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-200 dark:border-indigo-800/40 rounded-3xl p-6 shadow-sm">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                ✨ Instant AI Word Lookup
+                ✨ Add to My Vocabulary
               </h2>
               <span className="bg-emerald-500 text-white text-xs font-black px-2.5 py-1 rounded-full">+10 XP</span>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-              Enter any English word. SpeakMate AI extracts IPA phonetic transcription, part of speech, collocations, and contextual examples.
+              Type any word. SpeakMate AI automatically analyzes phonetic IPA, pronunciation, meaning, and examples.
             </p>
             <div className="flex gap-3">
               <input
@@ -453,7 +456,7 @@ export function Vocabulary() {
             <div className="relative w-full sm:w-80">
               <input
                 type="text"
-                placeholder={`Search in ${selectedDeck}...`}
+                placeholder="Search vocabulary words..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 pl-10 pr-4 py-2.5 rounded-2xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
@@ -461,17 +464,15 @@ export function Vocabulary() {
               <span className="absolute left-3.5 top-3 text-slate-400">🔍</span>
             </div>
 
-            <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-2">
               {[
-                { key: "all", label: `All (${activeWords.length})` },
+                { key: "all", label: `All Words (${items.length})` },
                 { key: "favorites", label: "⭐ Favorites" },
-                { key: "mastered", label: "✅ Mastered" },
-                { key: "review", label: "🔄 Learning" },
               ].map((f) => (
                 <button
                   key={f.key}
                   onClick={() => setFilterType(f.key)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                     filterType === f.key
                       ? "bg-indigo-600 text-white"
                       : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
@@ -483,13 +484,13 @@ export function Vocabulary() {
             </div>
           </div>
 
-          {/* Word Grid */}
+          {/* Word Cards Grid with Favorite Stars */}
           {filteredItems.length === 0 ? (
             <div className="text-center py-16 bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
               <span className="text-4xl mb-3 block">📖</span>
-              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">No Words in this View</h3>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">No Words Found</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1">
-                Add custom words above or explore another category from the top deck selector.
+                Add custom words above using the AI lookup bar!
               </p>
             </div>
           ) : (
@@ -520,24 +521,17 @@ export function Vocabulary() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => handleSpeak(item.word)}
-                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400 transition-all"
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400 transition-all text-base"
                           title="Listen Pronunciation"
                         >
                           🔊
                         </button>
                         <button
                           onClick={() => toggleFavorite(item)}
-                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-base"
                           title="Toggle Favorite"
                         >
                           {item.favorite ? "⭐" : "☆"}
-                        </button>
-                        <button
-                          onClick={() => toggleMastered(item)}
-                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-                          title="Toggle Mastered"
-                        >
-                          {item.mastered ? "✅" : "⭕"}
                         </button>
                       </div>
                     </div>
@@ -551,20 +545,12 @@ export function Vocabulary() {
                     )}
                   </div>
 
-                  <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
-                    {item.collocations && (
-                      <p className="text-slate-500 dark:text-slate-400">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Collocations: </span>
-                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">{item.collocations}</span>
-                      </p>
-                    )}
-                    {item.synonym && item.synonym !== "None" && (
-                      <p className="text-slate-500 dark:text-slate-400">
-                        <span className="font-semibold text-slate-700 dark:text-slate-300">Synonyms: </span>
-                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">{item.synonym}</span>
-                      </p>
-                    )}
-                  </div>
+                  {item.synonym && item.synonym !== "None" && (
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">Synonym: </span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-medium">{item.synonym}</span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -572,18 +558,21 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* ==========================================
-          TAB 2: 3D FLASHCARDS
-      ========================================== */}
+      {/* =========================================================================
+          TAB 2: 3D FLASHCARDS (WORD -> TAP -> SPEAKS MEANING & FLIPS)
+      ========================================================================= */}
       {activeTab === "flashcards" && currentCard && (
         <div className="max-w-xl mx-auto space-y-6">
           <div className="flex justify-between items-center text-sm font-bold text-slate-500">
             <span>
-              Deck: <strong className="text-indigo-600 dark:text-indigo-400">{selectedDeck}</strong>
-            </span>
-            <span>
               Card {cardIndex + 1} of {filteredItems.length}
             </span>
+            <button
+              onClick={() => toggleFavorite(currentCard)}
+              className="text-xl hover:scale-110 transition-all"
+            >
+              {currentCard.favorite ? "⭐" : "☆"}
+            </button>
           </div>
 
           {/* Progress Bar */}
@@ -596,10 +585,7 @@ export function Vocabulary() {
 
           {/* Interactive Card */}
           <div
-            onClick={() => {
-              setIsFlipped(!isFlipped);
-              handleSpeak(isFlipped ? currentCard.word : currentCard.meaning);
-            }}
+            onClick={handleCardClick}
             className="cursor-pointer select-none min-h-[340px] bg-white dark:bg-slate-900 border-2 border-indigo-200 dark:border-indigo-800/80 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all flex flex-col justify-between relative overflow-hidden"
           >
             <div className="flex justify-between items-center">
@@ -609,7 +595,7 @@ export function Vocabulary() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleSpeak(`${currentCard.word}. ${currentCard.meaning}`);
+                  handleSpeak(isFlipped ? currentCard.meaning : currentCard.word);
                 }}
                 className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 hover:scale-105 transition-all"
               >
@@ -637,31 +623,8 @@ export function Vocabulary() {
             )}
 
             <div className="text-center text-xs font-bold text-slate-400 flex items-center justify-center gap-2">
-              <span>🔄</span> Click card to {isFlipped ? "flip back" : "see definition & examples"}
+              <span>🔄</span> Click card to {isFlipped ? "flip back" : "hear meaning & flip"}
             </div>
-          </div>
-
-          {/* Retention Actions */}
-          <div className="flex gap-4">
-            <button
-              onClick={() => {
-                setIsFlipped(false);
-                setCardIndex((prev) => (prev + 1) % filteredItems.length);
-              }}
-              className="flex-1 py-3.5 bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-extrabold rounded-2xl hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-all flex items-center justify-center gap-2"
-            >
-              🔄 Need Review
-            </button>
-            <button
-              onClick={() => {
-                toggleMastered(currentCard);
-                setIsFlipped(false);
-                setCardIndex((prev) => (prev + 1) % filteredItems.length);
-              }}
-              className="flex-1 py-3.5 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-extrabold rounded-2xl hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition-all flex items-center justify-center gap-2"
-            >
-              ✅ Mastered (+15 XP)
-            </button>
           </div>
 
           {/* Controls */}
@@ -680,7 +643,7 @@ export function Vocabulary() {
                 setIsFlipped(false);
                 setCardIndex((prev) => (prev + 1) % filteredItems.length);
               }}
-              className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+              className="px-6 py-2.5 bg-indigo-600 font-bold text-white rounded-2xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-600/20"
             >
               Next →
             </button>
@@ -688,9 +651,9 @@ export function Vocabulary() {
         </div>
       )}
 
-      {/* ==========================================
-          TAB 3: INTERACTIVE AI QUIZ
-      ========================================== */}
+      {/* =========================================================================
+          TAB 3: NEXT-LEVEL MULTI-FORMAT INTERACTIVE QUIZ
+      ========================================================================= */}
       {activeTab === "quiz" && (
         <div className="max-w-xl mx-auto space-y-6">
           {!quizFinished && quizQuestions.length > 0 && (
@@ -699,9 +662,16 @@ export function Vocabulary() {
                 <span className="text-slate-500">
                   Question {currentQuizIdx + 1} of {quizQuestions.length}
                 </span>
-                <span className="text-indigo-600 dark:text-indigo-400 font-black">
-                  Score: {quizScore} / {quizQuestions.length}
-                </span>
+                <div className="flex items-center gap-3">
+                  {streakCount >= 2 && (
+                    <span className="bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 text-xs font-black px-2.5 py-0.5 rounded-full">
+                      🔥 {streakCount} Streak!
+                    </span>
+                  )}
+                  <span className="text-indigo-600 dark:text-indigo-400 font-black">
+                    Score: {quizScore} / {quizQuestions.length}
+                  </span>
+                </div>
               </div>
 
               {/* Progress Bar */}
@@ -713,22 +683,21 @@ export function Vocabulary() {
               </div>
 
               {/* Question Card */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm text-center space-y-2">
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-xs uppercase font-extrabold text-indigo-500">Vocabulary Quiz</span>
+                  <span className="bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 text-xs uppercase font-extrabold px-2.5 py-1 rounded-lg">
+                    {quizQuestions[currentQuizIdx]?.questionTitle}
+                  </span>
                   <button
-                    onClick={() => handleSpeak(quizQuestions[currentQuizIdx]?.word)}
+                    onClick={() => handleSpeak(quizQuestions[currentQuizIdx]?.promptText)}
                     className="p-1 text-indigo-600 dark:text-indigo-400 hover:scale-110"
                   >
                     🔊
                   </button>
                 </div>
-                <h2 className="text-3xl font-black text-slate-900 dark:text-white">
-                  {quizQuestions[currentQuizIdx]?.word}
+                <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                  {quizQuestions[currentQuizIdx]?.promptText}
                 </h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  What is the correct definition of this word?
-                </p>
               </div>
 
               {/* Options */}
@@ -762,6 +731,21 @@ export function Vocabulary() {
                 })}
               </div>
 
+              {/* Explanation Card */}
+              {selectedQuizAnswer !== null && (
+                <div className="bg-blue-50 dark:bg-slate-800/80 border border-blue-200 dark:border-blue-900/40 p-4 rounded-2xl text-xs space-y-1">
+                  <p className="font-bold text-blue-600 dark:text-blue-400">💡 Context & Meaning:</p>
+                  <p className="text-slate-700 dark:text-slate-300 font-medium">
+                    <strong>{quizQuestions[currentQuizIdx]?.targetWord}:</strong> {quizQuestions[currentQuizIdx]?.meaning}
+                  </p>
+                  {quizQuestions[currentQuizIdx]?.exampleSentence && (
+                    <p className="italic text-slate-500 dark:text-slate-400">
+                      "{quizQuestions[currentQuizIdx]?.exampleSentence}"
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Next Question */}
               {selectedQuizAnswer !== null && (
                 <button
@@ -791,12 +775,37 @@ export function Vocabulary() {
                 +{earnedXP} XP Earned ✨
               </div>
 
+              {/* Mistakes Review */}
+              {mistakesList.length > 0 ? (
+                <div>
+                  <button
+                    onClick={() => setShowMistakes(!showMistakes)}
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  >
+                    {showMistakes ? "Hide Mistakes ▲" : `Review ${mistakesList.length} Mistakes ▼`}
+                  </button>
+                  {showMistakes && (
+                    <div className="space-y-2 mt-3 text-left">
+                      {mistakesList.map((m, i) => (
+                        <div key={i} className="bg-rose-50 dark:bg-slate-800 p-3 rounded-2xl text-xs space-y-1">
+                          <p className="font-bold text-slate-900 dark:text-white">{m.targetWord}</p>
+                          <p className="text-rose-600 dark:text-rose-400">Your Answer: {m.userAnswer}</p>
+                          <p className="text-emerald-600 dark:text-emerald-400 font-bold">Correct: {m.correctAnswer}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-emerald-600 font-extrabold text-sm">🌟 100% Perfect Accuracy! 🌟</p>
+              )}
+
               <div className="space-y-3 pt-4">
                 <button
                   onClick={startQuiz}
                   className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-indigo-600/20"
                 >
-                  Retake Quiz with New Words 🔄
+                  Retake Quiz with New Questions 🔄
                 </button>
                 <button
                   onClick={() => setActiveTab("list")}
