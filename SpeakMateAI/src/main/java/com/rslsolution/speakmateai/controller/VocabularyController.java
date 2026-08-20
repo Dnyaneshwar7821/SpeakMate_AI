@@ -80,6 +80,20 @@ public class VocabularyController {
 		return vocabularyService.toggleFavorite(numericId);
 	}
 
+	@PutMapping("/toggle-mastered/{id}")
+	public VocabularyResponse toggleMastered(@PathVariable String id) {
+		Long numericId = 1L;
+		try {
+			numericId = Long.parseLong(id);
+		} catch (NumberFormatException e) {
+			String digits = id.replaceAll("\\D+", "");
+			if (!digits.isEmpty()) {
+				numericId = Long.parseLong(digits);
+			}
+		}
+		return vocabularyService.toggleMastered(numericId);
+	}
+
 	@GetMapping("/quiz")
 	public List<java.util.Map<String, Object>> getQuiz() {
 		return vocabularyService.getQuiz();

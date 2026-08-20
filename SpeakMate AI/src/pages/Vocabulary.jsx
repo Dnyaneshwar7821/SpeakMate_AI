@@ -1,73 +1,100 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { vocabularyService, progressService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 import { recordVocabularyMastered } from "../utils/progressTracker";
 
-// Curated CEFR Dictionary Pool for 100% Unique Automatic Quiz Generation
-const EXTENDED_DICTIONARY_POOL = [
-  { id: "dict_1", word: "Eloquent", meaning: "Fluent or persuasive in speaking and writing.", synonym: "Articulate", antonym: "Inarticulate", exampleSentence: "His eloquent speech captivated the entire audience." },
-  { id: "dict_2", word: "Resilient", meaning: "Able to withstand or recover quickly from difficult conditions.", synonym: "Tough", antonym: "Fragile", exampleSentence: "She showed a resilient spirit during challenging times." },
-  { id: "dict_3", word: "Coherent", meaning: "Logical, clear, and consistent in thought or expression.", synonym: "Logical", antonym: "Confused", exampleSentence: "Make sure your essay argument remains clear and coherent." },
-  { id: "dict_4", word: "Meticulous", meaning: "Showing great attention to detail; very careful and precise.", synonym: "Precise", antonym: "Careless", exampleSentence: "He was meticulous about maintaining his vocabulary journal." },
-  { id: "dict_5", word: "Pragmatic", meaning: "Dealing with things sensibly and realistically in a practical way.", synonym: "Practical", antonym: "Idealistic", exampleSentence: "They took a pragmatic approach to solving the complex issue." },
-  { id: "dict_6", word: "Articulate", meaning: "Having or showing the ability to speak fluently and coherently.", synonym: "Expressive", antonym: "Inarticulate", exampleSentence: "An articulate speaker can convey complex ideas effortlessly." },
-  { id: "dict_7", word: "Ambiguous", meaning: "Open to more than one interpretation; not clear or explicit.", synonym: "Vague", antonym: "Explicit", exampleSentence: "The contract instructions were ambiguous and caused confusion." },
-  { id: "dict_8", word: "Versatile", meaning: "Able to adapt or be adapted to many different functions or activities.", synonym: "Flexible", antonym: "Rigid", exampleSentence: "Python is a versatile programming language used in web and AI." },
-  { id: "dict_9", word: "Formidable", meaning: "Inspiring respect or awe through being impressively powerful.", synonym: "Impressive", antonym: "Weak", exampleSentence: "The team faced a formidable opponent in the championship final." },
-  { id: "dict_10", word: "Plausible", meaning: "Seeming reasonable or probable based on logical grounds.", synonym: "Believable", antonym: "Implausible", exampleSentence: "Her explanation for being late was entirely plausible." },
-  { id: "dict_11", word: "Tenacious", meaning: "Persistent, determined, and holding firm to a purpose.", synonym: "Determined", antonym: "Yielding", exampleSentence: "Her tenacious effort paid off when she mastered English fluency." },
-  { id: "dict_12", word: "Scrupulous", meaning: "Very diligent, thorough, and attentive to moral or practical detail.", synonym: "Conscientious", antonym: "Sloppy", exampleSentence: "The researcher kept scrupulous records of all experimental data." },
-  { id: "dict_13", word: "Candor", meaning: "The quality of being open, honest, and sincere in expression.", synonym: "Honesty", antonym: "Deceit", exampleSentence: "I appreciate your candor when giving constructive feedback." },
-  { id: "dict_14", word: "Empathy", meaning: "The ability to understand and share the feelings of another.", synonym: "Compassion", antonym: "Apathy", exampleSentence: "Great communicators speak with empathy and active listening." },
-  { id: "dict_15", word: "Gregarious", meaning: "Fond of company; sociable and outgoing.", synonym: "Sociable", antonym: "Reclusive", exampleSentence: "His gregarious personality makes him popular at every event." },
-];
+// ==========================================
+// COMPREHENSIVE CURATED DECKS FOR WEB APP
+// ==========================================
+export const CURATED_DECKS = {
+  // --- SCHOOL STANDARDS (1st to 10th Std) ---
+  "1st Std": [
+    { id: "v1_1", word: "Apple", phonetic: "/ˈæp.əl/", partOfSpeech: "noun", meaning: "A sweet round fruit that grows on trees.", exampleSentence: "An apple a day keeps the doctor away.", collocations: "fresh apple, apple tree", synonym: "Fruit", antonym: "None", favorite: true, mastered: false },
+    { id: "v1_2", word: "Friend", phonetic: "/frend/", partOfSpeech: "noun", meaning: "A person you like and spend time with.", exampleSentence: "Sita is my best school friend.", collocations: "best friend, close friend", synonym: "Companion", antonym: "Enemy", favorite: false, mastered: false },
+    { id: "v1_3", word: "Happy", phonetic: "/ˈhæp.i/", partOfSpeech: "adjective", meaning: "Feeling or showing pleasure and joy.", exampleSentence: "I feel very happy on my birthday.", collocations: "happy smile, happy day", synonym: "Joyful", antonym: "Sad", favorite: false, mastered: false },
+    { id: "v1_4", word: "Smile", phonetic: "/smaɪl/", partOfSpeech: "verb", meaning: "Form a happy facial expression with mouth.", exampleSentence: "Always smile when greeting your teacher.", collocations: "bright smile, gentle smile", synonym: "Beam", antonym: "Frown", favorite: false, mastered: false },
+    { id: "v1_5", word: "Sunny", phonetic: "/ˈsʌn.i/", partOfSpeech: "adjective", meaning: "Bright with sunlight and warm weather.", exampleSentence: "It is a sunny morning for playing in the park.", collocations: "sunny day, sunny morning", synonym: "Bright", antonym: "Cloudy", favorite: false, mastered: false },
+  ],
+  "2nd Std": [
+    { id: "v2_1", word: "Routine", phonetic: "/ruːˈtiːn/", partOfSpeech: "noun", meaning: "A regular sequence of daily actions.", exampleSentence: "Brushing teeth is part of my morning routine.", collocations: "daily routine, morning routine", synonym: "Schedule", antonym: "Disorder", favorite: true, mastered: false },
+    { id: "v2_2", word: "Pencil", phonetic: "/ˈpen.səl/", partOfSpeech: "noun", meaning: "An instrument used for writing or drawing.", exampleSentence: "I sharpened my yellow pencil for class.", collocations: "lead pencil, color pencil", synonym: "Pen", antonym: "None", favorite: false, mastered: false },
+    { id: "v2_3", word: "Weather", phonetic: "/ˈweð.ər/", partOfSpeech: "noun", meaning: "The state of the atmosphere (sunny, rainy, etc.).", exampleSentence: "The weather today is sunny and bright.", collocations: "nice weather, rainy weather", synonym: "Climate", antonym: "None", favorite: false, mastered: false },
+    { id: "v2_4", word: "Playground", phonetic: "/ˈpleɪ.ɡraʊnd/", partOfSpeech: "noun", meaning: "An outdoor area for children to play games.", exampleSentence: "We play on the swings in the playground.", collocations: "school playground, outdoor playground", synonym: "Park", antonym: "None", favorite: false, mastered: false },
+  ],
+  "3rd Std": [
+    { id: "v3_1", word: "Helper", phonetic: "/ˈhel.pər/", partOfSpeech: "noun", meaning: "A person who helps or assists others.", exampleSentence: "Firefighters are brave community helpers.", collocations: "community helper, eager helper", synonym: "Assistant", antonym: "Opponent", favorite: true, mastered: false },
+    { id: "v3_2", word: "Action", phonetic: "/ˈæk.ʃən/", partOfSpeech: "noun", meaning: "The process of doing something or performing a verb.", exampleSentence: "Running and jumping are action words.", collocations: "take action, direct action", synonym: "Activity", antonym: "Inaction", favorite: false, mastered: false },
+    { id: "v3_3", word: "Polite", phonetic: "/pəˈlaɪt/", partOfSpeech: "adjective", meaning: "Having good manners and showing respect.", exampleSentence: "Saying \"thank you\" is very polite.", collocations: "polite request, polite greeting", synonym: "Courteous", antonym: "Rude", favorite: false, mastered: false },
+    { id: "v3_4", word: "Schedule", phonetic: "/ˈskedʒ.uːl/", partOfSpeech: "noun", meaning: "A plan that lists times for activities.", exampleSentence: "Check our school timetable schedule.", collocations: "busy schedule, daily schedule", synonym: "Timetable", antonym: "None", favorite: false, mastered: false },
+  ],
+  "4th Std": [
+    { id: "v4_1", word: "Expedition", phonetic: "/ˌek.spəˈdɪʃ.ən/", partOfSpeech: "noun", meaning: "A journey undertaken for a specific purpose.", exampleSentence: "Astronauts launched a space expedition to Mars.", collocations: "scientific expedition, jungle expedition", synonym: "Journey", antonym: "Stay", favorite: true, mastered: false },
+    { id: "v4_2", word: "Direction", phonetic: "/daɪˈrek.ʃən/", partOfSpeech: "noun", meaning: "The course along which someone or something moves.", exampleSentence: "Turn left to find the school library direction.", collocations: "right direction, give directions", synonym: "Route", antonym: "None", favorite: false, mastered: false },
+    { id: "v4_3", word: "Habit", phonetic: "/ˈhæb.ɪt/", partOfSpeech: "noun", meaning: "A settled or regular tendency or practice.", exampleSentence: "Drinking water daily is a healthy habit.", collocations: "healthy habit, daily habit", synonym: "Practice", antonym: "None", favorite: false, mastered: false },
+  ],
+  "5th Std": [
+    { id: "v5_1", word: "Environment", phonetic: "/ɪnˈvaɪ.rən.mənt/", partOfSpeech: "noun", meaning: "The surroundings or conditions in which we live.", exampleSentence: "Planting trees protects our natural environment.", collocations: "clean environment, protect environment", synonym: "Surroundings", antonym: "None", favorite: true, mastered: false },
+    { id: "v5_2", word: "Experiment", phonetic: "/ɪkˈsper.ə.mənt/", partOfSpeech: "noun", meaning: "A scientific procedure undertaken to make a discovery.", exampleSentence: "We conducted a science experiment on plant growth.", collocations: "conduct experiment, science experiment", synonym: "Test", antonym: "Theory", favorite: false, mastered: false },
+    { id: "v5_3", word: "Recycle", phonetic: "/ˌriːˈsaɪ.kəl/", partOfSpeech: "verb", meaning: "Convert waste materials into reusable objects.", exampleSentence: "We recycle paper and plastic bottles at school.", collocations: "recycle plastic, recycle paper", synonym: "Reuse", antonym: "Waste", favorite: false, mastered: false },
+  ],
+  "6th Std": [
+    { id: "v6_1", word: "Robotics", phonetic: "/roʊˈbɑː.t̬ɪks/", partOfSpeech: "noun", meaning: "The branch of technology dealing with robots.", exampleSentence: "She joined the school robotics club to build code.", collocations: "robotics club, advanced robotics", synonym: "Automation", antonym: "None", favorite: true, mastered: false },
+    { id: "v6_2", word: "Debate", phonetic: "/dɪˈbeɪt/", partOfSpeech: "noun", meaning: "A formal discussion on a particular topic in public.", exampleSentence: "Our team won the inter-school debate competition.", collocations: "lively debate, debate competition", synonym: "Discussion", antonym: "Agreement", favorite: false, mastered: false },
+    { id: "v6_3", word: "Assistance", phonetic: "/əˈsɪs.təns/", partOfSpeech: "noun", meaning: "Help or support given to someone.", exampleSentence: "The teacher offered polite assistance during the test.", collocations: "financial assistance, mutual assistance", synonym: "Aid", antonym: "Hindrance", favorite: false, mastered: false },
+  ],
+  "7th Std": [
+    { id: "v7_1", word: "Conservation", phonetic: "/ˌkɑːn.sɚˈveɪ.ʃən/", partOfSpeech: "noun", meaning: "Prevention of wasteful use of a resource.", exampleSentence: "Water conservation is vital for future generations.", collocations: "wildlife conservation, energy conservation", synonym: "Preservation", antonym: "Destruction", favorite: true, mastered: false },
+    { id: "v7_2", word: "Delegate", phonetic: "/ˈdel.ə.ɡeɪt/", partOfSpeech: "verb", meaning: "Entrust a task or responsibility to another person.", exampleSentence: "The leader delegates responsibilities to team members.", collocations: "delegate authority, delegate tasks", synonym: "Assign", antonym: "Withhold", favorite: false, mastered: false },
+    { id: "v7_3", word: "Perspective", phonetic: "/pɚˈspek.tɪv/", partOfSpeech: "noun", meaning: "A particular attitude toward or way of regarding something.", exampleSentence: "Reading history gives us a broader perspective on life.", collocations: "fresh perspective, unique perspective", synonym: "Viewpoint", antonym: "None", favorite: false, mastered: false },
+  ],
+  "8th Std": [
+    { id: "v8_1", word: "Leadership", phonetic: "/ˈliː.dɚ.ʃɪp/", partOfSpeech: "noun", meaning: "The action of leading a group or organization.", exampleSentence: "Student council develops strong leadership qualities.", collocations: "strong leadership, leadership qualities", synonym: "Guidance", antonym: "Subordination", favorite: true, mastered: false },
+    { id: "v8_2", word: "Rebuttal", phonetic: "/rɪˈbʌt̬.əl/", partOfSpeech: "noun", meaning: "A refutation or contradiction in a formal debate.", exampleSentence: "She delivered a powerful rebuttal during the debate.", collocations: "effective rebuttal, offer rebuttal", synonym: "Refutation", antonym: "Confirmation", favorite: false, mastered: false },
+    { id: "v8_3", word: "Innovation", phonetic: "/ˌɪn.əˈveɪ.ʃən/", partOfSpeech: "noun", meaning: "A new method, idea, or product.", exampleSentence: "Artificial intelligence is a major technological innovation.", collocations: "technological innovation, foster innovation", synonym: "Novelty", antonym: "Stagnation", favorite: false, mastered: false },
+  ],
+  "9th Std": [
+    { id: "v9_1", word: "Diplomatic", phonetic: "/ˌdɪp.ləˈmæt̬.ɪk/", partOfSpeech: "adjective", meaning: "Handling sensitive situations tactfully and politely.", exampleSentence: "He used diplomatic language to resolve peer conflict.", collocations: "diplomatic approach, diplomatic relations", synonym: "Tactful", antonym: "Tactless", favorite: true, mastered: false },
+    { id: "v9_2", word: "Keynote", phonetic: "/ˈkiː.noʊt/", partOfSpeech: "noun", meaning: "A main speech outlining the central theme of a summit.", exampleSentence: "She delivered the opening keynote on climate change.", collocations: "keynote speaker, keynote address", synonym: "Main theme", antonym: "None", favorite: false, mastered: false },
+    { id: "v9_3", word: "Rhetoric", phonetic: "/ˈret.ər.ɪk/", partOfSpeech: "noun", meaning: "The art of effective or persuasive speaking and writing.", exampleSentence: "Mastering rhetoric enhances spoken essay presentations.", collocations: "persuasive rhetoric, political rhetoric", synonym: "Eloquence", antonym: "None", favorite: false, mastered: false },
+  ],
+  "10th Std": [
+    { id: "v10_1", word: "Oratory", phonetic: "/ˈɔːr.ə.tɔːr.i/", partOfSpeech: "noun", meaning: "Formal public speaking characterized by high eloquence.", exampleSentence: "CEFR C1 mastery requires spontaneous oratory skill.", collocations: "powerful oratory, political oratory", synonym: "Eloquence", antonym: "Inarticulacy", favorite: true, mastered: false },
+    { id: "v10_2", word: "Simulation", phonetic: "/ˌsɪm.jəˈleɪ.ʃən/", partOfSpeech: "noun", meaning: "Imitation of a situation or process in realistic conditions.", exampleSentence: "We completed a 10th Board oral exam simulation.", collocations: "computer simulation, realistic simulation", synonym: "Model", antonym: "Reality", favorite: false, mastered: false },
+    { id: "v10_3", word: "Modulation", phonetic: "/ˌmɑː.dʒəˈleɪ.ʃən/", partOfSpeech: "noun", meaning: "Varying the pitch or tone of voice for expressive effect.", exampleSentence: "Vocal modulation makes speeches captivating.", collocations: "voice modulation, tone modulation", synonym: "Inflection", antonym: "Monotone", favorite: false, mastered: false },
+  ],
 
-function shuffleArray(array) {
-  const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
-}
-
-function generateDifferentRandomQuiz(userAddedWords = []) {
-  const combined = [...userAddedWords, ...EXTENDED_DICTIONARY_POOL];
-  const uniquePool = [];
-  const seen = new Set();
-  
-  for (const item of combined) {
-    if (item.word && !seen.has(item.word.toLowerCase())) {
-      seen.add(item.word.toLowerCase());
-      uniquePool.push(item);
-    }
-  }
-
-  const shuffledPool = shuffleArray(uniquePool);
-  const selected = shuffledPool.slice(0, 3);
-  const allMeanings = [...new Set(uniquePool.map((w) => w.meaning).filter(Boolean))];
-
-  return selected.map((wordObj, i) => {
-    const correctMeaning = wordObj.meaning;
-    const distractors = shuffleArray(allMeanings.filter((m) => m !== correctMeaning)).slice(0, 3);
-
-    while (distractors.length < 3) {
-      distractors.push("Expressing thoughts in a temporary or brief manner.");
-    }
-
-    const options = shuffleArray([correctMeaning, ...distractors]);
-    const correctIndex = options.indexOf(correctMeaning);
-
-    return {
-      id: `quiz_q_${Date.now()}_${i}`,
-      word: wordObj.word,
-      questionText: `What is the correct definition of '${wordObj.word}'?`,
-      options,
-      correctIndex,
-      explanation: `'${wordObj.word}' means: "${correctMeaning}"`,
-    };
-  });
-}
+  // --- INDIVIDUAL USER THEMES ---
+  "Kids (6-12)": [
+    { id: "vk_1", word: "Cheerful", phonetic: "/ˈtʃɪr.fəl/", partOfSpeech: "adjective", meaning: "Noticeably happy and optimistic.", exampleSentence: "She greeted her classmates with a cheerful smile.", collocations: "cheerful voice, cheerful mood", synonym: "Joyful", antonym: "Gloomy", favorite: true, mastered: false },
+    { id: "vk_2", word: "Adventure", phonetic: "/ədˈven.tʃɚ/", partOfSpeech: "noun", meaning: "An unusual and exciting or daring experience.", exampleSentence: "We had a fun adventure in the treehouse.", collocations: "exciting adventure, space adventure", synonym: "Journey", antonym: "Routine", favorite: false, mastered: false },
+    { id: "vk_3", word: "Playful", phonetic: "/ˈpleɪ.fəl/", partOfSpeech: "adjective", meaning: "Fond of games and amusement; lighthearted.", exampleSentence: "The playful kitten jumped on the soft cushion.", collocations: "playful puppy, playful kitten", synonym: "Frisky", antonym: "Serious", favorite: false, mastered: false },
+  ],
+  "Teens (13-17)": [
+    { id: "vt_1", word: "Relatable", phonetic: "/rɪˈleɪ.t̬ə.bəl/", partOfSpeech: "adjective", meaning: "Enabling a person to feel that they can understand or identify with it.", exampleSentence: "The singer lyrics are very relatable to teens.", collocations: "relatable story, relatable character", synonym: "Understandable", antonym: "Distant", favorite: true, mastered: false },
+    { id: "vt_2", word: "Spontaneous", phonetic: "/spɑːnˈteɪ.ni.əs/", partOfSpeech: "adjective", meaning: "Performed or occurring as a result of a sudden impulse without planning.", exampleSentence: "We took a spontaneous weekend bicycle trip.", collocations: "spontaneous decision, spontaneous reaction", synonym: "Unplanned", antonym: "Premeditated", favorite: false, mastered: false },
+    { id: "vt_3", word: "Collaborate", phonetic: "/kəˈlæb.ə.reɪt/", partOfSpeech: "verb", meaning: "Work jointly on an activity or project.", exampleSentence: "Our team collaborated to build the science project.", collocations: "collaborate closely, collaborate on", synonym: "Cooperate", antonym: "Compete", favorite: false, mastered: false },
+  ],
+  "Young Adults (18-24)": [
+    { id: "vy_1", word: "Articulate", phonetic: "/ɑːrˈtɪk.jə.lət/", partOfSpeech: "adjective", meaning: "Having or showing the ability to speak fluently and coherently.", exampleSentence: "An articulate speaker can convey complex ideas effortlessly.", collocations: "articulate speaker, articulate thoughts", synonym: "Eloquent", antonym: "Inarticulate", favorite: true, mastered: false },
+    { id: "vy_2", word: "Resilient", phonetic: "/rɪˈzɪl.jənt/", partOfSpeech: "adjective", meaning: "Able to withstand or recover quickly from difficult conditions.", exampleSentence: "She showed a resilient mindset throughout university.", collocations: "resilient mindset, resilient economy", synonym: "Tough", antonym: "Fragile", favorite: false, mastered: false },
+    { id: "vy_3", word: "Pragmatic", phonetic: "/præɡˈmæt̬.ɪk/", partOfSpeech: "adjective", meaning: "Dealing with things sensibly and realistically in a practical way.", exampleSentence: "They took a pragmatic approach to budget planning.", collocations: "pragmatic solution, pragmatic approach", synonym: "Practical", antonym: "Idealistic", favorite: false, mastered: false },
+  ],
+  "Working Adults (25-50)": [
+    { id: "vw_1", word: "Strategic", phonetic: "/strəˈtiː.dʒɪk/", partOfSpeech: "adjective", meaning: "Carefully designed or planned to serve a particular purpose or advantage.", exampleSentence: "We established strategic milestones for quarterly goals.", collocations: "strategic planning, strategic decision", synonym: "Calculated", antonym: "Random", favorite: true, mastered: false },
+    { id: "vw_2", word: "Leverage", phonetic: "/ˈlev.ɚ.ɪdʒ/", partOfSpeech: "verb", meaning: "Use something to maximum advantage.", exampleSentence: "We leverage AI technology to accelerate English learning.", collocations: "leverage technology, leverage strengths", synonym: "Utilize", antonym: "Ignore", favorite: false, mastered: false },
+    { id: "vw_3", word: "Synergy", phonetic: "/ˈsɪn.ɚ.dʒi/", partOfSpeech: "noun", meaning: "The interaction of elements that when combined produce a total effect greater than the sum.", exampleSentence: "Team synergy enabled us to deliver the project ahead of schedule.", collocations: "team synergy, create synergy", synonym: "Collaboration", antonym: "Conflict", favorite: false, mastered: false },
+  ],
+  "Everyday Idioms": [
+    { id: "vi_1", word: "Break the ice", phonetic: "/breɪk ðiː aɪs/", partOfSpeech: "idiom", meaning: "Do or say something to relieve tension or get conversation started.", exampleSentence: "Playing a quick name game helped break the ice at the workshop.", collocations: "break the ice smoothly, break the ice with a joke", synonym: "Initiate conversation", antonym: "Freeze up", favorite: true, mastered: false },
+    { id: "vi_2", word: "Piece of cake", phonetic: "/piːs ʌv keɪk/", partOfSpeech: "idiom", meaning: "Something that is very easy to do.", exampleSentence: "The English vocabulary quiz was a piece of cake.", collocations: "absolute piece of cake, total piece of cake", synonym: "Effortless", antonym: "Hard task", favorite: false, mastered: false },
+    { id: "vi_3", word: "Bite the bullet", phonetic: "/baɪt ðə ˈbʊl.ɪt/", partOfSpeech: "idiom", meaning: "Face a difficult situation with courage and fortitude.", exampleSentence: "I decided to bite the bullet and give the live presentation.", collocations: "bite the bullet and speak", synonym: "Face bravely", antonym: "Hesitate", favorite: false, mastered: false },
+  ],
+  "IELTS Academic": [
+    { id: "vie_1", word: "Ubiquitous", phonetic: "/juːˈbɪk.wə.t̬əs/", partOfSpeech: "adjective", meaning: "Present, appearing, or found everywhere.", exampleSentence: "Smartphones have become ubiquitous in modern education.", collocations: "ubiquitous presence, become ubiquitous", synonym: "Omnipresent", antonym: "Rare", favorite: true, mastered: false },
+    { id: "vie_2", word: "Substantiate", phonetic: "/səbˈstæn.ʃi.eɪt/", partOfSpeech: "verb", meaning: "Provide evidence to support or prove the truth of.", exampleSentence: "You must substantiate your thesis arguments with credible data.", collocations: "substantiate claims, substantiate findings", synonym: "Validate", antonym: "Disprove", favorite: false, mastered: false },
+    { id: "vie_3", word: "Paramount", phonetic: "/ˈper.ə.maʊnt/", partOfSpeech: "adjective", meaning: "More important than anything else; supreme.", exampleSentence: "Consistent speaking practice is of paramount importance for fluency.", collocations: "paramount importance, paramount concern", synonym: "Supreme", antonym: "Trivial", favorite: false, mastered: false },
+  ],
+};
 
 export function Vocabulary() {
   const [activeTab, setActiveTab] = useState("list"); // 'list', 'flashcards', 'quiz'
@@ -78,6 +105,7 @@ export function Vocabulary() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [speakingWord, setSpeakingWord] = useState(null);
+  const [selectedDeck, setSelectedDeck] = useState("1st Std");
 
   // Flashcard State
   const [cardIndex, setCardIndex] = useState(0);
@@ -85,7 +113,6 @@ export function Vocabulary() {
 
   // Dynamic Quiz State
   const [quizQuestions, setQuizQuestions] = useState([]);
-  const [quizLoading, setQuizLoading] = useState(false);
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [selectedQuizAnswer, setSelectedQuizAnswer] = useState(null);
   const [quizScore, setQuizScore] = useState(0);
@@ -96,9 +123,9 @@ export function Vocabulary() {
     setLoading(true);
     try {
       const data = await vocabularyService.all();
-      setItems(data && data.length > 0 ? data : EXTENDED_DICTIONARY_POOL.slice(0, 6));
+      setItems(data || []);
     } catch (e) {
-      setItems(EXTENDED_DICTIONARY_POOL.slice(0, 6));
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -117,585 +144,667 @@ export function Vocabulary() {
     });
   };
 
-  useEffect(() => {
-    if (activeTab === "flashcards" && items.length > 0 && items[cardIndex]) {
-      const currentItem = items[cardIndex];
-      const textToSpeak = isFlipped ? currentItem.meaning : currentItem.word;
-      handleSpeak(textToSpeak);
+  // Active Words
+  const getActiveDeckWords = () => {
+    if (selectedDeck === "My Custom Words") {
+      return items;
     }
-  }, [activeTab, cardIndex, isFlipped]);
-
-  const handleCardClick = () => {
-    const nextFlipped = !isFlipped;
-    setIsFlipped(nextFlipped);
-    if (items[cardIndex]) {
-      const textToSpeak = nextFlipped ? items[cardIndex].meaning : items[cardIndex].word;
-      handleSpeak(textToSpeak);
-    }
+    return CURATED_DECKS[selectedDeck] || CURATED_DECKS["1st Std"];
   };
+
+  const activeWords = getActiveDeckWords();
+  const filteredItems = activeWords.filter((item) => {
+    const q = searchQuery.toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      (item.word && item.word.toLowerCase().includes(q)) ||
+      (item.meaning && item.meaning.toLowerCase().includes(q)) ||
+      (item.collocations && item.collocations.toLowerCase().includes(q));
+
+    let matchesFilter = true;
+    if (filterType === "favorites") matchesFilter = Boolean(item.favorite);
+    if (filterType === "mastered") matchesFilter = Boolean(item.mastered);
+    if (filterType === "review") matchesFilter = !item.mastered;
+
+    return matchesSearch && matchesFilter;
+  });
+
+  const currentCard = filteredItems[cardIndex] || filteredItems[0];
 
   const handleAddWord = async () => {
     if (!wordInput.trim()) return;
     setAdding(true);
     try {
-      await vocabularyService.add(wordInput.trim());
-      recordVocabularyMastered(1);
+      const res = await vocabularyService.add(wordInput.trim());
       setWordInput("");
-      await loadVocabulary();
+      setItems((prev) => [res, ...prev]);
     } catch (e) {
-      const newWordObj = {
-        id: String(Date.now()),
+      const fallback = {
+        id: "loc_" + Date.now(),
         word: wordInput.trim(),
-        meaning: `Useful vocabulary word added to your personal lexicon.`,
-        exampleSentence: `Practice using '${wordInput.trim()}' in your daily conversations.`,
-        favorite: true,
+        phonetic: `/${wordInput.trim().toLowerCase()}/`,
+        partOfSpeech: "word",
+        meaning: `Definition and usage for ${wordInput.trim()}`,
+        exampleSentence: `Practice using "${wordInput.trim()}" in daily English.`,
+        collocations: `practice ${wordInput.trim().toLowerCase()}`,
+        favorite: false,
+        mastered: false,
       };
-      setItems((prev) => [newWordObj, ...prev]);
-      recordVocabularyMastered(1);
+      setItems((prev) => [fallback, ...prev]);
       setWordInput("");
     } finally {
       setAdding(false);
     }
   };
 
-  const handleToggleFavorite = async (item) => {
+  const toggleFavorite = async (item) => {
     try {
-      const updated = await vocabularyService.toggleFavorite(item.id);
-      setItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, favorite: updated.favorite } : i))
-      );
+      if (typeof item.id === "number" || !String(item.id).startsWith("v")) {
+        await vocabularyService.toggleFavorite(item.id);
+      }
+      const updated = !item.favorite;
+      setItems((prev) => prev.map((w) => (w.id === item.id ? { ...w, favorite: updated } : w)));
+      if (CURATED_DECKS[selectedDeck]) {
+        const found = CURATED_DECKS[selectedDeck].find((w) => w.id === item.id);
+        if (found) found.favorite = updated;
+      }
     } catch (e) {
-      setItems((prev) =>
-        prev.map((i) => (i.id === item.id ? { ...i, favorite: !i.favorite } : i))
-      );
+      item.favorite = !item.favorite;
     }
   };
 
-  const handleDeleteWord = async (id) => {
+  const toggleMastered = async (item) => {
+    const nextMastered = !item.mastered;
     try {
-      await vocabularyService.remove(id);
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      if (typeof item.id === "number" || !String(item.id).startsWith("v")) {
+        await vocabularyService.toggleMastered(item.id);
+      }
+      setItems((prev) => prev.map((w) => (w.id === item.id ? { ...w, mastered: nextMastered } : w)));
+      if (CURATED_DECKS[selectedDeck]) {
+        const found = CURATED_DECKS[selectedDeck].find((w) => w.id === item.id);
+        if (found) found.mastered = nextMastered;
+      }
+      if (nextMastered) {
+        recordVocabularyMastered(item.word);
+      }
     } catch (e) {
-      setItems((prev) => prev.filter((i) => i.id !== id));
+      item.mastered = nextMastered;
     }
   };
-
-  const filteredItems = items.filter((i) => {
-    const matchesSearch =
-      i.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (i.meaning && i.meaning.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesFilter = filterType === "all" || (filterType === "favorites" && i.favorite);
-    return matchesSearch && matchesFilter;
-  });
 
   const startQuiz = () => {
-    setQuizLoading(true);
-    setQuizFinished(false);
-    setQuizScore(0);
     setCurrentQuizIdx(0);
     setSelectedQuizAnswer(null);
+    setQuizScore(0);
+    setQuizFinished(false);
+    setEarnedXP(0);
 
-    setTimeout(() => {
-      const newQuiz = generateDifferentRandomQuiz(items);
-      setQuizQuestions(newQuiz);
-      setQuizLoading(false);
-    }, 150);
-  };
-
-  const handleAnswerQuiz = (idx) => {
-    if (selectedQuizAnswer !== null) return;
-    setSelectedQuizAnswer(idx);
-    const q = quizQuestions[currentQuizIdx];
-    if (idx === q.correctIndex) {
-      setQuizScore((s) => s + 1);
-    }
-  };
-
-  const handleNextQuizQuestion = () => {
-    if (currentQuizIdx + 1 < quizQuestions.length) {
-      setCurrentQuizIdx((i) => i + 1);
-      setSelectedQuizAnswer(null);
-    } else {
-      const finalScore = quizScore + (selectedQuizAnswer === quizQuestions[currentQuizIdx].correctIndex ? 1 : 0);
-      const earned = finalScore * 25;
-      setEarnedXP(earned);
-      setQuizFinished(true);
-      if (earned > 0) {
-        progressService.create({ xp: earned }).catch(() => {});
+    const sourcePool = [...activeWords, ...CURATED_DECKS["1st Std"], ...CURATED_DECKS["Young Adults (18-24)"]];
+    const uniquePool = [];
+    const seen = new Set();
+    for (const w of sourcePool) {
+      if (w.word && !seen.has(w.word.toLowerCase())) {
+        seen.add(w.word.toLowerCase());
+        uniquePool.push(w);
       }
     }
+
+    const shuffled = [...uniquePool].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 5);
+    const allMeanings = uniquePool.map((w) => w.meaning).filter(Boolean);
+
+    const questions = selected.map((item, idx) => {
+      const correctMeaning = item.meaning;
+      const distractors = allMeanings
+        .filter((m) => m !== correctMeaning)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3);
+
+      while (distractors.length < 3) {
+        distractors.push("Expressing thoughts naturally in conversation.");
+      }
+
+      const options = [correctMeaning, ...distractors].sort(() => 0.5 - Math.random());
+      return {
+        id: `q_${idx}_${Date.now()}`,
+        word: item.word,
+        phonetic: item.phonetic,
+        partOfSpeech: item.partOfSpeech,
+        correctAnswer: correctMeaning,
+        options,
+        exampleSentence: item.exampleSentence,
+      };
+    });
+
+    setQuizQuestions(questions);
+    setActiveTab("quiz");
   };
 
-  const currentQ = quizQuestions[currentQuizIdx] || {
-    word: "Vocabulary",
-    questionText: "What is the correct definition of your vocabulary word?",
-    options: ["Definition A", "Definition B", "Definition C", "Definition D"],
-    correctIndex: 0,
-    explanation: "Review vocabulary definitions in your Word Bank.",
+  const submitQuizAnswer = (opt) => {
+    if (selectedQuizAnswer !== null) return;
+    setSelectedQuizAnswer(opt);
+    const isCorrect = opt === quizQuestions[currentQuizIdx]?.correctAnswer;
+    if (isCorrect) {
+      setQuizScore((prev) => prev + 1);
+    }
   };
 
-  const favoriteCount = items.filter((i) => i.favorite).length;
+  const finishQuiz = async () => {
+    setQuizFinished(true);
+    const finalScore = quizScore;
+    const totalQ = quizQuestions.length;
+    const baseXP = finalScore * 20;
+    const bonus = finalScore === totalQ && totalQ > 0 ? 30 : 0;
+    const totalAwarded = baseXP + bonus;
+    setEarnedXP(totalAwarded);
+
+    try {
+      const prog = await progressService.get().catch(() => null);
+      if (prog) {
+        await progressService.update({
+          ...prog,
+          xp: (prog.xp || 0) + totalAwarded,
+          totalVocabularyWords: (prog.totalVocabularyWords || 0) + finalScore,
+        });
+      }
+    } catch (e) {
+      console.warn("Quiz progress update error:", e);
+    }
+  };
+
+  const nextQuizQuestion = () => {
+    if (currentQuizIdx < quizQuestions.length - 1) {
+      setSelectedQuizAnswer(null);
+      setCurrentQuizIdx((prev) => prev + 1);
+    } else {
+      finishQuiz();
+    }
+  };
+
+  const allDecks = [
+    "1st Std", "2nd Std", "3rd Std", "4th Std", "5th Std",
+    "6th Std", "7th Std", "8th Std", "9th Std", "10th Std",
+    "Kids (6-12)", "Teens (13-17)", "Young Adults (18-24)", "Working Adults (25-50)",
+    "Everyday Idioms", "IELTS Academic", "My Custom Words"
+  ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
-      {/* Top Banner Header */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#4F46E5] via-[#6C63FF] to-[#8B5CF6] p-6 sm:p-10 text-white shadow-2xl border border-white/10">
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-3.5 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
-              ✨ Dynamic Lexicon Studio
-            </div>
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
-              Vocabulary Builder
-            </h1>
-            <p className="text-sm sm:text-base text-indigo-100 font-medium leading-relaxed">
-              Expand your English word bank, master pronunciations with AI speech, flip 3D study flashcards, and test retention with instant XP quizzes.
-            </p>
-          </div>
-
-          {/* Key Metrics Pill Bar */}
-          <div className="flex items-center gap-3 bg-black/20 backdrop-blur-xl p-3 sm:p-4 rounded-2xl border border-white/15 shrink-0 shadow-inner">
-            <div className="px-4 py-2 text-center border-r border-white/15">
-              <span className="text-xl sm:text-2xl font-black text-white">{items.length}</span>
-              <span className="block text-[10px] sm:text-xs font-black text-indigo-200 uppercase">Words</span>
-            </div>
-            <div className="px-4 py-2 text-center border-r border-white/15">
-              <span className="text-xl sm:text-2xl font-black text-amber-300">⭐ {favoriteCount}</span>
-              <span className="block text-[10px] sm:text-xs font-black text-indigo-200 uppercase">Saved</span>
-            </div>
-            <div className="px-4 py-2 text-center">
-              <span className="text-xl sm:text-2xl font-black text-emerald-300">⚡ 100%</span>
-              <span className="block text-[10px] sm:text-xs font-black text-indigo-200 uppercase">Interactive</span>
-            </div>
-          </div>
+    <div className="space-y-6 max-w-6xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
+            <span className="p-2 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400">
+              📚
+            </span>
+            Vocabulary Master
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
+            Standard Curriculums (1st–10th Std) & Curated Decks • 3D Flashcards & Adaptive AI Quizzes
+          </p>
         </div>
-      </div>
 
-      {/* Navigation Tab Bar */}
-      <div className="flex items-center justify-between gap-3 p-2 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] shadow-sm">
-        <div className="flex items-center gap-2 w-full overflow-x-auto no-scrollbar">
+        {/* Tab Controls */}
+        <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 w-fit">
           <button
             onClick={() => setActiveTab("list")}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 active:scale-95 ${
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
               activeTab === "list"
-                ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/25 scale-102"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
+                ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            <span>📚 Word Bank</span>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${activeTab === "list" ? "bg-white/20 text-white" : "bg-[var(--bg-surface)] text-[var(--text-secondary)]"}`}>
-              {filteredItems.length}
-            </span>
+            📖 Word Bank
           </button>
-
-          <button
-            onClick={() => setActiveTab("flashcards")}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 active:scale-95 ${
-              activeTab === "flashcards"
-                ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/25 scale-102"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
-            }`}
-          >
-            <span>🎴 3D Flashcards</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-500">
-              Voice 🔊
-            </span>
-          </button>
-
           <button
             onClick={() => {
-              setActiveTab("quiz");
-              startQuiz();
+              if (!filteredItems.length) {
+                alert("Please select a deck with vocabulary words to start flashcards.");
+                return;
+              }
+              setCardIndex(0);
+              setIsFlipped(false);
+              setActiveTab("flashcards");
             }}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-black transition-all shrink-0 active:scale-95 ${
-              activeTab === "quiz"
-                ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/25 scale-102"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface)]"
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
+              activeTab === "flashcards"
+                ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
             }`}
           >
-            <span>⚡ XP Retention Quiz</span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-500">
-              Auto-New
-            </span>
+            🃏 3D Flashcards
+          </button>
+          <button
+            onClick={startQuiz}
+            className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
+              activeTab === "quiz"
+                ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+            }`}
+          >
+            🏆 AI Quiz
           </button>
         </div>
       </div>
 
-      {/* TAB 1: WORD BANK VIEW */}
+      {/* Deck Selector Bar */}
+      {activeTab !== "quiz" && (
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+          {allDecks.map((deck) => {
+            const isSel = selectedDeck === deck;
+            return (
+              <button
+                key={deck}
+                onClick={() => {
+                  setSelectedDeck(deck);
+                  setCardIndex(0);
+                  setIsFlipped(false);
+                }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                  isSel
+                    ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/20"
+                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-indigo-300"
+                }`}
+              >
+                {deck}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ==========================================
+          TAB 1: WORD BANK
+      ========================================== */}
       {activeTab === "list" && (
         <div className="space-y-6">
-          {/* Action Strip: Add Word + Search + Filter Pills */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            {/* Add New Word Form */}
-            <div className="lg:col-span-6 flex gap-3">
+          {/* AI Instant Lookup Box */}
+          <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 border border-indigo-200 dark:border-indigo-800/40 rounded-3xl p-6 shadow-sm">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+                ✨ Instant AI Word Lookup
+              </h2>
+              <span className="bg-emerald-500 text-white text-xs font-black px-2.5 py-1 rounded-full">+10 XP</span>
+            </div>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              Enter any English word. SpeakMate AI extracts IPA phonetic transcription, part of speech, collocations, and contextual examples.
+            </p>
+            <div className="flex gap-3">
               <input
                 type="text"
-                placeholder="Type a new word (e.g. Pragmatic)..."
+                placeholder="e.g. Eloquent, Resilient, Articulate..."
                 value={wordInput}
                 onChange={(e) => setWordInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleAddWord()}
-                className="flex-1 px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all shadow-inner"
+                className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-4 py-3 rounded-2xl text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
               <button
                 onClick={handleAddWord}
-                disabled={adding || !wordInput.trim()}
-                className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-90 disabled:opacity-50 text-white font-black text-xs sm:text-sm shadow-md transition-all shrink-0 active:scale-95"
+                disabled={adding}
+                className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-indigo-600/20 disabled:opacity-50 flex items-center gap-2"
               >
-                {adding ? "Adding..." : "+ Add Word"}
+                {adding ? "Analyzing..." : "Add Word ✨"}
               </button>
-            </div>
-
-            {/* Search Input */}
-            <div className="lg:col-span-4">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="🔍 Search words or definitions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all shadow-inner"
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  >
-                    ✕ Clear
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Favorites Filter Switcher */}
-            <div className="lg:col-span-2">
-              <div className="flex w-full items-center p-1 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-                <button
-                  onClick={() => setFilterType("all")}
-                  className={`flex-1 py-2 text-xs font-black rounded-xl transition-all ${
-                    filterType === "all"
-                      ? "bg-[var(--bg-surface)] text-[#6C63FF] shadow-sm"
-                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
-                >
-                  All ({items.length})
-                </button>
-                <button
-                  onClick={() => setFilterType("favorites")}
-                  className={`flex-1 py-2 text-xs font-black rounded-xl transition-all ${
-                    filterType === "favorites"
-                      ? "bg-[var(--bg-surface)] text-amber-500 shadow-sm"
-                      : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
-                >
-                  ⭐ Saved ({favoriteCount})
-                </button>
-              </div>
             </div>
           </div>
 
-          {/* Cards Grid */}
-          {loading ? (
-            <div className="p-16 text-center text-sm font-bold text-[var(--text-secondary)]">
-              Loading word bank...
+          {/* Search & Filter */}
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="relative w-full sm:w-80">
+              <input
+                type="text"
+                placeholder={`Search in ${selectedDeck}...`}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 pl-10 pr-4 py-2.5 rounded-2xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <span className="absolute left-3.5 top-3 text-slate-400">🔍</span>
             </div>
-          ) : filteredItems.length === 0 ? (
-            <div className="p-12 sm:p-16 rounded-3xl glass-card text-center space-y-3 border border-[var(--border-default)]">
-              <span className="text-5xl">📚</span>
-              <h3 className="font-extrabold text-lg text-[var(--text-primary)]">No Vocabulary Words Found</h3>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-sm mx-auto font-medium">
-                Type a new word in the input box above to start building your personal word bank.
+
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { key: "all", label: `All (${activeWords.length})` },
+                { key: "favorites", label: "⭐ Favorites" },
+                { key: "mastered", label: "✅ Mastered" },
+                { key: "review", label: "🔄 Learning" },
+              ].map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilterType(f.key)}
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                    filterType === f.key
+                      ? "bg-indigo-600 text-white"
+                      : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Word Grid */}
+          {filteredItems.length === 0 ? (
+            <div className="text-center py-16 bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200 dark:border-slate-800 rounded-3xl">
+              <span className="text-4xl mb-3 block">📖</span>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">No Words in this View</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1">
+                Add custom words above or explore another category from the top deck selector.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item) => {
-                const isSpeaking = speakingWord === item.word;
-                return (
-                  <div
-                    key={item.id || item.word}
-                    className="group relative glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all duration-300"
-                  >
-                    <div className="space-y-3">
-                      {/* Card Header: Word + TTS Voice Button + Favorite Star */}
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-2xl font-black text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
-                            {item.word}
-                          </h3>
-                          <button
-                            onClick={() => handleSpeak(item.word)}
-                            className={`grid h-9 w-9 place-items-center rounded-2xl transition-all text-xs active:scale-95 ${
-                              isSpeaking
-                                ? "bg-[#6C63FF] text-white animate-pulse"
-                                : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white"
-                            }`}
-                            title="Listen Pronunciation (AI Voice)"
-                          >
-                            🔊
-                          </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredItems.map((item, idx) => (
+                <div
+                  key={item.id || idx}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="text-xl font-black text-slate-900 dark:text-white">{item.word}</h3>
+                          {item.phonetic && (
+                            <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                              {item.phonetic}
+                            </span>
+                          )}
+                          {item.partOfSpeech && (
+                            <span className="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-[10px] uppercase font-extrabold px-2 py-0.5 rounded-md border border-indigo-100 dark:border-indigo-900/50">
+                              {item.partOfSpeech}
+                            </span>
+                          )}
                         </div>
-
-                        <button
-                          onClick={() => handleToggleFavorite(item)}
-                          className={`text-xl transition-all duration-200 hover:scale-125 ${
-                            item.favorite ? "text-amber-400 drop-shadow-md" : "text-[var(--text-secondary)] opacity-40 hover:opacity-100"
-                          }`}
-                          title="Save to favorites"
-                        >
-                          ★
-                        </button>
                       </div>
 
-                      {/* Word Definition */}
-                      <p className="text-sm font-semibold text-[var(--text-primary)] leading-relaxed">
-                        {item.meaning}
-                      </p>
-
-                      {/* Example Sentence */}
-                      {item.exampleSentence && (
-                        <div className="p-3.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] italic leading-relaxed">
-                          "{item.exampleSentence}"
-                        </div>
-                      )}
-
-                      {/* Synonyms & Antonyms */}
-                      {(item.synonym || item.antonym) && (
-                        <div className="flex flex-wrap items-center gap-2 text-xs font-bold pt-1">
-                          {item.synonym && (
-                            <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-                              Synonym: {item.synonym}
-                            </span>
-                          )}
-                          {item.antonym && (
-                            <span className="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                              Antonym: {item.antonym}
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleSpeak(item.word)}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400 transition-all"
+                          title="Listen Pronunciation"
+                        >
+                          🔊
+                        </button>
+                        <button
+                          onClick={() => toggleFavorite(item)}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                          title="Toggle Favorite"
+                        >
+                          {item.favorite ? "⭐" : "☆"}
+                        </button>
+                        <button
+                          onClick={() => toggleMastered(item)}
+                          className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                          title="Toggle Mastered"
+                        >
+                          {item.mastered ? "✅" : "⭕"}
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Card Footer */}
-                    <div className="pt-4 border-t border-[var(--border-default)] flex items-center justify-between">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#6C63FF] px-2.5 py-1 rounded-md bg-[#6C63FF]/10">
-                        CEFR Vocabulary
-                      </span>
-                      <button
-                        onClick={() => handleDeleteWord(item.id)}
-                        className="text-xs font-bold text-rose-500/70 hover:text-rose-500 transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                    <p className="text-sm text-slate-700 dark:text-slate-300 font-medium mb-3">{item.meaning}</p>
+
+                    {item.exampleSentence && (
+                      <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 mb-3 text-xs text-slate-600 dark:text-slate-400 italic">
+                        "{item.exampleSentence}"
+                      </div>
+                    )}
                   </div>
-                );
-              })}
+
+                  <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                    {item.collocations && (
+                      <p className="text-slate-500 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Collocations: </span>
+                        <span className="text-indigo-600 dark:text-indigo-400 font-medium">{item.collocations}</span>
+                      </p>
+                    )}
+                    {item.synonym && item.synonym !== "None" && (
+                      <p className="text-slate-500 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">Synonyms: </span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">{item.synonym}</span>
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
       )}
 
-      {/* TAB 2: INTERACTIVE 3D FLASHCARDS DECK (WITH FLIP & AI VOICE) */}
-      {activeTab === "flashcards" && items.length > 0 && (
-        <div className="max-w-2xl mx-auto space-y-6 py-2">
-          {/* Deck Status Bar */}
-          <div className="flex items-center justify-between text-xs sm:text-sm font-black text-[var(--text-secondary)]">
-            <span className="px-3.5 py-1.5 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-              Card {cardIndex + 1} of {items.length}
+      {/* ==========================================
+          TAB 2: 3D FLASHCARDS
+      ========================================== */}
+      {activeTab === "flashcards" && currentCard && (
+        <div className="max-w-xl mx-auto space-y-6">
+          <div className="flex justify-between items-center text-sm font-bold text-slate-500">
+            <span>
+              Deck: <strong className="text-indigo-600 dark:text-indigo-400">{selectedDeck}</strong>
             </span>
-            <span className="text-[#6C63FF] font-black animate-pulse">
-              Tap card to flip • AI Voice Reads 🔊
+            <span>
+              Card {cardIndex + 1} of {filteredItems.length}
             </span>
           </div>
 
-          {/* Interactive 3D Perspective Flip Container */}
-          <div
-            onClick={handleCardClick}
-            className="group relative w-full h-88 sm:h-96 rounded-3xl cursor-pointer perspective-1000 select-none"
-            style={{ perspective: "1000px" }}
-          >
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
             <div
-              className={`w-full h-full duration-500 transition-all transform-style-3d relative rounded-3xl shadow-2xl glass-card p-8 sm:p-12 flex flex-col items-center justify-center text-center border-2 border-[var(--border-default)] hover:border-[#6C63FF] ${
-                isFlipped ? "bg-gradient-to-br from-[var(--bg-surface)] to-[var(--bg-elevated)]" : "bg-gradient-to-br from-[#6C63FF]/10 via-[var(--bg-surface)] to-[var(--bg-elevated)]"
-              }`}
-            >
-              {!isFlipped ? (
-                /* FRONT SIDE: WORD */
-                <div className="space-y-6">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#6C63FF]/20 text-[#6C63FF] text-xs font-black uppercase tracking-wider">
-                    ✨ Word Flashcard
-                  </div>
-                  <h2 className="text-4xl sm:text-6xl font-black text-[var(--text-primary)] tracking-tight">
-                    {items[cardIndex].word}
-                  </h2>
-                  <div className="pt-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSpeak(items[cardIndex].word);
-                      }}
-                      className="px-5 py-2.5 rounded-2xl bg-[#6C63FF]/15 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white font-black text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm active:scale-95"
-                    >
-                      🔊 Re-play Word Pronunciation
-                    </button>
-                  </div>
-                  <p className="text-xs text-[var(--text-secondary)] font-bold">
-                    (Tap card to reveal definition)
+              className="bg-indigo-600 h-full rounded-full transition-all duration-300"
+              style={{ width: `${((cardIndex + 1) / filteredItems.length) * 100}%` }}
+            />
+          </div>
+
+          {/* Interactive Card */}
+          <div
+            onClick={() => {
+              setIsFlipped(!isFlipped);
+              handleSpeak(isFlipped ? currentCard.word : currentCard.meaning);
+            }}
+            className="cursor-pointer select-none min-h-[340px] bg-white dark:bg-slate-900 border-2 border-indigo-200 dark:border-indigo-800/80 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="flex justify-between items-center">
+              <span className="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 text-xs uppercase font-extrabold px-3 py-1 rounded-lg border border-indigo-100 dark:border-indigo-900/50">
+                {currentCard.partOfSpeech || "Vocabulary Word"}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSpeak(`${currentCard.word}. ${currentCard.meaning}`);
+                }}
+                className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 hover:scale-105 transition-all"
+              >
+                🔊
+              </button>
+            </div>
+
+            {!isFlipped ? (
+              <div className="text-center my-8 space-y-2">
+                <h2 className="text-4xl font-black text-slate-900 dark:text-white">{currentCard.word}</h2>
+                {currentCard.phonetic && (
+                  <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">{currentCard.phonetic}</p>
+                )}
+              </div>
+            ) : (
+              <div className="my-6 space-y-4 text-center">
+                <h3 className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{currentCard.word}</h3>
+                <p className="text-lg font-semibold text-slate-800 dark:text-slate-200">{currentCard.meaning}</p>
+                {currentCard.exampleSentence && (
+                  <p className="text-sm italic text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-3 rounded-2xl">
+                    "{currentCard.exampleSentence}"
                   </p>
-                </div>
-              ) : (
-                /* BACK SIDE: DEFINITION & EXAMPLE */
-                <div className="space-y-6 max-w-lg">
-                  <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-500 text-xs font-black uppercase tracking-wider">
-                    💡 Definition & Context
-                  </div>
-                  <p className="text-xl sm:text-2xl font-black text-[var(--text-primary)] leading-relaxed">
-                    {items[cardIndex].meaning}
-                  </p>
-                  {items[cardIndex].exampleSentence && (
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] italic bg-[var(--bg-elevated)] p-3.5 rounded-2xl border border-[var(--border-subtle)] font-medium">
-                      "{items[cardIndex].exampleSentence}"
-                    </p>
-                  )}
-                  <div className="pt-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSpeak(items[cardIndex].meaning);
-                      }}
-                      className="px-5 py-2.5 rounded-2xl bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500 hover:text-white font-black text-xs sm:text-sm transition-all inline-flex items-center gap-2 shadow-sm active:scale-95"
-                    >
-                      🔊 Re-play Definition Speech
-                    </button>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
+
+            <div className="text-center text-xs font-bold text-slate-400 flex items-center justify-center gap-2">
+              <span>🔄</span> Click card to {isFlipped ? "flip back" : "see definition & examples"}
             </div>
           </div>
 
-          {/* Flashcard Navigation Controls */}
-          <div className="flex items-center justify-between gap-4 pt-2">
+          {/* Retention Actions */}
+          <div className="flex gap-4">
             <button
               onClick={() => {
                 setIsFlipped(false);
-                setCardIndex((i) => (i > 0 ? i - 1 : items.length - 1));
+                setCardIndex((prev) => (prev + 1) % filteredItems.length);
               }}
-              className="px-6 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-surface)] text-xs sm:text-sm font-black text-[var(--text-primary)] transition-all flex items-center gap-2 active:scale-95"
+              className="flex-1 py-3.5 bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 font-extrabold rounded-2xl hover:bg-amber-200 dark:hover:bg-amber-900/60 transition-all flex items-center justify-center gap-2"
             >
-              ← Previous Card
+              🔄 Need Review
             </button>
-
             <button
-              onClick={() => setIsFlipped(!isFlipped)}
-              className="px-6 py-3.5 rounded-2xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-500 text-xs sm:text-sm font-black transition-all border border-amber-500/30 active:scale-95"
+              onClick={() => {
+                toggleMastered(currentCard);
+                setIsFlipped(false);
+                setCardIndex((prev) => (prev + 1) % filteredItems.length);
+              }}
+              className="flex-1 py-3.5 bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-extrabold rounded-2xl hover:bg-emerald-200 dark:hover:bg-emerald-900/60 transition-all flex items-center justify-center gap-2"
             >
-              🔄 Flip Card
+              ✅ Mastered (+15 XP)
             </button>
+          </div>
 
+          {/* Controls */}
+          <div className="flex justify-between items-center pt-2">
             <button
               onClick={() => {
                 setIsFlipped(false);
-                setCardIndex((i) => (i + 1 < items.length ? i + 1 : 0));
+                setCardIndex((prev) => (prev - 1 + filteredItems.length) % filteredItems.length);
               }}
-              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-lg shadow-[#6C63FF]/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+              className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
             >
-              Next Card →
+              ← Previous
+            </button>
+            <button
+              onClick={() => {
+                setIsFlipped(false);
+                setCardIndex((prev) => (prev + 1) % filteredItems.length);
+              }}
+              className="px-6 py-2.5 bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+            >
+              Next →
             </button>
           </div>
         </div>
       )}
 
-      {/* TAB 3: DYNAMIC XP RETENTION QUIZ */}
+      {/* ==========================================
+          TAB 3: INTERACTIVE AI QUIZ
+      ========================================== */}
       {activeTab === "quiz" && (
-        <div className="max-w-2xl mx-auto space-y-6 py-2">
-          {quizLoading ? (
-            <div className="p-16 rounded-3xl glass-card text-center space-y-3">
-              <span className="text-4xl animate-spin block">⏳</span>
-              <p className="font-extrabold text-base text-[var(--text-primary)]">Generating Dynamic Retention Quiz...</p>
-            </div>
-          ) : quizFinished ? (
-            <div className="p-8 sm:p-12 rounded-3xl glass-card text-center space-y-6 border border-emerald-500/30 shadow-2xl">
-              <span className="text-6xl block animate-bounce">🏆</span>
-              <div className="space-y-2">
-                <h2 className="text-3xl font-black text-[var(--text-primary)]">Quiz Completed!</h2>
-                <p className="text-sm font-bold text-[var(--text-secondary)]">
-                  You scored <span className="text-emerald-500 font-black">{quizScore}</span> out of <span className="font-black">{quizQuestions.length}</span>!
-                </p>
-                <p className="text-xl font-black text-amber-500 pt-2">
-                  +{earnedXP} Bonus XP Earned ⭐
-                </p>
-              </div>
-
-              <div className="flex justify-center gap-4 pt-2">
-                <button
-                  onClick={startQuiz}
-                  className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all"
-                >
-                  Generate New Quiz ↻
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="p-6 sm:p-10 rounded-3xl glass-card space-y-6 border border-[var(--border-default)] shadow-xl">
-              <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
-                <span className="text-xs font-black uppercase text-[#6C63FF] tracking-wider">
+        <div className="max-w-xl mx-auto space-y-6">
+          {!quizFinished && quizQuestions.length > 0 && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center text-sm font-bold">
+                <span className="text-slate-500">
                   Question {currentQuizIdx + 1} of {quizQuestions.length}
                 </span>
-                <span className="text-xs font-black px-3 py-1 rounded-full bg-amber-500/15 text-amber-500">
-                  +25 XP per correct answer
+                <span className="text-indigo-600 dark:text-indigo-400 font-black">
+                  Score: {quizScore} / {quizQuestions.length}
                 </span>
               </div>
 
-              <div className="space-y-3">
-                <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
-                  {currentQ.questionText}
-                </h2>
+              {/* Progress Bar */}
+              <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                <div
+                  className="bg-indigo-600 h-full rounded-full transition-all duration-300"
+                  style={{ width: `${((currentQuizIdx + 1) / quizQuestions.length) * 100}%` }}
+                />
               </div>
 
-              <div className="space-y-3 pt-2">
-                {currentQ.options.map((option, idx) => {
-                  const isSelected = selectedQuizAnswer === idx;
-                  const isCorrect = idx === currentQ.correctIndex;
-                  const showResult = selectedQuizAnswer !== null;
+              {/* Question Card */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm text-center space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs uppercase font-extrabold text-indigo-500">Vocabulary Quiz</span>
+                  <button
+                    onClick={() => handleSpeak(quizQuestions[currentQuizIdx]?.word)}
+                    className="p-1 text-indigo-600 dark:text-indigo-400 hover:scale-110"
+                  >
+                    🔊
+                  </button>
+                </div>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white">
+                  {quizQuestions[currentQuizIdx]?.word}
+                </h2>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  What is the correct definition of this word?
+                </p>
+              </div>
 
-                  let btnStyle = "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]";
-                  if (showResult) {
+              {/* Options */}
+              <div className="space-y-3">
+                {quizQuestions[currentQuizIdx]?.options.map((opt, i) => {
+                  const isSel = selectedQuizAnswer === opt;
+                  const isCorrect = opt === quizQuestions[currentQuizIdx]?.correctAnswer;
+                  let btnClass = "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-indigo-400";
+
+                  if (selectedQuizAnswer !== null) {
                     if (isCorrect) {
-                      btnStyle = "border-emerald-500 bg-emerald-500/15 text-emerald-500 font-black";
-                    } else if (isSelected && !isCorrect) {
-                      btnStyle = "border-rose-500 bg-rose-500/15 text-rose-500 font-black";
+                      btnClass = "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-bold";
+                    } else if (isSel && !isCorrect) {
+                      btnClass = "bg-rose-50 dark:bg-rose-950/50 border-rose-500 text-rose-700 dark:text-rose-300 font-bold";
                     }
                   }
 
                   return (
                     <button
-                      key={idx}
-                      onClick={() => handleAnswerQuiz(idx)}
-                      disabled={showResult}
-                      className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-bold transition-all flex items-center justify-between ${btnStyle}`}
+                      key={i}
+                      disabled={selectedQuizAnswer !== null}
+                      onClick={() => submitQuizAnswer(opt)}
+                      className={`w-full p-4 rounded-2xl border-2 text-left text-sm font-medium transition-all flex items-center gap-3 ${btnClass}`}
                     >
-                      <span>{option}</span>
-                      {showResult && isCorrect && <span>✓</span>}
-                      {showResult && isSelected && !isCorrect && <span>✕</span>}
+                      <span className="w-7 h-7 rounded-xl bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 font-extrabold flex items-center justify-center text-xs">
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <span className="flex-1">{opt}</span>
                     </button>
                   );
                 })}
               </div>
 
+              {/* Next Question */}
               {selectedQuizAnswer !== null && (
-                <div className="p-4 rounded-2xl bg-[#6C63FF]/10 border border-[#6C63FF]/20 space-y-3 animate-in fade-in duration-200">
-                  <p className="text-xs text-[var(--text-primary)] font-bold">
-                    💡 {currentQ.explanation}
-                  </p>
-                  <button
-                    onClick={handleNextQuizQuestion}
-                    className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-xs sm:text-sm shadow-md hover:scale-[1.01] active:scale-[0.99] transition-all"
-                  >
-                    {currentQuizIdx + 1 < quizQuestions.length ? "Next Question →" : "Finish Quiz & Claim XP 🎉"}
-                  </button>
-                </div>
+                <button
+                  onClick={nextQuizQuestion}
+                  className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-2xl transition-all shadow-lg shadow-indigo-600/20"
+                >
+                  {currentQuizIdx < quizQuestions.length - 1 ? "Next Question →" : "Finish Quiz 🎉"}
+                </button>
               )}
+            </div>
+          )}
+
+          {/* Finished Celebration */}
+          {quizFinished && (
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 text-center space-y-6 shadow-xl">
+              <div className="w-20 h-20 mx-auto rounded-3xl bg-amber-100 dark:bg-amber-950/60 flex items-center justify-center text-4xl shadow-inner">
+                🏆
+              </div>
+              <div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white">Quiz Completed!</h2>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">
+                  You scored <strong className="text-indigo-600 dark:text-indigo-400">{quizScore}</strong> out of {quizQuestions.length} correct!
+                </p>
+              </div>
+
+              <div className="inline-block bg-emerald-500 text-white font-black px-6 py-2.5 rounded-2xl text-base shadow-md shadow-emerald-500/20">
+                +{earnedXP} XP Earned ✨
+              </div>
+
+              <div className="space-y-3 pt-4">
+                <button
+                  onClick={startQuiz}
+                  className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-md shadow-indigo-600/20"
+                >
+                  Retake Quiz with New Words 🔄
+                </button>
+                <button
+                  onClick={() => setActiveTab("list")}
+                  className="w-full py-3 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-bold text-sm"
+                >
+                  Back to Word Bank
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -703,5 +812,3 @@ export function Vocabulary() {
     </div>
   );
 }
-
-export default Vocabulary;

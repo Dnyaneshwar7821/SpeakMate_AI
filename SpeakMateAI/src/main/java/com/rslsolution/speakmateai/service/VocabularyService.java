@@ -19,5 +19,7 @@ public interface VocabularyService {
 
 	VocabularyResponse toggleFavorite(Long id);
 
+	VocabularyResponse toggleMastered(Long id);
+
 	List<java.util.Map<String, Object>> getQuiz();
 }

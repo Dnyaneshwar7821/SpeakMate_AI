@@ -60,15 +60,23 @@ public class VocabularyServiceImpl implements VocabularyService {
 		String exampleSentence = "This is an example sentence using " + word + ".";
 		String synonym = "";
 		String antonym = "";
+		String phonetic = "";
+		String partOfSpeech = "noun";
+		String collocations = "";
+		String level = "Intermediate";
 
 		try {
-			String prompt = "Provide the meaning, synonyms, antonyms and example sentences for the English word: \"" + word 
+			String prompt = "Provide the detailed linguistic breakdown for the English word: \"" + word 
 					+ "\" in the following JSON format:\n"
 					+ "{\n"
-					+ "  \"meaning\": \"...\",\n"
-					+ "  \"synonyms\": \"...\",\n"
-					+ "  \"antonyms\": \"...\",\n"
-					+ "  \"exampleSentence\": \"...\"\n"
+					+ "  \"meaning\": \"Clear and concise definition\",\n"
+					+ "  \"phonetic\": \"IPA phonetic notation e.g. /ˈel.ə.kwənt/\",\n"
+					+ "  \"partOfSpeech\": \"noun / verb / adjective / adverb / idiom\",\n"
+					+ "  \"synonyms\": \"Comma-separated synonyms\",\n"
+					+ "  \"antonyms\": \"Comma-separated antonyms\",\n"
+					+ "  \"collocations\": \"Common natural word pairings e.g. eloquent speaker, articulate defense\",\n"
+					+ "  \"level\": \"Beginner / Intermediate / Advanced\",\n"
+					+ "  \"exampleSentence\": \"A natural conversational example sentence demonstrating the word.\"\n"
 					+ "}\n"
 					+ "Respond ONLY with this JSON block, no conversational prefix or suffix.";
 
@@ -83,32 +91,47 @@ public class VocabularyServiceImpl implements VocabularyService {
 			if (data.containsKey("exampleSentence")) exampleSentence = data.get("exampleSentence");
 			if (data.containsKey("synonyms")) synonym = data.get("synonyms");
 			if (data.containsKey("antonyms")) antonym = data.get("antonyms");
+			if (data.containsKey("phonetic")) phonetic = data.get("phonetic");
+			if (data.containsKey("partOfSpeech")) partOfSpeech = data.get("partOfSpeech");
+			if (data.containsKey("collocations")) collocations = data.get("collocations");
+			if (data.containsKey("level")) level = data.get("level");
 		} catch (Exception e) {
 			meaning = "Meaning of " + word + ".";
 			exampleSentence = "This is a sentence using " + word + ".";
 		}
 
-		Vocabulary vocabulary = Vocabulary.builder().user(user).word(word).meaning(meaning)
-				.exampleSentence(exampleSentence).synonym(synonym).antonym(antonym).favorite(false).build();
+		Vocabulary vocabulary = Vocabulary.builder()
+				.user(user)
+				.word(word)
+				.meaning(meaning)
+				.exampleSentence(exampleSentence)
+				.synonym(synonym)
+				.antonym(antonym)
+				.phonetic(phonetic)
+				.partOfSpeech(partOfSpeech)
+				.collocations(collocations)
+				.level(level)
+				.favorite(false)
+				.mastered(false)
+				.build();
 
 		Vocabulary savedVocabulary = vocabularyRepository.save(vocabulary);
 
-		// Increment Vocabulary progress count
+		// Increment Vocabulary progress count & award XP
 		try {
 			com.rslsolution.speakmateai.entity.Progress progress = progressRepository.findByUser(user)
 					.orElseGet(() -> com.rslsolution.speakmateai.entity.Progress.builder().user(user).xp(0).level(1).currentStreak(0).longestStreak(0).totalPracticeMinutes(0).totalSpeakingSessions(0).totalGrammarChecks(0).totalVocabularyWords(0).build());
 			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 10;
 			progress.setXp(newXp);
-			progress.setLevel((newXp / 500) + 1);
+			int newVocabCount = (progress.getTotalVocabularyWords() == null ? 0 : progress.getTotalVocabularyWords()) + 1;
+			progress.setTotalVocabularyWords(newVocabCount);
+			progress.setLevel(Math.max(1, (newXp / 500) + 1));
 			progressRepository.save(progress);
 		} catch (Exception ex) {
 			// Ignore progress update errors
 		}
 
-		return VocabularyResponse.builder().id(savedVocabulary.getId()).word(savedVocabulary.getWord())
-				.meaning(savedVocabulary.getMeaning()).exampleSentence(savedVocabulary.getExampleSentence())
-				.synonym(savedVocabulary.getSynonym()).antonym(savedVocabulary.getAntonym())
-				.favorite(savedVocabulary.getFavorite()).createdAt(savedVocabulary.getCreatedAt()).build();
+		return mapToResponse(savedVocabulary);
 	}
 
 	@Override
@@ -120,10 +143,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
 		return vocabularyRepository.findByUserOrderByCreatedAtDesc(user).stream()
-				.map(vocabulary -> VocabularyResponse.builder().id(vocabulary.getId()).word(vocabulary.getWord())
-						.meaning(vocabulary.getMeaning()).exampleSentence(vocabulary.getExampleSentence())
-						.synonym(vocabulary.getSynonym()).antonym(vocabulary.getAntonym())
-						.favorite(vocabulary.getFavorite()).createdAt(vocabulary.getCreatedAt()).build())
+				.map(this::mapToResponse)
 				.toList();
 	}
 
@@ -133,10 +153,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 		Vocabulary vocabulary = vocabularyRepository.findById(id)
 				.orElseThrow(() -> new VocabularyNotFoundException("Vocabulary not found"));
 
-		return VocabularyResponse.builder().id(vocabulary.getId()).word(vocabulary.getWord())
-				.meaning(vocabulary.getMeaning()).exampleSentence(vocabulary.getExampleSentence())
-				.synonym(vocabulary.getSynonym()).antonym(vocabulary.getAntonym()).favorite(vocabulary.getFavorite())
-				.createdAt(vocabulary.getCreatedAt()).build();
+		return mapToResponse(vocabulary);
 	}
 
 	@Override
@@ -148,10 +165,7 @@ public class VocabularyServiceImpl implements VocabularyService {
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
 		return vocabularyRepository.findByUserAndFavoriteTrue(user).stream()
-				.map(vocabulary -> VocabularyResponse.builder().id(vocabulary.getId()).word(vocabulary.getWord())
-						.meaning(vocabulary.getMeaning()).exampleSentence(vocabulary.getExampleSentence())
-						.synonym(vocabulary.getSynonym()).antonym(vocabulary.getAntonym())
-						.favorite(vocabulary.getFavorite()).createdAt(vocabulary.getCreatedAt()).build())
+				.map(this::mapToResponse)
 				.toList();
 	}
 
@@ -170,10 +184,51 @@ public class VocabularyServiceImpl implements VocabularyService {
 				.orElseThrow(() -> new VocabularyNotFoundException("Vocabulary not found"));
 		vocabulary.setFavorite(!Boolean.TRUE.equals(vocabulary.getFavorite()));
 		Vocabulary saved = vocabularyRepository.save(vocabulary);
-		return VocabularyResponse.builder().id(saved.getId()).word(saved.getWord())
-				.meaning(saved.getMeaning()).exampleSentence(saved.getExampleSentence())
-				.synonym(saved.getSynonym()).antonym(saved.getAntonym()).favorite(saved.getFavorite())
-				.createdAt(saved.getCreatedAt()).build();
+		return mapToResponse(saved);
+	}
+
+	@Override
+	public VocabularyResponse toggleMastered(Long id) {
+		Vocabulary vocabulary = vocabularyRepository.findById(id)
+				.orElseThrow(() -> new VocabularyNotFoundException("Vocabulary not found"));
+		boolean newMastered = !Boolean.TRUE.equals(vocabulary.getMastered());
+		vocabulary.setMastered(newMastered);
+		Vocabulary saved = vocabularyRepository.save(vocabulary);
+
+		// Award +15 XP when mastering a word
+		if (newMastered) {
+			try {
+				User user = vocabulary.getUser();
+				if (user != null) {
+					com.rslsolution.speakmateai.entity.Progress progress = progressRepository.findByUser(user)
+							.orElseGet(() -> com.rslsolution.speakmateai.entity.Progress.builder().user(user).xp(0).level(1).currentStreak(0).longestStreak(0).totalPracticeMinutes(0).totalSpeakingSessions(0).totalGrammarChecks(0).totalVocabularyWords(0).build());
+					int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 15;
+					progress.setXp(newXp);
+					progress.setLevel(Math.max(1, (newXp / 500) + 1));
+					progressRepository.save(progress);
+				}
+			} catch (Exception ignored) {}
+		}
+
+		return mapToResponse(saved);
+	}
+
+	private VocabularyResponse mapToResponse(Vocabulary v) {
+		return VocabularyResponse.builder()
+				.id(v.getId())
+				.word(v.getWord())
+				.meaning(v.getMeaning())
+				.exampleSentence(v.getExampleSentence())
+				.synonym(v.getSynonym())
+				.antonym(v.getAntonym())
+				.phonetic(v.getPhonetic())
+				.partOfSpeech(v.getPartOfSpeech())
+				.collocations(v.getCollocations())
+				.level(v.getLevel())
+				.favorite(v.getFavorite())
+				.mastered(v.getMastered())
+				.createdAt(v.getCreatedAt())
+				.build();
 	}
 
 	@Override

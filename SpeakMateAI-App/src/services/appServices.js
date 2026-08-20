@@ -58,6 +58,7 @@ export const vocabularyService = {
   add: (word) => api.post('/api/vocabulary/add-vocabulary', { word }).then((res) => res.data),
   remove: (id) => api.delete(`/api/vocabulary/delete-vocabulary/${id}`).then((res) => res.data),
   toggleFavorite: (id) => api.put(`/api/vocabulary/toggle-favorite/${id}`).then((res) => res.data),
+  toggleMastered: (id) => api.put(`/api/vocabulary/toggle-mastered/${id}`).then((res) => res.data),
   quiz: () => api.get('/api/vocabulary/quiz').then((res) => res.data),
 };
 
