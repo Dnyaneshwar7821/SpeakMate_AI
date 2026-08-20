@@ -52,9 +52,11 @@ SpeakMateAI-App/.env.local
 # --- Temporary/Output Files ---
 *.txt
 *.docx
+*.sql
 SpeakMate_AI_SRS_v2.docx
 backend_all_code.txt
 frontend_all_code.txt
 
 # --- Hold from push until user requests ---
 ADMIN_PANEL_MASTER_DOCUMENTATION.md
+
