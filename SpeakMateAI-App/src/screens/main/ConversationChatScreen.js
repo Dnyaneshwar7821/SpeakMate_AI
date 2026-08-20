@@ -85,6 +85,101 @@ function VoiceWaveBars({ isRecording }) {
   );
 }
 
+const getModeHints = (modeParam, lastAiMsg) => {
+  const m = (modeParam || '').toLowerCase();
+  const text = ((lastAiMsg?.message || '') + ' ' + (lastAiMsg?.followUpQuestion || '')).toLowerCase();
+
+  if (text.includes('name') || text.includes('who are you') || text.includes('introduce')) {
+    return [
+      "Hi! Nice to meet you. I'm excited to practice English!",
+      "Hello! I'm here to build my speaking confidence and fluency.",
+      "Could you tell me a little about yourself as well?"
+    ];
+  }
+  if (text.includes('hobby') || text.includes('free time') || text.includes('weekend') || text.includes('do for fun')) {
+    return [
+      "In my free time, I really enjoy reading and listening to music.",
+      "I love going for walks outdoors and playing video games.",
+      "What are popular weekend activities in your country?"
+    ];
+  }
+  if (text.includes('how are you') || text.includes('how was your day') || text.includes('how is it going')) {
+    return [
+      "I'm doing great, thank you! How has your day been?",
+      "Everything is going well! Ready for today's practice.",
+      "It's been a busy day, but I'm excited to learn."
+    ];
+  }
+  if (text.includes('why') && (text.includes('learn') || text.includes('english') || text.includes('practice'))) {
+    return [
+      "I want to communicate fluently for my career and global travel.",
+      "To express myself naturally and connect with people worldwide.",
+      "What is your best tip for speaking more like a native?"
+    ];
+  }
+  if (m.includes('travel') || text.includes('trip') || text.includes('flight') || text.includes('hotel') || text.includes('visit')) {
+    return [
+      "Could you recommend the most famous attractions to visit here?",
+      "I would like to book a table for two at seven, please.",
+      "What is the best way to get to the airport from the city center?"
+    ];
+  }
+  if (m.includes('interview') || text.includes('job') || text.includes('career') || text.includes('experience') || text.includes('strength')) {
+    return [
+      "My greatest strength is my problem-solving ability and teamwork.",
+      "I have experience collaborating in fast-paced team environments.",
+      "Could you give me constructive feedback on my interview answer?"
+    ];
+  }
+  if (m.includes('business') || text.includes('meeting') || text.includes('project') || text.includes('email')) {
+    return [
+      "Let's review the main agenda items and key deliverables for this project.",
+      "I agree with that proposal and suggest we set next steps.",
+      "Could you provide your insights on how to improve this strategy?"
+    ];
+  }
+  if (m.includes('grammar') || m.includes('coach') || text.includes('tense') || text.includes('rule')) {
+    return [
+      "Could you explain the difference between past simple and present perfect?",
+      "Is there a more natural, native way to phrase that sentence?",
+      "Could you give me another example sentence so I can practice?"
+    ];
+  }
+  if (m.includes('vocabulary') || m.includes('vocab') || text.includes('idiom') || text.includes('synonym')) {
+    return [
+      "What are common native synonyms for 'good' and 'interesting'?",
+      "Could you teach me a useful idiom for everyday conversations?",
+      "Let's practice using these new vocabulary words in sentences."
+    ];
+  }
+  if (m.includes('ielts') || text.includes('part 1') || text.includes('part 2') || text.includes('band')) {
+    return [
+      "In my opinion, technology has brought both significant advantages and drawbacks.",
+      "From my personal experience, consistent daily effort makes all the difference.",
+      "Could you score my response based on IELTS fluency and vocabulary criteria?"
+    ];
+  }
+  if (m.includes('debate') || text.includes('agree') || text.includes('opinion') || text.includes('think about')) {
+    return [
+      "While I understand that viewpoint, there is another key factor to consider.",
+      "The primary evidence strongly supports taking a proactive approach.",
+      "How would you address the strongest counter-argument to that point?"
+    ];
+  }
+  if (m.includes('story') || text.includes('tell me a story') || text.includes('narrate') || text.includes('what happened')) {
+    return [
+      "It all started on a rainy evening when something unexpected happened.",
+      "As soon as we arrived, we realized everything had changed completely.",
+      "What do you think happens next in this story?"
+    ];
+  }
+  return [
+    "That makes a lot of sense! Could you share an example?",
+    "I understand completely. What should we focus on next?",
+    "Could you give me an example of how a native speaker would say that?"
+  ];
+};
+
 export default function ConversationChatScreen({ navigation, route }) {
   const { sessionId, mode, title } = route.params || {};
 
@@ -94,7 +189,7 @@ export default function ConversationChatScreen({ navigation, route }) {
   const [evaluating, setEvaluating] = useState(false);
   const [chatLevel, setChatLevel] = useState('Beginner');
   const [avatarExpression, setAvatarExpression] = useState(undefined);
-  const [hints, setHints] = useState([]);
+  const [hints, setHints] = useState(() => getModeHints(route.params?.mode, null));
   const [loadingHints, setLoadingHints] = useState(false);
   
   // Voice preferences
@@ -685,79 +780,7 @@ export default function ConversationChatScreen({ navigation, route }) {
     if (lastAi) speakText(getSpeakableText(lastAi), nextSpeed);
   };
 
-  const getModeHints = (m, lastAiMsg) => {
-    const modeStr = (m || '').toLowerCase();
-    const aiText = (lastAiMsg?.message || '').toLowerCase();
 
-    if (aiText.includes('name') || aiText.includes('who are you') || aiText.includes('introduce')) {
-      return [
-        "Hi! Nice to meet you. I'm excited to practice English with you!",
-        "Hello! I'm practicing to speak more fluently and confidently.",
-        "Could you introduce yourself as well?"
-      ];
-    }
-    if (aiText.includes('hobby') || aiText.includes('free time') || aiText.includes('weekend')) {
-      return [
-        "In my free time, I love reading books and listening to music.",
-        "I usually enjoy playing games and spending time outdoors.",
-        "What do you recommend doing on weekends?"
-      ];
-    }
-    if (aiText.includes('job') || aiText.includes('work') || aiText.includes('career') || aiText.includes('interview')) {
-      return [
-        "I have experience in problem solving and teamwork.",
-        "I am always eager to learn new skills and contribute to the team.",
-        "Could you give me feedback on my answer?"
-      ];
-    }
-    if (modeStr.includes('travel') || aiText.includes('trip') || aiText.includes('flight') || aiText.includes('hotel')) {
-      return [
-        "Could you help me find the nearest subway station?",
-        "I would like to make a reservation for two nights, please.",
-        "What are the most popular sights to visit here?"
-      ];
-    }
-    if (modeStr.includes('grammar') || modeStr.includes('coach')) {
-      return [
-        "Could you explain the difference between past simple and present perfect?",
-        "Is there a more natural way to express this thought?",
-        "Could you give me another example sentence to practice?"
-      ];
-    }
-    if (modeStr.includes('vocabulary') || modeStr.includes('vocab')) {
-      return [
-        "Could you teach me 3 useful idioms for daily conversation?",
-        "What are common native synonyms for 'interesting' and 'good'?",
-        "Can we practice making sentences with these new words?"
-      ];
-    }
-    if (modeStr.includes('business') || modeStr.includes('meeting')) {
-      return [
-        "Let's review the main agenda items for today's meeting.",
-        "I agree with that approach and propose we finalize the action items.",
-        "Could you provide your feedback on this proposal?"
-      ];
-    }
-    if (modeStr.includes('ielts')) {
-      return [
-        "In my opinion, technology has both advantages and disadvantages.",
-        "From my personal experience, consistent practice is the key.",
-        "Could you score my response based on IELTS criteria?"
-      ];
-    }
-    if (modeStr.includes('debate')) {
-      return [
-        "While I understand that perspective, there is another angle to consider.",
-        "The primary evidence supports taking a proactive approach.",
-        "How would you address the counter-arguments against that point?"
-      ];
-    }
-    return [
-      "That makes a lot of sense! Could you tell me more?",
-      "I understand. What do you suggest I focus on next?",
-      "Could you give me an example of how a native speaker would say that?"
-    ];
-  };
 
   const handleFetchHints = async () => {
     if (loadingHints || evaluating) return;
