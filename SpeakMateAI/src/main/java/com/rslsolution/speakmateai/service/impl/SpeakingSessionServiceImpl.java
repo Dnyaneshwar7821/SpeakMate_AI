@@ -32,6 +32,7 @@ import com.rslsolution.speakmateai.entity.ConversationFeedback;
 import com.rslsolution.speakmateai.entity.ConversationMessage;
 import com.rslsolution.speakmateai.entity.SpeakingSession;
 import com.rslsolution.speakmateai.entity.User;
+import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.exception.GroqException;
 import com.rslsolution.speakmateai.exception.SpeakingSessionNotFoundException;
 import com.rslsolution.speakmateai.exception.UserNotFoundException;
@@ -630,35 +631,24 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 					"Instructions: Use everyday conversational English, standard sentence lengths, and B1-B2 vocabulary. Introduce occasional common idioms with practical explanations.";
 		} else { // Advanced
 			levelInstruction = "Current Learner English Level: Advanced (C1-C2).\n" +
-					"Instructions: Use sophisticated, professional, and diverse vocabulary. Use complex sentence structures, advanced idioms, and nuanced stylistic suggestions.";
+					"Instructions: Use sophisticated and diverse vocabulary. Use complex sentence structures, advanced idioms, and nuanced stylistic suggestions.";
 		}
 
 		User user = session.getUser();
-		String ageGroup = user != null ? user.getAgeGroup() : null;
-		String ageInstruction = "";
-		if ("Kids".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Kids (6-12).\nInstructions: Be super friendly, upbeat, and encouraging. Talk about animals, stories, games, and school. Use simple words and very short sentences.\n";
-		} else if ("Teens".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Teens (13-17).\nInstructions: Be a supportive peer-like tutor. Use modern, relatable English, high-school context, gaming/hobbies topics, and everyday slang.\n";
-		} else if ("Young Adult".equalsIgnoreCase(ageGroup) || "Young Adults".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Young Adults (18-24).\nInstructions: Focus on campus life, travel, entry job prep, social fluency, and conversational confidence.\n";
-		} else if ("Professional".equalsIgnoreCase(ageGroup) || "Professionals".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Professionals (25-50).\nInstructions: Focus on Business English, corporate meeting scenarios, presentations, formal tone, and professional vocabulary.\n";
-		} else if ("Senior".equalsIgnoreCase(ageGroup) || "Seniors".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Seniors (50+).\nInstructions: Be warm, patient, and respectful. Discuss culture, books, travel, life stories, and maintain a comfortable pacing.\n";
-		}
+		String userContextInstruction = buildUserContextInstruction(user, session.getScenario());
 
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
-				"You are an expert English conversation tutor roleplaying authentically with the student in the scenario: '%s'.\n" +
+				"You are an expert English conversation tutor roleplaying authentically with the student in the scenario: '%s'.\n\n" +
+				"LEARNER CONTEXT & SCENARIO:\n" +
+				"%s\n" +
+				"%s\n\n" +
 				"ROLEPLAY & CONVERSATIONAL IMMERSION:\n" +
-				"1. IN-CHARACTER DIALOGUE ('aiReply'): Inhabit your persona (e.g. friendly barista, job interviewer, doctor, tour guide, peer, or teacher). Respond naturally in 1-2 lively, empathetic sentences. Keep the conversation engaging and fluid.\n" +
+				"1. IN-CHARACTER DIALOGUE ('aiReply'): Inhabit your persona (e.g. friendly barista, doctor, tour guide, peer, or teacher). Respond naturally in 1-2 lively, empathetic sentences tailored to the student's standard/age. Keep the conversation engaging and fluid.\n" +
 				"2. NATIVE PHRASING ('betterSentence'): If the student's expression could be polished into a natural native idiom ('How a native speaker says it'), provide it here. If they spoke naturally and cleanly, set to null.\n" +
 				"3. GRAMMAR EVALUATION ('grammarCorrection'): Provide a corrected version only if there were grammatical errors, otherwise set to null.\n" +
 				"4. DYNAMIC SPOKEN HINTS ('suggestedResponses'): Provide EXACTLY 3 complete, realistic phrases the student can literally speak out loud next. CRITICAL: Never write 'Suggestion 1', 'Option 1', or placeholder labels. Each must be a real sentence tailored directly to this dialogue.\n" +
-				"5. CLEAN TEXT RULES: Never output bracketed meta tags (e.g. [grammar]), never output ellipses '...', and never output stage directions like (smiling).\n" +
-				"%s\n" +
-				"%s\n" +
+				"5. CLEAN TEXT RULES: Never output bracketed meta tags (e.g. [grammar]), never output ellipses '...', and never output stage directions like (smiling).\n\n" +
 				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
 				"The JSON must have these exact fields and structure:\n" +
 				"{\n" +
@@ -674,7 +664,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				"Important: Escape any double quotes inside string values as \\\" to ensure valid JSON.",
 				session.getScenario(),
 				levelInstruction,
-				ageInstruction
+				userContextInstruction
 		);
 		groqMessages.add(new GroqRequest.Message("system", systemPrompt));
 
@@ -1105,6 +1095,70 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		}
 
 		return getDefaultScenarioHints(session.getScenario());
+	}
+
+	private String buildUserContextInstruction(User user, String scenarioName) {
+		if (user == null) {
+			return "Learner Profile: General English Learner.\nInstructions: Use friendly, clear English suited to everyday conversation.\n";
+		}
+
+		boolean isStudent = (user.getRole() == Role.STUDENT) || (user.getSchoolGrade() != null && !user.getSchoolGrade().trim().isEmpty());
+		String grade = user.getSchoolGrade();
+		String ageGroup = user.getAgeGroup();
+		String scenario = (scenarioName != null) ? scenarioName.trim() : "General";
+		boolean isBusinessScenario = "Business Meeting".equalsIgnoreCase(scenario) ||
+				"Job Interview Practice".equalsIgnoreCase(scenario) ||
+				"Salary & Contract Negotiation".equalsIgnoreCase(scenario) ||
+				"Presentation Skills".equalsIgnoreCase(scenario);
+
+		StringBuilder sb = new StringBuilder();
+
+		if (isStudent && grade != null && !grade.trim().isEmpty()) {
+			String g = grade.trim().toLowerCase();
+			sb.append("Learner Profile: School Student (").append(grade).append(").\n");
+			if (g.contains("1st") || g.contains("2nd") || g.contains("first") || g.contains("second")) {
+				sb.append("School Standard: 1st/2nd Standard (Primary School, Age 6-7).\n")
+				  .append("Instructions: Use extremely simple English (3-5 word sentences, Pre-A1/A1). Focus on cheerful, simple roleplays (pets, toys, cartoon friends, school fun). NEVER use adult, job, or financial themes.\n");
+			} else if (g.contains("3rd") || g.contains("4th") || g.contains("5th") || g.contains("third") || g.contains("fourth") || g.contains("fifth")) {
+				sb.append("School Standard: 3rd-5th Standard (Upper Primary School, Age 8-10).\n")
+				  .append("Instructions: Use basic, clear English (A1-A2). Focus on school subjects, friends, hobbies, science, pets, and simple roleplays. Keep sentences short and engaging.\n");
+			} else if (g.contains("6th") || g.contains("7th") || g.contains("8th") || g.contains("sixth") || g.contains("seventh") || g.contains("eighth")) {
+				sb.append("School Standard: 6th-8th Standard (Middle School, Age 11-13).\n")
+				  .append("Instructions: Use friendly, encouraging English (A2-B1). Focus on school projects, sports, games, coding, quizzes, environment, and books.\n");
+			} else { // 9th, 10th Standard or High School
+				sb.append("School Standard: 9th-10th Standard (High School / Board Exam, Age 14-16).\n")
+				  .append("Instructions: Use structured, natural conversational English (B1-B2). Focus on career dreams, technology, space science, social topics, debating, and public speaking.\n");
+			}
+		} else {
+			// Individual User Profile by Age Group
+			sb.append("Learner Profile: Individual User.\n");
+			if ("Kids".equalsIgnoreCase(ageGroup)) {
+				sb.append("Age Group: Kids (Age 6-12).\n")
+				  .append("Instructions: Be super enthusiastic and friendly. Use simple words and short sentences (A1). Zero adult or corporate themes.\n");
+			} else if ("Teens".equalsIgnoreCase(ageGroup)) {
+				sb.append("Age Group: Teens (Age 13-17).\n")
+				  .append("Instructions: Be a supportive peer tutor. Use modern, relatable conversational English (A2-B1). Focus on high school life, music, sports, and teen hobbies.\n");
+			} else if ("Young Adult".equalsIgnoreCase(ageGroup) || "Young Adults".equalsIgnoreCase(ageGroup)) {
+				sb.append("Age Group: Young Adults (Age 18-24).\n")
+				  .append("Instructions: Use energetic, natural conversational English (B1-B2). Focus on college life, travel, technology, and social confidence.\n");
+			} else if ("Senior".equalsIgnoreCase(ageGroup) || "Seniors".equalsIgnoreCase(ageGroup)) {
+				sb.append("Age Group: Seniors (Age 50+).\n")
+				  .append("Instructions: Be warm, patient, and respectful. Focus on culture, books, gardening, travel, and life experiences.\n");
+			} else { // Professional / Working Adult (25-50) or default
+				sb.append("Age Group: Adults (Age 25-50).\n");
+				if (isBusinessScenario) {
+					sb.append("Instructions: Focus on Business English, corporate meeting scenarios, presentations, formal tone, and professional workplace communication.\n");
+				} else {
+					sb.append("Instructions: Roleplay naturally as a friendly adult peer about daily life, cooking, fitness, travel, and personal interests. STRICT RULE: DO NOT steer the conversation into corporate meetings, office projects, or business jargon unless the scenario explicitly calls for it.\n");
+				}
+			}
+		}
+
+		if (!isBusinessScenario) {
+			sb.append("TOPIC GUARDRAIL: The active scenario is '").append(scenario).append("'. Stick strictly to this scenario. Do NOT turn conversations into business, office, or corporate meetings unless the user explicitly requests it.\n");
+		}
+
+		return sb.toString();
 	}
 
 	// Helper inner class for Jackson deserialization

@@ -30,6 +30,7 @@ import com.rslsolution.speakmateai.entity.ChatMessage;
 import com.rslsolution.speakmateai.entity.ChatSession;
 import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.User;
+import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.exception.UserNotFoundException;
 import com.rslsolution.speakmateai.repository.ChatBookmarkRepository;
 import com.rslsolution.speakmateai.repository.ChatMessageRepository;
@@ -152,26 +153,29 @@ public class AIChatServiceImpl implements AIChatService {
 
 		ChatSession saved = chatSessionRepository.save(session);
 
-		// AI Introduces session
+		// AI Introduces session with user context
 		String intro;
 		try {
 			List<GroqRequest.Message> messages = new ArrayList<>();
+			String userContext = buildUserContextInstruction(user, modeName);
 			String sysPrompt = String.format(
-					"You are SpeakMateAI, a friendly English tutor. " +
-					"Start a practice conversation for the mode: '%s'. " +
-					"Briefly introduce yourself and ask an opening question to get started. " +
+					"You are SpeakMateAI, a friendly and adaptive English tutor.\n" +
+					"Start a live practice conversation for the scenario/mode: '%s'.\n" +
+					"%s\n" +
+					"Briefly introduce yourself and ask ONE warm opening question specifically suited to the student's age/standard and scenario.\n" +
 					"Keep it warm and under 2 sentences. Never output JSON.",
-					modeName
+					modeName,
+					userContext
 			);
 			messages.add(new GroqRequest.Message("system", sysPrompt));
 			messages.add(new GroqRequest.Message("user", "Hello tutor, let's start."));
 
 			intro = callGroqChat(messages);
 			if (intro == null || intro.trim().isEmpty()) {
-				intro = "Hello! I am SpeakMateAI, your English tutor. What topic would you like to practice today?";
+				intro = "Hello! I am SpeakMateAI, your English tutor for " + modeName + ". What would you like to practice today?";
 			}
 		} catch (Exception e) {
-			intro = "Hello! I am SpeakMateAI, your English tutor. What topic would you like to practice today?";
+			intro = "Hello! I am SpeakMateAI, your English tutor for " + modeName + ". What would you like to practice today?";
 		}
 
 		ChatMessage aiMsg = ChatMessage.builder()
@@ -250,37 +254,29 @@ public class AIChatServiceImpl implements AIChatService {
 					"Instructions: Use everyday conversational English, standard sentence lengths, and B1-B2 vocabulary. Introduce occasional common idioms with clear, practical explanations.\n";
 		} else { // Advanced
 			levelInstruction = "Current Learner English Level: Advanced.\n" +
-					"Instructions: Use sophisticated, professional, and diverse vocabulary (C1-C2 levels). Use complex and varied sentence structures, advanced idioms, and academic or business terms. Challenge the learner with nuanced phrasing and detailed stylistic suggestions.\n";
+					"Instructions: Use sophisticated and diverse vocabulary (C1-C2 levels). Use complex and varied sentence structures, advanced idioms, and nuanced phrasing suggestions.\n";
 		}
 
 		// 3. Fetch last 10 messages for context
 		List<ChatMessage> history = chatMessageRepository.findBySessionOrderByCreatedAtAsc(session);
 
-		String ageGroup = user.getAgeGroup();
-		String ageInstruction = "";
-		if ("Kids".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Kids (6-12).\nInstructions: Be super friendly, upbeat, and encouraging. Talk about animals, stories, games, and school. Use simple words and very short sentences.\n";
-		} else if ("Teens".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Teens (13-17).\nInstructions: Be a supportive peer-like tutor. Use modern, relatable English, high-school context, gaming/hobbies topics, and everyday slang.\n";
-		} else if ("Young Adult".equalsIgnoreCase(ageGroup) || "Young Adults".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Young Adults (18-24).\nInstructions: Focus on campus life, travel, entry job prep, social fluency, and conversational confidence.\n";
-		} else if ("Professional".equalsIgnoreCase(ageGroup) || "Professionals".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Professionals (25-50).\nInstructions: Focus on Business English, corporate meeting scenarios, presentations, formal tone, and professional vocabulary.\n";
-		} else if ("Senior".equalsIgnoreCase(ageGroup) || "Seniors".equalsIgnoreCase(ageGroup)) {
-			ageInstruction = "User Age Group: Seniors (50+).\nInstructions: Be warm, patient, and respectful. Discuss culture, books, travel, life stories, and maintain a comfortable pacing.\n";
-		}
+		String userContextInstruction = buildUserContextInstruction(user, session.getMode());
 
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
 				"You are SpeakMateAI, a world-class personal AI English Tutor having a live one-on-one conversation.\n" +
-				"Your personality is warm, enthusiastic, empathetic, and extremely conversational — like a friendly native English speaker and coach chatting over coffee.\n\n" +
+				"Your personality is warm, enthusiastic, empathetic, and extremely conversational.\n\n" +
+				"LEARNER CONTEXT & SCENARIO:\n" +
+				"Active Tutoring Mode: %s\n" +
+				"%s\n" +
+				"%s\n\n" +
 				"KEY TEACHING GUIDELINES:\n" +
 				"1. React directly to what the user said with real human-like engagement (1-3 natural sentences).\n" +
-				"2. Always ask ONE engaging, open-ended follow-up question to keep the conversation flowing smoothly.\n" +
+				"2. Always ask ONE engaging, open-ended follow-up question perfectly suited to the student's age/standard and topic to keep the conversation flowing smoothly.\n" +
 				"3. Provide polite, supportive grammar corrections only when there are actual errors.\n" +
 				"4. Suggest a more fluent, natural phrasing that a native speaker would actually say.\n" +
 				"5. Suggest 1-2 rich vocabulary words or idioms relevant to what you are talking about.\n" +
-				"6. Tailor your tone and pacing strictly to the learner's English level and age group.\n" +
+				"6. Tailor your tone, vocabulary, and pacing strictly to the learner's English level and age/standard.\n" +
 				"7. Never output JSON, code blocks, or raw markdown headers. Stick strictly to the tag format.\n\n" +
 				"RESPONSE FORMAT (STRICT):\n" +
 				"[REPLY] Your warm in-character conversational response to the learner.\n" +
@@ -289,13 +285,10 @@ public class AIChatServiceImpl implements AIChatService {
 				"[VOCABULARY] 1-2 useful topic-related words or idioms with short definitions, or 'None'.\n" +
 				"[EXPLANATION] A friendly 1-sentence tip explaining the nuance or phrasing, or 'None'.\n" +
 				"[FOLLOWUP] Your natural follow-up question to keep the conversation moving forward.\n\n" +
-				"Active Tutoring Mode: %s\n" +
-				"%s\n" +
-				"%s\n\n" +
 				"[SUGGESTIONS] EXACTLY 3 short, realistic alternative responses (each under 10 words) separated by ' | ' that the student could say next to answer your question.",
 				session.getMode(),
 				levelInstruction,
-				ageInstruction
+				userContextInstruction
 		);
 		groqMessages.add(new GroqRequest.Message("system", systemPrompt));
 
@@ -620,6 +613,67 @@ public class AIChatServiceImpl implements AIChatService {
 		}
 
 		return text.substring(start, end).trim();
+	}
+
+	private String buildUserContextInstruction(User user, String modeName) {
+		if (user == null) {
+			return "Learner Profile: General English Learner.\nInstructions: Use friendly, clear English suited to everyday conversation.\n";
+		}
+
+		boolean isStudent = (user.getRole() == Role.STUDENT) || (user.getSchoolGrade() != null && !user.getSchoolGrade().trim().isEmpty());
+		String grade = user.getSchoolGrade();
+		String ageGroup = user.getAgeGroup();
+		String mode = (modeName != null) ? modeName.trim() : "General English";
+		boolean isBusinessMode = "Business English".equalsIgnoreCase(mode) || "Interview Coach".equalsIgnoreCase(mode);
+
+		StringBuilder sb = new StringBuilder();
+
+		if (isStudent && grade != null && !grade.trim().isEmpty()) {
+			String g = grade.trim().toLowerCase();
+			sb.append("Learner Profile: School Student (").append(grade).append(").\n");
+			if (g.contains("1st") || g.contains("2nd") || g.contains("first") || g.contains("second")) {
+				sb.append("School Standard: 1st/2nd Standard (Primary School, Age 6-7).\n")
+				  .append("Instructions: Use extremely simple English (3-5 word sentences, Pre-A1/A1). Talk about colors, animals, pets, family, cartoon characters, shapes, and favorite toys. Be super cheerful, supportive, and use simple joyful words. NEVER talk about jobs, money, exams, or adult topics.\n");
+			} else if (g.contains("3rd") || g.contains("4th") || g.contains("5th") || g.contains("third") || g.contains("fourth") || g.contains("fifth")) {
+				sb.append("School Standard: 3rd-5th Standard (Upper Primary School, Age 8-10).\n")
+				  .append("Instructions: Use basic, clear English (A1-A2). Talk about school subjects (Math, Science, Drawing), friends, playground games, hobbies, pets, food snacks, and fun stories. Keep sentences short and engaging. Never use corporate or adult themes.\n");
+			} else if (g.contains("6th") || g.contains("7th") || g.contains("8th") || g.contains("sixth") || g.contains("seventh") || g.contains("eighth")) {
+				sb.append("School Standard: 6th-8th Standard (Middle School, Age 11-13).\n")
+				  .append("Instructions: Use friendly, encouraging English (A2-B1). Talk about school projects, science experiments, sports, games, coding, history, environment, and books. Ask curious questions that help students share their own thoughts.\n");
+			} else { // 9th, 10th Standard or High School
+				sb.append("School Standard: 9th-10th Standard (High School / Board Exam, Age 14-16).\n")
+				  .append("Instructions: Use structured, natural conversational English (B1-B2). Talk about board exams, career dreams, technology, space science, social topics, debating ideas, hobbies, and public speaking. Encourage fluent sentence structures and rich vocabulary.\n");
+			}
+		} else {
+			// Individual User Profile by Age Group
+			sb.append("Learner Profile: Individual User.\n");
+			if ("Kids".equalsIgnoreCase(ageGroup)) {
+				sb.append("Age Group: Kids (Age 6-12).\n")
+				  .append("Instructions: Be super enthusiastic and friendly. Talk about animals, stories, games, toys, and school. Use simple words and short sentences (A1). Zero adult or corporate themes.\n");
+			} else if ("Teens".equalsIgnoreCase(ageGroup)) {
+				sb.append("Age Group: Teens (Age 13-17).\n")
+				  .append("Instructions: Be a supportive peer tutor. Use modern, relatable conversational English (A2-B1). Talk about school life, friends, music, sports, gaming, and teen hobbies.\n");
+			} else if ("Young Adult".equalsIgnoreCase(ageGroup) || "Young Adults".equalsIgnoreCase(ageGroup)) {
+				sb.append("Age Group: Young Adults (Age 18-24).\n")
+				  .append("Instructions: Use energetic, natural conversational English (B1-B2). Talk about college campus, travel, movies, technology, social confidence, and career aspirations.\n");
+			} else if ("Senior".equalsIgnoreCase(ageGroup) || "Seniors".equalsIgnoreCase(ageGroup)) {
+				sb.append("Age Group: Seniors (Age 50+).\n")
+				  .append("Instructions: Be warm, patient, and respectful. Talk about culture, history, books, gardening, travel, health, and life experiences.\n");
+			} else { // Professional / Working Adult (25-50) or default
+				sb.append("Age Group: Adults (Age 25-50).\n");
+				if (isBusinessMode) {
+					sb.append("Instructions: Focus on Business English, corporate meeting scenarios, presentations, formal tone, and professional workplace communication.\n");
+				} else {
+					sb.append("Instructions: Talk naturally as a friendly adult peer about daily life, cooking, fitness, weekend plans, hobbies, books, travel, and personal interests. STRICT RULE: DO NOT steer the conversation into corporate meetings, office projects, or business jargon unless the student explicitly asks.\n");
+				}
+			}
+		}
+
+		if (!isBusinessMode) {
+			sb.append("TOPIC GUARDRAIL: The active scenario/mode is '").append(mode).append("'. Stick strictly to this scenario. Do NOT turn conversations into business, office, or corporate meetings unless the user explicitly requests it.\n");
+		}
+
+		return sb.toString();
 	}
 
 	private List<String> generateContextualFallbacks(String mode, String reply, String followup) {
