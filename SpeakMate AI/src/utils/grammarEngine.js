@@ -1,8 +1,19 @@
 /**
- * SpeakMate AI - Comprehensive English Grammar Engine & Dynamic Daily Quiz Generator
- * Includes a vast master pool of 64+ multi-dimensional grammar questions,
- * date-seeded daily rotation (8 fresh questions every day with zero repetition),
- * and audio sound effects.
+ * SpeakMate AI - Comprehensive English Grammar Engine & Dynamic Tailored Daily Quiz System
+ * 
+ * Features:
+ * 1. Multi-pass deterministic grammar correction & multi-mistake analyzer.
+ * 2. CEFR-aligned Grammar Guides & School Syllabus topics.
+ * 3. User-tailored Daily Quiz Generator:
+ *    - For STUDENTS: Tailored by Standard (5th Std, 6th Std, 7th Std, 8th Std, 9th Std, 10th Std).
+ *    - For INDIVIDUALS: Tailored by Age Group (Teens 13-17, Young Adults 18-24, Professionals 25-39, Lifelong Learners 40+).
+ * 4. Varied Question Formats:
+ *    - ✏️ FILL_BLANKS (Fill in the missing words/verb forms)
+ *    - 🧐 CORRECT_OR_INCORRECT (Check if the given sentence is correct or wrong)
+ *    - 🔍 SPOT_ERROR (Identify and fix multiple grammar mistakes)
+ *    - 🔄 TRANSFORMATION (Active/Passive, Direct/Indirect, Conditionals)
+ * 5. Date-seeded daily rotation (8 fresh questions every day with zero repeat).
+ * 6. Audio synthesizer chimes & spoken feedback.
  */
 
 // 1. Comprehensive Deterministic Fallback & Analysis Rules
@@ -79,7 +90,7 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     correction: "Use base verb"
   },
 
-  // Auxiliary Verbs & Modals (Did / Does / Modal + Base Verb)
+  // Auxiliary Verbs & Modals
   {
     id: "aux_did_past_verb",
     regex: /\b(did|didn't|did\s+not)\s+(went|ate|saw|came|walked|played|bought|told|asked|knew|wrote|took)\b/gi,
@@ -129,7 +140,7 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     correction: "Use base verb form"
   },
 
-  // Articles (A vs An vs The)
+  // Articles
   {
     id: "article_a_before_vowel_sound",
     regex: /\ba\s+([aeiou][a-z]+)\b/gi,
@@ -154,20 +165,6 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     rule: "Use 'a' before words beginning with a consonant sound.",
     correction: "a"
   },
-  {
-    id: "article_missing_singular_countable",
-    regex: /\b(I|you|he|she|we|they)\s+(ate|eat|bought|buy|have|see|saw)\s+(apple|orange|car|book|pen|phone|dog|cat)\b/gi,
-    replace: (match, subj, verb, noun) => {
-      const startsVowel = /^[aeiou]/i.test(noun);
-      const article = startsVowel ? "an" : "a";
-      return `${subj} ${verb} ${article} ${noun}`;
-    },
-    type: "Missing Article",
-    errorSnippet: "missing article before singular countable noun",
-    issue: "Singular countable nouns cannot stand alone without a determiner/article.",
-    rule: "Singular countable nouns (apple, car, book, phone) require an article ('a', 'an', or 'the') or possessive pronoun before them.",
-    correction: "Add article 'a' / 'an'"
-  },
 
   // Prepositions of Time & Direction
   {
@@ -177,7 +174,7 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     type: "Prepositions of Time",
     errorSnippet: "since + time period",
     issue: "Used 'since' with a duration of time instead of 'for'.",
-    rule: "Use 'for' when referring to a length or duration of time (e.g. for 3 years). Use 'since' for a specific starting timestamp (e.g. since 2021, since Monday).",
+    rule: "Use 'for' when referring to a length or duration of time. Use 'since' for a specific starting point in time.",
     correction: "for"
   },
   {
@@ -187,7 +184,7 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     type: "Dependent Prepositions",
     errorSnippet: "listen without 'to'",
     issue: "Missing preposition 'to' after the transitive verb 'listen'.",
-    rule: "'Listen' is an intransitive verb that requires the preposition 'to' when introducing an object (e.g. 'listen to music').",
+    rule: "'Listen' requires the preposition 'to' when introducing an object (e.g. 'listen to music').",
     correction: "listen to"
   },
   {
@@ -197,7 +194,7 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     type: "Dependent Prepositions",
     errorSnippet: "congratulate for",
     issue: "Used 'congratulate for' instead of 'congratulate on'.",
-    rule: "The standard English collocation is 'congratulate someone ON something' (e.g. 'congratulated him on his success').",
+    rule: "The standard collocation is 'congratulate someone ON something'.",
     correction: "congratulate on"
   },
   {
@@ -207,19 +204,19 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     type: "Dependent Prepositions",
     errorSnippet: "married with",
     issue: "Used 'married with' instead of 'married to'.",
-    rule: "In English, we say someone is 'married to' another person, not 'married with'.",
+    rule: "In standard English, someone is 'married to' someone, not 'married with'.",
     correction: "married to"
   },
 
-  // Redundancy & Common ESL / Indian English Pitfalls
+  // Redundancy
   {
     id: "redundancy_discuss_about",
     regex: /\bdiscuss\s+about\b/gi,
     replace: "discuss",
     type: "Redundancy & Word Choice",
     errorSnippet: "discuss about",
-    issue: "The verb 'discuss' already means 'talk about'. Adding 'about' is redundant.",
-    rule: "'Discuss' is a transitive verb that takes a direct object without the preposition 'about' (e.g. 'discuss the project').",
+    issue: "'Discuss' already means 'talk about'. Adding 'about' is redundant.",
+    rule: "'Discuss' is a transitive verb that takes a direct object without 'about'.",
     correction: "discuss"
   },
   {
@@ -228,8 +225,8 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     replace: "$1",
     type: "Redundancy",
     errorSnippet: "return/revert back",
-    issue: "'Return' and 'revert' already encompass returning. 'Back' is superfluous.",
-    rule: "Say 'return to work' or 'revert with information' without adding 'back'.",
+    issue: "'Return' and 'revert' already imply coming/sending back.",
+    rule: "Say 'return to class' or 'revert with documents' without 'back'.",
     correction: "Remove 'back'"
   },
   {
@@ -239,29 +236,14 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     type: "Noun Phrase Plurality",
     errorSnippet: "one of my friend",
     issue: "'One of' selects one item from a plural group; the noun must be plural.",
-    rule: "The structure 'one of my [noun]' always requires a plural noun (e.g. 'one of my friends', 'one of the best teachers').",
+    rule: "The structure 'one of my [noun]' always requires a plural noun (e.g. 'one of my friends').",
     correction: "one of my friends"
-  },
-  {
-    id: "idiom_cope_up_with",
-    regex: /\bcope\s+up\s+with\b/gi,
-    replace: "cope with",
-    type: "Idiomatic Phrasing",
-    errorSnippet: "cope up with",
-    issue: "'Cope up with' is a non-standard collocation.",
-    rule: "The standard English idiom is 'cope with' (e.g. 'cope with stress'), without the word 'up'.",
-    correction: "cope with"
   },
   {
     id: "collocation_do_mistake",
     regex: /\b(did|do|does|doing)\s+(a\s+mistake|mistakes)\b/gi,
     replace: (match, verb, noun) => {
-      const makeMap = {
-        did: "made",
-        do: "make",
-        does: "makes",
-        doing: "making"
-      };
+      const makeMap = { did: "made", do: "make", does: "makes", doing: "making" };
       return `${makeMap[verb.toLowerCase()] || "make"} ${noun}`;
     },
     type: "Collocation Error",
@@ -270,8 +252,6 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     rule: "In English, mistakes are 'made', not 'done'. The correct collocation is 'make a mistake'.",
     correction: "make a mistake"
   },
-
-  // Comparatives & Superlatives
   {
     id: "comp_double_comparative",
     regex: /\bmore\s+(better|faster|taller|easier|cheaper|smaller|bigger|harder)\b/gi,
@@ -279,21 +259,9 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     type: "Double Comparative",
     errorSnippet: "more + -er adjective",
     issue: "Used 'more' with an adjective that already has the comparative -er suffix.",
-    rule: "Do not use 'more' with one-syllable comparative adjectives that end in -er (e.g. say 'better' or 'taller', never 'more better' or 'more taller').",
+    rule: "Do not use 'more' with one-syllable comparative adjectives (e.g. say 'better', not 'more better').",
     correction: "Remove 'more'"
   },
-  {
-    id: "super_double_superlative",
-    regex: /\bmost\s+(best|fastest|tallest|easiest|cheapest|smallest|biggest|hardest)\b/gi,
-    replace: "$1",
-    type: "Double Superlative",
-    errorSnippet: "most + -est adjective",
-    issue: "Used 'most' with an adjective that already has the superlative -est suffix.",
-    rule: "Do not use 'most' with superlative adjectives ending in -est (e.g. 'fastest', not 'most fastest').",
-    correction: "Remove 'most'"
-  },
-
-  // Conditionals (Hypothetical Past)
   {
     id: "cond_if_i_was_were",
     regex: /\bif\s+I\s+was\s+(you|a\s+bird|rich|the\s+president|in\s+your\s+place)\b/gi,
@@ -301,23 +269,9 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     type: "Subjunctive Mood (2nd Conditional)",
     errorSnippet: "if I was",
     issue: "Used 'was' in a hypothetical / unreal conditional instead of the subjunctive 'were'.",
-    rule: "In formal and standard English, unreal/hypothetical condition statements use 'were' for all subjects (e.g. 'If I were you', 'If he were here').",
+    rule: "In unreal/hypothetical statements, use 'were' for all subjects (e.g. 'If I were you').",
     correction: "if I were"
   },
-
-  // Pronoun Case (Between you and me)
-  {
-    id: "pronoun_between_you_and_i",
-    regex: /\bbetween\s+you\s+and\s+I\b/gi,
-    replace: "between you and me",
-    type: "Pronoun Case",
-    errorSnippet: "between you and I",
-    issue: "Used subject pronoun 'I' as the object of a preposition.",
-    rule: "Prepositions (like 'between', 'with', 'for') take objective case pronouns ('me', 'him', 'her', 'us', 'them'), so 'between you and me' is correct.",
-    correction: "between you and me"
-  },
-
-  // Capitalization & Sentence Mechanics
   {
     id: "mech_lowercase_i",
     regex: /(^|\s)i(\s|[.,!?;:'])/g,
@@ -325,7 +279,7 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     type: "Capitalization",
     errorSnippet: "lowercase 'i'",
     issue: "The pronoun 'I' is written in lowercase.",
-    rule: "The first-person singular pronoun 'I' must always be capitalized in English.",
+    rule: "The first-person singular pronoun 'I' must always be capitalized.",
     correction: "I"
   }
 ];
@@ -350,7 +304,6 @@ export function analyzeSentenceGrammarLocally(rawText) {
   let workingSentence = text;
   const detectedErrors = [];
 
-  // Pass 1: Run comprehensive rule engine
   for (const rule of COMPREHENSIVE_GRAMMAR_RULES) {
     if (typeof rule.replace === "function") {
       const match = workingSentence.match(rule.regex);
@@ -379,7 +332,7 @@ export function analyzeSentenceGrammarLocally(rawText) {
     }
   }
 
-  // Pass 2: Capitalize first letter of sentence if needed
+  // Capitalize first letter
   if (workingSentence.length > 0 && workingSentence[0] !== workingSentence[0].toUpperCase()) {
     const originalFirst = workingSentence[0];
     workingSentence = workingSentence[0].toUpperCase() + workingSentence.slice(1);
@@ -394,7 +347,7 @@ export function analyzeSentenceGrammarLocally(rawText) {
     }
   }
 
-  // Pass 3: Check ending punctuation
+  // Check ending punctuation
   const hasTerminalPunctuation = /[.!?]$/.test(workingSentence.trim());
   if (!hasTerminalPunctuation) {
     workingSentence = workingSentence.trim() + ".";
@@ -472,7 +425,7 @@ export const EXTENSIVE_GRAMMAR_GUIDE = [
       {
         name: "Present Perfect",
         formula: "Subject + have/has + Past Participle (V3)",
-        usage: "Used for completed experiences where the exact time is not stated, or actions connecting past to present.",
+        usage: "Used for completed experiences where the exact time is not stated.",
         correctExample: "I have visited Japan twice.",
         wrongExample: "I have visit Japan twice."
       },
@@ -527,23 +480,16 @@ export const EXTENSIVE_GRAMMAR_GUIDE = [
       {
         name: "Vowel Sounds (An) vs Consonant Sounds (A)",
         formula: "Sound-based rule (not spelling-based)",
-        usage: "Use 'An' before vowel sounds ('an hour', 'an MP3', 'an apple'). Use 'A' before consonant sounds ('a university', 'a European country', 'a book').",
+        usage: "Use 'An' before vowel sounds ('an hour', 'an MP3', 'an apple'). Use 'A' before consonant sounds ('a university', 'a book').",
         correctExample: "It takes an hour to reach the university.",
         wrongExample: "It takes a hour to reach an university."
       },
       {
         name: "Definite Article 'The'",
         formula: "Specific, unique, or previously mentioned nouns",
-        usage: "Use 'the' when both speaker and listener know which specific object is being referred to, or with unique nouns (the sun, the internet).",
+        usage: "Use 'the' when referring to a specific, unique noun known to both speaker and listener.",
         correctExample: "I bought a laptop. The laptop is very fast.",
         wrongExample: "I bought a laptop. A laptop is very fast."
-      },
-      {
-        name: "Zero Article with General Plurals & Uncountable Nouns",
-        formula: "No article for general concepts",
-        usage: "Do not use 'the' when speaking about categories or abstract concepts in general.",
-        correctExample: "Water is essential for life.",
-        wrongExample: "The water is essential for the life."
       }
     ]
   },
@@ -563,525 +509,463 @@ export const EXTENSIVE_GRAMMAR_GUIDE = [
         wrongExample: "If it will rain tomorrow, we will stay indoors."
       },
       {
-        name: "Second Conditional (Hypothetical / Unreal Present)",
+        name: "Second Conditional (Hypothetical Present)",
         formula: "If + Simple Past (were), ... would + Base Verb",
         usage: "Used for imaginary or improbable situations in the present/future.",
         correctExample: "If I were the CEO, I would implement flexible hours.",
         wrongExample: "If I was the CEO, I will implement flexible hours."
-      },
-      {
-        name: "Third Conditional (Past Regrets / Unchangeable Past)",
-        formula: "If + had + V3, ... would have + V3",
-        usage: "Used to imagine how past outcomes could have been different.",
-        correctExample: "If she had left earlier, she would have caught the train.",
-        wrongExample: "If she left earlier, she would caught the train."
-      }
-    ]
-  },
-  {
-    id: "guide_prepositions",
-    category: "Prepositions & Collocations",
-    icon: "📍",
-    level: "All Levels (A2-C1)",
-    title: "Prepositions of Time, Place & Dependent Collocations",
-    summary: "Eliminate preposition confusion with visual timelines and standard collocations.",
-    rules: [
-      {
-        name: "In, On, At for Time & Place",
-        formula: "At (precise time/point) -> On (days/surfaces) -> In (months/years/enclosed spaces)",
-        usage: "At 5 PM / At the door; On Monday / On the table; In July / In 2026 / In the room.",
-        correctExample: "The conference starts at 9:00 AM on Monday in London.",
-        wrongExample: "The conference starts in 9:00 AM at Monday on London."
-      },
-      {
-        name: "Since vs For",
-        formula: "Since + Point in Time; For + Duration",
-        usage: "'Since' pins to a specific start date ('since 2018'). 'For' measures duration ('for 8 years').",
-        correctExample: "I have worked at SpeakMate for three years.",
-        wrongExample: "I have worked at SpeakMate since three years."
-      },
-      {
-        name: "Common Dependent Prepositions",
-        formula: "Verb / Adjective + Fixed Preposition",
-        usage: "Interested IN, good AT, depend ON, apologize FOR, congratulate ON.",
-        correctExample: "She is extremely good at public speaking.",
-        wrongExample: "She is extremely good in public speaking."
-      }
-    ]
-  },
-  {
-    id: "guide_voice_speech",
-    category: "Active/Passive Voice & Reported Speech",
-    icon: "🔄",
-    level: "Intermediate - Advanced (B2-C2)",
-    title: "Active vs Passive Voice & Indirect Speech",
-    summary: "Transform sentence structures smoothly for academic and professional clarity.",
-    rules: [
-      {
-        name: "Passive Voice Formation",
-        formula: "Object + form of 'be' + Past Participle (V3) (+ by Agent)",
-        usage: "Used when the action or the receiver of the action is more important than the doer.",
-        correctExample: "The report was finalized by the research team yesterday.",
-        wrongExample: "The report finalized by the research team yesterday."
-      },
-      {
-        name: "Reported (Indirect) Speech Tense Shift",
-        formula: "Present Simple -> Past Simple; Present Continuous -> Past Continuous",
-        usage: "When reporting what someone said in the past, shift tenses back one step.",
-        correctExample: "She said that she was preparing for her IELTS exam.",
-        wrongExample: "She said that I am preparing for my IELTS exam."
       }
     ]
   }
 ];
 
-// 3. Vast Master Pool of 64+ Categorized Sentence Grammar Questions
-export const MASTER_GRAMMAR_QUIZ_POOL = [
-  // Subject-Verb Agreement
-  {
-    id: "q_sva_1",
-    category: "Subject-Verb Agreement",
-    difficulty: "Easy",
-    sentenceWithProblem: "Neither of the two candidates have enough leadership experience for this role.",
-    question: "Which of the following corrections fixes the grammatical error in the sentence?",
-    options: [
-      "Neither of the two candidates has enough leadership experience for this role.",
-      "Neither of the two candidates are having enough leadership experience for this role.",
-      "Neither of the two candidate have enough leadership experience for this role.",
-      "Neither of the two candidates have had enough leadership experience for this role."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "'Neither' is a singular indefinite pronoun when referring to two items and requires the singular verb 'has', not 'have'."
-  },
-  {
-    id: "q_sva_2",
-    category: "Subject-Verb Agreement",
-    difficulty: "Medium",
-    sentenceWithProblem: "A bouquet of yellow roses were delivered to her office yesterday afternoon.",
-    question: "Choose the version with correct subject-verb agreement:",
-    options: [
-      "A bouquet of yellow roses was delivered to her office yesterday afternoon.",
-      "A bouquet of yellow roses were delivered to her office yesterday afternoon.",
-      "A bouquet of yellow roses are delivered to her office yesterday afternoon.",
-      "A bouquets of yellow roses was delivered to her office yesterday afternoon."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "The true subject is the singular collective noun 'A bouquet', so the verb must be singular ('was delivered'), not plural 'were'."
-  },
-  {
-    id: "q_sva_3",
-    category: "Subject-Verb Agreement",
-    difficulty: "Hard",
-    sentenceWithProblem: "Each of the participants in the international workshop have submitted their report.",
-    question: "What is the grammatically correct sentence?",
-    options: [
-      "Each of the participants in the international workshop has submitted his or her report.",
-      "Each of the participants in the international workshop have submitted their report.",
-      "Each of the participant in the international workshop have submitted their report.",
-      "Each of the participants in the international workshop are submitted their report."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "'Each' is an indefinite pronoun that takes a singular verb ('has submitted')."
-  },
-  {
-    id: "q_sva_4",
-    category: "Subject-Verb Agreement",
-    difficulty: "Medium",
-    sentenceWithProblem: "The manager, along with his senior team members, are attending the summit.",
-    question: "Select the sentence with accurate grammatical agreement:",
-    options: [
-      "The manager, along with his senior team members, is attending the summit.",
-      "The manager, along with his senior team members, are attending the summit.",
-      "The manager, along with his senior team members, were attending the summit.",
-      "The manager, along with his senior team members, have attended the summit."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "Parenthetical phrases like 'along with' do not change the number of the subject ('The manager' is singular -> 'is attending')."
-  },
+// 3. User-Tailored Master Question Pool (Organized by Audience, Standard/Age, and Question Type)
+export const TAILORED_MASTER_QUIZ_POOL = [
+  // ==========================================
+  // SECTION A: STUDENT AUDIENCE (5th to 10th Std)
+  // ==========================================
 
-  // Verb Tenses & Auxiliaries
+  // --- 5th & 6th Std (Basic Tenses, Articles, Simple SVA, Nouns) ---
   {
-    id: "q_tense_1",
-    category: "Verb Tense & Auxiliary Verbs",
-    difficulty: "Easy",
-    sentenceWithProblem: "She didn't went to the international symposium yesterday because she was ill.",
-    question: "Identify the correct version of this sentence:",
-    options: [
-      "She didn't go to the international symposium yesterday because she was ill.",
-      "She didn't went to the international symposium yesterday because she was ill.",
-      "She hasn't go to the international symposium yesterday because she was ill.",
-      "She didn't gone to the international symposium yesterday because she was ill."
-    ],
+    id: "stu_5th_fb_1",
+    targetAudience: "STUDENT",
+    standards: ["5th Std", "6th Std"],
+    ageGroups: ["TEENS"],
+    questionType: "FILL_BLANKS",
+    category: "Simple Present & Daily Routines",
+    formatBadge: "✏️ Fill in the Blank",
+    promptSentence: "My sister _______ (drink / drinks / drinking) a glass of warm milk every night before bed.",
+    question: "Choose the correct verb form to complete the sentence:",
+    options: ["drinks", "drink", "drinking", "is drink"],
     correctAnswerIndex: 0,
-    explanation: "After the auxiliary verb 'didn't', the main verb must be in its base bare-infinitive form 'go'."
+    explanation: "'My sister' is third-person singular (she), so the simple present verb requires the -s suffix: 'drinks'."
   },
   {
-    id: "q_tense_2",
-    category: "Verb Tense & Auxiliary Verbs",
-    difficulty: "Medium",
-    sentenceWithProblem: "By the time the keynote speaker arrived, the entire auditorium emptied.",
-    question: "Choose the proper past perfect sequence:",
+    id: "stu_5th_tf_1",
+    targetAudience: "STUDENT",
+    standards: ["5th Std", "6th Std"],
+    ageGroups: ["TEENS"],
+    questionType: "CORRECT_OR_INCORRECT",
+    category: "Articles & Sounds",
+    formatBadge: "🧐 Correct or Incorrect?",
+    promptSentence: "Look at this sentence: 'Ravi ate a apple and an banana for breakfast.'",
+    question: "Is this sentence grammatically correct?",
     options: [
-      "By the time the keynote speaker arrived, the entire auditorium had emptied.",
-      "By the time the keynote speaker arrived, the entire auditorium emptied.",
-      "By the time the keynote speaker had arrived, the entire auditorium emptied.",
-      "By the time the keynote speaker arrives, the entire auditorium had emptied."
+      "❌ Incorrect - Should be 'an apple and a banana'.",
+      "✅ Correct - Articles are used properly.",
+      "❌ Incorrect - 'Apple' does not need an article.",
+      "❌ Incorrect - Should be 'the apple and the banana'."
     ],
     correctAnswerIndex: 0,
-    explanation: "When one past action happens before another past action, use Past Perfect ('had emptied') for the earlier event."
+    explanation: "'Apple' starts with a vowel sound (/æ/) taking 'an', while 'banana' starts with a consonant sound (/b/) taking 'a'."
   },
   {
-    id: "q_tense_3",
-    category: "Verb Tense & Auxiliary Verbs",
-    difficulty: "Hard",
-    sentenceWithProblem: "I am knowing the answer to this complex mathematical problem since yesterday.",
-    question: "How should stative verbs be used correctly in this context?",
+    id: "stu_6th_spot_1",
+    targetAudience: "STUDENT",
+    standards: ["5th Std", "6th Std", "7th Std"],
+    ageGroups: ["TEENS"],
+    questionType: "SPOT_ERROR",
+    category: "Past Auxiliary & Verb Form",
+    formatBadge: "🔍 Spot & Fix Mistake",
+    promptSentence: "Sentence: 'Yesterday our school team didn't played football due to heavy rain.'",
+    question: "Which option correctly fixes the grammar error?",
     options: [
-      "I have known the answer to this complex mathematical problem since yesterday.",
-      "I am knowing the answer to this complex mathematical problem since yesterday.",
-      "I know the answer to this complex mathematical problem since yesterday.",
-      "I was knowing the answer to this complex mathematical problem since yesterday."
+      "Yesterday our school team didn't play football due to heavy rain.",
+      "Yesterday our school team didn't played football due to heavy rain.",
+      "Yesterday our school team hadn't play football due to heavy rain.",
+      "Yesterday our school team don't played football due to heavy rain."
     ],
     correctAnswerIndex: 0,
-    explanation: "'Know' is a stative verb that cannot be used in continuous tenses. With 'since yesterday', use Present Perfect ('have known')."
+    explanation: "After auxiliary 'didn't', the main verb must remain in its base bare-infinitive form 'play' (not past 'played')."
   },
   {
-    id: "q_tense_4",
-    category: "Verb Tense & Auxiliary Verbs",
-    difficulty: "Medium",
-    sentenceWithProblem: "He has visited the Eiffel Tower last summer when he traveled to France.",
-    question: "Identify the correct past tense usage with a specific past time marker:",
-    options: [
-      "He visited the Eiffel Tower last summer when he traveled to France.",
-      "He has visited the Eiffel Tower last summer when he traveled to France.",
-      "He had visited the Eiffel Tower last summer when he has traveled to France.",
-      "He is visiting the Eiffel Tower last summer when he traveled to France."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "With specific past time expressions like 'last summer', use Simple Past ('visited'), not Present Perfect."
-  },
-
-  // Prepositions & Time
-  {
-    id: "q_prep_1",
-    category: "Prepositions of Time",
-    difficulty: "Easy",
-    sentenceWithProblem: "Our software engineering team has been building this feature since six months.",
-    question: "How should the preposition of time be corrected?",
-    options: [
-      "Replace 'since six months' with 'for six months'.",
-      "Replace 'since six months' with 'from six months'.",
-      "Replace 'since six months' with 'in six months'.",
-      "Replace 'since six months' with 'during six months'."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "Use 'for' when expressing a duration of time ('for six months'). 'Since' is only used with a specific starting timestamp."
-  },
-  {
-    id: "q_prep_2",
-    category: "Dependent Prepositions",
-    difficulty: "Medium",
-    sentenceWithProblem: "The whole department congratulated him for his remarkable promotion.",
-    question: "Select the correct standard collocation for congratulations:",
-    options: [
-      "The whole department congratulated him on his remarkable promotion.",
-      "The whole department congratulated him for his remarkable promotion.",
-      "The whole department congratulated him at his remarkable promotion.",
-      "The whole department congratulated him with his remarkable promotion."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "The standard English collocation is 'congratulate someone ON something', not 'for'."
-  },
-  {
-    id: "q_prep_3",
+    id: "stu_6th_fb_2",
+    targetAudience: "STUDENT",
+    standards: ["6th Std", "7th Std"],
+    ageGroups: ["TEENS"],
+    questionType: "FILL_BLANKS",
     category: "Prepositions of Place",
-    difficulty: "Medium",
-    sentenceWithProblem: "She arrived to the international airport at 6:00 AM sharp.",
-    question: "Choose the proper preposition with the verb 'arrive':",
-    options: [
-      "She arrived at the international airport at 6:00 AM sharp.",
-      "She arrived to the international airport at 6:00 AM sharp.",
-      "She arrived in the international airport at 6:00 AM sharp.",
-      "She arrived on the international airport at 6:00 AM sharp."
-    ],
+    formatBadge: "✏️ Fill in the Blank",
+    promptSentence: "The teacher placed all the examination papers _______ (in / on / at / into) the principal's table.",
+    question: "Select the correct preposition:",
+    options: ["on", "in", "at", "underneath of"],
     correctAnswerIndex: 0,
-    explanation: "Use 'arrive AT' for specific buildings/locations (airports, stations) and 'arrive IN' for cities/countries. Never 'arrive to'."
-  },
-  {
-    id: "q_prep_4",
-    category: "Dependent Prepositions",
-    difficulty: "Hard",
-    sentenceWithProblem: "He has been married with an accomplished pediatric surgeon for over ten years.",
-    question: "Identify the correct preposition for marriage status:",
-    options: [
-      "He has been married to an accomplished pediatric surgeon for over ten years.",
-      "He has been married with an accomplished pediatric surgeon for over ten years.",
-      "He has been married from an accomplished pediatric surgeon for over ten years.",
-      "He has been married by an accomplished pediatric surgeon for over ten years."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "In English, a person is 'married TO' someone, not 'married with'."
+    explanation: "We place items 'on' a flat surface like a table or desk."
   },
 
-  // Articles & Determiners
+  // --- 7th & 8th Std (Conjunctions, Tenses, Modals, Passive Voice) ---
   {
-    id: "q_art_1",
-    category: "Articles & Determiners",
-    difficulty: "Easy",
-    sentenceWithProblem: "He completed his master's degree from an prestigious European university.",
-    question: "Choose the correct article usage for the sentence:",
+    id: "stu_7th_tf_1",
+    targetAudience: "STUDENT",
+    standards: ["7th Std", "8th Std"],
+    ageGroups: ["TEENS"],
+    questionType: "CORRECT_OR_INCORRECT",
+    category: "Conjunctions & Clauses",
+    formatBadge: "🧐 Correct or Incorrect?",
+    promptSentence: "Sentence: 'Although he studied very hard, but he failed the science test.'",
+    question: "Is this sentence grammatically correct?",
     options: [
-      "He completed his master's degree from a prestigious European university.",
-      "He completed his master's degree from an prestigious European university.",
-      "He completed his master's degree from the prestigious an European university.",
-      "He completed his master's degree from prestigious European university."
+      "❌ Incorrect - 'Although' and 'but' cannot be used together in the same sentence.",
+      "✅ Correct - Conjunctions are well connected.",
+      "❌ Incorrect - 'Studied' should be 'studies'.",
+      "❌ Incorrect - 'Although' must be replaced with 'Because'."
     ],
     correctAnswerIndex: 0,
-    explanation: "'Prestigious' begins with a consonant sound (/p/), so it takes 'a', not 'an'."
+    explanation: "Do not use 'Although' and 'but' together. Say: 'Although he studied hard, he failed the test' OR 'He studied hard, but he failed'."
   },
   {
-    id: "q_art_2",
-    category: "Articles & Determiners",
-    difficulty: "Medium",
-    sentenceWithProblem: "She wants to study at an university that specializes in aerospace engineering.",
-    question: "Identify the correct article before 'university':",
+    id: "stu_8th_trans_1",
+    targetAudience: "STUDENT",
+    standards: ["7th Std", "8th Std", "9th Std"],
+    ageGroups: ["TEENS"],
+    questionType: "TRANSFORMATION",
+    category: "Active to Passive Voice",
+    formatBadge: "🔄 Sentence Transformation",
+    promptSentence: "Active Voice: 'The principal inaugurated the new computer laboratory.'",
+    question: "Choose the correct Passive Voice transformation:",
     options: [
-      "She wants to study at a university that specializes in aerospace engineering.",
-      "She wants to study at an university that specializes in aerospace engineering.",
-      "She wants to study at the university that specializes in aerospace engineering.",
-      "She wants to study at one university that specializes in aerospace engineering."
+      "The new computer laboratory was inaugurated by the principal.",
+      "The new computer laboratory is inaugurated by the principal.",
+      "The new computer laboratory has inaugurated by the principal.",
+      "The new computer laboratory was inaugurating by the principal."
     ],
     correctAnswerIndex: 0,
-    explanation: "'University' begins with the consonant glide sound /juː/ (like 'yellow'), so it takes 'a university', not 'an'."
+    explanation: "Simple Past active ('inaugurated') transforms into 'was/were + past participle' ('was inaugurated')."
   },
   {
-    id: "q_art_3",
-    category: "Articles & Determiners",
-    difficulty: "Hard",
-    sentenceWithProblem: "The honesty is one of the most valued virtues in any professional environment.",
-    question: "Choose the sentence with proper zero article usage for abstract nouns:",
-    options: [
-      "Honesty is one of the most valued virtues in any professional environment.",
-      "The honesty is one of the most valued virtues in any professional environment.",
-      "An honesty is one of the most valued virtues in any professional environment.",
-      "A honesty is one of the most valued virtues in any professional environment."
-    ],
+    id: "stu_8th_fb_1",
+    targetAudience: "STUDENT",
+    standards: ["8th Std", "9th Std"],
+    ageGroups: ["TEENS"],
+    questionType: "FILL_BLANKS",
+    category: "Present Perfect vs Simple Past",
+    formatBadge: "✏️ Fill in the Blank",
+    promptSentence: "Ananya _______ (has lived / lives / lived) in this apartment since 2021.",
+    question: "Fill in the blank with the appropriate tense form:",
+    options: ["has lived", "lived", "is living", "will live"],
     correctAnswerIndex: 0,
-    explanation: "Abstract uncountable nouns like 'honesty' do not take the definite article 'the' when spoken of in general."
+    explanation: "With 'since + starting year' indicating an action continuing into the present, use Present Perfect: 'has lived'."
   },
   {
-    id: "q_art_4",
-    category: "Articles & Determiners",
-    difficulty: "Medium",
-    sentenceWithProblem: "It takes almost a hour and a half to drive through downtown traffic during rush hour.",
-    question: "What is the correct indefinite article before 'hour'?",
+    id: "stu_8th_spot_1",
+    targetAudience: "STUDENT",
+    standards: ["8th Std", "9th Std", "10th Std"],
+    ageGroups: ["TEENS"],
+    questionType: "SPOT_ERROR",
+    category: "Subject-Verb Agreement",
+    formatBadge: "🔍 Spot & Fix Mistake",
+    promptSentence: "Sentence: 'Each of the student in the science club have received a gold medal.'",
+    question: "Which corrected sentence fixes ALL grammar mistakes in this sentence?",
     options: [
-      "It takes almost an hour and a half to drive through downtown traffic during rush hour.",
-      "It takes almost a hour and a half to drive through downtown traffic during rush hour.",
-      "It takes almost the hour and a half to drive through downtown traffic during rush hour.",
-      "It takes almost one hour and a half to drive through downtown traffic during rush hour."
+      "Each of the students in the science club has received a gold medal.",
+      "Each of the student in the science club have received a gold medal.",
+      "Each of the students in the science club are received a gold medal.",
+      "Each of the students in the science club have receive a gold medal."
     ],
     correctAnswerIndex: 0,
-    explanation: "'Hour' has a silent 'h' and starts with the vowel sound /aʊər/, requiring 'an hour'."
+    explanation: "'Each of the' requires a plural noun ('students') and a singular verb ('has received')."
   },
 
-  // Conditionals & Subjunctive
+  // --- 9th & 10th Std (Reported Speech, Inversion, Conditionals, Board Syntax) ---
   {
-    id: "q_cond_1",
+    id: "stu_9th_trans_1",
+    targetAudience: "STUDENT",
+    standards: ["9th Std", "10th Std"],
+    ageGroups: ["TEENS", "YOUNG_ADULT"],
+    questionType: "TRANSFORMATION",
+    category: "Direct to Indirect Speech",
+    formatBadge: "🔄 Sentence Transformation",
+    promptSentence: "Direct Speech: Rohan said, 'I am preparing my physics notes right now.'",
+    question: "Select the correct Indirect (Reported) Speech version:",
+    options: [
+      "Rohan said that he was preparing his physics notes then.",
+      "Rohan said that I am preparing my physics notes right now.",
+      "Rohan said that he is preparing his physics notes right now.",
+      "Rohan told that he has been preparing his physics notes then."
+    ],
+    correctAnswerIndex: 0,
+    explanation: "In reported speech, 'am preparing' shifts to 'was preparing', 'my' changes to 'his', and 'now' shifts to 'then'."
+  },
+  {
+    id: "stu_10th_fb_1",
+    targetAudience: "STUDENT",
+    standards: ["9th Std", "10th Std"],
+    ageGroups: ["TEENS", "YOUNG_ADULT"],
+    questionType: "FILL_BLANKS",
     category: "Conditionals & Subjunctive",
-    difficulty: "Hard",
-    sentenceWithProblem: "If I was you, I would have accepted the scholarship without hesitation.",
-    question: "Select the sentence with proper subjunctive and conditional phrasing:",
-    options: [
-      "If I were you, I would have accepted the scholarship without hesitation.",
-      "If I was you, I will accept the scholarship without hesitation.",
-      "If I am you, I would have accept the scholarship without hesitation.",
-      "If I were you, I would accept the scholarship without hesitation."
-    ],
+    formatBadge: "✏️ Fill in the Blank",
+    promptSentence: "If I _______ (had studied / studied / have studied) more diligently, I would have secured first rank in the board exam.",
+    question: "Complete the Third Conditional clause:",
+    options: ["had studied", "studied", "would study", "have studied"],
     correctAnswerIndex: 0,
-    explanation: "Unreal hypothetical condition clauses use the subjunctive 'were' ('If I were you')."
+    explanation: "Third Conditional requires 'If + had + past participle (had studied)' paired with 'would have + V3'."
   },
   {
-    id: "q_cond_2",
-    category: "Conditionals & Subjunctive",
-    difficulty: "Medium",
-    sentenceWithProblem: "If it will rain tomorrow morning, we will postpone the outdoor charity run.",
-    question: "How should the if-clause of a First Conditional sentence be phrased?",
+    id: "stu_10th_tf_1",
+    targetAudience: "STUDENT",
+    standards: ["10th Std"],
+    ageGroups: ["TEENS", "YOUNG_ADULT"],
+    questionType: "CORRECT_OR_INCORRECT",
+    category: "Inversion & Board Exam Syntax",
+    formatBadge: "🧐 Correct or Incorrect?",
+    promptSentence: "Sentence: 'No sooner had the bell rung when all students rushed out of the classroom.'",
+    question: "Is this sentence grammatically accurate for board examination standards?",
     options: [
-      "If it rains tomorrow morning, we will postpone the outdoor charity run.",
-      "If it will rain tomorrow morning, we will postpone the outdoor charity run.",
-      "If it rained tomorrow morning, we will postpone the outdoor charity run.",
-      "If it is raining tomorrow morning, we will postpone the outdoor charity run."
+      "❌ Incorrect - 'No sooner...had' must be paired with 'than', not 'when'.",
+      "✅ Correct - Sentence construction is flawless.",
+      "❌ Incorrect - 'Rung' should be 'rang'.",
+      "❌ Incorrect - Inversion is not allowed with 'No sooner'."
     ],
     correctAnswerIndex: 0,
-    explanation: "In First Conditional sentences, the 'if' condition clause uses Simple Present ('If it rains'), never 'will'."
+    explanation: "The correlative conjunction pair is 'No sooner ... THAN' (Hardly/Scarcely takes 'when'). Correct: 'No sooner had the bell rung THAN...'"
   },
   {
-    id: "q_cond_3",
-    category: "Conditionals & Subjunctive",
-    difficulty: "Hard",
-    sentenceWithProblem: "If she would have checked the schedule earlier, she would not have missed her flight.",
-    question: "Identify the grammatically correct Third Conditional sentence:",
+    id: "stu_10th_spot_1",
+    targetAudience: "STUDENT",
+    standards: ["9th Std", "10th Std"],
+    ageGroups: ["TEENS", "YOUNG_ADULT"],
+    questionType: "SPOT_ERROR",
+    category: "Correlative Conjunctions",
+    formatBadge: "🔍 Spot & Fix Mistake",
+    promptSentence: "Sentence: 'Not only the teacher but also the students was excited about the excursion.'",
+    question: "Identify the corrected sentence:",
     options: [
-      "If she had checked the schedule earlier, she would not have missed her flight.",
-      "If she would have checked the schedule earlier, she would not have missed her flight.",
-      "If she checked the schedule earlier, she would not have missed her flight.",
-      "If she has checked the schedule earlier, she would not have missed her flight."
+      "Not only the teacher but also the students were excited about the excursion.",
+      "Not only the teacher but also the students was excited about the excursion.",
+      "Not only the teacher but also the students is excited about the excursion.",
+      "Not only the teacher but the students was excited about the excursion."
     ],
     correctAnswerIndex: 0,
-    explanation: "Third Conditional uses 'If + had + past participle' in the condition clause, not 'would have'."
-  },
-  {
-    id: "q_cond_4",
-    category: "Conditionals & Subjunctive",
-    difficulty: "Medium",
-    sentenceWithProblem: "The board demanded that the CEO resigns from his position immediately.",
-    question: "Choose the proper present subjunctive form following the verb 'demand':",
-    options: [
-      "The board demanded that the CEO resign from his position immediately.",
-      "The board demanded that the CEO resigns from his position immediately.",
-      "The board demanded that the CEO resigned from his position immediately.",
-      "The board demanded that the CEO to resign from his position immediately."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "Verbs of mandate (demand, suggest, recommend) take the base bare-infinitive form ('resign') in that-clauses."
+    explanation: "With 'not only...but also', the verb agrees with the subject closest to it ('students' is plural -> 'were excited')."
   },
 
-  // Redundancy & Word Choice
+  // ==========================================
+  // SECTION B: INDIVIDUAL / ADULT / PROFESSIONAL AUDIENCE
+  // ==========================================
+
+  // --- College / Young Adults (18-24) ---
   {
-    id: "q_red_1",
-    category: "Redundancy & Word Choice",
-    difficulty: "Medium",
-    sentenceWithProblem: "We need to discuss about the upcoming quarterly budget with our investors.",
-    question: "Which option eliminates the redundancy while preserving standard English?",
-    options: [
-      "We need to discuss the upcoming quarterly budget with our investors.",
-      "We need to talk the upcoming quarterly budget with our investors.",
-      "We need to discuss on the upcoming quarterly budget with our investors.",
-      "We need to discuss about the quarterly budget with our investors."
-    ],
+    id: "ind_ya_fb_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["YOUNG_ADULT", "TEENS"],
+    questionType: "FILL_BLANKS",
+    category: "Subjunctive Mood",
+    formatBadge: "✏️ Fill in the Blank",
+    promptSentence: "If I _______ (was / were / am / would be) in your position, I would negotiate for a higher base stipend.",
+    question: "Choose the standard subjunctive form:",
+    options: ["were", "was", "am", "would be"],
     correctAnswerIndex: 0,
-    explanation: "'Discuss' is a transitive verb that takes a direct object without 'about'. Say 'discuss the budget'."
+    explanation: "In formal hypothetical conditionals, the subjunctive 'were' is used for all subjects ('If I were you')."
   },
   {
-    id: "q_red_2",
-    category: "Redundancy & Word Choice",
-    difficulty: "Easy",
-    sentenceWithProblem: "Please revert back with the signed contract documents by the end of today.",
-    question: "How should this business communication sentence be improved?",
+    id: "ind_ya_tf_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["YOUNG_ADULT", "WORKING_PROFESSIONAL"],
+    questionType: "CORRECT_OR_INCORRECT",
+    category: "Pronoun Case in Prepositional Phrases",
+    formatBadge: "🧐 Correct or Incorrect?",
+    promptSentence: "Sentence: 'Between you and I, this semester project was much more challenging than expected.'",
+    question: "Is this sentence grammatically correct?",
     options: [
-      "Please revert with the signed contract documents by the end of today.",
-      "Please revert back with the signed contract documents by the end of today.",
-      "Please return back with the signed contract documents by the end of today.",
-      "Please reply back with the signed contract documents by the end of today."
+      "❌ Incorrect - Should be 'Between you and me'.",
+      "✅ Correct - 'Between you and I' is standard.",
+      "❌ Incorrect - 'Between' cannot be used with two people.",
+      "❌ Incorrect - 'Much more challenging' is redundant."
     ],
     correctAnswerIndex: 0,
-    explanation: "'Revert' already means reply/return; adding 'back' is redundant. Say 'Please revert with...'."
+    explanation: "Prepositions take object pronouns ('me', 'him', 'her', 'them'). Therefore, 'Between you and ME' is correct."
   },
   {
-    id: "q_red_3",
-    category: "Redundancy & Word Choice",
-    difficulty: "Medium",
-    sentenceWithProblem: "He made an error and repeated the same mistake again for the second time.",
-    question: "Choose the version with all redundancies removed:",
+    id: "ind_ya_spot_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["YOUNG_ADULT", "WORKING_PROFESSIONAL"],
+    questionType: "SPOT_ERROR",
+    category: "ESL Collocations & Redundancy",
+    formatBadge: "🔍 Spot & Fix Mistake",
+    promptSentence: "Sentence: 'I made a blunder mistake and reverted back to the hiring manager yesterday.'",
+    question: "Select the sentence with all redundancies and collocation errors fixed:",
     options: [
-      "He made an error and repeated the same mistake.",
-      "He made an error and repeated the same mistake again for the second time.",
-      "He made an error and repeated the same mistake again.",
-      "He made an error and repeated again the same mistake."
+      "I made a mistake and reverted to the hiring manager yesterday.",
+      "I made a blunder mistake and reverted back to the hiring manager yesterday.",
+      "I did a blunder and reverted back to the hiring manager yesterday.",
+      "I did a mistake and replied back to the hiring manager yesterday."
     ],
     correctAnswerIndex: 0,
-    explanation: "'Repeat' already means doing something again; 'again' and 'for the second time' are redundant."
-  },
-  {
-    id: "q_red_4",
-    category: "Redundancy & Word Choice",
-    difficulty: "Easy",
-    sentenceWithProblem: "He is one of my good friend who lives in San Francisco.",
-    question: "Select the sentence with accurate noun plurality:",
-    options: [
-      "He is one of my good friends who lives in San Francisco.",
-      "He is one of my good friend who lives in San Francisco.",
-      "He is one of my good friend who live in San Francisco.",
-      "He is one of good friend who lives in San Francisco."
-    ],
-    correctAnswerIndex: 0,
-    explanation: "The structure 'one of my [noun]' always requires a plural noun ('friends')."
+    explanation: "'Blunder' already means big mistake ('blunder mistake' is redundant), and 'revert' already means reply ('revert back' is redundant)."
   },
 
-  // Comparatives & Modifiers
+  // --- Working Professionals & Business English (25-39) ---
   {
-    id: "q_comp_1",
-    category: "Comparatives & Superlatives",
-    difficulty: "Easy",
-    sentenceWithProblem: "This AI-powered speech recognition model is much more faster than the previous version.",
-    question: "What is the correct comparative phrasing?",
-    options: [
-      "This AI-powered speech recognition model is much faster than the previous version.",
-      "This AI-powered speech recognition model is much more fast than the previous version.",
-      "This AI-powered speech recognition model is most faster than the previous version.",
-      "This AI-powered speech recognition model is more fast than the previous version."
-    ],
+    id: "ind_pro_fb_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["WORKING_PROFESSIONAL", "LIFELONG_LEARNER"],
+    questionType: "FILL_BLANKS",
+    category: "Business Mandate Subjunctive",
+    formatBadge: "✏️ Fill in the Blank",
+    promptSentence: "The compliance committee insisted that the tech lead _______ (updates / update / updated / is updating) the security protocol immediately.",
+    question: "Choose the proper present subjunctive form:",
+    options: ["update", "updates", "updated", "is updating"],
     correctAnswerIndex: 0,
-    explanation: "Do not use 'more' with adjectives that already have the comparative suffix '-er'. Say 'much faster'."
+    explanation: "Verbs of demand/insistence (insist, demand, recommend) take the base bare-infinitive form in that-clauses: 'insisted that he UPDATE'."
   },
   {
-    id: "q_comp_2",
-    category: "Comparatives & Superlatives",
-    difficulty: "Medium",
-    sentenceWithProblem: "Of the three candidate solutions proposed, this one is definitely the better.",
-    question: "When comparing three or more items, which degree of comparison must be used?",
+    id: "ind_pro_tf_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["WORKING_PROFESSIONAL", "LIFELONG_LEARNER"],
+    questionType: "CORRECT_OR_INCORRECT",
+    category: "Business Prepositions",
+    formatBadge: "🧐 Correct or Incorrect?",
+    promptSentence: "Sentence: 'We need to discuss about the quarterly revenue projections during tomorrow's executive meeting.'",
+    question: "Is this sentence grammatically sound?",
     options: [
-      "Of the three candidate solutions proposed, this one is definitely the best.",
-      "Of the three candidate solutions proposed, this one is definitely the better.",
-      "Of the three candidate solutions proposed, this one is definitely more better.",
-      "Of the three candidate solutions proposed, this one is definitely most best."
+      "❌ Incorrect - 'Discuss' is transitive and does not take 'about'.",
+      "✅ Correct - 'Discuss about' is standard business English.",
+      "❌ Incorrect - 'Meeting' requires preposition 'in' not 'during'.",
+      "❌ Incorrect - 'Projections' should be singular."
     ],
     correctAnswerIndex: 0,
-    explanation: "Comparing three or more items requires the superlative degree ('the best'), not comparative ('better')."
+    explanation: "'Discuss' already means 'talk about'. Adding 'about' is redundant. Say: 'discuss the quarterly revenue projections'."
+  },
+  {
+    id: "ind_pro_trans_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["WORKING_PROFESSIONAL", "LIFELONG_LEARNER"],
+    questionType: "TRANSFORMATION",
+    category: "Negative Inversion for Formal Rhetoric",
+    formatBadge: "🔄 Sentence Transformation",
+    promptSentence: "Informal / Standard: 'We have rarely witnessed such high quarterly growth across all regional markets.'",
+    question: "Transform this sentence into an inverted formal sentence starting with 'Rarely':",
+    options: [
+      "Rarely have we witnessed such high quarterly growth across all regional markets.",
+      "Rarely we have witnessed such high quarterly growth across all regional markets.",
+      "Rarely we witnessed such high quarterly growth across all regional markets.",
+      "Rarely did we witnessed such high quarterly growth across all regional markets."
+    ],
+    correctAnswerIndex: 0,
+    explanation: "When a negative or limiting adverb like 'Rarely' begins a sentence, the auxiliary verb inverts before the subject: 'Rarely have we witnessed'."
+  },
+  {
+    id: "ind_pro_spot_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["WORKING_PROFESSIONAL", "LIFELONG_LEARNER"],
+    questionType: "SPOT_ERROR",
+    category: "Subject-Verb Agreement in Complex Noun Phrases",
+    formatBadge: "🔍 Spot & Fix Mistake",
+    promptSentence: "Sentence: 'The implementation of the new automated cloud infrastructure are causing temporary service latency.'",
+    question: "Which option corrects the agreement mismatch?",
+    options: [
+      "The implementation of the new automated cloud infrastructure is causing temporary service latency.",
+      "The implementation of the new automated cloud infrastructure are causing temporary service latency.",
+      "The implementation of the new automated cloud infrastructure were causing temporary service latency.",
+      "The implementation of the new automated cloud infrastructure have caused temporary service latency."
+    ],
+    correctAnswerIndex: 0,
+    explanation: "The subject head noun is the singular 'implementation', so the verb must be singular: 'is causing'."
   },
 
-  // Pronoun Cases & Inversion
+  // --- Lifelong Learners & Advanced Nuance (40+) ---
   {
-    id: "q_pro_1",
-    category: "Pronoun Cases",
-    difficulty: "Hard",
-    sentenceWithProblem: "The decision was made secretly between the team lead and he.",
-    question: "Identify the correct pronoun case in the prepositional phrase:",
-    options: [
-      "The decision was made secretly between the team lead and him.",
-      "The decision was made secretly between the team lead and he.",
-      "The decision was made secretly between the team lead and his.",
-      "The decision was made secretly between the team lead and himself."
-    ],
+    id: "ind_life_fb_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["LIFELONG_LEARNER", "WORKING_PROFESSIONAL"],
+    questionType: "FILL_BLANKS",
+    category: "Dependent Collocations & Idioms",
+    formatBadge: "✏️ Fill in the Blank",
+    promptSentence: "The author is exceptionally adept _______ (in / at / with / for) crafting gripping historical mysteries.",
+    question: "Choose the proper dependent preposition with 'adept':",
+    options: ["at", "in", "with", "for"],
     correctAnswerIndex: 0,
-    explanation: "Objects of prepositions ('between') take objective case pronouns ('him')."
+    explanation: "The standard English collocation is 'adept at doing something' (or 'adept in' an art, but 'adept at + gerund' is standard)."
   },
   {
-    id: "q_inv_1",
-    category: "Inversion & Word Order",
-    difficulty: "Hard",
-    sentenceWithProblem: "Seldom we have witnessed such incredible dedication from an entire team.",
-    question: "What is the proper inverted word order following the negative adverb 'Seldom'?",
+    id: "ind_life_tf_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["LIFELONG_LEARNER", "WORKING_PROFESSIONAL"],
+    questionType: "CORRECT_OR_INCORRECT",
+    category: "Parallel Structure",
+    formatBadge: "🧐 Correct or Incorrect?",
+    promptSentence: "Sentence: 'She enjoys reading classical literature, playing the piano, and to write poetry.'",
+    question: "Is this sentence grammatically parallel?",
     options: [
-      "Seldom have we witnessed such incredible dedication from an entire team.",
-      "Seldom we have witnessed such incredible dedication from an entire team.",
-      "Seldom we witnessed such incredible dedication from an entire team.",
-      "Seldom are we witnessed such incredible dedication from an entire team."
+      "❌ Incorrect - Lacks parallelism. Should end with 'writing poetry'.",
+      "✅ Correct - All verbs are grammatically consistent.",
+      "❌ Incorrect - 'Reading' should be 'to read'.",
+      "❌ Incorrect - 'Piano' should not have the article 'the'."
     ],
     correctAnswerIndex: 0,
-    explanation: "Negative or limiting adverbs (Seldom, Rarely, Never) at the start of a clause trigger subject-auxiliary inversion ('have we witnessed')."
+    explanation: "Items in a list must share the same grammatical form. Parallel: 'reading...', 'playing...', and 'WRITING poetry'."
+  },
+  {
+    id: "ind_life_spot_1",
+    targetAudience: "INDIVIDUAL",
+    standards: ["10th Std"],
+    ageGroups: ["LIFELONG_LEARNER", "WORKING_PROFESSIONAL"],
+    questionType: "SPOT_ERROR",
+    category: "Dangling Modifiers",
+    formatBadge: "🔍 Spot & Fix Mistake",
+    promptSentence: "Sentence: 'Walking through the botanical garden, the colorful orchids appeared particularly stunning to us.'",
+    question: "Which option corrects the dangling modifier?",
+    options: [
+      "As we were walking through the botanical garden, we noticed that the colorful orchids appeared particularly stunning.",
+      "Walking through the botanical garden, the colorful orchids appeared particularly stunning to us.",
+      "Having walked through the botanical garden, the orchids appeared stunning.",
+      "Walking in garden, orchids were stunning."
+    ],
+    correctAnswerIndex: 0,
+    explanation: "The orchids were not walking through the garden; the modifier 'Walking through...' was dangling. Clarifying the subject ('As we were walking...') resolves the error."
   }
 ];
 
 /**
- * Generates 8 fresh, non-repeating daily grammar quiz questions based on the current calendar date.
- * Uses a deterministic date hash so all users get the exact same fresh daily set, rotating every midnight.
- * @param {Date} [customDate] - Optional date override
- * @param {number} [offset=0] - Optional offset to load another unique batch
- * @returns {Array} 8 randomized non-repeating quiz questions
+ * Returns user-tailored daily grammar questions based on:
+ * - userType ('STUDENT' or 'INDIVIDUAL')
+ * - targetGrade (e.g. '5th Std', '6th Std', '7th Std', '8th Std', '9th Std', '10th Std')
+ * - ageGroup (e.g. 'TEENS', 'YOUNG_ADULT', 'WORKING_PROFESSIONAL', 'LIFELONG_LEARNER')
+ * - customDate (for day-of-year rotation)
+ * - offset (for loading more unique batches)
  */
-export function getDailyGrammarQuizzes(customDate = new Date(), offset = 0) {
+export function getTailoredDailyGrammarQuizzes({
+  userType = "INDIVIDUAL",
+  targetGrade = "8th Std",
+  ageGroup = "WORKING_PROFESSIONAL",
+  customDate = new Date(),
+  offset = 0,
+} = {}) {
+  const isStudent = userType === "STUDENT";
+
+  // Filter pool matching user profile
+  let matchingPool = TAILORED_MASTER_QUIZ_POOL.filter((q) => {
+    if (isStudent) {
+      if (q.targetAudience === "STUDENT" && q.standards?.includes(targetGrade)) {
+        return true;
+      }
+      return q.standards?.includes(targetGrade);
+    } else {
+      if (q.targetAudience === "INDIVIDUAL" && q.ageGroups?.includes(ageGroup)) {
+        return true;
+      }
+      return q.ageGroups?.includes(ageGroup);
+    }
+  });
+
+  // If matching pool has fewer than 8, supplement from general pool
+  if (matchingPool.length < 8) {
+    const fallbackPool = TAILORED_MASTER_QUIZ_POOL.filter(
+      (q) => !matchingPool.some((m) => m.id === q.id)
+    );
+    matchingPool = [...matchingPool, ...fallbackPool];
+  }
+
+  // Deterministic daily date seed
   const d = customDate;
   const dayOfYear = Math.floor(
     (Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) -
@@ -1089,28 +973,31 @@ export function getDailyGrammarQuizzes(customDate = new Date(), offset = 0) {
       (24 * 60 * 60 * 1000)
   );
 
-  const seed = d.getFullYear() * 1000 + dayOfYear + offset * 17;
-  const pool = [...MASTER_GRAMMAR_QUIZ_POOL];
+  const seed = d.getFullYear() * 1000 + dayOfYear + offset * 19;
+  const poolCopy = [...matchingPool];
 
-  // Seeded Fisher-Yates shuffle
   let currentSeed = seed;
   const seededRandom = () => {
     currentSeed = (currentSeed * 9301 + 49297) % 233280;
     return currentSeed / 233280;
   };
 
-  for (let i = pool.length - 1; i > 0; i--) {
+  for (let i = poolCopy.length - 1; i > 0; i--) {
     const j = Math.floor(seededRandom() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
+    [poolCopy[i], poolCopy[j]] = [poolCopy[j], poolCopy[i]];
   }
 
-  // Return exactly 8 unique questions for today
-  return pool.slice(0, 8);
+  return poolCopy.slice(0, 8);
 }
 
-// 4. Web Audio Synthesizer for Audio Chimes (Web App)
+// Backward-compatible alias
+export function getDailyGrammarQuizzes(customDate = new Date(), offset = 0) {
+  return getTailoredDailyGrammarQuizzes({ customDate, offset });
+}
+
+// Audio Synthesizer Chimes (Web Audio API)
 export function playWebAudioChime(type = "correct") {
-  if (typeof window === "undefined" || !window.AudioContext && !window.webkitAudioContext) {
+  if (typeof window === "undefined" || (!window.AudioContext && !window.webkitAudioContext)) {
     return;
   }
 
@@ -1119,7 +1006,6 @@ export function playWebAudioChime(type = "correct") {
     const ctx = new AudioCtx();
 
     if (type === "correct") {
-      // Pleasant rising harmonic chime (D5 -> A5)
       const osc1 = ctx.createOscillator();
       const osc2 = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -1127,11 +1013,11 @@ export function playWebAudioChime(type = "correct") {
       osc1.type = "sine";
       osc2.type = "triangle";
 
-      osc1.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-      osc1.frequency.exponentialRampToValueAtTime(880.0, ctx.currentTime + 0.15); // A5
+      osc1.frequency.setValueAtTime(587.33, ctx.currentTime);
+      osc1.frequency.exponentialRampToValueAtTime(880.0, ctx.currentTime + 0.15);
 
       osc2.frequency.setValueAtTime(880.0, ctx.currentTime);
-      osc2.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.15); // D6
+      osc2.frequency.exponentialRampToValueAtTime(1174.66, ctx.currentTime + 0.15);
 
       gain.gain.setValueAtTime(0.2, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
@@ -1145,13 +1031,12 @@ export function playWebAudioChime(type = "correct") {
       osc1.stop(ctx.currentTime + 0.55);
       osc2.stop(ctx.currentTime + 0.55);
     } else {
-      // Gentle warning buzz (low dual frequency)
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
       osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(220.0, ctx.currentTime); // A3
-      osc.frequency.linearRampToValueAtTime(185.0, ctx.currentTime + 0.25); // F#3
+      osc.frequency.setValueAtTime(220.0, ctx.currentTime);
+      osc.frequency.linearRampToValueAtTime(185.0, ctx.currentTime + 0.25);
 
       gain.gain.setValueAtTime(0.15, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
@@ -1163,6 +1048,6 @@ export function playWebAudioChime(type = "correct") {
       osc.stop(ctx.currentTime + 0.38);
     }
   } catch (e) {
-    console.debug("Web audio chime notice:", e);
+    console.debug("Audio chime:", e);
   }
 }

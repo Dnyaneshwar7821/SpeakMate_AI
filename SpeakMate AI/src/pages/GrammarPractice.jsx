@@ -1,13 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { grammarService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 import { recordVocabularyMastered } from "../utils/progressTracker";
 import {
   analyzeSentenceGrammarLocally,
   EXTENSIVE_GRAMMAR_GUIDE,
-  getDailyGrammarQuizzes,
+  getTailoredDailyGrammarQuizzes,
   playWebAudioChime,
 } from "../utils/grammarEngine";
+
+const STUDENT_STANDARDS = ["5th Std", "6th Std", "7th Std", "8th Std", "9th Std", "10th Std"];
+const INDIVIDUAL_AGE_GROUPS = [
+  { code: "TEENS", label: "Teens (13–17 yrs)" },
+  { code: "YOUNG_ADULT", label: "College / Young Adult (18–24 yrs)" },
+  { code: "WORKING_PROFESSIONAL", label: "Working Professional (25–39 yrs)" },
+  { code: "LIFELONG_LEARNER", label: "Lifelong Learner (40+ yrs)" },
+];
 
 export function GrammarPractice() {
   const [activeTab, setActiveTab] = useState("checker"); // 'checker', 'guide', 'quiz', 'history'
@@ -17,19 +25,92 @@ export function GrammarPractice() {
   const [history, setHistory] = useState([]);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
 
+  // User Audience & Track State
+  const [accountType, setAccountType] = useState(() => {
+    try {
+      return localStorage.getItem("speakmate_account_type") || "INDIVIDUAL";
+    } catch {
+      return "INDIVIDUAL";
+    }
+  });
+
+  const [selectedGrade, setSelectedGrade] = useState(() => {
+    try {
+      return localStorage.getItem("speakmate_user_grade") || "8th Std";
+    } catch {
+      return "8th Std";
+    }
+  });
+
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState(() => {
+    try {
+      return localStorage.getItem("speakmate_age_group") || "WORKING_PROFESSIONAL";
+    } catch {
+      return "WORKING_PROFESSIONAL";
+    }
+  });
+
   // Handbook search & filter
   const [guideSearch, setGuideSearch] = useState("");
   const [selectedGuideCategory, setSelectedGuideCategory] = useState("ALL");
   const [expandedGuideId, setExpandedGuideId] = useState(EXTENSIVE_GRAMMAR_GUIDE[0]?.id || null);
 
-  // Daily Sentence Quiz State (8 fresh non-repeating questions rotating daily)
+  // Daily Sentence Quiz State (Tailored by standard/age and rotated daily)
   const [quizOffset, setQuizOffset] = useState(0);
-  const [dailyQuizzes, setDailyQuizzes] = useState(() => getDailyGrammarQuizzes(new Date(), 0));
+  const [dailyQuizzes, setDailyQuizzes] = useState(() =>
+    getTailoredDailyGrammarQuizzes({
+      userType: accountType,
+      targetGrade: selectedGrade,
+      ageGroup: selectedAgeGroup,
+      customDate: new Date(),
+      offset: 0,
+    })
+  );
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
+
+  const reloadQuizzes = useCallback((type, grade, age, offset = 0) => {
+    const fresh = getTailoredDailyGrammarQuizzes({
+      userType: type,
+      targetGrade: grade,
+      ageGroup: age,
+      customDate: new Date(),
+      offset,
+    });
+    setDailyQuizzes(fresh);
+    setCurrentQuizIndex(0);
+    setSelectedOption(null);
+    setIsAnswerSubmitted(false);
+    setQuizScore(0);
+    setQuizCompleted(false);
+  }, []);
+
+  const handleAccountTypeChange = (newType) => {
+    setAccountType(newType);
+    try {
+      localStorage.setItem("speakmate_account_type", newType);
+    } catch {}
+    reloadQuizzes(newType, selectedGrade, selectedAgeGroup, 0);
+  };
+
+  const handleGradeChange = (grade) => {
+    setSelectedGrade(grade);
+    try {
+      localStorage.setItem("speakmate_user_grade", grade);
+    } catch {}
+    reloadQuizzes(accountType, grade, selectedAgeGroup, 0);
+  };
+
+  const handleAgeGroupChange = (age) => {
+    setSelectedAgeGroup(age);
+    try {
+      localStorage.setItem("speakmate_age_group", age);
+    } catch {}
+    reloadQuizzes(accountType, selectedGrade, age, 0);
+  };
 
   useEffect(() => {
     grammarService
@@ -55,16 +136,13 @@ export function GrammarPractice() {
     setAnalysisResult(localResult);
 
     try {
-      // 2. Query backend grammar endpoint for deep contextual analysis
       const backendRes = await grammarService.check(cleanText).catch(() => null);
 
       if (backendRes && backendRes.correctedText) {
-        // Parse backend errors if present in explanation
         let structuredErrors = localResult.errors;
         let isCorrect = backendRes.grammarScore >= 100 || backendRes.correctedText.trim().toLowerCase() === cleanText.toLowerCase();
 
         if (backendRes.explanation && backendRes.explanation.includes("[")) {
-          // Exploded error lines
           const lines = backendRes.explanation.split("\n").filter(Boolean);
           if (lines.length > 0) {
             structuredErrors = lines.map((line) => {
@@ -81,6 +159,7 @@ export function GrammarPractice() {
         }
 
         const mergedResult = {
+          id: backendRes.id || Date.now(),
           isCorrect,
           accuracyScore: backendRes.grammarScore || (isCorrect ? 100 : 80),
           originalText: cleanText,
@@ -89,17 +168,18 @@ export function GrammarPractice() {
           errors: structuredErrors,
           explanation: backendRes.explanation || localResult.explanation,
           praiseMessage: isCorrect ? "🌟 Perfect English Grammar! Your sentence is 100% accurate, natural, and well-structured." : "",
+          createdAt: backendRes.createdAt || new Date().toISOString(),
         };
+
         setAnalysisResult(mergedResult);
-        setHistory((prev) => [mergedResult, ...prev]);
         speakFeedback(mergedResult);
+
+        // Update history
+        setHistory((prev) => [mergedResult, ...prev.filter((h) => h.id !== mergedResult.id)]);
       } else {
-        setHistory((prev) => [localResult, ...prev]);
         speakFeedback(localResult);
       }
     } catch {
-      // Fallback already active
-      setHistory((prev) => [localResult, ...prev]);
       speakFeedback(localResult);
     } finally {
       setAnalyzing(false);
@@ -110,26 +190,24 @@ export function GrammarPractice() {
     if (!res) return;
     setIsAiSpeaking(true);
 
-    let speech = "";
+    let speechText = "";
     if (res.isCorrect) {
-      speech = `Your sentence is 100% grammatically correct! ${res.correctedText}. Excellent structure and grammar.`;
+      speechText = `Your sentence is 100% grammatically correct! ${res.correctedText}. Excellent job.`;
     } else {
-      speech = `Corrected sentence: ${res.correctedText}. `;
+      speechText = `Corrected sentence: ${res.correctedText}. `;
       if (res.errors && res.errors.length > 0) {
-        speech += `Found ${res.errors.length} improvement${res.errors.length > 1 ? "s" : ""}: `;
+        speechText += `Found ${res.errors.length} improvement${res.errors.length > 1 ? "s" : ""}: `;
         res.errors.forEach((err, i) => {
-          speech += `${i + 1}. ${err.issue} `;
+          speechText += `${i + 1}. ${err.issue} `;
         });
       }
     }
 
-    speakGlobalText(speech, 1.0, {
-      onend: () => setIsAiSpeaking(false),
-      onerror: () => setIsAiSpeaking(false),
-    });
+    speakGlobalText(speechText, 1.0);
+    setTimeout(() => setIsAiSpeaking(false), 4000);
   };
 
-  // Daily Quiz Handling (8 non-repeating questions rotated daily)
+  // Daily Quiz Handling
   const activeQuiz = dailyQuizzes[currentQuizIndex] || dailyQuizzes[0];
 
   const handleSelectQuizAnswer = (idx) => {
@@ -174,12 +252,7 @@ export function GrammarPractice() {
   const handleLoadNewQuizBatch = () => {
     const nextOffset = quizOffset + 1;
     setQuizOffset(nextOffset);
-    setDailyQuizzes(getDailyGrammarQuizzes(new Date(), nextOffset));
-    setCurrentQuizIndex(0);
-    setSelectedOption(null);
-    setIsAnswerSubmitted(false);
-    setQuizScore(0);
-    setQuizCompleted(false);
+    reloadQuizzes(accountType, selectedGrade, selectedAgeGroup, nextOffset);
   };
 
   // Filtered guides
@@ -201,58 +274,73 @@ export function GrammarPractice() {
     { label: "✅ 100% Perfect Sentence", text: "He ate an apple and completed his homework on time." },
     { label: "⚖️ Subject-Verb Agreement", text: "Neither of my two friend are interested in the project." },
     { label: "⏱️ Tense & Preposition", text: "I have been living in this city since four years." },
-    { label: "🔮 Subjunctive Conditional", text: "If I was you, I would have accepted the job offer." },
+    { label: "🔮 Subjunctive Clause", text: "If I was you, I would have accepted the job offer." },
   ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-6 px-3 sm:px-6 py-4">
-      {/* Top Hero Banner */}
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6C63FF] via-[#4F46E5] to-[#312E81] text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10">
-        <div className="space-y-2 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-amber-300 text-xs font-bold">
-            <span>✨ AI Grammar Doctor & Master Guide</span>
+    <div className="space-y-6 max-w-5xl mx-auto px-4 sm:px-6 py-6 animate-in fade-in">
+      {/* Top Banner Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl sm:text-3xl">✍️</span>
+            <h1 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
+              Grammar Doctor & Quiz Mastery
+            </h1>
           </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
-            English Grammar Doctor ✍️
-          </h1>
-          <p className="text-xs sm:text-sm text-indigo-100 max-w-xl leading-relaxed">
-            Deep multi-clause sentence analysis, instant corrections, spoken explanations, sentence quizzes, and comprehensive CEFR grammar handbooks.
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium">
+            AI sentence analysis, itemized mistake breakdowns, CEFR handbook, and user-tailored quizzes.
           </p>
         </div>
 
-        {/* Quick Tabs Nav */}
-        <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 rounded-2xl bg-black/25 backdrop-blur-md border border-white/10 shrink-0">
+        {/* 4 Interactive Segmented Tabs */}
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)]">
           <button
             onClick={() => setActiveTab("checker")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "checker" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              activeTab === "checker"
+                ? "bg-[#6C63FF] text-white shadow-md"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            🩺 AI Doctor
+            <span>🩺</span>
+            <span>AI Doctor</span>
           </button>
+
           <button
             onClick={() => setActiveTab("guide")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "guide" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              activeTab === "guide"
+                ? "bg-[#6C63FF] text-white shadow-md"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            📖 Handbook
+            <span>📖</span>
+            <span>Handbook</span>
           </button>
+
           <button
             onClick={() => setActiveTab("quiz")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "quiz" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              activeTab === "quiz"
+                ? "bg-[#6C63FF] text-white shadow-md"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            🎯 Sentence Quizzes
+            <span>🏆</span>
+            <span>Daily Quizzes</span>
           </button>
+
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "history" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+              activeTab === "history"
+                ? "bg-[#6C63FF] text-white shadow-md"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            📜 History ({history.length})
+            <span>🕒</span>
+            <span>History</span>
           </button>
         </div>
       </div>
@@ -260,42 +348,27 @@ export function GrammarPractice() {
       {/* TAB 1: AI GRAMMAR DOCTOR */}
       {activeTab === "checker" && (
         <div className="space-y-6">
-          {/* Input Box Card */}
-          <div className="p-5 sm:p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-2">
-                <span>📝 Enter Any English Sentence (Short or Complex):</span>
+          <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] uppercase tracking-wider flex items-center justify-between">
+                <span>Enter Any Sentence to Inspect Grammar:</span>
+                <span className="text-xs font-medium text-[var(--text-muted)] lowercase">
+                  (Big, small, complex sentences)
+                </span>
               </label>
-              {textInput.length > 0 && (
-                <button
-                  onClick={() => setTextInput("")}
-                  className="text-xs text-[var(--text-muted)] hover:text-rose-500 transition-colors font-semibold"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-
-            <div className="relative">
               <textarea
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleAnalyzeText();
-                  }
-                }}
+                placeholder="e.g. She don't goes to school yesterday and discuss about exam."
                 rows={3}
-                placeholder="Type or paste any English sentence here... (e.g. 'She don't goes to school yesterday and discuss about the project.')"
-                className="w-full p-4 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] text-sm font-medium text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all resize-none shadow-inner"
+                className="w-full p-4 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] text-[var(--text-primary)] text-sm focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all resize-none font-medium"
               />
             </div>
 
-            {/* Quick Practice Chips */}
+            {/* Quick Test Chips */}
             <div className="space-y-2">
-              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                ⚡ Try Sample Sentences:
+              <span className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                ⚡ Try Sample Sentence Errors:
               </span>
               <div className="flex flex-wrap gap-2">
                 {samplePracticeSentences.map((sample, idx) => (
@@ -305,32 +378,28 @@ export function GrammarPractice() {
                       setTextInput(sample.text);
                       handleAnalyzeText(sample.text);
                     }}
-                    className="px-3 py-1.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6C63FF] hover:text-white border border-[var(--border-default)] text-xs font-semibold text-[var(--text-secondary)] transition-all shadow-sm flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-default)] text-xs font-semibold text-[var(--text-secondary)] hover:border-[#6C63FF] hover:text-[#6C63FF] transition-all"
                   >
-                    <span>{sample.label}</span>
+                    {sample.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
-              <span className="text-xs text-[var(--text-muted)] font-medium">
-                {textInput.trim() ? `${textInput.trim().split(/\s+/).length} words` : "Supports any sentence length"}
-              </span>
-
+            <div className="flex items-center justify-end pt-2">
               <button
                 onClick={() => handleAnalyzeText()}
                 disabled={analyzing || !textInput.trim()}
-                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-black shadow-lg hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2"
+                className="flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-sm font-black shadow-lg hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer"
               >
                 {analyzing ? (
                   <>
-                    <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                    <span>Analyzing Grammar...</span>
+                    <span className="animate-spin">⏳</span>
+                    <span>Analyzing All Rules...</span>
                   </>
                 ) : (
                   <>
-                    <span>✨ Check Sentence Grammar</span>
+                    <span>✨ Check Grammar & Accuracy</span>
                   </>
                 )}
               </button>
@@ -339,108 +408,105 @@ export function GrammarPractice() {
 
           {/* RESULTS DISPLAY: ORDERED PROMINENTLY */}
           {analysisResult && (
-            <div className="space-y-5 animate-in fade-in duration-300">
-              {/* 1. TOP PROMINENT CARD: CORRECTED / PERFECT SENTENCE */}
-              <div
-                className={`p-6 rounded-3xl border shadow-lg space-y-4 ${
-                  analysisResult.isCorrect
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100"
-                    : "bg-[var(--bg-surface)] border-[var(--border-default)]"
-                }`}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
-                  <div className="flex items-center gap-2.5">
-                    <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
-                      analysisResult.isCorrect
-                        ? "bg-emerald-500 text-white shadow-sm"
-                        : "bg-[#6C63FF] text-white shadow-sm"
-                    }`}>
-                      {analysisResult.isCorrect ? "✅ 100% Perfect Sentence" : "🌟 Corrected Sentence"}
-                    </span>
-                    <span className="text-xs font-bold text-[var(--text-secondary)]">
-                      Score: <strong className="text-[var(--text-primary)]">{analysisResult.accuracyScore}%</strong>
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => speakFeedback(analysisResult)}
-                      disabled={isAiSpeaking}
-                      className="px-3.5 py-1.5 rounded-xl bg-[#6C63FF] hover:bg-[#5a52e0] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
-                      title="Hear Spoken Feedback"
-                    >
-                      <span>{isAiSpeaking ? "🔊 Speaking..." : "🔊 Speak Sentence & Feedback"}</span>
-                    </button>
-                  </div>
+            <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-lg space-y-6 animate-in slide-in-from-bottom-2">
+              {/* 1. TOP STATUS & SCORE BAR */}
+              <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[var(--border-subtle)]">
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                    analysisResult.isCorrect
+                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                      : "bg-indigo-500/15 text-[#6C63FF]"
+                  }`}>
+                    {analysisResult.isCorrect ? "✅ 100% Grammatically Correct" : "🌟 Corrected Sentence"}
+                  </span>
+                  <span className="text-xs font-bold text-[var(--text-muted)]">
+                    Accuracy Score: <strong className="text-[var(--text-primary)]">{analysisResult.accuracyScore}%</strong>
+                  </span>
                 </div>
 
-                {/* Display Corrected Text */}
-                <div className="space-y-2">
-                  <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
-                    {analysisResult.isCorrect ? "Your Sentence:" : "Corrected English Phrasing:"}
-                  </p>
-                  <p className="text-base sm:text-xl font-extrabold text-[var(--text-primary)] leading-relaxed">
-                    "{analysisResult.correctedText}"
-                  </p>
-                </div>
-
-                {/* Praise message if perfect */}
-                {analysisResult.isCorrect && (
-                  <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-200 flex items-center gap-2">
-                    <span>🎉</span>
-                    <span>{analysisResult.praiseMessage || "Given sentence is correct with no grammar mistakes!"}</span>
-                  </div>
-                )}
-
-                {/* Native Phrasing Alternative (if available) */}
-                {analysisResult.nativeAlternative && (
-                  <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs sm:text-sm font-semibold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
-                    <span>💡</span>
-                    <span>
-                      <strong>Native Speaker Upgrade:</strong> "{analysisResult.nativeAlternative}"
-                    </span>
-                  </div>
-                )}
+                <button
+                  onClick={() => speakFeedback(analysisResult)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                    isAiSpeaking
+                      ? "bg-indigo-500/20 text-[#6C63FF] animate-pulse"
+                      : "bg-[#6C63FF] text-white hover:bg-[#5a52e0] shadow-sm"
+                  }`}
+                >
+                  <span>🔊</span>
+                  <span>{isAiSpeaking ? "Speaking..." : "Hear Audio Feedback"}</span>
+                </button>
               </div>
 
-              {/* 2. ITEMIZED MISTAKES BREAKDOWN (IF NOT PERFECT) */}
-              {!analysisResult.isCorrect && analysisResult.errors && analysisResult.errors.length > 0 && (
-                <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
-                  <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
-                    <h3 className="text-sm sm:text-base font-black text-[var(--text-primary)] flex items-center gap-2">
-                      <span>🔍 Identified Grammar Mistakes & Improvements ({analysisResult.errors.length}):</span>
-                    </h3>
-                  </div>
+              {/* 2. CORRECTED SENTENCE PROMINENT DISPLAY (FIRST) */}
+              <div className="space-y-2">
+                <span className="text-xs font-extrabold text-[var(--text-muted)] uppercase tracking-wider">
+                  {analysisResult.isCorrect ? "Your Sentence (100% Correct):" : "Corrected English Sentence:"}
+                </span>
+                <div className={`p-4 sm:p-5 rounded-2xl border text-sm sm:text-base font-bold transition-all ${
+                  analysisResult.isCorrect
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100"
+                    : "bg-indigo-500/10 border-indigo-500/30 text-indigo-950 dark:text-indigo-100"
+                }`}>
+                  "{analysisResult.correctedText}"
+                </div>
+              </div>
 
-                  <div className="space-y-3">
+              {/* Praise message if perfect */}
+              {analysisResult.isCorrect && (
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs sm:text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+                  <span className="text-xl">🎉</span>
+                  <span>{analysisResult.praiseMessage || "Given sentence is correct with no grammar mistakes!"}</span>
+                </div>
+              )}
+
+              {/* Native Upgrade Alternative */}
+              {analysisResult.nativeAlternative && (
+                <div className="flex items-start gap-3 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs sm:text-sm">
+                  <span className="text-base">💡</span>
+                  <div>
+                    <span className="font-extrabold text-[#6C63FF]">Native Natural Phrasing: </span>
+                    <span className="font-semibold text-[var(--text-primary)]">"{analysisResult.nativeAlternative}"</span>
+                  </div>
+                </div>
+              )}
+
+              {/* 3. ITEMIZED MISTAKES BREAKDOWN (WHEN ERRORS EXIST) */}
+              {!analysisResult.isCorrect && analysisResult.errors && analysisResult.errors.length > 0 && (
+                <div className="space-y-3 pt-2">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] uppercase tracking-wider flex items-center gap-2">
+                    <span>🔍 Identified Mistakes & Rules</span>
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-500 text-xs font-black">
+                      {analysisResult.errors.length}
+                    </span>
+                  </h3>
+
+                  <div className="grid gap-3">
                     {analysisResult.errors.map((err, idx) => (
                       <div
                         key={idx}
-                        className="p-4 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all space-y-2"
+                        className="p-4 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] space-y-2 hover:border-[#6C63FF]/40 transition-all"
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="h-6 w-6 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 text-xs font-black grid place-items-center">
-                              {idx + 1}
-                            </span>
-                            <span className="px-2.5 py-0.5 rounded-md bg-[#6C63FF]/10 text-[#6C63FF] text-[11px] font-extrabold uppercase tracking-wide">
-                              {err.type || "Grammar Rule"}
-                            </span>
-                          </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
+                            {idx + 1}
+                          </span>
+                          <span className="px-2.5 py-0.5 rounded-md bg-[#6C63FF]/10 text-[#6C63FF] text-[10px] font-black uppercase">
+                            {err.type || "Grammar Rule"}
+                          </span>
                           {err.errorSnippet && (
-                            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold">
-                              Wrong: "{err.errorSnippet}"
+                            <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-500 text-xs font-bold line-through">
+                              "{err.errorSnippet}"
                             </span>
                           )}
                         </div>
 
-                        <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] leading-relaxed">
+                        <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">
                           👉 {err.issue}
                         </p>
 
                         {err.rule && (
-                          <div className="p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[11px] sm:text-xs text-[var(--text-secondary)]">
-                            <strong className="text-[var(--text-primary)]">Grammar Rule: </strong>
+                          <div className="p-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
+                            <strong className="text-[#6C63FF]">Rule Insight: </strong>
                             {err.rule}
                           </div>
                         )}
@@ -454,33 +520,28 @@ export function GrammarPractice() {
         </div>
       )}
 
-      {/* TAB 2: COMPREHENSIVE GRAMMAR HANDBOOK & GUIDES */}
+      {/* TAB 2: COMPREHENSIVE GRAMMAR HANDBOOK */}
       {activeTab === "guide" && (
         <div className="space-y-6">
-          {/* Filter & Search Bar */}
-          <div className="p-4 sm:p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Search */}
-            <div className="w-full md:w-80 relative">
-              <input
-                type="text"
-                value={guideSearch}
-                onChange={(e) => setGuideSearch(e.target.value)}
-                placeholder="Search grammar topics or rules..."
-                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-default)] text-xs sm:text-sm font-semibold text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6C63FF]"
-              />
-              <span className="absolute left-3 top-3 text-xs">🔍</span>
-            </div>
+          {/* Search & Category Filter */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <input
+              type="text"
+              value={guideSearch}
+              onChange={(e) => setGuideSearch(e.target.value)}
+              placeholder="🔍 Search grammar rules, tenses, conditionals..."
+              className="w-full sm:w-80 px-4 py-2.5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs sm:text-sm text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
+            />
 
-            {/* Category Pills */}
-            <div className="w-full md:w-auto flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
               {guideCategories.map((cat, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedGuideCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                     selectedGuideCategory === cat
                       ? "bg-[#6C63FF] text-white shadow-sm"
-                      : "bg-[var(--bg-base)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] border border-[var(--border-default)]"
+                      : "bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                   }`}
                 >
                   {cat}
@@ -489,79 +550,66 @@ export function GrammarPractice() {
             </div>
           </div>
 
-          {/* Guide Modules List */}
-          <div className="space-y-4">
+          {/* Handbook Track Cards */}
+          <div className="grid gap-4">
             {filteredGuides.map((guide) => {
               const isExpanded = expandedGuideId === guide.id;
               return (
                 <div
                   key={guide.id}
-                  className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm overflow-hidden transition-all"
+                  className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] overflow-hidden shadow-sm transition-all"
                 >
-                  {/* Guide Header */}
                   <button
                     onClick={() => setExpandedGuideId(isExpanded ? null : guide.id)}
-                    className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 hover:bg-[var(--bg-elevated)] transition-colors"
+                    className="w-full p-5 sm:p-6 flex items-center justify-between gap-4 text-left hover:bg-[var(--bg-base)]/50 transition-all"
                   >
-                    <div className="flex items-center gap-3.5 min-w-0">
-                      <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] shrink-0">
-                        {guide.icon}
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="px-2 py-0.5 rounded-md bg-[#6C63FF]/10 text-[#6C63FF] text-[10px] font-black uppercase">
-                            {guide.level}
-                          </span>
-                          <span className="text-xs font-bold text-[var(--text-muted)] truncate">
-                            {guide.category}
-                          </span>
-                        </div>
-                        <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] truncate mt-0.5">
+                    <div className="flex items-center gap-4">
+                      <span className="text-3xl sm:text-4xl">{guide.icon}</span>
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-black uppercase text-[#6C63FF] tracking-wider">
+                          {guide.level} • {guide.category}
+                        </span>
+                        <h3 className="text-base sm:text-lg font-extrabold text-[var(--text-primary)]">
                           {guide.title}
                         </h3>
-                        <p className="text-xs text-[var(--text-secondary)] font-medium truncate mt-0.5">
+                        <p className="text-xs text-[var(--text-secondary)] font-medium">
                           {guide.summary}
                         </p>
                       </div>
                     </div>
-
-                    <span className="text-xs font-black text-[var(--text-muted)] shrink-0">
-                      {isExpanded ? "▲ Collapse" : "▼ Learn"}
+                    <span className="text-lg text-[var(--text-muted)] font-bold">
+                      {isExpanded ? "▲" : "▼"}
                     </span>
                   </button>
 
-                  {/* Expanded Guide Rules Body */}
                   {isExpanded && (
-                    <div className="p-5 sm:p-6 border-t border-[var(--border-subtle)] bg-[var(--bg-base)] space-y-4">
+                    <div className="p-5 sm:p-6 border-t border-[var(--border-subtle)] bg-[var(--bg-base)]/30 space-y-4 animate-in fade-in">
                       {guide.rules.map((rule, rIdx) => (
                         <div
                           key={rIdx}
-                          className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] space-y-3 shadow-sm"
+                          className="p-4 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] space-y-2"
                         >
-                          <div className="flex items-center justify-between gap-2">
-                            <h4 className="text-sm font-black text-[#6C63FF]">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-xs sm:text-sm font-extrabold text-[#6C63FF]">
                               📌 {rule.name}
                             </h4>
+                            {rule.formula && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#6C63FF]/10 text-[#6C63FF]">
+                                {rule.formula}
+                              </span>
+                            )}
                           </div>
 
-                          {rule.formula && (
-                            <div className="p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] font-mono text-xs text-[var(--text-primary)] font-bold">
-                              Formula: {rule.formula}
-                            </div>
-                          )}
-
-                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                          <p className="text-xs text-[var(--text-secondary)] font-medium">
                             {rule.usage}
                           </p>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
-                            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-xs space-y-1">
-                              <span className="text-[10px] font-black text-emerald-600 uppercase">✅ Correct Example:</span>
-                              <p className="font-bold text-emerald-900 dark:text-emerald-200">{rule.correctExample}</p>
+                          <div className="grid sm:grid-cols-2 gap-2 pt-1 text-xs font-semibold">
+                            <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-900 dark:text-emerald-200">
+                              <span className="font-bold">✅ Correct: </span>"{rule.correctExample}"
                             </div>
-                            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-xs space-y-1">
-                              <span className="text-[10px] font-black text-rose-600 uppercase">❌ Common Mistake:</span>
-                              <p className="font-bold text-rose-900 dark:text-rose-200 line-through opacity-80">{rule.wrongExample}</p>
+                            <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-900 dark:text-rose-200 line-through">
+                              <span className="font-bold">❌ Common Mistake: </span>"{rule.wrongExample}"
                             </div>
                           </div>
                         </div>
@@ -575,9 +623,79 @@ export function GrammarPractice() {
         </div>
       )}
 
-      {/* TAB 3: INTERACTIVE SENTENCE GRAMMAR QUIZZES */}
+      {/* TAB 3: USER-TAILORED DAILY GRAMMAR QUIZZES */}
       {activeTab === "quiz" && (
         <div className="space-y-6">
+          {/* Audience / Standard / Age Customization Selector */}
+          <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-extrabold text-[var(--text-muted)] uppercase tracking-wider">
+                  Target Audience:
+                </span>
+                <div className="inline-flex rounded-xl bg-[var(--bg-base)] p-1 border border-[var(--border-default)]">
+                  <button
+                    onClick={() => handleAccountTypeChange("STUDENT")}
+                    className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                      accountType === "STUDENT"
+                        ? "bg-[#6C63FF] text-white shadow-sm"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    }`}
+                  >
+                    🎓 School Student
+                  </button>
+                  <button
+                    onClick={() => handleAccountTypeChange("INDIVIDUAL")}
+                    className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                      accountType === "INDIVIDUAL"
+                        ? "bg-[#6C63FF] text-white shadow-sm"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                    }`}
+                  >
+                    👤 Adult / Professional
+                  </button>
+                </div>
+              </div>
+
+              {/* Sub-Track Selector */}
+              {accountType === "STUDENT" ? (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-[var(--text-muted)]">Standard:</span>
+                  {STUDENT_STANDARDS.map((std) => (
+                    <button
+                      key={std}
+                      onClick={() => handleGradeChange(std)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                        selectedGrade === std
+                          ? "bg-[#6C63FF] text-white"
+                          : "bg-[var(--bg-base)] text-[var(--text-secondary)] hover:border-[#6C63FF]"
+                      }`}
+                    >
+                      {std}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-xs font-bold text-[var(--text-muted)]">Age Group:</span>
+                  {INDIVIDUAL_AGE_GROUPS.map((grp) => (
+                    <button
+                      key={grp.code}
+                      onClick={() => handleAgeGroupChange(grp.code)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                        selectedAgeGroup === grp.code
+                          ? "bg-[#6C63FF] text-white"
+                          : "bg-[var(--bg-base)] text-[var(--text-secondary)] hover:border-[#6C63FF]"
+                      }`}
+                    >
+                      {grp.label.split(" ")[0]}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {!quizCompleted ? (
             <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-lg space-y-6">
               {/* Progress & Header */}
@@ -587,12 +705,15 @@ export function GrammarPractice() {
                     <span className="px-2.5 py-0.5 rounded-full bg-[#6C63FF]/10 text-[#6C63FF] text-[10px] font-black uppercase">
                       Daily Challenge: {currentQuizIndex + 1} of {dailyQuizzes.length}
                     </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 text-[10px] font-black">
+                      {activeQuiz.formatBadge || "✏️ Quiz Challenge"}
+                    </span>
                     <span className="text-xs font-bold text-[var(--text-muted)]">
                       {activeQuiz.category}
                     </span>
                   </div>
                   <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)]">
-                    Spot & Fix the Sentence Error
+                    {activeQuiz.targetAudience === "STUDENT" ? `Class ${selectedGrade} Grammar Challenge` : "Mastery English Practice"}
                   </h3>
                 </div>
 
@@ -604,22 +725,24 @@ export function GrammarPractice() {
                 </div>
               </div>
 
-              {/* Problem Sentence Card */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs sm:text-sm font-semibold space-y-1.5">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                  Target Sentence with Problem:
-                </span>
-                <p className="text-sm sm:text-base font-bold text-amber-950 dark:text-amber-100">
-                  "{activeQuiz.sentenceWithProblem}"
-                </p>
-              </div>
+              {/* Target Prompt / Sentence Box */}
+              {activeQuiz.promptSentence && (
+                <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs sm:text-sm font-semibold space-y-1.5">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                    Given Sentence:
+                  </span>
+                  <p className="text-sm sm:text-base font-bold text-amber-950 dark:text-amber-100">
+                    {activeQuiz.promptSentence}
+                  </p>
+                </div>
+              )}
 
-              {/* Question */}
+              {/* Question Text */}
               <p className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
                 {activeQuiz.question}
               </p>
 
-              {/* Options */}
+              {/* Options List */}
               <div className="space-y-2.5">
                 {activeQuiz.options.map((opt, idx) => {
                   const isSelected = selectedOption === idx;
@@ -665,14 +788,14 @@ export function GrammarPractice() {
                   <button
                     onClick={handleSubmitQuizAnswer}
                     disabled={selectedOption === null}
-                    className="px-6 py-3 rounded-2xl bg-[#6C63FF] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-[#5a52e0] disabled:opacity-40 transition-all"
+                    className="px-6 py-3 rounded-2xl bg-[#6C63FF] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-[#5a52e0] disabled:opacity-40 transition-all cursor-pointer"
                   >
                     Submit Answer
                   </button>
                 ) : (
                   <button
                     onClick={handleNextQuizQuestion}
-                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-black shadow-lg hover:opacity-90 transition-all"
+                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-black shadow-lg hover:opacity-90 transition-all cursor-pointer"
                   >
                     {currentQuizIndex + 1 < dailyQuizzes.length ? "Next Question →" : "View Final Results 🏆"}
                   </button>
@@ -698,19 +821,19 @@ export function GrammarPractice() {
               <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
                 <button
                   onClick={handleRestartQuiz}
-                  className="px-6 py-3 rounded-2xl bg-[#6C63FF] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-[#5a52e0] transition-all"
+                  className="px-6 py-3 rounded-2xl bg-[#6C63FF] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-[#5a52e0] transition-all cursor-pointer"
                 >
                   🔄 Retake Today's 8 Quizzes
                 </button>
                 <button
                   onClick={handleLoadNewQuizBatch}
-                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-bold shadow-md hover:opacity-90 transition-all"
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-bold shadow-md hover:opacity-90 transition-all cursor-pointer"
                 >
                   ⚡ Load Next 8 New Quizzes
                 </button>
                 <button
                   onClick={() => setActiveTab("checker")}
-                  className="px-6 py-3 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] text-[var(--text-primary)] text-xs sm:text-sm font-bold hover:bg-[var(--bg-elevated)] transition-all"
+                  className="px-6 py-3 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] text-[var(--text-primary)] text-xs sm:text-sm font-bold hover:bg-[var(--bg-elevated)] transition-all cursor-pointer"
                 >
                   🩺 Back to Grammar Doctor
                 </button>
@@ -764,8 +887,12 @@ export function GrammarPractice() {
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-xs text-[var(--text-muted)] font-medium">Original: "{item.originalText}"</p>
-                  <p className="text-sm font-extrabold text-[var(--text-primary)]">👉 "{item.correctedText}"</p>
+                  <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+                    👉 {item.correctedText}
+                  </p>
+                  <p className="text-xs text-[var(--text-secondary)]">
+                    Original: "{item.originalText}"
+                  </p>
                 </div>
               </div>
             ))
@@ -775,5 +902,3 @@ export function GrammarPractice() {
     </div>
   );
 }
-
-export default GrammarPractice;

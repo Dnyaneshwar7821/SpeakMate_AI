@@ -7,22 +7,29 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
-  Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { AppButton, Card, Screen, StateView } from '../../components/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { grammarService, settingsService, progressService, aiService } from '../../services/appServices';
+import { grammarService, settingsService, progressService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
 import {
   analyzeSentenceGrammarLocally,
   EXTENSIVE_GRAMMAR_GUIDE,
-  getDailyGrammarQuizzes,
+  getTailoredDailyGrammarQuizzes,
 } from '../../utils/grammarEngine';
+
+const STUDENT_STANDARDS = ['5th Std', '6th Std', '7th Std', '8th Std', '9th Std', '10th Std'];
+const INDIVIDUAL_AGE_GROUPS = [
+  { code: 'TEENS', label: 'Teens (13-17)' },
+  { code: 'YOUNG_ADULT', label: 'College / YA (18-24)' },
+  { code: 'WORKING_PROFESSIONAL', label: 'Professional (25-39)' },
+  { code: 'LIFELONG_LEARNER', label: 'Lifelong (40+)' },
+];
 
 const SAMPLE_SENTENCES = [
   { label: '🚨 Multiple Errors', text: "She don't goes to school yesterday and discuss about exam." },
@@ -46,28 +53,89 @@ export default function GrammarScreen() {
   const [userSettings, setUserSettings] = useState(null);
   const [availableVoices, setAvailableVoices] = useState([]);
 
+  // Audience & Track
+  const [accountType, setAccountType] = useState('INDIVIDUAL');
+  const [selectedGrade, setSelectedGrade] = useState('8th Std');
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState('WORKING_PROFESSIONAL');
+
   // Guide state
   const [guideSearch, setGuideSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [expandedGuideId, setExpandedGuideId] = useState(EXTENSIVE_GRAMMAR_GUIDE[0]?.id || null);
 
-  // Daily Sentence Quiz State (8 fresh non-repeating questions rotating daily)
+  // Daily Sentence Quiz State (Tailored by standard/age)
   const [quizOffset, setQuizOffset] = useState(0);
-  const [dailyQuizzes, setDailyQuizzes] = useState(() => getDailyGrammarQuizzes(new Date(), 0));
+  const [dailyQuizzes, setDailyQuizzes] = useState(() =>
+    getTailoredDailyGrammarQuizzes({
+      userType: 'INDIVIDUAL',
+      targetGrade: '8th Std',
+      ageGroup: 'WORKING_PROFESSIONAL',
+      customDate: new Date(),
+      offset: 0,
+    })
+  );
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [selectedQuizOption, setSelectedQuizOption] = useState(null);
   const [isQuizAnswerSubmitted, setIsQuizAnswerSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
   const [isQuizCompleted, setIsQuizCompleted] = useState(false);
 
+  const reloadDailyQuizzes = (type, grade, age, offset = 0) => {
+    const fresh = getTailoredDailyGrammarQuizzes({
+      userType: type,
+      targetGrade: grade,
+      ageGroup: age,
+      customDate: new Date(),
+      offset,
+    });
+    setDailyQuizzes(fresh);
+    setCurrentQuizIdx(0);
+    setSelectedQuizOption(null);
+    setIsQuizAnswerSubmitted(false);
+    setQuizScore(0);
+    setIsQuizCompleted(false);
+  };
+
+  const handleAccountTypeChange = (newType) => {
+    setAccountType(newType);
+    AsyncStorage.setItem('speakmate_account_type', newType).catch(() => {});
+    reloadDailyQuizzes(newType, selectedGrade, selectedAgeGroup, 0);
+  };
+
+  const handleGradeChange = (grade) => {
+    setSelectedGrade(grade);
+    AsyncStorage.setItem('speakmate_user_grade', grade).catch(() => {});
+    reloadDailyQuizzes(accountType, grade, selectedAgeGroup, 0);
+  };
+
+  const handleAgeGroupChange = (age) => {
+    setSelectedAgeGroup(age);
+    AsyncStorage.setItem('speakmate_age_group', age).catch(() => {});
+    reloadDailyQuizzes(accountType, selectedGrade, age, 0);
+  };
+
   const loadSettingsAndVoices = async () => {
     try {
-      const [s, voices] = await Promise.all([
+      const [s, voices, storedType, storedGrade, storedAge] = await Promise.all([
         settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
+        AsyncStorage.getItem('speakmate_account_type').catch(() => null),
+        AsyncStorage.getItem('speakmate_user_grade').catch(() => null),
+        AsyncStorage.getItem('speakmate_age_group').catch(() => null),
       ]);
+
       setUserSettings(s);
       setAvailableVoices(voices);
+
+      const effType = storedType === 'STUDENT' ? 'STUDENT' : 'INDIVIDUAL';
+      const effGrade = storedGrade || '8th Std';
+      const effAge = storedAge || 'WORKING_PROFESSIONAL';
+
+      setAccountType(effType);
+      setSelectedGrade(effGrade);
+      setSelectedAgeGroup(effAge);
+
+      reloadDailyQuizzes(effType, effGrade, effAge, 0);
     } catch (e) {
       console.warn("Failed to load settings in grammar screen:", e);
     }
@@ -96,7 +164,6 @@ export default function GrammarScreen() {
     setChecking(true);
     setResult(null);
 
-    // 1. Run local multi-pass grammar engine immediately
     const localResult = analyzeSentenceGrammarLocally(cleanText);
     setResult(localResult);
 
@@ -143,7 +210,6 @@ export default function GrammarScreen() {
         speakFullFeedback(localResult);
       }
 
-      // Award XP
       try {
         const currProgress = await progressService.get().catch(() => null);
         if (currProgress) {
@@ -231,7 +297,7 @@ export default function GrammarScreen() {
     ]);
   };
 
-  // Daily Quiz Handling (8 non-repeating questions rotated daily)
+  // Daily Quiz Handling
   const activeQuiz = dailyQuizzes[currentQuizIdx] || dailyQuizzes[0];
 
   const handleSelectQuizAnswer = (idx) => {
@@ -281,12 +347,7 @@ export default function GrammarScreen() {
   const handleLoadNewQuizBatch = () => {
     const nextOffset = quizOffset + 1;
     setQuizOffset(nextOffset);
-    setDailyQuizzes(getDailyGrammarQuizzes(new Date(), nextOffset));
-    setCurrentQuizIdx(0);
-    setSelectedQuizOption(null);
-    setIsQuizAnswerSubmitted(false);
-    setQuizScore(0);
-    setIsQuizCompleted(false);
+    reloadDailyQuizzes(accountType, selectedGrade, selectedAgeGroup, nextOffset);
   };
 
   // Filtered guide items
@@ -310,7 +371,7 @@ export default function GrammarScreen() {
         <View>
           <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Grammar Doctor ✍️</Text>
           <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
-            Sentence analyzer, rule guides, and interactive quizzes
+            Sentence analyzer, rule guides, and tailored daily quizzes
           </Text>
         </View>
       </View>
@@ -528,7 +589,6 @@ export default function GrammarScreen() {
       {/* TAB 2: COMPREHENSIVE GRAMMAR HANDBOOK */}
       {activeTab === 'guide' && (
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-          {/* Search input */}
           <TextInput
             style={[styles.searchBar, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', color: theme.textPrimary, borderColor: theme.cardBorder }]}
             placeholder="🔍 Search grammar rules or topics..."
@@ -537,7 +597,6 @@ export default function GrammarScreen() {
             onChangeText={setGuideSearch}
           />
 
-          {/* Category Filter Chips */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
             {guideCategories.map((cat, i) => (
               <TouchableOpacity
@@ -555,7 +614,6 @@ export default function GrammarScreen() {
             ))}
           </ScrollView>
 
-          {/* Guide Modules List */}
           {filteredGuides.map((guide) => {
             const isExpanded = expandedGuideId === guide.id;
             return (
@@ -600,25 +658,92 @@ export default function GrammarScreen() {
         </ScrollView>
       )}
 
-      {/* TAB 3: INTERACTIVE SENTENCE GRAMMAR QUIZZES */}
+      {/* TAB 3: USER-TAILORED DAILY GRAMMAR QUIZZES */}
       {activeTab === 'quiz' && (
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+          {/* Audience / Standard / Age Selector */}
+          <Card style={[styles.audienceSelectorCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <Text style={[styles.audienceLabel, { color: theme.textSecondary }]}>Target Audience:</Text>
+              <View style={[styles.toggleWrap, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]}>
+                <TouchableOpacity
+                  style={[styles.toggleBtn, accountType === 'STUDENT' && styles.toggleBtnActive]}
+                  onPress={() => handleAccountTypeChange('STUDENT')}
+                >
+                  <Text style={[styles.toggleBtnText, accountType === 'STUDENT' && styles.toggleBtnTextActive]}>
+                    🎓 Student
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.toggleBtn, accountType === 'INDIVIDUAL' && styles.toggleBtnActive]}
+                  onPress={() => handleAccountTypeChange('INDIVIDUAL')}
+                >
+                  <Text style={[styles.toggleBtnText, accountType === 'INDIVIDUAL' && styles.toggleBtnTextActive]}>
+                    👤 Adult
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Standard / Age Group Chips */}
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {accountType === 'STUDENT'
+                ? STUDENT_STANDARDS.map((std) => (
+                    <TouchableOpacity
+                      key={std}
+                      style={[
+                        styles.trackChip,
+                        selectedGrade === std ? styles.trackChipActive : { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }
+                      ]}
+                      onPress={() => handleGradeChange(std)}
+                    >
+                      <Text style={[styles.trackChipText, selectedGrade === std && styles.trackChipTextActive]}>
+                        {std}
+                      </Text>
+                    </TouchableOpacity>
+                  ))
+                : INDIVIDUAL_AGE_GROUPS.map((grp) => (
+                    <TouchableOpacity
+                      key={grp.code}
+                      style={[
+                        styles.trackChip,
+                        selectedAgeGroup === grp.code ? styles.trackChipActive : { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }
+                      ]}
+                      onPress={() => handleAgeGroupChange(grp.code)}
+                    >
+                      <Text style={[styles.trackChipText, selectedAgeGroup === grp.code && styles.trackChipTextActive]}>
+                        {grp.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+            </ScrollView>
+          </Card>
+
           {!isQuizCompleted ? (
-            <Card style={[styles.quizCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+            <Card style={[styles.quizCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, marginTop: 10 }]}>
               <View style={styles.quizHeader}>
-                <Text style={[styles.quizProgressText, { color: COLORS.primary }]}>
-                  Daily Challenge: {currentQuizIdx + 1} of {dailyQuizzes.length}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <Text style={[styles.quizProgressText, { color: COLORS.primary }]}>
+                    Daily Challenge: {currentQuizIdx + 1} of {dailyQuizzes.length}
+                  </Text>
+                  {activeQuiz.formatBadge && (
+                    <Text style={styles.formatBadgeText}>{activeQuiz.formatBadge}</Text>
+                  )}
+                </View>
                 <Text style={[styles.quizScoreText, { color: theme.textSecondary }]}>
                   Score: <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{quizScore}</Text>
                 </Text>
               </View>
 
-              {/* Problem Sentence */}
-              <View style={styles.problemBox}>
-                <Text style={styles.problemLabel}>Sentence with Problem:</Text>
-                <Text style={styles.problemText}>"{activeQuiz.sentenceWithProblem}"</Text>
-              </View>
+              {/* Problem / Target Prompt Sentence */}
+              {(activeQuiz.promptSentence || activeQuiz.sentenceWithProblem) && (
+                <View style={styles.problemBox}>
+                  <Text style={styles.problemLabel}>Given Sentence:</Text>
+                  <Text style={styles.problemText}>
+                    "{activeQuiz.promptSentence || activeQuiz.sentenceWithProblem}"
+                  </Text>
+                </View>
+              )}
 
               <Text style={[styles.quizQuestion, { color: theme.textPrimary }]}>{activeQuiz.question}</Text>
 
@@ -688,7 +813,7 @@ export default function GrammarScreen() {
               </View>
             </Card>
           ) : (
-            <Card style={[styles.quizCompletedCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+            <Card style={[styles.quizCompletedCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, marginTop: 10 }]}>
               <Text style={{ fontSize: 50, textAlign: 'center' }}>🏆</Text>
               <Text style={[styles.completedTitle, { color: theme.textPrimary }]}>Grammar Quiz Completed!</Text>
               <Text style={[styles.completedSubtitle, { color: theme.textSecondary }]}>
@@ -777,9 +902,21 @@ const styles = StyleSheet.create({
   ruleUsage: { fontSize: 11, fontWeight: '500' },
   exCorrect: { fontSize: 11, fontWeight: '700', color: '#16A34A' },
   exWrong: { fontSize: 11, color: '#EF4444', textDecorationLine: 'line-through' },
+  audienceSelectorCard: { padding: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, marginBottom: 4 },
+  audienceLabel: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
+  toggleWrap: { flexDirection: 'row', borderRadius: 10, padding: 2 },
+  toggleBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  toggleBtnActive: { backgroundColor: COLORS.primary },
+  toggleBtnText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
+  toggleBtnTextActive: { color: '#FFFFFF' },
+  trackChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginRight: 6, marginTop: 4 },
+  trackChipActive: { backgroundColor: COLORS.primary },
+  trackChipText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
+  trackChipTextActive: { color: '#FFFFFF' },
   quizCard: { padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth },
   quizHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  quizProgressText: { fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
+  quizProgressText: { fontSize: 11, fontWeight: '900', textTransform: 'uppercase' },
+  formatBadgeText: { fontSize: 10, fontWeight: '900', color: '#D97706', backgroundColor: 'rgba(245,158,11,0.15)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   quizScoreText: { fontSize: 12, fontWeight: '600' },
   problemBox: { padding: 12, borderRadius: 12, backgroundColor: 'rgba(245,158,11,0.15)', borderWidth: 1, borderColor: '#FCD34D', marginBottom: 10 },
   problemLabel: { fontSize: 10, fontWeight: '800', color: '#D97706', textTransform: 'uppercase' },
