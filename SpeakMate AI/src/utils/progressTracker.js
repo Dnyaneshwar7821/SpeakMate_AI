@@ -112,6 +112,9 @@ export const saveProgressStats = (stats, userContext = null) => {
   const key = getStorageKey(userContext);
   try {
     localStorage.setItem(key, JSON.stringify(stats));
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("speakmate_progress_updated", { detail: stats }));
+    }
   } catch (e) {}
 };
 

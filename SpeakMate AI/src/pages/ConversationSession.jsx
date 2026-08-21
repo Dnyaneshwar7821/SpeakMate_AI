@@ -64,11 +64,14 @@ export function ConversationSession() {
   const scenario = searchParams.get("scenario") || location.state?.scenarioTitle || "Free Speaking Practice";
   const xpReward = Number(searchParams.get("xpReward")) || 20;
 
-  const initialGreeting = location.state?.scenarioDesc
-    ? `Hello! Welcome to '${scenario}'. ${location.state.scenarioDesc} Let's practice speaking together!`
-    : `Hello! I am your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`;
+  const passedGreeting = location.state?.initialGreeting;
+  const cleanScn = (scenario || "").replace(/\b(conversation|practice|session)\b/gi, "").trim();
+  const scnLabel = cleanScn ? `${cleanScn} ` : "";
+  const initialGreeting = passedGreeting || (location.state?.scenarioDesc
+    ? `Hello! Welcome to our ${scnLabel}practice. ${location.state.scenarioDesc} Let's get started!`
+    : `Hello! Welcome to our ${scnLabel}conversation practice. How can I help you today?`);
 
-  const [sessionId, setSessionId] = useState(sessionIdParam || null);
+  const [sessionId, setSessionId] = useState(sessionIdParam || location.state?.sessionId || null);
   const [messages, setMessages] = useState([
     {
       id: "1",
@@ -87,9 +90,9 @@ export function ConversationSession() {
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
 
-  // Initialize speaking session with backend
+  // Initialize speaking session with backend if not already provided
   useEffect(() => {
-    if (!sessionIdParam) {
+    if (!sessionId && !sessionIdParam) {
       speakingService.start({ scenario, level: chatLevel })
         .then((res) => {
           if (res?.id) {
@@ -101,7 +104,7 @@ export function ConversationSession() {
           setSessionId(`sim_${Date.now()}`);
         });
     }
-  }, [sessionIdParam, scenario, chatLevel]);
+  }, [sessionId, sessionIdParam, scenario, chatLevel]);
 
   // Avatar Model State & Hooks
   const [model, setModel] = useState(null);
@@ -150,33 +153,15 @@ export function ConversationSession() {
 
   const getSpeakableText = (feedback) => {
     if (!feedback) return "";
-    let text = cleanDialogueText(feedback.aiReply || feedback.message || "");
-    const isCorrect =
-      feedback.grammarCorrection &&
-      (feedback.grammarCorrection.includes("✅") ||
-        feedback.grammarCorrection.toLowerCase().includes("correct"));
-
-    if (feedback.grammarCorrection && !isCorrect && !feedback.grammarCorrection.includes("|")) {
-      const cleanCorrection = cleanDialogueText(feedback.grammarCorrection);
-      if (cleanCorrection) {
-        text += `. A better way to say that is: "${cleanCorrection}".`;
-      }
-      if (feedback.explanation && !feedback.explanation.includes("|")) {
-        const cleanExpl = cleanDialogueText(feedback.explanation);
-        if (cleanExpl) text += ` ${cleanExpl}`;
-      }
-    } else if (feedback.betterSentence && !feedback.betterSentence.includes("|")) {
-      const cleanBetter = cleanDialogueText(feedback.betterSentence);
-      if (cleanBetter) {
-        text += `. You could also express it as: "${cleanBetter}".`;
+    let text = feedback.aiReply || feedback.message || feedback.response || "";
+    if (text.includes("Analyze User Input:") || text.includes("Context:") || text.includes("Requirements:")) {
+      const idx = text.lastIndexOf("\n\n");
+      if (idx !== -1 && idx < text.length - 1) {
+        text = text.substring(idx).trim();
       }
     }
-
-    if (feedback.followUpQuestion && !feedback.followUpQuestion.includes("|")) {
-      const cleanFollow = cleanDialogueText(feedback.followUpQuestion);
-      if (cleanFollow && !text.includes(cleanFollow)) {
-        text += ` ${cleanFollow}`;
-      }
+    if (feedback.followUpQuestion && !text.toLowerCase().includes(feedback.followUpQuestion.toLowerCase())) {
+      text += ` ${feedback.followUpQuestion}`;
     }
     return cleanDialogueText(text);
   };
@@ -199,16 +184,21 @@ export function ConversationSession() {
     });
   };
 
+  // Speak initial greeting reliably on mount
   useEffect(() => {
+    let active = true;
     warmupSpeechAutoplay();
-    if (messages.length > 0) {
-      const initialText = getSpeakableText(messages[0]);
-      const timerId = setTimeout(() => {
-        handleSpeakText(initialText || messages[0].message);
-      }, 400);
-      return () => clearTimeout(timerId);
-    }
-  }, [sessionId]);
+    const timerId = setTimeout(() => {
+      if (active && initialGreeting) {
+        handleSpeakText(initialGreeting);
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(timerId);
+    };
+  }, [initialGreeting]);
 
   useEffect(() => {
     let interval = null;
@@ -284,7 +274,7 @@ export function ConversationSession() {
       setHints(data || []);
     } catch (e) {
       console.warn("Failed to fetch hints:", e);
-    } fontFinally: {
+    } finally {
       setLoadingHints(false);
     }
   };

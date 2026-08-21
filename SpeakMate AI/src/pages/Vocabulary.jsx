@@ -169,6 +169,15 @@ export function Vocabulary() {
 
   useEffect(() => {
     loadVocabulary();
+    const handleRefresh = () => {
+      loadVocabulary();
+    };
+    window.addEventListener("focus", handleRefresh);
+    window.addEventListener("speakmate_progress_updated", handleRefresh);
+    return () => {
+      window.removeEventListener("focus", handleRefresh);
+      window.removeEventListener("speakmate_progress_updated", handleRefresh);
+    };
   }, []);
 
   const handleSpeak = (text) => {

@@ -50,6 +50,7 @@ export function Dashboard() {
   useEffect(() => {
     refreshStats();
     window.addEventListener("focus", refreshStats);
+    window.addEventListener("speakmate_progress_updated", refreshStats);
     dashboardService
       .summary()
       .then((data) => {
@@ -59,7 +60,10 @@ export function Dashboard() {
       })
       .catch(() => {});
 
-    return () => window.removeEventListener("focus", refreshStats);
+    return () => {
+      window.removeEventListener("focus", refreshStats);
+      window.removeEventListener("speakmate_progress_updated", refreshStats);
+    };
   }, [user, activeGrade, activeAgeGroup]);
 
   useEffect(() => {

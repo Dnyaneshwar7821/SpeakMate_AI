@@ -27,6 +27,15 @@ export function Achievements() {
 
   useEffect(() => {
     loadAchievements();
+    const handleRefresh = () => {
+      loadAchievements();
+    };
+    window.addEventListener("focus", handleRefresh);
+    window.addEventListener("speakmate_progress_updated", handleRefresh);
+    return () => {
+      window.removeEventListener("focus", handleRefresh);
+      window.removeEventListener("speakmate_progress_updated", handleRefresh);
+    };
   }, []);
 
   const maxTier = items.length > 0 ? Math.max(...items.map((i) => i.tier || 1)) : 1;

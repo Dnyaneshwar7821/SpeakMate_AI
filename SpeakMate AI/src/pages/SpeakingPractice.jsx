@@ -206,6 +206,15 @@ export function SpeakingPractice() {
 
   useEffect(() => {
     loadData();
+    const handleProgressUpdate = () => {
+      loadData();
+    };
+    window.addEventListener("focus", handleProgressUpdate);
+    window.addEventListener("speakmate_progress_updated", handleProgressUpdate);
+    return () => {
+      window.removeEventListener("focus", handleProgressUpdate);
+      window.removeEventListener("speakmate_progress_updated", handleProgressUpdate);
+    };
   }, []);
 
   const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
@@ -227,21 +236,24 @@ export function SpeakingPractice() {
 
   const handleStartScenario = (scenario) => {
     warmupSpeechAutoplay();
+    const cleanScn = (scenario.title || "").replace(/\b(conversation|practice|session)\b/gi, "").trim();
+    const scnLabel = cleanScn ? `${cleanScn} ` : "";
+    const defaultGreeting = scenario.desc
+      ? `Hello! Welcome to our ${scnLabel}practice. ${scenario.desc} Let's get started!`
+      : `Hello! Welcome to our ${scnLabel}conversation practice. How can I help you today?`;
+
+    // Navigate immediately to preserve browser audio autoplay user-gesture token
     navigate(ROUTES.CONVERSATION_SESSION, {
       state: {
         scenarioId: scenario.id,
         scenarioTitle: scenario.title,
         scenarioIcon: scenario.icon,
         scenarioDesc: scenario.desc,
+        initialGreeting: defaultGreeting,
+        xpReward: scenario.xp || 20,
         level: isStudent ? selectedGrade : selectedAgeGroup,
       },
     });
-
-    speakingService.start({
-      topic: scenario.title,
-      level: isStudent ? selectedGrade : selectedAgeGroup,
-      targetLanguage: "English",
-    }).catch(() => {});
   };
 
   const handleDeleteHistoryItem = async (id, e) => {

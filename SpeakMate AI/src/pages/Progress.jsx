@@ -31,7 +31,11 @@ export function Progress() {
   useEffect(() => {
     updateStats();
     window.addEventListener("focus", updateStats);
-    return () => window.removeEventListener("focus", updateStats);
+    window.addEventListener("speakmate_progress_updated", updateStats);
+    return () => {
+      window.removeEventListener("focus", updateStats);
+      window.removeEventListener("speakmate_progress_updated", updateStats);
+    };
   }, []);
 
   const totalHours = liveStats.totalHours || liveStats.totalStudyHours || 0;

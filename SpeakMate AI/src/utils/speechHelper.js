@@ -353,18 +353,14 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   // Global Speech Lock flag
   window._speakmate_ai_is_speaking = true;
 
-  // Split long text into natural clause / sentence chunks to prevent Chromium 15s freeze
-  const rawChunks = cleanText.match(/[^.!?]+[.!?]+|[^.!?]+/g) || [cleanText];
-  const chunks = rawChunks.map((c) => c.trim()).filter(Boolean);
-
   let keepAliveInterval = null;
 
   EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
 
-  // Chrome keep-alive heartbeat (safely resumes without stopping speech)
+  // Chrome keep-alive heartbeat (safely resumes without interrupting speech)
   keepAliveInterval = setInterval(() => {
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      if (window.speechSynthesis.paused) {
+      if (window.speechSynthesis.speaking && window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       }
     }
@@ -378,78 +374,90 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
     window._activeUtterance = null;
   };
 
-  const speakChunk = (index) => {
-    if (index >= chunks.length) {
-      cleanupKeepAlive();
-      // Keep Speech Lock active for 1000ms speaker audio buffer safety margin
-      setTimeout(() => {
-        if (!window.speechSynthesis?.speaking && !window.speechSynthesis?.pending) {
-          window._speakmate_ai_is_speaking = false;
-        }
-        EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
-        if (options.onend) options.onend();
-      }, 1000);
-      return;
+  const utterance = new SpeechSynthesisUtterance(cleanText);
+  window._activeUtterance = utterance;
+
+  utterance.onstart = (e) => {
+    window._speakmate_ai_is_speaking = true;
+    if (options.onstart) options.onstart(e);
+  };
+
+  utterance.onboundary = (e) => {
+    window._speakmate_ai_is_speaking = true;
+    if (e.name === "word" || e.charIndex !== undefined) {
+      const remaining = cleanText.substring(e.charIndex, e.charIndex + (e.charLength || 8));
+      const word = remaining.split(/\s+/)[0] || "";
+      const visemeObj = getPrimaryVisemeForWord(word);
+      EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, {
+        word,
+        viseme: visemeObj.viseme,
+        yVal: visemeObj.yVal,
+        formVal: visemeObj.formVal,
+      });
     }
+    if (options.onboundary) options.onboundary(e);
+  };
 
-    const chunkText = chunks[index];
-    const utterance = new SpeechSynthesisUtterance(chunkText);
-    window._activeUtterance = utterance;
-
-    utterance.onstart = (e) => {
-      window._speakmate_ai_is_speaking = true;
-      if (options.onstart && index === 0) options.onstart(e);
-    };
-
-    utterance.onboundary = (e) => {
-      window._speakmate_ai_is_speaking = true;
-      if (e.name === "word" || e.charIndex !== undefined) {
-        const remaining = chunkText.substring(e.charIndex, e.charIndex + (e.charLength || 8));
-        const word = remaining.split(/\s+/)[0] || "";
-        const visemeObj = getPrimaryVisemeForWord(word);
-        EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, {
-          word,
-          viseme: visemeObj.viseme,
-          yVal: visemeObj.yVal,
-          formVal: visemeObj.formVal,
-        });
+  const handleFinish = () => {
+    cleanupKeepAlive();
+    setTimeout(() => {
+      if (!window.speechSynthesis?.speaking && !window.speechSynthesis?.pending) {
+        window._speakmate_ai_is_speaking = false;
       }
-      if (options.onboundary) options.onboundary(e);
-    };
+      EventBus.emit(AVATAR_EVENTS.SPEECH_FINISHED);
+      if (options.onend) options.onend();
+    }, 200);
+  };
 
-    utterance.onend = () => {
-      speakChunk(index + 1);
-    };
+  utterance.onend = () => {
+    handleFinish();
+  };
 
-    utterance.onerror = (err) => {
-      console.warn("[speechHelper] Speech chunk playback warning:", err);
-      speakChunk(index + 1);
-    };
+  utterance.onerror = (err) => {
+    console.warn("[speechHelper] Speech playback warning/interrupted:", err);
+    handleFinish();
+  };
 
-    const doSpeakChunk = () => {
-      try {
-        window.speechSynthesis.resume();
-        applyGlobalVoiceSettings(utterance, speedMultiplier, options.overrideVoiceCode);
-        window.speechSynthesis.speak(utterance);
-      } catch (e) {
-        console.warn("[speechHelper] Chunk speech execution error:", e);
-        speakChunk(index + 1);
+  const doSpeak = () => {
+    try {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.cancel();
       }
-    };
-
-    const voices = window.speechSynthesis.getVoices();
-    if (!voices || voices.length === 0) {
-      window.speechSynthesis.onvoiceschanged = () => {
-        doSpeakChunk();
-      };
-      setTimeout(doSpeakChunk, 200);
-    } else {
-      doSpeakChunk();
+      window.speechSynthesis.resume();
+      applyGlobalVoiceSettings(utterance, speedMultiplier, options.overrideVoiceCode);
+      window.speechSynthesis.speak(utterance);
+      setTimeout(() => {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+      }, 60);
+    } catch (e) {
+      console.warn("[speechHelper] Speech execution error:", e);
+      handleFinish();
     }
   };
 
-  speakChunk(0);
-  return window._activeUtterance;
+  const voices = window.speechSynthesis.getVoices();
+  let hasSpoken = false;
+  if (!voices || voices.length === 0) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      if (!hasSpoken) {
+        hasSpoken = true;
+        doSpeak();
+      }
+    };
+    setTimeout(() => {
+      if (!hasSpoken) {
+        hasSpoken = true;
+        doSpeak();
+      }
+    }, 150);
+  } else {
+    hasSpoken = true;
+    doSpeak();
+  }
+
+  return utterance;
 };
 
 export function getCurrentVoiceGender() {
