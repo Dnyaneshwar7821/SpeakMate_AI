@@ -478,14 +478,14 @@ export function ConversationSession() {
     <div ref={containerRef} className="h-[calc(100vh-80px)] max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 p-2 sm:p-4 overflow-hidden">
       
       {/* LEFT COLUMN: AVATAR STAGE STUDIO */}
-      <div className="lg:w-5/12 h-[320px] lg:h-full bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden relative shadow-2xl flex flex-col shrink-0">
+      <div className="lg:w-5/12 h-[320px] lg:h-full bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-3xl overflow-hidden relative shadow-xl dark:shadow-2xl flex flex-col shrink-0 transition-colors">
         
         {/* Stage Header */}
-        <div className="p-3.5 border-b border-white/10 bg-slate-800/40 backdrop-blur-md flex items-center justify-between gap-3 z-10 shrink-0">
+        <div className="p-3.5 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/80 dark:bg-slate-800/40 backdrop-blur-md flex items-center justify-between gap-3 z-10 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <Link
               to={ROUTES.SPEAKING}
-              className="p-2 rounded-xl bg-slate-800/80 border border-white/10 text-slate-300 hover:text-white transition-colors shrink-0"
+              className="p-2 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0 shadow-sm"
               title="Back to Scenarios"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -495,14 +495,14 @@ export function ConversationSession() {
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <h2 className="font-extrabold text-xs text-white truncate">{scenario}</h2>
+                <h2 className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{scenario}</h2>
               </div>
               <p className="text-[10px] text-[#6c63ff] font-semibold truncate">{avatarState}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-800/80 border border-white/10 text-[11px] font-extrabold text-white">
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10 text-[11px] font-extrabold text-slate-800 dark:text-white shadow-sm">
               <span>⏱️</span>
               <span>{formatTime(timer)}</span>
             </div>
@@ -517,7 +517,7 @@ export function ConversationSession() {
                 setIsPaused(!isPaused);
               }}
               className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all border shadow-sm ${
-                isPaused ? "bg-amber-500/20 text-amber-500 border-amber-500/40" : "bg-slate-800/80 border-white/10 text-slate-300 hover:text-white"
+                isPaused ? "bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-500/40" : "bg-white dark:bg-slate-800/80 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {isPaused ? "▶" : "⏸"}
@@ -526,17 +526,17 @@ export function ConversationSession() {
         </div>
 
         {/* Live2D Avatar Canvas Display (Unobstructed, studio stage) */}
-        <div className="flex-1 relative w-full h-full overflow-hidden bg-gradient-to-b from-[#0F172A] via-[#111827] to-[#0B0F19] flex items-center justify-center">
+        <div className="flex-1 relative w-full h-full overflow-hidden bg-gradient-to-b from-indigo-50/70 via-slate-100/60 to-purple-50/50 dark:from-[#0F172A] dark:via-[#111827] dark:to-[#0B0F19] flex items-center justify-center">
           <AvatarCanvas className="w-full h-full" onModelLoaded={setModel} framing="faceToChest" />
           
           {/* Subtle Stage Lighting Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-200/40 dark:from-slate-950/80 via-transparent to-transparent pointer-events-none" />
           
           {/* Avatar Speech Waves Floating Pill */}
-          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between p-2.5 rounded-2xl bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-lg pointer-events-none">
+          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between p-2.5 rounded-2xl bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-lg pointer-events-none">
             <div className="flex items-center gap-2">
-              <span className={`h-2.5 w-2.5 rounded-full ${isAiSpeaking ? 'bg-emerald-400 animate-ping' : isListening ? 'bg-rose-500 animate-pulse' : 'bg-[#6c63ff]'}`} />
-              <span className="text-[11px] font-bold text-slate-200">{avatarState}</span>
+              <span className={`h-2.5 w-2.5 rounded-full ${isAiSpeaking ? 'bg-emerald-500 animate-ping' : isListening ? 'bg-rose-500 animate-pulse' : 'bg-[#6c63ff]'}`} />
+              <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">{avatarState}</span>
             </div>
             {isAiSpeaking && (
               <div className="flex items-center gap-0.5 h-3">
@@ -550,21 +550,21 @@ export function ConversationSession() {
       </div>
 
       {/* RIGHT COLUMN: CONVERSATION THREAD & CONTROL CENTER */}
-      <div className="lg:w-7/12 flex-1 flex flex-col bg-slate-900/80 backdrop-blur-2xl border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative min-h-0">
+      <div className="lg:w-7/12 flex-1 flex flex-col bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-3xl overflow-hidden shadow-xl dark:shadow-2xl relative min-h-0 transition-colors">
         
         {/* Panel Header */}
-        <div className="px-5 py-3 border-b border-white/10 bg-slate-800/40 backdrop-blur-md flex items-center justify-between shrink-0">
+        <div className="px-5 py-3 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/80 dark:bg-slate-800/40 backdrop-blur-md flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#6c63ff]" />
-            <span className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">
+            <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
               Live Speaking Practice
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#6c63ff]/15 border border-[#6c63ff]/30 text-[#A5B4FC]">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#6c63ff]/10 dark:bg-[#6c63ff]/15 border border-[#6c63ff]/25 dark:border-[#6c63ff]/30 text-[#6c63ff] dark:text-[#A5B4FC]">
               {messages.length} Exchanges
             </span>
-            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
+            <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/25 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400">
               {chatLevel}
             </span>
           </div>
@@ -578,17 +578,17 @@ export function ConversationSession() {
                 className={`max-w-[88%] sm:max-w-[80%] p-4 rounded-2xl text-xs font-semibold shadow-md space-y-2 ${
                   m.sender === "user"
                     ? "bg-gradient-to-r from-[#6c63ff] to-[#5a52e0] text-white rounded-br-none"
-                    : "bg-slate-800/80 backdrop-blur-md border border-white/10 text-slate-100 rounded-bl-none"
+                    : "bg-white dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/90 dark:border-white/10 text-slate-800 dark:text-slate-100 rounded-bl-none shadow-sm"
                 }`}
               >
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-[10px] opacity-80 font-black uppercase tracking-wide flex items-center gap-1.5">
+                  <span className={`text-[10px] font-black uppercase tracking-wide flex items-center gap-1.5 ${m.sender === "user" ? "text-white/90" : "text-slate-500 dark:text-slate-400"}`}>
                     {m.sender === "user" ? "👤 You" : "🤖 SpeakMate AI Tutor"}
                   </span>
                   {m.sender === "ai" && (
                     <button
                       onClick={() => handleSpeakText(m.message)}
-                      className="p-1 rounded-lg bg-white/10 hover:bg-white/20 transition-all text-xs"
+                      className="p-1 rounded-lg bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-slate-700 dark:text-white transition-all text-xs"
                       title="Replay Voice"
                     >
                       🔊
@@ -609,8 +609,8 @@ export function ConversationSession() {
 
           {/* Dynamic Tutor Feedback & Corrections card */}
           {corrections && (
-            <div className="p-4 rounded-2xl bg-slate-800/90 backdrop-blur-md border border-white/10 space-y-2.5 shadow-2xl animate-in fade-in duration-300">
-              <div className="flex items-center justify-between gap-2 text-xs font-extrabold text-[#6c63ff] pb-2 border-b border-white/10">
+            <div className="p-4 rounded-2xl bg-white/95 dark:bg-slate-800/90 backdrop-blur-md border border-slate-200/90 dark:border-white/10 space-y-2.5 shadow-lg dark:shadow-2xl animate-in fade-in duration-300">
+              <div className="flex items-center justify-between gap-2 text-xs font-extrabold text-[#6c63ff] pb-2 border-b border-slate-200/80 dark:border-white/10">
                 <span className="flex items-center gap-1.5">🎓 Live Tutor Evaluation</span>
                 <button
                   onClick={() => handleSpeakText(getSpeakableText(corrections))}
@@ -623,29 +623,29 @@ export function ConversationSession() {
 
               {corrections.grammarCorrection && (
                 <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-1">
-                  <span className="text-[10px] font-black text-emerald-500 uppercase tracking-wider">Grammar Tip</span>
-                  <p className="font-semibold text-emerald-300">👉 {corrections.grammarCorrection}</p>
+                  <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-500 uppercase tracking-wider">Grammar Tip</span>
+                  <p className="font-semibold text-emerald-700 dark:text-emerald-300">👉 {corrections.grammarCorrection}</p>
                 </div>
               )}
 
               {corrections.betterSentence && (
                 <div className="p-2.5 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-xs space-y-1">
                   <span className="text-[10px] font-black text-[#6c63ff] uppercase tracking-wider">Native Expression</span>
-                  <p className="font-semibold text-slate-100">💡 "{corrections.betterSentence}"</p>
+                  <p className="font-semibold text-slate-800 dark:text-slate-100">💡 "{corrections.betterSentence}"</p>
                 </div>
               )}
 
               {corrections.explanation && (
-                <div className="p-2.5 rounded-xl bg-slate-900/60 border border-white/10 text-xs space-y-1">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Explanation</span>
-                  <p className="font-normal italic text-slate-300">{corrections.explanation}</p>
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 text-xs space-y-1">
+                  <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">Explanation</span>
+                  <p className="font-normal italic text-slate-600 dark:text-slate-300">{corrections.explanation}</p>
                 </div>
               )}
 
               {corrections.vocabularySuggestions && (
                 <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-1">
-                  <span className="text-[10px] font-black text-amber-500 uppercase tracking-wider">Vocabulary Upgrade</span>
-                  <p className="font-semibold text-amber-300">✨ {corrections.vocabularySuggestions}</p>
+                  <span className="text-[10px] font-black text-amber-600 dark:text-amber-500 uppercase tracking-wider">Vocabulary Upgrade</span>
+                  <p className="font-semibold text-amber-700 dark:text-amber-300">✨ {corrections.vocabularySuggestions}</p>
                 </div>
               )}
             </div>
@@ -654,7 +654,7 @@ export function ConversationSession() {
           {/* Live Transcript Stream */}
           {isListening && (
             <div className="flex flex-col items-end">
-              <div className="p-3.5 rounded-2xl bg-[#6c63ff]/20 border border-[#6c63ff]/40 text-xs font-semibold text-white italic animate-pulse">
+              <div className="p-3.5 rounded-2xl bg-[#6c63ff]/20 border border-[#6c63ff]/40 text-xs font-semibold text-indigo-950 dark:text-white italic animate-pulse">
                 🎙️ "{currentTranscript || "Listening to your voice..."}"
               </div>
             </div>
@@ -668,15 +668,15 @@ export function ConversationSession() {
           const lastAi = [...messages].reverse().find((m) => m.sender === "ai");
           const activeHints = hints.length > 0 ? hints : getScenarioHints(scenario, lastAi);
           return (
-            <div className="p-2.5 sm:px-4 border-t border-white/10 bg-slate-900/60 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
-              <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wide shrink-0 flex items-center gap-1">
+            <div className="p-2.5 sm:px-4 border-t border-slate-200/80 dark:border-white/10 bg-slate-50/90 dark:bg-slate-900/60 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
+              <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wide shrink-0 flex items-center gap-1">
                 💡 Suggestions:
               </span>
               {activeHints.map((hint, idx) => (
                 <button
                   key={idx}
                   onClick={() => sendUserText(hint)}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-[#6c63ff] hover:text-white text-slate-200 text-xs font-semibold shrink-0 transition-all border border-white/10 shadow-sm whitespace-nowrap"
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800/80 hover:bg-[#6c63ff] hover:text-white dark:hover:bg-[#6c63ff] dark:hover:text-white text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all border border-slate-200/80 dark:border-white/10 shadow-sm whitespace-nowrap"
                 >
                   {hint}
                 </button>
@@ -686,20 +686,20 @@ export function ConversationSession() {
         })()}
 
         {/* Bottom Control Center */}
-        <div className="p-3 sm:p-4 border-t border-white/10 bg-slate-900/80 backdrop-blur-2xl flex flex-col gap-2.5 shrink-0">
+        <div className="p-3 sm:p-4 border-t border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-slate-900/80 backdrop-blur-2xl flex flex-col gap-2.5 shrink-0">
           {isListening && (
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs font-bold text-rose-400">
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs font-bold text-rose-500 dark:text-rose-400">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5 h-4">
-                  <span className="w-1 bg-rose-400 rounded-full h-3 animate-pulse" />
-                  <span className="w-1 bg-rose-400 rounded-full h-5 animate-pulse" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1 bg-rose-400 rounded-full h-3.5 animate-pulse" style={{ animationDelay: "300ms" }} />
-                  <span className="w-1 bg-rose-400 rounded-full h-5 animate-pulse" style={{ animationDelay: "75ms" }} />
-                  <span className="w-1 bg-rose-400 rounded-full h-2.5 animate-pulse" style={{ animationDelay: "225ms" }} />
+                  <span className="w-1 bg-rose-500 rounded-full h-3 animate-pulse" />
+                  <span className="w-1 bg-rose-500 rounded-full h-5 animate-pulse" style={{ animationDelay: "150ms" }} />
+                  <span className="w-1 bg-rose-500 rounded-full h-3.5 animate-pulse" style={{ animationDelay: "300ms" }} />
+                  <span className="w-1 bg-rose-500 rounded-full h-5 animate-pulse" style={{ animationDelay: "75ms" }} />
+                  <span className="w-1 bg-rose-500 rounded-full h-2.5 animate-pulse" style={{ animationDelay: "225ms" }} />
                 </div>
                 <span>Listening to your speech...</span>
               </div>
-              <span className="text-[10px] uppercase font-black text-rose-300">Tap Red Button To Send</span>
+              <span className="text-[10px] uppercase font-black text-rose-600 dark:text-rose-300">Tap Red Button To Send</span>
             </div>
           )}
 
@@ -715,7 +715,7 @@ export function ConversationSession() {
                   setIsMuted(!isMuted);
                 }}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm ${
-                  isMuted ? "bg-rose-500/10 border-rose-500/30 text-rose-500" : "bg-slate-800/60 border-white/10 text-slate-300 hover:text-white"
+                  isMuted ? "bg-rose-500/10 border-rose-500/30 text-rose-500" : "bg-slate-100 dark:bg-slate-800/60 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
                 }`}
                 title={isMuted ? "Unmute AI Voice" : "Mute AI Voice"}
               >
@@ -724,7 +724,7 @@ export function ConversationSession() {
 
               <button
                 onClick={handleToggleSpeed}
-                className="px-3.5 py-2 rounded-xl bg-slate-800/60 border border-white/10 text-xs font-extrabold text-[#6c63ff] hover:opacity-80 transition-all shadow-sm flex items-center gap-1.5"
+                className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/80 dark:border-white/10 text-xs font-extrabold text-[#6c63ff] hover:bg-slate-200 dark:hover:bg-slate-700 transition-all shadow-sm flex items-center gap-1.5"
                 title="Adjust Speech Speed"
               >
                 <span>⏱️ {speechSpeed}x</span>
@@ -766,7 +766,7 @@ export function ConversationSession() {
               <button
                 onClick={handleFetchHints}
                 disabled={loadingHints}
-                className="px-3 py-2 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-[#6c63ff] text-xs font-bold hover:bg-[#6c63ff]/20 transition-all"
+                className="px-3 py-2 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-[#6c63ff] text-xs font-bold hover:bg-[#6c63ff]/20 transition-all shadow-sm"
                 title="Get AI Suggestion"
               >
                 💡 {loadingHints ? "..." : "Hint"}
