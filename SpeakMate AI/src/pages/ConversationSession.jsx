@@ -478,14 +478,14 @@ export function ConversationSession() {
     <div ref={containerRef} className="h-[calc(100vh-80px)] max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 p-2 sm:p-4 overflow-hidden">
       
       {/* LEFT COLUMN: AVATAR STAGE STUDIO */}
-      <div className="lg:w-5/12 h-[320px] lg:h-full bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-3xl overflow-hidden relative shadow-xl dark:shadow-2xl flex flex-col shrink-0 transition-colors">
+      <div className="lg:w-5/12 h-[320px] lg:h-full bg-white dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden relative shadow-xl dark:shadow-2xl flex flex-col shrink-0 transition-colors">
         
         {/* Stage Header */}
-        <div className="p-3.5 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/80 dark:bg-slate-800/40 backdrop-blur-md flex items-center justify-between gap-3 z-10 shrink-0">
+        <div className="p-3.5 border-b border-slate-200 dark:border-white/10 bg-slate-50/90 dark:bg-slate-800/40 backdrop-blur-md flex items-center justify-between gap-3 z-10 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <Link
               to={ROUTES.SPEAKING}
-              className="p-2 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0 shadow-sm"
+              className="p-2 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0 shadow-sm"
               title="Back to Scenarios"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -502,7 +502,7 @@ export function ConversationSession() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200/80 dark:border-white/10 text-[11px] font-extrabold text-slate-800 dark:text-white shadow-sm">
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-white/10 text-[11px] font-extrabold text-slate-800 dark:text-white shadow-sm">
               <span>⏱️</span>
               <span>{formatTime(timer)}</span>
             </div>
@@ -517,7 +517,7 @@ export function ConversationSession() {
                 setIsPaused(!isPaused);
               }}
               className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all border shadow-sm ${
-                isPaused ? "bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-500/40" : "bg-white dark:bg-slate-800/80 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+                isPaused ? "bg-amber-500/20 text-amber-600 dark:text-amber-500 border-amber-500/40" : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               {isPaused ? "▶" : "⏸"}
@@ -526,14 +526,14 @@ export function ConversationSession() {
         </div>
 
         {/* Live2D Avatar Canvas Display (Unobstructed, studio stage) */}
-        <div className="flex-1 relative w-full h-full overflow-hidden bg-gradient-to-b from-indigo-50/70 via-slate-100/60 to-purple-50/50 dark:from-[#0F172A] dark:via-[#111827] dark:to-[#0B0F19] flex items-center justify-center">
+        <div className="flex-1 relative w-full h-full overflow-hidden bg-gradient-to-b from-slate-100 via-indigo-50/60 to-purple-50/40 dark:from-[#0F172A] dark:via-[#111827] dark:to-[#0B0F19] flex items-center justify-center">
           <AvatarCanvas className="w-full h-full" onModelLoaded={setModel} framing="faceToChest" />
           
           {/* Subtle Stage Lighting Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-200/40 dark:from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-200/50 dark:from-slate-950/80 via-transparent to-transparent pointer-events-none" />
           
           {/* Avatar Speech Waves Floating Pill */}
-          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between p-2.5 rounded-2xl bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-lg pointer-events-none">
+          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between p-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/90 dark:border-white/10 shadow-lg pointer-events-none">
             <div className="flex items-center gap-2">
               <span className={`h-2.5 w-2.5 rounded-full ${isAiSpeaking ? 'bg-emerald-500 animate-ping' : isListening ? 'bg-rose-500 animate-pulse' : 'bg-[#6c63ff]'}`} />
               <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200">{avatarState}</span>
@@ -550,10 +550,10 @@ export function ConversationSession() {
       </div>
 
       {/* RIGHT COLUMN: CONVERSATION THREAD & CONTROL CENTER */}
-      <div className="lg:w-7/12 flex-1 flex flex-col bg-white/90 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200/80 dark:border-white/10 rounded-3xl overflow-hidden shadow-xl dark:shadow-2xl relative min-h-0 transition-colors">
+      <div className="lg:w-7/12 flex-1 flex flex-col bg-white dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden shadow-xl dark:shadow-2xl relative min-h-0 transition-colors">
         
         {/* Panel Header */}
-        <div className="px-5 py-3 border-b border-slate-200/80 dark:border-white/10 bg-slate-50/80 dark:bg-slate-800/40 backdrop-blur-md flex items-center justify-between shrink-0">
+        <div className="px-5 py-3 border-b border-slate-200 dark:border-white/10 bg-slate-50/90 dark:bg-slate-800/40 backdrop-blur-md flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#6c63ff]" />
             <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
@@ -668,7 +668,7 @@ export function ConversationSession() {
           const lastAi = [...messages].reverse().find((m) => m.sender === "ai");
           const activeHints = hints.length > 0 ? hints : getScenarioHints(scenario, lastAi);
           return (
-            <div className="p-2.5 sm:px-4 border-t border-slate-200/80 dark:border-white/10 bg-slate-50/90 dark:bg-slate-900/60 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
+            <div className="p-2.5 sm:px-4 border-t border-slate-200 dark:border-white/10 bg-slate-50/90 dark:bg-slate-900/60 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
               <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-300 uppercase tracking-wide shrink-0 flex items-center gap-1">
                 💡 Suggestions:
               </span>
@@ -676,7 +676,7 @@ export function ConversationSession() {
                 <button
                   key={idx}
                   onClick={() => sendUserText(hint)}
-                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800/80 hover:bg-[#6c63ff] hover:text-white dark:hover:bg-[#6c63ff] dark:hover:text-white text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all border border-slate-200/80 dark:border-white/10 shadow-sm whitespace-nowrap"
+                  className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800/80 hover:bg-[#6c63ff] hover:text-white dark:hover:bg-[#6c63ff] dark:hover:text-white text-slate-700 dark:text-slate-200 text-xs font-semibold shrink-0 transition-all border border-slate-200 dark:border-white/10 shadow-sm whitespace-nowrap"
                 >
                   {hint}
                 </button>
@@ -686,7 +686,7 @@ export function ConversationSession() {
         })()}
 
         {/* Bottom Control Center */}
-        <div className="p-3 sm:p-4 border-t border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-slate-900/80 backdrop-blur-2xl flex flex-col gap-2.5 shrink-0">
+        <div className="p-3 sm:p-4 border-t border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 backdrop-blur-2xl flex flex-col gap-2.5 shrink-0">
           {isListening && (
             <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs font-bold text-rose-500 dark:text-rose-400">
               <div className="flex items-center gap-2">
