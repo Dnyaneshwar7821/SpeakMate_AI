@@ -75,6 +75,13 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     ModelLoader.loadModel(targetModelPath, app)
       .then((loadedModel) => {
         if (!isMounted) return;
+        
+        // Prevent PixiJS v7 EventBoundary isInteractive recursion errors
+        loadedModel.interactive = false;
+        loadedModel.interactiveChildren = false;
+        loadedModel.eventMode = 'none';
+        loadedModel.isInteractive = () => false;
+
         modelRef.current = loadedModel;
         handleResize();
         if (onModelLoaded) {

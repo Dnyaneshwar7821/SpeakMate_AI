@@ -14,15 +14,18 @@ if (typeof window !== 'undefined') {
   window.PIXI = PIXI;
 }
 
-if (PIXI?.DisplayObject && !PIXI.DisplayObject.prototype.isInteractive) {
-  PIXI.DisplayObject.prototype.isInteractive = function() {
-    return this.interactive || this.eventMode === 'static' || this.eventMode === 'dynamic';
-  };
+const isInteractiveFn = function() {
+  return Boolean(this.interactive || this.eventMode === 'static' || this.eventMode === 'dynamic');
+};
+
+if (PIXI?.DisplayObject) {
+  PIXI.DisplayObject.prototype.isInteractive = isInteractiveFn;
 }
-if (PIXI?.Container && !PIXI.Container.prototype.isInteractive) {
-  PIXI.Container.prototype.isInteractive = function() {
-    return this.interactive || this.eventMode === 'static' || this.eventMode === 'dynamic';
-  };
+if (PIXI?.Container) {
+  PIXI.Container.prototype.isInteractive = isInteractiveFn;
+}
+if (Live2DModel && !Live2DModel.prototype.isInteractive) {
+  Live2DModel.prototype.isInteractive = isInteractiveFn;
 }
 
 // Register PIXI Ticker constructor for Live2D update loops

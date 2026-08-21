@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, useLocation, Link } from "react-router-dom";
 
+import ROUTES from "../constants/routes";
 import { aiService, speakingService } from "../services/appServices";
 import { generateDynamicCoachingResponse } from "../utils/aiConversationEngine";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
