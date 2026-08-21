@@ -166,8 +166,13 @@ export function ConversationSession() {
     return cleanDialogueText(text);
   };
 
-  const handleSpeakText = (text) => {
-    if (isMuted || !text) return;
+  const coachingTimerRef = useRef(null);
+
+  const handleSpeakText = (text, onComplete = null) => {
+    if (isMuted || !text) {
+      if (onComplete) onComplete();
+      return;
+    }
     warmupSpeechAutoplay();
     speakGlobalText(text, speechSpeed, {
       onstart: () => {
@@ -176,10 +181,12 @@ export function ConversationSession() {
       onend: () => {
         setIsAiSpeaking(false);
         setViseme("REST");
+        if (onComplete) onComplete();
       },
       onerror: () => {
         setIsAiSpeaking(false);
         setViseme("REST");
+        if (onComplete) onComplete();
       },
     });
   };
@@ -281,6 +288,10 @@ export function ConversationSession() {
 
   const handleStartListening = () => {
     if (isPaused) return;
+    if (coachingTimerRef.current) {
+      clearTimeout(coachingTimerRef.current);
+      coachingTimerRef.current = null;
+    }
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       setIsAiSpeaking(false);
@@ -390,16 +401,41 @@ export function ConversationSession() {
       }
 
       const fullSpeakableText = getSpeakableText(feedback);
+      const cleanBetter = feedback.betterSentence ? cleanDialogueText(feedback.betterSentence) : null;
+      const isCleanCorrection =
+        feedback.grammarCorrection &&
+        !feedback.grammarCorrection.includes("✅") &&
+        !feedback.grammarCorrection.toLowerCase().includes("correct") &&
+        !feedback.grammarCorrection.includes("|");
+      const cleanCorrection = isCleanCorrection ? cleanDialogueText(feedback.grammarCorrection) : null;
+      const coachingTipSentence = cleanBetter || cleanCorrection;
+
+      if (coachingTimerRef.current) {
+        clearTimeout(coachingTimerRef.current);
+        coachingTimerRef.current = null;
+      }
+
       warmupSpeechAutoplay();
       setTimeout(() => {
-        handleSpeakText(fullSpeakableText);
-      }, 250);
+        handleSpeakText(fullSpeakableText, () => {
+          if (coachingTipSentence && !isMuted) {
+            coachingTimerRef.current = setTimeout(() => {
+              const coachingSpeech = `A better way to say that is: ${coachingTipSentence}`;
+              handleSpeakText(coachingSpeech);
+            }, 300); // 0.30 sec pause before coaching tip
+          }
+        });
+      }, 200);
     } catch (e) {
       setIsThinking(false);
     }
   };
 
   const handleEndSession = async () => {
+    if (coachingTimerRef.current) {
+      clearTimeout(coachingTimerRef.current);
+      coachingTimerRef.current = null;
+    }
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
       setIsAiSpeaking(false);
