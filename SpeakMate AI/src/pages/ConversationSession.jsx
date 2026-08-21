@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, useLocation, Link } from "react-router-dom";
 
-import ROUTES from "../constants/routes";
-import { speakingService } from "../services/appServices";
+import { aiService, speakingService } from "../services/appServices";
+import { generateDynamicCoachingResponse } from "../utils/aiConversationEngine";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
 import { speakGlobalText, warmupSpeechAutoplay } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
@@ -313,18 +313,36 @@ export function ConversationSession() {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
-      const feedback = await speakingService.sendMessage({
-        sessionId,
-        message: text,
-        level: chatLevel,
-      }).catch(() => ({
-        aiReply: "That is a fantastic point! Practicing every day with SpeakMate AI builds natural fluency.",
-        grammarCorrection: "I want to improve my spoken English skills.",
-        betterSentence: "I would like to enhance my English speaking proficiency.",
-        vocabularySuggestions: "Proficiency, Natural fluency, Accent",
-        explanation: "Using 'enhance' adds a formal tone to your conversation.",
-        followUpQuestion: "What is your main goal for practicing English?",
-      }));
+      let feedback = null;
+      try {
+        feedback = await speakingService.sendMessage({
+          sessionId,
+          message: text,
+          level: chatLevel,
+        });
+      } catch (err) {
+        // Fallback to AI service endpoint
+        try {
+          const aiFeedback = await aiService.speakingFeedback(text);
+          if (aiFeedback && (aiFeedback.aiReply || aiFeedback.feedback || aiFeedback.response)) {
+            feedback = {
+              aiReply: aiFeedback.aiReply || aiFeedback.response || aiFeedback.feedback,
+              grammarCorrection: aiFeedback.grammarCorrection || "✅ Correct phrasing.",
+              betterSentence: aiFeedback.betterSentence || null,
+              vocabularySuggestions: aiFeedback.vocabularySuggestions || null,
+              explanation: aiFeedback.explanation || null,
+              followUpQuestion: aiFeedback.followUpQuestion || null,
+            };
+          }
+        } catch (e2) {
+          // Intelligently generate dynamic response locally so it never repeats the same static string!
+          feedback = generateDynamicCoachingResponse(text, scenario, messages);
+        }
+      }
+
+      if (!feedback) {
+        feedback = generateDynamicCoachingResponse(text, scenario, messages);
+      }
 
       setIsThinking(false);
 
@@ -390,8 +408,8 @@ export function ConversationSession() {
     <div ref={containerRef} className="h-[calc(100vh-80px)] flex flex-col max-w-4xl mx-auto overflow-hidden relative border border-white/10 rounded-3xl shadow-2xl ring-1 ring-black/20">
       {/* FULL SCREEN AVATAR BACKGROUND */}
       <div className="absolute inset-0 z-0 bg-[#0F172A] overflow-hidden">
-        <div className="absolute inset-0 w-full h-full flex items-center justify-center">
-          <AvatarCanvas className="w-full h-full" onModelLoaded={setModel} framing="faceToChest" />
+        <div className="absolute inset-0 w-full h-full flex items-center justify-center -translate-y-6 sm:-translate-y-8">
+          <AvatarCanvas className="w-full h-full" onModelLoaded={setModel} framing="bust" />
         </div>
         {/* Dark gradient overlays for text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A] via-[#0F172A]/40 to-transparent pointer-events-none" />
@@ -399,13 +417,13 @@ export function ConversationSession() {
       </div>
 
       {/* FLOATING UI LAYER (z-10) */}
-      <div className="relative z-10 flex-1 flex flex-col h-full p-2 sm:p-4 gap-3 pointer-events-none">
+      <div className="relative z-10 flex-1 flex flex-col h-full p-2 sm:p-4 gap-2.5 pointer-events-none">
       {/* 1. TOP HEADER (Scenario Title + Timer + Pause) */}
-      <div className="pointer-events-auto p-3.5 rounded-2xl bg-slate-900/40 backdrop-blur-xl border border-white/10 flex items-center justify-between gap-3 shadow-2xl shrink-0">
+      <div className="pointer-events-auto p-3 sm:p-3.5 rounded-2xl bg-slate-900/60 backdrop-blur-xl border border-white/10 flex items-center justify-between gap-3 shadow-2xl shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           <Link
             to={ROUTES.SPEAKING}
-            className="p-2 rounded-xl bg-slate-800/50 border border-white/5 text-slate-300 hover:text-white transition-colors shrink-0"
+            className="p-2 rounded-xl bg-slate-800/60 border border-white/10 text-slate-300 hover:text-white transition-colors shrink-0"
             title="Back to Scenarios"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -422,7 +440,7 @@ export function ConversationSession() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-800/50 border border-white/10 text-[11px] font-extrabold text-white">
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-800/60 border border-white/10 text-[11px] font-extrabold text-white">
             <span>⏱️</span>
             <span>{formatTime(timer)}</span>
           </div>
@@ -437,7 +455,7 @@ export function ConversationSession() {
               setIsPaused(!isPaused);
             }}
             className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all border shadow-sm ${
-              isPaused ? "bg-amber-500/20 text-amber-500 border-amber-500/40" : "bg-slate-800/50 border-white/10 text-slate-300 hover:text-white"
+              isPaused ? "bg-amber-500/20 text-amber-500 border-amber-500/40" : "bg-slate-800/60 border-white/10 text-slate-300 hover:text-white"
             }`}
           >
             {isPaused ? "▶ Resume" : "⏸ Pause"}
@@ -445,21 +463,20 @@ export function ConversationSession() {
         </div>
       </div>
 
-      {/* 2. INVISIBLE SPACER TO PUSH CHAT DOWN */}
-        <div className="flex-1 min-h-0 pointer-events-none flex flex-col items-center justify-end pb-4">
-        </div>
+      {/* 2. INVISIBLE SPACER TO SHOW AVATAR */}
+      <div className="flex-1 min-h-[60px] pointer-events-none" />
 
-        {/* 3. CONVERSATION THREAD (Flex-1, Positioned ABOVE the Speak Button) */}
-      <div className="pointer-events-auto max-h-[38%] bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col shrink-0">
+      {/* 3. CONVERSATION THREAD */}
+      <div className="pointer-events-auto h-[240px] sm:h-[280px] max-h-[46%] bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden flex flex-col shrink-0">
         {/* Right Panel Header */}
-        <div className="px-4 py-2.5 border-b border-white/10 bg-slate-800/40 flex items-center justify-between shrink-0">
+        <div className="px-4 py-2 border-b border-white/10 bg-slate-800/40 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#6c63ff]" />
-            <span className="text-xs font-extrabold text-slate-200 uppercase tracking-wider">
+            <span className="text-[11px] font-extrabold text-slate-200 uppercase tracking-wider">
               Conversation Thread
             </span>
           </div>
-          <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-[#6c63ff]">
+          <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#6c63ff]/15 border border-[#6c63ff]/30 text-[#A5B4FC]">
             {messages.length} Messages
           </span>
         </div>

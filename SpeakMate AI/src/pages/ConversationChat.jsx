@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 
 import ROUTES from "../constants/routes";
-import { chatService } from "../services/appServices";
+import { aiService, chatService } from "../services/appServices";
+import { generateDynamicCoachingResponse } from "../utils/aiConversationEngine";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
 import { useLipSync } from "../hooks/useLipSync";
 import { speakGlobalText } from "../utils/speechHelper";
@@ -303,16 +304,52 @@ export function ConversationChat() {
     setMessages((prev) => [...prev, userMsg]);
 
     try {
-      const response = await chatService.send(sessionId, cleanText, !isMuted, chatLevel).catch(() => ({
-        id: Date.now() + 1,
-        sender: "ai",
-        message: "That is a well-structured sentence! Here is a tip to refine your phrasing.",
-        grammarCorrection: "I want to improve my sentence structure. ✅ Correct!",
-        betterSentence: "I aim to refine my sentence composition and vocabulary range.",
-        vocabularySuggestions: "Refine, Composition, Vocabulary range",
-        explanation: "Using 'refine' and 'composition' elevates your formal expression.",
-        followUpQuestion: "Would you like to practice more examples on this topic?",
-      }));
+      let response = null;
+      try {
+        response = await chatService.send(sessionId, cleanText, !isMuted, chatLevel);
+      } catch (err) {
+        try {
+          const aiRes = await aiService.chat(cleanText);
+          if (aiRes && (aiRes.response || aiRes.message)) {
+            response = {
+              id: Date.now() + 1,
+              sender: "ai",
+              message: aiRes.response || aiRes.message,
+              grammarCorrection: "✅ Correct phrasing.",
+              betterSentence: null,
+              vocabularySuggestions: null,
+              explanation: null,
+              followUpQuestion: "What else would you like to explore regarding this topic?",
+            };
+          }
+        } catch (e2) {
+          const dynamicFeedback = generateDynamicCoachingResponse(cleanText, mode, messages);
+          response = {
+            id: Date.now() + 1,
+            sender: "ai",
+            message: dynamicFeedback.aiReply,
+            grammarCorrection: dynamicFeedback.grammarCorrection,
+            betterSentence: dynamicFeedback.betterSentence,
+            vocabularySuggestions: dynamicFeedback.vocabularySuggestions,
+            explanation: dynamicFeedback.explanation,
+            followUpQuestion: dynamicFeedback.followUpQuestion,
+          };
+        }
+      }
+
+      if (!response) {
+        const dynamicFeedback = generateDynamicCoachingResponse(cleanText, mode, messages);
+        response = {
+          id: Date.now() + 1,
+          sender: "ai",
+          message: dynamicFeedback.aiReply,
+          grammarCorrection: dynamicFeedback.grammarCorrection,
+          betterSentence: dynamicFeedback.betterSentence,
+          vocabularySuggestions: dynamicFeedback.vocabularySuggestions,
+          explanation: dynamicFeedback.explanation,
+          followUpQuestion: dynamicFeedback.followUpQuestion,
+        };
+      }
 
       setMessages((prev) => [...prev, response]);
       setEvaluating(false);
