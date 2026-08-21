@@ -9,27 +9,6 @@ import {
   playWebAudioChime,
 } from "../utils/grammarEngine";
 
-const STUDENT_STANDARDS = [
-  "1st Std",
-  "2nd Std",
-  "3rd Std",
-  "4th Std",
-  "5th Std",
-  "6th Std",
-  "7th Std",
-  "8th Std",
-  "9th Std",
-  "10th Std",
-];
-
-const INDIVIDUAL_AGE_GROUPS = [
-  { code: "Kids", label: "Kids (6–12 yrs) 🎈" },
-  { code: "Teens", label: "Teens (13–17 yrs) ⚡" },
-  { code: "Young Adult", label: "Young Adults (18–24 yrs) 🎓" },
-  { code: "Professional", label: "Professionals (25–50 yrs) 💼" },
-  { code: "Senior", label: "Seniors (50+ yrs) ☕" },
-];
-
 export function GrammarPractice() {
   const [activeTab, setActiveTab] = useState("checker"); // 'checker', 'guide', 'quiz', 'history'
   const [textInput, setTextInput] = useState("");
@@ -38,31 +17,31 @@ export function GrammarPractice() {
   const [history, setHistory] = useState([]);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
 
-  // User Audience & Track State
-  const [accountType, setAccountType] = useState(() => {
+  // Automatically read user profile / onboarding attributes (No manual selection needed)
+  const accountType = (() => {
     try {
       const stored = localStorage.getItem("speakmate_account_type");
       return stored === "STUDENT" ? "STUDENT" : "INDIVIDUAL";
     } catch {
       return "INDIVIDUAL";
     }
-  });
+  })();
 
-  const [selectedGrade, setSelectedGrade] = useState(() => {
+  const selectedGrade = (() => {
     try {
       return localStorage.getItem("speakmate_user_grade") || localStorage.getItem("speakmate_school_grade") || "8th Std";
     } catch {
       return "8th Std";
     }
-  });
+  })();
 
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState(() => {
+  const selectedAgeGroup = (() => {
     try {
       return localStorage.getItem("speakmate_age_group") || "Professional";
     } catch {
       return "Professional";
     }
-  });
+  })();
 
   // Handbook search & filter
   const [guideSearch, setGuideSearch] = useState("");
@@ -86,11 +65,11 @@ export function GrammarPractice() {
   const [quizScore, setQuizScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
 
-  const reloadQuizzes = useCallback((type, grade, age, offset = 0) => {
+  const reloadQuizzes = useCallback((offset = 0) => {
     const fresh = getTailoredDailyGrammarQuizzes({
-      userType: type,
-      targetGrade: grade,
-      ageGroup: age,
+      userType: accountType,
+      targetGrade: selectedGrade,
+      ageGroup: selectedAgeGroup,
       customDate: new Date(),
       offset,
     });
@@ -100,31 +79,7 @@ export function GrammarPractice() {
     setIsAnswerSubmitted(false);
     setQuizScore(0);
     setQuizCompleted(false);
-  }, []);
-
-  const handleAccountTypeChange = (newType) => {
-    setAccountType(newType);
-    try {
-      localStorage.setItem("speakmate_account_type", newType);
-    } catch {}
-    reloadQuizzes(newType, selectedGrade, selectedAgeGroup, 0);
-  };
-
-  const handleGradeChange = (grade) => {
-    setSelectedGrade(grade);
-    try {
-      localStorage.setItem("speakmate_user_grade", grade);
-    } catch {}
-    reloadQuizzes(accountType, grade, selectedAgeGroup, 0);
-  };
-
-  const handleAgeGroupChange = (age) => {
-    setSelectedAgeGroup(age);
-    try {
-      localStorage.setItem("speakmate_age_group", age);
-    } catch {}
-    reloadQuizzes(accountType, selectedGrade, age, 0);
-  };
+  }, [accountType, selectedGrade, selectedAgeGroup]);
 
   useEffect(() => {
     grammarService
@@ -266,7 +221,7 @@ export function GrammarPractice() {
   const handleLoadNewQuizBatch = () => {
     const nextOffset = quizOffset + 1;
     setQuizOffset(nextOffset);
-    reloadQuizzes(accountType, selectedGrade, selectedAgeGroup, nextOffset);
+    reloadQuizzes(nextOffset);
   };
 
   // Filtered guides
@@ -640,76 +595,6 @@ export function GrammarPractice() {
       {/* TAB 3: USER-TAILORED DAILY GRAMMAR QUIZZES */}
       {activeTab === "quiz" && (
         <div className="space-y-6">
-          {/* Audience / Standard / Age Customization Selector */}
-          <div className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-extrabold text-[var(--text-muted)] uppercase tracking-wider">
-                  Target Audience:
-                </span>
-                <div className="inline-flex rounded-xl bg-[var(--bg-base)] p-1 border border-[var(--border-default)]">
-                  <button
-                    onClick={() => handleAccountTypeChange("STUDENT")}
-                    className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                      accountType === "STUDENT"
-                        ? "bg-[#6C63FF] text-white shadow-sm"
-                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    }`}
-                  >
-                    🎓 School Student
-                  </button>
-                  <button
-                    onClick={() => handleAccountTypeChange("INDIVIDUAL")}
-                    className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                      accountType === "INDIVIDUAL"
-                        ? "bg-[#6C63FF] text-white shadow-sm"
-                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    }`}
-                  >
-                    👤 Adult / Professional
-                  </button>
-                </div>
-              </div>
-
-              {/* Sub-Track Selector */}
-              {accountType === "STUDENT" ? (
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-[var(--text-muted)]">Standard:</span>
-                  {STUDENT_STANDARDS.map((std) => (
-                    <button
-                      key={std}
-                      onClick={() => handleGradeChange(std)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                        selectedGrade === std
-                          ? "bg-[#6C63FF] text-white"
-                          : "bg-[var(--bg-base)] text-[var(--text-secondary)] hover:border-[#6C63FF]"
-                      }`}
-                    >
-                      {std}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-xs font-bold text-[var(--text-muted)]">Age Group:</span>
-                  {INDIVIDUAL_AGE_GROUPS.map((grp) => (
-                    <button
-                      key={grp.code}
-                      onClick={() => handleAgeGroupChange(grp.code)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
-                        selectedAgeGroup === grp.code
-                          ? "bg-[#6C63FF] text-white"
-                          : "bg-[var(--bg-base)] text-[var(--text-secondary)] hover:border-[#6C63FF]"
-                      }`}
-                    >
-                      {grp.label.split(" ")[0]}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
           {!quizCompleted ? (
             <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-lg space-y-6">
               {/* Progress & Header */}

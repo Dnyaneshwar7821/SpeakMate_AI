@@ -23,27 +23,6 @@ import {
   getTailoredDailyGrammarQuizzes,
 } from '../../utils/grammarEngine';
 
-const STUDENT_STANDARDS = [
-  '1st Std',
-  '2nd Std',
-  '3rd Std',
-  '4th Std',
-  '5th Std',
-  '6th Std',
-  '7th Std',
-  '8th Std',
-  '9th Std',
-  '10th Std',
-];
-
-const INDIVIDUAL_AGE_GROUPS = [
-  { code: 'Kids', label: 'Kids (6-12) 🎈' },
-  { code: 'Teens', label: 'Teens (13-17) ⚡' },
-  { code: 'Young Adult', label: 'Young Adults (18-24) 🎓' },
-  { code: 'Professional', label: 'Professionals (25-50) 💼' },
-  { code: 'Senior', label: 'Seniors (50+) ☕' },
-];
-
 const SAMPLE_SENTENCES = [
   { label: '🚨 Multiple Errors', text: "She don't goes to school yesterday and discuss about exam." },
   { label: '✅ 100% Correct', text: "He ate an apple and completed his homework on time." },
@@ -66,7 +45,7 @@ export default function GrammarScreen() {
   const [userSettings, setUserSettings] = useState(null);
   const [availableVoices, setAvailableVoices] = useState([]);
 
-  // Audience & Track
+  // Audience & Track (Automatically loaded from user profile/onboarding)
   const [accountType, setAccountType] = useState('INDIVIDUAL');
   const [selectedGrade, setSelectedGrade] = useState('8th Std');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState('Professional');
@@ -82,7 +61,7 @@ export default function GrammarScreen() {
     getTailoredDailyGrammarQuizzes({
       userType: 'INDIVIDUAL',
       targetGrade: '8th Std',
-      ageGroup: 'WORKING_PROFESSIONAL',
+      ageGroup: 'Professional',
       customDate: new Date(),
       offset: 0,
     })
@@ -109,31 +88,13 @@ export default function GrammarScreen() {
     setIsQuizCompleted(false);
   };
 
-  const handleAccountTypeChange = (newType) => {
-    setAccountType(newType);
-    AsyncStorage.setItem('speakmate_account_type', newType).catch(() => {});
-    reloadDailyQuizzes(newType, selectedGrade, selectedAgeGroup, 0);
-  };
-
-  const handleGradeChange = (grade) => {
-    setSelectedGrade(grade);
-    AsyncStorage.setItem('speakmate_user_grade', grade).catch(() => {});
-    reloadDailyQuizzes(accountType, grade, selectedAgeGroup, 0);
-  };
-
-  const handleAgeGroupChange = (age) => {
-    setSelectedAgeGroup(age);
-    AsyncStorage.setItem('speakmate_age_group', age).catch(() => {});
-    reloadDailyQuizzes(accountType, selectedGrade, age, 0);
-  };
-
   const loadSettingsAndVoices = async () => {
     try {
       const [s, voices, storedType, storedGrade, storedAge] = await Promise.all([
         settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_account_type').catch(() => null),
-        AsyncStorage.getItem('speakmate_user_grade').catch(() => null),
+        AsyncStorage.getItem('speakmate_school_grade').catch(() => null) || AsyncStorage.getItem('speakmate_user_grade').catch(() => null),
         AsyncStorage.getItem('speakmate_age_group').catch(() => null),
       ]);
 
@@ -674,66 +635,8 @@ export default function GrammarScreen() {
       {/* TAB 3: USER-TAILORED DAILY GRAMMAR QUIZZES */}
       {activeTab === 'quiz' && (
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-          {/* Audience / Standard / Age Selector */}
-          <Card style={[styles.audienceSelectorCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <Text style={[styles.audienceLabel, { color: theme.textSecondary }]}>Target Audience:</Text>
-              <View style={[styles.toggleWrap, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]}>
-                <TouchableOpacity
-                  style={[styles.toggleBtn, accountType === 'STUDENT' && styles.toggleBtnActive]}
-                  onPress={() => handleAccountTypeChange('STUDENT')}
-                >
-                  <Text style={[styles.toggleBtnText, accountType === 'STUDENT' && styles.toggleBtnTextActive]}>
-                    🎓 Student
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.toggleBtn, accountType === 'INDIVIDUAL' && styles.toggleBtnActive]}
-                  onPress={() => handleAccountTypeChange('INDIVIDUAL')}
-                >
-                  <Text style={[styles.toggleBtnText, accountType === 'INDIVIDUAL' && styles.toggleBtnTextActive]}>
-                    👤 Adult
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Standard / Age Group Chips */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {accountType === 'STUDENT'
-                ? STUDENT_STANDARDS.map((std) => (
-                    <TouchableOpacity
-                      key={std}
-                      style={[
-                        styles.trackChip,
-                        selectedGrade === std ? styles.trackChipActive : { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }
-                      ]}
-                      onPress={() => handleGradeChange(std)}
-                    >
-                      <Text style={[styles.trackChipText, selectedGrade === std && styles.trackChipTextActive]}>
-                        {std}
-                      </Text>
-                    </TouchableOpacity>
-                  ))
-                : INDIVIDUAL_AGE_GROUPS.map((grp) => (
-                    <TouchableOpacity
-                      key={grp.code}
-                      style={[
-                        styles.trackChip,
-                        selectedAgeGroup === grp.code ? styles.trackChipActive : { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }
-                      ]}
-                      onPress={() => handleAgeGroupChange(grp.code)}
-                    >
-                      <Text style={[styles.trackChipText, selectedAgeGroup === grp.code && styles.trackChipTextActive]}>
-                        {grp.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-            </ScrollView>
-          </Card>
-
           {!isQuizCompleted ? (
-            <Card style={[styles.quizCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, marginTop: 10 }]}>
+            <Card style={[styles.quizCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
               <View style={styles.quizHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <Text style={[styles.quizProgressText, { color: COLORS.primary }]}>
@@ -826,7 +729,7 @@ export default function GrammarScreen() {
               </View>
             </Card>
           ) : (
-            <Card style={[styles.quizCompletedCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, marginTop: 10 }]}>
+            <Card style={[styles.quizCompletedCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
               <Text style={{ fontSize: 50, textAlign: 'center' }}>🏆</Text>
               <Text style={[styles.completedTitle, { color: theme.textPrimary }]}>Grammar Quiz Completed!</Text>
               <Text style={[styles.completedSubtitle, { color: theme.textSecondary }]}>
@@ -915,17 +818,6 @@ const styles = StyleSheet.create({
   ruleUsage: { fontSize: 11, fontWeight: '500' },
   exCorrect: { fontSize: 11, fontWeight: '700', color: '#16A34A' },
   exWrong: { fontSize: 11, color: '#EF4444', textDecorationLine: 'line-through' },
-  audienceSelectorCard: { padding: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, marginBottom: 4 },
-  audienceLabel: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase' },
-  toggleWrap: { flexDirection: 'row', borderRadius: 10, padding: 2 },
-  toggleBtn: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
-  toggleBtnActive: { backgroundColor: COLORS.primary },
-  toggleBtnText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
-  toggleBtnTextActive: { color: '#FFFFFF' },
-  trackChip: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginRight: 6, marginTop: 4 },
-  trackChipActive: { backgroundColor: COLORS.primary },
-  trackChipText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
-  trackChipTextActive: { color: '#FFFFFF' },
   quizCard: { padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth },
   quizHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   quizProgressText: { fontSize: 11, fontWeight: '900', textTransform: 'uppercase' },
