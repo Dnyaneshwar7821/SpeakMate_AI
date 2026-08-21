@@ -48,7 +48,18 @@ public class DatabaseSchemaRepairRunner implements CommandLineRunner {
                 "ALTER TABLE IF EXISTS notification DROP CONSTRAINT IF EXISTS fk_notification_student",
                 "ALTER TABLE IF EXISTS achievement DROP CONSTRAINT IF EXISTS fk_achievement_student",
                 "ALTER TABLE IF EXISTS settings DROP CONSTRAINT IF EXISTS fk_settings_student",
-                "ALTER TABLE IF EXISTS grammar_history DROP CONSTRAINT IF EXISTS fk_grammar_history_student"
+                "ALTER TABLE IF EXISTS grammar_history DROP CONSTRAINT IF EXISTS fk_grammar_history_student",
+                "ALTER TABLE IF EXISTS progress ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS progress DROP COLUMN IF EXISTS student_id",
+                "ALTER TABLE IF EXISTS notification ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS achievement ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS settings ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS grammar_history ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS onboarding ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS speaking_sessions ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS chat_sessions ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS lesson_progress ALTER COLUMN student_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS vocabulary ALTER COLUMN student_id DROP NOT NULL"
             };
 
             for (String sql : legacyConstraints) {

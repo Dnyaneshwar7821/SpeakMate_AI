@@ -115,7 +115,7 @@ export const speakingService = {
 };
 
 export const progressService = {
-  get: () => api.get('/api/progress/get-progress').then((res) => res.data),
+  get: () => optionalGet('/api/progress/get-progress', { xp: 0, level: 1, currentStreak: 0, longestStreak: 0, totalPracticeMinutes: 0, totalSpeakingSessions: 0, totalGrammarChecks: 0, totalVocabularyWords: 0 }),
   create: (payload) => api.post('/api/progress/create-progress', payload).then((res) => res.data),
   update: (payload) => api.put('/api/progress/update-progress', payload).then((res) => res.data),
 };
