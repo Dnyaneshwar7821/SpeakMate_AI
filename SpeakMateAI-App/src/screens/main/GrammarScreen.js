@@ -17,11 +17,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { grammarService, settingsService, progressService, aiService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
-import { COLORS } from '../../constants/colors';
 import {
   analyzeSentenceGrammarLocally,
   EXTENSIVE_GRAMMAR_GUIDE,
-  SENTENCE_GRAMMAR_QUIZZES,
+  getDailyGrammarQuizzes,
 } from '../../utils/grammarEngine';
 
 const SAMPLE_SENTENCES = [
@@ -51,7 +50,9 @@ export default function GrammarScreen() {
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [expandedGuideId, setExpandedGuideId] = useState(EXTENSIVE_GRAMMAR_GUIDE[0]?.id || null);
 
-  // Sentence Quiz State
+  // Daily Sentence Quiz State (8 fresh non-repeating questions rotating daily)
+  const [quizOffset, setQuizOffset] = useState(0);
+  const [dailyQuizzes, setDailyQuizzes] = useState(() => getDailyGrammarQuizzes(new Date(), 0));
   const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
   const [selectedQuizOption, setSelectedQuizOption] = useState(null);
   const [isQuizAnswerSubmitted, setIsQuizAnswerSubmitted] = useState(false);
@@ -229,24 +230,37 @@ export default function GrammarScreen() {
     ]);
   };
 
-  // Quiz Handling
-  const activeQuiz = SENTENCE_GRAMMAR_QUIZZES[currentQuizIdx];
+  // Daily Quiz Handling (8 non-repeating questions rotated daily)
+  const activeQuiz = dailyQuizzes[currentQuizIdx] || dailyQuizzes[0];
 
   const handleSelectQuizAnswer = (idx) => {
     if (isQuizAnswerSubmitted) return;
     setSelectedQuizOption(idx);
   };
 
-  const handleSubmitQuizAnswer = () => {
+  const handleSubmitQuizAnswer = async () => {
     if (selectedQuizOption === null || isQuizAnswerSubmitted) return;
     setIsQuizAnswerSubmitted(true);
-    if (selectedQuizOption === activeQuiz.correctAnswerIndex) {
+    const isCorrect = selectedQuizOption === activeQuiz.correctAnswerIndex;
+
+    if (isCorrect) {
       setQuizScore((prev) => prev + 1);
     }
+
+    try {
+      const voiceType = await getActiveVoiceType();
+      if (!userSettings?.isMuted) {
+        if (isCorrect) {
+          VoiceService.speak("Correct! Well done.", { voiceType, availableVoices });
+        } else {
+          VoiceService.speak("Not quite. " + activeQuiz.explanation, { voiceType, availableVoices });
+        }
+      }
+    } catch {}
   };
 
   const handleNextQuizQuestion = () => {
-    if (currentQuizIdx + 1 < SENTENCE_GRAMMAR_QUIZZES.length) {
+    if (currentQuizIdx + 1 < dailyQuizzes.length) {
       setCurrentQuizIdx((prev) => prev + 1);
       setSelectedQuizOption(null);
       setIsQuizAnswerSubmitted(false);
@@ -256,6 +270,17 @@ export default function GrammarScreen() {
   };
 
   const handleRestartQuiz = () => {
+    setCurrentQuizIdx(0);
+    setSelectedQuizOption(null);
+    setIsQuizAnswerSubmitted(false);
+    setQuizScore(0);
+    setIsQuizCompleted(false);
+  };
+
+  const handleLoadNewQuizBatch = () => {
+    const nextOffset = quizOffset + 1;
+    setQuizOffset(nextOffset);
+    setDailyQuizzes(getDailyGrammarQuizzes(new Date(), nextOffset));
     setCurrentQuizIdx(0);
     setSelectedQuizOption(null);
     setIsQuizAnswerSubmitted(false);
@@ -581,7 +606,7 @@ export default function GrammarScreen() {
             <Card style={[styles.quizCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
               <View style={styles.quizHeader}>
                 <Text style={[styles.quizProgressText, { color: COLORS.primary }]}>
-                  Question {currentQuizIdx + 1} of {SENTENCE_GRAMMAR_QUIZZES.length}
+                  Daily Challenge: {currentQuizIdx + 1} of {dailyQuizzes.length}
                 </Text>
                 <Text style={[styles.quizScoreText, { color: theme.textSecondary }]}>
                   Score: <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{quizScore}</Text>
@@ -655,7 +680,7 @@ export default function GrammarScreen() {
                   />
                 ) : (
                   <AppButton
-                    title={currentQuizIdx + 1 < SENTENCE_GRAMMAR_QUIZZES.length ? "Next Question →" : "View Results 🏆"}
+                    title={currentQuizIdx + 1 < dailyQuizzes.length ? "Next Question →" : "View Results 🏆"}
                     onPress={handleNextQuizQuestion}
                   />
                 )}
@@ -666,13 +691,19 @@ export default function GrammarScreen() {
               <Text style={{ fontSize: 50, textAlign: 'center' }}>🏆</Text>
               <Text style={[styles.completedTitle, { color: theme.textPrimary }]}>Grammar Quiz Completed!</Text>
               <Text style={[styles.completedSubtitle, { color: theme.textSecondary }]}>
-                You scored <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{quizScore}</Text> out of {SENTENCE_GRAMMAR_QUIZZES.length}!
+                You scored <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{quizScore}</Text> out of {dailyQuizzes.length}!
               </Text>
 
               <AppButton
-                title="🔄 Retake Quiz"
+                title="🔄 Retake Today's 8 Quizzes"
                 onPress={handleRestartQuiz}
                 style={{ marginTop: 20 }}
+              />
+
+              <AppButton
+                title="⚡ Load Next 8 New Quizzes"
+                onPress={handleLoadNewQuizBatch}
+                style={{ marginTop: 10 }}
               />
             </Card>
           )}

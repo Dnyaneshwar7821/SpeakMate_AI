@@ -5,7 +5,8 @@ import { recordVocabularyMastered } from "../utils/progressTracker";
 import {
   analyzeSentenceGrammarLocally,
   EXTENSIVE_GRAMMAR_GUIDE,
-  SENTENCE_GRAMMAR_QUIZZES,
+  getDailyGrammarQuizzes,
+  playWebAudioChime,
 } from "../utils/grammarEngine";
 
 export function GrammarPractice() {
@@ -21,7 +22,9 @@ export function GrammarPractice() {
   const [selectedGuideCategory, setSelectedGuideCategory] = useState("ALL");
   const [expandedGuideId, setExpandedGuideId] = useState(EXTENSIVE_GRAMMAR_GUIDE[0]?.id || null);
 
-  // Sentence Quiz State
+  // Daily Sentence Quiz State (8 fresh non-repeating questions rotating daily)
+  const [quizOffset, setQuizOffset] = useState(0);
+  const [dailyQuizzes, setDailyQuizzes] = useState(() => getDailyGrammarQuizzes(new Date(), 0));
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
@@ -126,8 +129,8 @@ export function GrammarPractice() {
     });
   };
 
-  // Quiz Handling
-  const activeQuiz = SENTENCE_GRAMMAR_QUIZZES[currentQuizIndex];
+  // Daily Quiz Handling (8 non-repeating questions rotated daily)
+  const activeQuiz = dailyQuizzes[currentQuizIndex] || dailyQuizzes[0];
 
   const handleSelectQuizAnswer = (idx) => {
     if (isAnswerSubmitted) return;
@@ -137,13 +140,20 @@ export function GrammarPractice() {
   const handleSubmitQuizAnswer = () => {
     if (selectedOption === null || isAnswerSubmitted) return;
     setIsAnswerSubmitted(true);
-    if (selectedOption === activeQuiz.correctAnswerIndex) {
+    const isCorrect = selectedOption === activeQuiz.correctAnswerIndex;
+
+    if (isCorrect) {
       setQuizScore((prev) => prev + 1);
+      playWebAudioChime("correct");
+      speakGlobalText("Correct! Well done.", 1.05);
+    } else {
+      playWebAudioChime("incorrect");
+      speakGlobalText(`Not quite. ${activeQuiz.explanation}`, 1.0);
     }
   };
 
   const handleNextQuizQuestion = () => {
-    if (currentQuizIndex + 1 < SENTENCE_GRAMMAR_QUIZZES.length) {
+    if (currentQuizIndex + 1 < dailyQuizzes.length) {
       setCurrentQuizIndex((prev) => prev + 1);
       setSelectedOption(null);
       setIsAnswerSubmitted(false);
@@ -154,6 +164,17 @@ export function GrammarPractice() {
   };
 
   const handleRestartQuiz = () => {
+    setCurrentQuizIndex(0);
+    setSelectedOption(null);
+    setIsAnswerSubmitted(false);
+    setQuizScore(0);
+    setQuizCompleted(false);
+  };
+
+  const handleLoadNewQuizBatch = () => {
+    const nextOffset = quizOffset + 1;
+    setQuizOffset(nextOffset);
+    setDailyQuizzes(getDailyGrammarQuizzes(new Date(), nextOffset));
     setCurrentQuizIndex(0);
     setSelectedOption(null);
     setIsAnswerSubmitted(false);
@@ -564,7 +585,7 @@ export function GrammarPractice() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-0.5 rounded-full bg-[#6C63FF]/10 text-[#6C63FF] text-[10px] font-black uppercase">
-                      Question {currentQuizIndex + 1} of {SENTENCE_GRAMMAR_QUIZZES.length}
+                      Daily Challenge: {currentQuizIndex + 1} of {dailyQuizzes.length}
                     </span>
                     <span className="text-xs font-bold text-[var(--text-muted)]">
                       {activeQuiz.category}
@@ -578,7 +599,7 @@ export function GrammarPractice() {
                 <div className="text-right">
                   <span className="text-xs font-bold text-[var(--text-muted)]">Current Score:</span>
                   <p className="text-base sm:text-lg font-black text-[#6C63FF]">
-                    {quizScore} / {SENTENCE_GRAMMAR_QUIZZES.length}
+                    {quizScore} / {dailyQuizzes.length}
                   </p>
                 </div>
               </div>
@@ -653,7 +674,7 @@ export function GrammarPractice() {
                     onClick={handleNextQuizQuestion}
                     className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-black shadow-lg hover:opacity-90 transition-all"
                   >
-                    {currentQuizIndex + 1 < SENTENCE_GRAMMAR_QUIZZES.length ? "Next Question →" : "View Final Results 🏆"}
+                    {currentQuizIndex + 1 < dailyQuizzes.length ? "Next Question →" : "View Final Results 🏆"}
                   </button>
                 )}
               </div>
@@ -667,19 +688,25 @@ export function GrammarPractice() {
                   Grammar Quiz Completed!
                 </h2>
                 <p className="text-sm text-[var(--text-secondary)] font-medium">
-                  You scored <strong className="text-[#6C63FF]">{quizScore} out of {SENTENCE_GRAMMAR_QUIZZES.length}</strong>!
+                  You scored <strong className="text-[#6C63FF]">{quizScore} out of {dailyQuizzes.length}</strong>!
                 </p>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold">
                   <span>+75 XP Earned</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-4 pt-4">
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
                 <button
                   onClick={handleRestartQuiz}
                   className="px-6 py-3 rounded-2xl bg-[#6C63FF] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-[#5a52e0] transition-all"
                 >
-                  🔄 Retake Quiz
+                  🔄 Retake Today's 8 Quizzes
+                </button>
+                <button
+                  onClick={handleLoadNewQuizBatch}
+                  className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-bold shadow-md hover:opacity-90 transition-all"
+                >
+                  ⚡ Load Next 8 New Quizzes
                 </button>
                 <button
                   onClick={() => setActiveTab("checker")}
