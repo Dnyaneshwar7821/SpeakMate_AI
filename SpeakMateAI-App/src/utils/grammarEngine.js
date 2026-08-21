@@ -252,6 +252,81 @@ function getSuggestedNativeAlternative(corrected) {
   return null;
 }
 
+export function parseBackendGrammarExplanation(rawExplanation, correctedText, localErrors = []) {
+  if (!rawExplanation || typeof rawExplanation !== "string") {
+    return localErrors;
+  }
+
+  const lines = rawExplanation
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) return localErrors;
+
+  const parsed = [];
+  for (const line of lines) {
+    const bracketMatch = line.match(/\[(.*?)\]/);
+    let category = bracketMatch ? bracketMatch[1].trim() : "Grammar Issue";
+
+    // Clean bracket tags, numbers, and redundant (Suggested: ...) suffixes
+    let cleanIssue = line
+      .replace(/^\d+[.)]\s*/, "") // Remove "1. " or "1) "
+      .replace(/\[.*?\]\s*/g, "")   // Remove "[article]"
+      .replace(/\s*\((?:Suggested|Correction|Corrected):\s*.*?\)$/i, "") // Remove "(Suggested: ...)"
+      .trim();
+
+    if (cleanIssue.length > 0) {
+      cleanIssue = cleanIssue.charAt(0).toUpperCase() + cleanIssue.slice(1);
+    }
+
+    category = category.charAt(0).toUpperCase() + category.slice(1);
+
+    if (cleanIssue) {
+      parsed.push({
+        type: category,
+        issue: cleanIssue,
+        rule: `Make sure your sentence follows standard ${category.toLowerCase()} rules.`,
+        correction: correctedText,
+      });
+    }
+  }
+
+  return parsed.length > 0 ? parsed : localErrors;
+}
+
+export function generateCleanSpokenGrammarFeedback(res) {
+  if (!res) return "";
+
+  if (res.isCorrect) {
+    return `Your sentence is 100% grammatically correct! "${res.correctedText}". Excellent job.`;
+  }
+
+  // Clear, natural feedback without technical syntax reading
+  let speech = `The corrected sentence is: "${res.correctedText}". `;
+
+  if (res.errors && res.errors.length > 0) {
+    const cleanTips = res.errors.map((e) => {
+      return e.issue
+        .replace(/\[.*?\]/g, "")
+        .replace(/[()"]/g, "")
+        .replace(/^\d+[.)]\s*/, "")
+        .trim();
+    });
+
+    if (cleanTips.length === 1) {
+      speech += `Tip: ${cleanTips[0]}`;
+    } else {
+      speech += `Here are the improvements: `;
+      cleanTips.forEach((tip, idx) => {
+        speech += `${idx + 1}. ${tip} `;
+      });
+    }
+  }
+
+  return speech.trim();
+}
+
 export const EXTENSIVE_GRAMMAR_GUIDE = [
   {
     id: "guide_tenses",

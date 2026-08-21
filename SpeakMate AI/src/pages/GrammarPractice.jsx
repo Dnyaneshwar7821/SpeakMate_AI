@@ -7,6 +7,8 @@ import {
   EXTENSIVE_GRAMMAR_GUIDE,
   getTailoredDailyGrammarQuizzes,
   playWebAudioChime,
+  parseBackendGrammarExplanation,
+  generateCleanSpokenGrammarFeedback,
 } from "../utils/grammarEngine";
 
 export function GrammarPractice() {
@@ -108,24 +110,15 @@ export function GrammarPractice() {
       const backendRes = await grammarService.check(cleanText).catch(() => null);
 
       if (backendRes && backendRes.correctedText) {
-        let structuredErrors = localResult.errors;
-        let isCorrect = backendRes.grammarScore >= 100 || backendRes.correctedText.trim().toLowerCase() === cleanText.toLowerCase();
+        const structuredErrors = parseBackendGrammarExplanation(
+          backendRes.explanation,
+          backendRes.correctedText,
+          localResult.errors
+        );
 
-        if (backendRes.explanation && backendRes.explanation.includes("[")) {
-          const lines = backendRes.explanation.split("\n").filter(Boolean);
-          if (lines.length > 0) {
-            structuredErrors = lines.map((line) => {
-              const typeMatch = line.match(/\[(.*?)\]/);
-              return {
-                errorSnippet: line.split("(")[0].replace(/^\d+\.\s*/, "").trim(),
-                type: typeMatch ? typeMatch[1] : "Grammar Issue",
-                issue: line,
-                rule: "Ensure correct tense, agreement, and word order.",
-                correction: backendRes.correctedText,
-              };
-            });
-          }
-        }
+        const isCorrect =
+          backendRes.grammarScore >= 100 ||
+          backendRes.correctedText.trim().toLowerCase() === cleanText.toLowerCase();
 
         const mergedResult = {
           id: backendRes.id || Date.now(),
@@ -159,20 +152,8 @@ export function GrammarPractice() {
     if (!res) return;
     setIsAiSpeaking(true);
 
-    let speechText = "";
-    if (res.isCorrect) {
-      speechText = `Your sentence is 100% grammatically correct! ${res.correctedText}. Excellent job.`;
-    } else {
-      speechText = `Corrected sentence: ${res.correctedText}. `;
-      if (res.errors && res.errors.length > 0) {
-        speechText += `Found ${res.errors.length} improvement${res.errors.length > 1 ? "s" : ""}: `;
-        res.errors.forEach((err, i) => {
-          speechText += `${i + 1}. ${err.issue} `;
-        });
-      }
-    }
-
-    speakGlobalText(speechText, 1.0);
+    const cleanSpeech = generateCleanSpokenGrammarFeedback(res);
+    speakGlobalText(cleanSpeech, 1.0);
     setTimeout(() => setIsAiSpeaking(false), 4000);
   };
 
@@ -462,11 +443,14 @@ export function GrammarPractice() {
                           <span className="px-2.5 py-0.5 rounded-md bg-[#6C63FF]/10 text-[#6C63FF] text-[10px] font-black uppercase">
                             {err.type || "Grammar Rule"}
                           </span>
-                          {err.errorSnippet && (
-                            <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-500 text-xs font-bold line-through">
-                              "{err.errorSnippet}"
-                            </span>
-                          )}
+                          {err.errorSnippet &&
+                            err.errorSnippet.length <= 25 &&
+                            !err.errorSnippet.includes("[") &&
+                            !err.errorSnippet.toLowerCase().includes("missing") && (
+                              <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-500 text-xs font-bold line-through">
+                                "{err.errorSnippet}"
+                              </span>
+                            )}
                         </div>
 
                         <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">

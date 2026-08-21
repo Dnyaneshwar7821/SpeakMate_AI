@@ -21,6 +21,8 @@ import {
   analyzeSentenceGrammarLocally,
   EXTENSIVE_GRAMMAR_GUIDE,
   getTailoredDailyGrammarQuizzes,
+  parseBackendGrammarExplanation,
+  generateCleanSpokenGrammarFeedback,
 } from '../../utils/grammarEngine';
 
 const SAMPLE_SENTENCES = [
@@ -145,24 +147,15 @@ export default function GrammarScreen() {
       const backendRes = await grammarService.check(cleanText).catch(() => null);
 
       if (backendRes && backendRes.correctedText) {
-        let structuredErrors = localResult.errors;
-        let isCorrect = backendRes.grammarScore >= 100 || backendRes.correctedText.trim().toLowerCase() === cleanText.toLowerCase();
+        const structuredErrors = parseBackendGrammarExplanation(
+          backendRes.explanation,
+          backendRes.correctedText,
+          localResult.errors
+        );
 
-        if (backendRes.explanation && backendRes.explanation.includes("[")) {
-          const lines = backendRes.explanation.split("\n").filter(Boolean);
-          if (lines.length > 0) {
-            structuredErrors = lines.map((line) => {
-              const typeMatch = line.match(/\[(.*?)\]/);
-              return {
-                errorSnippet: line.split("(")[0].replace(/^\d+\.\s*/, "").trim(),
-                type: typeMatch ? typeMatch[1] : "Grammar Issue",
-                issue: line,
-                rule: "Ensure correct tense, agreement, and word order.",
-                correction: backendRes.correctedText,
-              };
-            });
-          }
-        }
+        const isCorrect =
+          backendRes.grammarScore >= 100 ||
+          backendRes.correctedText.trim().toLowerCase() === cleanText.toLowerCase();
 
         const merged = {
           id: backendRes.id || Date.now(),
@@ -173,7 +166,9 @@ export default function GrammarScreen() {
           nativeAlternative: localResult.nativeAlternative,
           errors: structuredErrors,
           explanation: backendRes.explanation || localResult.explanation,
-          praiseMessage: isCorrect ? "🌟 Perfect English Grammar! Your sentence is 100% accurate with no grammar errors." : "",
+          praiseMessage: isCorrect
+            ? "🌟 Perfect English Grammar! Your sentence is 100% accurate with no grammar errors."
+            : "",
           createdAt: backendRes.createdAt || new Date().toISOString(),
         };
 
@@ -229,21 +224,9 @@ export default function GrammarScreen() {
     if (userSettings?.isMuted) return;
 
     const voiceType = await getActiveVoiceType();
-    let speechText = '';
+    const cleanSpeech = generateCleanSpokenGrammarFeedback(res);
 
-    if (res.isCorrect) {
-      speechText = `Your sentence is 100% grammatically correct! ${res.correctedText}. Excellent job.`;
-    } else {
-      speechText = `Corrected sentence: ${res.correctedText}. `;
-      if (res.errors && res.errors.length > 0) {
-        speechText += `Found ${res.errors.length} improvement${res.errors.length > 1 ? 's' : ''}: `;
-        res.errors.forEach((err, i) => {
-          speechText += `${i + 1}. ${err.issue} `;
-        });
-      }
-    }
-
-    VoiceService.speak(speechText, {
+    VoiceService.speak(cleanSpeech, {
       voiceType,
       availableVoices: currentVoices,
     });
@@ -499,31 +482,39 @@ export default function GrammarScreen() {
                     🔍 Identified Mistakes & Rules ({result.errors.length}):
                   </Text>
 
-                  {result.errors.map((err, idx) => (
-                    <View key={idx} style={[styles.errorItemCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: theme.cardBorder }]}>
-                      <View style={styles.errorItemHeader}>
-                        <View style={styles.errorNumBadge}>
-                          <Text style={styles.errorNumText}>{idx + 1}</Text>
+                  {result.errors.map((err, idx) => {
+                    const hasValidSnippet =
+                      err.errorSnippet &&
+                      err.errorSnippet.length <= 25 &&
+                      !err.errorSnippet.includes('[') &&
+                      !err.errorSnippet.toLowerCase().includes('missing');
+
+                    return (
+                      <View key={idx} style={[styles.errorItemCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: theme.cardBorder }]}>
+                        <View style={styles.errorItemHeader}>
+                          <View style={styles.errorNumBadge}>
+                            <Text style={styles.errorNumText}>{idx + 1}</Text>
+                          </View>
+                          <Text style={styles.errorTypeBadge}>{err.type || 'Grammar Rule'}</Text>
+                          {hasValidSnippet && (
+                            <Text style={styles.errorSnippetBadge}>Wrong: "{err.errorSnippet}"</Text>
+                          )}
                         </View>
-                        <Text style={styles.errorTypeBadge}>{err.type || 'Grammar Rule'}</Text>
-                        {err.errorSnippet && (
-                          <Text style={styles.errorSnippetBadge}>Wrong: "{err.errorSnippet}"</Text>
+
+                        <Text style={[styles.errorIssueText, { color: theme.textPrimary }]}>
+                          👉 {err.issue}
+                        </Text>
+
+                        {err.rule && (
+                          <View style={[styles.errorRuleBox, { backgroundColor: isDark ? '#0F172A' : '#EDE9FE' }]}>
+                            <Text style={[styles.errorRuleText, { color: isDark ? '#DDD6FE' : '#5B21B6' }]}>
+                              <Text style={{ fontWeight: 'bold' }}>Rule: </Text>{err.rule}
+                            </Text>
+                          </View>
                         )}
                       </View>
-
-                      <Text style={[styles.errorIssueText, { color: theme.textPrimary }]}>
-                        👉 {err.issue}
-                      </Text>
-
-                      {err.rule && (
-                        <View style={[styles.errorRuleBox, { backgroundColor: isDark ? '#0F172A' : '#EDE9FE' }]}>
-                          <Text style={[styles.errorRuleText, { color: isDark ? '#DDD6FE' : '#5B21B6' }]}>
-                            <Text style={{ fontWeight: 'bold' }}>Rule: </Text>{err.rule}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  ))}
+                    );
+                  })}
                 </View>
               )}
             </Card>
