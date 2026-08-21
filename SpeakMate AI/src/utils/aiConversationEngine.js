@@ -2,6 +2,26 @@
 // SPEAKMATE AI CONVERSATION & COACHING ENGINE (WEB & OFFLINE RESILIENT)
 // ============================================================================
 
+export function cleanDialogueText(rawText) {
+  if (!rawText) return "";
+  let clean = String(rawText);
+  // If the text contains markdown tables or section headers, extract only conversational text
+  if (clean.includes("|") || clean.includes("##")) {
+    const lines = clean.split("\n");
+    const nonTableLines = lines.filter((l) => !l.includes("|") && !l.startsWith("#") && !l.startsWith("---") && l.trim().length > 0);
+    if (nonTableLines.length > 0) {
+      clean = nonTableLines[0];
+    }
+  }
+  // Strip remaining markdown characters
+  clean = clean.replace(/\|.*\|/g, " ");
+  clean = clean.replace(/#+\s*/g, "");
+  clean = clean.replace(/\*\*/g, "").replace(/\*/g, "");
+  clean = clean.replace(/---+/g, " ");
+  clean = clean.replace(/\s+/g, " ").trim();
+  return clean;
+}
+
 export function generateDynamicCoachingResponse(userText, scenario = "Daily Conversation", history = []) {
   const text = (userText || "").trim();
   const lower = text.toLowerCase();

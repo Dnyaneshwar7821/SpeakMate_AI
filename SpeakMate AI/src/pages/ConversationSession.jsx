@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, useLocation, Link } from "react-router-do
 
 import ROUTES from "../constants/routes";
 import { aiService, speakingService } from "../services/appServices";
-import { generateDynamicCoachingResponse } from "../utils/aiConversationEngine";
+import { generateDynamicCoachingResponse, cleanDialogueText } from "../utils/aiConversationEngine";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
 import { speakGlobalText, warmupSpeechAutoplay } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
@@ -134,28 +134,35 @@ export function ConversationSession() {
 
   const getSpeakableText = (feedback) => {
     if (!feedback) return "";
-    let text = feedback.aiReply || feedback.message || "";
+    let text = cleanDialogueText(feedback.aiReply || feedback.message || "");
     const isCorrect =
       feedback.grammarCorrection &&
       (feedback.grammarCorrection.includes("✅") ||
         feedback.grammarCorrection.toLowerCase().includes("correct"));
 
-    if (feedback.grammarCorrection && !isCorrect) {
-      text += `. A better way to say that is: "${feedback.grammarCorrection}".`;
-      if (feedback.explanation) {
-        text += ` ${feedback.explanation}`;
+    if (feedback.grammarCorrection && !isCorrect && !feedback.grammarCorrection.includes("|")) {
+      const cleanCorrection = cleanDialogueText(feedback.grammarCorrection);
+      if (cleanCorrection) {
+        text += `. A better way to say that is: "${cleanCorrection}".`;
       }
-    } else if (feedback.betterSentence) {
-      text += `. You could also express it as: "${feedback.betterSentence}".`;
-      if (feedback.explanation) {
-        text += ` ${feedback.explanation}`;
+      if (feedback.explanation && !feedback.explanation.includes("|")) {
+        const cleanExpl = cleanDialogueText(feedback.explanation);
+        if (cleanExpl) text += ` ${cleanExpl}`;
+      }
+    } else if (feedback.betterSentence && !feedback.betterSentence.includes("|")) {
+      const cleanBetter = cleanDialogueText(feedback.betterSentence);
+      if (cleanBetter) {
+        text += `. You could also express it as: "${cleanBetter}".`;
       }
     }
 
-    if (feedback.followUpQuestion) {
-      text += ` ${feedback.followUpQuestion}`;
+    if (feedback.followUpQuestion && !feedback.followUpQuestion.includes("|")) {
+      const cleanFollow = cleanDialogueText(feedback.followUpQuestion);
+      if (cleanFollow && !text.includes(cleanFollow)) {
+        text += ` ${cleanFollow}`;
+      }
     }
-    return text;
+    return cleanDialogueText(text);
   };
 
   const handleSpeakText = (text) => {
@@ -347,14 +354,27 @@ export function ConversationSession() {
 
       setIsThinking(false);
 
+      const cleanAiReply = cleanDialogueText(feedback.aiReply || feedback.message || feedback.response);
       const aiMsg = {
         id: Date.now() + 1,
         sender: "ai",
-        message: feedback.aiReply,
+        message: cleanAiReply || "That is very interesting! Can you tell me more about that?",
       };
 
       setMessages((prev) => [...prev, aiMsg]);
-      setCorrections(feedback);
+      
+      // Only set corrections if it doesn't contain raw markdown table noise
+      if (feedback.grammarCorrection && !feedback.grammarCorrection.includes("|")) {
+        setCorrections({
+          ...feedback,
+          grammarCorrection: cleanDialogueText(feedback.grammarCorrection),
+          betterSentence: feedback.betterSentence ? cleanDialogueText(feedback.betterSentence) : null,
+          explanation: feedback.explanation ? cleanDialogueText(feedback.explanation) : null,
+          vocabularySuggestions: feedback.vocabularySuggestions ? cleanDialogueText(feedback.vocabularySuggestions) : null,
+        });
+      } else {
+        setCorrections(null);
+      }
 
       const fullSpeakableText = getSpeakableText(feedback);
       warmupSpeechAutoplay();

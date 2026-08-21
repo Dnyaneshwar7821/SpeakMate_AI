@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 
 import ROUTES from "../constants/routes";
 import { aiService, chatService } from "../services/appServices";
-import { generateDynamicCoachingResponse } from "../utils/aiConversationEngine";
+import { generateDynamicCoachingResponse, cleanDialogueText } from "../utils/aiConversationEngine";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
 import { useLipSync } from "../hooks/useLipSync";
 import { speakGlobalText } from "../utils/speechHelper";
@@ -123,28 +123,31 @@ export function ConversationChat() {
 
   const getSpeakableText = (msg) => {
     if (!msg) return "";
-    let text = msg.message || "";
+    let text = cleanDialogueText(msg.message || msg.aiReply || "");
     const isCorrect =
       msg.grammarCorrection &&
       (msg.grammarCorrection.includes("✅") ||
         msg.grammarCorrection.toLowerCase().includes("correct"));
 
-    if (msg.grammarCorrection && !isCorrect) {
-      text += `. A better way to say that is: "${msg.grammarCorrection}".`;
-      if (msg.explanation) {
-        text += ` ${msg.explanation}`;
+    if (msg.grammarCorrection && !isCorrect && !msg.grammarCorrection.includes("|")) {
+      const cleanCorrection = cleanDialogueText(msg.grammarCorrection);
+      if (cleanCorrection) text += `. A better way to say that is: "${cleanCorrection}".`;
+      if (msg.explanation && !msg.explanation.includes("|")) {
+        const cleanExpl = cleanDialogueText(msg.explanation);
+        if (cleanExpl) text += ` ${cleanExpl}`;
       }
-    } else if (msg.betterSentence) {
-      text += `. You could also express it as: "${msg.betterSentence}".`;
-      if (msg.explanation) {
-        text += ` ${msg.explanation}`;
-      }
+    } else if (msg.betterSentence && !msg.betterSentence.includes("|")) {
+      const cleanBetter = cleanDialogueText(msg.betterSentence);
+      if (cleanBetter) text += `. You could also express it as: "${cleanBetter}".`;
     }
 
-    if (msg.followUpQuestion) {
-      text += ` ${msg.followUpQuestion}`;
+    if (msg.followUpQuestion && !msg.followUpQuestion.includes("|")) {
+      const cleanFollow = cleanDialogueText(msg.followUpQuestion);
+      if (cleanFollow && !text.includes(cleanFollow)) {
+        text += ` ${cleanFollow}`;
+      }
     }
-    return text;
+    return cleanDialogueText(text);
   };
 
   const handleSpeakText = (text) => {
@@ -349,6 +352,13 @@ export function ConversationChat() {
           explanation: dynamicFeedback.explanation,
           followUpQuestion: dynamicFeedback.followUpQuestion,
         };
+      }
+
+      if (response) {
+        response.message = cleanDialogueText(response.message || response.aiReply || "");
+        if (response.grammarCorrection && response.grammarCorrection.includes("|")) {
+          response.grammarCorrection = null;
+        }
       }
 
       setMessages((prev) => [...prev, response]);
