@@ -571,7 +571,7 @@ export function ConversationSession() {
         </div>
 
         {/* Scrollable Conversation Thread */}
-        <div className="flex-1 overflow-y-auto space-y-4 p-4 sm:p-5">
+        <div className="flex-1 overflow-y-auto space-y-4 p-4 sm:p-5 bg-slate-50/60 dark:bg-slate-950/40">
           {messages.map((m) => (
             <div key={m.id} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
               <div
