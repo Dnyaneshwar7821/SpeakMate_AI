@@ -14,245 +14,134 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
 import { AppButton, Card, Screen, StateView } from '../../components/ui';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { grammarService, settingsService, progressService } from '../../services/appServices';
+import { grammarService, settingsService, progressService, aiService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
+import {
+  analyzeSentenceGrammarLocally,
+  EXTENSIVE_GRAMMAR_GUIDE,
+  SENTENCE_GRAMMAR_QUIZZES,
+} from '../../utils/grammarEngine';
 
-const STANDARD_GRAMMAR_TOPICS = {
-  '1st Std': [
-    {
-      id: 'g1_1',
-      title: 'Naming Words (Nouns) & Capital Letters',
-      description: 'Learn names of people, places, animals, and things.',
-      explanations: 'Nouns are naming words like Boy, School, Dog, and Apple. Always start sentences and names with a Capital Letter.',
-      examples: [
-        { original: 'i love my dog tommy.', corrected: 'I love my dog Tommy.', rule: 'Capitalize "I" and proper name "Tommy".' }
-      ],
-      quiz: [
-        { question: 'Which word is a naming word (noun)?', options: ['Run', 'Apple', 'Sing', 'Fast'], correct: 'Apple' }
-      ]
-    }
-  ],
-  '2nd Std': [
-    {
-      id: 'g2_1',
-      title: 'One & Many (Singular / Plural)',
-      description: 'Learn adding -s and -es for more than one object.',
-      explanations: 'Add -s to make regular plurals: Dog -> Dogs, Book -> Books. Add -es for words ending in -ch, -sh, -s, -x: Bus -> Buses.',
-      examples: [
-        { original: 'I have two dog.', corrected: 'I have two dogs.', rule: 'Add -s for more than one dog.' }
-      ],
-      quiz: [
-        { question: 'What is the plural of "Bus"?', options: ['Buss', 'Buses', 'Bussies', 'Bux'], correct: 'Buses' }
-      ]
-    }
-  ],
-  '3rd Std': [
-    {
-      id: 'g3_1',
-      title: 'Action Verbs & Simple Present',
-      description: 'Use verbs for daily habits and actions happening now.',
-      explanations: 'Verbs tell what someone does. Use "He plays" for singular and "They play" for plural in simple present.',
-      examples: [
-        { original: 'He play football every day.', corrected: 'He plays football every day.', rule: 'Add -s to simple present verbs with He/She/It.' }
-      ],
-      quiz: [
-        { question: 'Complete: "She _______ to school every morning."', options: ['walk', 'walks', 'walking', 'walked'], correct: 'walks' }
-      ]
-    }
-  ],
-  '4th Std': [
-    {
-      id: 'g4_1',
-      title: 'Past Tense & Comparative Words',
-      description: 'Speak about completed past actions and compare sizes.',
-      explanations: 'Use Past Simple (went, ate, played) for completed actions. Use -er (bigger, faster) when comparing two objects.',
-      examples: [
-        { original: 'She go to market yesterday.', corrected: 'She went to market yesterday.', rule: 'Use past tense "went" for completed past time.' }
-      ],
-      quiz: [
-        { question: 'Complete: "An elephant is _______ than a lion."', options: ['big', 'bigger', 'biggest', 'more big'], correct: 'bigger' }
-      ]
-    }
-  ],
-  '5th Std': [
-    {
-      id: 'g5_1',
-      title: 'Present Continuous & Future (Going to)',
-      description: 'Describe ongoing actions and planned future events.',
-      explanations: 'Form Present Continuous with is/am/are + verb-ing (I am studying). Use "going to" for planned future trips.',
-      examples: [
-        { original: 'I studying math right now.', corrected: 'I am studying math right now.', rule: 'Present Continuous requires helper verb am/is/are.' }
-      ],
-      quiz: [
-        { question: 'Complete: "We are _______ a picnic tomorrow."', options: ['plan', 'planned', 'planning', 'plans'], correct: 'planning' }
-      ]
-    }
-  ],
-  '6th Std': [
-    {
-      id: 'g6_1',
-      title: 'Present Perfect Tense & Modal Verbs',
-      description: 'Express completed experiences and modal requests (can, should).',
-      explanations: 'Form Present Perfect with have/has + past participle (I have completed). Use "should" for advice and "can" for ability.',
-      examples: [
-        { original: 'I have finish my homework.', corrected: 'I have finished my homework.', rule: 'Present Perfect uses past participle "finished".' }
-      ],
-      quiz: [
-        { question: 'Complete: "She has _______ her science project."', options: ['submit', 'submitted', 'submitting', 'submits'], correct: 'submitted' }
-      ]
-    }
-  ],
-  '7th Std': [
-    {
-      id: 'g7_1',
-      title: 'Conjunctions & Relative Clauses',
-      description: 'Connect sentences using because, although, who, which.',
-      explanations: 'Use conjunctions (and, but, because, although) to connect clauses. Use "who" for people and "which" for things.',
-      examples: [
-        { original: 'This is the boy which won the race.', corrected: 'This is the boy who won the race.', rule: 'Use "who" when referring to people.' }
-      ],
-      quiz: [
-        { question: 'Complete: "I stayed home _______ it was raining heavily."', options: ['but', 'because', 'although', 'so that'], correct: 'because' }
-      ]
-    }
-  ],
-  '8th Std': [
-    {
-      id: 'g8_1',
-      title: 'Active vs. Passive Voice',
-      description: 'Shift focus between subject performer and action object.',
-      explanations: 'Active: Mom baked the cake. Passive: The cake was baked by Mom. Form: to be + past participle.',
-      examples: [
-        { original: 'The letter sent by the principal.', corrected: 'The letter was sent by the principal.', rule: 'Passive voice requires a form of "to be".' }
-      ],
-      quiz: [
-        { question: 'Change to passive: "The chef cooked the meal."', options: ['The meal is cooked by the chef.', 'The meal was cooked by the chef.', 'The chef cooked meal.', 'The meal cooks by chef.'], correct: 'The meal was cooked by the chef.' }
-      ]
-    }
-  ],
-  '9th Std': [
-    {
-      id: 'g9_1',
-      title: 'Conditional Sentences & Reported Speech',
-      description: 'Master If-clauses (Types 1, 2, 3) and indirect statements.',
-      explanations: 'Type 1: If it rains, we will stay inside. Type 2: If I were rich, I would travel. Reported speech shifts tenses back.',
-      examples: [
-        { original: 'If I study hard, I would pass.', corrected: 'If I study hard, I will pass.', rule: 'Type 1 conditional pairs Present Simple with "will".' }
-      ],
-      quiz: [
-        { question: 'Complete: "If I _______ more time, I would join the debate."', options: ['have', 'had', 'have had', 'will have'], correct: 'had' }
-      ]
-    }
-  ],
-  '10th Std': [
-    {
-      id: 'g10_1',
-      title: '10th Board Exam Syntax & Advanced Inversion',
-      description: 'Master formal rhetorical structures, inversion, and board syntax.',
-      explanations: 'Inversion places auxiliary verbs before subjects after negative adverbs (e.g., "Not only did he win, but...").',
-      examples: [
-        { original: 'Not only he won the gold, but he set a record.', corrected: 'Not only did he win the gold, but he also set a record.', rule: 'Use inverted auxiliary "did he win" after "Not only".' }
-      ],
-      quiz: [
-        { question: 'Complete: "No sooner _______ the stage than the audience applauded."', options: ['he stepped', 'did he step', 'he has stepped', 'steps he'], correct: 'did he step' }
-      ]
-    }
-  ],
-};
-
-const GRAMMAR_TOPICS = [
-  {
-    id: 'tenses',
-    title: 'English Tenses',
-    description: 'Learn Present, Past, and Future tenses and their aspects.',
-    explanations: 'Tenses express the time of an action. Simple Present is for habits, Present Continuous is for actions happening now, Past Simple is for completed past actions, and Future is for upcoming events.',
-    examples: [
-      { original: 'She go to school yesterday.', corrected: 'She went to school yesterday.', rule: 'Use Past Simple form of "go" (went) for completed past actions.' },
-      { original: 'I am playing tennis every Tuesday.', corrected: 'I play tennis every Tuesday.', rule: 'Use Simple Present instead of Present Continuous for recurring habits.' }
-    ],
-    quiz: [
-      { question: 'Identify the correct sentence:', options: ['He has gone to Paris yesterday.', 'He went to Paris yesterday.', 'He goes to Paris yesterday.', 'He was go to Paris yesterday.'], correct: 'He went to Paris yesterday.' },
-      { question: 'Complete: "I _______ English for three years now."', options: ['am study', 'studied', 'have been studying', 'studies'], correct: 'have been studying' }
-    ]
-  }
+const SAMPLE_SENTENCES = [
+  { label: '🚨 Multiple Errors', text: "She don't goes to school yesterday and discuss about exam." },
+  { label: '✅ 100% Correct', text: "He ate an apple and completed his homework on time." },
+  { label: '⚖️ Subject-Verb Agreement', text: "Neither of my two friend are interested in the project." },
+  { label: '⏱️ Tense & Time', text: "I have been living in this city since four years." },
+  { label: '🔮 Subjunctive', text: "If I was you, I would have accepted the job offer." },
 ];
 
 export default function GrammarScreen() {
-  const { isDark, theme } = useTheme();
-  const [activeTab, setActiveTab] = useState('checker'); // 'checker', 'topics'
+  const { theme, isDark } = useTheme();
+
+  // Active Tab: 'checker' | 'guide' | 'quiz'
+  const [activeTab, setActiveTab] = useState('checker');
+
   const [text, setText] = useState('');
   const [checking, setChecking] = useState(false);
   const [result, setResult] = useState(null);
-  const [state, setState] = useState({ loading: true, error: '', history: [] });
+  const [state, setState] = useState({ loading: false, error: '', history: [] });
 
-  // Voice and User Settings State
   const [userSettings, setUserSettings] = useState(null);
   const [availableVoices, setAvailableVoices] = useState([]);
 
-  // Topic Modal State
-  const [selectedTopic, setSelectedTopic] = useState(null);
-  const [quizMode, setQuizMode] = useState(false);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedQuizAnswer, setSelectedQuizAnswer] = useState(null);
-  const [quizScore, setQuizScore] = useState(0);
-  const [quizComplete, setQuizComplete] = useState(false);
+  // Guide state
+  const [guideSearch, setGuideSearch] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [expandedGuideId, setExpandedGuideId] = useState(EXTENSIVE_GRAMMAR_GUIDE[0]?.id || null);
 
-  const [userGrade, setUserGrade] = useState('1st Std');
-  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
+  // Sentence Quiz State
+  const [currentQuizIdx, setCurrentQuizIdx] = useState(0);
+  const [selectedQuizOption, setSelectedQuizOption] = useState(null);
+  const [isQuizAnswerSubmitted, setIsQuizAnswerSubmitted] = useState(false);
+  const [quizScore, setQuizScore] = useState(0);
+  const [isQuizCompleted, setIsQuizCompleted] = useState(false);
 
   const loadSettingsAndVoices = async () => {
     try {
-      const [s, voices, savedGrade, savedAccType] = await Promise.all([
+      const [s, voices] = await Promise.all([
         settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
-        AsyncStorage.getItem('speakmate_school_grade'),
-        AsyncStorage.getItem('speakmate_account_type'),
       ]);
-      const effAccType = savedAccType || 'INDIVIDUAL_USER';
-      setAccountType(effAccType);
       setUserSettings(s);
       setAvailableVoices(voices);
-      if (savedGrade) {
-        setUserGrade(savedGrade);
-      } else {
-        setUserGrade(effAccType === 'STUDENT' ? '1st Std' : 'Intermediate');
-      }
     } catch (e) {
       console.warn("Failed to load settings in grammar screen:", e);
     }
   };
 
-  const load = async () => {
+  const loadHistory = async () => {
     setState((current) => ({ ...current, loading: true, error: '' }));
     try {
       const history = await grammarService.history();
-      setState({ loading: false, error: '', history });
-    } catch (error) {
-      setState({ loading: false, error: error.userMessage || 'Unable to load grammar history.', history: [] });
+      setState({ loading: false, error: '', history: Array.isArray(history) ? history : [] });
+    } catch {
+      setState({ loading: false, error: '', history: [] });
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      load();
+      loadHistory();
       loadSettingsAndVoices();
     }, [])
   );
 
-  const check = async () => {
-    const cleanText = text.trim();
+  const check = async (overrideText) => {
+    const cleanText = (typeof overrideText === 'string' ? overrideText : text).trim();
     if (!cleanText) return;
     setChecking(true);
     setResult(null);
-    try {
-      const response = await grammarService.check(cleanText);
-      setResult(response);
-      setText('');
-      await load();
 
-      // Award +20 XP for grammar check
+    // 1. Run local multi-pass grammar engine immediately
+    const localResult = analyzeSentenceGrammarLocally(cleanText);
+    setResult(localResult);
+
+    try {
+      const backendRes = await grammarService.check(cleanText).catch(() => null);
+
+      if (backendRes && backendRes.correctedText) {
+        let structuredErrors = localResult.errors;
+        let isCorrect = backendRes.grammarScore >= 100 || backendRes.correctedText.trim().toLowerCase() === cleanText.toLowerCase();
+
+        if (backendRes.explanation && backendRes.explanation.includes("[")) {
+          const lines = backendRes.explanation.split("\n").filter(Boolean);
+          if (lines.length > 0) {
+            structuredErrors = lines.map((line) => {
+              const typeMatch = line.match(/\[(.*?)\]/);
+              return {
+                errorSnippet: line.split("(")[0].replace(/^\d+\.\s*/, "").trim(),
+                type: typeMatch ? typeMatch[1] : "Grammar Issue",
+                issue: line,
+                rule: "Ensure correct tense, agreement, and word order.",
+                correction: backendRes.correctedText,
+              };
+            });
+          }
+        }
+
+        const merged = {
+          id: backendRes.id || Date.now(),
+          isCorrect,
+          accuracyScore: backendRes.grammarScore || (isCorrect ? 100 : 80),
+          originalText: cleanText,
+          correctedText: backendRes.correctedText,
+          nativeAlternative: localResult.nativeAlternative,
+          errors: structuredErrors,
+          explanation: backendRes.explanation || localResult.explanation,
+          praiseMessage: isCorrect ? "🌟 Perfect English Grammar! Your sentence is 100% accurate with no grammar errors." : "",
+          createdAt: backendRes.createdAt || new Date().toISOString(),
+        };
+
+        setResult(merged);
+        speakFullFeedback(merged);
+        await loadHistory();
+      } else {
+        speakFullFeedback(localResult);
+      }
+
+      // Award XP
       try {
         const currProgress = await progressService.get().catch(() => null);
         if (currProgress) {
@@ -261,40 +150,9 @@ export default function GrammarScreen() {
             xp: (currProgress.xp || 0) + 20,
           });
         }
-      } catch (xpErr) {}
-
-      // Read aloud full analysis feedback automatically!
-      if (response) {
-        speakFullFeedback(response);
-      }
-    } catch (error) {
-      console.warn('Backend grammar check sync note, analyzing directly:', error);
-      try {
-        const aiRes = await aiService.grammar(cleanText);
-        let parsed = null;
-        try {
-          const raw = aiRes?.response || '';
-          const s = raw.indexOf('{');
-          const e = raw.lastIndexOf('}');
-          if (s !== -1 && e !== -1) parsed = JSON.parse(raw.substring(s, e + 1));
-        } catch (_) {}
-
-        const fallbackResponse = {
-          id: Date.now(),
-          originalText: cleanText,
-          correctedText: parsed?.correctedSentence || cleanText,
-          explanation: parsed?.errors && parsed.errors.length > 0 
-            ? parsed.errors.map((err, i) => `${i + 1}. [${err.type || 'grammar'}] ${err.issue || ''} (Suggested: "${err.correction || ''}")`).join('\n')
-            : 'Great job! Your sentence structure is clean and natural with no grammar errors.',
-          grammarScore: parsed?.isCorrect === true ? 100.0 : (parsed?.errors?.length ? Math.max(50.0, 100.0 - parsed.errors.length * 15.0) : 95.0),
-          createdAt: new Date().toISOString(),
-        };
-        setResult(fallbackResponse);
-        setText('');
-        speakFullFeedback(fallbackResponse);
-      } catch (err2) {
-        Alert.alert('Grammar check failed', error.userMessage || 'Please try again.');
-      }
+      } catch {}
+    } catch {
+      speakFullFeedback(localResult);
     } finally {
       setChecking(false);
     }
@@ -304,21 +162,13 @@ export default function GrammarScreen() {
     try {
       const saved = await AsyncStorage.getItem('speakmate_selected_voice');
       if (saved) return saved;
-    } catch (e) {}
+    } catch {}
 
-    if (userSettings && userSettings.aiVoice) {
-      return userSettings.aiVoice;
-    }
-    try {
-      const s = await settingsService.get().catch(() => null);
-      if (s) setUserSettings(s);
-      if (s && s.aiVoice) return s.aiVoice;
-    } catch (e) {}
-
+    if (userSettings && userSettings.aiVoice) return userSettings.aiVoice;
     try {
       const onboardingConfig = await OnboardingVoiceService.load();
       if (onboardingConfig && onboardingConfig.style) return onboardingConfig.style;
-    } catch (e) {}
+    } catch {}
 
     return 'Default';
   };
@@ -332,20 +182,22 @@ export default function GrammarScreen() {
         currentVoices = await VoiceService.getAvailableEnglishVoices();
         setAvailableVoices(currentVoices);
       }
-    } catch (e) {}
+    } catch {}
 
     if (userSettings?.isMuted) return;
 
     const voiceType = await getActiveVoiceType();
-    const isPerfect = res.grammarScore && res.grammarScore >= 100;
-    
     let speechText = '';
-    if (isPerfect) {
-      speechText = `Your sentence is grammatically correct! ${res.explanation || ''}`;
+
+    if (res.isCorrect) {
+      speechText = `Your sentence is 100% grammatically correct! ${res.correctedText}. Excellent job.`;
     } else {
       speechText = `Corrected sentence: ${res.correctedText}. `;
-      if (res.explanation) {
-        speechText += `Grammar explanation: ${res.explanation}`;
+      if (res.errors && res.errors.length > 0) {
+        speechText += `Found ${res.errors.length} improvement${res.errors.length > 1 ? 's' : ''}: `;
+        res.errors.forEach((err, i) => {
+          speechText += `${i + 1}. ${err.issue} `;
+        });
       }
     }
 
@@ -355,223 +207,291 @@ export default function GrammarScreen() {
     });
   };
 
-  const speakText = async (txt) => {
-    if (!txt) return;
-
-    let currentVoices = availableVoices;
-    try {
-      if (!currentVoices || currentVoices.length === 0) {
-        currentVoices = await VoiceService.getAvailableEnglishVoices();
-        setAvailableVoices(currentVoices);
-      }
-    } catch (e) {}
-
-    if (userSettings?.isMuted) return;
-
-    const voiceType = await getActiveVoiceType();
-    VoiceService.speak(txt, {
-      voiceType,
-      availableVoices: currentVoices,
-    });
-  };
-
   const removeHistoryItem = async (id) => {
     Alert.alert('Delete Entry', 'Remove this check from history?', [
       { text: 'Cancel', style: 'cancel' },
       {
-        text: 'Remove',
+        text: 'Delete',
         style: 'destructive',
         onPress: async () => {
           try {
             await grammarService.remove(id);
-            setState((curr) => ({
-              ...curr,
-              history: curr.history.filter((h) => h.id !== id),
+            setState((prev) => ({
+              ...prev,
+              history: prev.history.filter((h) => h.id !== id),
             }));
-            if (result?.id === id) {
-              setResult(null);
-            }
-          } catch (error) {
-            Alert.alert('Error', 'Unable to remove history item.');
+            if (result?.id === id) setResult(null);
+          } catch {
+            Alert.alert('Error', 'Unable to delete entry.');
           }
         },
       },
     ]);
   };
 
-  // Mini-Quiz Handlers
-  const handleAnswerSelect = (opt) => {
-    if (selectedQuizAnswer !== null) return;
-    setSelectedQuizAnswer(opt);
-    const correct = opt === selectedTopic.quiz[currentQuestionIndex].correct;
-    if (correct) {
+  // Quiz Handling
+  const activeQuiz = SENTENCE_GRAMMAR_QUIZZES[currentQuizIdx];
+
+  const handleSelectQuizAnswer = (idx) => {
+    if (isQuizAnswerSubmitted) return;
+    setSelectedQuizOption(idx);
+  };
+
+  const handleSubmitQuizAnswer = () => {
+    if (selectedQuizOption === null || isQuizAnswerSubmitted) return;
+    setIsQuizAnswerSubmitted(true);
+    if (selectedQuizOption === activeQuiz.correctAnswerIndex) {
       setQuizScore((prev) => prev + 1);
     }
   };
 
-  const handleNextQuizQuestion = async () => {
-    setSelectedQuizAnswer(null);
-    if (currentQuestionIndex < selectedTopic.quiz.length - 1) {
-      setCurrentQuestionIndex((prev) => prev + 1);
+  const handleNextQuizQuestion = () => {
+    if (currentQuizIdx + 1 < SENTENCE_GRAMMAR_QUIZZES.length) {
+      setCurrentQuizIdx((prev) => prev + 1);
+      setSelectedQuizOption(null);
+      setIsQuizAnswerSubmitted(false);
     } else {
-      setQuizComplete(true);
-      try {
-        const totalAwarded = quizScore * 25 + (quizScore === selectedTopic.quiz.length ? 25 : 0);
-        const currProgress = await progressService.get().catch(() => null);
-        if (currProgress && totalAwarded > 0) {
-          await progressService.update({
-            ...currProgress,
-            xp: (currProgress.xp || 0) + totalAwarded,
-          });
-        }
-      } catch (e) {}
+      setIsQuizCompleted(true);
     }
   };
 
-  const startTopicQuiz = (topic) => {
-    setSelectedTopic(topic);
-    setQuizMode(true);
-    setCurrentQuestionIndex(0);
-    setSelectedQuizAnswer(null);
+  const handleRestartQuiz = () => {
+    setCurrentQuizIdx(0);
+    setSelectedQuizOption(null);
+    setIsQuizAnswerSubmitted(false);
     setQuizScore(0);
-    setQuizComplete(false);
+    setIsQuizCompleted(false);
   };
 
-  const closeQuizModal = () => {
-    setQuizMode(false);
-    setSelectedTopic(null);
-  };
+  // Filtered guide items
+  const filteredGuides = EXTENSIVE_GRAMMAR_GUIDE.filter((g) => {
+    const matchesCat = selectedCategory === 'ALL' || g.category === selectedCategory;
+    const q = guideSearch.toLowerCase();
+    const matchesSearch =
+      !q ||
+      g.title.toLowerCase().includes(q) ||
+      g.summary.toLowerCase().includes(q) ||
+      g.rules.some((r) => r.name.toLowerCase().includes(q) || r.usage.toLowerCase().includes(q));
+    return matchesCat && matchesSearch;
+  });
+
+  const guideCategories = ['ALL', ...new Set(EXTENSIVE_GRAMMAR_GUIDE.map((g) => g.category))];
 
   return (
-    <Screen
-      title="Grammar Coach"
-      subtitle={
-        accountType === 'STUDENT'
-          ? `Learn tenses & check sentences (Calibrated for ${userGrade})`
-          : 'Learn tenses & analyze sentence grammar'
-      }
-    >
-      {/* Tab bar */}
-      <View style={[styles.tabContainer, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
+    <Screen style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Top Header */}
+      <View style={[styles.header, { borderBottomColor: theme.cardBorder }]}>
+        <View>
+          <Text style={[styles.headerTitle, { color: theme.textPrimary }]}>Grammar Doctor ✍️</Text>
+          <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>
+            Sentence analyzer, rule guides, and interactive quizzes
+          </Text>
+        </View>
+      </View>
+
+      {/* Navigation Segment Tabs */}
+      <View style={[styles.tabBar, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'checker' && styles.tabButtonActive]}
+          style={[styles.tabBtn, activeTab === 'checker' && styles.activeTabBtn]}
           onPress={() => setActiveTab('checker')}
         >
-          <Ionicons name="shield-checkmark" size={18} color={activeTab === 'checker' ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B')} />
-          <Text style={[styles.tabButtonText, { color: isDark ? '#94A3B8' : '#64748B' }, activeTab === 'checker' && styles.tabButtonTextActive]}>AI Checker</Text>
+          <Ionicons
+            name="medical"
+            size={16}
+            color={activeTab === 'checker' ? '#FFFFFF' : theme.textSecondary}
+          />
+          <Text style={[styles.tabText, activeTab === 'checker' && styles.activeTabText]}>
+            AI Doctor
+          </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'topics' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('topics')}
+          style={[styles.tabBtn, activeTab === 'guide' && styles.activeTabBtn]}
+          onPress={() => setActiveTab('guide')}
         >
-          <Ionicons name="book" size={18} color={activeTab === 'topics' ? '#FFFFFF' : (isDark ? '#94A3B8' : '#64748B')} />
-          <Text style={[styles.tabButtonText, { color: isDark ? '#94A3B8' : '#64748B' }, activeTab === 'topics' && styles.tabButtonTextActive]}>Grammar Guide</Text>
+          <Ionicons
+            name="book"
+            size={16}
+            color={activeTab === 'guide' ? '#FFFFFF' : theme.textSecondary}
+          />
+          <Text style={[styles.tabText, activeTab === 'guide' && styles.activeTabText]}>
+            Handbook
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.tabBtn, activeTab === 'quiz' && styles.activeTabBtn]}
+          onPress={() => setActiveTab('quiz')}
+        >
+          <Ionicons
+            name="trophy"
+            size={16}
+            color={activeTab === 'quiz' ? '#FFFFFF' : theme.textSecondary}
+          />
+          <Text style={[styles.tabText, activeTab === 'quiz' && styles.activeTabText]}>
+            Quizzes
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* TAB 1: AI GRAMMAR CHECKER */}
+      {/* TAB 1: AI GRAMMAR DOCTOR */}
       {activeTab === 'checker' && (
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-          <Card style={[styles.inputCard, { backgroundColor: theme.cardBg }]}>
-            <Text style={[styles.sectionHeaderTitle, { color: theme.textSecondary }]}>Analyze English Sentences</Text>
+          <Card style={[styles.inputCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+            <Text style={[styles.label, { color: theme.textPrimary }]}>Enter Any Sentence to Check:</Text>
+            
             <TextInput
-              style={[styles.textArea, { backgroundColor: isDark ? '#334155' : '#F8FAFC', borderColor: theme.cardBorder, color: theme.textPrimary }]}
-              placeholder="Type or paste your English text here..."
+              style={[styles.input, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', color: theme.textPrimary, borderColor: theme.cardBorder }]}
+              placeholder="e.g. She don't goes to school yesterday and discuss about exam."
+              placeholderTextColor={theme.textSecondary}
               value={text}
               onChangeText={setText}
               multiline
-              numberOfLines={4}
-              placeholderTextColor={theme.textSecondary}
+              numberOfLines={3}
             />
-            <AppButton title="Analyze & Correct" onPress={check} loading={checking} style={{ marginTop: 12 }} />
+
+            {/* Quick Practice Chips */}
+            <Text style={[styles.chipSectionTitle, { color: theme.textSecondary }]}>⚡ Try Sample Sentences:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow}>
+              {SAMPLE_SENTENCES.map((item, idx) => (
+                <TouchableOpacity
+                  key={idx}
+                  style={[styles.chip, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]}
+                  onPress={() => {
+                    setText(item.text);
+                    check(item.text);
+                  }}
+                >
+                  <Text style={[styles.chipText, { color: theme.textPrimary }]}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <AppButton
+              title="✨ Check Sentence Grammar"
+              onPress={() => check()}
+              loading={checking}
+              disabled={!text.trim()}
+              style={{ marginTop: 14 }}
+            />
           </Card>
 
-          {/* Grammar Result Card */}
-          {!!result && (() => {
-            const isPerfect = result.grammarScore && result.grammarScore >= 100;
-            return (
-              <Card style={[styles.resultCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-                <View style={styles.resultHeader}>
-                  <Text style={[styles.resultTitle, { color: theme.textPrimary }]}>Analysis Feedback</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <TouchableOpacity onPress={() => speakFullFeedback(result)} style={styles.audioPill}>
-                      <Ionicons name="volume-medium" size={15} color={COLORS.primary} />
-                      <Text style={styles.audioPillText}>Read</Text>
-                    </TouchableOpacity>
-                    <View style={[styles.scoreBadge, { backgroundColor: result.grammarScore >= 80 ? 'rgba(34,197,94,0.2)' : 'rgba(239,68,68,0.2)' }]}>
-                      <Text style={[styles.scoreText, { color: result.grammarScore >= 80 ? '#16A34A' : '#EF4444' }]}>
-                        {Math.round(result.grammarScore || 100)}% Accuracy
-                      </Text>
-                    </View>
-                  </View>
+          {/* RESULTS DISPLAY: ORDERED PROMINENTLY */}
+          {result && (
+            <Card style={[styles.resultCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+              {/* 1. TOP HEADER & SCORE */}
+              <View style={styles.resultTopHeader}>
+                <View style={[styles.badge, { backgroundColor: result.isCorrect ? 'rgba(34,197,94,0.15)' : 'rgba(108,99,255,0.15)' }]}>
+                  <Text style={[styles.badgeText, { color: result.isCorrect ? '#16A34A' : COLORS.primary }]}>
+                    {result.isCorrect ? '✅ 100% Perfect Sentence' : '🌟 Corrected Sentence'}
+                  </Text>
                 </View>
 
-                {isPerfect ? (
-                  <View style={{ marginBottom: 12 }}>
-                    <Text style={[styles.subLabel, { color: theme.textSecondary }]}>Your Sentence (Perfect Grammar!)</Text>
-                    <View style={[styles.feedbackBox, { backgroundColor: isDark ? 'rgba(34,197,94,0.15)' : '#F0FDF4', borderColor: '#86EFAC' }]}>
-                      <Text style={[styles.correctedFeedback, { color: isDark ? '#4ADE80' : '#166534' }]}>✅ {result.originalText}</Text>
-                    </View>
-                  </View>
-                ) : (
-                  <>
-                    <View style={{ marginBottom: 12 }}>
-                      <Text style={[styles.subLabel, { color: theme.textSecondary }]}>Original Sentence</Text>
-                      <View style={[styles.feedbackBox, { backgroundColor: isDark ? '#334155' : '#FEF2F2', borderColor: '#FCA5A5' }]}>
-                        <Text style={[styles.originalFeedback, { color: isDark ? '#FCA5A5' : '#991B1B' }]}>❌ {result.originalText}</Text>
-                      </View>
-                    </View>
+                <TouchableOpacity
+                  style={styles.speakerBtn}
+                  onPress={() => speakFullFeedback(result)}
+                >
+                  <Ionicons name="volume-high" size={20} color="#FFFFFF" />
+                  <Text style={styles.speakerBtnText}>Hear Audio</Text>
+                </TouchableOpacity>
+              </View>
 
-                    <View style={{ marginBottom: 12 }}>
-                      <Text style={[styles.subLabel, { color: theme.textSecondary }]}>AI Corrected Sentence</Text>
-                      <View style={[styles.feedbackBox, { backgroundColor: isDark ? 'rgba(34,197,94,0.15)' : '#F0FDF4', borderColor: '#86EFAC' }]}>
-                        <Text style={[styles.correctedFeedback, { color: isDark ? '#4ADE80' : '#166534' }]}>✅ {result.correctedText}</Text>
-                      </View>
-                    </View>
-                  </>
-                )}
+              {/* 2. CORRECTED SENTENCE PROMINENT DISPLAY */}
+              <View style={{ marginTop: 12 }}>
+                <Text style={[styles.subLabel, { color: theme.textSecondary }]}>
+                  {result.isCorrect ? "Your Sentence:" : "Corrected English Sentence:"}
+                </Text>
+                <View style={[styles.feedbackBox, {
+                  backgroundColor: result.isCorrect ? (isDark ? 'rgba(34,197,94,0.15)' : '#F0FDF4') : (isDark ? '#1E293B' : '#F8FAFC'),
+                  borderColor: result.isCorrect ? '#86EFAC' : COLORS.primary
+                }]}>
+                  <Text style={[styles.correctedMainText, { color: result.isCorrect ? (isDark ? '#4ADE80' : '#166534') : theme.textPrimary }]}>
+                    "{result.correctedText}"
+                  </Text>
+                </View>
+              </View>
 
-                {!!result.explanation && (
-                  <View>
-                    <Text style={[styles.subLabel, { color: theme.textSecondary }]}>Grammar Rule & Explanation</Text>
-                    <View style={[styles.explanationContainer, isDark && { backgroundColor: '#334155' }]}>
-                      <Ionicons name="bulb-outline" size={18} color="#F59E0B" style={{ marginRight: 6, marginTop: 2 }} />
-                      <Text style={[styles.explanationText, { color: theme.textPrimary }]}>{result.explanation}</Text>
+              {/* Praise message if perfect */}
+              {result.isCorrect && (
+                <View style={[styles.praiseBox, { backgroundColor: isDark ? 'rgba(34,197,94,0.1)' : '#DCFCE7' }]}>
+                  <Ionicons name="checkmark-circle" size={20} color="#16A34A" />
+                  <Text style={[styles.praiseText, { color: isDark ? '#86EFAC' : '#166534' }]}>
+                    {result.praiseMessage || "Given sentence is correct with no grammar mistakes!"}
+                  </Text>
+                </View>
+              )}
+
+              {/* Native Upgrade Phrasing */}
+              {result.nativeAlternative && (
+                <View style={[styles.nativeBox, { backgroundColor: isDark ? 'rgba(99,102,241,0.1)' : '#EEF2FF' }]}>
+                  <Ionicons name="sparkles" size={18} color="#6366F1" />
+                  <Text style={[styles.nativeText, { color: isDark ? '#A5B4FC' : '#3730A3' }]}>
+                    <Text style={{ fontWeight: 'bold' }}>Native Upgrade: </Text>"{result.nativeAlternative}"
+                  </Text>
+                </View>
+              )}
+
+              {/* 3. ITEMIZED MISTAKES BREAKDOWN (IF NOT PERFECT) */}
+              {!result.isCorrect && result.errors && result.errors.length > 0 && (
+                <View style={{ marginTop: 14 }}>
+                  <Text style={[styles.subLabel, { color: theme.textSecondary, marginBottom: 8 }]}>
+                    🔍 Identified Mistakes & Rules ({result.errors.length}):
+                  </Text>
+
+                  {result.errors.map((err, idx) => (
+                    <View key={idx} style={[styles.errorItemCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: theme.cardBorder }]}>
+                      <View style={styles.errorItemHeader}>
+                        <View style={styles.errorNumBadge}>
+                          <Text style={styles.errorNumText}>{idx + 1}</Text>
+                        </View>
+                        <Text style={styles.errorTypeBadge}>{err.type || 'Grammar Rule'}</Text>
+                        {err.errorSnippet && (
+                          <Text style={styles.errorSnippetBadge}>Wrong: "{err.errorSnippet}"</Text>
+                        )}
+                      </View>
+
+                      <Text style={[styles.errorIssueText, { color: theme.textPrimary }]}>
+                        👉 {err.issue}
+                      </Text>
+
+                      {err.rule && (
+                        <View style={[styles.errorRuleBox, { backgroundColor: isDark ? '#0F172A' : '#EDE9FE' }]}>
+                          <Text style={[styles.errorRuleText, { color: isDark ? '#DDD6FE' : '#5B21B6' }]}>
+                            <Text style={{ fontWeight: 'bold' }}>Rule: </Text>{err.rule}
+                          </Text>
+                        </View>
+                      )}
                     </View>
-                  </View>
-                )}
-              </Card>
-            );
-          })()}
+                  ))}
+                </View>
+              )}
+            </Card>
+          )}
 
           {/* History Timeline */}
-          <Text style={[styles.sectionHeaderTitle, { color: theme.textSecondary, marginTop: 20, marginBottom: 8 }]}>Recent Analysis History</Text>
+          <Text style={[styles.sectionHeaderTitle, { color: theme.textSecondary, marginTop: 20, marginBottom: 8 }]}>
+            Recent Analysis History ({state.history.length})
+          </Text>
           <StateView
             loading={state.loading}
             error={state.error}
             empty={!state.history.length ? 'No previous grammar analysis entries yet.' : null}
-            onRetry={load}
+            onRetry={loadHistory}
           >
             {state.history.map((item) => (
               <TouchableOpacity key={item.id} activeOpacity={0.85} onPress={() => setResult(item)}>
                 <Card style={[styles.historyCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }, result?.id === item.id && { borderColor: COLORS.primary, borderWidth: 1.5 }]}>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Text style={[styles.historyCorrected, { color: theme.textPrimary }]} numberOfLines={1}>
-                      ✅ {item.correctedText}
+                      👉 {item.correctedText}
                     </Text>
                     <TouchableOpacity onPress={() => removeHistoryItem(item.id)}>
                       <Ionicons name="trash-outline" size={18} color="#EF4444" />
                     </TouchableOpacity>
                   </View>
                   <Text style={[styles.historyOriginal, { color: theme.textSecondary }]} numberOfLines={1}>
-                    Original: {item.originalText}
+                    Original: "{item.originalText}"
                   </Text>
-                  <View style={styles.historyFooter}>
-                    <Text style={[styles.historyScore, { color: COLORS.primary }]}>Score: {item.grammarScore ?? 'N/A'}%</Text>
-                    <Text style={[styles.historyDate, { color: theme.textSecondary }]}>
-                      {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : ''}
-                    </Text>
-                  </View>
                 </Card>
               </TouchableOpacity>
             ))}
@@ -579,469 +499,266 @@ export default function GrammarScreen() {
         </ScrollView>
       )}
 
-      {/* TAB 2: GRAMMAR TOPICS GUIDE */}
-      {activeTab === 'topics' && (
+      {/* TAB 2: COMPREHENSIVE GRAMMAR HANDBOOK */}
+      {activeTab === 'guide' && (
         <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
-          <LevelSegmentedControl selectedLevel={userGrade} onChangeLevel={setUserGrade} accountType={accountType} />
-          {((accountType === 'STUDENT' && STANDARD_GRAMMAR_TOPICS[userGrade]) ? STANDARD_GRAMMAR_TOPICS[userGrade] : GRAMMAR_TOPICS).map((topic) => (
-            <Card key={topic.id} style={[styles.topicCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
-              <View style={styles.topicHeader}>
-                <Text style={[styles.topicTitle, { color: theme.textPrimary }]}>{topic.title}</Text>
-                <Ionicons name="book-outline" size={20} color={COLORS.primary} />
-              </View>
-              <Text style={[styles.topicDesc, { color: theme.textSecondary }]}>{topic.description}</Text>
-              
-              <View style={styles.topicSection}>
-                <Text style={[styles.topicHeading, { color: theme.textPrimary }]}>Core Concept</Text>
-                <Text style={[styles.topicBody, { color: theme.textSecondary }]}>{topic.explanations}</Text>
-              </View>
+          {/* Search input */}
+          <TextInput
+            style={[styles.searchBar, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', color: theme.textPrimary, borderColor: theme.cardBorder }]}
+            placeholder="🔍 Search grammar rules or topics..."
+            placeholderTextColor={theme.textSecondary}
+            value={guideSearch}
+            onChangeText={setGuideSearch}
+          />
 
-              <View style={styles.topicSection}>
-                <Text style={[styles.topicHeading, { color: theme.textPrimary }]}>Examples</Text>
-                {topic.examples.map((ex, idx) => (
-                  <View key={idx} style={[styles.topicExampleBox, isDark && { backgroundColor: '#334155', borderColor: '#475569' }]}>
-                    <Text style={styles.exOriginal}>❌ {ex.original}</Text>
-                    <Text style={styles.exCorrected}>✅ {ex.corrected}</Text>
-                    <Text style={[styles.exRule, { color: theme.textSecondary }]}>{ex.rule}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <TouchableOpacity style={styles.practiceBtn} onPress={() => startTopicQuiz(topic)}>
-                <Text style={styles.practiceBtnText}>Practice Topic Quiz</Text>
-                <Ionicons name="play-circle" size={18} color="#FFFFFF" />
+          {/* Category Filter Chips */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+            {guideCategories.map((cat, i) => (
+              <TouchableOpacity
+                key={i}
+                style={[
+                  styles.categoryChip,
+                  selectedCategory === cat ? styles.categoryChipActive : { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }
+                ]}
+                onPress={() => setSelectedCategory(cat)}
+              >
+                <Text style={[styles.categoryChipText, selectedCategory === cat && styles.categoryChipTextActive]}>
+                  {cat}
+                </Text>
               </TouchableOpacity>
-            </Card>
-          ))}
+            ))}
+          </ScrollView>
+
+          {/* Guide Modules List */}
+          {filteredGuides.map((guide) => {
+            const isExpanded = expandedGuideId === guide.id;
+            return (
+              <Card key={guide.id} style={[styles.guideCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+                <TouchableOpacity
+                  style={styles.guideHeader}
+                  onPress={() => setExpandedGuideId(isExpanded ? null : guide.id)}
+                  activeOpacity={0.8}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+                    <Text style={styles.guideIcon}>{guide.icon}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.guideLevelBadge, { color: COLORS.primary }]}>{guide.level}</Text>
+                      <Text style={[styles.guideTitle, { color: theme.textPrimary }]}>{guide.title}</Text>
+                      <Text style={[styles.guideSummary, { color: theme.textSecondary }]} numberOfLines={1}>{guide.summary}</Text>
+                    </View>
+                  </View>
+                  <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color={theme.textSecondary} />
+                </TouchableOpacity>
+
+                {isExpanded && (
+                  <View style={[styles.guideBody, { borderTopColor: theme.cardBorder }]}>
+                    {guide.rules.map((r, rIdx) => (
+                      <View key={rIdx} style={[styles.ruleCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC' }]}>
+                        <Text style={[styles.ruleName, { color: COLORS.primary }]}>📌 {r.name}</Text>
+                        {r.formula && (
+                          <Text style={[styles.ruleFormula, { color: theme.textPrimary }]}>Formula: {r.formula}</Text>
+                        )}
+                        <Text style={[styles.ruleUsage, { color: theme.textSecondary }]}>{r.usage}</Text>
+                        
+                        <View style={{ gap: 4, marginTop: 4 }}>
+                          <Text style={styles.exCorrect}>✅ {r.correctExample}</Text>
+                          <Text style={styles.exWrong}>❌ {r.wrongExample}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </Card>
+            );
+          })}
         </ScrollView>
       )}
 
-      {/* Interactive Quiz Modal */}
-      {quizMode && selectedTopic && (
-        <Modal animationType="slide" transparent visible={quizMode} onRequestClose={closeQuizModal}>
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: theme.cardBg }]}>
-              <View style={[styles.modalHeader, { borderBottomColor: theme.cardBorder }]}>
-                <Text style={[styles.modalTitle, { color: theme.textPrimary }]}>{selectedTopic.title} Quiz</Text>
-                <TouchableOpacity onPress={closeQuizModal}>
-                  <Ionicons name="close" size={24} color={theme.textSecondary} />
-                </TouchableOpacity>
+      {/* TAB 3: INTERACTIVE SENTENCE GRAMMAR QUIZZES */}
+      {activeTab === 'quiz' && (
+        <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+          {!isQuizCompleted ? (
+            <Card style={[styles.quizCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+              <View style={styles.quizHeader}>
+                <Text style={[styles.quizProgressText, { color: COLORS.primary }]}>
+                  Question {currentQuizIdx + 1} of {SENTENCE_GRAMMAR_QUIZZES.length}
+                </Text>
+                <Text style={[styles.quizScoreText, { color: theme.textSecondary }]}>
+                  Score: <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{quizScore}</Text>
+                </Text>
               </View>
 
-              {!quizComplete ? (
-                <View style={{ flex: 1, justifyContent: 'center' }}>
-                  <Text style={[styles.quizProgress, { color: theme.textSecondary }]}>Question {currentQuestionIndex + 1} of {selectedTopic.quiz.length}</Text>
-                  <Text style={[styles.quizQuestionText, { color: theme.textPrimary }]}>{selectedTopic.quiz[currentQuestionIndex].question}</Text>
-                  
-                  <View style={{ gap: 8, marginTop: 16 }}>
-                    {selectedTopic.quiz[currentQuestionIndex].options.map((option, idx) => {
-                      const isSelected = selectedQuizAnswer === option;
-                      const isCorrect = option === selectedTopic.quiz[currentQuestionIndex].correct;
-                      
-                      let btnStyle = [styles.quizOption, { backgroundColor: isDark ? '#334155' : '#F8FAFC', borderColor: theme.cardBorder }];
-                      let txtStyle = [styles.quizOptionText, { color: theme.textPrimary }];
+              {/* Problem Sentence */}
+              <View style={styles.problemBox}>
+                <Text style={styles.problemLabel}>Sentence with Problem:</Text>
+                <Text style={styles.problemText}>"{activeQuiz.sentenceWithProblem}"</Text>
+              </View>
 
-                      if (selectedQuizAnswer !== null) {
-                        if (isCorrect) {
-                          btnStyle = [styles.quizOption, styles.quizCorrect];
-                          txtStyle = [styles.quizOptionText, styles.quizCorrectText];
-                        } else if (isSelected) {
-                          btnStyle = [styles.quizOption, styles.quizIncorrect];
-                          txtStyle = [styles.quizOptionText, styles.quizIncorrectText];
-                        }
-                      }
+              <Text style={[styles.quizQuestion, { color: theme.textPrimary }]}>{activeQuiz.question}</Text>
 
-                      return (
-                        <TouchableOpacity
-                          key={idx}
-                          style={btnStyle}
-                          onPress={() => handleAnswerSelect(option)}
-                          disabled={selectedQuizAnswer !== null}
-                        >
-                          <Text style={txtStyle}>{option}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+              {/* Options */}
+              <View style={{ gap: 8, marginTop: 12 }}>
+                {activeQuiz.options.map((opt, idx) => {
+                  const isSelected = selectedQuizOption === idx;
+                  const isCorrect = idx === activeQuiz.correctAnswerIndex;
 
-                  {selectedQuizAnswer !== null && (
-                    <TouchableOpacity style={styles.modalNextBtn} onPress={handleNextQuizQuestion}>
-                      <Text style={styles.modalNextText}>
-                        {currentQuestionIndex === selectedTopic.quiz.length - 1 ? 'Finish' : 'Next'}
-                      </Text>
-                      <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
+                  let optBg = isDark ? '#1E293B' : '#F8FAFC';
+                  let optBorder = theme.cardBorder;
+                  let optColor = theme.textPrimary;
+
+                  if (isQuizAnswerSubmitted) {
+                    if (isCorrect) {
+                      optBg = 'rgba(34,197,94,0.15)';
+                      optBorder = '#86EFAC';
+                      optColor = isDark ? '#86EFAC' : '#166534';
+                    } else if (isSelected && !isCorrect) {
+                      optBg = 'rgba(239,68,68,0.15)';
+                      optBorder = '#FCA5A5';
+                      optColor = '#EF4444';
+                    }
+                  } else if (isSelected) {
+                    optBg = 'rgba(108,99,255,0.15)';
+                    optBorder = COLORS.primary;
+                    optColor = COLORS.primary;
+                  }
+
+                  return (
+                    <TouchableOpacity
+                      key={idx}
+                      style={[styles.quizOption, { backgroundColor: optBg, borderColor: optBorder }]}
+                      onPress={() => handleSelectQuizAnswer(idx)}
+                      disabled={isQuizAnswerSubmitted}
+                    >
+                      <Text style={[styles.quizOptionText, { color: optColor }]}>{opt}</Text>
                     </TouchableOpacity>
-                  )}
-                </View>
-              ) : (
-                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name="medal" size={64} color="#CA8A04" />
-                  <Text style={[styles.finishTitle, { color: theme.textPrimary }]}>Quiz Complete!</Text>
-                  <Text style={[styles.finishScore, { color: theme.textSecondary }]}>You scored {quizScore} out of {selectedTopic.quiz.length}</Text>
-                  <Text style={styles.finishReward}>+15 XP Earned</Text>
-                  <TouchableOpacity style={styles.finishCloseBtn} onPress={closeQuizModal}>
-                    <Text style={styles.finishCloseText}>Done</Text>
-                  </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              {/* Explanation upon submit */}
+              {isQuizAnswerSubmitted && (
+                <View style={[styles.quizExplanationBox, { backgroundColor: isDark ? '#1E293B' : '#EDE9FE' }]}>
+                  <Text style={[styles.quizExplanationLabel, { color: COLORS.primary }]}>Rule Explanation:</Text>
+                  <Text style={[styles.quizExplanationText, { color: theme.textPrimary }]}>
+                    {activeQuiz.explanation}
+                  </Text>
                 </View>
               )}
-            </View>
-          </View>
-        </Modal>
+
+              {/* Action button */}
+              <View style={{ marginTop: 16 }}>
+                {!isQuizAnswerSubmitted ? (
+                  <AppButton
+                    title="Submit Answer"
+                    onPress={handleSubmitQuizAnswer}
+                    disabled={selectedQuizOption === null}
+                  />
+                ) : (
+                  <AppButton
+                    title={currentQuizIdx + 1 < SENTENCE_GRAMMAR_QUIZZES.length ? "Next Question →" : "View Results 🏆"}
+                    onPress={handleNextQuizQuestion}
+                  />
+                )}
+              </View>
+            </Card>
+          ) : (
+            <Card style={[styles.quizCompletedCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
+              <Text style={{ fontSize: 50, textAlign: 'center' }}>🏆</Text>
+              <Text style={[styles.completedTitle, { color: theme.textPrimary }]}>Grammar Quiz Completed!</Text>
+              <Text style={[styles.completedSubtitle, { color: theme.textSecondary }]}>
+                You scored <Text style={{ color: COLORS.primary, fontWeight: 'bold' }}>{quizScore}</Text> out of {SENTENCE_GRAMMAR_QUIZZES.length}!
+              </Text>
+
+              <AppButton
+                title="🔄 Retake Quiz"
+                onPress={handleRestartQuiz}
+                style={{ marginTop: 20 }}
+              />
+            </Card>
+          )}
+        </ScrollView>
       )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 16,
-  },
-  tabButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: 10,
-  },
-  tabButtonActive: {
-    backgroundColor: COLORS.primary,
-  },
-  tabButtonText: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#64748B',
-  },
-  tabButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  scroll: {
-    flex: 1,
-  },
-  inputCard: {
-    padding: 16,
-    marginBottom: 14,
-  },
-  sectionHeaderTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#64748B',
-    marginBottom: 8,
-    textTransform: 'uppercase',
-  },
-  textArea: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 14,
-    color: COLORS.black,
-    fontWeight: '600',
-    textAlignVertical: 'top',
-    height: 100,
-  },
-  resultCard: {
-    padding: 16,
-    marginBottom: 14,
-    borderColor: '#E2E8F0',
-    borderWidth: 1.5,
-  },
-  resultHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  resultTitle: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.black,
-  },
-  scoreBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  scoreText: {
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  subLabel: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#94A3B8',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  feedbackBox: {
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    marginTop: 2,
-  },
-  audioPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#EEF2FF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  audioPillText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  originalFeedback: {
-    fontSize: 14,
-    color: '#991B1B',
-    fontWeight: '600',
-  },
-  correctedFeedback: {
-    fontSize: 15,
-    color: '#166534',
-    fontWeight: '800',
-  },
-  explanationContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#F8FAFC',
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 4,
-  },
-  explanationText: {
-    fontSize: 13,
-    color: '#475569',
-    lineHeight: 18,
-    fontWeight: '600',
-    flex: 1,
-  },
-  historyCard: {
-    padding: 14,
-    marginBottom: 10,
-    borderColor: '#F1F5F9',
-  },
-  historyCorrected: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: COLORS.black,
-    flex: 1,
-    marginRight: 10,
-  },
-  historyOriginal: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  historyFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-    paddingTop: 6,
-  },
-  historyScore: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: COLORS.primary,
-  },
-  historyDate: {
-    fontSize: 10,
-    color: '#94A3B8',
-  },
-  topicCard: {
-    padding: 16,
-    marginBottom: 16,
-  },
-  topicHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  topicTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: COLORS.black,
-  },
-  topicDesc: {
-    fontSize: 13,
-    color: '#64748B',
-    marginTop: 4,
-    fontWeight: '600',
-  },
-  topicSection: {
-    marginTop: 12,
-  },
-  topicHeading: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#94A3B8',
-    textTransform: 'uppercase',
-    marginBottom: 4,
-  },
-  topicBody: {
-    fontSize: 13,
-    color: '#334155',
-    lineHeight: 18,
-    fontWeight: '600',
-  },
-  topicExampleBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 8,
-    padding: 10,
-    marginTop: 4,
-    gap: 4,
-  },
-  exOriginal: {
-    fontSize: 12,
-    color: '#EF4444',
-    textDecorationLine: 'line-through',
-  },
-  exCorrected: {
-    fontSize: 13,
-    color: '#16A34A',
-    fontWeight: '800',
-  },
-  exRule: {
-    fontSize: 11,
-    color: '#64748B',
-    fontStyle: 'italic',
-  },
-  practiceBtn: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.primary,
-    borderRadius: 10,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 16,
-  },
-  practiceBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 24,
-    minHeight: 400,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F1F5F9',
-    paddingBottom: 10,
-    marginBottom: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '900',
-    color: COLORS.black,
-  },
-  quizProgress: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#64748B',
-    textTransform: 'uppercase',
-  },
-  quizQuestionText: {
-    fontSize: 16,
-    fontWeight: '900',
-    color: COLORS.black,
-    marginTop: 6,
-    marginBottom: 16,
-  },
-  quizOption: {
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    borderRadius: 12,
-    padding: 14,
-  },
-  quizOptionText: {
-    fontSize: 13,
-    color: '#334155',
-    fontWeight: '700',
-  },
-  quizCorrect: {
-    backgroundColor: '#DCFCE7',
-    borderColor: '#22C55E',
-  },
-  quizCorrectText: {
-    color: '#15803D',
-  },
-  quizIncorrect: {
-    backgroundColor: '#FEE2E2',
-    borderColor: '#EF4444',
-  },
-  quizIncorrectText: {
-    color: '#B91C1C',
-  },
-  modalNextBtn: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    marginTop: 20,
-  },
-  modalNextText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-  },
-  finishTitle: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: COLORS.black,
-    marginTop: 12,
-  },
-  finishScore: {
-    fontSize: 14,
-    color: '#64748B',
-    marginTop: 4,
-  },
-  finishReward: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: COLORS.success,
-    marginTop: 8,
-    marginBottom: 20,
-  },
-  finishCloseBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    height: 44,
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  finishCloseText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
-  },
+  container: { flex: 1 },
+  header: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  headerTitle: { fontSize: 20, fontWeight: '900' },
+  headerSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 2 },
+  tabBar: { flexDirection: 'row', marginHorizontal: 16, marginVertical: 10, borderRadius: 16, padding: 4 },
+  tabBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingVertical: 8, borderRadius: 12 },
+  activeTabBtn: { backgroundColor: COLORS.primary },
+  tabText: { fontSize: 12, fontWeight: '700', color: '#64748B' },
+  activeTabText: { color: '#FFFFFF' },
+  scroll: { flex: 1, paddingHorizontal: 16 },
+  inputCard: { padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth },
+  label: { fontSize: 13, fontWeight: '800', marginBottom: 8 },
+  input: { borderWidth: 1, borderRadius: 14, padding: 12, fontSize: 14, minHeight: 70, textAlignVertical: 'top' },
+  chipSectionTitle: { fontSize: 11, fontWeight: '700', marginTop: 10, marginBottom: 6 },
+  chipRow: { flexDirection: 'row', marginBottom: 4 },
+  chip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, marginRight: 8 },
+  chipText: { fontSize: 11, fontWeight: '700' },
+  resultCard: { padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, marginTop: 14 },
+  resultTopHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  badge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
+  badgeText: { fontSize: 11, fontWeight: '900', textTransform: 'uppercase' },
+  speakerBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: COLORS.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 10 },
+  speakerBtnText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800' },
+  subLabel: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', marginBottom: 4 },
+  feedbackBox: { padding: 12, borderRadius: 14, borderWidth: 1 },
+  correctedMainText: { fontSize: 15, fontWeight: '800', lineHeight: 22 },
+  praiseBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, borderRadius: 12, marginTop: 10 },
+  praiseText: { fontSize: 12, fontWeight: '700', flex: 1 },
+  nativeBox: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, borderRadius: 12, marginTop: 8 },
+  nativeText: { fontSize: 12, flex: 1 },
+  errorItemCard: { padding: 12, borderRadius: 14, borderWidth: 1, marginBottom: 8 },
+  errorItemHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 6, flexWrap: 'wrap' },
+  errorNumBadge: { width: 18, height: 18, borderRadius: 9, backgroundColor: '#F43F5E', alignItems: 'center', justifyContent: 'center' },
+  errorNumText: { color: '#FFFFFF', fontSize: 10, fontWeight: '900' },
+  errorTypeBadge: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', color: COLORS.primary, backgroundColor: 'rgba(108,99,255,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  errorSnippetBadge: { fontSize: 10, fontWeight: '700', color: '#EF4444', backgroundColor: 'rgba(239,68,68,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  errorIssueText: { fontSize: 13, fontWeight: '600', lineHeight: 18 },
+  errorRuleBox: { padding: 8, borderRadius: 8, marginTop: 6 },
+  errorRuleText: { fontSize: 11, fontWeight: '500' },
+  sectionHeaderTitle: { fontSize: 13, fontWeight: '800', textTransform: 'uppercase' },
+  historyCard: { padding: 12, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, marginBottom: 8 },
+  historyCorrected: { fontSize: 13, fontWeight: '800', flex: 1, marginRight: 8 },
+  historyOriginal: { fontSize: 11, marginTop: 2 },
+  searchBar: { borderWidth: 1, borderRadius: 14, padding: 10, fontSize: 13, marginBottom: 10 },
+  categoryScroll: { flexDirection: 'row', marginBottom: 12 },
+  categoryChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 10, marginRight: 6 },
+  categoryChipActive: { backgroundColor: COLORS.primary },
+  categoryChipText: { fontSize: 11, fontWeight: '700', color: '#64748B' },
+  categoryChipTextActive: { color: '#FFFFFF' },
+  guideCard: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, marginBottom: 10, overflow: 'hidden' },
+  guideHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
+  guideIcon: { fontSize: 24 },
+  guideLevelBadge: { fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
+  guideTitle: { fontSize: 14, fontWeight: '800', marginTop: 1 },
+  guideSummary: { fontSize: 11, fontWeight: '500', marginTop: 1 },
+  guideBody: { padding: 14, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
+  ruleCard: { padding: 10, borderRadius: 12, gap: 4 },
+  ruleName: { fontSize: 12, fontWeight: '800' },
+  ruleFormula: { fontSize: 11, fontWeight: '700', fontStyle: 'italic' },
+  ruleUsage: { fontSize: 11, fontWeight: '500' },
+  exCorrect: { fontSize: 11, fontWeight: '700', color: '#16A34A' },
+  exWrong: { fontSize: 11, color: '#EF4444', textDecorationLine: 'line-through' },
+  quizCard: { padding: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth },
+  quizHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  quizProgressText: { fontSize: 12, fontWeight: '900', textTransform: 'uppercase' },
+  quizScoreText: { fontSize: 12, fontWeight: '600' },
+  problemBox: { padding: 12, borderRadius: 12, backgroundColor: 'rgba(245,158,11,0.15)', borderWidth: 1, borderColor: '#FCD34D', marginBottom: 10 },
+  problemLabel: { fontSize: 10, fontWeight: '800', color: '#D97706', textTransform: 'uppercase' },
+  problemText: { fontSize: 13, fontWeight: '700', color: '#92400E', marginTop: 2 },
+  quizQuestion: { fontSize: 13, fontWeight: '800', marginTop: 6 },
+  quizOption: { padding: 12, borderRadius: 12, borderWidth: 1 },
+  quizOptionText: { fontSize: 13, fontWeight: '600' },
+  quizExplanationBox: { padding: 10, borderRadius: 10, marginTop: 10 },
+  quizExplanationLabel: { fontSize: 10, fontWeight: '900', textTransform: 'uppercase' },
+  quizExplanationText: { fontSize: 12, fontWeight: '600', marginTop: 2 },
+  quizCompletedCard: { padding: 24, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center' },
+  completedTitle: { fontSize: 18, fontWeight: '900', marginTop: 10 },
+  completedSubtitle: { fontSize: 13, fontWeight: '500', marginTop: 4 },
 });

@@ -2,261 +2,123 @@ import { useState, useEffect } from "react";
 import { grammarService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 import { recordVocabularyMastered } from "../utils/progressTracker";
-
-function performSmartGrammarCorrection(text) {
-  if (!text || !text.trim()) return null;
-
-  let corrected = text.trim();
-  const corrections = [];
-
-  const rules = [
-    {
-      regex: /\b(he|she|it|everyone|someone|nobody)\s+do\s+not\b/gi,
-      replace: "$1 does not",
-      rule: "Use 'does not' with third-person singular subjects (he, she, it, everyone).",
-      category: "Subject-Verb Agreement",
-    },
-    {
-      regex: /\b(he|she|it)\s+don't\b/gi,
-      replace: "$1 doesn't",
-      rule: "Use 'doesn't' with third-person singular subjects (he, she, it).",
-      category: "Subject-Verb Agreement",
-    },
-    {
-      regex: /\b(do|does|did|will|can|could|should|would|may|might|must)\s+not\s+(goes|went|eats|ate|walks|walked|played|plays)\b/gi,
-      replace: (match, modal, verb) => {
-        const baseMap = {
-          goes: "go",
-          went: "go",
-          eats: "eat",
-          ate: "eat",
-          walks: "walk",
-          walked: "walk",
-          plays: "play",
-          played: "play",
-        };
-        const base = baseMap[verb.toLowerCase()] || verb;
-        return `${modal} not ${base}`;
-      },
-      rule: "After auxiliary/modal verbs with 'not', always use the base form of the verb.",
-      category: "Auxiliary Verbs",
-    },
-    {
-      regex: /\b(he|she|it)\s+(go|eat|walk|play|want|like|need)\b/gi,
-      replace: (match, subj, verb) => {
-        const thirdMap = {
-          go: "goes",
-          eat: "eats",
-          walk: "walks",
-          play: "plays",
-          want: "wants",
-          like: "likes",
-          need: "needs",
-        };
-        return `${subj} ${thirdMap[verb.toLowerCase()] || verb + "s"}`;
-      },
-      rule: "In Simple Present tense, third-person singular subjects take verbs ending in -s or -es.",
-      category: "Subject-Verb Agreement",
-    },
-    {
-      regex: /\b(since)\s+(\d+\s+(?:days?|months?|years?|hours?|weeks?|minutes?))\b/gi,
-      replace: "for $2",
-      rule: "Use 'for' when referring to a duration of time (e.g. for 2 years). Use 'since' for a specific starting point.",
-      category: "Prepositions of Time",
-    },
-    {
-      regex: /\ba\s+([aeiou][a-z]+)\b/gi,
-      replace: "an $1",
-      rule: "Use 'an' before words that start with a vowel sound.",
-      category: "Articles (A vs An)",
-    },
-    {
-      regex: /\ban\s+([bcdfghjklmnpqrstvwxyz][a-z]+)\b/gi,
-      replace: "a $1",
-      rule: "Use 'a' before words that start with a consonant sound.",
-      category: "Articles (A vs An)",
-    },
-    {
-      regex: /\bdiscuss\s+about\b/gi,
-      replace: "discuss",
-      rule: "'Discuss' is a transitive verb meaning 'talk about'. Adding 'about' is redundant.",
-      category: "Redundancy / Word Choice",
-    },
-  ];
-
-  for (const r of rules) {
-    if (typeof r.replace === "function") {
-      const match = corrected.match(r.regex);
-      if (match) {
-        corrected = corrected.replace(r.regex, r.replace);
-        corrections.push({ rule: r.rule, category: r.category });
-      }
-    } else {
-      if (r.regex.test(corrected)) {
-        corrected = corrected.replace(r.regex, r.replace);
-        corrections.push({ rule: r.rule, category: r.category });
-      }
-    }
-  }
-
-  const isCorrect = corrected.trim().toLowerCase() === text.trim().toLowerCase();
-  const accuracyScore = isCorrect ? 100 : Math.max(65, 100 - corrections.length * 15);
-
-  return {
-    isCorrect,
-    accuracyScore,
-    originalText: text,
-    correctedText: corrected,
-    corrections,
-    explanation: isCorrect
-      ? "Perfect grammar! Your sentence is syntactically accurate and natural."
-      : `Found ${corrections.length} grammar improvements.`,
-  };
-}
-
-const GRAMMAR_CHEAT_SHEETS = [
-  {
-    title: "Present Simple vs Continuous",
-    category: "Verb Tenses",
-    icon: "⏱️",
-    rule: "Use Simple Present for habits/routines ('I drink coffee every morning'). Use Continuous for actions happening right now ('I am drinking coffee right now').",
-    exampleGood: "She works at Google. / She is working on a new project today.",
-    exampleBad: "She is work at Google.",
-  },
-  {
-    title: "Since vs For (Time)",
-    category: "Prepositions",
-    icon: "📅",
-    rule: "Use 'For' + duration (for 3 hours, for 5 years). Use 'Since' + starting point (since 9 AM, since Monday, since 2018).",
-    exampleGood: "I have lived here for 4 years. / I have lived here since 2020.",
-    exampleBad: "I have lived here since 4 years.",
-  },
-  {
-    title: "A vs An (Articles)",
-    category: "Articles",
-    icon: "🔤",
-    rule: "Use 'An' before vowel *sounds* (an hour, an honest man, an apple). Use 'A' before consonant sounds (a university, a European, a book).",
-    exampleGood: "He is an honest person. / She attends a university.",
-    exampleBad: "He is a honest person.",
-  },
-  {
-    title: "Subject-Verb Agreement",
-    category: "Syntax",
-    icon: "⚖️",
-    rule: "Singular third-person subjects (He, She, It, The student) take singular verbs (ends in -s). Plural subjects (They, We, Students) take base verbs.",
-    exampleGood: "The teacher explains the lesson clearly.",
-    exampleBad: "The teacher explain the lesson clearly.",
-  },
-];
-
-const DAILY_GRAMMAR_QUIZ = [
-  {
-    id: 1,
-    question: "Choose the correct sentence:",
-    options: [
-      "She don't like spicy food.",
-      "She doesn't likes spicy food.",
-      "She doesn't like spicy food.",
-      "She isn't like spicy food.",
-    ],
-    correctIndex: 2,
-    explanation: "With third person singular ('she'), use auxiliary 'does not / doesn't' followed by base verb 'like'.",
-  },
-  {
-    id: 2,
-    question: "Select the sentence with correct preposition:",
-    options: [
-      "I have been studying since two hours.",
-      "I have been studying for two hours.",
-      "I have been studying in two hours.",
-      "I have been studying from two hours.",
-    ],
-    correctIndex: 1,
-    explanation: "Use 'for' when referring to a duration of time (two hours).",
-  },
-  {
-    id: 3,
-    question: "Identify the grammatically correct option:",
-    options: [
-      "He did not went to the conference.",
-      "He did not go to the conference.",
-      "He did not goes to the conference.",
-      "He was not go to the conference.",
-    ],
-    correctIndex: 1,
-    explanation: "After auxiliary 'did not', always use the base form of the verb ('go').",
-  },
-  {
-    id: 4,
-    question: "Fill in the blank: 'We need to ______ this problem in detail.'",
-    options: [
-      "discuss about",
-      "discuss on",
-      "discuss",
-      "discuss regarding",
-    ],
-    correctIndex: 2,
-    explanation: "'Discuss' is a transitive verb meaning 'talk about'. Adding 'about' is redundant.",
-  },
-  {
-    id: 5,
-    question: "Choose the correct article: 'She has been waiting for ______ hour.'",
-    options: ["a", "an", "the one", "no article"],
-    correctIndex: 1,
-    explanation: "'Hour' begins with a silent 'h' and a vowel sound /aʊər/, so it takes 'an'.",
-  },
-];
+import {
+  analyzeSentenceGrammarLocally,
+  EXTENSIVE_GRAMMAR_GUIDE,
+  SENTENCE_GRAMMAR_QUIZZES,
+} from "../utils/grammarEngine";
 
 export function GrammarPractice() {
-  const [activeTab, setActiveTab] = useState("checker"); // 'checker', 'quiz', 'rules', 'history'
+  const [activeTab, setActiveTab] = useState("checker"); // 'checker', 'guide', 'quiz', 'history'
   const [textInput, setTextInput] = useState("");
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
 
-  // Quiz state
-  const [quizAnswers, setQuizAnswers] = useState({});
-  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  // Handbook search & filter
+  const [guideSearch, setGuideSearch] = useState("");
+  const [selectedGuideCategory, setSelectedGuideCategory] = useState("ALL");
+  const [expandedGuideId, setExpandedGuideId] = useState(EXTENSIVE_GRAMMAR_GUIDE[0]?.id || null);
+
+  // Sentence Quiz State
+  const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
   useEffect(() => {
     grammarService
       .history()
       .then((data) => {
-        if (data && data.length > 0) setHistory(data);
+        if (data && Array.isArray(data) && data.length > 0) {
+          setHistory(data);
+        }
       })
       .catch(() => {});
   }, []);
 
-  const handleAnalyzeText = () => {
-    if (!textInput.trim()) return;
+  const handleAnalyzeText = async (overrideText) => {
+    const raw = typeof overrideText === "string" ? overrideText : textInput;
+    const cleanText = (raw || "").trim();
+    if (!cleanText) return;
+
     setAnalyzing(true);
+    setAnalysisResult(null);
 
-    const localResult = performSmartGrammarCorrection(textInput);
+    // 1. Run local multi-pass grammar engine immediately
+    const localResult = analyzeSentenceGrammarLocally(cleanText);
     setAnalysisResult(localResult);
-    setHistory((prev) => [localResult, ...prev]);
 
-    grammarService
-      .check({ text: textInput })
-      .then((apiResult) => {
-        if (apiResult && apiResult.correctedText) {
-          setAnalysisResult(apiResult);
+    try {
+      // 2. Query backend grammar endpoint for deep contextual analysis
+      const backendRes = await grammarService.check(cleanText).catch(() => null);
+
+      if (backendRes && backendRes.correctedText) {
+        // Parse backend errors if present in explanation
+        let structuredErrors = localResult.errors;
+        let isCorrect = backendRes.grammarScore >= 100 || backendRes.correctedText.trim().toLowerCase() === cleanText.toLowerCase();
+
+        if (backendRes.explanation && backendRes.explanation.includes("[")) {
+          // Exploded error lines
+          const lines = backendRes.explanation.split("\n").filter(Boolean);
+          if (lines.length > 0) {
+            structuredErrors = lines.map((line) => {
+              const typeMatch = line.match(/\[(.*?)\]/);
+              return {
+                errorSnippet: line.split("(")[0].replace(/^\d+\.\s*/, "").trim(),
+                type: typeMatch ? typeMatch[1] : "Grammar Issue",
+                issue: line,
+                rule: "Ensure correct tense, agreement, and word order.",
+                correction: backendRes.correctedText,
+              };
+            });
+          }
         }
-      })
-      .catch(() => {})
-      .finally(() => {
-        setAnalyzing(false);
-        handleSpeakCorrection(localResult);
-      });
+
+        const mergedResult = {
+          isCorrect,
+          accuracyScore: backendRes.grammarScore || (isCorrect ? 100 : 80),
+          originalText: cleanText,
+          correctedText: backendRes.correctedText,
+          nativeAlternative: localResult.nativeAlternative,
+          errors: structuredErrors,
+          explanation: backendRes.explanation || localResult.explanation,
+          praiseMessage: isCorrect ? "🌟 Perfect English Grammar! Your sentence is 100% accurate, natural, and well-structured." : "",
+        };
+        setAnalysisResult(mergedResult);
+        setHistory((prev) => [mergedResult, ...prev]);
+        speakFeedback(mergedResult);
+      } else {
+        setHistory((prev) => [localResult, ...prev]);
+        speakFeedback(localResult);
+      }
+    } catch {
+      // Fallback already active
+      setHistory((prev) => [localResult, ...prev]);
+      speakFeedback(localResult);
+    } finally {
+      setAnalyzing(false);
+    }
   };
 
-  const handleSpeakCorrection = (res) => {
+  const speakFeedback = (res) => {
     if (!res) return;
     setIsAiSpeaking(true);
-    const speech = res.isCorrect
-      ? "Great job! Your sentence is grammatically correct."
-      : `Here is the corrected sentence: ${res.correctedText}.`;
+
+    let speech = "";
+    if (res.isCorrect) {
+      speech = `Your sentence is 100% grammatically correct! ${res.correctedText}. Excellent structure and grammar.`;
+    } else {
+      speech = `Corrected sentence: ${res.correctedText}. `;
+      if (res.errors && res.errors.length > 0) {
+        speech += `Found ${res.errors.length} improvement${res.errors.length > 1 ? "s" : ""}: `;
+        res.errors.forEach((err, i) => {
+          speech += `${i + 1}. ${err.issue} `;
+        });
+      }
+    }
 
     speakGlobalText(speech, 1.0, {
       onend: () => setIsAiSpeaking(false),
@@ -264,72 +126,108 @@ export function GrammarPractice() {
     });
   };
 
-  const handleSelectQuizOption = (questionId, optionIndex) => {
-    if (quizSubmitted) return;
-    setQuizAnswers((prev) => ({ ...prev, [questionId]: optionIndex }));
+  // Quiz Handling
+  const activeQuiz = SENTENCE_GRAMMAR_QUIZZES[currentQuizIndex];
+
+  const handleSelectQuizAnswer = (idx) => {
+    if (isAnswerSubmitted) return;
+    setSelectedOption(idx);
   };
 
-  const handleSubmitQuiz = () => {
-    let score = 0;
-    DAILY_GRAMMAR_QUIZ.forEach((q) => {
-      if (quizAnswers[q.id] === q.correctIndex) {
-        score += 1;
-      }
-    });
-    setQuizScore(score);
-    setQuizSubmitted(true);
-    recordVocabularyMastered(score * 15);
+  const handleSubmitQuizAnswer = () => {
+    if (selectedOption === null || isAnswerSubmitted) return;
+    setIsAnswerSubmitted(true);
+    if (selectedOption === activeQuiz.correctAnswerIndex) {
+      setQuizScore((prev) => prev + 1);
+    }
   };
 
-  const handleResetQuiz = () => {
-    setQuizAnswers({});
-    setQuizSubmitted(false);
+  const handleNextQuizQuestion = () => {
+    if (currentQuizIndex + 1 < SENTENCE_GRAMMAR_QUIZZES.length) {
+      setCurrentQuizIndex((prev) => prev + 1);
+      setSelectedOption(null);
+      setIsAnswerSubmitted(false);
+    } else {
+      setQuizCompleted(true);
+      recordVocabularyMastered(quizScore * 15 + 25);
+    }
+  };
+
+  const handleRestartQuiz = () => {
+    setCurrentQuizIndex(0);
+    setSelectedOption(null);
+    setIsAnswerSubmitted(false);
     setQuizScore(0);
+    setQuizCompleted(false);
   };
+
+  // Filtered guides
+  const filteredGuides = EXTENSIVE_GRAMMAR_GUIDE.filter((g) => {
+    const matchesCat = selectedGuideCategory === "ALL" || g.category === selectedGuideCategory;
+    const q = guideSearch.toLowerCase();
+    const matchesSearch =
+      !q ||
+      g.title.toLowerCase().includes(q) ||
+      g.summary.toLowerCase().includes(q) ||
+      g.rules.some((r) => r.name.toLowerCase().includes(q) || r.usage.toLowerCase().includes(q));
+    return matchesCat && matchesSearch;
+  });
+
+  const guideCategories = ["ALL", ...new Set(EXTENSIVE_GRAMMAR_GUIDE.map((g) => g.category))];
+
+  const samplePracticeSentences = [
+    { label: "🚨 Multiple Mistakes", text: "She don't goes to school yesterday and discuss about exam." },
+    { label: "✅ 100% Perfect Sentence", text: "He ate an apple and completed his homework on time." },
+    { label: "⚖️ Subject-Verb Agreement", text: "Neither of my two friend are interested in the project." },
+    { label: "⏱️ Tense & Preposition", text: "I have been living in this city since four years." },
+    { label: "🔮 Subjunctive Conditional", text: "If I was you, I would have accepted the job offer." },
+  ];
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
-      {/* Header Banner */}
-      <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#6C63FF] via-[#4F46E5] to-[#312E81] text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10">
-        <div className="space-y-2">
-          <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md px-3.5 py-1 rounded-full border border-white/20 text-amber-300">
-            ✨ AI Grammar Engine
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Grammar Doctor ✍️</h1>
-          <p className="text-xs sm:text-sm font-medium text-indigo-100 max-w-xl leading-relaxed">
-            Instant syntax correction, audio feedback, interactive quizzes, and CEFR rule cheat sheets.
+    <div className="w-full max-w-7xl mx-auto space-y-6 px-3 sm:px-6 py-4">
+      {/* Top Hero Banner */}
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6C63FF] via-[#4F46E5] to-[#312E81] text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10">
+        <div className="space-y-2 text-center sm:text-left">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-amber-300 text-xs font-bold">
+            <span>✨ AI Grammar Doctor & Master Guide</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
+            English Grammar Doctor ✍️
+          </h1>
+          <p className="text-xs sm:text-sm text-indigo-100 max-w-xl leading-relaxed">
+            Deep multi-clause sentence analysis, instant corrections, spoken explanations, sentence quizzes, and comprehensive CEFR grammar handbooks.
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-black/20 backdrop-blur-xl border border-white/10 shrink-0">
+        {/* Quick Tabs Nav */}
+        <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 rounded-2xl bg-black/25 backdrop-blur-md border border-white/10 shrink-0">
           <button
             onClick={() => setActiveTab("checker")}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "checker" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
             }`}
           >
-            ⚡ Live Checker
+            🩺 AI Doctor
+          </button>
+          <button
+            onClick={() => setActiveTab("guide")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === "guide" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
+            }`}
+          >
+            📖 Handbook
           </button>
           <button
             onClick={() => setActiveTab("quiz")}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "quiz" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
             }`}
           >
-            🎯 Daily Quiz
-          </button>
-          <button
-            onClick={() => setActiveTab("rules")}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
-              activeTab === "rules" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
-            }`}
-          >
-            📚 Cheat Sheets
+            🎯 Sentence Quizzes
           </button>
           <button
             onClick={() => setActiveTab("history")}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
               activeTab === "history" ? "bg-white text-[#6C63FF] shadow-md" : "text-white/80 hover:text-white"
             }`}
           >
@@ -338,265 +236,512 @@ export function GrammarPractice() {
         </div>
       </div>
 
-      {/* TAB 1: LIVE CHECKER */}
+      {/* TAB 1: AI GRAMMAR DOCTOR */}
       {activeTab === "checker" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-6 space-y-6">
-            <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-5">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-black text-[var(--text-primary)]">
-                  Enter English Sentence to Check
-                </label>
-                <span className="text-[10px] font-black text-[#6C63FF] px-3 py-1 rounded-full bg-[#6C63FF]/15">
-                  AI Voice Feedback Active
-                </span>
-              </div>
+        <div className="space-y-6">
+          {/* Input Box Card */}
+          <div className="p-5 sm:p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)] flex items-center gap-2">
+                <span>📝 Enter Any English Sentence (Short or Complex):</span>
+              </label>
+              {textInput.length > 0 && (
+                <button
+                  onClick={() => setTextInput("")}
+                  className="text-xs text-[var(--text-muted)] hover:text-rose-500 transition-colors font-semibold"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
 
+            <div className="relative">
               <textarea
-                rows={5}
-                placeholder="Type or paste any English sentence (e.g. 'She do not goes to school since two years and eats a apple')..."
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
-                className="w-full p-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] leading-relaxed shadow-inner"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleAnalyzeText();
+                  }
+                }}
+                rows={3}
+                placeholder="Type or paste any English sentence here... (e.g. 'She don't goes to school yesterday and discuss about the project.')"
+                className="w-full p-4 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] text-sm font-medium text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all resize-none shadow-inner"
               />
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
-                <button
-                  onClick={() => setTextInput("she do not goes to school since two years and eats a apple.")}
-                  className="text-xs font-black text-[#6C63FF] hover:underline text-left cursor-pointer"
-                >
-                  + Insert Sample Error Sentence
-                </button>
-
-                <button
-                  onClick={handleAnalyzeText}
-                  disabled={analyzing || !textInput.trim()}
-                  className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-90 disabled:opacity-50 text-white font-black text-xs shadow-xl shadow-[#6C63FF]/25 transition-all cursor-pointer active:scale-95"
-                >
-                  {analyzing ? "Analyzing..." : "Check & Speak →"}
-                </button>
-              </div>
             </div>
-          </div>
 
-          <div className="lg:col-span-6 space-y-6">
-            {analysisResult ? (
-              <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xl p-2.5 rounded-2xl font-black ${analysisResult.isCorrect ? "bg-emerald-500/15 text-emerald-500" : "bg-amber-500/15 text-amber-500"}`}>
-                      {analysisResult.accuracyScore}%
-                    </span>
-                    <div>
-                      <h3 className="font-black text-sm text-[var(--text-primary)]">Grammar Accuracy</h3>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium">Evaluation Result</p>
-                    </div>
-                  </div>
-
+            {/* Quick Practice Chips */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                ⚡ Try Sample Sentences:
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {samplePracticeSentences.map((sample, idx) => (
                   <button
-                    onClick={() => handleSpeakCorrection(analysisResult)}
-                    className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs font-black hover:opacity-90 transition-all inline-flex items-center gap-1.5 shadow-md cursor-pointer active:scale-95"
+                    key={idx}
+                    onClick={() => {
+                      setTextInput(sample.text);
+                      handleAnalyzeText(sample.text);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-[var(--bg-elevated)] hover:bg-[#6C63FF] hover:text-white border border-[var(--border-default)] text-xs font-semibold text-[var(--text-secondary)] transition-all shadow-sm flex items-center gap-1.5"
                   >
-                    🔊 Play Voice
+                    <span>{sample.label}</span>
                   </button>
-                </div>
-
-                <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs space-y-1">
-                    <span className="font-black text-rose-500 uppercase text-[10px]">Your Original Input</span>
-                    <p className="font-semibold text-[var(--text-primary)]">"{analysisResult.originalText}"</p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs space-y-1">
-                    <span className="font-black text-emerald-500 uppercase text-[10px]">AI Corrected Phrasing</span>
-                    <p className="font-black text-emerald-600 dark:text-emerald-300 text-sm">
-                      "{analysisResult.correctedText}"
-                    </p>
-                  </div>
-
-                  {analysisResult.corrections && analysisResult.corrections.length > 0 && (
-                    <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3">
-                      <span className="font-black text-[#6C63FF] uppercase text-[10px] tracking-wider">
-                        Specific Improvements Applied:
-                      </span>
-                      <div className="space-y-2">
-                        {analysisResult.corrections.map((c, i) => (
-                          <div key={i} className="p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] space-y-1">
-                            <span className="font-black text-[#6C63FF] text-xs">
-                              {i + 1}. [{c.category}]
-                            </span>
-                            <p className="text-xs text-[var(--text-secondary)] font-medium">
-                              💡 Rule: {c.rule}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                ))}
               </div>
-            ) : (
-              <div className="glass-card p-8 rounded-3xl border border-[var(--border-default)] flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]">
-                <span className="text-5xl">✍️</span>
-                <h3 className="font-black text-sm text-[var(--text-primary)]">Ready for Grammar Evaluation</h3>
-                <p className="text-xs text-[var(--text-secondary)] max-w-sm font-medium">
-                  Enter your English sentence to see instant grammatical breakdown, corrections, and audio tutor playback.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 2: DAILY QUIZ */}
-      {activeTab === "quiz" && (
-        <div className="space-y-6">
-          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-black text-[var(--text-primary)]">Daily Grammar Challenge 🎯</h2>
-              <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                Answer all 5 questions to test your grammar mastery and earn +75 XP!
-              </p>
             </div>
-            {quizSubmitted && (
-              <div className="flex items-center gap-3">
-                <span className="px-4 py-2 rounded-2xl bg-[#6C63FF]/15 text-[#6C63FF] font-black text-sm">
-                  Score: {quizScore} / {DAILY_GRAMMAR_QUIZ.length}
-                </span>
-                <button
-                  onClick={handleResetQuiz}
-                  className="px-4 py-2 rounded-2xl bg-[var(--bg-elevated)] text-[var(--text-primary)] font-black text-xs border border-[var(--border-default)] cursor-pointer"
-                >
-                  🔄 Retake Quiz
-                </button>
-              </div>
-            )}
+
+            <div className="flex items-center justify-between pt-2 border-t border-[var(--border-subtle)]">
+              <span className="text-xs text-[var(--text-muted)] font-medium">
+                {textInput.trim() ? `${textInput.trim().split(/\s+/).length} words` : "Supports any sentence length"}
+              </span>
+
+              <button
+                onClick={() => handleAnalyzeText()}
+                disabled={analyzing || !textInput.trim()}
+                className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-black shadow-lg hover:opacity-90 active:scale-95 disabled:opacity-50 transition-all flex items-center gap-2"
+              >
+                {analyzing ? (
+                  <>
+                    <span className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                    <span>Analyzing Grammar...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>✨ Check Sentence Grammar</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            {DAILY_GRAMMAR_QUIZ.map((q, idx) => {
-              const selectedOpt = quizAnswers[q.id];
-              return (
-                <div key={q.id} className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-md space-y-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="font-black text-sm text-[var(--text-primary)]">
-                      {idx + 1}. {q.question}
+          {/* RESULTS DISPLAY: ORDERED PROMINENTLY */}
+          {analysisResult && (
+            <div className="space-y-5 animate-in fade-in duration-300">
+              {/* 1. TOP PROMINENT CARD: CORRECTED / PERFECT SENTENCE */}
+              <div
+                className={`p-6 rounded-3xl border shadow-lg space-y-4 ${
+                  analysisResult.isCorrect
+                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100"
+                    : "bg-[var(--bg-surface)] border-[var(--border-default)]"
+                }`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-subtle)]">
+                  <div className="flex items-center gap-2.5">
+                    <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                      analysisResult.isCorrect
+                        ? "bg-emerald-500 text-white shadow-sm"
+                        : "bg-[#6C63FF] text-white shadow-sm"
+                    }`}>
+                      {analysisResult.isCorrect ? "✅ 100% Perfect Sentence" : "🌟 Corrected Sentence"}
+                    </span>
+                    <span className="text-xs font-bold text-[var(--text-secondary)]">
+                      Score: <strong className="text-[var(--text-primary)]">{analysisResult.accuracyScore}%</strong>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => speakFeedback(analysisResult)}
+                      disabled={isAiSpeaking}
+                      className="px-3.5 py-1.5 rounded-xl bg-[#6C63FF] hover:bg-[#5a52e0] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5"
+                      title="Hear Spoken Feedback"
+                    >
+                      <span>{isAiSpeaking ? "🔊 Speaking..." : "🔊 Speak Sentence & Feedback"}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Display Corrected Text */}
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-[var(--text-muted)] uppercase tracking-wider">
+                    {analysisResult.isCorrect ? "Your Sentence:" : "Corrected English Phrasing:"}
+                  </p>
+                  <p className="text-base sm:text-xl font-extrabold text-[var(--text-primary)] leading-relaxed">
+                    "{analysisResult.correctedText}"
+                  </p>
+                </div>
+
+                {/* Praise message if perfect */}
+                {analysisResult.isCorrect && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 text-xs sm:text-sm font-semibold text-emerald-800 dark:text-emerald-200 flex items-center gap-2">
+                    <span>🎉</span>
+                    <span>{analysisResult.praiseMessage || "Given sentence is correct with no grammar mistakes!"}</span>
+                  </div>
+                )}
+
+                {/* Native Phrasing Alternative (if available) */}
+                {analysisResult.nativeAlternative && (
+                  <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs sm:text-sm font-semibold text-indigo-900 dark:text-indigo-200 flex items-center gap-2">
+                    <span>💡</span>
+                    <span>
+                      <strong>Native Speaker Upgrade:</strong> "{analysisResult.nativeAlternative}"
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* 2. ITEMIZED MISTAKES BREAKDOWN (IF NOT PERFECT) */}
+              {!analysisResult.isCorrect && analysisResult.errors && analysisResult.errors.length > 0 && (
+                <div className="p-6 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-4">
+                  <div className="flex items-center justify-between pb-2 border-b border-[var(--border-subtle)]">
+                    <h3 className="text-sm sm:text-base font-black text-[var(--text-primary)] flex items-center gap-2">
+                      <span>🔍 Identified Grammar Mistakes & Improvements ({analysisResult.errors.length}):</span>
                     </h3>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {q.options.map((opt, optIdx) => {
-                      let btnStyle = "bg-[var(--bg-elevated)] border-[var(--border-default)] text-[var(--text-primary)] hover:border-[#6C63FF]/50";
-                      if (selectedOpt === optIdx) {
-                        btnStyle = "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md";
-                      }
-                      if (quizSubmitted) {
-                        if (optIdx === q.correctIndex) {
-                          btnStyle = "bg-emerald-500 text-white border-emerald-500 shadow-md";
-                        } else if (selectedOpt === optIdx && optIdx !== q.correctIndex) {
-                          btnStyle = "bg-rose-500 text-white border-rose-500";
-                        }
-                      }
+                  <div className="space-y-3">
+                    {analysisResult.errors.map((err, idx) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all space-y-2"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className="h-6 w-6 rounded-full bg-rose-500/15 text-rose-600 dark:text-rose-400 text-xs font-black grid place-items-center">
+                              {idx + 1}
+                            </span>
+                            <span className="px-2.5 py-0.5 rounded-md bg-[#6C63FF]/10 text-[#6C63FF] text-[11px] font-extrabold uppercase tracking-wide">
+                              {err.type || "Grammar Rule"}
+                            </span>
+                          </div>
+                          {err.errorSnippet && (
+                            <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-rose-500/10 text-rose-600 dark:text-rose-400 font-semibold">
+                              Wrong: "{err.errorSnippet}"
+                            </span>
+                          )}
+                        </div>
 
-                      return (
-                        <button
-                          key={optIdx}
-                          onClick={() => handleSelectQuizOption(q.id, optIdx)}
-                          className={`p-4 rounded-2xl border text-xs font-bold text-left transition-all cursor-pointer ${btnStyle}`}
-                        >
-                          {opt}
-                        </button>
-                      );
-                    })}
+                        <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)] leading-relaxed">
+                          👉 {err.issue}
+                        </p>
+
+                        {err.rule && (
+                          <div className="p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-[11px] sm:text-xs text-[var(--text-secondary)]">
+                            <strong className="text-[var(--text-primary)]">Grammar Rule: </strong>
+                            {err.rule}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
-                  {quizSubmitted && (
-                    <div className="p-3.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs text-[var(--text-secondary)] font-medium">
-                      💡 {q.explanation}
+      {/* TAB 2: COMPREHENSIVE GRAMMAR HANDBOOK & GUIDES */}
+      {activeTab === "guide" && (
+        <div className="space-y-6">
+          {/* Filter & Search Bar */}
+          <div className="p-4 sm:p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Search */}
+            <div className="w-full md:w-80 relative">
+              <input
+                type="text"
+                value={guideSearch}
+                onChange={(e) => setGuideSearch(e.target.value)}
+                placeholder="Search grammar topics or rules..."
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-[var(--bg-base)] border border-[var(--border-default)] text-xs sm:text-sm font-semibold text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[#6C63FF]"
+              />
+              <span className="absolute left-3 top-3 text-xs">🔍</span>
+            </div>
+
+            {/* Category Pills */}
+            <div className="w-full md:w-auto flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {guideCategories.map((cat, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedGuideCategory(cat)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    selectedGuideCategory === cat
+                      ? "bg-[#6C63FF] text-white shadow-sm"
+                      : "bg-[var(--bg-base)] text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] border border-[var(--border-default)]"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Guide Modules List */}
+          <div className="space-y-4">
+            {filteredGuides.map((guide) => {
+              const isExpanded = expandedGuideId === guide.id;
+              return (
+                <div
+                  key={guide.id}
+                  className="rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm overflow-hidden transition-all"
+                >
+                  {/* Guide Header */}
+                  <button
+                    onClick={() => setExpandedGuideId(isExpanded ? null : guide.id)}
+                    className="w-full p-5 sm:p-6 text-left flex items-center justify-between gap-4 hover:bg-[var(--bg-elevated)] transition-colors"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] shrink-0">
+                        {guide.icon}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-md bg-[#6C63FF]/10 text-[#6C63FF] text-[10px] font-black uppercase">
+                            {guide.level}
+                          </span>
+                          <span className="text-xs font-bold text-[var(--text-muted)] truncate">
+                            {guide.category}
+                          </span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-black text-[var(--text-primary)] truncate mt-0.5">
+                          {guide.title}
+                        </h3>
+                        <p className="text-xs text-[var(--text-secondary)] font-medium truncate mt-0.5">
+                          {guide.summary}
+                        </p>
+                      </div>
+                    </div>
+
+                    <span className="text-xs font-black text-[var(--text-muted)] shrink-0">
+                      {isExpanded ? "▲ Collapse" : "▼ Learn"}
+                    </span>
+                  </button>
+
+                  {/* Expanded Guide Rules Body */}
+                  {isExpanded && (
+                    <div className="p-5 sm:p-6 border-t border-[var(--border-subtle)] bg-[var(--bg-base)] space-y-4">
+                      {guide.rules.map((rule, rIdx) => (
+                        <div
+                          key={rIdx}
+                          className="p-4 sm:p-5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] space-y-3 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <h4 className="text-sm font-black text-[#6C63FF]">
+                              📌 {rule.name}
+                            </h4>
+                          </div>
+
+                          {rule.formula && (
+                            <div className="p-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)] font-mono text-xs text-[var(--text-primary)] font-bold">
+                              Formula: {rule.formula}
+                            </div>
+                          )}
+
+                          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+                            {rule.usage}
+                          </p>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-xs space-y-1">
+                              <span className="text-[10px] font-black text-emerald-600 uppercase">✅ Correct Example:</span>
+                              <p className="font-bold text-emerald-900 dark:text-emerald-200">{rule.correctExample}</p>
+                            </div>
+                            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-xs space-y-1">
+                              <span className="text-[10px] font-black text-rose-600 uppercase">❌ Common Mistake:</span>
+                              <p className="font-bold text-rose-900 dark:text-rose-200 line-through opacity-80">{rule.wrongExample}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
                 </div>
               );
             })}
           </div>
+        </div>
+      )}
 
-          {!quizSubmitted && (
-            <div className="text-center pt-4">
-              <button
-                onClick={handleSubmitQuiz}
-                disabled={Object.keys(quizAnswers).length < DAILY_GRAMMAR_QUIZ.length}
-                className="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-xs shadow-xl hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer active:scale-95"
-              >
-                Submit Answers & Check Score →
-              </button>
+      {/* TAB 3: INTERACTIVE SENTENCE GRAMMAR QUIZZES */}
+      {activeTab === "quiz" && (
+        <div className="space-y-6">
+          {!quizCompleted ? (
+            <div className="p-6 sm:p-8 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-lg space-y-6">
+              {/* Progress & Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-[var(--border-subtle)]">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#6C63FF]/10 text-[#6C63FF] text-[10px] font-black uppercase">
+                      Question {currentQuizIndex + 1} of {SENTENCE_GRAMMAR_QUIZZES.length}
+                    </span>
+                    <span className="text-xs font-bold text-[var(--text-muted)]">
+                      {activeQuiz.category}
+                    </span>
+                  </div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-[var(--text-primary)]">
+                    Spot & Fix the Sentence Error
+                  </h3>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-xs font-bold text-[var(--text-muted)]">Current Score:</span>
+                  <p className="text-base sm:text-lg font-black text-[#6C63FF]">
+                    {quizScore} / {SENTENCE_GRAMMAR_QUIZZES.length}
+                  </p>
+                </div>
+              </div>
+
+              {/* Problem Sentence Card */}
+              <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs sm:text-sm font-semibold space-y-1.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                  Target Sentence with Problem:
+                </span>
+                <p className="text-sm sm:text-base font-bold text-amber-950 dark:text-amber-100">
+                  "{activeQuiz.sentenceWithProblem}"
+                </p>
+              </div>
+
+              {/* Question */}
+              <p className="text-xs sm:text-sm font-extrabold text-[var(--text-primary)]">
+                {activeQuiz.question}
+              </p>
+
+              {/* Options */}
+              <div className="space-y-2.5">
+                {activeQuiz.options.map((opt, idx) => {
+                  const isSelected = selectedOption === idx;
+                  const isCorrect = idx === activeQuiz.correctAnswerIndex;
+                  let optStyle = "bg-[var(--bg-base)] border-[var(--border-default)] text-[var(--text-primary)] hover:border-[#6C63FF]";
+
+                  if (isAnswerSubmitted) {
+                    if (isCorrect) {
+                      optStyle = "bg-emerald-500/15 border-emerald-500 text-emerald-900 dark:text-emerald-100 font-bold";
+                    } else if (isSelected && !isCorrect) {
+                      optStyle = "bg-rose-500/15 border-rose-500 text-rose-900 dark:text-rose-100 line-through";
+                    }
+                  } else if (isSelected) {
+                    optStyle = "bg-[#6C63FF]/15 border-[#6C63FF] text-[#6C63FF] font-bold";
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelectQuizAnswer(idx)}
+                      disabled={isAnswerSubmitted}
+                      className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm transition-all flex items-center justify-between gap-3 ${optStyle}`}
+                    >
+                      <span>{opt}</span>
+                      {isAnswerSubmitted && isCorrect && <span className="text-emerald-500 font-bold">✅ Correct</span>}
+                      {isAnswerSubmitted && isSelected && !isCorrect && <span className="text-rose-500 font-bold">❌ Incorrect</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Explanation upon submission */}
+              {isAnswerSubmitted && (
+                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 text-xs sm:text-sm space-y-1 animate-in fade-in">
+                  <span className="text-[10px] font-black uppercase text-[#6C63FF]">Rule Explanation:</span>
+                  <p className="font-semibold text-indigo-950 dark:text-indigo-200">{activeQuiz.explanation}</p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-2">
+                {!isAnswerSubmitted ? (
+                  <button
+                    onClick={handleSubmitQuizAnswer}
+                    disabled={selectedOption === null}
+                    className="px-6 py-3 rounded-2xl bg-[#6C63FF] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-[#5a52e0] disabled:opacity-40 transition-all"
+                  >
+                    Submit Answer
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleNextQuizQuestion}
+                    className="px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#ff6584] text-white text-xs sm:text-sm font-black shadow-lg hover:opacity-90 transition-all"
+                  >
+                    {currentQuizIndex + 1 < SENTENCE_GRAMMAR_QUIZZES.length ? "Next Question →" : "View Final Results 🏆"}
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* Quiz Completed Results Card */
+            <div className="p-8 sm:p-12 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-xl text-center space-y-6">
+              <span className="text-5xl">🏆</span>
+              <div className="space-y-2">
+                <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">
+                  Grammar Quiz Completed!
+                </h2>
+                <p className="text-sm text-[var(--text-secondary)] font-medium">
+                  You scored <strong className="text-[#6C63FF]">{quizScore} out of {SENTENCE_GRAMMAR_QUIZZES.length}</strong>!
+                </p>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 text-xs font-bold">
+                  <span>+75 XP Earned</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-4 pt-4">
+                <button
+                  onClick={handleRestartQuiz}
+                  className="px-6 py-3 rounded-2xl bg-[#6C63FF] text-white text-xs sm:text-sm font-bold shadow-md hover:bg-[#5a52e0] transition-all"
+                >
+                  🔄 Retake Quiz
+                </button>
+                <button
+                  onClick={() => setActiveTab("checker")}
+                  className="px-6 py-3 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] text-[var(--text-primary)] text-xs sm:text-sm font-bold hover:bg-[var(--bg-elevated)] transition-all"
+                >
+                  🩺 Back to Grammar Doctor
+                </button>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* TAB 3: CHEAT SHEETS */}
-      {activeTab === "rules" && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {GRAMMAR_CHEAT_SHEETS.map((sheet, i) => (
-            <div key={i} className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-3xl p-2.5 rounded-2xl bg-[var(--bg-elevated)]">{sheet.icon}</span>
-                <span className="px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] text-[10px] font-black uppercase tracking-wider">
-                  {sheet.category}
-                </span>
-              </div>
-
-              <div>
-                <h3 className="font-black text-base text-[var(--text-primary)]">{sheet.title}</h3>
-                <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
-                  {sheet.rule}
-                </p>
-              </div>
-
-              <div className="space-y-2 pt-2 border-t border-[var(--border-default)]">
-                <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs">
-                  <span className="text-[10px] font-black text-emerald-500 uppercase">Correct Example:</span>
-                  <p className="font-bold text-emerald-600 dark:text-emerald-400">✓ {sheet.exampleGood}</p>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-xs">
-                  <span className="text-[10px] font-black text-rose-500 uppercase">Common Mistake:</span>
-                  <p className="font-bold text-rose-600 dark:text-rose-400">✗ {sheet.exampleBad}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* TAB 4: PAST CHECKS HISTORY */}
+      {/* TAB 4: CHECK HISTORY */}
       {activeTab === "history" && (
         <div className="space-y-4">
-          <h2 className="text-lg font-black text-[var(--text-primary)]">Past Grammar Evaluations</h2>
+          <div className="flex items-center justify-between pb-2">
+            <h3 className="text-sm font-extrabold text-[var(--text-primary)]">
+              Recently Analyzed Sentences ({history.length})
+            </h3>
+            {history.length > 0 && (
+              <button
+                onClick={() => setHistory([])}
+                className="text-xs text-rose-500 font-semibold hover:underline"
+              >
+                Clear History
+              </button>
+            )}
+          </div>
+
           {history.length === 0 ? (
-            <div className="p-8 rounded-3xl glass-card border border-[var(--border-default)] text-center text-xs text-[var(--text-secondary)] font-medium">
-              No saved checks yet. Use the Live Checker to evaluate your first sentence!
+            <div className="p-12 text-center rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-muted)] text-xs sm:text-sm font-semibold">
+              No previous grammar checks yet. Type a sentence in the AI Doctor tab!
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {history.map((h, idx) => (
-                <div key={idx} className="glass-card p-6 rounded-3xl border border-[var(--border-default)] shadow-md space-y-3">
-                  <div className="flex items-center justify-between text-xs font-black">
-                    <span className="text-emerald-500">Score: {h.accuracyScore || 90}%</span>
-                    <button
-                      onClick={() => handleSpeakCorrection(h)}
-                      className="text-[#6C63FF] hover:underline cursor-pointer font-bold"
-                    >
-                      🔊 Listen Voice
-                    </button>
-                  </div>
-                  <div className="space-y-1 text-xs">
-                    <p className="text-rose-500 line-through opacity-80">"{h.originalText}"</p>
-                    <p className="text-emerald-500 font-bold">"{h.correctedText}"</p>
-                  </div>
+            history.map((item, idx) => (
+              <div
+                key={idx}
+                className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-3"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                    item.isCorrect ? "bg-emerald-500/15 text-emerald-600" : "bg-indigo-500/15 text-[#6C63FF]"
+                  }`}>
+                    {item.isCorrect ? "100% Correct" : `Score: ${item.accuracyScore || 85}%`}
+                  </span>
+
+                  <button
+                    onClick={() => speakFeedback(item)}
+                    className="p-1.5 rounded-lg bg-[var(--bg-base)] hover:bg-[var(--bg-elevated)] text-xs"
+                    title="Replay Audio"
+                  >
+                    🔊 Hear
+                  </button>
                 </div>
-              ))}
-            </div>
+
+                <div className="space-y-1">
+                  <p className="text-xs text-[var(--text-muted)] font-medium">Original: "{item.originalText}"</p>
+                  <p className="text-sm font-extrabold text-[var(--text-primary)]">👉 "{item.correctedText}"</p>
+                </div>
+              </div>
+            ))
           )}
         </div>
       )}
