@@ -23,12 +23,25 @@ import {
   getTailoredDailyGrammarQuizzes,
 } from '../../utils/grammarEngine';
 
-const STUDENT_STANDARDS = ['5th Std', '6th Std', '7th Std', '8th Std', '9th Std', '10th Std'];
+const STUDENT_STANDARDS = [
+  '1st Std',
+  '2nd Std',
+  '3rd Std',
+  '4th Std',
+  '5th Std',
+  '6th Std',
+  '7th Std',
+  '8th Std',
+  '9th Std',
+  '10th Std',
+];
+
 const INDIVIDUAL_AGE_GROUPS = [
-  { code: 'TEENS', label: 'Teens (13-17)' },
-  { code: 'YOUNG_ADULT', label: 'College / YA (18-24)' },
-  { code: 'WORKING_PROFESSIONAL', label: 'Professional (25-39)' },
-  { code: 'LIFELONG_LEARNER', label: 'Lifelong (40+)' },
+  { code: 'Kids', label: 'Kids (6-12) 🎈' },
+  { code: 'Teens', label: 'Teens (13-17) ⚡' },
+  { code: 'Young Adult', label: 'Young Adults (18-24) 🎓' },
+  { code: 'Professional', label: 'Professionals (25-50) 💼' },
+  { code: 'Senior', label: 'Seniors (50+) ☕' },
 ];
 
 const SAMPLE_SENTENCES = [
@@ -56,7 +69,7 @@ export default function GrammarScreen() {
   // Audience & Track
   const [accountType, setAccountType] = useState('INDIVIDUAL');
   const [selectedGrade, setSelectedGrade] = useState('8th Std');
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState('WORKING_PROFESSIONAL');
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState('Professional');
 
   // Guide state
   const [guideSearch, setGuideSearch] = useState('');
@@ -129,7 +142,7 @@ export default function GrammarScreen() {
 
       const effType = storedType === 'STUDENT' ? 'STUDENT' : 'INDIVIDUAL';
       const effGrade = storedGrade || '8th Std';
-      const effAge = storedAge || 'WORKING_PROFESSIONAL';
+      const effAge = storedAge || 'Professional';
 
       setAccountType(effType);
       setSelectedGrade(effGrade);

@@ -9,12 +9,25 @@ import {
   playWebAudioChime,
 } from "../utils/grammarEngine";
 
-const STUDENT_STANDARDS = ["5th Std", "6th Std", "7th Std", "8th Std", "9th Std", "10th Std"];
+const STUDENT_STANDARDS = [
+  "1st Std",
+  "2nd Std",
+  "3rd Std",
+  "4th Std",
+  "5th Std",
+  "6th Std",
+  "7th Std",
+  "8th Std",
+  "9th Std",
+  "10th Std",
+];
+
 const INDIVIDUAL_AGE_GROUPS = [
-  { code: "TEENS", label: "Teens (13–17 yrs)" },
-  { code: "YOUNG_ADULT", label: "College / Young Adult (18–24 yrs)" },
-  { code: "WORKING_PROFESSIONAL", label: "Working Professional (25–39 yrs)" },
-  { code: "LIFELONG_LEARNER", label: "Lifelong Learner (40+ yrs)" },
+  { code: "Kids", label: "Kids (6–12 yrs) 🎈" },
+  { code: "Teens", label: "Teens (13–17 yrs) ⚡" },
+  { code: "Young Adult", label: "Young Adults (18–24 yrs) 🎓" },
+  { code: "Professional", label: "Professionals (25–50 yrs) 💼" },
+  { code: "Senior", label: "Seniors (50+ yrs) ☕" },
 ];
 
 export function GrammarPractice() {
@@ -28,7 +41,8 @@ export function GrammarPractice() {
   // User Audience & Track State
   const [accountType, setAccountType] = useState(() => {
     try {
-      return localStorage.getItem("speakmate_account_type") || "INDIVIDUAL";
+      const stored = localStorage.getItem("speakmate_account_type");
+      return stored === "STUDENT" ? "STUDENT" : "INDIVIDUAL";
     } catch {
       return "INDIVIDUAL";
     }
@@ -36,7 +50,7 @@ export function GrammarPractice() {
 
   const [selectedGrade, setSelectedGrade] = useState(() => {
     try {
-      return localStorage.getItem("speakmate_user_grade") || "8th Std";
+      return localStorage.getItem("speakmate_user_grade") || localStorage.getItem("speakmate_school_grade") || "8th Std";
     } catch {
       return "8th Std";
     }
@@ -44,9 +58,9 @@ export function GrammarPractice() {
 
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(() => {
     try {
-      return localStorage.getItem("speakmate_age_group") || "WORKING_PROFESSIONAL";
+      return localStorage.getItem("speakmate_age_group") || "Professional";
     } catch {
-      return "WORKING_PROFESSIONAL";
+      return "Professional";
     }
   });
 
