@@ -227,9 +227,15 @@ export function Vocabulary() {
   const handleCardClick = () => {
     const nextFlipped = !isFlipped;
     setIsFlipped(nextFlipped);
-    if (currentCard) {
-      handleSpeak(nextFlipped ? `${currentCard.word}. ${currentCard.meaning}` : currentCard.word);
+    if (!nextFlipped && currentCard) {
+      // Tapping back card -> speaks the word again as it turns back to front
+      handleSpeak(currentCard.word);
     }
+  };
+
+  const handleSpeakerClick = (e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (currentCard) handleSpeak(currentCard.word);
   };
 
   // Next-Level Multi-Format High-Accuracy Quiz
@@ -651,7 +657,7 @@ export function Vocabulary() {
               }}
               className="w-full h-full relative"
             >
-              {/* FRONT OF CARD (WORD + IPA) */}
+              {/* FRONT OF CARD (WORD ONLY - NO PHONETIC) */}
               <div
                 style={{ backfaceVisibility: "hidden" }}
                 className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 border-2 border-indigo-200 dark:border-indigo-800/80 rounded-3xl p-8 shadow-xl flex flex-col justify-between"
@@ -661,29 +667,22 @@ export function Vocabulary() {
                     {currentCard.partOfSpeech || "Vocabulary Word"}
                   </span>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSpeak(currentCard.word);
-                    }}
+                    onClick={handleSpeakerClick}
                     className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 hover:scale-105 transition-all text-sm"
+                    title="Play Pronunciation"
                   >
                     🔊
                   </button>
                 </div>
 
-                <div className="text-center my-6 space-y-3">
+                <div className="text-center my-auto space-y-2">
                   <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                     {currentCard.word}
                   </h2>
-                  {currentCard.phonetic && (
-                    <p className="text-xl font-extrabold text-indigo-600 dark:text-indigo-400">
-                      {currentCard.phonetic}
-                    </p>
-                  )}
                 </div>
 
                 <div className="text-center text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
-                  <span className="text-indigo-600 dark:text-indigo-400">🔄</span> Click card to hear meaning & flip
+                  <span className="text-indigo-600 dark:text-indigo-400">🔄</span> Tap card to reveal meaning
                 </div>
               </div>
 
@@ -696,15 +695,20 @@ export function Vocabulary() {
                 className="absolute inset-0 w-full h-full bg-white dark:bg-slate-900 border-2 border-indigo-200 dark:border-indigo-800/80 rounded-3xl p-8 shadow-xl flex flex-col justify-between overflow-hidden"
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-base font-black text-indigo-600 dark:text-indigo-400">
-                    {currentCard.word}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base font-black text-indigo-600 dark:text-indigo-400">
+                      {currentCard.word}
+                    </span>
+                    {currentCard.partOfSpeech && (
+                      <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
+                        ({currentCard.partOfSpeech})
+                      </span>
+                    )}
+                  </div>
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleSpeak(currentCard.meaning);
-                    }}
+                    onClick={handleSpeakerClick}
                     className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 hover:scale-105 transition-all text-sm"
+                    title="Play Pronunciation"
                   >
                     🔊
                   </button>
@@ -713,7 +717,7 @@ export function Vocabulary() {
                 <div className="my-auto space-y-3 text-left">
                   <div className="bg-indigo-50/60 dark:bg-slate-800/80 p-4 rounded-2xl border border-indigo-100 dark:border-slate-700">
                     <p className="text-xs uppercase font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">
-                      Definition:
+                      DEFINITION
                     </p>
                     <p className="text-base font-bold text-slate-900 dark:text-white leading-relaxed">
                       {currentCard.meaning}
@@ -728,7 +732,7 @@ export function Vocabulary() {
                 </div>
 
                 <div className="text-center text-xs font-bold text-slate-500 dark:text-slate-400 flex items-center justify-center gap-2">
-                  <span className="text-indigo-600 dark:text-indigo-400">🔄</span> Click card to flip back to word
+                  <span className="text-indigo-600 dark:text-indigo-400">🔄</span> Tap card to hear word & flip back
                 </div>
               </div>
             </div>
