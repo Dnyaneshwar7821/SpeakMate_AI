@@ -867,3 +867,5 @@ export function Vocabulary() {
     </div>
   );
 }
+
+export default Vocabulary;
