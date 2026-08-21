@@ -68,7 +68,7 @@ export function ConversationSession() {
     ? `Hello! Welcome to '${scenario}'. ${location.state.scenarioDesc} Let's practice speaking together!`
     : `Hello! I am your SpeakMate AI Coach for '${scenario}'. Let's practice speaking together!`;
 
-  const [sessionId] = useState(sessionIdParam || Date.now().toString());
+  const [sessionId, setSessionId] = useState(sessionIdParam || null);
   const [messages, setMessages] = useState([
     {
       id: "1",
@@ -86,6 +86,22 @@ export function ConversationSession() {
   const [isListening, setIsListening] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+
+  // Initialize speaking session with backend
+  useEffect(() => {
+    if (!sessionIdParam) {
+      speakingService.start({ scenario, level: chatLevel })
+        .then((res) => {
+          if (res?.id) {
+            setSessionId(res.id);
+          }
+        })
+        .catch((err) => {
+          console.warn("Could not create remote speaking session, using local simulation:", err);
+          setSessionId(`sim_${Date.now()}`);
+        });
+    }
+  }, [sessionIdParam, scenario, chatLevel]);
 
   // Avatar Model State & Hooks
   const [model, setModel] = useState(null);
@@ -322,28 +338,35 @@ export function ConversationSession() {
 
     try {
       let feedback = null;
-      try {
-        feedback = await speakingService.sendMessage({
-          sessionId,
-          message: text,
-          level: chatLevel,
-        });
-      } catch (err) {
-        // Fallback to AI service endpoint
+      if (sessionId && !String(sessionId).startsWith("sim_")) {
         try {
-          const aiFeedback = await aiService.speakingFeedback(text);
-          if (aiFeedback && (aiFeedback.aiReply || aiFeedback.feedback || aiFeedback.response)) {
+          feedback = await speakingService.sendMessage({
+            sessionId,
+            message: text,
+            level: chatLevel,
+          });
+        } catch (err) {
+          console.warn("Backend speaking message error:", err);
+        }
+      }
+
+      // If backend was not reached or returned null/error, try conversational AI chat endpoint
+      if (!feedback) {
+        try {
+          const aiChatRes = await aiService.chat(`You are an English conversation tutor in scenario '${scenario}'. The learner said: "${text}". Reply naturally in 1-2 engaging sentences and ask a relevant question.`);
+          if (aiChatRes && (aiChatRes.response || aiChatRes.message)) {
+            const rawMsg = aiChatRes.response || aiChatRes.message;
             feedback = {
-              aiReply: aiFeedback.aiReply || aiFeedback.response || aiFeedback.feedback,
-              grammarCorrection: aiFeedback.grammarCorrection || "✅ Correct phrasing.",
-              betterSentence: aiFeedback.betterSentence || null,
-              vocabularySuggestions: aiFeedback.vocabularySuggestions || null,
-              explanation: aiFeedback.explanation || null,
-              followUpQuestion: aiFeedback.followUpQuestion || null,
+              aiReply: cleanDialogueText(rawMsg),
+              grammarCorrection: "✅ Grammatically correct.",
+              betterSentence: null,
+              vocabularySuggestions: null,
+              explanation: null,
+              followUpQuestion: null,
             };
           }
         } catch (e2) {
-          // Intelligently generate dynamic response locally so it never repeats the same static string!
+          // Dynamic offline conversation engine fallback
           feedback = generateDynamicCoachingResponse(text, scenario, messages);
         }
       }

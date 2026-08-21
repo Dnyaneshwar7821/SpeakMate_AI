@@ -5,20 +5,50 @@
 export function cleanDialogueText(rawText) {
   if (!rawText) return "";
   let clean = String(rawText);
-  // If the text contains markdown tables or section headers, extract only conversational text
-  if (clean.includes("|") || clean.includes("##")) {
+  
+  // If the response is a JSON string, parse the aiReply
+  if (clean.trim().startsWith("{") && clean.trim().endsWith("}")) {
+    try {
+      const parsed = JSON.parse(clean);
+      if (parsed.aiReply) return cleanDialogueText(parsed.aiReply);
+    } catch (e) {}
+  }
+
+  // If the text contains markdown tables or section headers, filter out labels and tables
+  if (clean.includes("|") || clean.includes("##") || clean.includes("---")) {
     const lines = clean.split("\n");
-    const nonTableLines = lines.filter((l) => !l.includes("|") && !l.startsWith("#") && !l.startsWith("---") && l.trim().length > 0);
-    if (nonTableLines.length > 0) {
-      clean = nonTableLines[0];
+    const validLines = lines.filter((l) => {
+      const trimmed = l.trim();
+      return (
+        !trimmed.includes("|") &&
+        !trimmed.startsWith("#") &&
+        !trimmed.startsWith("---") &&
+        !trimmed.toLowerCase().startsWith("text:") &&
+        !trimmed.toLowerCase().startsWith("overall impression") &&
+        !trimmed.toLowerCase().startsWith("feedback") &&
+        !trimmed.endsWith(":") &&
+        trimmed.length > 8
+      );
+    });
+    if (validLines.length > 0) {
+      clean = validLines.join(" ");
     }
   }
-  // Strip remaining markdown characters
+
+  // Strip remaining markdown and meta tags
   clean = clean.replace(/\|.*\|/g, " ");
   clean = clean.replace(/#+\s*/g, "");
   clean = clean.replace(/\*\*/g, "").replace(/\*/g, "");
   clean = clean.replace(/---+/g, " ");
+  clean = clean.replace(/\[.*?\]/g, "");
+  clean = clean.replace(/\(.*?\)/g, "");
   clean = clean.replace(/\s+/g, " ").trim();
+  
+  // If clean string is too short or is a leftover label, provide a natural conversational fallback
+  if (clean.length < 5 || clean.toLowerCase() === "text" || clean.toLowerCase() === "overall impression") {
+    clean = "That is a great thought! Can you tell me more about that?";
+  }
+
   return clean;
 }
 
@@ -33,9 +63,6 @@ export function generateDynamicCoachingResponse(userText, scenario = "Daily Conv
   let vocabularySuggestions = null;
 
   // Common grammar checks
-  if (lower.includes(" i ") || lower.startsWith("i ")) {
-    // Check capitalization or minor things
-  }
   if (lower.includes("more better") || lower.includes("more easier")) {
     grammarCorrection = text.replace(/more better/gi, "better").replace(/more easier/gi, "easier");
     betterSentence = `I find it much better to practice consistently.`;
@@ -54,7 +81,7 @@ export function generateDynamicCoachingResponse(userText, scenario = "Daily Conv
     grammarCorrection = text.replace(/explain me/gi, "explain to me").replace(/tell to me/gi, "tell me");
     explanation = "'Explain' requires the preposition 'to' before a person (explain to me).";
   } else {
-    // Offer a more advanced native phrasing
+    // Advanced native phrasing upgrades
     const words = text.split(/\s+/);
     if (words.length >= 3) {
       if (lower.includes("very good") || lower.includes("very nice")) {
@@ -69,18 +96,22 @@ export function generateDynamicCoachingResponse(userText, scenario = "Daily Conv
     }
   }
 
-  // 2. Generate Dynamic, Contextual Conversational Reply
+  // 2. Dynamic, Highly Contextual Conversational Reply
   let aiReply = "";
   let followUpQuestion = "";
 
-  if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey") || lower.includes("good morning") || lower.includes("good evening")) {
-    const greetings = [
-      "Hello! It is wonderful to practice speaking with you today.",
-      "Hi there! I am excited to dive into our English speaking session.",
-      "Greetings! You're sounding confident and ready to practice.",
-    ];
-    aiReply = greetings[Math.floor(Math.random() * greetings.length)];
-    followUpQuestion = "How has your day been going so far?";
+  if (lower.includes("routine") || lower.includes("daily routine") || lower.includes("morning routine") || lower.includes("schedule")) {
+    aiReply = "I would love to learn about your daily schedule! Establishing a consistent routine is a great way to stay organized.";
+    followUpQuestion = "What is the very first thing you like to do after waking up in the morning?";
+  } else if (lower.includes("start") || lower.includes("get started") || lower.includes("ready") || lower.includes("let's begin")) {
+    aiReply = "Awesome, let's jump right into our conversation! I'm here to help you speak with natural ease and confidence.";
+    followUpQuestion = "To kick things off, how has your day been going so far?";
+  } else if (lower.includes("ask me") || lower.includes("question") || lower.includes("topic")) {
+    aiReply = "Certainly! Let's explore your interests and favorite activities.";
+    followUpQuestion = "If you had an entire day free with no responsibilities, how would you choose to spend it?";
+  } else if (lower.includes("hello") || lower.includes("hi") || lower.includes("hey") || lower.includes("good morning") || lower.includes("good evening")) {
+    aiReply = "Hello! It is wonderful to practice speaking with you today. You sound energized and ready to learn.";
+    followUpQuestion = "What would you like to focus on in today's conversation?";
   } else if (lower.includes("how are you") || lower.includes("how are you doing") || lower.includes("how is it going")) {
     aiReply = "I am doing fantastic, thank you for asking! I always enjoy helping motivated learners build fluency.";
     followUpQuestion = "What is a topic you are especially passionate about discussing today?";
@@ -97,19 +128,11 @@ export function generateDynamicCoachingResponse(userText, scenario = "Daily Conv
     aiReply = "Food and culinary culture are always delicious conversation starters.";
     followUpQuestion = "What is your absolute favorite dish or restaurant to visit?";
   } else if (lower.includes("yes") || lower.includes("sure") || lower.includes("okay") || lower.includes("agree") || lower.includes("definitely")) {
-    const replies = [
-      "I appreciate your perspective! Expanding on your ideas helps build natural conversational rhythm.",
-      "Exactly. When you articulate your viewpoint clearly, your confidence shines through.",
-      "Great! Let's build further on that thought.",
-    ];
-    aiReply = replies[Math.floor(Math.random() * replies.length)];
+    aiReply = "I appreciate your perspective! Expanding on your ideas helps build natural conversational rhythm.";
     followUpQuestion = "Could you share an example or experience that supports that?";
   } else if (lower.includes("no") || lower.includes("disagree") || lower.includes("not really") || lower.includes("don't think so")) {
     aiReply = "That is a valid point of view. It is always interesting to explore different angles on this topic.";
     followUpQuestion = "What do you think is the main reason behind that?";
-  } else if (lower.includes("why") || lower.includes("what do you think") || lower.includes("how about you") || lower.includes("?")) {
-    aiReply = "From my perspective as your AI coach, the best approach is daily practice with authentic sentence variety and active listening.";
-    followUpQuestion = "How do you feel about trying a new conversational challenge together?";
   } else {
     const contextualPool = [
       `You expressed that thought very clearly. Building on what you said, communication becomes much more impactful when you speak with natural pacing.`,
