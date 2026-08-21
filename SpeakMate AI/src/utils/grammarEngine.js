@@ -152,6 +152,46 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     issue: "The pronoun 'I' is written in lowercase.",
     rule: "The first-person singular pronoun 'I' must always be capitalized.",
     correction: "I"
+  },
+  {
+    id: "missing_article_common_singular",
+    regex: /\b(eat|eats|ate|buy|buys|bought|see|sees|saw|have|has|had|read|reads|want|wants)\s+(apple|orange|egg|umbrella|ice cream|elephant)\b/gi,
+    replace: (match, verb, noun) => `${verb} an ${noun}`,
+    type: "Articles",
+    errorSnippet: "missing 'an'",
+    issue: "Missing indefinite article 'an' before the singular countable noun starting with a vowel sound.",
+    rule: "Singular countable nouns require an article ('an' before vowel sounds).",
+    correction: "an"
+  },
+  {
+    id: "missing_article_consonant_singular",
+    regex: /\b(eat|eats|ate|buy|buys|bought|see|sees|saw|have|has|had|read|reads|want|wants|drive|drives|drove)\s+(banana|book|car|pen|pencil|dog|cat|phone|laptop|computer|house|job)\b/gi,
+    replace: (match, verb, noun) => `${verb} a ${noun}`,
+    type: "Articles",
+    errorSnippet: "missing 'a'",
+    issue: "Missing indefinite article 'a' before the singular countable noun starting with a consonant sound.",
+    rule: "Singular countable nouns require an article ('a' before consonant sounds).",
+    correction: "a"
+  },
+  {
+    id: "redundancy_repeat_again",
+    regex: /\brepeat\s+again\b/gi,
+    replace: "repeat",
+    type: "Redundancy",
+    errorSnippet: "repeat again",
+    issue: "'Repeat' already means say or do again. Using 'again' is redundant.",
+    rule: "Avoid redundant pairs like 'repeat again'. Use only 'repeat'.",
+    correction: "repeat"
+  },
+  {
+    id: "redundancy_revert_back",
+    regex: /\brevert\s+back\b/gi,
+    replace: "revert",
+    type: "Redundancy",
+    errorSnippet: "revert back",
+    issue: "'Revert' already implies returning to a previous state. Adding 'back' is redundant.",
+    rule: "Use 'revert' directly without 'back'.",
+    correction: "revert"
   }
 ];
 
@@ -214,21 +254,30 @@ export function analyzeSentenceGrammarLocally(rawText) {
     }
   }
 
+  const isQuestion = /^(who|what|where|when|why|how|is|are|am|do|does|did|can|could|will|would|should|may|might|have|has|had)\b/i.test(
+    workingSentence.trim()
+  );
+
   const hasTerminalPunctuation = /[.!?]$/.test(workingSentence.trim());
   if (!hasTerminalPunctuation) {
-    workingSentence = workingSentence.trim() + ".";
+    const punct = isQuestion ? "?" : ".";
+    workingSentence = workingSentence.trim() + punct;
     if (!detectedErrors.some(e => e.type === "Punctuation")) {
       detectedErrors.push({
-        errorSnippet: "missing terminal punctuation",
+        errorSnippet: isQuestion ? "missing '?'" : "missing '.'",
         type: "Punctuation",
-        issue: "The sentence is missing closing punctuation at the end.",
-        rule: "Complete English sentences must conclude with a period (.), question mark (?), or exclamation mark (!).",
-        correction: "Add period (.)"
+        issue: isQuestion
+          ? "The question is missing a closing question mark (?) at the end."
+          : "The sentence is missing a closing period (.) at the end.",
+        rule: isQuestion
+          ? "Interrogative sentences must end with a question mark (?)."
+          : "Declarative sentences must conclude with a period (.).",
+        correction: `Add ${punct}`
       });
     }
   }
 
-  const isCorrect = detectedErrors.length === 0 && workingSentence.toLowerCase() === (text.trim() + ".").toLowerCase();
+  const isCorrect = detectedErrors.length === 0 && workingSentence.toLowerCase() === (text.trim() + (hasTerminalPunctuation ? "" : ".")).toLowerCase();
   const accuracyScore = isCorrect ? 100 : Math.max(35, 100 - detectedErrors.length * 15);
 
   return {
@@ -302,7 +351,7 @@ export function generateCleanSpokenGrammarFeedback(res) {
     return `Your sentence is 100% grammatically correct! "${res.correctedText}". Excellent job.`;
   }
 
-  // Clear, natural feedback without technical syntax reading
+  // Clear, strict, natural feedback explaining ALL mistakes and what was improved
   let speech = `The corrected sentence is: "${res.correctedText}". `;
 
   if (res.errors && res.errors.length > 0) {
@@ -315,11 +364,13 @@ export function generateCleanSpokenGrammarFeedback(res) {
     });
 
     if (cleanTips.length === 1) {
-      speech += `Tip: ${cleanTips[0]}`;
+      speech += `Improvement made: ${cleanTips[0]}.`;
     } else {
-      speech += `Here are the improvements: `;
+      speech += `I noticed ${cleanTips.length} grammar improvements: `;
+      const ordinals = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"];
       cleanTips.forEach((tip, idx) => {
-        speech += `${idx + 1}. ${tip} `;
+        const prefix = ordinals[idx] || `Point ${idx + 1}`;
+        speech += `${prefix}, ${tip}. `;
       });
     }
   }
