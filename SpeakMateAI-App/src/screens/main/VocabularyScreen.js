@@ -30,47 +30,47 @@ const CURRICULUM_DATA = {
   // Students by Grade (1st to 10th Std)
   '1st Std': [
     { id: 'v1_1', word: 'Apple', phonetic: '/ˈæp.əl/', partOfSpeech: 'noun', meaning: 'A sweet round fruit that grows on trees.', example: 'An apple a day keeps the doctor away.', synonym: 'Fruit', antonym: 'None', favorite: true },
-    { id: 'v1_2', word: 'Friend', phonetic: '/frend/', partOfSpeech: 'noun', meaning: 'A person you like and spend time with.', example: 'Sita is my best school friend.', synonym: 'Companion', antonym: 'Enemy', favorite: false },
-    { id: 'v1_3', word: 'Happy', phonetic: '/ˈhæp.i/', partOfSpeech: 'adjective', meaning: 'Feeling or showing pleasure and joy.', example: 'I feel very happy on my birthday.', synonym: 'Joyful', antonym: 'Sad', favorite: false },
-    { id: 'v1_4', word: 'Smile', phonetic: '/smaɪl/', partOfSpeech: 'verb', meaning: 'Form a happy facial expression with the mouth.', example: 'Always smile when greeting your teacher.', synonym: 'Beam', antonym: 'Frown', favorite: false },
+    { id: 'v1_2', word: 'Friend', phonetic: '/frend/', partOfSpeech: 'noun', meaning: 'A person you like and enjoy spending time with.', example: 'Sita is my best school friend.', synonym: 'Companion', antonym: 'Enemy', favorite: false },
+    { id: 'v1_3', word: 'Happy', phonetic: '/ˈhæp.i/', partOfSpeech: 'adjective', meaning: 'Feeling or showing pleasure, contentment, and joy.', example: 'I feel very happy on my birthday.', synonym: 'Joyful', antonym: 'Sad', favorite: false },
+    { id: 'v1_4', word: 'Smile', phonetic: '/smaɪl/', partOfSpeech: 'verb', meaning: 'Form a pleased or happy facial expression.', example: 'Always smile when greeting your teacher.', synonym: 'Beam', antonym: 'Frown', favorite: false },
     { id: 'v1_5', word: 'Sunny', phonetic: '/ˈsʌn.i/', partOfSpeech: 'adjective', meaning: 'Bright with sunlight and pleasant warm weather.', example: 'It is a sunny morning for playing outside.', synonym: 'Bright', antonym: 'Cloudy', favorite: false },
     { id: 'v1_6', word: 'Puppy', phonetic: '/ˈpʌp.i/', partOfSpeech: 'noun', meaning: 'A young baby dog.', example: 'The playful puppy chased the red ball.', synonym: 'Doggy', antonym: 'None', favorite: false },
   ],
   '2nd Std': [
-    { id: 'v2_1', word: 'Routine', phonetic: '/ruːˈtiːn/', partOfSpeech: 'noun', meaning: 'A regular sequence of daily actions.', example: 'Brushing teeth is part of my morning routine.', synonym: 'Schedule', antonym: 'Disorder', favorite: true },
-    { id: 'v2_2', word: 'Pencil', phonetic: '/ˈpen.səl/', partOfSpeech: 'noun', meaning: 'An instrument used for writing or drawing.', example: 'I sharpened my yellow pencil for class.', synonym: 'Writing tool', antonym: 'Eraser', favorite: false },
+    { id: 'v2_1', word: 'Routine', phonetic: '/ruːˈtiːn/', partOfSpeech: 'noun', meaning: 'A regular sequence of actions followed regularly.', example: 'Brushing teeth is part of my morning routine.', synonym: 'Schedule', antonym: 'Disorder', favorite: true },
+    { id: 'v2_2', word: 'Pencil', phonetic: '/ˈpen.səl/', partOfSpeech: 'noun', meaning: 'An instrument used for writing or drawing on paper.', example: 'I sharpened my yellow pencil for class.', synonym: 'Writing tool', antonym: 'Eraser', favorite: false },
     { id: 'v2_3', word: 'Weather', phonetic: '/ˈweð.ər/', partOfSpeech: 'noun', meaning: 'The state of the atmosphere (sunny, rainy, cool).', example: 'The weather today is sunny and bright.', synonym: 'Climate', antonym: 'None', favorite: false },
-    { id: 'v2_4', word: 'Playground', phonetic: '/ˈpleɪ.ɡraʊnd/', partOfSpeech: 'noun', meaning: 'An outdoor area for children to play games.', example: 'We play on the swings in the playground.', synonym: 'Park', antonym: 'Classroom', favorite: false },
+    { id: 'v2_4', word: 'Playground', phonetic: '/ˈpleɪ.ɡraʊnd/', partOfSpeech: 'noun', meaning: 'An outdoor area provided for children to play.', example: 'We play on the swings in the playground.', synonym: 'Park', antonym: 'Classroom', favorite: false },
     { id: 'v2_5', word: 'Gentle', phonetic: '/ˈdʒen.təl/', partOfSpeech: 'adjective', meaning: 'Mild, kind, or tender in behavior.', example: 'Be gentle when holding the baby bird.', synonym: 'Kind', antonym: 'Rough', favorite: false },
   ],
   '3rd Std': [
-    { id: 'v3_1', word: 'Helper', phonetic: '/ˈhel.pər/', partOfSpeech: 'noun', meaning: 'A person who helps or assists others.', example: 'Firefighters are brave community helpers.', synonym: 'Assistant', antonym: 'Opponent', favorite: true },
-    { id: 'v3_2', word: 'Action', phonetic: '/ˈæk.ʃən/', partOfSpeech: 'noun', meaning: 'The process of doing something or moving.', example: 'Running and jumping are active action words.', synonym: 'Activity', antonym: 'Inaction', favorite: false },
-    { id: 'v3_3', word: 'Polite', phonetic: '/pəˈlaɪt/', partOfSpeech: 'adjective', meaning: 'Having good manners and showing respect.', example: 'Saying please and thank you is very polite.', synonym: 'Courteous', antonym: 'Rude', favorite: false },
-    { id: 'v3_4', word: 'Schedule', phonetic: '/ˈskedʒ.uːl/', partOfSpeech: 'noun', meaning: 'A plan that lists times for activities.', example: 'Check our school timetable schedule.', synonym: 'Timetable', antonym: 'Chaos', favorite: false },
+    { id: 'v3_1', word: 'Helper', phonetic: '/ˈhel.pər/', partOfSpeech: 'noun', meaning: 'A person who helps or assists others in daily life.', example: 'Firefighters are brave community helpers.', synonym: 'Assistant', antonym: 'Opponent', favorite: true },
+    { id: 'v3_2', word: 'Action', phonetic: '/ˈæk.ʃən/', partOfSpeech: 'noun', meaning: 'The process of doing something or achieving an aim.', example: 'Running and jumping are active action words.', synonym: 'Activity', antonym: 'Inaction', favorite: false },
+    { id: 'v3_3', word: 'Polite', phonetic: '/pəˈlaɪt/', partOfSpeech: 'adjective', meaning: 'Having or showing behavior that is respectful and considerate.', example: 'Saying please and thank you is very polite.', synonym: 'Courteous', antonym: 'Rude', favorite: false },
+    { id: 'v3_4', word: 'Schedule', phonetic: '/ˈskedʒ.uːl/', partOfSpeech: 'noun', meaning: 'A plan that lists expected times for activities.', example: 'Check our school timetable schedule.', synonym: 'Timetable', antonym: 'Chaos', favorite: false },
     { id: 'v3_5', word: 'Curious', phonetic: '/ˈkjʊr.i.əs/', partOfSpeech: 'adjective', meaning: 'Eager to know or learn something new.', example: 'The curious student asked wonderful science questions.', synonym: 'Inquisitive', antonym: 'Indifferent', favorite: false },
   ],
   '4th Std': [
-    { id: 'v4_1', word: 'Expedition', phonetic: '/ˌek.spəˈdɪʃ.ən/', partOfSpeech: 'noun', meaning: 'A journey undertaken for a specific purpose.', example: 'Astronauts launched a space expedition to Mars.', synonym: 'Journey', antonym: 'Stay', favorite: true },
+    { id: 'v4_1', word: 'Expedition', phonetic: '/ˌek.spəˈdɪʃ.ən/', partOfSpeech: 'noun', meaning: 'A journey undertaken by a group with a specific purpose.', example: 'Astronauts launched a space expedition to Mars.', synonym: 'Journey', antonym: 'Stay', favorite: true },
     { id: 'v4_2', word: 'Direction', phonetic: '/daɪˈrek.ʃən/', partOfSpeech: 'noun', meaning: 'The course along which someone or something moves.', example: 'Turn left to find the school library direction.', synonym: 'Route', antonym: 'None', favorite: false },
-    { id: 'v4_3', word: 'Habit', phonetic: '/ˈhæb.ɪt/', partOfSpeech: 'noun', meaning: 'A settled or regular tendency or practice.', example: 'Drinking clean water daily is a healthy habit.', synonym: 'Practice', antonym: 'None', favorite: false },
+    { id: 'v4_3', word: 'Habit', phonetic: '/ˈhæb.ɪt/', partOfSpeech: 'noun', meaning: 'A settled or regular tendency that is hard to give up.', example: 'Drinking clean water daily is a healthy habit.', synonym: 'Practice', antonym: 'None', favorite: false },
     { id: 'v4_4', word: 'Courage', phonetic: '/ˈkɜːr.ɪdʒ/', partOfSpeech: 'noun', meaning: 'Strength in the face of difficulty or danger.', example: 'It takes courage to speak clearly on stage.', synonym: 'Bravery', antonym: 'Cowardice', favorite: false },
   ],
   '5th Std': [
-    { id: 'v5_1', word: 'Environment', phonetic: '/ɪnˈvaɪ.rən.mənt/', partOfSpeech: 'noun', meaning: 'The surroundings and nature in which we live.', example: 'Planting trees protects our natural environment.', synonym: 'Surroundings', antonym: 'None', favorite: true },
+    { id: 'v5_1', word: 'Environment', phonetic: '/ɪnˈvaɪ.rən.mənt/', partOfSpeech: 'noun', meaning: 'The surroundings and nature in which humans and animals live.', example: 'Planting trees protects our natural environment.', synonym: 'Surroundings', antonym: 'None', favorite: true },
     { id: 'v5_2', word: 'Experiment', phonetic: '/ɪkˈsper.ə.mənt/', partOfSpeech: 'noun', meaning: 'A scientific test done to discover something.', example: 'We conducted a science experiment on plant growth.', synonym: 'Test', antonym: 'Theory', favorite: false },
-    { id: 'v5_3', word: 'Recycle', phonetic: '/ˌriːˈsaɪ.kəl/', partOfSpeech: 'verb', meaning: 'Convert waste materials into reusable items.', example: 'We recycle paper and plastic bottles at school.', synonym: 'Reuse', antonym: 'Waste', favorite: false },
+    { id: 'v5_3', word: 'Recycle', phonetic: '/ˌriːˈsaɪ.kəl/', partOfSpeech: 'verb', meaning: 'Convert waste materials into reusable objects.', example: 'We recycle paper and plastic bottles at school.', synonym: 'Reuse', antonym: 'Waste', favorite: false },
     { id: 'v5_4', word: 'Discovery', phonetic: '/dɪˈskʌv.ər.i/', partOfSpeech: 'noun', meaning: 'The act of finding something for the first time.', example: 'The scientist made an important medical discovery.', synonym: 'Breakthrough', antonym: 'Loss', favorite: false },
   ],
   '6th Std': [
-    { id: 'v6_1', word: 'Robotics', phonetic: '/roʊˈbɑː.t̬ɪks/', partOfSpeech: 'noun', meaning: 'The branch of engineering dealing with robots.', example: 'She joined the school robotics club to build code.', synonym: 'Automation', antonym: 'None', favorite: true },
+    { id: 'v6_1', word: 'Robotics', phonetic: '/roʊˈbɑː.t̬ɪks/', partOfSpeech: 'noun', meaning: 'The branch of engineering dealing with the design and use of robots.', example: 'She joined the school robotics club to build code.', synonym: 'Automation', antonym: 'None', favorite: true },
     { id: 'v6_2', word: 'Debate', phonetic: '/dɪˈbeɪt/', partOfSpeech: 'noun', meaning: 'A formal discussion on a particular topic in public.', example: 'Our team won the inter-school debate competition.', synonym: 'Discussion', antonym: 'Agreement', favorite: false },
     { id: 'v6_3', word: 'Assistance', phonetic: '/əˈsɪs.təns/', partOfSpeech: 'noun', meaning: 'Help or support given to someone.', example: 'The teacher offered polite assistance during the test.', synonym: 'Aid', antonym: 'Obstacle', favorite: false },
   ],
   '7th Std': [
     { id: 'v7_1', word: 'Conservation', phonetic: '/ˌkɑːn.sɚˈveɪ.ʃən/', partOfSpeech: 'noun', meaning: 'Prevention of wasteful use of a natural resource.', example: 'Water conservation is vital for future generations.', synonym: 'Preservation', antonym: 'Destruction', favorite: true },
     { id: 'v7_2', word: 'Delegate', phonetic: '/ˈdel.ə.ɡeɪt/', partOfSpeech: 'verb', meaning: 'Entrust a task or duty to another person.', example: 'The leader delegates responsibilities to team members.', synonym: 'Assign', antonym: 'Withhold', favorite: false },
-    { id: 'v7_3', word: 'Perspective', phonetic: '/pɚˈspek.tɪv/', partOfSpeech: 'noun', meaning: 'A particular attitude toward or way of regarding things.', example: 'Reading history gives us a broader perspective on life.', synonym: 'Viewpoint', antonym: 'None', favorite: false },
+    { id: 'v7_3', word: 'Perspective', phonetic: '/pɚˈspek.tɪv/', partOfSpeech: 'noun', meaning: 'A particular attitude toward or way of regarding something.', example: 'Reading history gives us a broader perspective on life.', synonym: 'Viewpoint', antonym: 'None', favorite: false },
   ],
   '8th Std': [
     { id: 'v8_1', word: 'Leadership', phonetic: '/ˈliː.dɚ.ʃɪp/', partOfSpeech: 'noun', meaning: 'The action of leading a group or organization.', example: 'Student council develops strong leadership qualities.', synonym: 'Guidance', antonym: 'Subordination', favorite: true },
@@ -85,7 +85,7 @@ const CURRICULUM_DATA = {
   '10th Std': [
     { id: 'v10_1', word: 'Oratory', phonetic: '/ˈɔːr.ə.tɔːr.i/', partOfSpeech: 'noun', meaning: 'Formal public speaking characterized by high eloquence.', example: 'CEFR C1 mastery requires spontaneous oratory skill.', synonym: 'Eloquence', antonym: 'Inarticulacy', favorite: true },
     { id: 'v10_2', word: 'Simulation', phonetic: '/ˌsɪm.jəˈleɪ.ʃən/', partOfSpeech: 'noun', meaning: 'Imitation of a situation or process in realistic conditions.', example: 'We completed a 10th Board oral exam simulation.', synonym: 'Model', antonym: 'Reality', favorite: false },
-    { id: 'v10_3', word: 'Proficiency', phonetic: '/prəˈfɪʃ.ən.si/', partOfSpeech: 'noun', meaning: 'A high degree of skill and competence.', example: 'Fluency and accuracy demonstrate English proficiency.', synonym: 'Competence', antonym: 'Incompetence', favorite: false },
+    { id: 'v10_3', word: 'Proficiency', phonetic: '/prəˈfɪʃ.ən.si/', partOfSpeech: 'noun', meaning: 'A high degree of skill, competence, and fluency.', example: 'Fluency and accuracy demonstrate English proficiency.', synonym: 'Competence', antonym: 'Incompetence', favorite: false },
   ],
 
   // Individual Users by Age Group
@@ -101,16 +101,15 @@ const CURRICULUM_DATA = {
     { id: 'vt_3', word: 'Collaborate', phonetic: '/kəˈlæb.ə.reɪt/', partOfSpeech: 'verb', meaning: 'Work jointly on an activity or creative project.', example: 'Our team collaborated to build the science project.', synonym: 'Cooperate', antonym: 'Compete', favorite: false },
   ],
   'Young Adult': [
-    { id: 'vy_1', word: 'Articulate', phonetic: '/ɑːrˈtɪk.jə.lət/', partOfSpeech: 'adjective', meaning: 'Having the ability to speak fluently and coherently.', example: 'An articulate speaker can convey complex ideas effortlessly.', synonym: 'Eloquent', antonym: 'Inarticulate', favorite: true },
+    { id: 'vy_1', word: 'Articulate', phonetic: '/ɑːrˈtɪk.jə.lət/', partOfSpeech: 'adjective', meaning: 'Having or showing the ability to speak fluently and coherently.', example: 'An articulate speaker can convey complex ideas effortlessly.', synonym: 'Eloquent', antonym: 'Inarticulate', favorite: true },
     { id: 'vy_2', word: 'Resilient', phonetic: '/rɪˈzɪl.jənt/', partOfSpeech: 'adjective', meaning: 'Able to withstand or recover quickly from difficulties.', example: 'She showed a resilient mindset throughout university.', synonym: 'Tough', antonym: 'Fragile', favorite: false },
-    { id: 'vy_3', word: 'Pragmatic', phonetic: '/præɡˈmæt̬.ɪk/', partOfSpeech: 'adjective', meaning: 'Dealing with things sensibly and realistically.', example: 'They took a pragmatic approach to budget planning.', synonym: 'Practical', antonym: 'Idealistic', favorite: false },
+    { id: 'vy_3', word: 'Pragmatic', phonetic: '/præɡˈmæt̬.ɪk/', partOfSpeech: 'adjective', meaning: 'Dealing with things sensibly and realistically in a practical way.', example: 'They took a pragmatic approach to budget planning.', synonym: 'Practical', antonym: 'Idealistic', favorite: false },
     { id: 'vy_4', word: 'Tenacious', phonetic: '/təˈneɪ.ʃəs/', partOfSpeech: 'adjective', meaning: 'Tending to keep a firm hold of something; persistent.', example: 'Her tenacious effort helped her master English speaking.', synonym: 'Persistent', antonym: 'Hesitant', favorite: false },
   ],
   'Professional': [
     { id: 'vw_1', word: 'Strategic', phonetic: '/strəˈtiː.dʒɪk/', partOfSpeech: 'adjective', meaning: 'Carefully designed or planned to serve a clear advantage.', example: 'We established strategic milestones for quarterly goals.', synonym: 'Calculated', antonym: 'Random', favorite: true },
     { id: 'vw_2', word: 'Leverage', phonetic: '/ˈlev.ɚ.ɪdʒ/', partOfSpeech: 'verb', meaning: 'Use something to maximum advantage.', example: 'We leverage AI technology to accelerate English learning.', synonym: 'Utilize', antonym: 'Ignore', favorite: false },
-    { id: 'vw_3', word: 'Synergy', phonetic: '/ˈsɪn.ɚ.dʒi/', partOfSpeech: 'noun', meaning: 'The combined effect of items greater than their sum.', example: 'Team synergy enabled us to deliver the project early.', synonym: 'Harmony', antonym: 'Conflict', favorite: false },
-    { id: 'vw_4', word: 'Facilitate', phonetic: '/fəˈsɪl.ə.teɪt/', partOfSpeech: 'verb', meaning: 'Make an action or process smooth and easy.', example: 'The manager facilitated a smooth discussion between teams.', synonym: 'Enable', antonym: 'Hinder', favorite: false },
+    { id: 'vw_3', word: 'Synergy', phonetic: '/ˈsɪn.ɚ.dʒi/', partOfSpeech: 'noun', meaning: 'The combined effect of items greater than the sum of their individual effects.', example: 'Team synergy enabled us to deliver the project early.', synonym: 'Harmony', antonym: 'Conflict', favorite: false },
   ],
   'Senior': [
     { id: 'vs_1', word: 'Serenity', phonetic: '/səˈren.ə.t̬i/', partOfSpeech: 'noun', meaning: 'The state of being calm, peaceful, and untroubled.', example: 'She enjoyed the morning serenity of her garden.', synonym: 'Tranquility', antonym: 'Agitation', favorite: true },
@@ -133,7 +132,7 @@ export default function VocabularyScreen() {
   const [settings, setSettings] = useState(null);
   const [availableVoices, setAvailableVoices] = useState([]);
 
-  // Flashcards state
+  // 3D Flashcard State
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const flipAnimation = useRef(new Animated.Value(0)).current;
@@ -295,7 +294,7 @@ export default function VocabularyScreen() {
 
     // AI Speaks the Meaning immediately upon flipping!
     if (nextFlipped && currentCard) {
-      speak(currentCard.meaning || currentCard.word);
+      speak(currentCard.meaning ? `${currentCard.word}. ${currentCard.meaning}` : currentCard.word);
     } else if (!nextFlipped && currentCard) {
       speak(currentCard.word);
     }
@@ -349,7 +348,6 @@ export default function VocabularyScreen() {
     setShowMistakes(false);
     setEarnedXP(0);
 
-    // Build comprehensive unique source pool
     const allPools = [
       ...userWords,
       ...CURRICULUM_DATA['1st Std'],
@@ -370,7 +368,6 @@ export default function VocabularyScreen() {
       }
     }
 
-    // Pick 5 distinct target words from active list or full pool
     const activePool = userWords.length >= 5 ? userWords : uniquePool;
     const shuffledActive = [...activePool].sort(() => 0.5 - Math.random());
     const selectedTargets = shuffledActive.slice(0, 5);
@@ -383,7 +380,6 @@ export default function VocabularyScreen() {
       let correctAnswer = '';
       let options = [];
 
-      // TYPE 0: Fill-in-the-Blank Sentence
       if (qType === 0 && item.example) {
         questionBadge = '📝 Sentence Context';
         const regex = new RegExp(`\\b${item.word}\\b`, 'gi');
@@ -391,7 +387,6 @@ export default function VocabularyScreen() {
         promptSubtitle = 'Choose the correct word to complete the sentence:';
         correctAnswer = item.word;
 
-        // Distractor words
         const otherWords = uniquePool
           .filter((w) => w.word.toLowerCase() !== item.word.toLowerCase())
           .map((w) => w.word)
@@ -399,12 +394,10 @@ export default function VocabularyScreen() {
           .slice(0, 3);
 
         options = [item.word, ...otherWords].sort(() => 0.5 - Math.random());
-      }
-      // TYPE 1: Synonym Challenge
-      else if (qType === 1 && item.synonym && item.synonym !== 'None' && item.synonym !== 'Fruit') {
+      } else if (qType === 1 && item.synonym && item.synonym !== 'None' && item.synonym !== 'Fruit') {
         questionBadge = '🔀 Synonym Finder';
         promptTitle = `Which word is the closest synonym for "${item.word}"?`;
-        promptSubtitle = `Select the word with the most similar meaning:`;
+        promptSubtitle = 'Select the word with the most similar meaning:';
         correctAnswer = item.synonym;
 
         const otherSynonyms = uniquePool
@@ -414,16 +407,14 @@ export default function VocabularyScreen() {
           .slice(0, 3);
 
         while (otherSynonyms.length < 3) {
-          otherSynonyms.push('Hesitation', 'Confusion', 'Disruption', 'Hesitant')[otherSynonyms.length];
+          otherSynonyms.push(['Hesitation', 'Confusion', 'Disruption', 'Hesitant'][otherSynonyms.length]);
         }
 
         options = [item.synonym, ...otherSynonyms].sort(() => 0.5 - Math.random());
-      }
-      // TYPE 2: Audio Comprehension / Pronunciation Challenge
-      else if (qType === 2) {
+      } else if (qType === 2) {
         questionBadge = '🔊 Listening Comprehension';
         promptTitle = `Listen to the pronunciation of "${item.word}"`;
-        promptSubtitle = `What is the accurate definition of this word?`;
+        promptSubtitle = 'What is the accurate definition of this word?';
         correctAnswer = item.meaning;
 
         const otherMeanings = uniquePool
@@ -433,12 +424,10 @@ export default function VocabularyScreen() {
           .slice(0, 3);
 
         options = [item.meaning, ...otherMeanings].sort(() => 0.5 - Math.random());
-      }
-      // TYPE 3: Definition Match (Standard)
-      else {
+      } else {
         questionBadge = '📖 Definition Match';
         promptTitle = `What is the correct definition of "${item.word}"?`;
-        promptSubtitle = `Choose the precise meaning:`;
+        promptSubtitle = 'Choose the precise meaning:';
         correctAnswer = item.meaning;
 
         const otherMeanings = uniquePool
@@ -532,15 +521,26 @@ export default function VocabularyScreen() {
       title="Vocabulary Master"
       subtitle={userProfileTitle}
     >
-      {/* Dynamic Tab Bar */}
+      {/* Dynamic Tab Bar - Fixed Spacing & Zero Overlap */}
       <View style={[styles.tabContainer, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]}>
         <TouchableOpacity
           activeOpacity={0.8}
           style={[styles.tabButton, activeTab === 'list' && styles.tabButtonActive]}
           onPress={() => setActiveTab('list')}
         >
-          <Ionicons name="book-outline" size={17} color={activeTab === 'list' ? '#FFFFFF' : isDark ? '#94A3B8' : '#64748B'} />
-          <Text style={[styles.tabButtonText, { color: isDark ? '#94A3B8' : '#64748B' }, activeTab === 'list' && styles.tabButtonTextActive]}>
+          <Ionicons
+            name="book-outline"
+            size={16}
+            color={activeTab === 'list' ? '#FFFFFF' : isDark ? '#94A3B8' : '#475569'}
+          />
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.tabButtonText,
+              { color: isDark ? '#94A3B8' : '#475569' },
+              activeTab === 'list' && styles.tabButtonTextActive,
+            ]}
+          >
             My List
           </Text>
         </TouchableOpacity>
@@ -559,9 +559,20 @@ export default function VocabularyScreen() {
             setActiveTab('flashcards');
           }}
         >
-          <Ionicons name="albums-outline" size={17} color={activeTab === 'flashcards' ? '#FFFFFF' : isDark ? '#94A3B8' : '#64748B'} />
-          <Text style={[styles.tabButtonText, { color: isDark ? '#94A3B8' : '#64748B' }, activeTab === 'flashcards' && styles.tabButtonTextActive]}>
-            3D Flashcards
+          <Ionicons
+            name="albums-outline"
+            size={16}
+            color={activeTab === 'flashcards' ? '#FFFFFF' : isDark ? '#94A3B8' : '#475569'}
+          />
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.tabButtonText,
+              { color: isDark ? '#94A3B8' : '#475569' },
+              activeTab === 'flashcards' && styles.tabButtonTextActive,
+            ]}
+          >
+            3D Cards
           </Text>
         </TouchableOpacity>
 
@@ -570,8 +581,19 @@ export default function VocabularyScreen() {
           style={[styles.tabButton, activeTab === 'quiz' && styles.tabButtonActive]}
           onPress={startQuiz}
         >
-          <Ionicons name="trophy-outline" size={17} color={activeTab === 'quiz' ? '#FFFFFF' : isDark ? '#94A3B8' : '#64748B'} />
-          <Text style={[styles.tabButtonText, { color: isDark ? '#94A3B8' : '#64748B' }, activeTab === 'quiz' && styles.tabButtonTextActive]}>
+          <Ionicons
+            name="trophy-outline"
+            size={16}
+            color={activeTab === 'quiz' ? '#FFFFFF' : isDark ? '#94A3B8' : '#475569'}
+          />
+          <Text
+            numberOfLines={1}
+            style={[
+              styles.tabButtonText,
+              { color: isDark ? '#94A3B8' : '#475569' },
+              activeTab === 'quiz' && styles.tabButtonTextActive,
+            ]}
+          >
             AI Quiz
           </Text>
         </TouchableOpacity>
@@ -585,7 +607,7 @@ export default function VocabularyScreen() {
           {/* Add Word Box */}
           <LinearGradient
             colors={isDark ? ['#1E1B4B', '#312E81'] : ['#EEF2FF', '#E0E7FF']}
-            style={styles.addCardGradient}
+            style={[styles.addCardGradient, { borderColor: isDark ? 'rgba(99, 102, 241, 0.4)' : '#C7D2FE' }]}
           >
             <View style={styles.addHeaderRow}>
               <View style={styles.addTitleWithIcon}>
@@ -603,7 +625,14 @@ export default function VocabularyScreen() {
 
             <View style={styles.addInputRow}>
               <TextInput
-                style={[styles.addInput, { backgroundColor: isDark ? '#0F172A' : '#FFFFFF', color: isDark ? '#FFFFFF' : '#0F172A' }]}
+                style={[
+                  styles.addInput,
+                  {
+                    backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+                    color: isDark ? '#FFFFFF' : '#0F172A',
+                    borderColor: isDark ? '#334155' : '#CBD5E1',
+                  },
+                ]}
                 placeholder="e.g. Eloquent, Resilient, Tenacious..."
                 value={word}
                 onChangeText={setWord}
@@ -622,7 +651,15 @@ export default function VocabularyScreen() {
 
           {/* Search and Filters */}
           <View style={styles.searchFilterContainer}>
-            <View style={[styles.searchBox, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
+            <View
+              style={[
+                styles.searchBox,
+                {
+                  backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                  borderColor: isDark ? '#334155' : '#CBD5E1',
+                },
+              ]}
+            >
               <Ionicons name="search-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
               <TextInput
                 style={[styles.searchInput, { color: theme.textPrimary }]}
@@ -648,12 +685,18 @@ export default function VocabularyScreen() {
                   key={f.key}
                   style={[
                     styles.filterPill,
-                    { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
+                    { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: isDark ? '#334155' : '#CBD5E1' },
                     filterType === f.key && styles.filterPillActive,
                   ]}
                   onPress={() => setFilterType(f.key)}
                 >
-                  <Text style={[styles.filterPillText, { color: isDark ? '#94A3B8' : '#64748B' }, filterType === f.key && styles.filterPillTextActive]}>
+                  <Text
+                    style={[
+                      styles.filterPillText,
+                      { color: isDark ? '#94A3B8' : '#475569' },
+                      filterType === f.key && styles.filterPillTextActive,
+                    ]}
+                  >
                     {f.label}
                   </Text>
                 </TouchableOpacity>
@@ -672,17 +715,30 @@ export default function VocabularyScreen() {
             </View>
           ) : (
             filteredItems.map((item, idx) => (
-              <Card key={item.id || idx} style={[styles.wordCard, { backgroundColor: theme.cardBg }]}>
+              <Card
+                key={item.id || idx}
+                style={[
+                  styles.wordCard,
+                  {
+                    backgroundColor: isDark ? theme.cardBg : '#FFFFFF',
+                    borderColor: isDark ? '#334155' : '#E2E8F0',
+                  },
+                ]}
+              >
                 <View style={styles.wordHeaderRow}>
                   <View style={styles.wordTitleCol}>
                     <View style={styles.wordBadgeRow}>
-                      <Text style={[styles.wordText, { color: theme.textPrimary }]}>{item.word}</Text>
+                      <Text style={[styles.wordText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+                        {item.word}
+                      </Text>
                       {item.phonetic ? (
                         <Text style={[styles.phoneticText, { color: '#6366F1' }]}>{item.phonetic}</Text>
                       ) : null}
                       {item.partOfSpeech ? (
-                        <View style={styles.posBadge}>
-                          <Text style={styles.posBadgeText}>{item.partOfSpeech}</Text>
+                        <View style={[styles.posBadge, { backgroundColor: isDark ? '#312E81' : '#EEF2FF' }]}>
+                          <Text style={[styles.posBadgeText, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
+                            {item.partOfSpeech}
+                          </Text>
                         </View>
                       ) : null}
                     </View>
@@ -708,12 +764,16 @@ export default function VocabularyScreen() {
                   </View>
                 </View>
 
-                <Text style={[styles.meaningText, { color: theme.textPrimary }]}>{item.meaning}</Text>
+                <Text style={[styles.meaningText, { color: isDark ? '#E2E8F0' : '#1E293B' }]}>
+                  {item.meaning}
+                </Text>
 
                 {item.example ? (
-                  <View style={[styles.exampleBox, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC' }]}>
-                    <Text style={[styles.exampleLabel, { color: theme.textSecondary }]}>EXAMPLE</Text>
-                    <Text style={[styles.exampleText, { color: isDark ? '#E2E8F0' : '#334155' }]}>"{item.example}"</Text>
+                  <View style={[styles.exampleBox, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
+                    <Text style={[styles.exampleLabel, { color: isDark ? '#94A3B8' : '#64748B' }]}>EXAMPLE</Text>
+                    <Text style={[styles.exampleText, { color: isDark ? '#CBD5E1' : '#334155' }]}>
+                      "{item.example}"
+                    </Text>
                   </View>
                 ) : null}
 
@@ -737,14 +797,17 @@ export default function VocabularyScreen() {
         <ScrollView contentContainerStyle={styles.flashcardContainer} showsVerticalScrollIndicator={false}>
           {/* Card Counter & Favorite Star Header */}
           <View style={styles.flashcardHeader}>
-            <View style={styles.counterBadge}>
-              <Text style={styles.counterBadgeText}>
+            <View style={[styles.counterBadge, { backgroundColor: isDark ? '#312E81' : '#EEF2FF' }]}>
+              <Text style={[styles.counterBadgeText, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
                 CARD {currentCardIndex + 1} OF {filteredItems.length}
               </Text>
             </View>
             <TouchableOpacity
               onPress={() => toggleFavorite(currentCard)}
-              style={[styles.flashcardStarBtn, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF' }]}
+              style={[
+                styles.flashcardStarBtn,
+                { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: isDark ? '#334155' : '#E2E8F0' },
+              ]}
             >
               <Ionicons
                 name={currentCard.favorite ? 'star' : 'star-outline'}
@@ -770,17 +833,25 @@ export default function VocabularyScreen() {
             <Animated.View
               style={[
                 styles.flashcard3D,
-                { backgroundColor: theme.cardBg, borderColor: isDark ? '#334155' : '#E2E8F0' },
+                {
+                  backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                  borderColor: isDark ? '#334155' : '#C7D2FE',
+                },
                 {
                   transform: [{ rotateY: frontInterpolate }],
                   opacity: frontOpacity,
                 },
               ]}
             >
-              <LinearGradient colors={isDark ? ['#1E293B', '#0F172A'] : ['#FFFFFF', '#F8FAFC']} style={styles.cardInnerGradient}>
+              <LinearGradient
+                colors={isDark ? ['#1E293B', '#0F172A'] : ['#FFFFFF', '#F8FAFC']}
+                style={styles.cardInnerGradient}
+              >
                 <View style={styles.cardTopActions}>
-                  <View style={styles.posBadge}>
-                    <Text style={styles.posBadgeText}>{currentCard.partOfSpeech || 'Vocabulary Word'}</Text>
+                  <View style={[styles.posBadge, { backgroundColor: isDark ? '#312E81' : '#EEF2FF' }]}>
+                    <Text style={[styles.posBadgeText, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
+                      {currentCard.partOfSpeech || 'Vocabulary Word'}
+                    </Text>
                   </View>
                   <TouchableOpacity
                     onPress={() => speak(currentCard.word)}
@@ -792,7 +863,9 @@ export default function VocabularyScreen() {
                 </View>
 
                 <View style={styles.cardCenterContent}>
-                  <Text style={[styles.frontWordText, { color: theme.textPrimary }]}>{currentCard.word}</Text>
+                  <Text style={[styles.frontWordText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+                    {currentCard.word}
+                  </Text>
                   {currentCard.phonetic ? (
                     <Text style={styles.frontPhoneticText}>{currentCard.phonetic}</Text>
                   ) : null}
@@ -800,7 +873,9 @@ export default function VocabularyScreen() {
 
                 <View style={styles.cardBottomHint}>
                   <Ionicons name="sync" size={16} color="#6366F1" />
-                  <Text style={[styles.tapToFlipText, { color: theme.textSecondary }]}>Tap card to hear meaning & flip</Text>
+                  <Text style={[styles.tapToFlipText, { color: theme.textSecondary }]}>
+                    Tap card to hear meaning & flip
+                  </Text>
                 </View>
               </LinearGradient>
             </Animated.View>
@@ -810,14 +885,20 @@ export default function VocabularyScreen() {
               style={[
                 styles.flashcard3D,
                 styles.flashcardBack,
-                { backgroundColor: theme.cardBg, borderColor: isDark ? '#334155' : '#E2E8F0' },
+                {
+                  backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                  borderColor: isDark ? '#334155' : '#C7D2FE',
+                },
                 {
                   transform: [{ rotateY: backInterpolate }],
                   opacity: backOpacity,
                 },
               ]}
             >
-              <LinearGradient colors={isDark ? ['#1E293B', '#0F172A'] : ['#FFFFFF', '#F8FAFC']} style={styles.cardInnerGradient}>
+              <LinearGradient
+                colors={isDark ? ['#1E293B', '#0F172A'] : ['#FFFFFF', '#F8FAFC']}
+                style={styles.cardInnerGradient}
+              >
                 <View style={styles.cardTopActions}>
                   <Text style={[styles.backWordSmall, { color: '#6366F1' }]}>{currentCard.word}</Text>
                   <TouchableOpacity
@@ -830,11 +911,34 @@ export default function VocabularyScreen() {
                 </View>
 
                 <ScrollView style={styles.backScrollContent} showsVerticalScrollIndicator={false}>
-                  <Text style={[styles.backMeaningText, { color: theme.textPrimary }]}>{currentCard.meaning}</Text>
+                  <View
+                    style={[
+                      styles.backDefinitionCard,
+                      {
+                        backgroundColor: isDark ? '#0F172A' : '#F1F5F9',
+                        borderColor: isDark ? '#334155' : '#E2E8F0',
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.backDefinitionLabel, { color: isDark ? '#818CF8' : '#4F46E5' }]}>
+                      DEFINITION:
+                    </Text>
+                    <Text style={[styles.backMeaningText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+                      {currentCard.meaning}
+                    </Text>
+                  </View>
 
                   {currentCard.example ? (
-                    <View style={[styles.backExampleBox, { backgroundColor: isDark ? '#334155' : '#EDE9FE' }]}>
-                      <Text style={[styles.backExampleText, { color: isDark ? '#E2E8F0' : '#4338CA' }]}>
+                    <View
+                      style={[
+                        styles.backExampleBox,
+                        {
+                          backgroundColor: isDark ? '#312E81' : '#EEF2FF',
+                          borderColor: isDark ? '#4338CA' : '#C7D2FE',
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.backExampleText, { color: isDark ? '#E0E7FF' : '#3730A3' }]}>
                         "{currentCard.example}"
                       </Text>
                     </View>
@@ -843,7 +947,9 @@ export default function VocabularyScreen() {
 
                 <View style={styles.cardBottomHint}>
                   <Ionicons name="sync" size={16} color="#6366F1" />
-                  <Text style={[styles.tapToFlipText, { color: theme.textSecondary }]}>Tap card to flip back to word</Text>
+                  <Text style={[styles.tapToFlipText, { color: theme.textSecondary }]}>
+                    Tap card to flip back to word
+                  </Text>
                 </View>
               </LinearGradient>
             </Animated.View>
@@ -854,7 +960,13 @@ export default function VocabularyScreen() {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={prevCard}
-              style={[styles.navBtn, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: isDark ? '#334155' : '#E2E8F0' }]}
+              style={[
+                styles.navBtn,
+                {
+                  backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                  borderColor: isDark ? '#334155' : '#E2E8F0',
+                },
+              ]}
             >
               <Ionicons name="chevron-back" size={22} color={theme.textPrimary} />
             </TouchableOpacity>
@@ -907,7 +1019,10 @@ export default function VocabularyScreen() {
               {/* Multi-Format Question Card */}
               <LinearGradient
                 colors={isDark ? ['#1E1B4B', '#312E81'] : ['#EEF2FF', '#E0E7FF']}
-                style={styles.quizQuestionCard}
+                style={[
+                  styles.quizQuestionCard,
+                  { borderColor: isDark ? 'rgba(99, 102, 241, 0.4)' : '#C7D2FE' },
+                ]}
               >
                 <View style={styles.quizQuestionHeaderRow}>
                   <View style={styles.quizFormatBadge}>
@@ -938,7 +1053,13 @@ export default function VocabularyScreen() {
                 {quizQuestions[currentQuizIndex]?.options.map((option, idx) => {
                   const isSelected = selectedAnswer === option;
                   const isCorrect = option === quizQuestions[currentQuizIndex]?.correctAnswer;
-                  let optStyle = [styles.quizOptionBtn, { backgroundColor: theme.cardBg, borderColor: isDark ? '#334155' : '#E2E8F0' }];
+                  let optStyle = [
+                    styles.quizOptionBtn,
+                    {
+                      backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                      borderColor: isDark ? '#334155' : '#E2E8F0',
+                    },
+                  ];
 
                   if (selectedAnswer !== null) {
                     if (isCorrect) {
@@ -956,12 +1077,27 @@ export default function VocabularyScreen() {
                       disabled={selectedAnswer !== null}
                       onPress={() => submitQuizAnswer(option)}
                     >
-                      <View style={[styles.optLetterBadge, isSelected && isCorrect && { backgroundColor: '#10B981' }, isSelected && !isCorrect && { backgroundColor: '#EF4444' }]}>
-                        <Text style={[styles.optLetterText, isSelected && { color: '#FFFFFF' }]}>
+                      <View
+                        style={[
+                          styles.optLetterBadge,
+                          { backgroundColor: isDark ? '#312E81' : '#EEF2FF' },
+                          isSelected && isCorrect && { backgroundColor: '#10B981' },
+                          isSelected && !isCorrect && { backgroundColor: '#EF4444' },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.optLetterText,
+                            { color: isDark ? '#A5B4FC' : '#4F46E5' },
+                            isSelected && { color: '#FFFFFF' },
+                          ]}
+                        >
                           {String.fromCharCode(65 + idx)}
                         </Text>
                       </View>
-                      <Text style={[styles.quizOptionText, { color: theme.textPrimary }]}>{option}</Text>
+                      <Text style={[styles.quizOptionText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+                        {option}
+                      </Text>
                       {selectedAnswer !== null && isCorrect && (
                         <Ionicons name="checkmark-circle" size={22} color="#10B981" />
                       )}
@@ -975,12 +1111,20 @@ export default function VocabularyScreen() {
 
               {/* Instant Explanation Box on Answer */}
               {selectedAnswer !== null && (
-                <View style={[styles.explanationCard, { backgroundColor: isDark ? '#1E293B' : '#EFF6FF', borderColor: isDark ? '#334155' : '#BFDBFE' }]}>
+                <View
+                  style={[
+                    styles.explanationCard,
+                    {
+                      backgroundColor: isDark ? '#1E293B' : '#EFF6FF',
+                      borderColor: isDark ? '#334155' : '#BFDBFE',
+                    },
+                  ]}
+                >
                   <View style={styles.explanationHeader}>
                     <Ionicons name="information-circle" size={18} color="#3B82F6" />
                     <Text style={styles.explanationTitle}>Word Context & Definition</Text>
                   </View>
-                  <Text style={[styles.explanationMeaning, { color: theme.textPrimary }]}>
+                  <Text style={[styles.explanationMeaning, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
                     <Text style={{ fontWeight: '800' }}>{quizQuestions[currentQuizIndex]?.targetWord}:</Text>{' '}
                     {quizQuestions[currentQuizIndex]?.meaning}
                   </Text>
@@ -1009,13 +1153,24 @@ export default function VocabularyScreen() {
 
           {/* QUIZ FINISHED CELEBRATION WITH MISTAKE REVIEW */}
           {quizFinished && (
-            <Card style={[styles.celebrationCard, { backgroundColor: theme.cardBg }]}>
+            <Card
+              style={[
+                styles.celebrationCard,
+                {
+                  backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                  borderColor: isDark ? '#334155' : '#E2E8F0',
+                },
+              ]}
+            >
               <View style={styles.trophyCircle}>
                 <Ionicons name="trophy" size={48} color="#F59E0B" />
               </View>
-              <Text style={[styles.celebTitle, { color: theme.textPrimary }]}>Quiz Completed!</Text>
+              <Text style={[styles.celebTitle, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+                Quiz Completed!
+              </Text>
               <Text style={[styles.celebSubtitle, { color: theme.textSecondary }]}>
-                You answered <Text style={{ fontWeight: '800', color: '#6366F1' }}>{quizScore}</Text> of {quizQuestions.length} correctly!
+                You answered <Text style={{ fontWeight: '800', color: '#6366F1' }}>{quizScore}</Text> of{' '}
+                {quizQuestions.length} correctly!
               </Text>
 
               {/* XP Breakdown Box */}
@@ -1041,8 +1196,19 @@ export default function VocabularyScreen() {
               {showMistakes && mistakesList.length > 0 && (
                 <View style={styles.mistakesContainer}>
                   {mistakesList.map((m, i) => (
-                    <View key={i} style={[styles.mistakeItem, { backgroundColor: isDark ? '#1E293B' : '#FEF2F2', borderColor: '#FCA5A5' }]}>
-                      <Text style={[styles.mistakeWord, { color: theme.textPrimary }]}>{m.targetWord}</Text>
+                    <View
+                      key={i}
+                      style={[
+                        styles.mistakeItem,
+                        {
+                          backgroundColor: isDark ? '#1E293B' : '#FEF2F2',
+                          borderColor: isDark ? '#7F1D1D' : '#FCA5A5',
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.mistakeWord, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
+                        {m.targetWord}
+                      </Text>
                       <Text style={styles.mistakeWrongText}>Your Answer: {m.userAnswer}</Text>
                       <Text style={styles.mistakeCorrectText}>Correct: {m.correctAnswer}</Text>
                     </View>
@@ -1067,7 +1233,7 @@ export default function VocabularyScreen() {
 }
 
 // =========================================================================
-// ULTRA-CLEAN STYLESHEET
+// ULTRA-CLEAN STYLESHEET (MOBILE APP)
 // =========================================================================
 const styles = StyleSheet.create({
   scroll: { flex: 1, paddingHorizontal: 16 },
@@ -1077,6 +1243,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 16,
     padding: 4,
+    gap: 4,
   },
   tabButton: {
     flex: 1,
@@ -1084,24 +1251,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 10,
+    paddingHorizontal: 4,
     borderRadius: 12,
-    gap: 6,
+    gap: 4,
   },
   tabButtonActive: {
     backgroundColor: '#6366F1',
     shadowColor: '#6366F1',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
     elevation: 3,
   },
   tabButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
   },
   tabButtonTextActive: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800',
   },
 
   // Add Card Gradient
@@ -1110,7 +1278,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
   },
   addHeaderRow: {
     flexDirection: 'row',
@@ -1153,9 +1320,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 16,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
   },
   addButton: {
     width: 48,
@@ -1187,7 +1353,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   filterPillsRow: {
     flexDirection: 'row',
@@ -1197,13 +1363,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderRadius: 16,
+    borderWidth: 1,
   },
   filterPillActive: {
     backgroundColor: '#6366F1',
+    borderColor: '#6366F1',
   },
   filterPillText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   filterPillTextActive: {
     color: '#FFFFFF',
@@ -1215,7 +1383,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.7)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   wordHeaderRow: {
     flexDirection: 'row',
@@ -1238,16 +1410,14 @@ const styles = StyleSheet.create({
   },
   phoneticText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   posBadge: {
-    backgroundColor: '#EEF2FF',
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
   posBadgeText: {
-    color: '#4F46E5',
     fontSize: 10,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -1267,13 +1437,14 @@ const styles = StyleSheet.create({
   meaningText: {
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: '500',
+    fontWeight: '600',
     marginBottom: 8,
   },
   exampleBox: {
     padding: 10,
     borderRadius: 12,
     marginBottom: 8,
+    borderWidth: 1,
   },
   exampleLabel: {
     fontSize: 10,
@@ -1285,6 +1456,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontStyle: 'italic',
     lineHeight: 18,
+    fontWeight: '500',
   },
   synonymsRow: {
     flexDirection: 'row',
@@ -1330,7 +1502,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   counterBadge: {
-    backgroundColor: '#EEF2FF',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
@@ -1338,7 +1509,6 @@ const styles = StyleSheet.create({
   counterBadgeText: {
     fontSize: 11,
     fontWeight: '800',
-    color: '#4F46E5',
   },
   flashcardStarBtn: {
     width: 38,
@@ -1347,7 +1517,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E2E8F0',
   },
   progressBarBg: {
     width: '100%',
@@ -1363,7 +1532,7 @@ const styles = StyleSheet.create({
   },
   cardTouchWrapper: {
     width: CARD_WIDTH,
-    height: 320,
+    height: 330,
     marginBottom: 24,
   },
   flashcard3D: {
@@ -1434,21 +1603,33 @@ const styles = StyleSheet.create({
     flex: 1,
     marginVertical: 10,
   },
-  backMeaningText: {
-    fontSize: 16,
-    lineHeight: 22,
-    fontWeight: '600',
+  backDefinitionCard: {
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1,
     marginBottom: 10,
   },
+  backDefinitionLabel: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  backMeaningText: {
+    fontSize: 15,
+    lineHeight: 21,
+    fontWeight: '700',
+  },
   backExampleBox: {
-    padding: 12,
+    padding: 10,
     borderRadius: 12,
-    marginBottom: 10,
+    borderWidth: 1,
   },
   backExampleText: {
     fontSize: 13,
     fontStyle: 'italic',
     lineHeight: 18,
+    fontWeight: '500',
   },
   navControlsRow: {
     flexDirection: 'row',
@@ -1515,7 +1696,6 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: 'rgba(99, 102, 241, 0.2)',
   },
   quizQuestionHeaderRow: {
     flexDirection: 'row',
@@ -1565,12 +1745,10 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#EEF2FF',
     justifyContent: 'center',
     alignItems: 'center',
   },
   optLetterText: {
-    color: '#4F46E5',
     fontWeight: '800',
     fontSize: 13,
   },
@@ -1578,7 +1756,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13.5,
     lineHeight: 19,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   quizOptionCorrect: {
     backgroundColor: '#ECFDF5',
@@ -1637,6 +1815,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: 'center',
     width: '100%',
+    borderWidth: 1,
   },
   trophyCircle: {
     width: 84,
