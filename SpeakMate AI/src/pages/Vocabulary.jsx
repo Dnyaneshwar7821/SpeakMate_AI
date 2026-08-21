@@ -227,15 +227,24 @@ export function Vocabulary() {
   const handleCardClick = () => {
     const nextFlipped = !isFlipped;
     setIsFlipped(nextFlipped);
-    if (!nextFlipped && currentCard) {
+    if (nextFlipped && currentCard) {
+      // Tapping front card -> flips to back and AI speaks the meaning!
+      handleSpeak(currentCard.meaning ? `${currentCard.word}. ${currentCard.meaning}` : currentCard.word);
+    } else if (!nextFlipped && currentCard) {
       // Tapping back card -> speaks the word again as it turns back to front
       handleSpeak(currentCard.word);
     }
   };
 
-  const handleSpeakerClick = (e) => {
+  const handleSpeakerClick = (e, isBackSide = false) => {
     if (e && e.stopPropagation) e.stopPropagation();
-    if (currentCard) handleSpeak(currentCard.word);
+    if (currentCard) {
+      if (isBackSide) {
+        handleSpeak(currentCard.meaning ? `${currentCard.word}. ${currentCard.meaning}` : currentCard.word);
+      } else {
+        handleSpeak(currentCard.word);
+      }
+    }
   };
 
   // Next-Level Multi-Format High-Accuracy Quiz
@@ -696,28 +705,28 @@ export function Vocabulary() {
               >
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <span className="text-base font-black text-indigo-600 dark:text-indigo-400">
+                    <span className="text-lg font-black text-indigo-600 dark:text-indigo-400">
                       {currentCard.word}
                     </span>
                     {currentCard.partOfSpeech && (
-                      <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-slate-400">
-                        ({currentCard.partOfSpeech})
+                      <span className="bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 text-[10px] uppercase font-bold px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-900">
+                        {currentCard.partOfSpeech}
                       </span>
                     )}
                   </div>
                   <button
-                    onClick={handleSpeakerClick}
+                    onClick={(e) => handleSpeakerClick(e, true)}
                     className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/30 hover:scale-105 transition-all text-sm"
-                    title="Play Pronunciation"
+                    title="Play Meaning Audio"
                   >
                     🔊
                   </button>
                 </div>
 
-                <div className="my-auto space-y-3 text-left">
-                  <div className="bg-indigo-50/60 dark:bg-slate-800/80 p-4 rounded-2xl border border-indigo-100 dark:border-slate-700">
-                    <p className="text-xs uppercase font-extrabold text-indigo-600 dark:text-indigo-400 mb-1">
-                      DEFINITION
+                <div className="my-auto space-y-3 text-left overflow-y-auto max-h-[220px] pr-1">
+                  <div className="bg-slate-50 dark:bg-slate-800/80 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700">
+                    <p className="text-[11px] uppercase font-black text-indigo-600 dark:text-indigo-400 mb-1 flex items-center gap-1.5">
+                      <span>📖</span> MEANING & DEFINITION
                     </p>
                     <p className="text-base font-bold text-slate-900 dark:text-white leading-relaxed">
                       {currentCard.meaning}
@@ -725,9 +734,20 @@ export function Vocabulary() {
                   </div>
 
                   {currentCard.exampleSentence && (
-                    <p className="text-xs italic text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                      "{currentCard.exampleSentence}"
-                    </p>
+                    <div className="bg-indigo-50/60 dark:bg-indigo-950/40 p-3.5 rounded-2xl border border-indigo-100 dark:border-indigo-900/60">
+                      <p className="text-[11px] uppercase font-black text-indigo-600 dark:text-indigo-400 mb-1 flex items-center gap-1.5">
+                        <span>💬</span> EXAMPLE IN CONTEXT
+                      </p>
+                      <p className="text-xs italic text-slate-800 dark:text-slate-200 font-medium">
+                        "{currentCard.exampleSentence}"
+                      </p>
+                    </div>
+                  )}
+
+                  {currentCard.synonym && currentCard.synonym !== "None" && (
+                    <div className="bg-emerald-50 dark:bg-emerald-950/40 px-3 py-2 rounded-xl border border-emerald-200 dark:border-emerald-900/60 text-xs text-emerald-800 dark:text-emerald-300 font-medium">
+                      🌿 <span className="font-bold">Synonym:</span> {currentCard.synonym}
+                    </div>
                   )}
                 </div>
 

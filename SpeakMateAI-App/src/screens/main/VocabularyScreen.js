@@ -351,18 +351,20 @@ export default function VocabularyScreen() {
   };
 
   // =========================================================================
-  // EXACT CARD INTERACTION MODEL (SECTIONS 7, 11, 12, 13)
+  // CARD INTERACTION: FRONT TAP -> FLIP & SPEAK MEANING, BACK TAP -> FLIP & SPEAK WORD
   // =========================================================================
-  // FRONT TAP: 3D Flip to Back -> Discover Meaning (No Speech during flip)
-  // BACK TAP: Speak Word Again -> Reverse 3D Flip to Front
   const handleCardTap = () => {
     if (isFlippingRef.current) return;
     isFlippingRef.current = true;
 
     const nextFlipped = !flipped;
 
-    // If tapping back card -> pronounce the word again as it turns back to front!
-    if (!nextFlipped && currentCard) {
+    // When flipping to back (meaning side) -> AI speaks the meaning!
+    if (nextFlipped && currentCard) {
+      playWordPronunciation(currentCard.meaning ? `${currentCard.word}. ${currentCard.meaning}` : currentCard.word);
+    } 
+    // When flipping back to front (word side) -> AI speaks the word!
+    else if (!nextFlipped && currentCard) {
       playWordPronunciation(currentCard.word);
     }
 
@@ -376,11 +378,15 @@ export default function VocabularyScreen() {
     });
   };
 
-  // Speaker button exclusively replays pronunciation without flipping!
+  // Speaker button on front replays word, on back replays meaning
   const handleSpeakerTap = (e) => {
     if (e && e.stopPropagation) e.stopPropagation();
     if (currentCard) {
-      playWordPronunciation(currentCard.word);
+      if (flipped) {
+        playWordPronunciation(currentCard.meaning ? `${currentCard.word}. ${currentCard.meaning}` : currentCard.word);
+      } else {
+        playWordPronunciation(currentCard.word);
+      }
     }
   };
 
@@ -1078,7 +1084,7 @@ export default function VocabularyScreen() {
                       <View style={styles.backWordRow}>
                         <Text style={[styles.backWordTitle, { color: '#6366F1' }]}>{currentCard.word}</Text>
                         {currentCard.partOfSpeech ? (
-                          <View style={[styles.posBadgeSmall, { backgroundColor: isDark ? '#312E81' : '#EEF2FF' }]}>
+                          <View style={[styles.posBadgeSmall, { backgroundColor: isDark ? '#312E81' : '#EEF2FF', borderColor: isDark ? '#4338CA' : '#C7D2FE' }]}>
                             <Text style={[styles.posBadgeTextSmall, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
                               {currentCard.partOfSpeech}
                             </Text>
@@ -1091,7 +1097,7 @@ export default function VocabularyScreen() {
                         onPress={handleSpeakerTap}
                         activeOpacity={0.75}
                         style={styles.speakerBtnTouchable}
-                        accessibilityLabel="Play pronunciation"
+                        accessibilityLabel="Play meaning"
                       >
                         <Animated.View
                           style={[
@@ -1115,14 +1121,17 @@ export default function VocabularyScreen() {
                         style={[
                           styles.backDefinitionCard,
                           {
-                            backgroundColor: isDark ? '#0F172A' : '#F1F5F9',
+                            backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
                             borderColor: isDark ? '#334155' : '#E2E8F0',
                           },
                         ]}
                       >
-                        <Text style={[styles.backDefinitionLabel, { color: isDark ? '#818CF8' : '#4F46E5' }]}>
-                          DEFINITION
-                        </Text>
+                        <View style={styles.sectionHeaderIconRow}>
+                          <Ionicons name="book-outline" size={14} color="#6366F1" />
+                          <Text style={[styles.backDefinitionLabel, { color: isDark ? '#818CF8' : '#4F46E5' }]}>
+                            MEANING & DEFINITION
+                          </Text>
+                        </View>
                         <Text style={[styles.backMeaningText, { color: isDark ? '#FFFFFF' : '#0F172A' }]}>
                           {currentCard.meaning}
                         </Text>
@@ -1133,16 +1142,27 @@ export default function VocabularyScreen() {
                           style={[
                             styles.backExampleCard,
                             {
-                              backgroundColor: isDark ? '#312E81' : '#EEF2FF',
+                              backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF',
                               borderColor: isDark ? '#4338CA' : '#C7D2FE',
                             },
                           ]}
                         >
-                          <Text style={[styles.backExampleLabel, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
-                            EXAMPLE
-                          </Text>
+                          <View style={styles.sectionHeaderIconRow}>
+                            <Ionicons name="chatbubble-ellipses-outline" size={14} color="#6366F1" />
+                            <Text style={[styles.backExampleLabel, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
+                              EXAMPLE IN CONTEXT
+                            </Text>
+                          </View>
                           <Text style={[styles.backExampleText, { color: isDark ? '#E0E7FF' : '#3730A3' }]}>
                             "{currentCard.example}"
+                          </Text>
+                        </View>
+                      ) : null}
+
+                      {currentCard.synonym && currentCard.synonym !== 'None' ? (
+                        <View style={[styles.backSynonymCard, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: isDark ? '#047857' : '#A7F3D0' }]}>
+                          <Text style={[styles.backSynonymLabel, { color: isDark ? '#6EE7B7' : '#047857' }]}>
+                            🌿 SYNONYM: <Text style={{ fontWeight: '800' }}>{currentCard.synonym}</Text>
                           </Text>
                         </View>
                       ) : null}
@@ -1885,6 +1905,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginVertical: 12,
   },
+  sectionHeaderIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
   backDefinitionCard: {
     padding: 14,
     borderRadius: 16,
@@ -1895,7 +1921,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 0.8,
-    marginBottom: 4,
   },
   backMeaningText: {
     fontSize: 15,
@@ -1906,18 +1931,29 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
+    marginBottom: 10,
   },
   backExampleLabel: {
     fontSize: 10,
     fontWeight: '900',
     letterSpacing: 0.8,
-    marginBottom: 2,
   },
   backExampleText: {
     fontSize: 13,
     fontStyle: 'italic',
     lineHeight: 19,
     fontWeight: '600',
+  },
+  backSynonymCard: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 10,
+  },
+  backSynonymLabel: {
+    fontSize: 11,
+    fontWeight: '700',
   },
 
   // Navigation Controls
