@@ -15,6 +15,46 @@ import { useMouseTracking } from "../hooks/useMouseTracking";
 import { useExpressions } from "../hooks/useExpressions";
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 
+// Dynamic scenario contextual suggestions matching mobile app
+const getScenarioHints = (scenario, lastAiMsg) => {
+  const s = (scenario || "").toLowerCase();
+  const text = ((lastAiMsg?.message || "") + " " + (lastAiMsg?.followUpQuestion || "")).toLowerCase();
+
+  if (text.includes("name") || text.includes("introduce") || text.includes("welcome")) {
+    return [
+      "Hi! I'm happy to practice English with you today.",
+      "Hello Coach! I'm ready to improve my conversational fluency.",
+      "Let's get started with today's speaking scenario!"
+    ];
+  }
+  if (s.includes("interview") || text.includes("job") || text.includes("experience")) {
+    return [
+      "I have worked on several collaborative projects where communication was key.",
+      "My main strengths are adaptability, quick learning, and team leadership.",
+      "Could you evaluate my professional response?"
+    ];
+  }
+  if (s.includes("restaurant") || s.includes("cafe") || text.includes("order") || text.includes("menu")) {
+    return [
+      "I'd like to order a fresh cappuccino and a croissant, please.",
+      "Could you tell me what the chef's special dish is today?",
+      "Could we have the check, please?"
+    ];
+  }
+  if (s.includes("travel") || s.includes("hotel") || s.includes("airport")) {
+    return [
+      "I have a reservation under my name and would like to check in.",
+      "Could you please guide me toward the departure gate?",
+      "What are the best local places to explore nearby?"
+    ];
+  }
+  return [
+    "That is very interesting! Could you tell me more about that?",
+    "How would a native speaker explain this in conversation?",
+    "I agree with that perspective. Let me explain my thoughts."
+  ];
+};
+
 export function ConversationSession() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -513,102 +553,125 @@ export function ConversationSession() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Suggestions chips */}
-        {hints.length > 0 && (
-          <div className="p-2.5 border-t border-white/10 bg-slate-900/40 flex items-center gap-2 overflow-x-auto shrink-0">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-wide shrink-0">Suggestions:</span>
-            {hints.map((hint, idx) => (
-              <button
-                key={idx}
-                onClick={() => sendUserText(hint)}
-                className="px-3 py-1 rounded-xl bg-slate-800/60 hover:bg-[#6c63ff] hover:text-white text-slate-200 text-xs font-semibold shrink-0 transition-all border border-white/10 shadow-sm"
-              >
-                {hint}
-              </button>
-            ))}
+        {/* Dynamic Scenario Suggestions chips */}
+        {(() => {
+          const lastAi = [...messages].reverse().find((m) => m.sender === "ai");
+          const activeHints = hints.length > 0 ? hints : getScenarioHints(scenario, lastAi);
+          return (
+            <div className="p-2.5 border-t border-white/10 bg-slate-900/40 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
+              <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wide shrink-0 flex items-center gap-1">
+                💡 Suggestions:
+              </span>
+              {activeHints.map((hint, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => sendUserText(hint)}
+                  className="px-3 py-1 rounded-xl bg-slate-800/60 hover:bg-[#6c63ff] hover:text-white text-slate-200 text-xs font-semibold shrink-0 transition-all border border-white/10 shadow-sm"
+                >
+                  {hint}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
+      </div>
+
+      {/* 4. BOTTOM CONTROLS BAR */}
+      <div className="pointer-events-auto p-3 sm:p-4 rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-white/10 shadow-2xl flex flex-col gap-2 shrink-0">
+        {isListening && (
+          <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30 text-xs font-bold text-red-400">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-0.5 h-4">
+                <span className="w-1 bg-red-400 rounded-full h-3 animate-pulse" />
+                <span className="w-1 bg-red-400 rounded-full h-5 animate-pulse" style={{ animationDelay: "150ms" }} />
+                <span className="w-1 bg-red-400 rounded-full h-3.5 animate-pulse" style={{ animationDelay: "300ms" }} />
+                <span className="w-1 bg-red-400 rounded-full h-5 animate-pulse" style={{ animationDelay: "75ms" }} />
+                <span className="w-1 bg-red-400 rounded-full h-2.5 animate-pulse" style={{ animationDelay: "225ms" }} />
+              </div>
+              <span>Speak clearly — SpeakMate AI is analyzing your speech...</span>
+            </div>
+            <span className="text-[10px] uppercase font-black text-red-300">Tap Red Button When Done</span>
           </div>
         )}
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (!isMuted && "speechSynthesis" in window) {
+                  window.speechSynthesis.cancel();
+                  setIsAiSpeaking(false);
+                  setViseme("REST");
+                }
+                setIsMuted(!isMuted);
+              }}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm ${
+                isMuted ? "bg-rose-500/10 border-rose-500/30 text-rose-500" : "bg-slate-800/50 border-white/10 text-slate-300 hover:text-white"
+              }`}
+            >
+              {isMuted ? "🔇" : "🔊"}
+            </button>
+
+            <button
+              onClick={handleToggleSpeed}
+              className="px-3.5 py-2 rounded-xl bg-slate-800/50 border border-white/10 text-xs font-extrabold text-[#6c63ff] hover:opacity-80 transition-all shadow-sm flex items-center gap-1.5"
+              title="Adjust Speech Speed"
+            >
+              <span>⏱️ {speechSpeed}x</span>
+            </button>
+          </div>
+
+          {/* MAIN SPEAK BUTTON (Centered at the Bottom) */}
+          <div className="flex items-center justify-center">
+            {!isListening ? (
+              <div className="relative group">
+                <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#6c63ff] to-[#ff6584] opacity-40 blur-md group-hover:opacity-80 transition-opacity" />
+                <button
+                  onClick={handleStartListening}
+                  className="relative grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white shadow-xl hover:scale-105 transition-transform"
+                  title="Click to Speak"
+                >
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <div className="absolute -inset-3 rounded-full bg-rose-500 opacity-50 animate-ping" />
+                <button
+                  onClick={handleStopListeningAndSend}
+                  className="relative grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full bg-rose-500 text-white shadow-xl animate-pulse ring-4 ring-rose-500/30"
+                  title="Click to Send"
+                >
+                  <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleFetchHints}
+              disabled={loadingHints}
+              className="px-3 py-2 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-[#6c63ff] text-xs font-bold hover:bg-[#6c63ff]/20 transition-all"
+              title="Get AI Suggestion"
+            >
+              💡 {loadingHints ? "..." : "Hint"}
+            </button>
+
+            <button
+              onClick={handleEndSession}
+              disabled={ending}
+              className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-extrabold shadow-md hover:opacity-90 transition-all shrink-0"
+            >
+              {ending ? "Evaluating..." : "Finish"}
+            </button>
+          </div>
+        </div>
       </div>
-
-      {/* 4. BOTTOM CONTROLS BAR (Contains the SPEAK / MIC BUTTON at the bottom) */}
-      <div className="pointer-events-auto p-3 sm:p-4 rounded-3xl bg-slate-900/60 backdrop-blur-2xl border border-white/10 shadow-2xl flex items-center justify-between gap-3 shrink-0">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              if (!isMuted && "speechSynthesis" in window) {
-                window.speechSynthesis.cancel();
-                setIsAiSpeaking(false);
-                setViseme("REST");
-              }
-              setIsMuted(!isMuted);
-            }}
-            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm ${
-              isMuted ? "bg-rose-500/10 border-rose-500/30 text-rose-500" : "bg-slate-800/50 border-white/10 text-slate-300 hover:text-white"
-            }`}
-          >
-            {isMuted ? "🔇" : "🔊"}
-          </button>
-
-          <button
-            onClick={handleToggleSpeed}
-            className="px-3.5 py-2 rounded-xl bg-slate-800/50 border border-white/10 text-xs font-extrabold text-[#6c63ff] hover:opacity-80 transition-all shadow-sm flex items-center gap-1.5"
-            title="Adjust Speech Speed"
-          >
-            <span>⏱️ {speechSpeed}x</span>
-          </button>
-        </div>
-
-        {/* MAIN SPEAK BUTTON (Centered at the Bottom) */}
-        <div className="flex items-center justify-center">
-          {!isListening ? (
-            <div className="relative group">
-              <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#6c63ff] to-[#ff6584] opacity-40 blur-md group-hover:opacity-80 transition-opacity" />
-              <button
-                onClick={handleStartListening}
-                className="relative grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-white shadow-xl hover:scale-105 transition-transform"
-                title="Click to Speak"
-              >
-                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                </svg>
-              </button>
-            </div>
-          ) : (
-            <div className="relative">
-              <div className="absolute -inset-3 rounded-full bg-rose-500 opacity-50 animate-ping" />
-              <button
-                onClick={handleStopListeningAndSend}
-                className="relative grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-full bg-rose-500 text-white shadow-xl animate-pulse ring-4 ring-rose-500/30"
-                title="Click to Send"
-              >
-                <svg className="w-6 h-6 sm:w-7 sm:h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </button>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleFetchHints}
-            disabled={loadingHints}
-            className="px-3 py-2 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/30 text-[#6c63ff] text-xs font-bold hover:bg-[#6c63ff]/20 transition-all"
-            title="Get AI Suggestion"
-          >
-            💡 {loadingHints ? "..." : "Hint"}
-          </button>
-
-          <button
-            onClick={handleEndSession}
-            disabled={ending}
-            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white text-xs font-extrabold shadow-md hover:opacity-90 transition-all shrink-0"
-          >
-            {ending ? "Evaluating..." : "Finish"}
-          </button>
-        </div>
-      </div>
-    </div>
     </div>
   );
 }

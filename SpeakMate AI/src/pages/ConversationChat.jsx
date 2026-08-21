@@ -9,6 +9,60 @@ import { speakGlobalText } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 
+// Dynamic contextual suggestion generator matching mobile app
+const getModeHints = (modeParam, lastAiMsg) => {
+  const m = (modeParam || "").toLowerCase();
+  const text = ((lastAiMsg?.message || "") + " " + (lastAiMsg?.followUpQuestion || "")).toLowerCase();
+
+  if (text.includes("name") || text.includes("who are you") || text.includes("introduce")) {
+    return [
+      "Hi! Nice to meet you. I'm excited to practice English!",
+      "Hello! I'm here to build my speaking confidence and fluency.",
+      "Could you tell me a little about yourself as well?"
+    ];
+  }
+  if (text.includes("hobby") || text.includes("free time") || text.includes("weekend") || text.includes("do for fun")) {
+    return [
+      "In my free time, I really enjoy reading and listening to music.",
+      "I love going for walks outdoors and trying new food.",
+      "What are popular weekend activities you recommend?"
+    ];
+  }
+  if (text.includes("how are you") || text.includes("how was your day") || text.includes("how is it going")) {
+    return [
+      "I'm doing great, thank you! How has your day been?",
+      "Everything is going well! Ready for today's practice.",
+      "It's been a busy day, but I'm excited to learn."
+    ];
+  }
+  if (text.includes("why") && (text.includes("learn") || text.includes("english") || text.includes("practice"))) {
+    return [
+      "I want to communicate fluently for my career and global travel.",
+      "To express myself naturally and connect with people worldwide.",
+      "What is your best tip for speaking more like a native?"
+    ];
+  }
+  if (m.includes("interview") || text.includes("strength") || text.includes("experience") || text.includes("career")) {
+    return [
+      "My greatest strength is my problem-solving ability and adaptability.",
+      "I have strong experience collaborating across cross-functional teams.",
+      "Could you give me feedback on my professional tone?"
+    ];
+  }
+  if (m.includes("travel") || text.includes("trip") || text.includes("hotel") || text.includes("flight")) {
+    return [
+      "Could you help me with checking in at the hotel and asking for recommendations?",
+      "I'd like to book a flight ticket and ask about baggage allowance.",
+      "What are the best local attractions to visit?"
+    ];
+  }
+  return [
+    "Could you provide an example of how to use that in daily conversation?",
+    "How can I rephrase my previous sentence to sound more native?",
+    "Let's move on to the next topic to practice speaking."
+  ];
+};
+
 export function ConversationChat() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -467,24 +521,52 @@ export function ConversationChat() {
             <div ref={chatEndRef} />
           </div>
 
-          {/* AI Hints Suggestions Chips Tray */}
-          {hints.length > 0 && (
-            <div className="p-2.5 border-t border-white/10 bg-slate-800/40 flex items-center gap-2 overflow-x-auto shrink-0">
-              <span className="text-[10px] font-bold text-slate-400 shrink-0">Suggestions:</span>
-              {hints.map((hint, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSendMessage(hint)}
-                  className="px-3 py-1 rounded-xl bg-slate-700/60 hover:bg-[#6c63ff] hover:text-white text-xs font-semibold text-slate-200 shrink-0 transition-all border border-white/10"
-                >
-                  {hint}
-                </button>
-              ))}
-            </div>
-          )}
+          {/* Dynamic AI Smart Suggestions Tray */}
+          {(() => {
+            const lastAi = [...messages].reverse().find((m) => m.sender === "ai" || m.role === "assistant");
+            const activeHints = hints.length > 0 ? hints : getModeHints(mode, lastAi);
+            return (
+              <div className="p-2.5 border-t border-white/10 bg-slate-800/40 flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none">
+                <span className="text-[10px] font-bold text-indigo-300 shrink-0 flex items-center gap-1">
+                  💡 Suggestions:
+                </span>
+                {activeHints.map((hint, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSendMessage(hint)}
+                    className="px-3 py-1 rounded-xl bg-slate-700/60 hover:bg-[#6c63ff] hover:text-white text-xs font-semibold text-slate-200 shrink-0 transition-all border border-white/10 shadow-sm"
+                  >
+                    {hint}
+                  </button>
+                ))}
+              </div>
+            );
+          })()}
 
-          {/* Integrated Text Input Bar */}
-          <div className="p-3 border-t border-white/10 bg-slate-900/80 shrink-0">
+          {/* Integrated Text Input Bar & Voice Wave */}
+          <div className="p-3 border-t border-white/10 bg-slate-900/80 shrink-0 space-y-2">
+            {isListening && (
+              <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30 text-xs font-bold text-red-400">
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-0.5 h-4">
+                    <span className="w-1 bg-red-400 rounded-full h-3 animate-pulse" />
+                    <span className="w-1 bg-red-400 rounded-full h-5 animate-pulse" style={{ animationDelay: "150ms" }} />
+                    <span className="w-1 bg-red-400 rounded-full h-3.5 animate-pulse" style={{ animationDelay: "300ms" }} />
+                    <span className="w-1 bg-red-400 rounded-full h-5 animate-pulse" style={{ animationDelay: "75ms" }} />
+                    <span className="w-1 bg-red-400 rounded-full h-2.5 animate-pulse" style={{ animationDelay: "225ms" }} />
+                  </div>
+                  <span>Speak now — SpeakMate AI is listening to your English...</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleRecording}
+                  className="px-2 py-0.5 rounded bg-red-500 text-white text-[10px] font-extrabold hover:bg-red-600 transition-all"
+                >
+                  Done
+                </button>
+              </div>
+            )}
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -496,7 +578,7 @@ export function ConversationChat() {
                 type="button"
                 onClick={handleToggleRecording}
                 className={`p-2.5 rounded-xl font-bold transition-all ${
-                  isListening ? "bg-red-500 text-white animate-pulse" : "bg-slate-800 border border-white/10 text-slate-300 hover:text-white"
+                  isListening ? "bg-red-500 text-white shadow-lg shadow-red-500/30" : "bg-slate-800 border border-white/10 text-slate-300 hover:text-white"
                 }`}
                 title="Toggle Mic Recording"
               >
@@ -505,7 +587,7 @@ export function ConversationChat() {
 
               <input
                 type="text"
-                placeholder={isListening ? "Listening to your voice..." : "Type response to tutor..."}
+                placeholder={isListening ? "Listening to your voice..." : "Type response to tutor (or tap suggestion above)..."}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 disabled={evaluating}
