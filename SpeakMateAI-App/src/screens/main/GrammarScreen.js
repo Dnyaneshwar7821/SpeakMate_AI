@@ -17,6 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { grammarService, settingsService, progressService, aiService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
+import { COLORS } from '../../constants/colors';
 import {
   analyzeSentenceGrammarLocally,
   EXTENSIVE_GRAMMAR_GUIDE,
