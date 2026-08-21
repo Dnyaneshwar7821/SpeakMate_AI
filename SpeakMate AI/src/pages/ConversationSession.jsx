@@ -673,6 +673,7 @@ export function ConversationSession() {
         </div>
       </div>
     </div>
+  </div>
   );
 }
 
