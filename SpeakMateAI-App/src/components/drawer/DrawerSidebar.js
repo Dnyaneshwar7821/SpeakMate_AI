@@ -348,8 +348,11 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
 
   const navSections = useMemo(() => {
     return NAV_SECTIONS.map((sec) => {
+      let items = [...sec.items];
+      if (sec.title === 'Learn' && !isStudentUser) {
+        items = items.filter((item) => item.key !== 'Assignments');
+      }
       if (sec.title === 'Account') {
-        const items = [...sec.items];
         if (!isStudentUser) {
           items.push({
             key: 'Subscription',
@@ -358,9 +361,8 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
             tab: 'Subscription',
           });
         }
-        return { ...sec, items };
       }
-      return sec;
+      return { ...sec, items };
     });
   }, [isStudentUser]);
 

@@ -11,6 +11,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 import { assignmentService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
 import { useToast } from '../../context/ToastContext';
@@ -19,6 +20,19 @@ export default function AssignmentsScreen({ navigation }) {
   const { isDark, theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { showToast } = useToast();
+  const { user } = useAuth();
+
+  const isStudentUser = Boolean(
+    user?.schoolId ||
+    user?.schoolCode ||
+    user?.isSchoolStudent ||
+    user?.schoolGrade ||
+    user?.role === 'STUDENT' ||
+    user?.role === 'SCHOOL_STUDENT' ||
+    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('school')) ||
+    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('student')) ||
+    (user?.learningGoal && String(user.learningGoal).toLowerCase().includes('school'))
+  );
   
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -141,6 +155,41 @@ export default function AssignmentsScreen({ navigation }) {
       </View>
     );
   };
+
+  if (!isStudentUser) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.bg }]}>
+        <LinearGradient colors={['#1E1B4B', '#312E81']} style={[styles.header, { paddingTop: (insets.top || 20) + 12 }]}>
+          <View style={styles.headerTop}>
+            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+              <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>School Homework 📝</Text>
+            <View style={{ width: 40 }} />
+          </View>
+        </LinearGradient>
+        <View style={[styles.emptyContainer, { marginTop: 60, paddingHorizontal: 30 }]}>
+          <Ionicons name="school-outline" size={64} color="#6366F1" />
+          <Text style={[styles.emptyTitle, { color: theme.text, textAlign: 'center', marginTop: 16 }]}>School Students Only 🏫</Text>
+          <Text style={[styles.emptySub, { textAlign: 'center', marginTop: 8 }]}>
+            Homework assignments are exclusively assigned to enrolled school students by their teachers.
+          </Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('BottomTabs', { screen: 'Speaking' })}
+            style={{
+              marginTop: 24,
+              backgroundColor: COLORS.primary,
+              paddingHorizontal: 24,
+              paddingVertical: 12,
+              borderRadius: 14,
+            }}
+          >
+            <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 14 }}>Explore Speaking Practice 🎙️</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
