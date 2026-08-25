@@ -205,17 +205,25 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 	@Override
 	public AiResponse lessonTutor(AiRequest request) {
 		try {
-			String prompt = "You are an expert, encouraging AI English Tutor.\n"
-					+ "Directly explain the following topic to the student in clean, conversational English in 120-150 words. Do NOT output any thinking process or outline notes:\n\n"
-					+ request.getPrompt();
+			String prompt = "You are a master English teacher and speech coach.\n"
+					+ "Teach a comprehensive, detailed masterclass on the topic:\n"
+					+ request.getPrompt()
+					+ "\n\nStructure your lesson in these clear, detailed sections without markdown asterisks or bullet stars:\n"
+					+ "1. WHAT IS THIS CONCEPT: Explain the meaning, core function, and foundational rules in crystal-clear detail.\n"
+					+ "2. WHY IT IS CRUCIAL: Explain how mastering this transforms spoken confidence, natural fluency, and professional communication.\n"
+					+ "3. SENTENCE FORMULA AND RULES: Give the exact sentence structures (positive, negative, question formats) with step-by-step guidance.\n"
+					+ "4. PRACTICAL REAL-WORLD USAGE: Provide practical conversational examples and explain how native speakers use this in daily discussions.\n"
+					+ "5. COMMON MISTAKES TO AVOID: Point out 2-3 frequent learner errors and give the exact corrections.\n"
+					+ "6. PRO-TIP FOR MASTERY: Share one powerful action step to master this topic today.\n\n"
+					+ "Write in warm, engaging, spoken English suitable for text-to-speech read-aloud (total 250-320 words). Do NOT output reasoning thoughts, asterisks, or outline meta-text.";
 			List<GroqRequest.Message> messages = List.of(
-				new GroqRequest.Message("system", "You are an expert AI English Tutor. You speak directly to the student in warm, encouraging language. Never output thoughts, reasoning tags, or internal outlines."),
+				new GroqRequest.Message("system", "You are a world-class AI English Tutor. You provide detailed, comprehensive, high-quality spoken lessons. Never output reasoning tags, asterisk bolding, or meta-notes."),
 				new GroqRequest.Message("user", prompt)
 			);
 			return executeGroqCall("llama-3.3-70b-versatile", messages, 0.7);
 		} catch (Exception e) {
 			return AiResponse.builder()
-					.response("Welcome to this lesson! Today we will master natural English communication with confidence. Practice speaking each sentence out loud, listen to the examples, and apply the rules in your daily conversations.")
+					.response("Welcome to your detailed lesson masterclass! Today we are exploring this topic thoroughly to build your English fluency.\n\n1. What is this concept: This topic forms the backbone of natural, confident communication. It gives your sentences proper grammatical structure and clarity.\n\n2. Why it matters: Mastering this allows you to express thoughts precisely without second-guessing yourself or getting stuck mid-sentence.\n\n3. The Core Rules: Always pay attention to subject-verb agreement and natural word order. Practice formulating positive, negative, and question sentences.\n\n4. Common Pitfalls: Avoid translating word-for-word from your native language. Instead, think in full phrases.\n\n5. Action Step: Speak 3 original sentences out loud using this concept right now to lock it into your memory!")
 					.build();
 		}
 	}

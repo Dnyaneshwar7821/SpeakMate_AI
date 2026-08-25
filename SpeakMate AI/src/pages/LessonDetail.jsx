@@ -313,11 +313,13 @@ export function LessonDetail() {
   }, [showStudy, studyStep, lesson]);
 
   const handleStartStudyFlow = () => {
-    const defaultTeach = `Let's explore "${lesson.title}" together!\n\n` +
-      `This topic is essential for building natural fluency in ${lesson.category}. ` +
-      `${lesson.description || 'Mastering this will significantly boost your spoken confidence and grammatical accuracy.'}\n\n` +
-      `Key Rules to Remember:\n• Practice daily with full sentences.\n• Listen carefully to native speech rhythm.\n• Speak out loud to build natural muscle memory.\n\n` +
-      `Common Mistakes to Avoid:\n• Translating word-for-word from your native language.\n• Skipping speaking practice and only reading silently.`;
+    const defaultTeach = `Welcome to your detailed masterclass on "${lesson.title}"!\n\n` +
+      `1. WHAT IS THIS CONCEPT:\nThis topic is a foundational pillar of ${lesson.category} in English. ${lesson.description || 'Mastering this will significantly boost your fluency, confidence, and grammatical accuracy.'}\n\n` +
+      `2. WHY IT IS CRUCIAL:\nWhen you master "${lesson.title}", your English transitions from basic textbook translation to spontaneous, natural communication. It gives you the confidence to speak fluently in casual, academic, and business conversations.\n\n` +
+      `3. SENTENCE FORMULA & RULES:\n• Always ensure proper subject-verb agreement.\n• Pay close attention to helping verbs and correct verb tenses.\n• Form positive, negative, and question forms with natural sentence rhythm.\n\n` +
+      `4. PRACTICAL APPLICATION:\nNative speakers use this concept daily to tell stories, give opinions, make polite requests, and express complex thoughts with ease.\n\n` +
+      `5. COMMON MISTAKES TO AVOID:\n• Translating word-for-word from your native language instead of thinking in English phrases.\n• Skipping speaking practice and only reading silently.\n\n` +
+      `6. PRO-TIP FOR MASTERY:\nSpeak 3 complete sentences out loud right now using this concept to lock it into your muscle memory!`;
 
     const defaultExamples = [
       { sentence: "She has been studying English every day to build confidence.", context: "Daily Routine", explanation: "Demonstrates continuous habitual practice with natural sentence flow." },
