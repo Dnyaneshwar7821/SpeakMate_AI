@@ -184,10 +184,23 @@ public class UserServiceImpl implements UserService {
 
 		validatePasswordStrength(request.getPassword());
 
-		User user = User.builder().firstName(request.getFirstName()).lastName(request.getLastName())
-				.email(request.getEmail()).password(passwordEncoder.encode(request.getPassword())).role(Role.USER)
-				.active(true).welcomeCompleted(false).onboardingCompleted(false)
-				.authProvider("LOCAL").build();
+		boolean isStudent = "STUDENT".equalsIgnoreCase(request.getAccountType())
+				|| (request.getSchoolCode() != null && !request.getSchoolCode().trim().isEmpty())
+				|| (request.getSchoolGrade() != null && !request.getSchoolGrade().trim().isEmpty());
+
+		User user = User.builder()
+				.firstName(request.getFirstName())
+				.lastName(request.getLastName())
+				.email(request.getEmail())
+				.password(passwordEncoder.encode(request.getPassword()))
+				.role(Role.USER)
+				.active(true)
+				.welcomeCompleted(false)
+				.onboardingCompleted(false)
+				.authProvider("LOCAL")
+				.schoolGrade(isStudent ? (request.getSchoolGrade() != null ? request.getSchoolGrade().trim() : null) : null)
+				.schoolName(isStudent && request.getSchoolCode() != null && !request.getSchoolCode().trim().isEmpty() ? request.getSchoolCode().trim().toUpperCase() : null)
+				.build();
 
 		User savedUser = userRepository.save(user);
 

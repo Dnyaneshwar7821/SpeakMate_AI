@@ -33,6 +33,12 @@ public class RegisterRequest {
 
     private String otp;
 
+    private String accountType; // "STUDENT" or "INDIVIDUAL_USER"
+
+    private String schoolCode;
+
+    private String schoolGrade;
+
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
 
@@ -51,6 +57,15 @@ public class RegisterRequest {
     public String getOtp() { return otp; }
     public void setOtp(String otp) { this.otp = otp; }
 
+    public String getAccountType() { return accountType; }
+    public void setAccountType(String accountType) { this.accountType = accountType; }
+
+    public String getSchoolCode() { return schoolCode; }
+    public void setSchoolCode(String schoolCode) { this.schoolCode = schoolCode; }
+
+    public String getSchoolGrade() { return schoolGrade; }
+    public void setSchoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; }
+
     public static RegisterRequestBuilder builder() {
         return new RegisterRequestBuilder();
     }
@@ -62,6 +77,9 @@ public class RegisterRequest {
         private String password;
         private String confirmPassword;
         private String otp;
+        private String accountType;
+        private String schoolCode;
+        private String schoolGrade;
 
         public RegisterRequestBuilder firstName(String firstName) { this.firstName = firstName; return this; }
         public RegisterRequestBuilder lastName(String lastName) { this.lastName = lastName; return this; }
@@ -69,6 +87,9 @@ public class RegisterRequest {
         public RegisterRequestBuilder password(String password) { this.password = password; return this; }
         public RegisterRequestBuilder confirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; return this; }
         public RegisterRequestBuilder otp(String otp) { this.otp = otp; return this; }
+        public RegisterRequestBuilder accountType(String accountType) { this.accountType = accountType; return this; }
+        public RegisterRequestBuilder schoolCode(String schoolCode) { this.schoolCode = schoolCode; return this; }
+        public RegisterRequestBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
 
         public RegisterRequest build() {
             RegisterRequest obj = new RegisterRequest();
@@ -78,6 +99,9 @@ public class RegisterRequest {
             obj.setPassword(password);
             obj.setConfirmPassword(confirmPassword);
             obj.setOtp(otp);
+            obj.setAccountType(accountType);
+            obj.setSchoolCode(schoolCode);
+            obj.setSchoolGrade(schoolGrade);
             return obj;
         }
     }

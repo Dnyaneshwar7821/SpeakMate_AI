@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../context/AuthContext";
 import { authService } from "../services/authService";
 import ROUTES from "../constants/routes";
 
@@ -17,6 +16,8 @@ export function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [accountType, setAccountType] = useState("INDIVIDUAL_USER");
+  const [schoolCode, setSchoolCode] = useState("");
+  const [schoolGrade, setSchoolGrade] = useState("1st Std");
   const [schoolName, setSchoolName] = useState("");
   const [form, setForm] = useState({
     firstName: "",
@@ -31,6 +32,11 @@ export function Register() {
     if (e) e.preventDefault();
     setError("");
     setInfoMessage("");
+
+    if (accountType === "STUDENT" && !schoolCode.trim()) {
+      setError("Please enter your School Code provided by your institution.");
+      return;
+    }
 
     if (!form.firstName.trim() || !form.lastName.trim()) {
       setError("Please enter your First Name and Last Name.");
@@ -66,6 +72,10 @@ export function Register() {
     setLoading(true);
     try {
       localStorage.setItem("speakmate_account_type", accountType);
+      if (accountType === "STUDENT") {
+        localStorage.setItem("speakmate_school_grade", schoolGrade);
+        localStorage.setItem("speakmate_school_code", schoolCode.trim().toUpperCase());
+      }
       await authService.sendRegistrationOtp({ email: form.email.trim() });
       setInfoMessage(`A 6-digit verification code has been sent to ${form.email.trim()}.`);
       setStep(2);
@@ -94,6 +104,10 @@ export function Register() {
     setLoading(true);
     try {
       localStorage.setItem("speakmate_account_type", accountType);
+      if (accountType === "STUDENT") {
+        localStorage.setItem("speakmate_school_grade", schoolGrade);
+        localStorage.setItem("speakmate_school_code", schoolCode.trim().toUpperCase());
+      }
       const payload = {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
@@ -102,6 +116,9 @@ export function Register() {
         confirmPassword: form.confirmPassword,
         otp: form.otp.trim(),
         accountType,
+        schoolCode: accountType === "STUDENT" ? schoolCode.trim().toUpperCase() : null,
+        schoolGrade: accountType === "STUDENT" ? schoolGrade : null,
+        schoolName: accountType === "STUDENT" ? schoolName.trim() : null,
       };
 
       await authService.register(payload);
@@ -207,22 +224,65 @@ export function Register() {
               </div>
             </div>
 
-            {/* School Name Field for Students */}
+            {/* School Student Enrollment Fields */}
             {accountType === "STUDENT" && (
-              <div>
-                <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-2">
-                  School Name
-                </label>
-                <div className="relative">
-                  <span className="absolute left-4 top-3.5 text-base text-[var(--text-muted)]">🏫</span>
-                  <input
-                    type="text"
-                    placeholder="Enter your school name"
-                    value={schoolName}
-                    onChange={(e) => setSchoolName(e.target.value)}
-                    required
-                    className="w-full pl-12 pr-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
-                  />
+              <div className="space-y-3.5 p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                <div className="flex items-center justify-between text-xs font-black text-emerald-600 dark:text-emerald-400">
+                  <div className="flex items-center gap-2">
+                    <span>🎓</span>
+                    <span>School Institutional Enrollment</span>
+                  </div>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-500/20 uppercase font-black">
+                    Sponsored Pro
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-1.5">
+                    School Code <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3.5 text-base text-[var(--text-muted)]">🏷️</span>
+                    <input
+                      type="text"
+                      placeholder="Enter School Code (e.g. SCH-1001)"
+                      value={schoolCode}
+                      onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
+                      required
+                      className="w-full pl-12 pr-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-bold text-[var(--text-primary)] uppercase focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    />
+                  </div>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-1 font-medium">Provided by your school administrator or teacher</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-1.5">
+                      Standard / Grade
+                    </label>
+                    <select
+                      value={schoolGrade}
+                      onChange={(e) => setSchoolGrade(e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    >
+                      {["1st Std", "2nd Std", "3rd Std", "4th Std", "5th Std", "6th Std", "7th Std", "8th Std", "9th Std", "10th Std"].map((g) => (
+                        <option key={g} value={g}>{g}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black text-[var(--text-primary)] uppercase tracking-wider mb-1.5">
+                      School Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Greenwood Academy"
+                      value={schoolName}
+                      onChange={(e) => setSchoolName(e.target.value)}
+                      className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    />
+                  </div>
                 </div>
               </div>
             )}
