@@ -402,3 +402,5 @@ export function Progress() {
     </div>
   );
 }
+
+export default Progress;
