@@ -411,44 +411,744 @@ export function generateSpokenGrammarSegments(res) {
 }
 
 export const EXTENSIVE_GRAMMAR_GUIDE = [
+  // =========================================================================
+  // 1. ALL 12 ENGLISH TENSES MASTER BLUEPRINT ⏱️
+  // =========================================================================
   {
     id: "guide_tenses",
     category: "Verb Tenses & Aspects",
     icon: "⏱️",
-    level: "All Levels",
-    title: "The 12 English Tenses Master Guide",
-    summary: "Master past, present, and future across simple, continuous, and perfect forms.",
+    level: "Essential (All Levels)",
+    title: "The 12 English Tenses Master Blueprint",
+    summary: "Complete breakdown of all 12 tenses with formulas, real-world usage, timelines, and pitfalls.",
     rules: [
       {
-        name: "Simple Present",
-        formula: "Subject + Base Verb (+s/es for he/she/it)",
-        usage: "Used for universal truths, daily routines, habits, and permanent states.",
-        correctExample: "She drinks green tea every morning.",
-        wrongExample: "She drinking green tea every morning."
+        name: "Simple Present Tense",
+        formula: "Subject + Base Verb (+s/es for He/She/It)",
+        usage: "Expresses permanent facts, universal truths, daily routines, scientific laws, and scheduled events.",
+        correctExample: "The earth revolves around the sun, and she works out every morning.",
+        wrongExample: "The earth is revolving around the sun and she work out every morning."
       },
       {
-        name: "Present Perfect",
-        formula: "Subject + have/has + Past Participle (V3)",
-        usage: "Used for completed experiences connecting past to present.",
-        correctExample: "I have visited London twice.",
-        wrongExample: "I have visit London twice."
+        name: "Present Continuous (Progressive)",
+        formula: "Subject + is / am / are + Verb-ing",
+        usage: "Describes actions happening at the exact moment of speaking, or temporary current trends and near-future plans.",
+        correctExample: "We are developing an AI English tutor app right now.",
+        wrongExample: "We are develop an AI English tutor app right now."
+      },
+      {
+        name: "Present Perfect Tense",
+        formula: "Subject + have / has + Past Participle (V3)",
+        usage: "Connects a past action to the present moment, life experiences, recent achievements, or ongoing states.",
+        correctExample: "She has lived in New York for five years.",
+        wrongExample: "She is living in New York since five years."
+      },
+      {
+        name: "Present Perfect Continuous",
+        formula: "Subject + have / has + been + Verb-ing (+ since / for)",
+        usage: "Emphasizes the duration of an ongoing action that began in the past and is still continuing right now.",
+        correctExample: "They have been studying for the exam since 8 AM.",
+        wrongExample: "They are studying for the exam since 8 AM."
+      },
+      {
+        name: "Simple Past Tense",
+        formula: "Subject + Past Form of Verb (V2)",
+        usage: "Describes actions that started and finished at a specific point in the past.",
+        correctExample: "We launched the new product yesterday.",
+        wrongExample: "We have launched the new product yesterday."
+      },
+      {
+        name: "Past Continuous Tense",
+        formula: "Subject + was / were + Verb-ing",
+        usage: "Describes an action that was ongoing in the past when another action interrupted it.",
+        correctExample: "I was reading a book when the phone suddenly rang.",
+        wrongExample: "I was read a book when the phone suddenly rang."
+      },
+      {
+        name: "Past Perfect Tense",
+        formula: "Subject + had + Past Participle (V3)",
+        usage: "Describes an action completed BEFORE another past action or specific past time.",
+        correctExample: "When the doctor arrived, the patient had already recovered.",
+        wrongExample: "When the doctor arrived, the patient already recovered."
+      },
+      {
+        name: "Past Perfect Continuous",
+        formula: "Subject + had + been + Verb-ing",
+        usage: "Shows that an action was ongoing in the past up until another past event occurred.",
+        correctExample: "He was exhausted because he had been driving for eight hours.",
+        wrongExample: "He was exhausted because he was driving since eight hours."
+      },
+      {
+        name: "Simple Future Tense (Will vs Going To)",
+        formula: "Subject + will + Base Verb  OR  is/am/are + going to + Base Verb",
+        usage: "Use 'will' for spontaneous decisions/promises, and 'be going to' for planned intentions or evidence-based predictions.",
+        correctExample: "Look at those dark clouds; it is going to rain. I will carry an umbrella.",
+        wrongExample: "Look at those dark clouds; it will be rain."
+      },
+      {
+        name: "Future Continuous Tense",
+        formula: "Subject + will + be + Verb-ing",
+        usage: "Describes an action that will be in progress at a specific time in the future.",
+        correctExample: "This time tomorrow, I will be flying to Tokyo.",
+        wrongExample: "This time tomorrow, I will flying to Tokyo."
+      },
+      {
+        name: "Future Perfect Tense",
+        formula: "Subject + will + have + Past Participle (V3)",
+        usage: "Shows that an action will be completed before a designated future deadline.",
+        correctExample: "By next month, our team will have completed the entire syllabus.",
+        wrongExample: "By next month, our team will complete the entire syllabus."
+      },
+      {
+        name: "Future Perfect Continuous",
+        formula: "Subject + will + have + been + Verb-ing",
+        usage: "Emphasizes the duration of an activity leading up to a specific future milestone.",
+        correctExample: "By December, she will have been teaching here for a decade.",
+        wrongExample: "By December, she will be teaching here for a decade."
       }
     ]
   },
+
+  // =========================================================================
+  // 2. SUBJECT-VERB AGREEMENT (SVA) GOLDEN RULES ⚖️
+  // =========================================================================
   {
     id: "guide_sva",
     category: "Subject-Verb Agreement",
     icon: "⚖️",
-    level: "All Levels",
+    level: "Essential (All Levels)",
     title: "Golden Rules of Subject-Verb Agreement",
-    summary: "Ensure singular subjects match singular verbs and plural subjects match plural verbs.",
+    summary: "Master agreement across singular/plural subjects, collective nouns, correlative pairs, and quantifiers.",
     rules: [
       {
         name: "Third-Person Singular Rule",
-        formula: "He / She / It -> Verb + s/es",
-        usage: "Add -s or -es to simple present verbs when subject is third-person singular.",
-        correctExample: "The teacher explains the lesson clearly.",
-        wrongExample: "The teacher explain the lesson clearly."
+        formula: "He / She / It / Singular Noun -> Verb + s / es",
+        usage: "Add -s or -es to present tense verbs when the subject is third-person singular.",
+        correctExample: "The manager reviews every report before signing.",
+        wrongExample: "The manager review every report before signing."
+      },
+      {
+        name: "Intervening Prepositional Phrases",
+        formula: "Subject + [along with / as well as / together with] + Verb matches primary Subject",
+        usage: "Words between the subject and verb (like 'along with', 'as well as', 'in addition to') do not change the subject's number.",
+        correctExample: "The captain, along with all his teammates, is attending the press conference.",
+        wrongExample: "The captain, along with all his teammates, are attending the press conference."
+      },
+      {
+        name: "Correlative Pairs Proximity Rule",
+        formula: "Either...or / Neither...nor -> Verb agrees with closest subject",
+        usage: "When subjects are joined by 'or', 'nor', 'either...or', or 'neither...nor', the verb agrees with the subject closest to it.",
+        correctExample: "Neither the teacher nor the students were aware of the schedule change.",
+        wrongExample: "Neither the teacher nor the students was aware of the schedule change."
+      },
+      {
+        name: "Indefinite Pronouns are Singular",
+        formula: "Everyone / Somebody / Each / Neither of -> Singular Verb",
+        usage: "Indefinite pronouns like everyone, everybody, someone, nobody, anyone, each, and neither take singular verbs.",
+        correctExample: "Each of the participants has received a certificate.",
+        wrongExample: "Each of the participants have received a certificate."
+      },
+      {
+        name: "Collective Nouns (Unit vs Individuals)",
+        formula: "Collective Noun as single unit = Singular Verb; acting separately = Plural Verb",
+        usage: "Words like committee, jury, audience, team take a singular verb when acting as a unified unit.",
+        correctExample: "The jury has reached a unanimous verdict.",
+        wrongExample: "The jury have reached a unanimous verdict."
+      },
+      {
+        name: "'A Number of' vs 'The Number of'",
+        formula: "'A number of' = Plural Verb; 'The number of' = Singular Verb",
+        usage: "'A number of' means many (plural), while 'the number of' refers to the specific count (singular).",
+        correctExample: "A number of students are absent today, but the number of students is fifty.",
+        wrongExample: "A number of students is absent today."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 3. NOUNS & PLURALIZATION MASTER GUIDE 🏷️
+  // =========================================================================
+  {
+    id: "guide_nouns",
+    category: "Nouns & Pluralization",
+    icon: "🏷️",
+    level: "Foundation to Advanced",
+    title: "Nouns & Pluralization Rules",
+    summary: "Countable vs uncountable nouns, irregular plurals, collective groups, and uncountable nouns.",
+    rules: [
+      {
+        name: "Countable vs Uncountable Nouns",
+        formula: "Countable: many / few / a few; Uncountable: much / little / a little",
+        usage: "Uncountable nouns (information, advice, furniture, luggage, bread, knowledge) cannot take 'a/an' or plural '-s'.",
+        correctExample: "He gave me valuable advice and much information.",
+        wrongExample: "He gave me many valuable advices and informations."
+      },
+      {
+        name: "Irregular Plurals & Greek/Latin Endings",
+        formula: "Child -> Children, Person -> People, Crisis -> Crises, Phenomenon -> Phenomena",
+        usage: "Certain nouns transform irregularly without adding standard -s.",
+        correctExample: "Scientists analyzed several natural phenomena during the solar eclipse.",
+        wrongExample: "Scientists analyzed several natural phenomenas during the solar eclipse."
+      },
+      {
+        name: "Always Plural Nouns (Paired Items)",
+        formula: "Scissors / Trousers / Spectacles / Glasses -> Plural Verb (or 'a pair of' + Singular)",
+        usage: "Objects consisting of two parts are always plural unless preceded by 'a pair of'.",
+        correctExample: "These scissors are sharp, but that pair of scissors is dull.",
+        wrongExample: "This scissors is sharp."
+      },
+      {
+        name: "Possessive Noun Apostrophe Rules",
+        formula: "Singular: Noun's; Plural ending in -s: Nouns'; Irregular plural: Noun's",
+        usage: "Use apostrophe before s for singular (boy's ball) and after s for standard plurals (boys' school).",
+        correctExample: "The children's playground is situated near the teachers' lounge.",
+        wrongExample: "The childrens' playground is situated near the teacher's lounge."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 4. PRONOUNS & CASE ACCURACY 👤
+  // =========================================================================
+  {
+    id: "guide_pronouns",
+    category: "Pronouns & Case Accuracy",
+    icon: "👤",
+    level: "All Levels",
+    title: "Pronouns, Cases & Common Traps",
+    summary: "Master subjective vs objective cases, relative pronouns (who vs whom), and reflexive pronoun traps.",
+    rules: [
+      {
+        name: "Subject vs Object Pronoun Cases",
+        formula: "Subject Case (I/He/She/We/They) before verb; Object Case (Me/Him/Her/Us/Them) after verb/preposition",
+        usage: "Use objective pronouns after transitive verbs and prepositions (between, to, for, with).",
+        correctExample: "Between you and me, the manager selected Priya and her for the project.",
+        wrongExample: "Between you and I, the manager selected Priya and she for the project."
+      },
+      {
+        name: "Relative Pronouns: Who vs Whom",
+        formula: "Who = Subject (performs action: He/She); Whom = Object (receives action: Him/Her)",
+        usage: "If you can substitute 'he/she', use 'who'. If you can substitute 'him/her', use 'whom'.",
+        correctExample: "The architect whom we met yesterday designed this university.",
+        wrongExample: "The architect who we met yesterday designed this university."
+      },
+      {
+        name: "Avoid 'Myself' for Self-Introductions",
+        formula: "Say 'I am [Name]' or 'My name is [Name]' (Never 'Myself [Name]')",
+        usage: "'Myself' is a reflexive/emphatic pronoun and cannot function as the subject of a sentence.",
+        correctExample: "Hello everyone, I am Rahul, and I will lead this discussion.",
+        wrongExample: "Hello everyone, myself Rahul, and I will lead this discussion."
+      },
+      {
+        name: "Relative Clauses: That vs Which",
+        formula: "That = Essential (restrictive, no comma); Which = Non-essential (extra info, with commas)",
+        usage: "Use 'that' when the clause is crucial to identify the noun; use 'which' for bonus background details.",
+        correctExample: "The laptop that I bought last week is fast. My laptop, which has 16GB RAM, is fast.",
+        wrongExample: "The laptop which I bought last week is fast without commas."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 5. ARTICLES & DETERMINERS (A, AN, THE, ZERO ARTICLE) 🎯
+  // =========================================================================
+  {
+    id: "guide_articles",
+    category: "Articles & Determiners",
+    icon: "🎯",
+    level: "All Levels",
+    title: "Mastering Articles (A, An, The, Zero Article)",
+    summary: "Sound-based rules for A vs An, definite article 'The' usage, and when to omit articles completely.",
+    rules: [
+      {
+        name: "A vs An (Vowel SOUND, Not Spelling)",
+        formula: "An + Vowel Sound (/a/, /e/, /i/, /o/, /u/); A + Consonant Sound",
+        usage: "Choose article by pronunciation: 'an hour' (silent h), 'a university' (y-consonant sound), 'an MBA' (em-vowel sound).",
+        correctExample: "He is an honest officer with a university degree and an MBA.",
+        wrongExample: "He is a honest officer with an university degree and a MBA."
+      },
+      {
+        name: "Definite Article 'The' Usage",
+        formula: "The + Unique entity / Superlatives / Oceans / Rivers / Specific reference",
+        usage: "Use 'The' for singular unique nouns (The sun), superlative adjectives (The tallest), and specific known items.",
+        correctExample: "Mount Everest is the highest mountain peak in the Himalayas.",
+        wrongExample: "Mount Everest is highest mountain peak in Himalayas."
+      },
+      {
+        name: "Zero Article (Omission of Articles)",
+        formula: "NO article before proper names, languages, sports, meals, abstract nouns in general",
+        usage: "Do not use 'the' before languages (English, not the English language), sports (cricket), or meals (breakfast).",
+        correctExample: "She speaks fluent French and plays tennis every Sunday after breakfast.",
+        wrongExample: "She speaks the fluent French and plays the tennis after the breakfast."
+      },
+      {
+        name: "Determiners: Some vs Any, Few vs Little",
+        formula: "Some = Positive; Any = Negative/Question; Few = Countable; Little = Uncountable",
+        usage: "'Few/Little' have negative meanings (almost none); 'A few / A little' have positive meanings (some).",
+        correctExample: "Do you have any questions? I have a few suggestions to improve the plan.",
+        wrongExample: "Do you have some questions? I have few suggestions (meaning none)."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 6. ADJECTIVES & ORDER OF ADJECTIVES 🎨
+  // =========================================================================
+  {
+    id: "guide_adjectives",
+    category: "Adjectives & Comparison",
+    icon: "🎨",
+    level: "Intermediate to Advanced",
+    title: "Adjectives, Degrees & OSASCOMP Order",
+    summary: "Degrees of comparison, avoiding double comparatives, participial adjectives (-ed vs -ing), and adjective order.",
+    rules: [
+      {
+        name: "Royal Order of Adjectives (OSASCOMP)",
+        formula: "Opinion -> Size -> Age -> Shape -> Color -> Origin -> Material -> Purpose",
+        usage: "When multiple adjectives describe a noun, stack them in the standard natural English order.",
+        correctExample: "She bought a lovely, small, antique, round, brown, Italian, wooden dining table.",
+        wrongExample: "She bought an Italian, wooden, lovely, round, small dining table."
+      },
+      {
+        name: "Degrees of Comparison & Double Comparatives",
+        formula: "Positive -> Comparative (-er / more) -> Superlative (-est / most)",
+        usage: "Never combine '-er' with 'more' or '-est' with 'most'. Double comparatives are grammatically incorrect.",
+        correctExample: "This route is faster and much safer than the highway.",
+        wrongExample: "This route is more faster and more safer than the highway."
+      },
+      {
+        name: "Participial Adjectives (-ed vs -ing)",
+        formula: "-ed = Feeling/Emotion of a person; -ing = Characteristic of the object/situation",
+        usage: "A person feels 'bored' or 'interested'; a movie is 'boring' or 'interesting'.",
+        correctExample: "The audience was fascinated because the keynote lecture was inspiring.",
+        wrongExample: "The audience was fascinating because the keynote lecture was inspired."
+      },
+      {
+        name: "Absolute Adjectives (No Comparative/Superlative)",
+        formula: "Unique, Perfect, Dead, Complete, Eternal, Essential cannot take 'more' or 'most'",
+        usage: "Something is either unique or not; it cannot be 'very unique' or 'more perfect'.",
+        correctExample: "His voice has a unique timbre and completely original cadence.",
+        wrongExample: "His voice has a very unique timbre and most perfect cadence."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 7. ADVERBS & INVERSION STRUCTURES ⚡
+  // =========================================================================
+  {
+    id: "guide_adverbs",
+    category: "Adverbs & Word Placement",
+    icon: "⚡",
+    level: "Intermediate to Advanced",
+    title: "Adverbs, Placement & Negative Inversion",
+    summary: "Adverb types, placement of frequency adverbs, adjective vs adverb confusion, and inversion for emphasis.",
+    rules: [
+      {
+        name: "Adverbs of Frequency Placement",
+        formula: "Subject + Frequency Adverb (always/never/often/seldom) + Main Verb  OR  Be + Adverb",
+        usage: "Place frequency adverbs before normal action verbs, but after auxiliary 'to be' verbs.",
+        correctExample: "He always arrives on time, and he is never late for client meetings.",
+        wrongExample: "He arrives always on time, and he never is late for client meetings."
+      },
+      {
+        name: "Adjective vs Adverb Confusion",
+        formula: "Good (Adjective) modifies Noun; Well (Adverb) modifies Verb/Action",
+        usage: "Say 'he speaks well' (adverb), not 'he speaks good'. Note: 'fast' is both adjective and adverb (never 'fastly').",
+        correctExample: "She is a good orator and spoke very well during the debate.",
+        wrongExample: "She is a good orator and spoke very good during the debate."
+      },
+      {
+        name: "Negative Inversion for Dramatic Emphasis",
+        formula: "Negative Adverb (Never/Rarely/Seldom/Hardly/Scarcely) + Auxiliary Verb + Subject + Main Verb",
+        usage: "When starting a sentence with a negative or limiting adverb, invert the auxiliary verb and subject.",
+        correctExample: "Seldom have I witnessed such extraordinary talent and dedication.",
+        wrongExample: "Seldom I have witnessed such extraordinary talent and dedication."
+      },
+      {
+        name: "Hard vs Hardly, Late vs Lately",
+        formula: "Hard = with effort/solid; Hardly = barely/scarcely; Late = not on time; Lately = recently",
+        usage: "'Hardly' and 'lately' have completely different meanings from 'hard' and 'late'.",
+        correctExample: "He works hard every day, so he hardly ever fails an exam.",
+        wrongExample: "He works hardly every day, so he hard fails an exam."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 8. PREPOSITIONS & DEPENDENT COLLOCATIONS 🧭
+  // =========================================================================
+  {
+    id: "guide_prepositions",
+    category: "Prepositions & Collocations",
+    icon: "🧭",
+    level: "All Levels",
+    title: "Prepositions of Time, Place & Collocations",
+    summary: "At/On/In rules for time and location, dependent prepositions, and verbs that take no prepositions.",
+    rules: [
+      {
+        name: "Prepositions of Time (At / On / In)",
+        formula: "At + Specific Time; On + Days/Dates; In + Months/Years/Seasons/Centuries",
+        usage: "Use 'at 5 PM', 'on Monday / on 15th August', and 'in July / in 2026 / in summer'.",
+        correctExample: "The conference starts at 9:00 AM on Monday in October.",
+        wrongExample: "The conference starts in 9:00 AM at Monday on October."
+      },
+      {
+        name: "Since vs For in Time Periods",
+        formula: "Since + Exact Starting Point (2020, Monday, 8 AM); For + Duration (3 years, 4 days)",
+        usage: "'Since' specifies when the action began; 'for' measures the length of elapsed time.",
+        correctExample: "I have been living in this city for four years, since 2022.",
+        wrongExample: "I have been living in this city since four years."
+      },
+      {
+        name: "Essential Dependent Prepositions",
+        formula: "Interested in, Good at, Congratulate on, Proud of, Differ from, Comply with",
+        usage: "English verbs and adjectives bind to specific prepositions that cannot be swapped.",
+        correctExample: "I congratulated her on winning the award and praised her proficiency in coding.",
+        wrongExample: "I congratulated her for winning the award and praised her proficiency at coding."
+      },
+      {
+        name: "Verbs with NO Prepositions (Redundancy Traps)",
+        formula: "Discuss (NOT discuss about), Order (NOT order for), Revert (NOT revert back), Marry (NOT marry with)",
+        usage: "Transitive verbs take their direct object immediately without inserting unnecessary prepositions.",
+        correctExample: "Let us discuss the quarterly budget and order lunch.",
+        wrongExample: "Let us discuss about the quarterly budget and order for lunch."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 9. CONJUNCTIONS & SENTENCE CONNECTORS 🔗
+  // =========================================================================
+  {
+    id: "guide_conjunctions",
+    category: "Conjunctions & Connectors",
+    icon: "🔗",
+    level: "Intermediate to Advanced",
+    title: "Conjunctions, FANBOYS & Correlatives",
+    summary: "Coordinating, subordinating, and correlative conjunctions with proper comma and clause coordination.",
+    rules: [
+      {
+        name: "Coordinating Conjunctions (FANBOYS)",
+        formula: "For, And, Nor, But, Or, Yet, So (Join words, phrases, or independent clauses with comma)",
+        usage: "Use a comma before a FANBOYS conjunction when connecting two complete independent clauses.",
+        correctExample: "She prepared thoroughly for the interview, so she answered every question with ease.",
+        wrongExample: "She prepared thoroughly for the interview so she answered every question with ease (missing comma)."
+      },
+      {
+        name: "Correlative Conjunction Pairs",
+        formula: "Not only...but also, Either...or, Neither...nor, Both...and, Whether...or",
+        usage: "Keep parallel grammatical structures after each element of a correlative pair.",
+        correctExample: "He is not only an accomplished pianist but also a skilled violinist.",
+        wrongExample: "He is not only an accomplished pianist but also plays violin skillfully."
+      },
+      {
+        name: "Subordinating Conjunctions & Clause Punctuation",
+        formula: "[Subordinating Clause], [Independent Clause]  OR  [Independent Clause] [Subordinating Clause]",
+        usage: "If a sentence starts with 'Although', 'Because', 'While', or 'Since', place a comma after the dependent clause.",
+        correctExample: "Although it rained heavily, we completed the football championship.",
+        wrongExample: "Although it rained heavily we completed the football championship."
+      },
+      {
+        name: "Avoid Double Conjunctions in One Sentence",
+        formula: "Use EITHER 'Although' OR 'But'; EITHER 'Because' OR 'So' (Never both)",
+        usage: "Do not pair 'Although...but' or 'Because...therefore' in the same sentence.",
+        correctExample: "Although he worked hard, he did not clear the board exam.",
+        wrongExample: "Although he worked hard, but he did not clear the board exam."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 10. ACTIVE & PASSIVE VOICE TRANSFORMATION 🔄
+  // =========================================================================
+  {
+    id: "guide_voice",
+    category: "Active & Passive Voice",
+    icon: "🔄",
+    level: "Intermediate to Advanced",
+    title: "Active & Passive Voice Mastery",
+    summary: "Step-by-step conversion formulas across all tenses, modal verbs, and imperative sentences.",
+    rules: [
+      {
+        name: "Universal Active to Passive Formula",
+        formula: "Object + Auxiliary Verb (be / is / was / been / being) + Past Participle (V3) + by Subject",
+        usage: "The receiver of the action becomes the subject of the passive sentence.",
+        correctExample: "The chef cooked a gourmet meal. -> A gourmet meal was cooked by the chef.",
+        wrongExample: "A gourmet meal was cooked from the chef."
+      },
+      {
+        name: "Continuous Tenses in Passive",
+        formula: "Present Cont: is/am/are + being + V3; Past Cont: was/were + being + V3",
+        usage: "Always include 'being' when converting continuous tenses to passive voice.",
+        correctExample: "Engineers are testing the software. -> The software is being tested by engineers.",
+        wrongExample: "The software is testing by engineers."
+      },
+      {
+        name: "Passive with Modal Auxiliaries",
+        formula: "Subject + Modal (can/must/should/will) + be + Past Participle (V3)",
+        usage: "Add 'be' after the modal followed by the third form (V3) of the main verb.",
+        correctExample: "You must submit the assignment on Friday. -> The assignment must be submitted on Friday.",
+        wrongExample: "The assignment must submitted on Friday."
+      },
+      {
+        name: "Imperative Sentences in Passive",
+        formula: "Let + Object + be + Past Participle (V3)  OR  You are requested/ordered to + Verb",
+        usage: "Commands and requests transform into passive using 'Let' or polite request formulas.",
+        correctExample: "Open the door. -> Let the door be opened.",
+        wrongExample: "The door should open."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 11. DIRECT & INDIRECT (REPORTED) SPEECH 💬
+  // =========================================================================
+  {
+    id: "guide_narration",
+    category: "Reported Speech",
+    icon: "💬",
+    level: "Intermediate to Advanced",
+    title: "Direct & Indirect Speech Rules",
+    summary: "Backshifting rules, reporting verbs, pronoun shifts, time/place conversions, and reporting questions.",
+    rules: [
+      {
+        name: "Tense Backshifting in Reported Speech",
+        formula: "Simple Present -> Simple Past; Present Continuous -> Past Continuous; Simple Past -> Past Perfect",
+        usage: "When the reporting verb is in the past (e.g. 'said'), step each tense back one step into the past.",
+        correctExample: "Direct: 'I am working,' she said. -> Indirect: She said that she was working.",
+        wrongExample: "She said that she is working."
+      },
+      {
+        name: "Time, Place & Pronoun Shifts",
+        formula: "Now -> Then; Today -> That day; Tomorrow -> The next day; Yesterday -> The day before; Here -> There",
+        usage: "Convert deictic time and place markers to reflect the reporting perspective.",
+        correctExample: "Direct: 'I will visit tomorrow,' he said. -> Indirect: He said that he would visit the next day.",
+        wrongExample: "He said that he will visit tomorrow."
+      },
+      {
+        name: "Reporting Questions (Wh- and Yes/No)",
+        formula: "Wh- questions keep Wh- word; Yes/No questions use 'if / whether' + Statement Word Order (Subject + Verb)",
+        usage: "In indirect questions, eliminate auxiliary 'do/did' and avoid inverted question word order.",
+        correctExample: "Direct: 'Where do you live?' -> Indirect: She asked me where I lived.",
+        wrongExample: "She asked me where did I live."
+      },
+      {
+        name: "Exception: Universal Truths & Scientific Facts",
+        formula: "Universal Facts DO NOT backshift even with past reporting verbs",
+        usage: "If the reported statement expresses a universal constant truth, maintain the present tense.",
+        correctExample: "The science teacher said that water boils at 100 degrees Celsius.",
+        wrongExample: "The science teacher said that water boiled at 100 degrees Celsius."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 12. CONDITIONALS & SUBJUNCTIVE MOOD 🔮
+  // =========================================================================
+  {
+    id: "guide_conditionals",
+    category: "Conditionals & Subjunctive",
+    icon: "🔮",
+    level: "Intermediate to Advanced",
+    title: "The 4 Conditionals & Subjunctive Mood",
+    summary: "Zero, 1st, 2nd, 3rd, and Mixed Conditionals, plus formal mandate and hypothetical subjunctive.",
+    rules: [
+      {
+        name: "Zero Conditional (Universal Truths)",
+        formula: "If + Simple Present, Simple Present",
+        usage: "Used for scientific facts, causes and direct automatic effects.",
+        correctExample: "If you heat ice, it melts into water.",
+        wrongExample: "If you heat ice, it will melt into water."
+      },
+      {
+        name: "First Conditional (Real Possible Future)",
+        formula: "If + Simple Present, Subject + will / can / may + Base Verb",
+        usage: "Expresses a realistic condition in the present and its probable future result.",
+        correctExample: "If you study hard, you will clear the university entrance exam.",
+        wrongExample: "If you will study hard, you will clear the exam."
+      },
+      {
+        name: "Second Conditional (Unreal Hypothetical)",
+        formula: "If + Simple Past (use 'were' for all subjects), Subject + would + Base Verb",
+        usage: "Hypothetical, imaginary, or impossible scenarios in the present or future.",
+        correctExample: "If I were the CEO, I would implement a four-day workweek.",
+        wrongExample: "If I was the CEO, I will implement a four-day workweek."
+      },
+      {
+        name: "Third Conditional (Past Regrets & Unreal Past)",
+        formula: "If + had + Past Participle (V3), Subject + would have + Past Participle (V3)",
+        usage: "Refers to an unfulfilled condition in the past and its imaginary past result.",
+        correctExample: "If we had left earlier, we would have caught the morning flight.",
+        wrongExample: "If we would have left earlier, we would catch the flight."
+      },
+      {
+        name: "Mandate Subjunctive in Formal English",
+        formula: "Recommend / Insist / Demand / Suggest + that + Subject + Base Verb (Bare Infinitive)",
+        usage: "Verbs of recommendation and urgency take the base verb form without -s or 'should'.",
+        correctExample: "The doctor recommended that he take a two-week rest.",
+        wrongExample: "The doctor recommended that he takes a two-week rest."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 13. SENTENCE STRUCTURE & SVO WORD ORDER 🧱
+  // =========================================================================
+  {
+    id: "guide_syntax",
+    category: "Sentence Structure & Syntax",
+    icon: "🧱",
+    level: "Foundation to Advanced",
+    title: "Sentence Structure, Clauses & SVO Order",
+    summary: "Subject-Verb-Object (SVO) rules, simple/compound/complex sentences, run-on traps, and parallelism.",
+    rules: [
+      {
+        name: "Standard SVO Word Order",
+        formula: "Subject + Verb + Object (+ Manner + Place + Time)",
+        usage: "English declarative sentences strictly follow SVO order. Avoid native tongue SOV inversions (e.g. 'I apple eat').",
+        correctExample: "I eat an apple every morning at breakfast.",
+        wrongExample: "I apple eat every morning at breakfast."
+      },
+      {
+        name: "Avoiding Comma Splices & Run-On Sentences",
+        formula: "Two independent clauses must be joined with a Semicolon (;) OR Comma + FANBOYS Conjunction",
+        usage: "Do not join two complete thoughts with only a comma (comma splice).",
+        correctExample: "The meeting concluded at noon; we went out for lunch together.",
+        wrongExample: "The meeting concluded at noon, we went out for lunch together."
+      },
+      {
+        name: "Parallel Structure in Lists & Comparisons",
+        formula: "All items in a list must share the same grammatical form (all gerunds, all infinitives, or all nouns)",
+        usage: "Ensure symmetry across coordinated verbs and descriptive clauses.",
+        correctExample: "She loves swimming, jogging, and reading classic novels.",
+        wrongExample: "She loves swimming, jogging, and to read classic novels."
+      },
+      {
+        name: "Dangling & Misplaced Modifiers",
+        formula: "Introductory modifier phrase must describe the subject immediately following the comma",
+        usage: "Place descriptive phrases right beside the word they actually modify.",
+        correctExample: "Walking through the forest, the hiker spotted a rare bird.",
+        wrongExample: "Walking through the forest, a rare bird was spotted by the hiker."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 14. MODAL AUXILIARY VERBS & NUANCES 🛡️
+  // =========================================================================
+  {
+    id: "guide_modals",
+    category: "Modal Auxiliaries",
+    icon: "🛡️",
+    level: "Intermediate to Advanced",
+    title: "Modal Auxiliaries & Past Modal Deductions",
+    summary: "Expressing ability, permission, necessity, advice, possibility, and past deductions.",
+    rules: [
+      {
+        name: "Modal Auxiliaries Take Bare Infinitives",
+        formula: "Can / Could / May / Might / Must / Should / Would + Base Verb (Never 'to + verb' or '-s')",
+        usage: "Modal verbs are never followed by 'to' (except 'ought to' and 'used to') and never take '-s'.",
+        correctExample: "She can speak four languages fluently and must attend the meeting.",
+        wrongExample: "She can to speak four languages and must attends the meeting."
+      },
+      {
+        name: "Modals in the Past (Past Deductions)",
+        formula: "Must have + V3 (99% certainty); Could/Might have + V3 (possibility); Should have + V3 (unfulfilled advice)",
+        usage: "Use modal + have + V3 to evaluate past actions and express regrets or logical deductions.",
+        correctExample: "The streets are wet; it must have rained heavily last night.",
+        wrongExample: "The streets are wet; it must rain heavily last night."
+      },
+      {
+        name: "Can vs May (Ability vs Formal Permission)",
+        formula: "Can = Physical/Mental Ability; May = Polite Formal Permission / Likelihood",
+        usage: "Use 'May I' for polite requests and formal academic/workplace permission.",
+        correctExample: "May I borrow your laptop for fifteen minutes?",
+        wrongExample: "Can I borrow your laptop (informal/colloquial) in formal settings."
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 15. QUESTION FORMATION & QUESTION TAGS ❓
+  // =========================================================================
+  {
+    id: "guide_questions",
+    category: "Questions & Tags",
+    icon: "❓",
+    level: "All Levels",
+    title: "Question Formation & Question Tags",
+    summary: "Wh- question syntax, subject vs object questions, and golden rules for question tags.",
+    rules: [
+      {
+        name: "Wh- Question Syntax",
+        formula: "Wh- word + Auxiliary (do/does/did/is/are/have) + Subject + Main Verb?",
+        usage: "Standard Wh- questions require an auxiliary verb before the subject.",
+        correctExample: "Where did you purchase this wireless headset?",
+        wrongExample: "Where you purchased this wireless headset?"
+      },
+      {
+        name: "Subject Questions vs Object Questions",
+        formula: "Subject Question: Wh- + Verb? (No auxiliary do/did); Object Question: Wh- + Auxiliary + Subject + Verb?",
+        usage: "When the question word IS the subject doing the action, do not add 'do/does/did'.",
+        correctExample: "Who called you this morning? (Subject) vs Whom did you call? (Object)",
+        wrongExample: "Who did call you this morning?"
+      },
+      {
+        name: "Golden Rules of Question Tags",
+        formula: "Positive Statement -> Negative Tag; Negative Statement -> Positive Tag",
+        usage: "Tags use the auxiliary verb from the statement and the pronoun matching the subject.",
+        correctExample: "You have completed the assignment, haven't you? She didn't come, did she?",
+        wrongExample: "You have completed the assignment, isn't it? (Avoid 'no?' or 'na?' or 'isn't it?')"
+      },
+      {
+        name: "Special Question Tag Exceptions",
+        formula: "I am -> aren't I?; Let's -> shall we?; Imperative -> will you / won't you?",
+        usage: "Note the irregular tag forms for 'I am' and invitations starting with 'Let's'.",
+        correctExample: "I am included in the project team, aren't I? Let's begin, shall we?",
+        wrongExample: "I am included in the project team, am not I?"
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 16. PUNCTUATION, MECHANICS & REDUNDANCY TRAPS 🪤
+  // =========================================================================
+  {
+    id: "guide_pitfalls",
+    category: "Punctuation & Pitfalls",
+    icon: "🪤",
+    level: "All Levels",
+    title: "Punctuation, Mechanics & Redundancy Traps",
+    summary: "Apostrophes, contractions vs possessives, semicolons, and the top 10 redundancy errors to eliminate.",
+    rules: [
+      {
+        name: "It's vs Its, You're vs Your, They're vs Their",
+        formula: "It's = It is / It has; Its = Possessive of it; You're = You are; Your = Belonging to you",
+        usage: "Possessive pronouns (its, hers, yours, theirs, whose) NEVER take an apostrophe.",
+        correctExample: "It's obvious that the company values its employees and their well-being.",
+        wrongExample: "Its obvious that the company values it's employees and there well-being."
+      },
+      {
+        name: "Top 10 Indian English Redundancy Traps to Avoid",
+        formula: "Eliminate repetitive words: 'revert' (not revert back), 'blunder' (not blunder mistake)",
+        usage: "Avoid unnecessary duplications that weaken professional spoken and written communication.",
+        correctExample: "Say 'I made a blunder' (NOT blunder mistake), 'repeat' (NOT repeat again), 'cope with' (NOT cope up with).",
+        wrongExample: "I will revert back to you regarding that blunder mistake."
+      },
+      {
+        name: "Semicolon (;) vs Colon (:) Usage",
+        formula: "Semicolon connects closely related independent clauses; Colon introduces a list, quote, or explanation",
+        usage: "Use semicolons where a period is too strong and a comma is too weak.",
+        correctExample: "She had one major goal: to master English; she practiced every single day.",
+        wrongExample: "She had one major goal; to master English: she practiced every single day."
+      },
+      {
+        name: "Standard Capitalization Rules",
+        formula: "First word of sentence, Proper nouns (Names, Places, Days, Months), Pronoun 'I', Acronyms",
+        usage: "Common nouns (apple, school, doctor) are NOT capitalized mid-sentence unless part of an official title.",
+        correctExample: "On Tuesday, Dr. Sharma and I traveled to Mumbai to attend the conference.",
+        wrongExample: "On tuesday, dr. sharma and i traveled to mumbai to attend the Conference."
       }
     ]
   }
