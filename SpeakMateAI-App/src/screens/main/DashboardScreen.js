@@ -65,6 +65,18 @@ export default function DashboardScreen({ navigation }) {
   const { openDrawer, setProfile, setProgress } = useDrawer();
   const { isDark } = useTheme();
   const { showToast, triggerConfetti } = useToast();
+
+  const isStudentUser = Boolean(
+    user?.schoolId ||
+    user?.schoolCode ||
+    user?.isSchoolStudent ||
+    user?.schoolGrade ||
+    user?.role === 'STUDENT' ||
+    user?.role === 'SCHOOL_STUDENT' ||
+    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('school')) ||
+    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('student')) ||
+    (user?.learningGoal && String(user.learningGoal).toLowerCase().includes('school'))
+  );
   
   const [state, setState] = useState(() => ({
     loading: !DashboardCache.get(),
@@ -85,17 +97,6 @@ export default function DashboardScreen({ navigation }) {
     }));
 
     try {
-      const isStudentUser = Boolean(
-        user?.schoolId ||
-        user?.schoolCode ||
-        user?.isSchoolStudent ||
-        user?.schoolGrade ||
-        user?.role === 'STUDENT' ||
-        user?.role === 'SCHOOL_STUDENT' ||
-        (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('school')) ||
-        (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('student')) ||
-        (user?.learningGoal && String(user.learningGoal).toLowerCase().includes('school'))
-      );
 
       const [dashboard, myAssignments, schoolAnnouncements] = await Promise.all([
         dashboardService.summary(),
