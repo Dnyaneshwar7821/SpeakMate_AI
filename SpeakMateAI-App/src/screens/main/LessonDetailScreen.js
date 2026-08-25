@@ -293,6 +293,7 @@ export default function LessonDetailScreen({ navigation, route }) {
   const [tutorInput, setTutorInput] = useState('');
   const [tutorResponse, setTutorResponse] = useState('');
   const [tutorLoading, setTutorLoading] = useState(false);
+  const [tutorChatList, setTutorChatList] = useState([]);
 
   // Auto AI Teaching State (Step 2)
   const [aiTeachContent, setAiTeachContent] = useState('');
@@ -784,23 +785,30 @@ export default function LessonDetailScreen({ navigation, route }) {
   };
 
   const askAiTutor = async (customPrompt) => {
-    const query = customPrompt || tutorInput;
-    if (!query.trim()) return;
+    const query = (customPrompt || tutorInput || '').trim();
+    if (!query) return;
     setTutorLoading(true);
-    setTutorResponse('');
+    setTutorInput('');
+
+    const userMsg = { id: Date.now(), sender: 'user', text: query };
+    setTutorChatList((prev) => [...prev, userMsg]);
+
     try {
-      const promptText = `Lesson Title: "${lesson?.title}" (${lesson?.category} - ${lesson?.level}). Student Question/Topic: "${query.trim()}"`;
+      const promptText = `Lesson Title: "${lesson?.title}" (${lesson?.category} - ${lesson?.level}). Student Question/Topic: "${query}"`;
       const res = await aiService.lessonTutor(promptText);
-      if (res?.response) {
-        setTutorResponse(res.response);
-        VoiceService.speak(sanitizeForSpeech(res.response), {
-          voiceType: settings?.aiVoice || 'Default',
-          availableVoices,
-        });
-      }
-      setTutorInput('');
-    } catch (err) {
-      Alert.alert('AI Tutor Error', 'Unable to get response from AI Tutor.');
+      const clean = cleanAiText(res?.response || "That is a great question! Practice this concept by speaking full sentences daily.");
+      const tutorMsg = { id: Date.now() + 1, sender: 'tutor', text: clean };
+      setTutorChatList((prev) => [...prev, tutorMsg]);
+      setTutorResponse(clean);
+
+      VoiceService.speak(sanitizeForSpeech(clean), {
+        voiceType: settings?.aiVoice || 'Default',
+        availableVoices,
+      });
+    } catch {
+      const fallback = "Here is a quick tip: Focus on understanding the core formula and speaking 3 full sentences out loud.";
+      setTutorChatList((prev) => [...prev, { id: Date.now() + 1, sender: 'tutor', text: fallback }]);
+      setTutorResponse(fallback);
     } finally {
       setTutorLoading(false);
     }
@@ -1509,20 +1517,86 @@ export default function LessonDetailScreen({ navigation, route }) {
                   )}
                 </View>
 
-                {/* Ask a Follow-up Question */}
+                {/* Ask a Follow-up Question / Interactive Chat */}
                 {!aiTeachLoading && !!aiTeachContent && (
                   <View style={[styles.studyCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: theme.cardBorder }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                       <Ionicons name="chatbubble-ellipses" size={18} color={'#8B5CF6'} />
                       <Text style={{ fontSize: 13, fontWeight: '800', color: theme.textPrimary }}>Still confused? Ask AI Tutor</Text>
                     </View>
+
+                    {/* Quick Suggestion Chips */}
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 10 }}>
+                      {[
+                        'Give me a simpler example',
+                        'What is the main mistake to avoid?',
+                        'How do I practice in real life?',
+                      ].map((prompt, pIdx) => (
+                        <TouchableOpacity
+                          key={pIdx}
+                          onPress={() => askAiTutor(prompt)}
+                          style={{
+                            paddingHorizontal: 10,
+                            paddingVertical: 6,
+                            borderRadius: 8,
+                            backgroundColor: isDark ? '#334155' : '#EEF2FF',
+                            borderWidth: 1,
+                            borderColor: isDark ? '#475569' : '#C7D2FE',
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#6366F1' }}>💡 {prompt}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+
+                    {/* Multi-turn Chat History */}
+                    {tutorChatList.length > 0 && (
+                      <View style={{ gap: 8, marginBottom: 12 }}>
+                        {tutorChatList.map((msg) => (
+                          <View
+                            key={msg.id}
+                            style={{
+                              padding: 10,
+                              borderRadius: 12,
+                              backgroundColor: msg.sender === 'user' ? (isDark ? '#3B82F6' : '#EEF2FF') : (isDark ? '#334155' : '#F1F5F9'),
+                              alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                              maxWidth: '92%',
+                            }}
+                          >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                              <Text style={{ fontSize: 10, fontWeight: '800', color: msg.sender === 'user' ? (isDark ? '#FFF' : '#4F46E5') : '#8B5CF6' }}>
+                                {msg.sender === 'user' ? 'You' : '🤖 AI Tutor'}
+                              </Text>
+                              {msg.sender === 'tutor' && (
+                                <TouchableOpacity
+                                  onPress={() =>
+                                    VoiceService.speak(sanitizeForSpeech(msg.text), {
+                                      voiceType: settings?.aiVoice || 'Default',
+                                      availableVoices,
+                                    })
+                                  }
+                                >
+                                  <Ionicons name="volume-high" size={14} color="#8B5CF6" />
+                                </TouchableOpacity>
+                              )}
+                            </View>
+                            <Text style={{ fontSize: 12, color: msg.sender === 'user' && isDark ? '#FFF' : theme.textPrimary, lineHeight: 18 }}>
+                              {msg.text}
+                            </Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+
+                    {/* Input Row */}
                     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                       <TextInput
-                        style={[styles.tutorInput, { backgroundColor: isDark ? '#334155' : '#FFF', color: theme.textPrimary, borderColor: theme.cardBorder }]}
-                        placeholder="e.g. Can you explain with a simpler example?"
+                        style={[styles.tutorInput, { backgroundColor: isDark ? '#334155' : '#FFF', color: theme.textPrimary, borderColor: theme.cardBorder, flex: 1 }]}
+                        placeholder="Ask anything about this topic…"
                         placeholderTextColor={theme.textSecondary}
                         value={tutorInput}
                         onChangeText={setTutorInput}
+                        onSubmitEditing={() => askAiTutor()}
                       />
                       <TouchableOpacity
                         style={styles.tutorSendBtn}
@@ -1533,12 +1607,7 @@ export default function LessonDetailScreen({ navigation, route }) {
                       </TouchableOpacity>
                     </View>
                     {tutorLoading && (
-                      <Text style={{ fontSize: 12, color: COLORS.primary, marginTop: 8, fontStyle: 'italic' }}>AI Tutor is thinking…</Text>
-                    )}
-                    {!!tutorResponse && (
-                      <View style={{ marginTop: 10, padding: 12, borderRadius: 12, backgroundColor: isDark ? '#334155' : '#EEF2FF' }}>
-                        <Text style={{ fontSize: 13, color: theme.textPrimary, lineHeight: 19 }}>{tutorResponse}</Text>
-                      </View>
+                      <Text style={{ fontSize: 12, color: COLORS.primary, marginTop: 8, fontStyle: 'italic' }}>AI Tutor is explaining…</Text>
                     )}
                   </View>
                 )}

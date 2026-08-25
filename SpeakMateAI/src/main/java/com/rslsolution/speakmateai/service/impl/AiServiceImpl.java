@@ -205,19 +205,30 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 	@Override
 	public AiResponse lessonTutor(AiRequest request) {
 		try {
-			String prompt = "You are a master English teacher and speech coach.\n"
-					+ "Teach a comprehensive, detailed masterclass on the topic:\n"
-					+ request.getPrompt()
-					+ "\n\nStructure your lesson in these clear, detailed sections without markdown asterisks or bullet stars:\n"
-					+ "1. WHAT IS THIS CONCEPT: Explain the meaning, core function, and foundational rules in crystal-clear detail.\n"
-					+ "2. WHY IT IS CRUCIAL: Explain how mastering this transforms spoken confidence, natural fluency, and professional communication.\n"
-					+ "3. SENTENCE FORMULA AND RULES: Give the exact sentence structures (positive, negative, question formats) with step-by-step guidance.\n"
-					+ "4. PRACTICAL REAL-WORLD USAGE: Provide practical conversational examples and explain how native speakers use this in daily discussions.\n"
-					+ "5. COMMON MISTAKES TO AVOID: Point out 2-3 frequent learner errors and give the exact corrections.\n"
-					+ "6. PRO-TIP FOR MASTERY: Share one powerful action step to master this topic today.\n\n"
-					+ "Write in warm, engaging, spoken English suitable for text-to-speech read-aloud (total 250-320 words). Do NOT output reasoning thoughts, asterisks, or outline meta-text.";
+			String rawPrompt = request != null && request.getPrompt() != null ? request.getPrompt() : "";
+			String systemInstruction = "You are a warm, encouraging, real-life classroom English teacher. You speak directly to the student using natural conversational rhythm, clear explanations, everyday analogies, and practical examples. Never output markdown asterisks, bullet stars, or reasoning tags.";
+			
+			String prompt;
+			if (rawPrompt.contains("Student Question/Topic:")) {
+				prompt = "You are a real-life English tutor having a 1-on-1 tutoring session.\n"
+						+ "Answer the student's question clearly with simple explanations, 2 practical everyday examples, and an encouraging tone (100-140 words):\n\n"
+						+ rawPrompt;
+			} else {
+				prompt = "You are a master classroom English teacher.\n"
+						+ "Teach a comprehensive, highly engaging lesson on:\n"
+						+ rawPrompt
+						+ "\n\nStructure your teaching in these clear, spoken sections (use natural punctuation and conversational pauses):\n"
+						+ "1. WHAT IS THIS CONCEPT: Explain the core meaning in friendly, relatable words with a helpful analogy.\n"
+						+ "2. WHY IT IS CRUCIAL: Tell the student how this elevates their everyday English fluency and confidence.\n"
+						+ "3. SENTENCE FORMULAS AND RULES: Give exact sentence structures (positive, negative, and questions) with step-by-step guidance.\n"
+						+ "4. PRACTICAL CONVERSATIONAL EXAMPLES: Provide natural dialogue sentences that native speakers use.\n"
+						+ "5. COMMON MISTAKES TO AVOID: Highlight typical learner errors and explain how to fix them effortlessly.\n"
+						+ "6. PRO-TIP FOR MASTERY: Give one quick interactive speaking exercise for the student to try right now.\n\n"
+						+ "Speak directly to the student in 250-320 words without asterisks or meta-text.";
+			}
+
 			List<GroqRequest.Message> messages = List.of(
-				new GroqRequest.Message("system", "You are a world-class AI English Tutor. You provide detailed, comprehensive, high-quality spoken lessons. Never output reasoning tags, asterisk bolding, or meta-notes."),
+				new GroqRequest.Message("system", systemInstruction),
 				new GroqRequest.Message("user", prompt)
 			);
 			return executeGroqCall("llama-3.3-70b-versatile", messages, 0.7);

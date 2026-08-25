@@ -118,6 +118,11 @@ export function LessonDetail() {
   const [guidedSubmitted, setGuidedSubmitted] = useState(false);
   const [blankPenalty, setBlankPenalty] = useState(0);
 
+  // Still Confused? Ask AI Tutor Q&A Chat State
+  const [tutorInput, setTutorInput] = useState("");
+  const [tutorLoading, setTutorLoading] = useState(false);
+  const [tutorChatList, setTutorChatList] = useState([]);
+
   // Speaking Practice State (Step 5 & 6)
   const [speakingInput, setSpeakingInput] = useState("");
   const [isListening, setIsListening] = useState(false);
@@ -381,6 +386,31 @@ export function LessonDetail() {
     }
   };
 
+  const handleAskAiTutor = async (customPrompt) => {
+    const query = (customPrompt || tutorInput || "").trim();
+    if (!query) return;
+    setTutorLoading(true);
+    setTutorInput("");
+
+    const userMsg = { id: Date.now(), sender: "user", text: query };
+    setTutorChatList((prev) => [...prev, userMsg]);
+
+    try {
+      const promptText = `Lesson Title: "${lesson?.title}" (${lesson?.category} - ${lesson?.level}). Student Question/Topic: "${query}"`;
+      const res = await aiService.lessonTutor(promptText);
+      const clean = cleanAiText(res?.response || "Focus on practicing this concept daily in full sentences.");
+      const tutorMsg = { id: Date.now() + 1, sender: "tutor", text: clean };
+      setTutorChatList((prev) => [...prev, tutorMsg]);
+      handleSpeakText(clean);
+    } catch {
+      const fallback = "Here is a quick tip: Focus on understanding the core formula and speaking 3 full sentences out loud.";
+      setTutorChatList((prev) => [...prev, { id: Date.now() + 1, sender: "tutor", text: fallback }]);
+      handleSpeakText(fallback);
+    } finally {
+      setTutorLoading(false);
+    }
+  };
+
   if (loading) {
     return <div className="p-12 text-center font-bold text-[var(--text-secondary)]">Loading lesson details...</div>;
   }
@@ -455,6 +485,80 @@ export function LessonDetail() {
                   {aiTeachContent}
                 </div>
               )}
+
+              {/* Still Confused? Ask AI Tutor Interactive Chat */}
+              <div className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[#8B5CF6]/30 space-y-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">💬</span>
+                  <h3 className="text-xs font-extrabold text-[var(--text-primary)]">Still Confused? Ask Your AI Tutor</h3>
+                </div>
+
+                {/* Quick Prompts */}
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    "Give me a simpler example",
+                    "What is the main mistake to avoid?",
+                    "How do I use this in casual conversation?",
+                  ].map((prompt, pIdx) => (
+                    <button
+                      key={pIdx}
+                      onClick={() => handleAskAiTutor(prompt)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#6c63ff]/10 text-[#6c63ff] hover:bg-[#6c63ff]/20 transition"
+                    >
+                      💡 {prompt}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Chat History */}
+                {tutorChatList.length > 0 && (
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {tutorChatList.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`p-3 rounded-xl text-xs ${
+                          msg.sender === "user"
+                            ? "bg-[#6c63ff]/15 text-[var(--text-primary)] ml-6"
+                            : "bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-primary)] mr-6"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-[10px] font-extrabold text-[#6c63ff]">
+                            {msg.sender === "user" ? "You" : "🤖 AI Tutor"}
+                          </span>
+                          {msg.sender === "tutor" && (
+                            <button onClick={() => handleSpeakText(msg.text)} className="text-xs hover:scale-110">
+                              🔊
+                            </button>
+                          )}
+                        </div>
+                        <p className="leading-relaxed whitespace-pre-line">{msg.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Input row */}
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Ask anything about this topic..."
+                    value={tutorInput}
+                    onChange={(e) => setTutorInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAskAiTutor();
+                    }}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
+                  />
+                  <button
+                    disabled={tutorLoading || !tutorInput.trim()}
+                    onClick={() => handleAskAiTutor()}
+                    className="px-5 py-2.5 rounded-xl bg-[#6c63ff] disabled:opacity-50 text-white text-xs font-extrabold"
+                  >
+                    {tutorLoading ? "Thinking..." : "Ask Tutor"}
+                  </button>
+                </div>
+              </div>
 
               <div className="flex justify-end pt-4">
                 <button
