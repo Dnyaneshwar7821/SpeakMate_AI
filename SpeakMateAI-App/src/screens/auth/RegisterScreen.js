@@ -35,10 +35,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function RegisterScreen({ navigation }) {
   const { register } = useContext(AuthContext);
 
-  const [accountType, setAccountType] = useState('INDIVIDUAL_USER'); // 'INDIVIDUAL_USER' | 'STUDENT'
-  const [schoolCode, setSchoolCode] = useState('');
-  const [schoolGrade, setSchoolGrade] = useState('1st Std');
-  const [schoolName, setSchoolName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -85,7 +81,6 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const validateFullForm = () => {
-    if (accountType === 'STUDENT' && !schoolCode.trim()) return 'Please enter your School Code provided by your institution.';
     if (!firstName.trim()) return 'First name is required.';
     if (!lastName.trim()) return 'Last name is required.';
     if (!email.trim()) return 'Email address is required.';
@@ -135,14 +130,7 @@ export default function RegisterScreen({ navigation }) {
 
     try {
       const emailLower = email.trim().toLowerCase();
-      await AsyncStorage.setItem('speakmate_account_type', accountType);
-      if (accountType === 'STUDENT') {
-        await AsyncStorage.setItem('speakmate_school_grade', schoolGrade);
-        await AsyncStorage.setItem('speakmate_school_code', schoolCode.trim().toUpperCase());
-      }
-      if (schoolName.trim()) {
-        await AsyncStorage.setItem('speakmate_school_name', schoolName.trim());
-      }
+      await AsyncStorage.setItem('speakmate_account_type', 'INDIVIDUAL_USER');
       await register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
@@ -150,10 +138,7 @@ export default function RegisterScreen({ navigation }) {
         password,
         confirmPassword,
         otp: otp.trim(),
-        accountType,
-        schoolCode: accountType === 'STUDENT' ? schoolCode.trim().toUpperCase() : null,
-        schoolGrade: accountType === 'STUDENT' ? schoolGrade : null,
-        schoolName: accountType === 'STUDENT' ? schoolName.trim() : null,
+        accountType: 'INDIVIDUAL_USER',
       });
       setOtpState('VERIFIED');
       setRegistered(true);
@@ -242,76 +227,22 @@ export default function RegisterScreen({ navigation }) {
                 <ErrorMessage message={error} />
 
                 {/* Account Type Role Selection */}
-                <View style={styles.accountTypeContainer}>
-                  <Text style={styles.accountTypeLabel}>I am signing up as a:</Text>
-                  <View style={styles.accountTypeToggleRow}>
-                    <TouchableOpacity
-                      onPress={() => setAccountType('INDIVIDUAL_USER')}
-                      style={[
-                        styles.accountTypeBtn,
-                        accountType === 'INDIVIDUAL_USER' && styles.accountTypeBtnActive,
-                      ]}
-                    >
-                      <Ionicons
-                        name="person-outline"
-                        size={18}
-                        color={accountType === 'INDIVIDUAL_USER' ? '#4F46E5' : '#64748B'}
-                      />
-                      <Text
-                        style={[
-                          styles.accountTypeBtnText,
-                          accountType === 'INDIVIDUAL_USER' && styles.accountTypeBtnTextActive,
-                        ]}
-                      >
-                        Individual
-                      </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      onPress={() => setAccountType('STUDENT')}
-                      style={[
-                        styles.accountTypeBtn,
-                        accountType === 'STUDENT' && styles.accountTypeBtnActive,
-                      ]}
-                    >
-                      <Ionicons
-                        name="school-outline"
-                        size={18}
-                        color={accountType === 'STUDENT' ? '#4F46E5' : '#64748B'}
-                      />
-                      <Text
-                        style={[
-                          styles.accountTypeBtnText,
-                          accountType === 'STUDENT' && styles.accountTypeBtnTextActive,
-                        ]}
-                      >
-                        School Student
-                      </Text>
-                    </TouchableOpacity>
+                {/* School Student Direct Login Notice Banner */}
+                <View style={styles.studentNoticeBanner}>
+                  <View style={styles.studentNoticeLeft}>
+                    <Text style={styles.studentNoticeEmoji}>🎓</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.studentNoticeTitle}>School Student?</Text>
+                      <Text style={styles.studentNoticeSubtitle}>Your school has created your account.</Text>
+                    </View>
                   </View>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Login')}
+                    style={styles.studentLoginBtn}
+                  >
+                    <Text style={styles.studentLoginBtnText}>Log In ➔</Text>
+                  </TouchableOpacity>
                 </View>
-
-                {/* School Student Enrollment Fields */}
-                {accountType === 'STUDENT' && (
-                  <View style={{ gap: 12, marginBottom: 12 }}>
-                    <AuthInput
-                      label="School Code *"
-                      value={schoolCode}
-                      onChangeText={(t) => { setSchoolCode(t.toUpperCase()); clearError(); }}
-                      placeholder="e.g. SCH-1001"
-                      autoCapitalize="characters"
-                      returnKeyType="next"
-                    />
-                    <AuthInput
-                      label="School Name (Optional)"
-                      value={schoolName}
-                      onChangeText={(t) => { setSchoolName(t); clearError(); }}
-                      placeholder="e.g. Greenwood Academy"
-                      autoCapitalize="words"
-                      returnKeyType="next"
-                    />
-                  </View>
-                )}
 
                 {/* First Name & Last Name row */}
                 <View style={styles.nameRow}>
@@ -641,6 +572,48 @@ const styles = StyleSheet.create({
   },
   registerBtn: {
     marginTop: 6,
+  },
+  studentNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  studentNoticeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  studentNoticeEmoji: {
+    fontSize: 20,
+  },
+  studentNoticeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#312E81',
+  },
+  studentNoticeSubtitle: {
+    fontSize: 11,
+    color: '#4F46E5',
+    fontWeight: '500',
+  },
+  studentLoginBtn: {
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  studentLoginBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
   },
   footer: {
     textAlign: 'center',
