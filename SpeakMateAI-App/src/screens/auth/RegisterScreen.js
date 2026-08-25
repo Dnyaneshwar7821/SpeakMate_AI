@@ -118,7 +118,7 @@ export default function RegisterScreen({ navigation }) {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleRegister = async () => {
     Keyboard.dismiss();
     const validationError = validateFullForm();
     if (validationError) {
