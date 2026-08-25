@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { vocabularyService, progressService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../context/ToastContext";
 
 // =========================================================================
 // ONBOARDING CALIBRATED VOCABULARY CURRICULUMS (STUDENTS & INDIVIDUAL USERS)
@@ -100,6 +101,7 @@ const CURRICULUM_DATA = {
 
 export function Vocabulary() {
   const { isDark } = useTheme();
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState("list"); // 'list', 'flashcards', 'quiz'
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -464,7 +466,7 @@ export function Vocabulary() {
           <button
             onClick={() => {
               if (!filteredItems.length) {
-                alert("Please add vocabulary words to start flashcards.");
+                toast.warning("Please add vocabulary words to start flashcards.");
                 return;
               }
               setCardIndex(0);

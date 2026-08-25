@@ -2,6 +2,7 @@ import { useState } from "react";
 import { subscriptionService } from "../../services/appServices";
 import { openRazorpayCheckout } from "../../utils/razorpayUtils";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 
 /**
  * Reusable Paywall / Daily Limit Modal.
@@ -9,6 +10,7 @@ import { useAuth } from "../../context/AuthContext";
  */
 export function SubscriptionModal({ isOpen, onClose, triggerReason = "daily_limit" }) {
   const { user, login } = useAuth();
+  const toast = useToast();
   const [billingCycle, setBillingCycle] = useState("YEARLY"); // 'MONTHLY' | 'YEARLY'
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -38,16 +40,20 @@ export function SubscriptionModal({ isOpen, onClose, triggerReason = "daily_limi
               const updatedUser = { ...user, isPro: true, subscriptionPlan: planType };
               if (login) login(updatedUser, localStorage.getItem("token"));
             }
-            alert("🎉 Upgrade Successful! You now have unlimited Pro access.");
+            toast.success("🎉 Upgrade Successful! You now have unlimited Pro access.");
             onClose();
           } catch (err) {
-            setErrorMsg(err.response?.data?.message || err.message || "Payment verification failed.");
+            const msg = err.response?.data?.message || err.message || "Payment verification failed.";
+            setErrorMsg(msg);
+            toast.error(msg);
           } finally {
             setLoading(false);
           }
         },
         onFailure: (err) => {
-          setErrorMsg(err?.description || err?.message || "Payment was cancelled or failed.");
+          const msg = err?.description || err?.message || "Payment was cancelled or failed.";
+          setErrorMsg(msg);
+          toast.error(msg);
           setLoading(false);
         },
         onDismiss: () => {
@@ -55,7 +61,9 @@ export function SubscriptionModal({ isOpen, onClose, triggerReason = "daily_limi
         },
       });
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || err.message || "Failed to initiate payment.");
+      const msg = err.response?.data?.message || err.message || "Failed to initiate payment.";
+      setErrorMsg(msg);
+      toast.error(msg);
       setLoading(false);
     }
   };

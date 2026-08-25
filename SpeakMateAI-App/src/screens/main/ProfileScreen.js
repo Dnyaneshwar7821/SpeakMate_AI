@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppButton, AppInput, Card, Screen, StateView } from '../../components/ui';
 import { AuthContext } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import { profileService } from '../../services/appServices';
 import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
@@ -39,6 +40,7 @@ const getRankTier = (xp = 0) => {
 export default function ProfileScreen({ navigation }) {
   const { user, logout, updateUser } = useContext(AuthContext);
   const { isDark } = useTheme();
+  const { showToast } = useToast();
 
   const isStudent = Boolean(
     user?.role === 'STUDENT' ||
@@ -214,9 +216,9 @@ export default function ProfileScreen({ navigation }) {
         });
         setState({ loading: false, error: '', profile });
         if (updateUser) updateUser(profile);
-        Alert.alert('Profile updated', 'Your changes were saved.');
+        showToast('Profile Updated ✓', 'success', 'Your personal details were saved successfully');
       } catch (error) {
-        Alert.alert('Profile failed', error.userMessage || 'Unable to update profile.');
+        showToast('Profile Update Failed', 'error', error.userMessage || 'Unable to update profile.');
       } finally {
         setSaving(false);
       }
@@ -241,11 +243,7 @@ export default function ProfileScreen({ navigation }) {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permissionResult.granted) {
-        Alert.alert(
-          'Permission Required',
-          'Gallery access is needed to upload a profile photo. Please enable it in your device Settings.',
-          [{ text: 'OK' }]
-        );
+        showToast('Permission Required', 'warning', 'Please enable gallery access in Settings.');
         return;
       }
 
@@ -261,7 +259,7 @@ export default function ProfileScreen({ navigation }) {
 
       const asset = result.assets[0];
       if (!asset.base64) {
-        Alert.alert('Error', 'Could not read image data. Please try again.');
+        showToast('Image Error', 'error', 'Could not read image data. Please try again.');
         return;
       }
 
@@ -273,14 +271,14 @@ export default function ProfileScreen({ navigation }) {
         const updated = await profileService.updateAvatar(dataUri);
         setState((curr) => ({ ...curr, profile: updated }));
         if (updateUser) updateUser(updated);
-        Alert.alert('Photo updated', 'Your profile photo has been changed.');
+        showToast('Photo Updated 📸', 'success', 'Your new profile avatar is live!');
       } catch (uploadError) {
-        Alert.alert('Upload failed', uploadError.userMessage || 'Unable to update profile photo.');
+        showToast('Upload Failed', 'error', uploadError.userMessage || 'Unable to update profile photo.');
       } finally {
         setUploadingPhoto(false);
       }
     } catch (e) {
-      Alert.alert('Error', 'Failed to open the image gallery.');
+      showToast('Gallery Error', 'error', 'Failed to open the image gallery.');
     }
   };
 
@@ -291,8 +289,9 @@ export default function ProfileScreen({ navigation }) {
       const updated = await profileService.updateAvatar(emoji);
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
+      showToast('Avatar Changed 🎉', 'success', `Avatar set to ${emoji}`);
     } catch (uploadError) {
-      Alert.alert('Update failed', uploadError.userMessage || 'Unable to update avatar.');
+      showToast('Avatar Update Failed', 'error', uploadError.userMessage || 'Unable to update avatar.');
     } finally {
       setUploadingPhoto(false);
     }
@@ -309,9 +308,9 @@ export default function ProfileScreen({ navigation }) {
       });
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
-      Alert.alert('Proficiency Level Updated 🎯', `Your AI Tutor level is now set to ${newLevel}.`);
+      showToast('Proficiency Updated 🎯', 'success', `AI Tutor level set to ${newLevel}`);
     } catch (err) {
-      Alert.alert('Update Failed', 'Could not update English proficiency level.');
+      showToast('Update Failed', 'error', 'Could not update English proficiency level.');
     } finally {
       setUpdatingLevel(false);
     }

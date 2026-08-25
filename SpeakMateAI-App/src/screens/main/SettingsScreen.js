@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Screen, StateView } from '../../components/ui';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import { settingsService, onboardingService, profileService } from '../../services/appServices';
 import { VoiceService, VOICE_PROFILES } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
@@ -61,6 +62,7 @@ const defaults = {
 
 export default function SettingsScreen({ navigation }) {
   const { isDark: globalIsDark, setDarkMode } = useTheme();
+  const { showToast } = useToast();
   const [form, setForm] = useState(defaults);
   const [state, setState] = useState({ loading: true, error: '' });
   const [saving, setSaving] = useState(false);
@@ -138,10 +140,10 @@ export default function SettingsScreen({ navigation }) {
         await onboardingService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Onboarding age sync warning:', e));
       }
 
-      Alert.alert('Saved ✓', 'Your preferences have been updated successfully.');
+      showToast('Preferences Saved ✓', 'success', 'All tutor voice and language settings updated');
     } catch (error) {
       console.error('Settings save error:', error);
-      Alert.alert('Save Failed', error.response?.data?.message || error.userMessage || 'Unable to save settings. Please try again.');
+      showToast('Save Failed', 'error', error.response?.data?.message || error.userMessage || 'Unable to save settings');
     } finally {
       setSaving(false);
     }

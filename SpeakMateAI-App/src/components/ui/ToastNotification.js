@@ -111,17 +111,32 @@ export default function ToastNotification({ toast, onDismiss }) {
         },
       ]}
     >
-      <LinearGradient colors={config.bg} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={[styles.toastContainer, { borderColor: config.border }]}>
-        <View style={styles.iconWrapper}>
-          <Ionicons name={config.icon} size={24} color={config.iconColor} />
-        </View>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={dismiss}
+        style={{ width: '100%' }}
+      >
+        <LinearGradient
+          colors={config.bg}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.toastContainer, { borderColor: config.border }]}
+        >
+          <View style={styles.iconWrapper}>
+            <Ionicons name={config.icon} size={24} color={config.iconColor} />
+          </View>
 
-        <View style={styles.textWrapper}>
-          <Text style={styles.badgeText}>{config.badgeText}</Text>
-          <Text style={styles.titleText}>{toast.message}</Text>
-          {toast.subtext && <Text style={styles.subtextText}>{toast.subtext}</Text>}
-        </View>
-      </LinearGradient>
+          <View style={styles.textWrapper}>
+            <Text style={styles.badgeText}>{config.badgeText}</Text>
+            <Text style={styles.titleText}>{toast.message}</Text>
+            {toast.subtext && <Text style={styles.subtextText}>{toast.subtext}</Text>}
+          </View>
+
+          <TouchableOpacity onPress={dismiss} style={styles.closeIconBtn} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <Ionicons name="close" size={16} color="rgba(255, 255, 255, 0.7)" />
+          </TouchableOpacity>
+        </LinearGradient>
+      </TouchableOpacity>
     </Animated.View>
   );
 }
@@ -181,5 +196,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'rgba(255, 255, 255, 0.85)',
     marginTop: 2,
+  },
+  closeIconBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
   },
 });

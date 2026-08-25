@@ -1,3 +1,5 @@
+import { toast } from "../context/ToastContext";
+
 /**
  * Dynamically loads the Razorpay checkout script if not already present.
  */
@@ -44,7 +46,7 @@ export async function openRazorpayCheckout({ orderData, onSuccess, onFailure, on
       }
       return;
     }
-    alert("Razorpay checkout SDK failed to load. Please check your internet connection.");
+    toast.error("Razorpay checkout SDK failed to load. Please check your internet connection.");
     if (onFailure) onFailure(new Error("Razorpay SDK load failed"));
     return;
   }

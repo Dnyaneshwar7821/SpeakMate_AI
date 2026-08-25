@@ -3,11 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { subscriptionService } from "../services/appServices";
 import { openRazorpayCheckout } from "../utils/razorpayUtils";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 import ROUTES from "../constants/routes";
 
 export function Pricing() {
   const navigate = useNavigate();
   const { user, login } = useAuth();
+  const toast = useToast();
 
   const [billingCycle, setBillingCycle] = useState("YEARLY"); // 'MONTHLY' | 'YEARLY'
   const [currentSub, setCurrentSub] = useState(null);
@@ -93,6 +95,7 @@ export function Pricing() {
             setCurrentSub(verifyRes);
             setSuccessDetails(verifyRes);
             setShowSuccessModal(true);
+            toast.success("🎉 Payment verified! Welcome to SpeakMate Pro VIP!");
 
             // Update user in local storage if possible
             if (user) {
@@ -100,13 +103,17 @@ export function Pricing() {
               if (login) login(updatedUser, localStorage.getItem("token"));
             }
           } catch (err) {
-            setErrorMsg(err.response?.data?.message || err.message || "Payment verification failed.");
+            const msg = err.response?.data?.message || err.message || "Payment verification failed.";
+            setErrorMsg(msg);
+            toast.error(msg);
           } finally {
             setLoading(false);
           }
         },
         onFailure: (err) => {
-          setErrorMsg(err?.description || err?.message || "Payment was cancelled or failed.");
+          const msg = err?.description || err?.message || "Payment was cancelled or failed.";
+          setErrorMsg(msg);
+          toast.error(msg);
           setLoading(false);
         },
         onDismiss: () => {
@@ -114,7 +121,9 @@ export function Pricing() {
         },
       });
     } catch (err) {
-      setErrorMsg(err.response?.data?.message || err.message || "Failed to initialize payment.");
+      const msg = err.response?.data?.message || err.message || "Failed to initiate payment.";
+      setErrorMsg(msg);
+      toast.error(msg);
       setLoading(false);
     }
   };
