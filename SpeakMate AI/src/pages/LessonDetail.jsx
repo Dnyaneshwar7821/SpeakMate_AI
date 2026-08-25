@@ -186,27 +186,21 @@ export function LessonDetail() {
     };
   }, [studyStep, showStudy]);
 
-  // Step 1: Auto AI Teaching Concept (fires automatically on step 1)
+  // Step 1: Auto AI Teaching Concept background enhancement
   useEffect(() => {
     if (!showStudy || studyStep !== 1 || !lesson) return;
-    if (aiTeachContent) return;
 
-    setAiTeachLoading(true);
     aiService
-      .lessonTutor(`Teach the lesson "${lesson.title}" (${lesson.category} - ${lesson.level}) in 150 words with simple explanation, why it matters, and common mistakes.`)
+      .lessonTutor(`Teach the lesson "${lesson.title}" (${lesson.category} - ${lesson.level}) in 120 words with simple explanation, why it matters, and key tips.`)
       .then((res) => {
         if (res?.response) {
           const cleaned = cleanAiText(res.response);
-          setAiTeachContent(cleaned);
-          handleSpeakText(cleaned);
+          if (cleaned && cleaned.length > 30) {
+            setAiTeachContent(cleaned);
+          }
         }
       })
-      .catch(() => {
-        const fallback = `Let's explore "${lesson.title}" together!\n\nThis topic is essential for building natural fluency in ${lesson.category}. Focus on regular sentence practice, listening to native audio examples, and speaking out loud.`;
-        setAiTeachContent(fallback);
-        handleSpeakText(fallback);
-      })
-      .finally(() => setAiTeachLoading(false));
+      .catch(() => {});
   }, [showStudy, studyStep, lesson]);
 
   // Step 2: Auto AI Examples
@@ -319,8 +313,51 @@ export function LessonDetail() {
   }, [showStudy, studyStep, lesson]);
 
   const handleStartStudyFlow = () => {
+    const defaultTeach = `Let's explore "${lesson.title}" together!\n\n` +
+      `This topic is essential for building natural fluency in ${lesson.category}. ` +
+      `${lesson.description || 'Mastering this will significantly boost your spoken confidence and grammatical accuracy.'}\n\n` +
+      `Key Rules to Remember:\n• Practice daily with full sentences.\n• Listen carefully to native speech rhythm.\n• Speak out loud to build natural muscle memory.\n\n` +
+      `Common Mistakes to Avoid:\n• Translating word-for-word from your native language.\n• Skipping speaking practice and only reading silently.`;
+
+    const defaultExamples = [
+      { sentence: "She has been studying English every day to build confidence.", context: "Daily Routine", explanation: "Demonstrates continuous habitual practice with natural sentence flow." },
+      { sentence: "Could you please explain that point again?", context: "Professional Meeting", explanation: "Using polite modal verbs creates confident, respectful communication." },
+      { sentence: "I would have called you if I had received the update earlier.", context: "Social Scenario", explanation: "Uses third conditional to express hypothetical past situations." },
+      { sentence: "The team successfully completed the presentation ahead of schedule.", context: "Workplace", explanation: "Uses clear action verbs and natural adverb placement." },
+    ];
+
+    const defaultCheck = shuffleCheckQ({
+      question: `What is the most effective approach to mastering "${lesson.title}"?`,
+      options: [
+        "Focus on clear structure, natural rhythm, and regular speaking practice.",
+        "Translate literally word-for-word from another language.",
+        "Memorize isolated words without forming full sentences.",
+      ],
+      correctIndex: 0,
+      explanation: "Applying the concept in complete, contextual sentences is the proven key to true English fluency.",
+    });
+
+    const defaultGuided = {
+      sentence: "Every day I ______ new English phrases to express myself clearly.",
+      correctWord: "practice",
+      hint: "Think of a common verb meaning to do something repeatedly to improve.",
+      explanation: "'Practice' is the correct simple present verb for habitual daily routine.",
+    };
+
+    setAiTeachContent(defaultTeach);
+    setAiExamples(defaultExamples);
+    setAiCheckQ(defaultCheck);
+    setAiGuidedQ(defaultGuided);
+    setCheckSelected(null);
+    setCheckSubmitted(false);
+    setGuidedInput("");
+    setGuidedSubmitted(false);
+    setBlankPenalty(0);
+    setSpeakingInput("");
+    setSpeakingFeedback(null);
     setShowStudy(true);
     setStudyStep(1);
+    handleSpeakText(defaultTeach);
   };
 
   const handleEvaluateSpeaking = async () => {

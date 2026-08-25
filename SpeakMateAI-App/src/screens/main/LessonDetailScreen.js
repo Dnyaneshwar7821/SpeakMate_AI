@@ -508,59 +508,36 @@ export default function LessonDetailScreen({ navigation, route }) {
     setIsSpeakingContent(false);
   }, [studyStep, showStudy]);
 
-  // ── Auto AI Teaching: fires automatically on Step 2 ─────────────────
+  // ── Auto AI Teaching: fires automatically on Step 2 with instant speech ──
   useEffect(() => {
     if (!showStudy || studyStep !== 1 || !lesson) return;
-    if (aiTeachContent) return; // already loaded, don't re-fetch
 
-    const autoTeach = async () => {
-      setAiTeachLoading(true);
-      setAiTeachContent('');
+    const textToSpeak = aiTeachContent || `Let's explore ${lesson.title} together! Mastering this concept will significantly boost your English fluency and confidence.`;
+    setIsSpeakingContent(true);
+    VoiceService.speak(sanitizeForSpeech(textToSpeak), {
+      voiceType: settings?.aiVoice || 'Default',
+      availableVoices,
+      onDone: () => setIsSpeakingContent(false),
+      onError: () => setIsSpeakingContent(false),
+    });
+
+    // Background enhancement without blocking UI
+    const fetchDynamicTeach = async () => {
       try {
-        const prompt = [
-          `You are an expert English teacher. Teach the lesson "${lesson.title}" (Category: ${lesson.category}, Level: ${lesson.level}) to a student.`,
-          `Structure your teaching in these clear sections:`,
-          `1. WHAT IS THIS TOPIC: Explain what "${lesson.title}" means in simple, friendly words. Don't just recite a definition — explain it like a passionate teacher.`,
-          `2. WHY IT MATTERS: Tell the student why mastering this topic will improve their English fluency and confidence in real life.`,
-          `3. HOW TO MASTER IT: Give 3-4 clear, actionable steps or tips the student should follow to get really good at this topic.`,
-          `4. COMMON MISTAKES: List 2-3 typical mistakes that learners often make with this topic, and how to avoid them.`,
-          `Keep the tone warm, encouraging, and conversational. Use simple language. Total length: 200-250 words.`
-        ].join('\n');
-
+        const prompt = `Teach the lesson "${lesson.title}" (${lesson.category} - ${lesson.level}) in 120 words with simple explanation, why it matters, and key tips.`;
         const res = await aiService.lessonTutor(prompt);
         if (res?.response) {
-          const cleanText = cleanAiText(res.response);
-          setAiTeachContent(cleanText);
-          // Auto-read via voice right after loading
-          setIsSpeakingContent(true);
-          VoiceService.speak(sanitizeForSpeech(cleanText), {
-            voiceType: settings?.aiVoice || 'Default',
-            availableVoices,
-            onDone: () => setIsSpeakingContent(false),
-            onError: () => setIsSpeakingContent(false),
-          });
+          const clean = cleanAiText(res.response);
+          if (clean && clean.length > 30) {
+            setAiTeachContent(clean);
+          }
         }
       } catch (err) {
-        console.warn('Auto AI teach failed:', err);
-        const fallbackText = `Let's explore "${lesson.title}" together!\n\n` +
-          `This topic is a key part of ${lesson.category} in English. ` +
-          `${lesson.description || 'Mastering this will significantly boost your fluency and confidence.'}\n\n` +
-          `To master this topic:\n• Practice daily with real sentences\n• Listen to native speakers\n• Speak out loud, even alone\n• Review your mistakes and learn from them\n\n` +
-          `Common mistakes to avoid:\n• Translating word-for-word from your native language\n• Skipping speaking practice and only reading\n• Ignoring pronunciation and natural rhythm`;
-        setAiTeachContent(fallbackText);
-        setIsSpeakingContent(true);
-        VoiceService.speak(sanitizeForSpeech(fallbackText), {
-          voiceType: settings?.aiVoice || 'Default',
-          availableVoices,
-          onDone: () => setIsSpeakingContent(false),
-          onError: () => setIsSpeakingContent(false),
-        });
-      } finally {
-        setAiTeachLoading(false);
+        console.warn('Dynamic teach background fetch:', err?.message);
       }
     };
 
-    autoTeach();
+    fetchDynamicTeach();
   }, [showStudy, studyStep, lesson]);
 
   // ── Auto AI Examples: fires automatically on Step 3 ─────────────────
@@ -956,10 +933,39 @@ export default function LessonDetailScreen({ navigation, route }) {
     setActionLoading(true);
     try {
       // Non-blocking backend notification
-      lessonModuleService.start(lesson.id).catch((err) => {
-        console.warn("Backend start service sync warning:", err);
-      });
+      lessonModuleService.start(lesson.id).catch(() => {});
       
+      const defaultTeach = `Let's explore "${lesson.title}" together!\n\n` +
+        `This topic is a key part of ${lesson.category} in English. ` +
+        `${lesson.description || 'Mastering this will significantly boost your fluency and confidence.'}\n\n` +
+        `Key Rules to Remember:\n• Practice daily with natural sentences.\n• Listen carefully to native speech rhythm.\n• Speak out loud to build natural muscle memory.\n\n` +
+        `Common Mistakes to Avoid:\n• Translating word-for-word from your native language.\n• Skipping speaking practice and only reading silently.`;
+
+      const defaultExamples = [
+        { sentence: `She has been practicing spoken English every day to build confidence.`, context: 'Daily Routine', explanation: 'Demonstrates present perfect continuous for ongoing habitual actions.' },
+        { sentence: `Could you please explain that point again?`, context: 'Workplace', explanation: 'Using polite modal verbs creates confident, professional communication.' },
+        { sentence: `I would have called you if I had received the update earlier.`, context: 'Social Scenario', explanation: 'Uses third conditional to express hypothetical past situations.' },
+        { sentence: `The team successfully completed the presentation ahead of schedule.`, context: 'Professional', explanation: 'Uses clear action verbs and natural adverb placement.' },
+      ];
+
+      const defaultCheckQ = shuffleCheckQ({
+        question: `What is the most important practice habit when studying "${lesson.title}"?`,
+        options: [
+          'Focus on correct structure, natural rhythm, and clear meaning.',
+          'Translate every single word literally from your native language.',
+          'Memorize rules without ever speaking in full sentences.',
+        ],
+        correctIndex: 0,
+        explanation: 'Applying the rule in real sentences with natural rhythm is the key to truly mastering any English concept.',
+      });
+
+      const defaultGuidedQ = {
+        sentence: `Every day I ______ new English phrases to improve my fluency.`,
+        correctWord: 'practice',
+        hint: 'Think of a verb meaning to do something repeatedly to get better at it.',
+        explanation: '"Practice" is the correct verb here — a habitual action done daily requires the simple present tense.',
+      };
+
       const prog = lesson.progressPercent || 0;
       let initialStep = 0;
       if (prog >= 75) {
@@ -969,11 +975,10 @@ export default function LessonDetailScreen({ navigation, route }) {
       }
 
       setStudyStep(initialStep);
-      // Reset AI teach + examples so they re-fetch fresh
-      setAiTeachContent('');
-      setAiExamples([]);
-      setAiCheckQ(null);
-      setAiGuidedQ(null);
+      setAiTeachContent(defaultTeach);
+      setAiExamples(defaultExamples);
+      setAiCheckQ(defaultCheckQ);
+      setAiGuidedQ(defaultGuidedQ);
       setTutorResponse('');
       setTutorInput('');
       setCheckSelected(null);
@@ -991,8 +996,6 @@ export default function LessonDetailScreen({ navigation, route }) {
     } catch (e) {
       console.warn("Could not start study mode via backend, falling back to direct UI open:", e);
       setStudyStep(0);
-      setAiTeachContent('');
-      setAiExamples([]);
       setShowStudy(true);
     } finally {
       setActionLoading(false);

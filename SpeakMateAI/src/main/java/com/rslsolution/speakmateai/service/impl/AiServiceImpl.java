@@ -174,7 +174,7 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 				new GroqRequest.Message("system", "You are an automated backend JSON API. You MUST output ONLY valid, parsable JSON starting with '[' and ending with ']'. Never output introductory words like 'Certainly', 'Here are', markdown formatting, bold text, or backticks."),
 				new GroqRequest.Message("user", prompt)
 			);
-			AiResponse res = executeGroqCall(chatModel, messages, 0.2);
+			AiResponse res = executeGroqCall("llama-3.3-70b-versatile", messages, 0.2);
 			if (res != null && res.getResponse() != null) {
 				String raw = res.getResponse().trim();
 				raw = raw.replaceAll("(?s)<think>.*?</think>", "").trim();
@@ -206,17 +206,16 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 	public AiResponse lessonTutor(AiRequest request) {
 		try {
 			String prompt = "You are an expert, encouraging AI English Tutor.\n"
-					+ "Directly explain the following topic to the student in clean, conversational English. Do NOT output any thinking process, meta-analysis, or outline notes.\n\n"
-					+ request.getPrompt()
-					+ "\n\nProvide: 1) A clear, engaging explanation (120-150 words), 2) Two practical everyday examples, and 3) One quick tip.";
+					+ "Directly explain the following topic to the student in clean, conversational English in 120-150 words. Do NOT output any thinking process or outline notes:\n\n"
+					+ request.getPrompt();
 			List<GroqRequest.Message> messages = List.of(
 				new GroqRequest.Message("system", "You are an expert AI English Tutor. You speak directly to the student in warm, encouraging language. Never output thoughts, reasoning tags, or internal outlines."),
 				new GroqRequest.Message("user", prompt)
 			);
-			return executeGroqCall(analysisModel, messages, 0.7);
+			return executeGroqCall("llama-3.3-70b-versatile", messages, 0.7);
 		} catch (Exception e) {
 			return AiResponse.builder()
-					.response("Great question! In this lesson section, the key concept to remember is practicing natural usage in everyday conversations. For example:\n1. 'I have been practicing speaking every day.'\n2. 'She quickly improved her vocabulary.'\n\nTry forming your own sentence using this concept!")
+					.response("Welcome to this lesson! Today we will master natural English communication with confidence. Practice speaking each sentence out loud, listen to the examples, and apply the rules in your daily conversations.")
 					.build();
 		}
 	}
