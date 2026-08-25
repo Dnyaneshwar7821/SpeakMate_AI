@@ -4,12 +4,12 @@ import ROUTES from "../constants/routes";
 import { getLiveProgressStats } from "../utils/progressTracker";
 
 const CEFR_LEVELS = [
-  { code: "A1", name: "Beginner", minXp: 0, maxXp: 250, color: "from-blue-500 to-indigo-600", desc: "Can understand basic phrases & introduce oneself." },
-  { code: "A2", name: "Elementary", minXp: 250, maxXp: 600, color: "from-cyan-500 to-teal-600", desc: "Can communicate in routine conversational tasks." },
-  { code: "B1", name: "Intermediate", minXp: 600, maxXp: 1200, color: "from-emerald-500 to-green-600", desc: "Can handle most everyday conversations with ease." },
-  { code: "B2", name: "Upper Intermediate", minXp: 1200, maxXp: 2500, color: "from-purple-500 to-indigo-600", desc: "Can converse fluently with native speakers." },
-  { code: "C1", name: "Advanced", minXp: 2500, maxXp: 5000, color: "from-pink-500 to-rose-600", desc: "Can express ideas fluently and spontaneously." },
-  { code: "C2", name: "Mastery / Native", minXp: 5000, maxXp: 10000, color: "from-amber-400 to-yellow-600", desc: "Complete effortless fluency in complex discourse." },
+  { code: "A1", name: "Beginner", minXp: 0, maxXp: 500, color: "from-blue-500 to-indigo-600", desc: "Can understand basic phrases & introduce oneself." },
+  { code: "A2", name: "Elementary", minXp: 500, maxXp: 1500, color: "from-cyan-500 to-teal-600", desc: "Can communicate in routine conversational tasks." },
+  { code: "B1", name: "Intermediate", minXp: 1500, maxXp: 3000, color: "from-emerald-500 to-green-600", desc: "Can handle most everyday conversations with ease." },
+  { code: "B2", name: "Upper Intermediate", minXp: 3000, maxXp: 5000, color: "from-purple-500 to-indigo-600", desc: "Can converse fluently with native speakers." },
+  { code: "C1", name: "Advanced", minXp: 5000, maxXp: 8000, color: "from-pink-500 to-rose-600", desc: "Can express ideas fluently and spontaneously." },
+  { code: "C2", name: "Mastery / Native", minXp: 8000, maxXp: 15000, color: "from-amber-400 to-yellow-600", desc: "Complete effortless fluency in complex discourse." },
 ];
 
 export function Progress() {
@@ -50,12 +50,12 @@ export function Progress() {
   const grammarExercises = liveStats.grammarExercises || liveStats.grammarChecks || 0;
   const completedLessons = liveStats.completedLessons || liveStats.lessonsCompleted || 0;
 
-  // Level & XP calculations
-  const level = Math.floor(xp / 100) + 1;
-  const currentLevelBaseXp = (level - 1) * 100;
-  const nextLevelXp = level * 100;
+  // Level & XP calculations (500 XP per level)
+  const level = Math.floor(xp / 500) + 1;
+  const currentLevelBaseXp = (level - 1) * 500;
+  const nextLevelXp = level * 500;
   const levelXpProgress = Math.max(0, xp - currentLevelBaseXp);
-  const levelPercentage = Math.min(100, Math.max(0, (levelXpProgress / 100) * 100));
+  const levelPercentage = Math.min(100, Math.max(0, (levelXpProgress / 500) * 100));
 
   // CEFR calculations
   const currentCefr = CEFR_LEVELS.find((c) => xp >= c.minXp && xp < c.maxXp) || CEFR_LEVELS[CEFR_LEVELS.length - 1];

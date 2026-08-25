@@ -140,7 +140,7 @@ export const recordSpeakingSession = (durationMins = 5, accuracyScore = 90, user
   stats.speakingSessions += 1;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  stats.xp += Math.min(25, durationMins * 2 + 5);
+  stats.xp += Math.min(40, durationMins * 5 + 15);
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
@@ -154,7 +154,7 @@ export const recordGrammarCheck = (accuracyScore = 95, userContext = null) => {
   stats.todayMins = (stats.todayMins || 0) + 1;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  stats.xp += 3;
+  stats.xp += 8;
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
@@ -166,7 +166,7 @@ export const recordVocabularyMastered = (count = 1, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
   stats.wordsLearned += count;
   stats.todayMins = (stats.todayMins || 0) + count;
-  stats.xp += count * 2;
+  stats.xp += count * 5;
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
@@ -180,8 +180,28 @@ export const recordLessonCompleted = (accuracyScore = 90, userContext = null) =>
   stats.todayMins = (stats.todayMins || 0) + 5;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  stats.xp += 15;
+  stats.xp += 30;
   
+  checkAndUpdateDailyGoal(stats, userContext);
+  saveProgressStats(stats, userContext);
+  return stats;
+};
+
+// 5. Track Quiz Completion (Grammar & Vocabulary)
+export const recordQuizCompleted = (quizType = "grammar", score = 8, total = 8, userContext = null) => {
+  const stats = getLiveProgressStats(userContext);
+  const baseXP = score * 5;
+  const perfectBonus = score === total && total > 0 ? 10 : 0;
+  const totalAwarded = baseXP + perfectBonus;
+
+  if (quizType === "grammar") {
+    stats.grammarChecks += score;
+  } else {
+    stats.wordsLearned += score;
+  }
+  stats.todayMins = (stats.todayMins || 0) + 3;
+  stats.xp += totalAwarded;
+
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
   return stats;

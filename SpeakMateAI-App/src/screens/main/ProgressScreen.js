@@ -17,14 +17,14 @@ import { COLORS } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
 
-// CEFR Level Configuration
+// CEFR Level Configuration (500 XP per level scale)
 const CEFR_LEVELS = [
-  { code: 'A1', name: 'Beginner', minXp: 0, maxXp: 250, color: '#3B82F6', desc: 'Can understand basic phrases & introduce oneself.' },
-  { code: 'A2', name: 'Elementary', minXp: 250, maxXp: 600, color: '#06B6D4', desc: 'Can communicate in routine conversational tasks.' },
-  { code: 'B1', name: 'Intermediate', minXp: 600, maxXp: 1200, color: '#10B981', desc: 'Can handle most everyday conversations with ease.' },
-  { code: 'B2', name: 'Upper Intermediate', minXp: 1200, maxXp: 2500, color: '#8B5CF6', desc: 'Can converse fluently with native speakers.' },
-  { code: 'C1', name: 'Advanced', minXp: 2500, maxXp: 5000, color: '#EC4899', desc: 'Can express ideas fluently and spontaneously.' },
-  { code: 'C2', name: 'Mastery / Native', minXp: 5000, maxXp: 10000, color: '#F59E0B', desc: 'Complete effortless fluency in complex discourse.' },
+  { code: 'A1', name: 'Beginner', minXp: 0, maxXp: 500, color: '#3B82F6', desc: 'Can understand basic phrases & introduce oneself.' },
+  { code: 'A2', name: 'Elementary', minXp: 500, maxXp: 1500, color: '#06B6D4', desc: 'Can communicate in routine conversational tasks.' },
+  { code: 'B1', name: 'Intermediate', minXp: 1500, maxXp: 3000, color: '#10B981', desc: 'Can handle most everyday conversations with ease.' },
+  { code: 'B2', name: 'Upper Intermediate', minXp: 3000, maxXp: 5000, color: '#8B5CF6', desc: 'Can converse fluently with native speakers.' },
+  { code: 'C1', name: 'Advanced', minXp: 5000, maxXp: 8000, color: '#EC4899', desc: 'Can express ideas fluently and spontaneously.' },
+  { code: 'C2', name: 'Mastery / Native', minXp: 8000, maxXp: 15000, color: '#F59E0B', desc: 'Complete effortless fluency in complex discourse.' },
 ];
 
 export default function ProgressScreen({ navigation }) {
@@ -61,13 +61,13 @@ export default function ProgressScreen({ navigation }) {
     { day: 'Sun', studyMinutes: 30 },
   ];
 
-  // Level & XP calculations
+  // Level & XP calculations (500 XP per level)
   const xp = progress.xp || 0;
-  const level = progress.level || Math.max(1, Math.floor(xp / 100) + 1);
-  const currentLevelBaseXp = (level - 1) * 100;
-  const nextLevelXp = level * 100;
+  const level = progress.level || Math.max(1, Math.floor(xp / 500) + 1);
+  const currentLevelBaseXp = (level - 1) * 500;
+  const nextLevelXp = level * 500;
   const levelXpProgress = Math.max(0, xp - currentLevelBaseXp);
-  const levelPercentage = Math.min(100, Math.max(0, (levelXpProgress / 100) * 100));
+  const levelPercentage = Math.min(100, Math.max(0, (levelXpProgress / 500) * 100));
 
   // Determine current CEFR Level
   const currentCefr = CEFR_LEVELS.find((c) => xp >= c.minXp && xp < c.maxXp) || CEFR_LEVELS[CEFR_LEVELS.length - 1];

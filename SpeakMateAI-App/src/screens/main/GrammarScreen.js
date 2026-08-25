@@ -302,7 +302,7 @@ export default function GrammarScreen() {
       setIsQuizAnswerSubmitted(false);
     } else {
       setIsQuizCompleted(true);
-      const totalAwarded = quizScore * 3 + (quizScore === dailyQuizzes.length && quizScore > 0 ? 6 : 0);
+      const totalAwarded = quizScore * 5 + (quizScore === dailyQuizzes.length && quizScore > 0 ? 10 : 0);
       try {
         const prog = await progressService.get().catch(() => null);
         if (prog) {

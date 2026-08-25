@@ -117,9 +117,9 @@ public class GrammarServiceImpl implements GrammarService {
 			com.rslsolution.speakmateai.entity.Progress progress = progressRepository.findByUser(user)
 					.orElseGet(() -> com.rslsolution.speakmateai.entity.Progress.builder().user(user).xp(0).level(1).currentStreak(0).longestStreak(0).totalPracticeMinutes(0).totalSpeakingSessions(0).totalGrammarChecks(0).totalVocabularyWords(0).build());
 			progress.setTotalGrammarChecks((progress.getTotalGrammarChecks() == null ? 0 : progress.getTotalGrammarChecks()) + 1);
-			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 3;
+			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 8;
 			progress.setXp(newXp);
-			progress.setLevel(Math.max(1, (newXp / 250) + 1));
+			progress.setLevel(Math.max(1, (newXp / 500) + 1));
 			progressRepository.save(progress);
 		} catch (Exception ex) {
 			// Ignore progress update errors

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { grammarService } from "../services/appServices";
 import { speakGlobalText, speakGlobalSequential } from "../utils/speechHelper";
-import { recordVocabularyMastered } from "../utils/progressTracker";
+import { recordQuizCompleted } from "../utils/progressTracker";
 import {
   analyzeSentenceGrammarLocally,
   EXTENSIVE_GRAMMAR_GUIDE,
@@ -199,7 +199,7 @@ export function GrammarPractice() {
       setIsAnswerSubmitted(false);
     } else {
       setQuizCompleted(true);
-      recordGrammarCheck(Math.round((quizScore / Math.max(1, dailyQuizzes.length)) * 100));
+      recordQuizCompleted("grammar", quizScore, dailyQuizzes.length);
     }
   };
 

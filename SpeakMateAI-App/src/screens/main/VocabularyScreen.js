@@ -301,7 +301,7 @@ export default function VocabularyScreen() {
     try {
       const response = await vocabularyService.add(cleanWord);
       setWord('');
-      Alert.alert('Word Added ✨', `"${cleanWord}" added with AI pronunciation and meaning! (+10 XP)`);
+      Alert.alert('Word Added ✨', `"${cleanWord}" added with AI pronunciation and meaning! (+5 XP)`);
       setUserWords((prev) => [response, ...prev]);
     } catch (error) {
       const localItem = {
@@ -598,9 +598,9 @@ export default function VocabularyScreen() {
   const finishQuiz = async () => {
     setQuizFinished(true);
     const totalQ = quizQuestions.length;
-    const baseXP = quizScore * 3;
-    const streakBonus = maxStreak >= 3 ? 3 : 0;
-    const perfectBonus = quizScore === totalQ && totalQ > 0 ? 5 : 0;
+    const baseXP = quizScore * 5;
+    const streakBonus = maxStreak >= 3 ? 5 : 0;
+    const perfectBonus = quizScore === totalQ && totalQ > 0 ? 10 : 0;
     const totalAwarded = baseXP + streakBonus + perfectBonus;
     setEarnedXP(totalAwarded);
 

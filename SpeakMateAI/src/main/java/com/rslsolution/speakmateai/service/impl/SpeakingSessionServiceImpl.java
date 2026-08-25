@@ -877,12 +877,12 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		// Calculate XP reward:
 		// Base: 10 XP if session had dialogue or lasted >= 15 seconds
 		// Time bonus: 10 XP per full minute
-		// Performance bonus: balanced reward rates
-		int baseReward = (session.getMessages() != null && session.getMessages().size() >= 2) || durationSeconds >= 15 ? 5 : 2;
+		// Performance bonus: rewarding speaking practice
+		int baseReward = (session.getMessages() != null && session.getMessages().size() >= 2) || durationSeconds >= 15 ? 15 : 5;
 		long minutes = durationSeconds / 60;
-		int timeBonus = (int) (minutes * 2);
-		int scoreBonus = (score >= 90.0) ? 5 : (score >= 80.0 ? 3 : 0);
-		int xp = Math.min(25, baseReward + timeBonus + scoreBonus);
+		int timeBonus = (int) (minutes * 5);
+		int scoreBonus = (score >= 90.0) ? 10 : (score >= 80.0 ? 5 : 0);
+		int xp = Math.min(45, baseReward + timeBonus + scoreBonus);
 
 		// Update session fields
 		session.setDuration((int) durationSeconds);
@@ -916,7 +916,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			progress.setTotalSpeakingSessions((progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
 			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + xp;
 			progress.setXp(newXp);
-			progress.setLevel(Math.max(1, (newXp / 250) + 1));
+			progress.setLevel(Math.max(1, (newXp / 500) + 1));
 			progressRepository.save(progress);
 		} catch (Exception ex) {
 			// Ignore progress update errors
