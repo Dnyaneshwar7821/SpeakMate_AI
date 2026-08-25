@@ -22,7 +22,7 @@ import {
   EXTENSIVE_GRAMMAR_GUIDE,
   getTailoredDailyGrammarQuizzes,
   parseBackendGrammarExplanation,
-  generateCleanSpokenGrammarFeedback,
+  generateSpokenGrammarSegments,
 } from '../../utils/grammarEngine';
 
 const SAMPLE_SENTENCES = [
@@ -236,12 +236,12 @@ export default function GrammarScreen() {
     if (userSettings?.isMuted) return;
 
     const voiceType = await getActiveVoiceType();
-    const cleanSpeech = generateCleanSpokenGrammarFeedback(res);
+    const spokenSegments = generateSpokenGrammarSegments(res);
 
-    VoiceService.speak(cleanSpeech, {
+    VoiceService.speakSequential(spokenSegments, {
       voiceType,
       availableVoices: currentVoices,
-    });
+    }, 700);
   };
 
   const removeHistoryItem = async (id) => {

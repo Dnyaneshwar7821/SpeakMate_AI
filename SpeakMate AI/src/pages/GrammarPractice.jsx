@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { grammarService } from "../services/appServices";
-import { speakGlobalText } from "../utils/speechHelper";
+import { speakGlobalText, speakGlobalSequential } from "../utils/speechHelper";
 import { recordVocabularyMastered } from "../utils/progressTracker";
 import {
   analyzeSentenceGrammarLocally,
@@ -8,7 +8,7 @@ import {
   getTailoredDailyGrammarQuizzes,
   playWebAudioChime,
   parseBackendGrammarExplanation,
-  generateCleanSpokenGrammarFeedback,
+  generateSpokenGrammarSegments,
 } from "../utils/grammarEngine";
 
 export function GrammarPractice() {
@@ -160,13 +160,13 @@ export function GrammarPractice() {
     }
   };
 
-  const speakFeedback = (res) => {
+  const speakFeedback = async (res) => {
     if (!res) return;
     setIsAiSpeaking(true);
 
-    const cleanSpeech = generateCleanSpokenGrammarFeedback(res);
-    speakGlobalText(cleanSpeech, 1.0);
-    setTimeout(() => setIsAiSpeaking(false), 4000);
+    const segments = generateSpokenGrammarSegments(res);
+    await speakGlobalSequential(segments, 1.0, 700);
+    setIsAiSpeaking(false);
   };
 
   // Daily Quiz Handling

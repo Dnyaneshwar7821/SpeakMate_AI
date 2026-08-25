@@ -376,15 +376,15 @@ export function parseBackendGrammarExplanation(rawExplanation, correctedText, lo
   return parsed.length > 0 ? parsed : localErrors;
 }
 
-export function generateCleanSpokenGrammarFeedback(res) {
-  if (!res) return "";
+export function generateSpokenGrammarSegments(res) {
+  if (!res) return [];
 
   if (res.isCorrect) {
-    return `Your sentence is 100% grammatically correct! "${res.correctedText}". Excellent job.`;
+    return [`Your sentence is 100% grammatically correct! "${res.correctedText}". Excellent job.`];
   }
 
-  // Clear, strict, natural feedback explaining ALL mistakes and what was improved
-  let speech = `The corrected sentence is: "${res.correctedText}". `;
+  const segments = [];
+  segments.push(`The corrected sentence is: "${res.correctedText}".`);
 
   if (res.errors && res.errors.length > 0) {
     const cleanTips = res.errors.map((e) => {
@@ -396,18 +396,18 @@ export function generateCleanSpokenGrammarFeedback(res) {
     });
 
     if (cleanTips.length === 1) {
-      speech += `Improvement made: ${cleanTips[0]}.`;
+      segments.push(`Improvement made: ${cleanTips[0]}.`);
     } else {
-      speech += `I noticed ${cleanTips.length} grammar improvements: `;
+      segments.push(`I noticed ${cleanTips.length} grammar improvements.`);
       const ordinals = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth"];
       cleanTips.forEach((tip, idx) => {
         const prefix = ordinals[idx] || `Point ${idx + 1}`;
-        speech += `${prefix}, ${tip}. `;
+        segments.push(`${prefix}: ${tip}.`);
       });
     }
   }
 
-  return speech.trim();
+  return segments;
 }
 
 export const EXTENSIVE_GRAMMAR_GUIDE = [

@@ -482,6 +482,53 @@ export const VoiceService = {
     }
   },
 
+  speakSequential: async (segments = [], options = {}, pauseMs = 700) => {
+    if (!segments || segments.length === 0) return;
+    if (options.isMuted) return;
+
+    try {
+      Speech.stop();
+    } catch {}
+
+    const cleanSegments = segments
+      .map((s) => (typeof s === 'string' ? s.trim() : ''))
+      .filter(Boolean);
+
+    if (cleanSegments.length === 0) return;
+
+    for (let i = 0; i < cleanSegments.length; i++) {
+      const seg = cleanSegments[i];
+      await new Promise((resolve) => {
+        let finished = false;
+        const done = () => {
+          if (!finished) {
+            finished = true;
+            resolve();
+          }
+        };
+
+        // Safety fallback timeout in case TTS onDone event fails on some Android devices
+        const timeout = setTimeout(done, 12000);
+
+        VoiceService.speak(seg, {
+          ...options,
+          onDone: () => {
+            clearTimeout(timeout);
+            done();
+          },
+          onError: () => {
+            clearTimeout(timeout);
+            done();
+          },
+        });
+      });
+
+      if (i < cleanSegments.length - 1) {
+        await new Promise((r) => setTimeout(r, pauseMs));
+      }
+    }
+  },
+
   stop: () => {
     try {
       Speech.stop();

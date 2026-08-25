@@ -460,6 +460,37 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   return utterance;
 };
 
+export async function speakGlobalSequential(segments = [], speedMultiplier = 1.0, pauseMs = 700, options = {}) {
+  if (!segments || segments.length === 0) return;
+  const cleanSegments = segments.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
+  if (cleanSegments.length === 0) return;
+
+  for (let i = 0; i < cleanSegments.length; i++) {
+    const seg = cleanSegments[i];
+    await new Promise((resolve) => {
+      let resolved = false;
+      const done = () => {
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      };
+      const timer = setTimeout(done, 12000);
+      speakGlobalText(seg, speedMultiplier, {
+        ...options,
+        onend: () => {
+          clearTimeout(timer);
+          done();
+        },
+      });
+    });
+
+    if (i < cleanSegments.length - 1) {
+      await new Promise((r) => setTimeout(r, pauseMs));
+    }
+  }
+}
+
 export function getCurrentVoiceGender() {
   if (typeof window === 'undefined') return 'female';
   try {
