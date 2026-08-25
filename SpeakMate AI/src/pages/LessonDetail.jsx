@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { speakGlobalText } from "../utils/speechHelper";
 import { lessonModuleService, aiService, speechService } from "../services/appServices";
+import { recordLessonCompleted } from "../utils/progressTracker";
 
 // Helper to safely parse objectives and skills arrays regardless of API response type
 const parseArrayField = (field, fallback = []) => {
@@ -598,6 +599,7 @@ export function LessonDetail() {
                         } else {
                           setQuizFinished(true);
                           setStudyStep(8);
+                          recordLessonCompleted(lesson?.title || "English Lesson");
                         }
                       }}
                       className="px-6 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#8b85ff] disabled:opacity-50 text-white text-xs font-extrabold shadow-md transition-all"
@@ -616,7 +618,7 @@ export function LessonDetail() {
               <span className="text-5xl">🎉</span>
               <h2 className="text-2xl font-extrabold">Lesson Completed!</h2>
               <p className="text-xs opacity-90">
-                You have successfully completed "{lesson?.title}" and earned +{lesson?.xpReward || 25} XP!
+                You have successfully completed "{lesson?.title}" and earned +{lesson?.xpReward || 35} XP!
               </p>
               <div className="pt-2 flex justify-center">
                 <button

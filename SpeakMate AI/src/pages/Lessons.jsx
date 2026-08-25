@@ -12,12 +12,12 @@ const DIFF_COLORS = {
 };
 
 const DEFAULT_CATEGORIES = [
-  { name: "Grammar", lessonCount: 12 },
-  { name: "Vocabulary", lessonCount: 15 },
-  { name: "Business", lessonCount: 8 },
-  { name: "Speaking", lessonCount: 14 },
-  { name: "Academic", lessonCount: 10 },
-  { name: "Daily Life", lessonCount: 11 },
+  { name: "Grammar", lessonCount: 6 },
+  { name: "Vocabulary", lessonCount: 5 },
+  { name: "Business", lessonCount: 5 },
+  { name: "Speaking", lessonCount: 5 },
+  { name: "Phonics", lessonCount: 3 },
+  { name: "Academic", lessonCount: 4 },
 ];
 
 const DEFAULT_LESSONS = [
@@ -28,7 +28,7 @@ const DEFAULT_LESSONS = [
     level: "Beginner",
     difficulty: "Beginner",
     estimatedMinutes: 15,
-    xpReward: 25,
+    xpReward: 35,
     description: "Master present simple vs continuous tenses with real-world sentence drills and voice audio exercises.",
   },
   {
@@ -48,18 +48,18 @@ const DEFAULT_LESSONS = [
     level: "Advanced",
     difficulty: "Advanced",
     estimatedMinutes: 25,
-    xpReward: 50,
+    xpReward: 35,
     description: "Practice answering behavioral interview questions confidently with AI Tutor voice feedback.",
   },
   {
     id: "4",
-    title: "Essential Everyday Vocabulary",
+    title: "Essential Everyday Vocabulary (Top 500 Words)",
     category: "Vocabulary",
     level: "Beginner",
     difficulty: "Beginner",
     estimatedMinutes: 15,
-    xpReward: 20,
-    description: "Expand your word bank with 50 high-frequency nouns, verbs, and adjectives used in daily conversations.",
+    xpReward: 35,
+    description: "Expand your word bank with high-frequency nouns, verbs, and adjectives used in daily conversations.",
   },
   {
     id: "5",
@@ -68,7 +68,7 @@ const DEFAULT_LESSONS = [
     level: "Intermediate",
     difficulty: "Intermediate",
     estimatedMinutes: 18,
-    xpReward: 30,
+    xpReward: 35,
     description: "Sound like a native speaker using popular English idioms, phrasal verbs, and expressive collocations.",
   },
   {
@@ -87,19 +87,99 @@ const DEFAULT_LESSONS = [
     category: "Academic",
     level: "Advanced",
     difficulty: "Advanced",
-    estimatedMinutes: 30,
-    xpReward: 60,
+    estimatedMinutes: 25,
+    xpReward: 35,
     description: "Comprehensive public speaking prep, keynote delivery, and oral presentation mastery for 10th standard students.",
   },
   {
     id: "8",
     title: "Social Small Talk & Networking Confidence",
-    category: "Daily Life",
+    category: "Speaking",
     level: "Beginner",
     difficulty: "Beginner",
     estimatedMinutes: 15,
-    xpReward: 25,
+    xpReward: 35,
     description: "Break the ice easily at social gatherings, coffee shops, and campus events with effortless small talk.",
+  },
+  {
+    id: "9",
+    title: "Conditionals: Real & Unreal 'If' Scenarios",
+    category: "Grammar",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    estimatedMinutes: 18,
+    xpReward: 35,
+    description: "Master Zero, 1st, 2nd, and 3rd conditionals to express facts, possibilities, hypotheses, and regrets.",
+  },
+  {
+    id: "10",
+    title: "English Vowel Minimal Pairs & Accent Clarity",
+    category: "Phonics",
+    level: "Beginner",
+    difficulty: "Beginner",
+    estimatedMinutes: 15,
+    xpReward: 35,
+    description: "Sharpen pronunciation with minimal pair drills like Ship vs Sheep, Cut vs Cat, and Bed vs Bad.",
+  },
+  {
+    id: "11",
+    title: "Overcoming Hesitation & Eliminating Fillers",
+    category: "Speaking",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    estimatedMinutes: 16,
+    xpReward: 35,
+    description: "Replace awkward pauses, 'umms', and 'aahs' with smooth transitional pacing and thought pauses.",
+  },
+  {
+    id: "12",
+    title: "Executive Presentation & Pitch Strategy",
+    category: "Business",
+    level: "Advanced",
+    difficulty: "Advanced",
+    estimatedMinutes: 22,
+    xpReward: 35,
+    description: "Structure compelling business slides, hook your audience, and handle tough investor Q&A with poise.",
+  },
+  {
+    id: "13",
+    title: "Word Stress & Sentence Intonation Rhythm",
+    category: "Phonics",
+    level: "Intermediate",
+    difficulty: "Intermediate",
+    estimatedMinutes: 15,
+    xpReward: 35,
+    description: "Learn pitch modulation, rising/falling intonation, and syllable stress rules in two-syllable nouns vs verbs.",
+  },
+  {
+    id: "14",
+    title: "Active vs Passive Voice in Formal Contexts",
+    category: "Grammar",
+    level: "Advanced",
+    difficulty: "Advanced",
+    estimatedMinutes: 20,
+    xpReward: 35,
+    description: "Learn when to use passive voice for diplomatic, scientific, and journalistic reporting.",
+  },
+  {
+    id: "15",
+    title: "Debate, Negotiation & Persuasive Rhetoric",
+    category: "Speaking",
+    level: "Advanced",
+    difficulty: "Advanced",
+    estimatedMinutes: 24,
+    xpReward: 35,
+    description: "Defend arguments logically, formulate respectful counter-points, and negotiate win-win agreements.",
+  },
+  {
+    id: "16",
+    title: "Academic Essay Rhetoric & Spoken Summaries",
+    category: "Academic",
+    level: "Advanced",
+    difficulty: "Advanced",
+    estimatedMinutes: 20,
+    xpReward: 35,
+    description: "Construct well-reasoned academic arguments with clear thesis statements, evidence, and conclusions.",
   },
 ];
 
@@ -301,7 +381,6 @@ export function Lessons() {
                 <div
                   key={l.id}
                   onClick={() => {
-                    recordLessonCompleted(90);
                     navigate(`/lessons/${l.id}`);
                   }}
                   className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all duration-300"
