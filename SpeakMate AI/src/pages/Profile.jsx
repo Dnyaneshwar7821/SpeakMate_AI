@@ -290,14 +290,16 @@ export function Profile() {
           >
             🎯 Goals & Voices
           </button>
-          <button
-            onClick={() => setActiveTab("subscription")}
-            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
-              activeTab === "subscription" ? "bg-white text-amber-600 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
-            }`}
-          >
-            ⭐ Subscription
-          </button>
+          {!isStudent && (
+            <button
+              onClick={() => setActiveTab("subscription")}
+              className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
+                activeTab === "subscription" ? "bg-white text-amber-600 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
+            >
+              ⭐ Subscription
+            </button>
+          )}
           <button
             onClick={() => setActiveTab("security")}
             className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
@@ -523,8 +525,8 @@ export function Profile() {
         </div>
       )}
 
-      {/* TAB 3: SUBSCRIPTION & PLAN */}
-      {activeTab === "subscription" && (
+      {/* TAB 3: SUBSCRIPTION & PLAN (INDIVIDUAL USERS ONLY) */}
+      {activeTab === "subscription" && !isStudent && (
         <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
           <div>
             <h2 className="text-xl font-black text-[var(--text-primary)]">My Subscription & License</h2>
@@ -533,36 +535,7 @@ export function Profile() {
             </p>
           </div>
 
-          {isStudent ? (
-            <div className="p-6 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="text-3xl">🎓</span>
-                <div>
-                  <h3 className="font-black text-base text-emerald-600 dark:text-emerald-400">
-                    Institutional Student License (Active)
-                  </h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium">
-                    Sponsored by {user?.schoolName || "your educational institution"}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
-                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-                  <span className="text-[10px] text-[var(--text-secondary)] block">Configured Standard</span>
-                  <strong className="text-[var(--text-primary)] text-sm">{schoolGrade || "Student"}</strong>
-                </div>
-                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-                  <span className="text-[10px] text-[var(--text-secondary)] block">AI Speaking Practice</span>
-                  <strong className="text-emerald-500 text-sm">Unlimited 24/7</strong>
-                </div>
-                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-                  <span className="text-[10px] text-[var(--text-secondary)] block">Grammar Doctor</span>
-                  <strong className="text-emerald-500 text-sm">Unlimited Checks</strong>
-                </div>
-              </div>
-            </div>
-          ) : subInfo?.isPro ? (
+          {subInfo?.isPro ? (
             <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-500/15 via-purple-500/15 to-indigo-500/15 border border-indigo-500/30 space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">

@@ -23,6 +23,12 @@ export function Navbar() {
     return () => window.removeEventListener("focus", updateStats);
   }, [user]);
 
+  const isStudent =
+    user?.accountType === "STUDENT" ||
+    Boolean(user?.schoolGrade) ||
+    Boolean(user?.schoolId) ||
+    localStorage.getItem("speakmate_account_type") === "STUDENT";
+
   const handleLogout = () => {
     logout();
     setDropdownOpen(false);
@@ -197,13 +203,15 @@ export function Navbar() {
                           <span>⚙️</span> App Settings
                         </Link>
 
-                        <Link
-                          to={ROUTES.PRICING}
-                          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-amber-500 hover:bg-amber-500/10 transition-all"
-                          onClick={() => setDropdownOpen(false)}
-                        >
-                          <span>⭐</span> Upgrade to Pro
-                        </Link>
+                        {!isStudent && (
+                          <Link
+                            to={ROUTES.PRICING}
+                            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-amber-500 hover:bg-amber-500/10 transition-all"
+                            onClick={() => setDropdownOpen(false)}
+                          >
+                            <span>⭐</span> Upgrade to Pro
+                          </Link>
+                        )}
 
                         <div className="my-1 border-t border-[var(--border-default)]" />
 

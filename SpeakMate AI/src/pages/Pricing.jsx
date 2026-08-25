@@ -16,9 +16,19 @@ export function Pricing() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successDetails, setSuccessDetails] = useState(null);
 
+  const isStudent =
+    user?.accountType === "STUDENT" ||
+    Boolean(user?.schoolGrade) ||
+    Boolean(user?.schoolId) ||
+    localStorage.getItem("speakmate_account_type") === "STUDENT";
+
   useEffect(() => {
+    if (isStudent) {
+      navigate(ROUTES.DASHBOARD, { replace: true });
+      return;
+    }
     fetchSubscription();
-  }, []);
+  }, [isStudent, navigate]);
 
   const fetchSubscription = async () => {
     try {
@@ -29,7 +39,6 @@ export function Pricing() {
     }
   };
 
-  const isStudent = user?.schoolId || user?.schoolGrade || user?.accountType === "STUDENT";
   const isPro = currentSub?.isPro;
 
   const handleUpgrade = async (planType) => {

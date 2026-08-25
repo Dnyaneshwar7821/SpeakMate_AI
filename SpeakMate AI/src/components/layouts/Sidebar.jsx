@@ -104,6 +104,11 @@ const ACCOUNT_ITEMS = [
 
 export function Sidebar() {
   const { user } = useAuth();
+  const isStudent =
+    user?.accountType === "STUDENT" ||
+    Boolean(user?.schoolGrade) ||
+    Boolean(user?.schoolId) ||
+    localStorage.getItem("speakmate_account_type") === "STUDENT";
 
   return (
     <aside className="w-64 lg:w-72 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] h-[calc(100vh-80px)] sticky top-20 flex flex-col justify-between p-4 overflow-y-auto z-30 transition-colors duration-200">
@@ -185,8 +190,8 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* PRO UPGRADE PROMO (FOR INDIVIDUAL USERS) */}
-      {!user?.schoolId && user?.accountType !== "STUDENT" && !user?.isPro && (
+      {/* PRO UPGRADE PROMO (FOR INDIVIDUAL USERS ONLY) */}
+      {!isStudent && !user?.isPro && (
         <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-700 text-white shadow-lg space-y-2 mb-2 mt-4">
           <div className="flex items-center justify-between">
             <span className="font-black text-xs flex items-center gap-1">⭐ SpeakMate Pro</span>
