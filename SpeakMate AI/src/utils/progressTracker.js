@@ -140,7 +140,7 @@ export const recordSpeakingSession = (durationMins = 5, accuracyScore = 90, user
   stats.speakingSessions += 1;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  stats.xp += durationMins * 5 + 15;
+  stats.xp += Math.min(25, durationMins * 2 + 5);
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
@@ -151,10 +151,10 @@ export const recordSpeakingSession = (durationMins = 5, accuracyScore = 90, user
 export const recordGrammarCheck = (accuracyScore = 95, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
   stats.grammarChecks += 1;
-  stats.todayMins = (stats.todayMins || 0) + 2;
+  stats.todayMins = (stats.todayMins || 0) + 1;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  stats.xp += 10;
+  stats.xp += 3;
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
@@ -166,7 +166,7 @@ export const recordVocabularyMastered = (count = 1, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
   stats.wordsLearned += count;
   stats.todayMins = (stats.todayMins || 0) + count;
-  stats.xp += count * 5;
+  stats.xp += count * 2;
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
@@ -180,7 +180,7 @@ export const recordLessonCompleted = (accuracyScore = 90, userContext = null) =>
   stats.todayMins = (stats.todayMins || 0) + 5;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  stats.xp += 25;
+  stats.xp += 15;
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);

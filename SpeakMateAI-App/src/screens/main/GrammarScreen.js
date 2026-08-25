@@ -295,13 +295,24 @@ export default function GrammarScreen() {
     } catch {}
   };
 
-  const handleNextQuizQuestion = () => {
+  const handleNextQuizQuestion = async () => {
     if (currentQuizIdx + 1 < dailyQuizzes.length) {
       setCurrentQuizIdx((prev) => prev + 1);
       setSelectedQuizOption(null);
       setIsQuizAnswerSubmitted(false);
     } else {
       setIsQuizCompleted(true);
+      const totalAwarded = quizScore * 3 + (quizScore === dailyQuizzes.length && quizScore > 0 ? 6 : 0);
+      try {
+        const prog = await progressService.get().catch(() => null);
+        if (prog) {
+          await progressService.update({
+            ...prog,
+            xp: (prog.xp || 0) + totalAwarded,
+            totalGrammarChecks: (prog.totalGrammarChecks || 0) + quizScore,
+          });
+        }
+      } catch (e) {}
     }
   };
 

@@ -121,11 +121,11 @@ public class VocabularyServiceImpl implements VocabularyService {
 		try {
 			com.rslsolution.speakmateai.entity.Progress progress = progressRepository.findByUser(user)
 					.orElseGet(() -> com.rslsolution.speakmateai.entity.Progress.builder().user(user).xp(0).level(1).currentStreak(0).longestStreak(0).totalPracticeMinutes(0).totalSpeakingSessions(0).totalGrammarChecks(0).totalVocabularyWords(0).build());
-			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 10;
+			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 2;
 			progress.setXp(newXp);
 			int newVocabCount = (progress.getTotalVocabularyWords() == null ? 0 : progress.getTotalVocabularyWords()) + 1;
 			progress.setTotalVocabularyWords(newVocabCount);
-			progress.setLevel(Math.max(1, (newXp / 500) + 1));
+			progress.setLevel(Math.max(1, (newXp / 250) + 1));
 			progressRepository.save(progress);
 		} catch (Exception ex) {
 			// Ignore progress update errors
@@ -195,16 +195,16 @@ public class VocabularyServiceImpl implements VocabularyService {
 		vocabulary.setMastered(newMastered);
 		Vocabulary saved = vocabularyRepository.save(vocabulary);
 
-		// Award +15 XP when mastering a word
+		// Award +3 XP when mastering a word
 		if (newMastered) {
 			try {
 				User user = vocabulary.getUser();
 				if (user != null) {
 					com.rslsolution.speakmateai.entity.Progress progress = progressRepository.findByUser(user)
 							.orElseGet(() -> com.rslsolution.speakmateai.entity.Progress.builder().user(user).xp(0).level(1).currentStreak(0).longestStreak(0).totalPracticeMinutes(0).totalSpeakingSessions(0).totalGrammarChecks(0).totalVocabularyWords(0).build());
-					int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 15;
+					int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 3;
 					progress.setXp(newXp);
-					progress.setLevel(Math.max(1, (newXp / 500) + 1));
+					progress.setLevel(Math.max(1, (newXp / 250) + 1));
 					progressRepository.save(progress);
 				}
 			} catch (Exception ignored) {}

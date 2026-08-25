@@ -598,9 +598,9 @@ export default function VocabularyScreen() {
   const finishQuiz = async () => {
     setQuizFinished(true);
     const totalQ = quizQuestions.length;
-    const baseXP = quizScore * 20;
-    const streakBonus = maxStreak >= 3 ? 25 : 0;
-    const perfectBonus = quizScore === totalQ && totalQ > 0 ? 30 : 0;
+    const baseXP = quizScore * 3;
+    const streakBonus = maxStreak >= 3 ? 3 : 0;
+    const perfectBonus = quizScore === totalQ && totalQ > 0 ? 5 : 0;
     const totalAwarded = baseXP + streakBonus + perfectBonus;
     setEarnedXP(totalAwarded);
 

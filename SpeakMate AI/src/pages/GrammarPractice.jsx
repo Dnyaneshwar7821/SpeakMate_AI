@@ -199,7 +199,7 @@ export function GrammarPractice() {
       setIsAnswerSubmitted(false);
     } else {
       setQuizCompleted(true);
-      recordVocabularyMastered(quizScore * 15 + 25);
+      recordGrammarCheck(Math.round((quizScore / Math.max(1, dailyQuizzes.length)) * 100));
     }
   };
 
