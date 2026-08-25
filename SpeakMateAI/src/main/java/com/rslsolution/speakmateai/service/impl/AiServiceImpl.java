@@ -161,20 +161,33 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 		try {
 			String prompt = "Generate 5 multiple-choice quiz questions for the English lesson titled:\n" 
 					+ request.getPrompt() 
-					+ "\n\nFormat your response strictly as a raw JSON array of 5 objects (no markdown wrapping, no ```json, no extra text, no asterisks):\n"
+					+ "\n\nFormat your response strictly as a raw JSON array of 5 objects with no surrounding markdown or conversational text:\n"
 					+ "[\n"
 					+ "  {\n"
-					+ "    \"question\": \"Question text here?\",\n"
-					+ "    \"options\": [\"Option A\", \"Option B\", \"Option C\", \"Option D\"],\n"
-					+ "    \"correctAnswer\": \"Option A\",\n"
-					+ "    \"explanation\": \"Short explanation why Option A is correct.\"\n"
+					+ "    \"question\": \"Which sentence is grammatically correct?\",\n"
+					+ "    \"options\": [\"Option 1\", \"Option 2\", \"Option 3\", \"Option 4\"],\n"
+					+ "    \"correctAnswer\": \"Option 1\",\n"
+					+ "    \"explanation\": \"Because...\"\n"
 					+ "  }\n"
-					+ "]\n";
+					+ "]";
 			List<GroqRequest.Message> messages = List.of(
-				new GroqRequest.Message("system", "You are a JSON-only API. You output ONLY valid JSON arrays. Never output markdown code fences, bullet points, introductory text, or asterisks."),
+				new GroqRequest.Message("system", "You are an automated backend JSON API. You MUST output ONLY valid, parsable JSON starting with '[' and ending with ']'. Never output introductory words like 'Certainly', 'Here are', markdown formatting, bold text, or backticks."),
 				new GroqRequest.Message("user", prompt)
 			);
-			return executeGroqCall(analysisModel, messages, 0.2);
+			AiResponse res = executeGroqCall(chatModel, messages, 0.2);
+			if (res != null && res.getResponse() != null) {
+				String raw = res.getResponse().trim();
+				raw = raw.replaceAll("(?s)<think>.*?</think>", "").trim();
+				raw = raw.replaceAll("(?s)<think>.*", "").trim();
+				raw = raw.replace("```json", "").replace("```", "").trim();
+				int start = raw.indexOf('[');
+				int end = raw.lastIndexOf(']');
+				if (start != -1 && end != -1 && end > start) {
+					raw = raw.substring(start, end + 1);
+				}
+				return AiResponse.builder().response(raw).build();
+			}
+			return res;
 		} catch (Exception e) {
 			String fallbackJson = """
 [

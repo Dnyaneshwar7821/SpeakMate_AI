@@ -61,6 +61,32 @@ const shuffleCheckQ = (checkQ) => {
   };
 };
 
+const safeParseJsonArray = (text) => {
+  if (!text) return null;
+  let raw = cleanAiText(text);
+  raw = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+  let start = raw.indexOf('[');
+  let end = raw.lastIndexOf(']');
+  if (start !== -1 && end !== -1 && end > start) {
+    raw = raw.substring(start, end + 1);
+  }
+  raw = raw.replace(/,\s*([\]}])/g, '$1');
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+  } catch {
+    try {
+      const sanitized = raw.replace(/\*\*/g, '').replace(/\*/g, '');
+      const parsed = JSON.parse(sanitized);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      return null;
+    }
+  }
+  return null;
+};
+
 export function LessonDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -239,17 +265,7 @@ export function LessonDetail() {
     try {
       const prompt = `Lesson Title: "${lesson?.title}", Category: "${lesson?.category}", Level: "${lesson?.level}", Quiz Tier: "${tier}"`;
       const res = await aiService.lessonQuiz(prompt);
-      let parsed = [];
-      if (res?.response) {
-        let raw = cleanAiText(res.response);
-        let start = raw.indexOf("[");
-        let end = raw.lastIndexOf("]");
-        if (start !== -1 && end !== -1 && end > start) {
-          raw = raw.substring(start, end + 1);
-        }
-        raw = raw.replace(/,\s*([\]}])/g, "$1");
-        parsed = JSON.parse(raw);
-      }
+      const parsed = safeParseJsonArray(res?.response);
       if (Array.isArray(parsed) && parsed.length >= 3) {
         setQuizQuestions(shuffleQuestionOptions(parsed));
       } else {

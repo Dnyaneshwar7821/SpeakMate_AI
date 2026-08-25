@@ -431,6 +431,32 @@ export default function LessonDetailScreen({ navigation, route }) {
     };
   };
 
+  const safeParseJsonArray = (text) => {
+    if (!text) return null;
+    let raw = cleanAiText(text);
+    raw = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+    let start = raw.indexOf('[');
+    let end = raw.lastIndexOf(']');
+    if (start !== -1 && end !== -1 && end > start) {
+      raw = raw.substring(start, end + 1);
+    }
+    raw = raw.replace(/,\s*([\]}])/g, '$1');
+
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    } catch {
+      try {
+        const sanitized = raw.replace(/\*\*/g, '').replace(/\*/g, '');
+        const parsed = JSON.parse(sanitized);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
   // Clean text before sending to TTS so symbols aren't read aloud
   const sanitizeForSpeech = (raw = '') => {
     return cleanAiText(raw)
@@ -556,16 +582,10 @@ export default function LessonDetailScreen({ navigation, route }) {
         ].join('\n');
 
         const res = await aiService.lessonTutor(prompt);
-        if (res?.response) {
-          let jsonStr = res.response.trim();
-          const start = jsonStr.indexOf('[');
-          const end = jsonStr.lastIndexOf(']');
-          if (start !== -1 && end > start) jsonStr = jsonStr.substring(start, end + 1);
-          const parsed = JSON.parse(jsonStr);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setAiExamples(parsed);
-            return;
-          }
+        const parsed = safeParseJsonArray(res?.response);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setAiExamples(parsed);
+          return;
         }
         throw new Error('Invalid examples response');
       } catch (err) {
@@ -767,40 +787,13 @@ export default function LessonDetailScreen({ navigation, route }) {
     try {
       const prompt = `Lesson Title: "${lesson.title}", Category: "${lesson.category}", Level: "${lesson.level}", Quiz Tier: "${tier}"`;
       const res = await aiService.lessonQuiz(prompt);
-      let questions = [];
-      if (res?.response) {
-        let raw = String(res.response).trim();
-        // Strip markdown code fences
-        raw = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
-        
-        let start = raw.indexOf('[');
-        let end = raw.lastIndexOf(']');
-        if (start !== -1 && end !== -1 && end > start) {
-          raw = raw.substring(start, end + 1);
-        }
-        
-        // Remove trailing commas
-        raw = raw.replace(/,\s*([\]}])/g, '$1');
-
-        try {
-          questions = JSON.parse(raw);
-        } catch (parseErr1) {
-          try {
-            // Strip stray asterisks and markdown bolding
-            const sanitized = raw.replace(/\*\*/g, '').replace(/\*/g, '');
-            questions = JSON.parse(sanitized);
-          } catch (parseErr2) {
-            console.warn("AI Quiz JSON parse recovery failed:", parseErr2?.message);
-          }
-        }
-      }
+      const questions = safeParseJsonArray(res?.response);
       if (Array.isArray(questions) && questions.length >= 3) {
         setQuizQuestions(shuffleQuestionOptions(questions));
       } else {
         setQuizQuestions(shuffleQuestionOptions(generateFallbackQuestions(lesson.title, tier)));
       }
-    } catch (err) {
-      console.warn("AI Quiz fetch failed, using fallback questions:", err);
+    } catch {
       setQuizQuestions(shuffleQuestionOptions(generateFallbackQuestions(lesson.title, tier)));
     } finally {
       setQuizLoading(false);
