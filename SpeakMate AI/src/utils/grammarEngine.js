@@ -1790,7 +1790,24 @@ export function getTailoredDailyGrammarQuizzes({
     [poolCopy[i], poolCopy[j]] = [poolCopy[j], poolCopy[i]];
   }
 
-  return poolCopy.slice(0, 8);
+  // Shuffle the options within each question so the correct answer isn't always option 1
+  return poolCopy.slice(0, 8).map((q) => {
+    const correctOptionText = q.options[q.correctAnswerIndex ?? 0];
+    const shuffledOptions = [...q.options];
+
+    for (let i = shuffledOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(seededRandom() * (i + 1));
+      [shuffledOptions[i], shuffledOptions[j]] = [shuffledOptions[j], shuffledOptions[i]];
+    }
+
+    const newCorrectIndex = shuffledOptions.indexOf(correctOptionText);
+
+    return {
+      ...q,
+      options: shuffledOptions,
+      correctAnswerIndex: newCorrectIndex >= 0 ? newCorrectIndex : 0,
+    };
+  });
 }
 
 export function getDailyGrammarQuizzes(customDate = new Date(), offset = 0) {
