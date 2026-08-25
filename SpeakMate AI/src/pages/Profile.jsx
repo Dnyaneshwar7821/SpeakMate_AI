@@ -3,9 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { authService } from "../services/authService";
-import { profileService } from "../services/appServices";
+import { profileService, subscriptionService } from "../services/appServices";
 import { getLiveProgressStats } from "../utils/progressTracker";
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
+import { Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
 
 const PRESET_AVATARS = [
@@ -40,7 +41,7 @@ const getRankTier = (xp = 0) => {
   return { name: "Gold Master", icon: "👑", badgeColor: "from-amber-400 to-yellow-600", nextXp: 3000 };
 };
 
-export const isImageAvatar = (avatar) => {
+const isImageAvatar = (avatar) => {
   if (!avatar || typeof avatar !== "string") return false;
   const clean = avatar.trim();
   return (
@@ -91,6 +92,7 @@ export function Profile() {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [subInfo, setSubInfo] = useState(null);
 
   // Delete account state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -117,6 +119,11 @@ export function Profile() {
           if (profile.avatar) setSelectedAvatar(profile.avatar);
         }
       })
+      .catch(() => {});
+
+    subscriptionService
+      .getMySubscription()
+      .then((sub) => setSubInfo(sub))
       .catch(() => {});
   }, [user]);
 
@@ -282,6 +289,14 @@ export function Profile() {
             }`}
           >
             🎯 Goals & Voices
+          </button>
+          <button
+            onClick={() => setActiveTab("subscription")}
+            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
+              activeTab === "subscription" ? "bg-white text-amber-600 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
+            }`}
+          >
+            ⭐ Subscription
           </button>
           <button
             onClick={() => setActiveTab("security")}
@@ -508,7 +523,121 @@ export function Profile() {
         </div>
       )}
 
-      {/* TAB 3: SECURITY & ACCOUNT DELETION */}
+      {/* TAB 3: SUBSCRIPTION & PLAN */}
+      {activeTab === "subscription" && (
+        <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
+          <div>
+            <h2 className="text-xl font-black text-[var(--text-primary)]">My Subscription & License</h2>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
+              View your active SpeakMate AI plan, daily practice quotas, and upgrade options.
+            </p>
+          </div>
+
+          {isStudent ? (
+            <div className="p-6 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 space-y-4">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🎓</span>
+                <div>
+                  <h3 className="font-black text-base text-emerald-600 dark:text-emerald-400">
+                    Institutional Student License (Active)
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium">
+                    Sponsored by {user?.schoolName || "your educational institution"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs">
+                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block">Configured Standard</span>
+                  <strong className="text-[var(--text-primary)] text-sm">{schoolGrade || "Student"}</strong>
+                </div>
+                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block">AI Speaking Practice</span>
+                  <strong className="text-emerald-500 text-sm">Unlimited 24/7</strong>
+                </div>
+                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block">Grammar Doctor</span>
+                  <strong className="text-emerald-500 text-sm">Unlimited Checks</strong>
+                </div>
+              </div>
+            </div>
+          ) : subInfo?.isPro ? (
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-indigo-500/15 via-purple-500/15 to-indigo-500/15 border border-indigo-500/30 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">🌟</span>
+                  <div>
+                    <h3 className="font-black text-lg text-indigo-500">
+                      SpeakMate Pro Member ({subInfo?.planType === "YEARLY_PRO" ? "Annual Pass" : "Monthly Pass"})
+                    </h3>
+                    <p className="text-xs text-[var(--text-secondary)] font-medium">
+                      Status: <span className="text-emerald-500 font-bold">Active</span>
+                      {subInfo?.endDate && ` • Valid until ${new Date(subInfo.endDate).toLocaleDateString()}`}
+                    </p>
+                  </div>
+                </div>
+
+                <Link
+                  to={ROUTES.PRICING}
+                  className="py-2.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold text-center shadow-md transition-all active:scale-95"
+                >
+                  Change Plan ➔
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">
+                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block">AI Speaking</span>
+                  <strong className="text-indigo-400 text-sm">Unlimited</strong>
+                </div>
+                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block">Grammar Doctor</span>
+                  <strong className="text-indigo-400 text-sm">Unlimited</strong>
+                </div>
+                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block">Voice Personas</span>
+                  <strong className="text-indigo-400 text-sm">All Unlocked</strong>
+                </div>
+                <div className="p-3 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                  <span className="text-[10px] text-[var(--text-secondary)] block">Live2D Avatars</span>
+                  <strong className="text-indigo-400 text-sm">All Unlocked</strong>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="p-6 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                    Free Starter Plan
+                  </span>
+                  <h3 className="font-black text-lg text-[var(--text-primary)] mt-2">
+                    Free Forever Tier
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                    10 minutes daily AI talk & 5 grammar checks per day.
+                  </p>
+                </div>
+
+                <Link
+                  to={ROUTES.PRICING}
+                  className="py-3 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white text-xs font-black text-center shadow-lg shadow-indigo-500/25 transition-all transform active:scale-95"
+                >
+                  Upgrade to Pro (From ₹149/mo) ➔
+                </Link>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-400 flex items-center justify-between">
+                <span>🔥 Upgrade to Pro for <strong>Unlimited 24/7 practice</strong>, all voice avatars, and interview tracks.</span>
+                <span className="font-black">Save 33% on Annual Pass ⭐</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: SECURITY & ACCOUNT DELETION */}
       {activeTab === "security" && (
         <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
           <div>

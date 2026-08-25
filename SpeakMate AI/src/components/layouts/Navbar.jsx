@@ -197,6 +197,14 @@ export function Navbar() {
                           <span>⚙️</span> App Settings
                         </Link>
 
+                        <Link
+                          to={ROUTES.PRICING}
+                          className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-amber-500 hover:bg-amber-500/10 transition-all"
+                          onClick={() => setDropdownOpen(false)}
+                        >
+                          <span>⭐</span> Upgrade to Pro
+                        </Link>
+
                         <div className="my-1 border-t border-[var(--border-default)]" />
 
                         <button

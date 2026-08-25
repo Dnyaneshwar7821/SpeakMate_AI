@@ -69,6 +69,7 @@ import Achievements from "../pages/Achievements";
 import Notifications from "../pages/Notifications";
 import Profile from "../pages/Profile";
 import Settings from "../pages/Settings";
+import Pricing from "../pages/Pricing";
 import Help from "../pages/Help";
 import About from "../pages/About";
 import NotFound from "../pages/NotFound";
@@ -342,6 +343,17 @@ export function AppRoutes() {
               <ProtectedRoute>
                 <PageTransition>
                   <Settings />
+                </PageTransition>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path={ROUTES.PRICING}
+            element={
+              <ProtectedRoute>
+                <PageTransition>
+                  <Pricing />
                 </PageTransition>
               </ProtectedRoute>
             }

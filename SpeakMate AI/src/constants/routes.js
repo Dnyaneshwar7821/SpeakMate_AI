@@ -22,6 +22,8 @@ export const ROUTES = {
   NOTIFICATIONS: "/notifications",
   PROFILE: "/profile",
   SETTINGS: "/settings",
+  PRICING: "/pricing",
+  SUBSCRIPTION: "/pricing",
   HELP: "/help",
   ABOUT: "/about",
 

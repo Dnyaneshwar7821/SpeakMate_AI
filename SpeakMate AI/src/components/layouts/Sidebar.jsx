@@ -185,8 +185,27 @@ export function Sidebar() {
         </div>
       </div>
 
+      {/* PRO UPGRADE PROMO (FOR INDIVIDUAL USERS) */}
+      {!user?.schoolId && user?.accountType !== "STUDENT" && !user?.isPro && (
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-700 text-white shadow-lg space-y-2 mb-2 mt-4">
+          <div className="flex items-center justify-between">
+            <span className="font-black text-xs flex items-center gap-1">⭐ SpeakMate Pro</span>
+            <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-400 text-amber-950">Save 33%</span>
+          </div>
+          <p className="text-[11px] text-white/90 leading-tight">
+            Unlock unlimited 24/7 AI speaking, strict grammar & all avatars.
+          </p>
+          <NavLink
+            to={ROUTES.PRICING}
+            className="block text-center w-full py-1.5 px-2 rounded-xl bg-white text-indigo-700 font-extrabold text-[11px] hover:bg-white/90 shadow-sm transition-all active:scale-95"
+          >
+            Upgrade Now (From ₹149) ➔
+          </NavLink>
+        </div>
+      )}
+
       {/* USER BOTTOM CARD */}
-      <div className="pt-4 border-t border-[var(--border-default)]">
+      <div className="pt-3 border-t border-[var(--border-default)]">
         <div className="p-3.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center gap-3 shadow-inner">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-[#6C63FF] via-[#8B5CF6] to-[#FF6584] text-white font-black text-sm shadow-md">
             {user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.name ? user.name.charAt(0).toUpperCase() : "U"}
