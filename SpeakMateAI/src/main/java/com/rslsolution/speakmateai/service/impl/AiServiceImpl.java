@@ -193,10 +193,14 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 	public AiResponse lessonTutor(AiRequest request) {
 		try {
 			String prompt = "You are an expert, encouraging AI English Tutor.\n"
-					+ "Teach the student interactively about the following lesson section / topic:\n\n"
+					+ "Directly explain the following topic to the student in clean, conversational English. Do NOT output any thinking process, meta-analysis, or outline notes.\n\n"
 					+ request.getPrompt()
-					+ "\n\nProvide a clear, engaging explanation, 2 practical real-world examples, and 1 practice question for the student.";
-			return callGroq(analysisModel, prompt, 0.7);
+					+ "\n\nProvide: 1) A clear, engaging explanation (120-150 words), 2) Two practical everyday examples, and 3) One quick tip.";
+			List<GroqRequest.Message> messages = List.of(
+				new GroqRequest.Message("system", "You are an expert AI English Tutor. You speak directly to the student in warm, encouraging language. Never output thoughts, reasoning tags, or internal outlines."),
+				new GroqRequest.Message("user", prompt)
+			);
+			return executeGroqCall(analysisModel, messages, 0.7);
 		} catch (Exception e) {
 			return AiResponse.builder()
 					.response("Great question! In this lesson section, the key concept to remember is practicing natural usage in everyday conversations. For example:\n1. 'I have been practicing speaking every day.'\n2. 'She quickly improved her vocabulary.'\n\nTry forming your own sentence using this concept!")
@@ -242,6 +246,10 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 			}
 
 			String result = body.getChoices().get(0).getMessage().getContent();
+			if (result != null) {
+				result = result.replaceAll("(?s)<think>.*?</think>", "").trim();
+				result = result.replaceAll("(?s)<think>.*", "").trim();
+			}
 
 			return AiResponse.builder().response(result).build();
 

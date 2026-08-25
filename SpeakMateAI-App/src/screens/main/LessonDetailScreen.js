@@ -389,9 +389,51 @@ export default function LessonDetailScreen({ navigation, route }) {
     }
   };
 
+  // Clean AI responses to strip think tags and markdown
+  const cleanAiText = (raw = '') => {
+    if (!raw) return '';
+    return String(raw)
+      .replace(/<think>[\s\S]*?<\/think>/gi, '')
+      .replace(/<think>[\s\S]*/gi, '')
+      .replace(/```json/gi, '')
+      .replace(/```/g, '')
+      .trim();
+  };
+
+  const shuffleQuestionOptions = (questions = []) => {
+    return questions.map((q) => {
+      if (!q || !Array.isArray(q.options) || q.options.length === 0) return q;
+      const shuffled = [...q.options];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return {
+        ...q,
+        options: shuffled,
+      };
+    });
+  };
+
+  const shuffleCheckQ = (checkQ) => {
+    if (!checkQ || !Array.isArray(checkQ.options) || checkQ.options.length === 0) return checkQ;
+    const correctText = checkQ.options[checkQ.correctIndex ?? 0];
+    const shuffled = [...checkQ.options];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const newIndex = shuffled.indexOf(correctText);
+    return {
+      ...checkQ,
+      options: shuffled,
+      correctIndex: newIndex !== -1 ? newIndex : 0,
+    };
+  };
+
   // Clean text before sending to TTS so symbols aren't read aloud
   const sanitizeForSpeech = (raw = '') => {
-    return raw
+    return cleanAiText(raw)
       // Curly / smart quotes → plain
       .replace(/[\u2018\u2019]/g, "'")
       .replace(/[\u201C\u201D]/g, '"')
@@ -460,25 +502,32 @@ export default function LessonDetailScreen({ navigation, route }) {
 
         const res = await aiService.lessonTutor(prompt);
         if (res?.response) {
-          setAiTeachContent(res.response);
-          // Auto-read via voice right after loading (sanitized so symbols aren't spoken)
-          VoiceService.speak(sanitizeForSpeech(res.response), {
+          const cleanText = cleanAiText(res.response);
+          setAiTeachContent(cleanText);
+          // Auto-read via voice right after loading
+          setIsSpeakingContent(true);
+          VoiceService.speak(sanitizeForSpeech(cleanText), {
             voiceType: settings?.aiVoice || 'Default',
             availableVoices,
             onDone: () => setIsSpeakingContent(false),
             onError: () => setIsSpeakingContent(false),
           });
-          setIsSpeakingContent(true);
         }
       } catch (err) {
         console.warn('Auto AI teach failed:', err);
-        setAiTeachContent(
-          `Let\'s explore "${lesson.title}" together!\n\n` +
+        const fallbackText = `Let's explore "${lesson.title}" together!\n\n` +
           `This topic is a key part of ${lesson.category} in English. ` +
           `${lesson.description || 'Mastering this will significantly boost your fluency and confidence.'}\n\n` +
           `To master this topic:\n• Practice daily with real sentences\n• Listen to native speakers\n• Speak out loud, even alone\n• Review your mistakes and learn from them\n\n` +
-          `Common mistakes to avoid:\n• Translating word-for-word from your native language\n• Skipping speaking practice and only reading\n• Ignoring pronunciation and natural rhythm`
-        );
+          `Common mistakes to avoid:\n• Translating word-for-word from your native language\n• Skipping speaking practice and only reading\n• Ignoring pronunciation and natural rhythm`;
+        setAiTeachContent(fallbackText);
+        setIsSpeakingContent(true);
+        VoiceService.speak(sanitizeForSpeech(fallbackText), {
+          voiceType: settings?.aiVoice || 'Default',
+          availableVoices,
+          onDone: () => setIsSpeakingContent(false),
+          onError: () => setIsSpeakingContent(false),
+        });
       } finally {
         setAiTeachLoading(false);
       }
@@ -560,20 +609,20 @@ export default function LessonDetailScreen({ navigation, route }) {
 
         const res = await aiService.lessonTutor(prompt);
         if (res?.response) {
-          let jsonStr = res.response.trim();
+          let jsonStr = cleanAiText(res.response);
           const start = jsonStr.indexOf('{');
           const end = jsonStr.lastIndexOf('}');
           if (start !== -1 && end > start) jsonStr = jsonStr.substring(start, end + 1);
           const parsed = JSON.parse(jsonStr);
           if (parsed?.question && Array.isArray(parsed.options) && parsed.options.length === 3) {
-            setAiCheckQ(parsed);
+            setAiCheckQ(shuffleCheckQ(parsed));
             return;
           }
         }
         throw new Error('Invalid check question response');
       } catch (err) {
         console.warn('Auto AI check question failed, using fallback:', err);
-        setAiCheckQ({
+        setAiCheckQ(shuffleCheckQ({
           question: `What is the most important thing to remember when using "${lesson.title}" in a real conversation?`,
           options: [
             'Focus on correct structure, natural rhythm, and clear meaning.',
@@ -582,7 +631,7 @@ export default function LessonDetailScreen({ navigation, route }) {
           ],
           correctIndex: 0,
           explanation: 'Applying the rule in real sentences with natural rhythm is the key to truly mastering any English concept.',
-        });
+        }));
       } finally {
         setAiCheckQLoading(false);
       }
@@ -615,7 +664,7 @@ export default function LessonDetailScreen({ navigation, route }) {
 
         const res = await aiService.lessonTutor(prompt);
         if (res?.response) {
-          let jsonStr = res.response.trim();
+          let jsonStr = cleanAiText(res.response);
           const start = jsonStr.indexOf('{');
           const end = jsonStr.lastIndexOf('}');
           if (start !== -1 && end > start) jsonStr = jsonStr.substring(start, end + 1);
@@ -746,13 +795,13 @@ export default function LessonDetailScreen({ navigation, route }) {
         }
       }
       if (Array.isArray(questions) && questions.length >= 3) {
-        setQuizQuestions(questions);
+        setQuizQuestions(shuffleQuestionOptions(questions));
       } else {
-        setQuizQuestions(generateFallbackQuestions(lesson.title, tier));
+        setQuizQuestions(shuffleQuestionOptions(generateFallbackQuestions(lesson.title, tier)));
       }
     } catch (err) {
       console.warn("AI Quiz fetch failed, using fallback questions:", err);
-      setQuizQuestions(generateFallbackQuestions(lesson.title, tier));
+      setQuizQuestions(shuffleQuestionOptions(generateFallbackQuestions(lesson.title, tier)));
     } finally {
       setQuizLoading(false);
     }
@@ -1027,7 +1076,7 @@ export default function LessonDetailScreen({ navigation, route }) {
 
     const baseXP = finalScore * multiplier;
     const perfectBonus = (finalScore === totalQ && totalQ > 0) ? perfectBonusAmount : 0;
-    const totalAwarded = baseXP + perfectBonus;
+    const totalAwarded = Math.max(15, baseXP + perfectBonus - blankPenalty);
     setEarnedXP(totalAwarded);
 
     triggerConfetti();
@@ -1640,7 +1689,13 @@ export default function LessonDetailScreen({ navigation, route }) {
                     {!guidedSubmitted ? (
                       <TouchableOpacity
                         style={[styles.quizNextBtn, !guidedInput.trim() && { opacity: 0.5 }]}
-                        onPress={() => setGuidedSubmitted(true)}
+                        onPress={() => {
+                          if (!guidedInput.trim()) return;
+                          setGuidedSubmitted(true);
+                          if (guidedInput.trim().toLowerCase() !== aiGuidedQ.correctWord.toLowerCase()) {
+                            setBlankPenalty(5);
+                          }
+                        }}
                         disabled={!guidedInput.trim()}
                       >
                         <Ionicons name="checkmark-circle-outline" size={18} color="#FFF" />
@@ -2064,12 +2119,43 @@ export default function LessonDetailScreen({ navigation, route }) {
                   <View />
                 )}
 
-                {studyStep !== 7 && (
-                  <TouchableOpacity style={styles.stepNextBtn} onPress={handleNextStep}>
-                    <Text style={styles.stepNextBtnText}>Next Step</Text>
-                    <Ionicons name="arrow-forward" size={20} color="#FFF" />
-                  </TouchableOpacity>
-                )}
+                {studyStep !== 7 && (() => {
+                  let isNextDisabled = false;
+                  let nextLabel = "Next Step";
+
+                  if (studyStep === 1) {
+                    if (isSpeakingContent) {
+                      isNextDisabled = true;
+                      nextLabel = "🎧 Listening to Tutor...";
+                    }
+                  } else if (studyStep === 3) {
+                    if (!checkSubmitted) {
+                      isNextDisabled = true;
+                      nextLabel = "Answer Check to Continue";
+                    }
+                  } else if (studyStep === 4) {
+                    if (!guidedSubmitted) {
+                      isNextDisabled = true;
+                      nextLabel = "Check Answer to Continue";
+                    }
+                  } else if (studyStep === 5) {
+                    if (!speakingFeedback && !speakingInput.trim()) {
+                      isNextDisabled = true;
+                      nextLabel = "Submit Sentence to Continue";
+                    }
+                  }
+
+                  return (
+                    <TouchableOpacity
+                      style={[styles.stepNextBtn, isNextDisabled && { opacity: 0.6, backgroundColor: '#94A3B8' }]}
+                      onPress={isNextDisabled ? undefined : handleNextStep}
+                      disabled={isNextDisabled}
+                    >
+                      <Text style={styles.stepNextBtnText}>{nextLabel}</Text>
+                      <Ionicons name="arrow-forward" size={20} color="#FFF" />
+                    </TouchableOpacity>
+                  );
+                })()}
               </View>
             )}
           </View>

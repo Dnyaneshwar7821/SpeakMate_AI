@@ -19,6 +19,48 @@ const parseArrayField = (field, fallback = []) => {
   return fallback;
 };
 
+// Clean AI responses to strip think tags and markdown
+const cleanAiText = (raw = '') => {
+  if (!raw) return '';
+  return String(raw)
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/<think>[\s\S]*/gi, '')
+    .replace(/```json/gi, '')
+    .replace(/```/g, '')
+    .trim();
+};
+
+const shuffleQuestionOptions = (questions = []) => {
+  return questions.map((q) => {
+    if (!q || !Array.isArray(q.options) || q.options.length === 0) return q;
+    const shuffled = [...q.options];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return {
+      ...q,
+      options: shuffled,
+    };
+  });
+};
+
+const shuffleCheckQ = (checkQ) => {
+  if (!checkQ || !Array.isArray(checkQ.options) || checkQ.options.length === 0) return checkQ;
+  const correctText = checkQ.options[checkQ.correctIndex ?? 0];
+  const shuffled = [...checkQ.options];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  const newIndex = shuffled.indexOf(correctText);
+  return {
+    ...checkQ,
+    options: shuffled,
+    correctIndex: newIndex !== -1 ? newIndex : 0,
+  };
+};
+
 export function LessonDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -33,6 +75,7 @@ export function LessonDetail() {
   // Auto AI Teaching State (Step 1)
   const [aiTeachContent, setAiTeachContent] = useState("");
   const [aiTeachLoading, setAiTeachLoading] = useState(false);
+  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
 
   // Auto AI Examples State (Step 2)
   const [aiExamples, setAiExamples] = useState([]);
@@ -47,6 +90,7 @@ export function LessonDetail() {
   const [aiGuidedQ, setAiGuidedQ] = useState(null);
   const [guidedInput, setGuidedInput] = useState("");
   const [guidedSubmitted, setGuidedSubmitted] = useState(false);
+  const [blankPenalty, setBlankPenalty] = useState(0);
 
   // Speaking Practice State (Step 5 & 6)
   const [speakingInput, setSpeakingInput] = useState("");
@@ -79,7 +123,7 @@ export function LessonDetail() {
           category: "Grammar",
           level: "Beginner",
           estimatedMinutes: 15,
-          xpReward: 25,
+          xpReward: 35,
           description: "Master present simple vs continuous tenses with real-world sentence drills and voice audio exercises.",
           objectives: [
             "Understand present simple vs continuous rules",
@@ -96,7 +140,10 @@ export function LessonDetail() {
   // Audio Speech Read-Aloud Helper
   const handleSpeakText = (text) => {
     if (text) {
-      speakGlobalText(text);
+      const clean = cleanAiText(text);
+      setIsAiSpeaking(true);
+      speakGlobalText(clean);
+      setTimeout(() => setIsAiSpeaking(false), Math.min(10000, clean.length * 70));
     }
   };
 
@@ -105,6 +152,7 @@ export function LessonDetail() {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
+    setIsAiSpeaking(false);
     return () => {
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
@@ -112,24 +160,25 @@ export function LessonDetail() {
     };
   }, [studyStep, showStudy]);
 
-  // Step 1: Auto AI Teaching Concept
+  // Step 1: Auto AI Teaching Concept (fires automatically on step 1)
   useEffect(() => {
     if (!showStudy || studyStep !== 1 || !lesson) return;
     if (aiTeachContent) return;
 
     setAiTeachLoading(true);
     aiService
-      .lessonTutor(`Teach the lesson "${lesson.title}" (${lesson.category} - ${lesson.level}) in 200 words with simple explanation, why it matters, and common mistakes.`)
+      .lessonTutor(`Teach the lesson "${lesson.title}" (${lesson.category} - ${lesson.level}) in 150 words with simple explanation, why it matters, and common mistakes.`)
       .then((res) => {
         if (res?.response) {
-          setAiTeachContent(res.response);
-          handleSpeakText(res.response);
+          const cleaned = cleanAiText(res.response);
+          setAiTeachContent(cleaned);
+          handleSpeakText(cleaned);
         }
       })
       .catch(() => {
-        setAiTeachContent(
-          `Let's explore "${lesson.title}" together!\n\nThis topic is essential for building natural fluency in ${lesson.category}. Focus on regular sentence practice, listening to native audio examples, and speaking out loud.`
-        );
+        const fallback = `Let's explore "${lesson.title}" together!\n\nThis topic is essential for building natural fluency in ${lesson.category}. Focus on regular sentence practice, listening to native audio examples, and speaking out loud.`;
+        setAiTeachContent(fallback);
+        handleSpeakText(fallback);
       })
       .finally(() => setAiTeachLoading(false));
   }, [showStudy, studyStep, lesson]);
@@ -153,7 +202,7 @@ export function LessonDetail() {
     if (!showStudy || studyStep !== 3 || !lesson) return;
     if (aiCheckQ) return;
 
-    setAiCheckQ({
+    const baseCheck = {
       question: `Select the correct sentence format for "${lesson.title}":`,
       options: [
         "She is practicing English speaking every day to build confidence.",
@@ -161,8 +210,9 @@ export function LessonDetail() {
         "She practicing English speak everyday build confidence.",
       ],
       correctIndex: 0,
-      explanation: "Option 1 correctly uses subject-verb agreement and present continuous for ongoing action.",
-    });
+      explanation: "This option correctly applies grammatical agreement and natural structure.",
+    };
+    setAiCheckQ(shuffleCheckQ(baseCheck));
   }, [showStudy, studyStep, lesson]);
 
   // Step 4: Auto AI Guided Practice
@@ -186,21 +236,62 @@ export function LessonDetail() {
     setCurrentQuizIdx(0);
     setQuizSelectedAnswer(null);
 
-    setQuizQuestions([
-      {
-        question: `[${tier}] What is the primary rule taught in "${lesson?.title}"?`,
-        options: ["Focus on natural sentence structure and verb tenses.", "Memorize dictionary words without sentences.", "Translate word for word from native language."],
-        correctAnswer: "Focus on natural sentence structure and verb tenses.",
-        explanation: "Correct sentence structure builds natural speech fluency.",
-      },
-      {
-        question: `[${tier}] Select the most polite professional expression:`,
-        options: ["Could you please provide an update on the project?", "Give me project update now.", "I want project update."],
-        correctAnswer: "Could you please provide an update on the project?",
-        explanation: "'Could you please' is formal and polite in business communication.",
-      },
-    ]);
-    setQuizLoading(false);
+    try {
+      const prompt = `Lesson Title: "${lesson?.title}", Category: "${lesson?.category}", Level: "${lesson?.level}", Quiz Tier: "${tier}"`;
+      const res = await aiService.lessonQuiz(prompt);
+      let parsed = [];
+      if (res?.response) {
+        let raw = cleanAiText(res.response);
+        let start = raw.indexOf("[");
+        let end = raw.lastIndexOf("]");
+        if (start !== -1 && end !== -1 && end > start) {
+          raw = raw.substring(start, end + 1);
+        }
+        raw = raw.replace(/,\s*([\]}])/g, "$1");
+        parsed = JSON.parse(raw);
+      }
+      if (Array.isArray(parsed) && parsed.length >= 3) {
+        setQuizQuestions(shuffleQuestionOptions(parsed));
+      } else {
+        throw new Error("Invalid questions");
+      }
+    } catch (e) {
+      const baseFallback = [
+        {
+          question: `[${tier}] What is the primary rule taught in "${lesson?.title}"?`,
+          options: ["Focus on natural sentence structure and verb tenses.", "Memorize dictionary words without sentences.", "Translate word for word from native language.", "Avoid practicing out loud."],
+          correctAnswer: "Focus on natural sentence structure and verb tenses.",
+          explanation: "Correct sentence structure builds natural speech fluency.",
+        },
+        {
+          question: `[${tier}] Select the most polite professional expression:`,
+          options: ["Could you please provide an update on the project?", "Give me project update now.", "I want project update.", "Tell update immediately."],
+          correctAnswer: "Could you please provide an update on the project?",
+          explanation: "'Could you please' is formal and polite in business communication.",
+        },
+        {
+          question: `[${tier}] Which sentence demonstrates correct contextual usage?`,
+          options: ["I practice speaking every single day.", "Me practice speak everyday.", "I am practice speech everyday.", "Practicing I do daily."],
+          correctAnswer: "I practice speaking every single day.",
+          explanation: "Simple present tense with correct subject pronoun 'I' expresses a daily habit.",
+        },
+        {
+          question: `[${tier}] What is the best way to eliminate awkward pauses?`,
+          options: ["Use natural transitional phrases and structured pauses.", "Speak as fast as possible without breathing.", "Repeat the same word continuously.", "Never speak in full sentences."],
+          correctAnswer: "Use natural transitional phrases and structured pauses.",
+          explanation: "Transitional phrases give your brain time to formulate the next thought naturally.",
+        },
+        {
+          question: `[${tier}] What key habit ensures long-term fluency?`,
+          options: ["Consistent daily practice and active conversational drills.", "Reading grammar books without ever speaking.", "Avoiding listening to native audio.", "Only memorizing single isolated words."],
+          correctAnswer: "Consistent daily practice and active conversational drills.",
+          explanation: "Active conversational drills build lasting neural pathways for spontaneous speech.",
+        }
+      ];
+      setQuizQuestions(shuffleQuestionOptions(baseFallback));
+    } finally {
+      setQuizLoading(false);
+    }
   };
 
   // Step 7: Auto Fetch Quiz Questions when entering Step 7
@@ -311,8 +402,12 @@ export function LessonDetail() {
               )}
 
               <div className="flex justify-end pt-4">
-                <button onClick={() => setStudyStep(2)} className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold">
-                  Next: Real-World Examples →
+                <button
+                  disabled={aiTeachLoading || isAiSpeaking}
+                  onClick={() => setStudyStep(2)}
+                  className="px-6 py-2.5 rounded-xl bg-[#6c63ff] disabled:opacity-50 text-white text-xs font-extrabold"
+                >
+                  {isAiSpeaking ? "🎧 Listening to AI Tutor..." : "Next: Real-World Examples →"}
                 </button>
               </div>
             </div>
@@ -388,8 +483,12 @@ export function LessonDetail() {
                 <button onClick={() => setStudyStep(2)} className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] text-xs font-bold">
                   ← Back
                 </button>
-                <button onClick={() => setStudyStep(4)} className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold">
-                  Next: Guided Practice →
+                <button
+                  disabled={!checkSubmitted}
+                  onClick={() => setStudyStep(4)}
+                  className="px-6 py-2.5 rounded-xl bg-[#6c63ff] disabled:opacity-50 text-white text-xs font-extrabold"
+                >
+                  {checkSubmitted ? "Next: Guided Practice →" : "Select Option to Continue →"}
                 </button>
               </div>
             </div>
@@ -411,7 +510,13 @@ export function LessonDetail() {
                   className="flex-1 px-4 py-2.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-semibold focus:outline-none focus:border-[#6c63ff]"
                 />
                 <button
-                  onClick={() => setGuidedSubmitted(true)}
+                  onClick={() => {
+                    if (!guidedInput.trim()) return;
+                    setGuidedSubmitted(true);
+                    if (guidedInput.trim().toLowerCase() !== aiGuidedQ.correctWord.toLowerCase()) {
+                      setBlankPenalty(5);
+                    }
+                  }}
                   className="px-5 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold"
                 >
                   Check
@@ -430,8 +535,12 @@ export function LessonDetail() {
                 <button onClick={() => setStudyStep(3)} className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] text-xs font-bold">
                   ← Back
                 </button>
-                <button onClick={() => setStudyStep(5)} className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold">
-                  Next: Speaking Drill →
+                <button
+                  disabled={!guidedSubmitted}
+                  onClick={() => setStudyStep(5)}
+                  className="px-6 py-2.5 rounded-xl bg-[#6c63ff] disabled:opacity-50 text-white text-xs font-extrabold"
+                >
+                  {guidedSubmitted ? "Next: Speaking Drill →" : "Check Answer to Continue →"}
                 </button>
               </div>
             </div>
