@@ -1,6 +1,7 @@
 package com.rslsolution.speakmateai.entity;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.rslsolution.speakmateai.enums.Role;
 
@@ -119,42 +120,42 @@ public class User {
 
 	private String interests;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<Progress> progressList;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Progress> progressList;
 
 	/** Expo push notification token — updated from the mobile app on every launch */
 	@Column(length = 500)
 	private String expoPushToken;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<Settings> settingsList;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Settings> settingsList;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<Onboarding> onboardingList;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Onboarding> onboardingList;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<Vocabulary> vocabularyList;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Vocabulary> vocabularyList;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<ChatSession> chatSessions;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<ChatSession> chatSessions;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<SpeakingSession> speakingSessions;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<SpeakingSession> speakingSessions;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<GrammarHistory> grammarHistories;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<GrammarHistory> grammarHistories;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<LessonProgress> lessonProgresses;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<LessonProgress> lessonProgresses;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<Notification> notifications;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Notification> notifications;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<ChatBookmark> chatBookmarks;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<ChatBookmark> chatBookmarks;
 
-	@OneToMany(mappedBy = "user", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-	private java.util.List<Achievement> achievements;
+	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Achievement> achievements;
 
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
