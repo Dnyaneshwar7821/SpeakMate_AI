@@ -248,7 +248,7 @@ export default function SubscriptionScreen({ navigation }) {
             </LinearGradient>
 
             <TouchableOpacity
-              onPress={() => navigation.navigate('Dashboard')}
+              onPress={() => navigation.navigate('BottomTabs', { screen: 'Dashboard' })}
               style={styles.studentActionBtn}
             >
               <Text style={styles.studentActionBtnText}>Go to Dashboard ➔</Text>
@@ -499,7 +499,7 @@ export default function SubscriptionScreen({ navigation }) {
             <TouchableOpacity
               onPress={() => {
                 setShowCelebrationModal(false);
-                navigation.navigate('Dashboard');
+                navigation.navigate('BottomTabs', { screen: 'Dashboard' });
               }}
               style={styles.celebrationBtn}
             >
