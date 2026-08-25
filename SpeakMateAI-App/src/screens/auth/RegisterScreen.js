@@ -36,6 +36,8 @@ export default function RegisterScreen({ navigation }) {
   const { register } = useContext(AuthContext);
 
   const [accountType, setAccountType] = useState('INDIVIDUAL_USER'); // 'INDIVIDUAL_USER' | 'STUDENT'
+  const [schoolCode, setSchoolCode] = useState('');
+  const [schoolGrade, setSchoolGrade] = useState('1st Std');
   const [schoolName, setSchoolName] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -83,7 +85,7 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const validateFullForm = () => {
-    if (accountType === 'STUDENT' && !schoolName.trim()) return 'Please enter your school name.';
+    if (accountType === 'STUDENT' && !schoolCode.trim()) return 'Please enter your School Code provided by your institution.';
     if (!firstName.trim()) return 'First name is required.';
     if (!lastName.trim()) return 'Last name is required.';
     if (!email.trim()) return 'Email address is required.';
@@ -121,7 +123,7 @@ export default function RegisterScreen({ navigation }) {
     }
   };
 
-  const handleRegister = async () => {
+  const handleSubmit = async () => {
     Keyboard.dismiss();
     const validationError = validateFullForm();
     if (validationError) {
@@ -134,6 +136,10 @@ export default function RegisterScreen({ navigation }) {
     try {
       const emailLower = email.trim().toLowerCase();
       await AsyncStorage.setItem('speakmate_account_type', accountType);
+      if (accountType === 'STUDENT') {
+        await AsyncStorage.setItem('speakmate_school_grade', schoolGrade);
+        await AsyncStorage.setItem('speakmate_school_code', schoolCode.trim().toUpperCase());
+      }
       if (schoolName.trim()) {
         await AsyncStorage.setItem('speakmate_school_name', schoolName.trim());
       }
@@ -145,7 +151,9 @@ export default function RegisterScreen({ navigation }) {
         confirmPassword,
         otp: otp.trim(),
         accountType,
-        schoolName: schoolName.trim(),
+        schoolCode: accountType === 'STUDENT' ? schoolCode.trim().toUpperCase() : null,
+        schoolGrade: accountType === 'STUDENT' ? schoolGrade : null,
+        schoolName: accountType === 'STUDENT' ? schoolName.trim() : null,
       });
       setOtpState('VERIFIED');
       setRegistered(true);
@@ -283,16 +291,26 @@ export default function RegisterScreen({ navigation }) {
                   </View>
                 </View>
 
-                {/* School Name Field for Students */}
+                {/* School Student Enrollment Fields */}
                 {accountType === 'STUDENT' && (
-                  <AuthInput
-                    label="School Name"
-                    value={schoolName}
-                    onChangeText={(t) => { setSchoolName(t); clearError(); }}
-                    placeholder="Enter your school name"
-                    autoCapitalize="words"
-                    returnKeyType="next"
-                  />
+                  <View style={{ gap: 12, marginBottom: 12 }}>
+                    <AuthInput
+                      label="School Code *"
+                      value={schoolCode}
+                      onChangeText={(t) => { setSchoolCode(t.toUpperCase()); clearError(); }}
+                      placeholder="e.g. SCH-1001"
+                      autoCapitalize="characters"
+                      returnKeyType="next"
+                    />
+                    <AuthInput
+                      label="School Name (Optional)"
+                      value={schoolName}
+                      onChangeText={(t) => { setSchoolName(t); clearError(); }}
+                      placeholder="e.g. Greenwood Academy"
+                      autoCapitalize="words"
+                      returnKeyType="next"
+                    />
+                  </View>
                 )}
 
                 {/* First Name & Last Name row */}
