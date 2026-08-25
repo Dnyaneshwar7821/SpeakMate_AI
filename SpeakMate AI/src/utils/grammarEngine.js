@@ -327,6 +327,17 @@ export function parseBackendGrammarExplanation(rawExplanation, correctedText, lo
     return localErrors;
   }
 
+  const lowerExp = rawExplanation.toLowerCase();
+  if (
+    lowerExp.includes("100% grammatically correct") ||
+    lowerExp.includes("great job") ||
+    lowerExp.includes("perfect grammar") ||
+    lowerExp.includes("no grammar errors") ||
+    lowerExp.includes("no issues found")
+  ) {
+    return [];
+  }
+
   const lines = rawExplanation
     .split("\n")
     .map((l) => l.trim())

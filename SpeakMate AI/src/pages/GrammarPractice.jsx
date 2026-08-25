@@ -118,21 +118,29 @@ export function GrammarPractice() {
 
         const normOrig = cleanText.toLowerCase().replace(/[^\w\s]/g, '').trim();
         const normCorr = backendRes.correctedText.toLowerCase().replace(/[^\w\s]/g, '').trim();
+        const backendNoChange = normOrig === normCorr;
 
-        const isCorrect =
-          backendRes.grammarScore >= 100 &&
-          normOrig === normCorr &&
-          structuredErrors.length === 0;
+        // If local engine detected concrete grammar errors but backend returned no change or praise, prefer local fix
+        const effectiveErrors = (localResult.errors.length > 0 && backendNoChange)
+          ? localResult.errors
+          : (structuredErrors.length > 0 ? structuredErrors : (backendNoChange ? [] : localResult.errors));
+
+        const effectiveCorrected = (localResult.errors.length > 0 && backendNoChange && localResult.correctedText)
+          ? localResult.correctedText
+          : backendRes.correctedText;
+
+        const effectiveNormCorr = effectiveCorrected.toLowerCase().replace(/[^\w\s]/g, '').trim();
+        const isCorrect = effectiveErrors.length === 0 && normOrig === effectiveNormCorr;
 
         const mergedResult = {
           id: backendRes.id || Date.now(),
           isCorrect,
-          accuracyScore: isCorrect ? 100 : Math.min(backendRes.grammarScore || 70, 85),
+          accuracyScore: isCorrect ? 100 : Math.min(localResult.errors.length > 0 ? localResult.accuracyScore : (backendRes.grammarScore || 70), 85),
           originalText: cleanText,
-          correctedText: backendRes.correctedText,
+          correctedText: effectiveCorrected,
           nativeAlternative: localResult.nativeAlternative,
-          errors: structuredErrors,
-          explanation: backendRes.explanation || localResult.explanation,
+          errors: effectiveErrors,
+          explanation: isCorrect ? "Your sentence is 100% grammatically correct!" : (localResult.errors.length > 0 && backendNoChange ? localResult.explanation : (backendRes.explanation || localResult.explanation)),
           praiseMessage: isCorrect ? "🌟 Perfect English Grammar! Your sentence is 100% accurate, natural, and well-structured." : "",
           createdAt: backendRes.createdAt || new Date().toISOString(),
         };
