@@ -10,23 +10,9 @@ import {
   X,
 } from "lucide-react";
 
+import { subscribeToastListener } from "../utils/toast";
+
 const ToastContext = createContext(null);
-
-// Global event bus for non-React contexts (e.g., axios, util files)
-const toastListeners = new Set();
-
-export const showGlobalToast = (message, type = "info", duration = 4000) => {
-  toastListeners.forEach((listener) => listener(message, type, duration));
-};
-
-export const toast = {
-  success: (msg, duration) => showGlobalToast(msg, "success", duration),
-  error: (msg, duration) => showGlobalToast(msg, "error", duration),
-  warning: (msg, duration) => showGlobalToast(msg, "warning", duration),
-  info: (msg, duration) => showGlobalToast(msg, "info", duration),
-  xp: (msg, duration) => showGlobalToast(msg, "xp", duration),
-  streak: (msg, duration) => showGlobalToast(msg, "streak", duration),
-};
 
 const TOAST_VARIANTS = {
   success: {
@@ -120,10 +106,7 @@ export function ToastProvider({ children }) {
   }, [removeToast]);
 
   useEffect(() => {
-    toastListeners.add(addToast);
-    return () => {
-      toastListeners.delete(addToast);
-    };
+    return subscribeToastListener(addToast);
   }, [addToast]);
 
   const toastMethods = {

@@ -1,4 +1,4 @@
-import { toast } from "../context/ToastContext";
+import { toast } from "./toast";
 
 /**
  * Dynamically loads the Razorpay checkout script if not already present.
