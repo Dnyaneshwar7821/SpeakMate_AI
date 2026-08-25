@@ -193,7 +193,7 @@ public class UserServiceImpl implements UserService {
 				.lastName(request.getLastName())
 				.email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword()))
-				.role(Role.USER)
+				.role(isStudent ? Role.STUDENT : Role.USER)
 				.active(true)
 				.welcomeCompleted(false)
 				.onboardingCompleted(false)
