@@ -192,6 +192,27 @@ export const COMPREHENSIVE_GRAMMAR_RULES = [
     issue: "'Revert' already implies returning to a previous state. Adding 'back' is redundant.",
     rule: "Use 'revert' directly without 'back'.",
     correction: "revert"
+  },
+  {
+    id: "word_order_sov_sentence",
+    regex: /\b(I|you|we|they|he|she)\s+([a-zA-Z]+)\s+(eat|eats|ate|drink|drinks|drank|play|plays|played|do|does|did|write|writes|wrote|read|reads|watch|watches|watched|like|likes|liked)\b/gi,
+    replace: (match, subj, obj, verb) => {
+      const nonObjects = ["not", "never", "always", "often", "seldom", "rarely", "usually", "sometimes", "also", "just", "really", "will", "would", "can", "could", "should", "must", "might", "may", "did", "does", "do"];
+      if (nonObjects.includes(obj.toLowerCase())) {
+        return match;
+      }
+      const vowelNouns = ["apple", "orange", "egg", "ice cream", "elephant", "umbrella"];
+      const countConsonant = ["banana", "mango", "book", "letter", "movie", "game", "ball", "song"];
+      let formattedObj = obj;
+      if (vowelNouns.includes(obj.toLowerCase())) formattedObj = `an ${obj}`;
+      else if (countConsonant.includes(obj.toLowerCase())) formattedObj = `a ${obj}`;
+      return `${subj} ${verb} ${formattedObj}`;
+    },
+    type: "Sentence Structure & Word Order",
+    errorSnippet: "Subject-Object-Verb word order",
+    issue: "Incorrect word order (Subject + Object + Verb). Standard English requires Subject + Verb + Object (SVO).",
+    rule: "English declarative sentences follow SVO structure: Subject + Verb + Object (e.g., 'I eat an apple', not 'I apple eat').",
+    correction: "Rearrange to Subject + Verb + Object"
   }
 ];
 
