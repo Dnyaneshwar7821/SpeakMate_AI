@@ -24,6 +24,7 @@ import SettingsScreen      from '../screens/main/SettingsScreen';
 import HelpScreen          from '../screens/main/HelpScreen';
 import AboutScreen         from '../screens/main/AboutScreen';
 import AssignmentsScreen   from '../screens/main/AssignmentsScreen';
+import SubscriptionScreen  from '../screens/main/SubscriptionScreen';
 
 import { useTheme } from '../context/ThemeContext';
 import DrawerSidebar from '../components/drawer/DrawerSidebar';
@@ -66,6 +67,7 @@ export default function DrawerNavigator() {
       <Drawer.Screen name="Achievements"   component={AchievementsScreen}  />
       <Drawer.Screen name="Notifications"  component={NotificationsScreen} />
       <Drawer.Screen name="Settings"       component={SettingsScreen}      />
+      <Drawer.Screen name="Subscription"   component={SubscriptionScreen}  />
       <Drawer.Screen name="Help"           component={HelpScreen}          />
       <Drawer.Screen name="About"          component={AboutScreen}         />
     </Drawer.Navigator>

@@ -39,6 +39,14 @@ const getRankTier = (xp = 0) => {
 export default function ProfileScreen({ navigation }) {
   const { user, logout, updateUser } = useContext(AuthContext);
   const { isDark } = useTheme();
+
+  const isStudent = Boolean(
+    user?.role === 'STUDENT' ||
+    user?.accountType === 'STUDENT' ||
+    user?.schoolId ||
+    user?.schoolCode ||
+    user?.schoolGrade
+  );
   
   const [state, setState] = useState({ loading: true, error: '', profile: null });
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '' });
@@ -527,6 +535,28 @@ export default function ProfileScreen({ navigation }) {
             </View>
             <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
           </TouchableOpacity>
+
+          {/* Subscription & Pro Management for Individual Users */}
+          {!isStudent && (
+            <TouchableOpacity
+              style={[styles.optionRow, { backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', borderColor: isDark ? '#4338CA' : '#C7D2FE' }]}
+              activeOpacity={0.7}
+              onPress={() => navigation.navigate('Subscription')}
+            >
+              <View style={[styles.optionIconContainer, { backgroundColor: '#FEF3C7' }]}>
+                <Ionicons name="diamond" size={20} color="#D97706" />
+              </View>
+              <View style={styles.optionTextContainer}>
+                <Text style={[styles.optionTitle, { color: isDark ? '#FFFFFF' : '#312E81', fontWeight: '800' }]}>
+                  {user?.isPro ? '⭐ SpeakMate Pro Member' : '⭐ Upgrade to Pro'}
+                </Text>
+                <Text style={[styles.optionSubtitle, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
+                  {user?.isPro ? 'Manage your active subscription' : 'Unlimited AI Speaking & Accent Coach'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={isDark ? '#818CF8' : '#4F46E5'} />
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             style={[styles.optionRow, { backgroundColor: optionRowBg, borderColor: optionBorder }]}

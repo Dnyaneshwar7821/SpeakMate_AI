@@ -86,6 +86,7 @@ const ITEM_ACCENT = {
   Notifications:'#64748B',
   Profile:      '#4F46E5',
   Settings:     '#475569',
+  Subscription: '#F59E0B',
   Help:         '#0EA5E9',
   About:        '#8B5CF6',
 };
@@ -345,7 +346,23 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
     (user?.learningGoal && String(user.learningGoal).toLowerCase().includes('school'))
   );
 
-  const navSections = NAV_SECTIONS;
+  const navSections = useMemo(() => {
+    return NAV_SECTIONS.map((sec) => {
+      if (sec.title === 'Account') {
+        const items = [...sec.items];
+        if (!isStudentUser) {
+          items.push({
+            key: 'Subscription',
+            label: '⭐ Subscription & Pro',
+            icon: 'diamond',
+            tab: 'Subscription',
+          });
+        }
+        return { ...sec, items };
+      }
+      return sec;
+    });
+  }, [isStudentUser]);
 
   const containerBg = isDark ? '#0F172A' : '#F8FAFC';
   const sectionTitleColor = isDark ? '#64748B' : '#94A3B8';
@@ -393,6 +410,32 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
             ))}
           </View>
         ))}
+
+        {/* Pro Upgrade Banner for Individual Users */}
+        {!isStudentUser && !user?.isPro && (
+          <TouchableOpacity
+            onPress={() => {
+              if (navigation?.closeDrawer) navigation.closeDrawer();
+              navigation.navigate('Subscription');
+            }}
+            style={styles.proUpgradeBanner}
+          >
+            <LinearGradient
+              colors={['#4F46E5', '#7C3AED']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.proUpgradeGradient}
+            >
+              <View style={styles.proUpgradeIconRow}>
+                <Ionicons name="sparkles" size={16} color="#FBBF24" />
+                <Text style={styles.proUpgradeTitle}>Upgrade to Pro</Text>
+              </View>
+              <Text style={styles.proUpgradeSubtitle}>
+                Unlock unlimited AI drills from ₹149/mo
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
 
         {/* Motivational Tip Card */}
         <LinearGradient
@@ -673,10 +716,44 @@ const styles = StyleSheet.create({
     right: 8,
   },
 
+  // ── Pro Upgrade Banner ──
+  proUpgradeBanner: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  proUpgradeGradient: {
+    padding: 14,
+    borderRadius: 18,
+  },
+  proUpgradeIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  proUpgradeTitle: {
+    color: '#FFFFFF',
+    fontWeight: '900',
+    fontSize: 13,
+    letterSpacing: 0.3,
+  },
+  proUpgradeSubtitle: {
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+
   // ── Motivation Card ──
   motivationCard: {
     marginHorizontal: 16,
-    marginTop: 18,
+    marginTop: 12,
     marginBottom: 6,
     padding: 14,
     borderRadius: 16,

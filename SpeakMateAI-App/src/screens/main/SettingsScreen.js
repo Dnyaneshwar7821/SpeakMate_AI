@@ -188,6 +188,43 @@ export default function SettingsScreen({ navigation }) {
             </View>
           </Card>
 
+          {/* CATEGORY 0: SUBSCRIPTION & MEMBERSHIP (FOR INDIVIDUAL USERS) */}
+          {accountType !== 'STUDENT' && (
+            <>
+              <View style={styles.sectionHeaderContainer}>
+                <Ionicons name="diamond-outline" size={16} color="#D97706" />
+                <Text style={[styles.sectionHeader, { color: sublabelColor }]}>Subscription & Plan</Text>
+              </View>
+              <Card style={{ backgroundColor: isDark ? '#1E293B' : '#FFFFFF' }}>
+                <TouchableOpacity
+                  style={styles.pickerRow}
+                  activeOpacity={0.7}
+                  onPress={() => navigation.navigate('Subscription')}
+                >
+                  <View style={styles.pickerRowLeft}>
+                    <View style={[styles.iconBox, { backgroundColor: '#FEF3C7' }]}>
+                      <Ionicons name="sparkles" size={18} color="#D97706" />
+                    </View>
+                    <View style={{ flex: 1, paddingRight: 8 }}>
+                      <Text style={[styles.rowTitle, { color: labelColor, fontWeight: '800' }]}>
+                        SpeakMate Pro Membership
+                      </Text>
+                      <Text style={[styles.rowDesc, { color: sublabelColor }]}>
+                        Manage plan, billing cycle & Razorpay receipts
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.pickerRowRight}>
+                    <Text style={[styles.pickerValueText, { color: '#4F46E5', fontWeight: '800' }]}>
+                      View Plans
+                    </Text>
+                    <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
+                  </View>
+                </TouchableOpacity>
+              </Card>
+            </>
+          )}
+
           {/* CATEGORY 1: LEARNING & PREFERENCES */}
           <View style={styles.sectionHeaderContainer}>
             <Ionicons name="school-outline" size={16} color={COLORS.primary} />
