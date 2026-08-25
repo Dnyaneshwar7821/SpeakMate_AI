@@ -196,7 +196,8 @@ export default function GrammarScreen() {
         if (currProgress) {
           await progressService.update({
             ...currProgress,
-            xp: (currProgress.xp || 0) + 20,
+            xp: (currProgress.xp || 0) + 8,
+            totalGrammarChecks: (currProgress.totalGrammarChecks || 0) + 1,
           });
         }
       } catch {}

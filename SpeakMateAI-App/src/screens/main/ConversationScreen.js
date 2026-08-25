@@ -911,9 +911,8 @@ export default function ConversationScreen({ navigation, route }) {
               navigation.replace('SpeakingSummary', { summary });
             } catch (e) {
               const calcXp = (dur) => {
-                if (!dur || dur < 60) return 0;
-                const mins = Math.floor(dur / 60);
-                return Math.min(100, mins * 10);
+                const mins = Math.floor((dur || 0) / 60);
+                return Math.min(40, Math.max(25, 20 + mins * 3 + 5));
               };
               const sessionDur = timer || 0;
               const fallbackSummary = {

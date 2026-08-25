@@ -3,6 +3,7 @@ import { vocabularyService, progressService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
+import { recordVocabularyMastered, recordWordAdded, recordQuizCompleted } from "../utils/progressTracker";
 
 // =========================================================================
 // ONBOARDING CALIBRATED VOCABULARY CURRICULUMS (STUDENTS & INDIVIDUAL USERS)
@@ -214,6 +215,8 @@ export function Vocabulary() {
       const res = await vocabularyService.add(wordInput.trim());
       setWordInput("");
       setItems((prev) => [res, ...prev]);
+      recordWordAdded(1);
+      toast.success(`"${res.word}" added with AI definition! (+5 XP ✨)`);
     } catch (e) {
       const fallback = {
         id: "loc_" + Date.now(),
@@ -225,8 +228,31 @@ export function Vocabulary() {
       };
       setItems((prev) => [fallback, ...prev]);
       setWordInput("");
+      recordWordAdded(1);
+      toast.success(`"${fallback.word}" added! (+5 XP ✨)`);
     } finally {
       setAdding(false);
+    }
+  };
+
+  const handleMasterWord = async (item) => {
+    try {
+      if (typeof item.id === "number" || !String(item.id).startsWith("v")) {
+        await vocabularyService.toggleMastered(item.id);
+      }
+      const updated = !item.mastered;
+      setItems((prev) => prev.map((w) => (w.id === item.id ? { ...w, mastered: updated } : w)));
+      if (updated) {
+        recordVocabularyMastered(1);
+        toast.success(`Word "${item.word}" marked as Mastered! (+10 XP 🧠)`);
+      }
+    } catch (e) {
+      const updated = !item.mastered;
+      setItems((prev) => prev.map((w) => (w.id === item.id ? { ...w, mastered: updated } : w)));
+      if (updated) {
+        recordVocabularyMastered(1);
+        toast.success(`Word "${item.word}" marked as Mastered! (+10 XP 🧠)`);
+      }
     }
   };
 
@@ -406,11 +432,12 @@ export function Vocabulary() {
   const finishQuiz = async () => {
     setQuizFinished(true);
     const totalQ = quizQuestions.length;
-    const baseXP = quizScore * 20;
-    const streakBonus = maxStreak >= 3 ? 25 : 0;
-    const perfectBonus = quizScore === totalQ && totalQ > 0 ? 30 : 0;
-    const totalAwarded = baseXP + streakBonus + perfectBonus;
+    const baseXP = quizScore * 5;
+    const perfectBonus = quizScore === totalQ && totalQ > 0 ? 10 : 0;
+    const totalAwarded = baseXP + perfectBonus;
     setEarnedXP(totalAwarded);
+
+    recordQuizCompleted("vocabulary", quizScore, totalQ);
 
     try {
       const prog = await progressService.get().catch(() => null);
@@ -505,7 +532,7 @@ export function Vocabulary() {
               <h2 className="text-lg font-extrabold text-[var(--text-primary)] flex items-center gap-2">
                 ✨ AI Word Lookup & Add
               </h2>
-              <span className="bg-emerald-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-sm">+10 XP</span>
+              <span className="bg-emerald-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-sm">+5 XP</span>
             </div>
             <p className="text-sm text-[var(--text-secondary)] mb-4 font-medium">
               Type any English word. SpeakMate AI automatically extracts meaning, part of speech, and examples.
@@ -620,13 +647,23 @@ export function Vocabulary() {
                     )}
                   </div>
 
-                  <div className="space-y-1 pt-2.5 border-t border-[var(--border-default)] text-xs">
-                    {item.synonym && item.synonym !== "None" && (
+                  <div className="flex items-center justify-between pt-2.5 border-t border-[var(--border-default)] text-xs">
+                    {item.synonym && item.synonym !== "None" ? (
                       <p className="text-[var(--text-secondary)]">
                         <span className="font-bold text-[var(--text-primary)]">Synonym: </span>
                         <span className="text-emerald-500 font-semibold">{item.synonym}</span>
                       </p>
-                    )}
+                    ) : <span />}
+                    <button
+                      onClick={() => handleMasterWord(item)}
+                      className={`px-3 py-1 rounded-lg font-bold text-xs transition-all flex items-center gap-1 shadow-sm ${
+                        item.mastered
+                          ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30"
+                          : "bg-indigo-500/10 text-[#6C63FF] hover:bg-indigo-500/20 border border-indigo-500/20"
+                      }`}
+                    >
+                      {item.mastered ? "✓ Mastered" : "🧠 Master (+10 XP)"}
+                    </button>
                   </div>
                 </div>
               ))}
@@ -776,6 +813,12 @@ export function Vocabulary() {
               className="px-6 py-3 bg-[var(--bg-surface)] font-bold text-[var(--text-primary)] rounded-2xl hover:bg-[var(--bg-elevated)] transition-all border border-[var(--border-default)] shadow-sm"
             >
               ← Previous
+            </button>
+            <button
+              onClick={() => handleMasterWord(currentCard)}
+              className="px-4 py-3 bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-extrabold rounded-2xl hover:bg-emerald-500/25 transition-all border border-emerald-500/30 flex items-center gap-1.5 shadow-sm text-xs"
+            >
+              🧠 Mastered (+10 XP)
             </button>
             <button
               onClick={() => {

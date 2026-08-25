@@ -333,6 +333,33 @@ export default function VocabularyScreen() {
     }
   };
 
+  // Toggle Mastered (+10 XP)
+  const toggleMastered = async (item) => {
+    const newMastered = !item.mastered;
+    try {
+      if (typeof item.id === 'number' || !String(item.id).startsWith('v')) {
+        await vocabularyService.toggleMastered(item.id);
+      }
+      setUserWords((prev) => prev.map((w) => (w.id === item.id ? { ...w, mastered: newMastered } : w)));
+      if (newMastered) {
+        Alert.alert('Word Mastered! 🧠', `"${item.word}" marked as Mastered! (+10 XP)`);
+        const prog = await progressService.get().catch(() => null);
+        if (prog) {
+          await progressService.update({
+            ...prog,
+            xp: (prog.xp || 0) + 10,
+            totalVocabularyWords: (prog.totalVocabularyWords || 0) + 1,
+          });
+        }
+      }
+    } catch (e) {
+      setUserWords((prev) => prev.map((w) => (w.id === item.id ? { ...w, mastered: newMastered } : w)));
+      if (newMastered) {
+        Alert.alert('Word Mastered! 🧠', `"${item.word}" marked as Mastered! (+10 XP)`);
+      }
+    }
+  };
+
   // Press feedback handlers for physical tactile card feel
   const handlePressIn = () => {
     Animated.spring(pressScale, {
@@ -599,9 +626,8 @@ export default function VocabularyScreen() {
     setQuizFinished(true);
     const totalQ = quizQuestions.length;
     const baseXP = quizScore * 5;
-    const streakBonus = maxStreak >= 3 ? 5 : 0;
     const perfectBonus = quizScore === totalQ && totalQ > 0 ? 10 : 0;
-    const totalAwarded = baseXP + streakBonus + perfectBonus;
+    const totalAwarded = baseXP + perfectBonus;
     setEarnedXP(totalAwarded);
 
     try {
@@ -895,12 +921,31 @@ export default function VocabularyScreen() {
                   </View>
                 ) : null}
 
-                {item.synonym && item.synonym !== 'None' ? (
-                  <View style={styles.synonymsRow}>
-                    <Text style={[styles.synonymLabel, { color: theme.textSecondary }]}>Synonym: </Text>
-                    <Text style={[styles.synonymText, { color: '#10B981' }]}>{item.synonym}</Text>
-                  </View>
-                ) : null}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: isDark ? '#334155' : '#E2E8F0' }}>
+                  {item.synonym && item.synonym !== 'None' ? (
+                    <View style={styles.synonymsRow}>
+                      <Text style={[styles.synonymLabel, { color: theme.textSecondary }]}>Synonym: </Text>
+                      <Text style={[styles.synonymText, { color: '#10B981' }]}>{item.synonym}</Text>
+                    </View>
+                  ) : <View />}
+
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => toggleMastered(item)}
+                    style={{
+                      paddingHorizontal: 12,
+                      paddingVertical: 5,
+                      borderRadius: 8,
+                      backgroundColor: item.mastered ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.1)',
+                      borderWidth: 1,
+                      borderColor: item.mastered ? '#10B981' : '#6366F1',
+                    }}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: item.mastered ? '#10B981' : '#6366F1' }}>
+                      {item.mastered ? '✓ Mastered' : '🧠 Master (+10 XP)'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
               </Card>
             ))
           )}
@@ -1201,6 +1246,25 @@ export default function VocabularyScreen() {
               accessibilityLabel="Previous Card"
             >
               <Ionicons name="chevron-back" size={22} color={theme.textPrimary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => toggleMastered(currentCard)}
+              style={{
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                borderRadius: 14,
+                backgroundColor: currentCard.mastered ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)',
+                borderWidth: 1,
+                borderColor: currentCard.mastered ? '#10B981' : '#6366F1',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 13, fontWeight: '800', color: currentCard.mastered ? '#10B981' : '#6366F1' }}>
+                {currentCard.mastered ? '✓ Mastered' : '🧠 Mastered (+10 XP)'}
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity

@@ -877,12 +877,12 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		// Calculate XP reward:
 		// Base: 10 XP if session had dialogue or lasted >= 15 seconds
 		// Time bonus: 10 XP per full minute
-		// Performance bonus: rewarding speaking practice
-		int baseReward = (session.getMessages() != null && session.getMessages().size() >= 2) || durationSeconds >= 15 ? 15 : 5;
+		// Performance bonus: rewarding speaking practice (+25 to +40 XP)
+		int baseReward = (session.getMessages() != null && session.getMessages().size() >= 2) || durationSeconds >= 15 ? 20 : 15;
 		long minutes = durationSeconds / 60;
-		int timeBonus = (int) (minutes * 5);
+		int timeBonus = (int) Math.min(10, minutes * 3);
 		int scoreBonus = (score >= 90.0) ? 10 : (score >= 80.0 ? 5 : 0);
-		int xp = Math.min(45, baseReward + timeBonus + scoreBonus);
+		int xp = Math.min(40, Math.max(25, baseReward + timeBonus + scoreBonus));
 
 		// Update session fields
 		session.setDuration((int) durationSeconds);

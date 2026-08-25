@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { grammarService } from "../services/appServices";
 import { speakGlobalText, speakGlobalSequential } from "../utils/speechHelper";
-import { recordQuizCompleted } from "../utils/progressTracker";
+import { recordGrammarCheck, recordQuizCompleted } from "../utils/progressTracker";
 import {
   analyzeSentenceGrammarLocally,
   EXTENSIVE_GRAMMAR_GUIDE,
@@ -147,11 +147,13 @@ export function GrammarPractice() {
 
         setAnalysisResult(mergedResult);
         speakFeedback(mergedResult);
+        recordGrammarCheck(mergedResult.accuracyScore);
 
         // Update history
         setHistory((prev) => [mergedResult, ...prev.filter((h) => h.id !== mergedResult.id)]);
       } else {
         speakFeedback(localResult);
+        recordGrammarCheck(localResult.accuracyScore);
       }
     } catch {
       speakFeedback(localResult);

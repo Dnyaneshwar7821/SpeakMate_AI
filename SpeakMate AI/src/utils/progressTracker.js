@@ -132,7 +132,7 @@ const checkAndUpdateDailyGoal = (stats, userContext = null) => {
   }
 };
 
-// 1. Track Speaking Practice or Chat Session
+// 1. Track Speaking Practice (3-5 min conversation: +25 to +40 XP)
 export const recordSpeakingSession = (durationMins = 5, accuracyScore = 90, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
   stats.speakingMins += durationMins;
@@ -140,14 +140,18 @@ export const recordSpeakingSession = (durationMins = 5, accuracyScore = 90, user
   stats.speakingSessions += 1;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  stats.xp += Math.min(40, durationMins * 5 + 15);
+  
+  const baseReward = 20;
+  const timeBonus = Math.min(10, Math.max(0, durationMins * 3));
+  const scoreBonus = accuracyScore >= 90 ? 10 : (accuracyScore >= 80 ? 5 : 0);
+  stats.xp += Math.min(40, Math.max(25, baseReward + timeBonus + scoreBonus));
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
   return stats;
 };
 
-// 2. Track Live Grammar Check
+// 2. Track Live Grammar Check (+8 XP)
 export const recordGrammarCheck = (accuracyScore = 95, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
   stats.grammarChecks += 1;
@@ -161,33 +165,56 @@ export const recordGrammarCheck = (accuracyScore = 95, userContext = null) => {
   return stats;
 };
 
-// 3. Track Vocabulary Words Mastered
+// 3. Track Vocabulary Words Mastered (+10 XP per mastered word)
 export const recordVocabularyMastered = (count = 1, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
   stats.wordsLearned += count;
   stats.todayMins = (stats.todayMins || 0) + count;
-  stats.xp += count * 5;
+  stats.xp += count * 10;
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
   return stats;
 };
 
-// 4. Track CEFR Lesson Completion
+// 4. Track Adding a Custom Vocabulary Word (+5 XP)
+export const recordWordAdded = (count = 1, userContext = null) => {
+  const stats = getLiveProgressStats(userContext);
+  stats.wordsLearned += count;
+  stats.todayMins = (stats.todayMins || 0) + 1;
+  stats.xp += count * 5;
+
+  checkAndUpdateDailyGoal(stats, userContext);
+  saveProgressStats(stats, userContext);
+  return stats;
+};
+
+// 5. Track AI Chat / Voice Interaction (+5 XP per turn)
+export const recordChatMessage = (count = 1, userContext = null) => {
+  const stats = getLiveProgressStats(userContext);
+  stats.todayMins = (stats.todayMins || 0) + 1;
+  stats.xp += count * 5;
+
+  checkAndUpdateDailyGoal(stats, userContext);
+  saveProgressStats(stats, userContext);
+  return stats;
+};
+
+// 6. Track Structured Lesson Completion (+30 to +35 XP)
 export const recordLessonCompleted = (accuracyScore = 90, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
   stats.lessonsCompleted += 1;
   stats.todayMins = (stats.todayMins || 0) + 5;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  stats.xp += 30;
+  stats.xp += 35;
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
   return stats;
 };
 
-// 5. Track Quiz Completion (Grammar & Vocabulary)
+// 7. Track Quiz Completion: Grammar (8 Qs -> +50 XP), Vocab (5 Qs -> +35 XP)
 export const recordQuizCompleted = (quizType = "grammar", score = 8, total = 8, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
   const baseXP = score * 5;

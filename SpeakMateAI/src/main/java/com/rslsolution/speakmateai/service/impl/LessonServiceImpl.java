@@ -451,7 +451,7 @@ public class LessonServiceImpl implements LessonService {
 			progress.setCompleted(true);
 			progress.setCompletedAt(LocalDateTime.now());
 			progress.setLastOpenedAt(LocalDateTime.now());
-			int xp = lesson.getXpReward() != null ? lesson.getXpReward() : 25;
+			int xp = lesson.getXpReward() != null ? lesson.getXpReward() : 35;
 			progress.setXpEarned(xp);
 
 			// ── Credit XP to user Progress ────────────────────────────────
