@@ -161,7 +161,7 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 		try {
 			String prompt = "Generate 5 multiple-choice quiz questions for the English lesson titled:\n" 
 					+ request.getPrompt() 
-					+ "\n\nFormat your response strictly as a raw JSON array of 5 objects (no markdown wrapping, no ``` json, no extra text):\n"
+					+ "\n\nFormat your response strictly as a raw JSON array of 5 objects (no markdown wrapping, no ```json, no extra text, no asterisks):\n"
 					+ "[\n"
 					+ "  {\n"
 					+ "    \"question\": \"Question text here?\",\n"
@@ -170,7 +170,11 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 					+ "    \"explanation\": \"Short explanation why Option A is correct.\"\n"
 					+ "  }\n"
 					+ "]\n";
-			return callGroq(analysisModel, prompt, 0.3);
+			List<GroqRequest.Message> messages = List.of(
+				new GroqRequest.Message("system", "You are a JSON-only API. You output ONLY valid JSON arrays. Never output markdown code fences, bullet points, introductory text, or asterisks."),
+				new GroqRequest.Message("user", prompt)
+			);
+			return executeGroqCall(analysisModel, messages, 0.2);
 		} catch (Exception e) {
 			String fallbackJson = """
 [

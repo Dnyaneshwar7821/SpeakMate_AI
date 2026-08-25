@@ -486,3 +486,5 @@ export function Achievements() {
     </div>
   );
 }
+
+export default Achievements;

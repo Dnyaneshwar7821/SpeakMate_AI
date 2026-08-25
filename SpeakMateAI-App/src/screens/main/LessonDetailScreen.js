@@ -720,15 +720,32 @@ export default function LessonDetailScreen({ navigation, route }) {
       const res = await aiService.lessonQuiz(prompt);
       let questions = [];
       if (res?.response) {
-        let jsonStr = res.response.trim();
-        let start = jsonStr.indexOf("[");
-        let end = jsonStr.lastIndexOf("]");
+        let raw = String(res.response).trim();
+        // Strip markdown code fences
+        raw = raw.replace(/```json/gi, '').replace(/```/g, '').trim();
+        
+        let start = raw.indexOf('[');
+        let end = raw.lastIndexOf(']');
         if (start !== -1 && end !== -1 && end > start) {
-          jsonStr = jsonStr.substring(start, end + 1);
+          raw = raw.substring(start, end + 1);
         }
-        questions = JSON.parse(jsonStr);
+        
+        // Remove trailing commas
+        raw = raw.replace(/,\s*([\]}])/g, '$1');
+
+        try {
+          questions = JSON.parse(raw);
+        } catch (parseErr1) {
+          try {
+            // Strip stray asterisks and markdown bolding
+            const sanitized = raw.replace(/\*\*/g, '').replace(/\*/g, '');
+            questions = JSON.parse(sanitized);
+          } catch (parseErr2) {
+            console.warn("AI Quiz JSON parse recovery failed:", parseErr2?.message);
+          }
+        }
       }
-      if (Array.isArray(questions) && questions.length === 5) {
+      if (Array.isArray(questions) && questions.length >= 3) {
         setQuizQuestions(questions);
       } else {
         setQuizQuestions(generateFallbackQuestions(lesson.title, tier));
