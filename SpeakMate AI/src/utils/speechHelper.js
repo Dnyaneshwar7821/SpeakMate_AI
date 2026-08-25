@@ -460,7 +460,7 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   return utterance;
 };
 
-export async function speakGlobalSequential(segments = [], speedMultiplier = 1.0, pauseMs = 700, options = {}) {
+export async function speakGlobalSequential(segments = [], speedMultiplier = 1.0, pauseMs = 400, options = {}) {
   if (!segments || segments.length === 0) return;
   const cleanSegments = segments.map((s) => (typeof s === "string" ? s.trim() : "")).filter(Boolean);
   if (cleanSegments.length === 0) return;

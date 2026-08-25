@@ -241,7 +241,7 @@ export default function GrammarScreen() {
     VoiceService.speakSequential(spokenSegments, {
       voiceType,
       availableVoices: currentVoices,
-    }, 700);
+    }, 400);
   };
 
   const removeHistoryItem = async (id) => {

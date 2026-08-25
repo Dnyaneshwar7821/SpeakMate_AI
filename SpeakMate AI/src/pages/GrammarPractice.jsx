@@ -165,7 +165,7 @@ export function GrammarPractice() {
     setIsAiSpeaking(true);
 
     const segments = generateSpokenGrammarSegments(res);
-    await speakGlobalSequential(segments, 1.0, 700);
+    await speakGlobalSequential(segments, 1.0, 400);
     setIsAiSpeaking(false);
   };
 

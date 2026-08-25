@@ -482,7 +482,7 @@ export const VoiceService = {
     }
   },
 
-  speakSequential: async (segments = [], options = {}, pauseMs = 700) => {
+  speakSequential: async (segments = [], options = {}, pauseMs = 400) => {
     if (!segments || segments.length === 0) return;
     if (options.isMuted) return;
 
