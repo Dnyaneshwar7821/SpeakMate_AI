@@ -785,3 +785,5 @@ export function GrammarPractice() {
     </div>
   );
 }
+
+export default GrammarPractice;
