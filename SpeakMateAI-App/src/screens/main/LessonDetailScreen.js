@@ -309,6 +309,7 @@ export default function LessonDetailScreen({ navigation, route }) {
   // Auto AI Guided Practice State (Step 5)
   const [aiGuidedQ, setAiGuidedQ] = useState(null);  // { sentence, blank, correctWord, hint, explanation }
   const [aiGuidedQLoading, setAiGuidedQLoading] = useState(false);
+  const [blankPenalty, setBlankPenalty] = useState(0);
 
   // Dynamic 3-Level Quiz State
   const [quizLevel, setQuizLevel] = useState('Basic'); // 'Basic', 'Intermediate', 'Advanced'
@@ -979,6 +980,7 @@ export default function LessonDetailScreen({ navigation, route }) {
       setCheckSubmitted(false);
       setGuidedInput('');
       setGuidedSubmitted(false);
+      setBlankPenalty(0);
       setSpeakingInput('');
       setSpeakingFeedback(null);
       setShowStudy(true);
