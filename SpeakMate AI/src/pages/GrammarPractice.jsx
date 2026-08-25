@@ -116,14 +116,18 @@ export function GrammarPractice() {
           localResult.errors
         );
 
+        const normOrig = cleanText.toLowerCase().replace(/[^\w\s]/g, '').trim();
+        const normCorr = backendRes.correctedText.toLowerCase().replace(/[^\w\s]/g, '').trim();
+
         const isCorrect =
-          backendRes.grammarScore >= 100 ||
-          backendRes.correctedText.trim().toLowerCase() === cleanText.toLowerCase();
+          backendRes.grammarScore >= 100 &&
+          normOrig === normCorr &&
+          structuredErrors.length === 0;
 
         const mergedResult = {
           id: backendRes.id || Date.now(),
           isCorrect,
-          accuracyScore: backendRes.grammarScore || (isCorrect ? 100 : 80),
+          accuracyScore: isCorrect ? 100 : Math.min(backendRes.grammarScore || 70, 85),
           originalText: cleanText,
           correctedText: backendRes.correctedText,
           nativeAlternative: localResult.nativeAlternative,
