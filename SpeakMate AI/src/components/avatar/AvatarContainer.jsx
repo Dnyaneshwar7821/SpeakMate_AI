@@ -9,6 +9,7 @@ import { useExpressions } from '../../hooks/useExpressions';
 import { useMotion } from '../../hooks/useMotion';
 import { useSpeech } from '../../hooks/useSpeech';
 import { AIService } from '../../services/ai/AIService';
+import { useTheme } from '../../context/ThemeContext';
 
 export function AvatarContainer({
   modelPath,
@@ -18,6 +19,7 @@ export function AvatarContainer({
 }) {
   const containerRef = useRef(null);
   const [model, setModel] = useState(null);
+  const { isDark } = useTheme();
   const [status, setStatus] = useState('Idle');
   const [aiInput, setAiInput] = useState('');
   const [lastResponse, setLastResponse] = useState('');
@@ -71,7 +73,11 @@ export function AvatarContainer({
   return (
     <div
       ref={containerRef}
-      className={`relative flex flex-col items-center justify-between w-full h-full min-h-[500px] p-4 bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden ${className}`}
+      className={`relative flex flex-col items-center justify-between w-full h-full min-h-[500px] p-4 rounded-3xl border shadow-2xl overflow-hidden transition-colors ${
+        isDark
+          ? "bg-gradient-to-b from-[#0F172A] via-[#111827] to-[#0B0F19] border-slate-800"
+          : "bg-gradient-to-b from-sky-50 via-indigo-50/70 to-purple-50/60 border-slate-200"
+      } ${className}`}
     >
       {/* Top Status Header */}
       <div className="absolute top-4 left-4 z-10 flex items-center gap-3">

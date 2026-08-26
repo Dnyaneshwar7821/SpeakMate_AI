@@ -441,23 +441,42 @@ export function ConversationChat() {
         </div>
 
         {/* Avatar Stage Canvas Viewport */}
-        <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+        <div className={`flex-1 relative flex items-center justify-center overflow-hidden transition-colors ${
+          isDark
+            ? "bg-gradient-to-b from-[#0F172A] via-[#111827] to-[#0B0F19]"
+            : "bg-gradient-to-b from-sky-50 via-indigo-50/70 to-purple-50/60"
+        }`}>
           <AvatarCanvas className="w-full h-full" framing="faceToChest" onModelLoaded={setModel} />
+
+          {/* Subtle Stage Lighting Overlay */}
+          <div className={`absolute inset-0 pointer-events-none ${
+            isDark
+              ? "bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"
+              : "bg-gradient-to-t from-indigo-100/30 via-transparent to-transparent"
+          }`} />
 
           {/* Soundbar Waves when AI speaks */}
           {isAiSpeaking && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 h-9 px-4 py-1 rounded-full bg-slate-900/80 backdrop-blur-md border border-indigo-500/40 shadow-xl pointer-events-none z-20">
+            <div className={`absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 h-9 px-4 py-1 rounded-full backdrop-blur-md border shadow-xl pointer-events-none z-20 ${
+              isDark
+                ? "bg-slate-900/80 border-indigo-500/40 text-indigo-200"
+                : "bg-white/95 border-indigo-200 text-indigo-700 shadow-md"
+            }`}>
               <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-1 h-5" />
               <span className="w-1.5 bg-[#ff6584] rounded-full animate-soundbar-2 h-7" />
               <span className="w-1.5 bg-emerald-400 rounded-full animate-soundbar-3 h-4" />
               <span className="w-1.5 bg-[#6c63ff] rounded-full animate-soundbar-4 h-6" />
-              <span className="text-[10px] font-black text-indigo-200 uppercase tracking-widest ml-1">AI Speaking</span>
+              <span className={`text-[10px] font-black uppercase tracking-widest ml-1 ${isDark ? "text-indigo-200" : "text-indigo-700"}`}>AI Speaking</span>
             </div>
           )}
 
           {/* Floating State Badge at Bottom of Avatar Stage */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-md border border-white/15 text-[11px] font-bold text-white shadow-xl flex items-center gap-2 pointer-events-none">
-            <span className={`h-2 w-2 rounded-full ${isAiSpeaking ? "bg-emerald-400 animate-pulse" : evaluating ? "bg-amber-400 animate-ping" : "bg-indigo-400"}`} />
+          <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1.5 rounded-full backdrop-blur-md border text-[11px] font-bold shadow-xl flex items-center gap-2 pointer-events-none ${
+            isDark
+              ? "bg-slate-900/80 border-white/15 text-white"
+              : "bg-white/95 border-slate-200/90 text-slate-800 shadow-md"
+          }`}>
+            <span className={`h-2 w-2 rounded-full ${isAiSpeaking ? "bg-emerald-500 animate-pulse" : evaluating ? "bg-amber-500 animate-ping" : "bg-[#6c63ff]"}`} />
             <span>{avatarState}</span>
           </div>
         </div>
