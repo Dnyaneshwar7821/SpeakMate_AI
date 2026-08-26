@@ -3,7 +3,7 @@ import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 const HARU_MODEL_URL = 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json';
-const CHITOSE_MODEL_URL = 'https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/Live2D/SenrenBanka/chitose/chitose.model3.json';
+const CHITOSE_MODEL_URL = 'https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/Live2D/SenrenBanka/chitose/chitose.model.json';
 
 const LIVE2D_HTML = `
 <!DOCTYPE html>
@@ -37,10 +37,11 @@ const LIVE2D_HTML = `
       background: transparent !important;
     }
   </style>
-  <!-- Cubism 4 Core SDK & PixiJS Bundle -->
+  <!-- Cubism 2 & 4 Core SDKs with Unified Pixi-Live2D Display -->
   <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.3.2/dist/pixi.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
 </head>
 <body>
   <div id="canvas-container"></div>
@@ -52,6 +53,8 @@ const LIVE2D_HTML = `
     let currentMood = 'neutral';
     let currentModelName = 'haru';
     let mouthPhase = 0;
+    let currentMouthY = 0;
+    let currentMouthForm = 0;
     
     // Interactive Touch / Gaze
     let targetLookX = 0;
@@ -91,7 +94,7 @@ const LIVE2D_HTML = `
         window.addEventListener('pointerdown', onPointerMove);
         window.addEventListener('pointerup', onPointerReset);
 
-        // Core animation & expression loop
+        // Core ticker loop
         app.ticker.add((delta) => {
           if (!model || !model.internalModel) return;
 
@@ -102,23 +105,17 @@ const LIVE2D_HTML = `
           const t = now / 1000;
 
           // 1. Natural Breathing
-          const breath = (Math.sin(t * 1.8) + 1) * 0.4;
-          try {
-            if (core.setParameterValueById) core.setParameterValueById('ParamBreath', breath);
-          } catch(e) {}
+          const breath = (Math.sin(t * 1.8) + 1) * 0.45;
+          setParam(core, 'ParamBreath', 'PARAM_BREATH', breath);
 
           // 2. Smooth Gaze & Head Lerp
           currentLookX += (targetLookX - currentLookX) * 0.08;
           currentLookY += (targetLookY - currentLookY) * 0.08;
 
-          try {
-            if (core.setParameterValueById) {
-              core.setParameterValueById('ParamEyeBallX', currentLookX * 0.75);
-              core.setParameterValueById('ParamEyeBallY', currentLookY * 0.75);
-              core.setParameterValueById('ParamAngleX', currentLookX * 22);
-              core.setParameterValueById('ParamAngleY', currentLookY * 18);
-            }
-          } catch(e) {}
+          setParam(core, 'ParamEyeBallX', 'PARAM_EYE_BALL_X', currentLookX * 0.75);
+          setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', currentLookY * 0.75);
+          setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', currentLookX * 22);
+          setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', currentLookY * 18);
 
           // 3. Stochastic Blinking Cycle
           if (now > nextBlinkTime && !isBlinking) {
@@ -127,68 +124,53 @@ const LIVE2D_HTML = `
           }
 
           if (isBlinking) {
-            blinkProgress += 0.12 * delta;
-            // Half sine for quick close and open
+            blinkProgress += 0.14 * delta;
             const eyeOpen = Math.max(0, 1 - Math.sin(blinkProgress * Math.PI));
-            try {
-              if (core.setParameterValueById) {
-                core.setParameterValueById('ParamEyeLOpen', eyeOpen);
-                core.setParameterValueById('ParamEyeROpen', eyeOpen);
-              }
-            } catch(e) {}
+            setParam(core, 'ParamEyeLOpen', 'PARAM_EYE_L_OPEN', eyeOpen);
+            setParam(core, 'ParamEyeROpen', 'PARAM_EYE_R_OPEN', eyeOpen);
 
             if (blinkProgress >= 1.0) {
               isBlinking = false;
-              nextBlinkTime = now + 2200 + Math.random() * 3200; // Next blink in 2.2-5.4s
+              nextBlinkTime = now + 2000 + Math.random() * 3200;
             }
           }
 
-          // 4. State-Driven Gestures & Expressions
+          // 4. State Gestures
           if (currentState === 'thinking') {
-            try {
-              if (core.setParameterValueById) {
-                core.setParameterValueById('ParamAngleZ', -6.5);
-                core.setParameterValueById('ParamEyeBallY', 0.45);
-                core.setParameterValueById('ParamBrowLY', -0.3);
-                core.setParameterValueById('ParamBrowRY', -0.3);
-              }
-            } catch(e) {}
+            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', -7.0);
+            setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', 0.5);
+            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', -0.3);
+            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', -0.3);
           } else if (currentState === 'listening') {
-            try {
-              if (core.setParameterValueById) {
-                core.setParameterValueById('ParamAngleX', 3.5);
-                core.setParameterValueById('ParamAngleY', -2.5);
-                core.setParameterValueById('ParamBrowLY', 0.25);
-                core.setParameterValueById('ParamBrowRY', 0.25);
-              }
-            } catch(e) {}
+            setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', 4.0);
+            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', -2.5);
+            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', 0.3);
+            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', 0.3);
           }
 
           // 5. Dynamic Phonetic Lip-Sync
           if (isSpeaking) {
-            mouthPhase += 0.32 * delta;
+            mouthPhase += 0.36 * delta;
             
-            // Varied multi-viseme mouth shape modulation
-            const rawOpen = Math.abs(Math.sin(mouthPhase)) * 0.75 + Math.abs(Math.cos(mouthPhase * 0.6)) * 0.25;
-            const mouthOpen = Math.min(1.0, rawOpen);
-            const mouthForm = (currentMood === 'happy' || currentMood === 'encouraging') ? 1.0 : (Math.sin(mouthPhase * 0.5) * 0.4 + 0.2);
+            // Dynamic multi-frequency viseme oscillation
+            const rawOpen = Math.abs(Math.sin(mouthPhase)) * 0.75 + Math.abs(Math.cos(mouthPhase * 0.65)) * 0.3;
+            const targetMouthY = Math.min(1.0, Math.max(0.15, rawOpen));
+            const targetMouthForm = (currentMood === 'happy' || currentMood === 'encouraging') ? 1.0 : (Math.sin(mouthPhase * 0.5) * 0.4 + 0.3);
 
-            try {
-              if (core.setParameterValueById) {
-                core.setParameterValueById('ParamMouthOpenY', mouthOpen);
-                core.setParameterValueById('ParamMouthForm', mouthForm);
-                // Subtle speech head bobbing
-                core.setParameterValueById('ParamAngleY', (currentLookY * 18) + Math.sin(mouthPhase * 0.7) * 2.2);
-              }
-            } catch(e) {}
+            currentMouthY += (targetMouthY - currentMouthY) * 0.4;
+            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.4;
+
+            // Speech head nodding
+            const headBob = (currentLookY * 18) + Math.sin(mouthPhase * 0.7) * 2.8;
+            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', headBob);
           } else {
-            try {
-              if (core.setParameterValueById) {
-                core.setParameterValueById('ParamMouthOpenY', 0);
-                core.setParameterValueById('ParamMouthForm', (currentMood === 'happy' || currentMood === 'encouraging') ? 0.8 : 0);
-              }
-            } catch(e) {}
+            currentMouthY += (0 - currentMouthY) * 0.25;
+            currentMouthForm = (currentMood === 'happy' || currentMood === 'encouraging') ? 0.8 : 0;
           }
+
+          // Apply Mouth Open & Form forcefully
+          setParam(core, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', currentMouthY);
+          setParam(core, 'ParamMouthForm', 'PARAM_MOUTH_FORM', currentMouthForm);
         });
 
         // Notify React Native that avatar is ready
@@ -196,6 +178,16 @@ const LIVE2D_HTML = `
       } catch (err) {
         window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ERROR', message: err.message }));
       }
+    }
+
+    function setParam(core, cubism4Id, cubism2Id, val) {
+      try {
+        if (core.setParameterValueById) {
+          core.setParameterValueById(cubism4Id, val);
+        } else if (core.setParamFloat) {
+          core.setParamFloat(cubism2Id, val);
+        }
+      } catch(e) {}
     }
 
     function onPointerMove(e) {
@@ -223,22 +215,37 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // Portrait Framing (Face to Upper Chest): Zoom 2.15x
+        // Portrait Framing (Face to Upper Chest): Zoom 2.2x
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
-        const portraitScale = baseScale * 2.15;
+        const portraitScale = baseScale * 2.2;
 
         model.scale.set(portraitScale);
         
-        // Specific anchor calibration for Haru vs Chitose
+        // DRAGGED DOWN: Lower anchor & lower Y position to frame head room, face, smile, neck & chest nicely
         if (currentModelName === 'chitose') {
-          model.anchor.set(0.5, 0.15);
-          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.76;
+          model.anchor.set(0.5, 0.12);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.95;
         } else {
-          model.anchor.set(0.5, 0.18);
-          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.72;
+          // Haru: Shifted down into the oval sweet spot
+          model.anchor.set(0.5, 0.13);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.92;
         }
 
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
+
+        // Hook motionManager update to guarantee lipSync is never overridden by idle physics
+        if (model.internalModel && model.internalModel.motionManager) {
+          const origUpdate = model.internalModel.motionManager.update ? model.internalModel.motionManager.update.bind(model.internalModel.motionManager) : null;
+          if (origUpdate) {
+            model.internalModel.motionManager.update = function(coreModel, now) {
+              origUpdate(coreModel, now);
+              if (coreModel) {
+                setParam(coreModel, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', currentMouthY);
+                setParam(coreModel, 'ParamMouthForm', 'PARAM_MOUTH_FORM', currentMouthForm);
+              }
+            };
+          }
+        }
 
         app.stage.addChild(model);
       } catch(err) {
