@@ -1205,12 +1205,13 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: 'transparent' },
 
   avatarContainer: {
-    height: 235,
+    height: 218,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    marginVertical: 2,
+    marginTop: -4,
+    marginBottom: 2,
   },
   avatar3d: {
     width: '100%',
