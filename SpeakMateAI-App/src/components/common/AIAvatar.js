@@ -12,6 +12,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Live2DAvatarView from '../avatar/Live2DAvatarView';
 
 const FEMALE_AVATAR = require('../../../assets/images/tutor_female_anime.png');
 const MALE_AVATAR   = require('../../../assets/images/tutor_male_anime.png');
@@ -85,11 +87,28 @@ export default function AIAvatar({
   style,
   hideStatusPill = false,
   showOnlyPill = false,
+  forceStatic = false,
 }) {
   const isFemale      = String(gender).trim().toLowerCase() !== 'male';
   const resolvedState = isSpeaking ? 'speaking' : state;
   const colors        = STATE_COLORS[resolvedState] || STATE_COLORS.idle;
   const isHappy       = expression === 'happy' || expression === 'encouraging';
+
+  const [useLive2D, setUseLive2D] = useState(!forceStatic);
+  const [live2dModel, setLive2dModel] = useState('haru');
+  const [live2dReady, setLive2dReady] = useState(false);
+  const [live2dError, setLive2dError] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem('speakmate_avatar_mode').then((val) => {
+      if (val === 'static') setUseLive2D(false);
+      else if (!forceStatic) setUseLive2D(true);
+    }).catch(() => {});
+
+    AsyncStorage.getItem('speakmate_live2d_model').then((val) => {
+      if (val) setLive2dModel(val);
+    }).catch(() => {});
+  }, [forceStatic]);
 
   // ── Animated values ─────────────────────────────────────────────────────────
   const floatAnim   = useRef(new Animated.Value(0)).current;
@@ -278,11 +297,25 @@ export default function AIAvatar({
           },
         ]}
       >
-        <Image
-          source={isFemale ? FEMALE_AVATAR : MALE_AVATAR}
-          style={styles.avatarImg}
-          resizeMode="cover"
-        />
+        {useLive2D && !live2dError ? (
+          <Live2DAvatarView
+            isSpeaking={isSpeaking}
+            state={resolvedState}
+            mood={isHappy ? 'happy' : 'neutral'}
+            model={live2dModel || 'haru'}
+            style={styles.avatarImg}
+            onLoaded={() => setLive2dReady(true)}
+            onError={() => setLive2dError(true)}
+          />
+        ) : null}
+
+        {(!useLive2D || !live2dReady || live2dError) && (
+          <Image
+            source={isFemale ? FEMALE_AVATAR : MALE_AVATAR}
+            style={[styles.avatarImg, (useLive2D && live2dReady && !live2dError) && { display: 'none' }]}
+            resizeMode="cover"
+          />
+        )}
 
         {/* Inner shimmer border while speaking */}
         {isSpeaking && (
