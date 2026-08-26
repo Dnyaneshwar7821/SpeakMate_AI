@@ -34,8 +34,45 @@ import AIAvatar from '../../components/common/AIAvatar';
 import JumpingDotsIndicator from '../../components/common/JumpingDotsIndicator';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
 
-// ─── Sound Waves Component ──────────────────────────────────────────────────
+// ── Animated Message Bubble Component ────────────────────────────────────────
+function AnimatedMessageBubble({ item, isUser, formatDisplayMessage }) {
+  const enterAnim = useRef(new Animated.Value(0)).current;
 
+  useEffect(() => {
+    Animated.spring(enterAnim, {
+      toValue: 1,
+      tension: 65,
+      friction: 9,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const translateY = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [12, 0] });
+  const opacity    = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+
+  return (
+    <Animated.View
+      style={[
+        styles.bubbleWrapper,
+        isUser ? styles.userWrapper : styles.aiWrapper,
+        { opacity, transform: [{ translateY }] },
+      ]}
+    >
+      {!isUser && (
+        <View style={styles.aiAvatarIcon}>
+          <Ionicons name="sparkles" size={12} color="#FFF" />
+        </View>
+      )}
+      <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
+        <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
+          {formatDisplayMessage(item.message)}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+// ─── Sound Wave / Dynamic Mic Component ───────────────────────────────────────
 function SoundWave({ isRecording }) {
   const animatedValues = useRef([
     new Animated.Value(1),
@@ -45,20 +82,39 @@ function SoundWave({ isRecording }) {
     new Animated.Value(1),
   ]).current;
 
+  const pulseRing = useRef(new Animated.Value(0)).current;
+  const breatheAnim = useRef(new Animated.Value(0)).current;
+
+  // Idle subtle breathing
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breatheAnim, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(breatheAnim, { toValue: 0, duration: 2000, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
+
+  // Recording audio wave & pulse
   useEffect(() => {
     let anim;
+    let ringLoop;
     if (isRecording) {
       const animations = animatedValues.map((val) => {
         return Animated.loop(
           Animated.sequence([
             Animated.timing(val, {
-              toValue: 1.5 + Math.random() * 2.0,
-              duration: 250 + Math.random() * 200,
+              toValue: 1.5 + Math.random() * 2.2,
+              duration: 180 + Math.random() * 160,
+              easing: Easing.linear,
               useNativeDriver: true,
             }),
             Animated.timing(val, {
-              toValue: 0.5 + Math.random() * 0.5,
-              duration: 250 + Math.random() * 200,
+              toValue: 0.6 + Math.random() * 0.4,
+              duration: 180 + Math.random() * 160,
+              easing: Easing.linear,
               useNativeDriver: true,
             }),
           ])
@@ -66,36 +122,73 @@ function SoundWave({ isRecording }) {
       });
       anim = Animated.parallel(animations);
       anim.start();
+
+      ringLoop = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseRing, { toValue: 1, duration: 1200, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+          Animated.timing(pulseRing, { toValue: 0, duration: 0, useNativeDriver: true }),
+        ])
+      );
+      ringLoop.start();
     } else {
       animatedValues.forEach(val => val.setValue(1));
+      pulseRing.setValue(0);
     }
     return () => {
       if (anim) anim.stop();
+      if (ringLoop) ringLoop.stop();
     };
   }, [isRecording]);
 
+  const idleScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] });
+  const ringScale = pulseRing.interpolate({ inputRange: [0, 1], outputRange: [1, 1.55] });
+  const ringOpacity = pulseRing.interpolate({ inputRange: [0, 0.4, 1], outputRange: [0.7, 0.35, 0] });
+
   if (isRecording) {
     return (
-      <View style={styles.voiceWaveContainer}>
-        {animatedValues.map((val, i) => (
-          <Animated.View
-            key={i}
-            style={[
-              styles.voiceWaveBar,
-              {
-                transform: [{ scaleY: val }],
-              },
-            ]}
-          />
-        ))}
+      <View style={styles.micStageContainer}>
+        {/* Outer active pulse ring */}
+        <Animated.View
+          style={[
+            styles.micPulseRing,
+            { transform: [{ scale: ringScale }], opacity: ringOpacity },
+          ]}
+        />
+        <LinearGradient
+          colors={['#EC4899', '#EF4444', '#DC2626']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.activeMicCircle}
+        >
+          <View style={styles.voiceWaveContainer}>
+            {animatedValues.map((val, i) => (
+              <Animated.View
+                key={i}
+                style={[
+                  styles.voiceWaveBar,
+                  {
+                    transform: [{ scaleY: val }],
+                  },
+                ]}
+              />
+            ))}
+          </View>
+        </LinearGradient>
       </View>
     );
   }
 
   return (
-    <View style={[styles.avatarCircle, { backgroundColor: '#E2E8F0' }]}>
-      <Ionicons name="mic-outline" size={32} color="#64748B" />
-    </View>
+    <Animated.View style={[styles.micStageContainer, { transform: [{ scale: idleScale }] }]}>
+      <LinearGradient
+        colors={['#8B5CF6', '#6366F1', '#4F46E5']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.avatarCircle}
+      >
+        <Ionicons name="mic" size={28} color="#FFF" />
+      </LinearGradient>
+    </Animated.View>
   );
 }
 
@@ -1022,30 +1115,18 @@ export default function ConversationScreen({ navigation, route }) {
         </SafeAreaView>
       </View>
 
-      {/* ─── 3D AI Tutor Avatar (collapses when keyboard is active) ─── */}
+      {/* ─── AI Tutor Avatar Stage (collapses when keyboard is active) ─── */}
       {!isKeyboardVisible && (
-        <>
-          <View style={styles.avatarContainer}>
-            <AIAvatar
-              gender={avatarGender}
-              isSpeaking={isSpeaking && !isPaused}
-              state={avatarState}
-              expression={avatarExpression}
-              style={styles.avatar3d}
-              hideStatusPill={true}
-            />
-          </View>
-
-          {/* Status Pill directly below AI Avatar */}
+        <View style={styles.avatarContainer}>
           <AIAvatar
             gender={avatarGender}
             isSpeaking={isSpeaking && !isPaused}
             state={avatarState}
             expression={avatarExpression}
-            showOnlyPill={true}
-            style={{ marginTop: 2, marginBottom: 6 }}
+            style={styles.avatar3d}
+            hideStatusPill={false}
           />
-        </>
+        </View>
       )}
 
       {/* ── Chat Messages ── */}
@@ -1060,18 +1141,11 @@ export default function ConversationScreen({ navigation, route }) {
         renderItem={({ item }) => {
           const isUser = item.sender === 'user';
           return (
-            <View style={[styles.bubbleWrapper, isUser ? styles.userWrapper : styles.aiWrapper]}>
-              {!isUser && (
-                <View style={styles.aiAvatarIcon}>
-                  <Ionicons name="sparkles" size={12} color="#FFF" />
-                </View>
-              )}
-              <View style={[styles.bubble, isUser ? styles.userBubble : styles.aiBubble]}>
-                <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
-                  {formatDisplayMessage(item.message)}
-                </Text>
-              </View>
-            </View>
+            <AnimatedMessageBubble
+              item={item}
+              isUser={isUser}
+              formatDisplayMessage={formatDisplayMessage}
+            />
           );
         }}
         ListEmptyComponent={
@@ -1274,7 +1348,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B0F19' },
 
   avatarContainer: {
-    height: 220,
+    height: 235,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1290,9 +1364,9 @@ const styles = StyleSheet.create({
   header: { paddingBottom: 8, paddingHorizontal: 16, backgroundColor: 'transparent' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   exitBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: '#FFF', fontSize: 15, fontWeight: '800', maxWidth: 220, textAlign: 'center' },
+  headerTitle: { color: '#FFF', fontSize: 16, fontWeight: '800', maxWidth: 220, textAlign: 'center', letterSpacing: 0.2 },
   statusText: { color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: '600' },
-  timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
+  timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.12)', paddingHorizontal: 9, paddingVertical: 4.5, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.18)' },
   timerVal: { color: '#FFF', fontSize: 11, fontWeight: '700' },
 
   // Chat Bubbles
@@ -1346,22 +1420,61 @@ const styles = StyleSheet.create({
   correctionContent: { fontSize: 13, color: '#E5E7EB', marginTop: 3, fontWeight: '600', lineHeight: 18 },
   correctionExplanation: { fontSize: 11, color: '#9CA3AF', fontStyle: 'italic', marginTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(99, 102, 241, 0.2)', paddingTop: 8 },
 
-  // Sound Wave mic
+  // Sound Wave mic & stage
+  micStageContainer: {
+    width: 76,
+    height: 76,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  micPulseRing: {
+    position: 'absolute',
+    width: 76,
+    height: 76,
+    borderRadius: 38,
+    borderWidth: 2,
+    borderColor: '#EC4899',
+    shadowColor: '#EC4899',
+    shadowOpacity: 0.8,
+    shadowRadius: 12,
+  },
+  activeMicCircle: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#EF4444',
+    shadowOpacity: 0.6,
+    shadowRadius: 14,
+    elevation: 8,
+  },
   voiceWaveContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    height: 64,
-    width: 100,
+    gap: 4,
+    height: 48,
+    width: 54,
   },
   voiceWaveBar: {
-    width: 6,
-    height: 24,
-    borderRadius: 3,
-    backgroundColor: '#4F46E5',
+    width: 4,
+    height: 22,
+    borderRadius: 2,
+    backgroundColor: '#FFF',
   },
-  avatarCircle: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', shadowColor: '#4F46E5', shadowOpacity: 0.25, shadowRadius: 10, elevation: 5 },
+  avatarCircle: {
+    width: 66,
+    height: 66,
+    borderRadius: 33,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#8B5CF6',
+    shadowOpacity: 0.55,
+    shadowRadius: 14,
+    elevation: 8,
+  },
 
   // Floating AI Hint Button (Above the black controls bar, aligned at right)
   floatingHintContainer: {
