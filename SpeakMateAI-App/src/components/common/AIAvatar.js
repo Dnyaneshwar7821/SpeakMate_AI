@@ -248,7 +248,7 @@ export default function AIAvatar({
 
       {/* ── Ripple rings (speaking only) ── */}
       {ringAnims.map((anim, i) => {
-        const scale   = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.4 + i * 0.18] });
+        const scale   = anim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.35 + i * 0.18] });
         const opacity = anim.interpolate({ inputRange: [0, 0.35, 1], outputRange: [0, 0.55, 0] });
         return (
           <Animated.View
@@ -257,7 +257,7 @@ export default function AIAvatar({
               styles.rippleRing,
               {
                 borderColor: colors.ring,
-                transform:   [{ scale }, { scaleX: 0.78 }],
+                transform:   [{ scale }],
                 opacity,
               },
             ]}
@@ -265,7 +265,7 @@ export default function AIAvatar({
         );
       })}
 
-      {/* ── Outer neon glow oval ── */}
+      {/* ── Outer neon glow ring (behind frame) ── */}
       <Animated.View
         style={[
           styles.glowOval,
@@ -273,12 +273,12 @@ export default function AIAvatar({
             borderColor: colors.ring,
             shadowColor: colors.ring,
             opacity:     glowOpacity,
-            transform:   [{ scale: glowScale }, { scaleX: 0.78 }, { translateY: floatY }],
+            transform:   [{ scale: glowScale }, { translateY: floatY }],
           },
         ]}
       />
 
-      {/* ── Avatar oval frame ── */}
+      {/* ── Avatar circular frame ── */}
       <Animated.View
         style={[
           styles.avatarOval,
@@ -323,17 +323,17 @@ export default function AIAvatar({
           />
         )}
 
-        {/* Soft bottom vignette */}
+        {/* Soft bottom vignette for natural torso blend */}
         <LinearGradient
           pointerEvents="none"
-          colors={['transparent', 'rgba(6, 11, 26, 0.35)']}
+          colors={['transparent', 'rgba(13, 17, 48, 0.4)', 'rgba(13, 17, 48, 0.92)']}
           style={styles.bottomVignette}
         />
       </Animated.View>
 
       {/* ── Status / Speaking pill ── */}
       {!hideStatusPill && (
-        <View style={[styles.statusPill, { borderColor: `${colors.ring}55` }]}>
+        <View style={[styles.statusPill, { borderColor: `${colors.ring}65` }]}>
           {resolvedState === 'speaking' ? (
             <>
               <View style={styles.waveRow}>
@@ -355,9 +355,8 @@ export default function AIAvatar({
   );
 }
 
-// ── Oval dimensions ────────────────────────────────────────────────────────────
-const OW = 140; // oval width
-const OH = 152; // oval height — fits in 200px container with pill below
+// ── Circular Avatar Stage Dimensions ──────────────────────────────────────────
+const AVATAR_SIZE = 164; // Perfectly proportioned circular portrait stage
 
 const styles = StyleSheet.create({
   container: {
@@ -365,7 +364,6 @@ const styles = StyleSheet.create({
     height:         '100%',
     alignItems:     'center',
     justifyContent: 'center',
-    // No overflow:hidden — allows glow rings to render without clipping
   },
 
   // Starfield
@@ -379,41 +377,41 @@ const styles = StyleSheet.create({
   // Ripple rings
   rippleRing: {
     position:     'absolute',
-    width:        OW + 24,
-    height:       OH + 24,
-    borderRadius: (OW + 24) / 2,
+    width:        AVATAR_SIZE + 32,
+    height:       AVATAR_SIZE + 32,
+    borderRadius: (AVATAR_SIZE + 32) / 2,
     borderWidth:  1.5,
   },
 
-  // Neon glow oval (behind frame)
+  // Neon glow ring (behind frame)
   glowOval: {
     position:      'absolute',
-    width:         OW + 20,
-    height:        OH + 20,
-    borderRadius:  (OW + 20) / 2,
+    width:         AVATAR_SIZE + 20,
+    height:        AVATAR_SIZE + 20,
+    borderRadius:  (AVATAR_SIZE + 20) / 2,
     borderWidth:   2,
     shadowOpacity: 1,
-    shadowRadius:  22,
+    shadowRadius:  24,
     elevation:     14,
   },
 
-  // Photo frame oval
+  // Photo frame
   avatarOval: {
-    width:           OW,
-    height:          OH,
-    borderRadius:    OW / 2,
-    borderWidth:     2.5,
+    width:           AVATAR_SIZE,
+    height:          AVATAR_SIZE,
+    borderRadius:    AVATAR_SIZE / 2,
+    borderWidth:     3,
     overflow:        'hidden',
     backgroundColor: '#0D1130',
-    shadowOpacity:   0.8,
-    shadowRadius:    18,
+    shadowOpacity:   0.85,
+    shadowRadius:    20,
     shadowOffset:    { width: 0, height: 0 },
     elevation:       10,
     marginBottom:    4,
   },
   avatarImg: {
-    width:    OW,
-    height:   OH,
+    width:    AVATAR_SIZE,
+    height:   AVATAR_SIZE,
     position: 'absolute',
     top:      0,
     left:     0,
@@ -424,7 +422,7 @@ const styles = StyleSheet.create({
     left:         2,
     right:        2,
     bottom:       2,
-    borderRadius: OW / 2,
+    borderRadius: AVATAR_SIZE / 2,
     borderWidth:  1.5,
   },
   bottomVignette: {
@@ -432,7 +430,7 @@ const styles = StyleSheet.create({
     left:     0,
     right:    0,
     bottom:   0,
-    height:   50,
+    height:   44,
   },
 
   statusPillContainer: {
@@ -446,13 +444,17 @@ const styles = StyleSheet.create({
     alignItems:        'center',
     justifyContent:    'center',
     gap:               8,
-    marginTop:         6,
-    minWidth:          110,
+    marginTop:         8,
+    minWidth:          116,
     paddingHorizontal: 14,
-    paddingVertical:   5,
+    paddingVertical:   6,
     borderRadius:      20,
-    backgroundColor:   'rgba(13, 10, 37, 0.82)',
-    borderWidth:       1,
+    backgroundColor:   'rgba(15, 23, 42, 0.85)',
+    borderWidth:       1.5,
+    shadowColor:       '#000',
+    shadowOpacity:     0.35,
+    shadowRadius:      8,
+    elevation:         4,
   },
   statusDot: {
     width:        8,

@@ -1274,11 +1274,12 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B0F19' },
 
   avatarContainer: {
-    height: 165,
+    height: 220,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    marginVertical: 2,
   },
   avatar3d: {
     width: '100%',
@@ -1289,7 +1290,7 @@ const styles = StyleSheet.create({
   header: { paddingBottom: 8, paddingHorizontal: 16, backgroundColor: 'transparent' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   exitBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { color: '#FFF', fontSize: 15, fontWeight: '800', maxWidth: 160 },
+  headerTitle: { color: '#FFF', fontSize: 15, fontWeight: '800', maxWidth: 220, textAlign: 'center' },
   statusText: { color: 'rgba(255,255,255,0.65)', fontSize: 10, fontWeight: '600' },
   timerBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.15)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12 },
   timerVal: { color: '#FFF', fontSize: 11, fontWeight: '700' },
