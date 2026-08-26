@@ -7,6 +7,7 @@ import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 import { getLiveProgressStats, recordSpeakingSession, buyStreakFreeze } from "../utils/progressTracker";
+import { StreakModal } from "../components/dashboard/StreakModal";
 
 const getRankTier = (xp = 0) => {
   if (xp < 200) return { name: "Novice Speaker", icon: "🥉", badgeColor: "bg-amber-700/20 text-amber-500 border-amber-600/30" };
@@ -43,6 +44,7 @@ export function Dashboard() {
     "Professional";
 
   const [stats, setStats] = useState(() => getLiveProgressStats(user));
+  const [streakModalOpen, setStreakModalOpen] = useState(false);
 
   const [timerActive, setTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300);
@@ -140,12 +142,20 @@ export function Dashboard() {
                 <span>{rank.icon}</span>
                 <span>{rank.name}</span>
               </span>
-              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-md">
+              <button
+                onClick={() => setStreakModalOpen(true)}
+                className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                title="Open Streak Hub"
+              >
                 🔥 {stats.streak}-Day Streak
-              </span>
-              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-cyan-400 text-slate-950 shadow-md">
+              </button>
+              <button
+                onClick={() => setStreakModalOpen(true)}
+                className="text-xs font-black px-3.5 py-1 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-md cursor-pointer transition-all active:scale-95 flex items-center gap-1"
+                title="Manage Streak Freezes"
+              >
                 ❄️ {stats.streakFreezes || 0} Freezes
-              </span>
+              </button>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-emerald-400 text-slate-950 shadow-md">
                 ⭐ {stats.xp} XP Points
               </span>
@@ -596,6 +606,15 @@ export function Dashboard() {
           </div>
         </div>
       </div>
+
+      <StreakModal
+        isOpen={streakModalOpen}
+        onClose={() => {
+          setStreakModalOpen(false);
+          refreshStats();
+        }}
+        userContext={user}
+      />
     </div>
   );
 }

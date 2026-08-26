@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import ROUTES from "../../constants/routes";
 import { getLiveProgressStats } from "../../utils/progressTracker";
+import { StreakModal } from "../dashboard/StreakModal";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -11,6 +12,7 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [streakModalOpen, setStreakModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [liveStats, setLiveStats] = useState(() => getLiveProgressStats(user));
 
@@ -122,10 +124,19 @@ export function Navbar() {
 
               {/* Streak & XP Badges */}
               <div className="hidden lg:flex items-center gap-2.5">
-                <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-500 text-xs font-black shadow-sm backdrop-blur-sm">
+                <button
+                  onClick={() => setStreakModalOpen(true)}
+                  className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/25 text-amber-500 text-xs font-black shadow-sm backdrop-blur-sm hover:bg-amber-500/20 active:scale-95 transition-all cursor-pointer"
+                  title="View Streak Calendar & Milestones"
+                >
                   <span>🔥</span>
                   <span>{liveStats.streak || user?.streak || 0}d Streak</span>
-                </div>
+                  {liveStats.streakFreezes > 0 && (
+                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
+                      ❄️{liveStats.streakFreezes}
+                    </span>
+                  )}
+                </button>
                 <div className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#6C63FF]/10 border border-[#6C63FF]/25 text-[#6C63FF] text-xs font-black shadow-sm backdrop-blur-sm">
                   <span>⭐</span>
                   <span>{liveStats.xp || 0} XP</span>
@@ -136,7 +147,7 @@ export function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-base shadow-md shadow-[#6C63FF]/30 hover:scale-105 active:scale-95 transition-all overflow-hidden"
+                  className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-base shadow-md shadow-[#6C63FF]/30 hover:scale-105 active:scale-95 transition-all overflow-hidden cursor-pointer"
                   aria-label="Open user menu"
                 >
                   {user?.avatar && (user.avatar.startsWith("data:image/") || user.avatar.startsWith("http") || user.avatar.startsWith("/")) ? (
@@ -200,7 +211,7 @@ export function Navbar() {
                           className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all"
                           onClick={() => setDropdownOpen(false)}
                         >
-                          <span>⚙️</span> App Settings
+                          <span>⚙️</span> Settings & Persona
                         </Link>
 
                         {!isStudent && (
@@ -213,14 +224,14 @@ export function Navbar() {
                           </Link>
                         )}
 
-                        <div className="my-1 border-t border-[var(--border-default)]" />
-
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-black text-red-500 hover:bg-red-500/10 transition-all"
-                        >
-                          <span>🚪</span> Sign Out
-                        </button>
+                        <div className="pt-1 mt-1 border-t border-[var(--border-default)]">
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-black text-rose-500 hover:bg-rose-500/10 transition-all cursor-pointer"
+                          >
+                            <span>🚪</span> Sign Out
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </>
@@ -245,6 +256,11 @@ export function Navbar() {
           )}
         </div>
       </div>
+      <StreakModal
+        isOpen={streakModalOpen}
+        onClose={() => setStreakModalOpen(false)}
+        userContext={user}
+      />
     </header>
   );
 }
