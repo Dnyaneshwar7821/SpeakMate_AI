@@ -11,39 +11,49 @@ const BAR_COUNT = 5;
 
 export const STATE_CONFIG = {
   idle: {
-    glow:      'rgba(139, 92, 246, 0.35)',
-    innerRing: '#A78BFA',
-    dot:       '#A855F7',
-    label:     'Ready',
-    pulseSpeed: 1800,
+    glowCenter: 'rgba(139, 92, 246, 0.16)',
+    glowOuter:  'rgba(139, 92, 246, 0.0)',
+    ring:       'rgba(167, 139, 250, 0.35)',
+    ringGlow:   '#8B5CF6',
+    dot:        '#A855F7',
+    label:      'Ready',
+    pulseSpeed: 2800,
   },
   paused: {
-    glow:      'rgba(245, 158, 11, 0.35)',
-    innerRing: '#FCD34D',
-    dot:       '#FBBF24',
-    label:     'Paused',
-    pulseSpeed: 2200,
+    glowCenter: 'rgba(245, 158, 11, 0.16)',
+    glowOuter:  'rgba(245, 158, 11, 0.0)',
+    ring:       'rgba(252, 211, 77, 0.35)',
+    ringGlow:   '#F59E0B',
+    dot:        '#FBBF24',
+    label:      'Paused',
+    pulseSpeed: 3000,
   },
   listening: {
-    glow:      'rgba(6, 182, 212, 0.55)',
-    innerRing: '#67E8F9',
-    dot:       '#22D3EE',
-    label:     'Listening...',
-    pulseSpeed: 900,
+    glowCenter: 'rgba(6, 182, 212, 0.28)',
+    glowOuter:  'rgba(6, 182, 212, 0.0)',
+    ring:       'rgba(103, 232, 249, 0.65)',
+    ringGlow:   '#06B6D4',
+    dot:        '#22D3EE',
+    label:      'Listening...',
+    pulseSpeed: 1000,
   },
   thinking: {
-    glow:      'rgba(168, 85, 247, 0.5)',
-    innerRing: '#C084FC',
-    dot:       '#C084FC',
-    label:     'Thinking...',
-    pulseSpeed: 1200,
+    glowCenter: 'rgba(168, 85, 247, 0.25)',
+    glowOuter:  'rgba(168, 85, 247, 0.0)',
+    ring:       'rgba(192, 132, 252, 0.55)',
+    ringGlow:   '#9333EA',
+    dot:        '#C084FC',
+    label:      'Thinking...',
+    pulseSpeed: 1400,
   },
   speaking: {
-    glow:      'rgba(192, 132, 252, 0.65)',
-    innerRing: '#F472B6',
-    dot:       '#F472B6',
-    label:     'Speaking',
-    pulseSpeed: 450,
+    glowCenter: 'rgba(192, 132, 252, 0.32)',
+    glowOuter:  'rgba(192, 132, 252, 0.0)',
+    ring:       'rgba(244, 114, 182, 0.7)',
+    ringGlow:   '#F472B6',
+    dot:        '#F472B6',
+    label:      'Speaking',
+    pulseSpeed: 500,
   },
 };
 
@@ -105,7 +115,7 @@ function ThinkingDots() {
   );
 }
 
-// ── Main AIAvatar Component (Full-Width Studio Avatar without clipping frames) ──
+// ── Main AIAvatar Component (Master Polish & Motion) ──────────────────────────
 export default function AIAvatar({
   gender     = 'female',
   isSpeaking = false,
@@ -137,30 +147,31 @@ export default function AIAvatar({
   const entranceAnim = useRef(new Animated.Value(0)).current;
   const breatheAnim  = useRef(new Animated.Value(0)).current;
   const pulseAnim    = useRef(new Animated.Value(0)).current;
+  const ringPulseAnim = useRef(new Animated.Value(0)).current;
 
-  // 1. Entrance Spring
+  // 1. Entrance Spring (Smooth, Fast)
   useEffect(() => {
     Animated.spring(entranceAnim, {
       toValue: 1,
-      tension: 55,
-      friction: 8.5,
+      tension: 65,
+      friction: 9,
       useNativeDriver: true,
     }).start();
   }, []);
 
-  // 2. Idle Natural Breathing Motion (Subtle vertical floating)
+  // 2. Idle Natural Breathing Motion (Slow, Organic Floating)
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(breatheAnim, {
           toValue: 1,
-          duration: 2600,
+          duration: 2800,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
         Animated.timing(breatheAnim, {
           toValue: 0,
-          duration: 2600,
+          duration: 2800,
           easing: Easing.inOut(Easing.sin),
           useNativeDriver: true,
         }),
@@ -170,7 +181,7 @@ export default function AIAvatar({
     return () => loop.stop();
   }, []);
 
-  // 3. State Glow Pulse
+  // 3. State Ambient Glow Pulse
   useEffect(() => {
     const duration = config.pulseSpeed;
     const loop = Animated.loop(
@@ -193,22 +204,56 @@ export default function AIAvatar({
     return () => loop.stop();
   }, [resolvedState]);
 
+  // 4. Subtle Circular Ring Pulse
+  useEffect(() => {
+    const isDynamic = isSpeaking || resolvedState === 'listening';
+    const duration = isSpeaking ? 600 : resolvedState === 'listening' ? 1100 : 2800;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(ringPulseAnim, {
+          toValue: 1,
+          duration,
+          easing: isDynamic ? Easing.out(Easing.cubic) : Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(ringPulseAnim, {
+          toValue: 0,
+          duration,
+          easing: isDynamic ? Easing.in(Easing.cubic) : Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [isSpeaking, resolvedState]);
+
   // ── Interpolations ─────────────────────────────────────────────────────────
   const entranceScale   = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] });
   const entranceOpacity = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
-  // Floating: ±2.5px
-  const floatY = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [-2.5, 2.5] });
+  // Floating: ±2.0px
+  const floatY = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [-2.0, 2.0] });
   
   // Presence Scale
   const stateScale = resolvedState === 'listening' ? 1.02 : resolvedState === 'speaking' ? 1.015 : 1.0;
-  const breatheScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.01] });
+  const breatheScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.008] });
 
-  // Glow Opacity & Scale
+  // Glow Opacity & Scale (Soft, never a solid disk)
   const glowScale   = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.08] });
   const glowOpacity = pulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: isSpeaking ? [0.65, 0.95] : resolvedState === 'listening' ? [0.55, 0.85] : [0.35, 0.6],
+    outputRange: isSpeaking ? [0.8, 1.0] : resolvedState === 'listening' ? [0.7, 0.95] : [0.45, 0.75],
+  });
+
+  // Perfect Circular Ring Expansion
+  const ringScale = ringPulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: isSpeaking ? [1.0, 1.06] : resolvedState === 'listening' ? [1.0, 1.04] : [1.0, 1.02],
+  });
+  const ringOpacity = ringPulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: isSpeaking ? [0.6, 0.95] : resolvedState === 'listening' ? [0.5, 0.85] : [0.25, 0.45],
   });
 
   return (
@@ -222,22 +267,41 @@ export default function AIAvatar({
         },
       ]}
     >
-      {/* ── STAGE WRAPPER (Full-Width, No Oval Borders) ── */}
+      {/* ── STAGE WRAPPER (Centered & Responsive) ── */}
       <View style={styles.stageWrapper}>
         
-        {/* ── Soft Ambient Glow Behind Avatar (No hard borders) ── */}
+        {/* ── Layer 1: Soft Ambient Radial Glow (Diffused Light, No Solid Disk) ── */}
         <Animated.View
           style={[
-            styles.ambientGlow,
+            styles.ambientGlowContainer,
             {
-              backgroundColor: config.glow,
               opacity: glowOpacity,
               transform: [{ scale: glowScale }, { translateY: floatY }],
             },
           ]}
+        >
+          <LinearGradient
+            colors={[config.glowCenter, config.glowOuter]}
+            start={{ x: 0.5, y: 0.5 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.diffuseGlowGradient}
+          />
+        </Animated.View>
+
+        {/* ── Layer 2: Perfect Circular Activity Ring (Centered, Subtle) ── */}
+        <Animated.View
+          style={[
+            styles.circularRing,
+            {
+              borderColor: config.ring,
+              shadowColor: config.ringGlow,
+              opacity: ringOpacity,
+              transform: [{ scale: ringScale }, { translateY: floatY }],
+            },
+          ]}
         />
 
-        {/* ── Full-Bust Avatar Canvas (Ponytail, Shoulders & Head 100% Unclipped) ── */}
+        {/* ── Layer 3: Unclipped Full-Bust Avatar Canvas ── */}
         <Animated.View
           style={[
             styles.avatarContainer,
@@ -269,24 +333,30 @@ export default function AIAvatar({
             />
           )}
 
-          {/* Smooth Bottom Vignette to Taper Blazer into Dark Backdrop */}
+          {/* Layer 4: Multi-Stop Smooth Torso & Corner Fade Mask (Eliminates All Cutoffs) */}
           <LinearGradient
             pointerEvents="none"
-            colors={['transparent', 'rgba(11, 15, 25, 0.4)', 'rgba(11, 15, 25, 0.95)']}
-            locations={[0, 0.6, 1.0]}
-            style={styles.bottomVignette}
+            colors={[
+              'transparent',
+              'rgba(11, 15, 25, 0.15)',
+              'rgba(11, 15, 25, 0.65)',
+              '#0B0F19',
+              '#0B0F19'
+            ]}
+            locations={[0, 0.35, 0.70, 0.92, 1.0]}
+            style={styles.bottomTorsoFade}
           />
         </Animated.View>
       </View>
 
-      {/* ── Glassmorphic State / Speaking Pill ── */}
+      {/* ── Layer 5: Glassmorphic State / Speaking Pill ── */}
       {!hideStatusPill && (
         <Animated.View
           style={[
             styles.statusPill,
             {
-              borderColor: `${config.innerRing}55`,
-              shadowColor: config.innerRing,
+              borderColor: `${config.ringGlow}40`,
+              shadowColor: config.ringGlow,
               transform: [{ translateY: floatY }],
             },
           ]}
@@ -317,9 +387,10 @@ export default function AIAvatar({
   );
 }
 
-// ── Full-Bust Dimensions (Wide & Generous to Prevent Any Clipping) ────────────
-const AVATAR_WIDTH = 290; // Ample width for full ponytail & both shoulders
-const AVATAR_HEIGHT = 205; // Generous height for full head & hair clearance
+// ── Target Stage Dimensions (165-175px focal stage, 280px unclipped bust) ─────
+const STAGE_RING_SIZE = 170; // Perfect 170px Circular Activity Ring
+const AVATAR_WIDTH    = 280; // Ample width for full ponytail & both shoulders
+const AVATAR_HEIGHT   = 200; // Generous height with natural headroom
 
 const styles = StyleSheet.create({
   container: {
@@ -338,18 +409,35 @@ const styles = StyleSheet.create({
     overflow:       'visible',
   },
 
-  // 1. Soft Ambient Radial Glow (Behind Avatar, No Lines)
-  ambientGlow: {
-    position:      'absolute',
-    width:         180,
-    height:        180,
-    borderRadius:  90,
-    shadowOpacity: 1,
-    shadowRadius:  45,
-    elevation:     8,
+  // 1. Diffused Soft Ambient Glow (No Solid Color Disk)
+  ambientGlowContainer: {
+    position:        'absolute',
+    width:           STAGE_RING_SIZE + 40,
+    height:          STAGE_RING_SIZE + 40,
+    borderRadius:    (STAGE_RING_SIZE + 40) / 2,
+    alignItems:      'center',
+    justifyContent:  'center',
+    overflow:        'hidden',
+  },
+  diffuseGlowGradient: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: (STAGE_RING_SIZE + 40) / 2,
   },
 
-  // 2. Avatar Container & Canvas (Unclipped)
+  // 2. Perfect Circular Ring (Centered, 170px Diameter)
+  circularRing: {
+    position:      'absolute',
+    width:         STAGE_RING_SIZE,
+    height:        STAGE_RING_SIZE,
+    borderRadius:  STAGE_RING_SIZE / 2,
+    borderWidth:   1.5,
+    shadowOpacity: 0.6,
+    shadowRadius:  14,
+    shadowOffset:  { width: 0, height: 0 },
+    elevation:     4,
+  },
+
+  // 3. Avatar Container & Canvas
   avatarContainer: {
     width:           AVATAR_WIDTH,
     height:          AVATAR_HEIGHT,
@@ -357,20 +445,24 @@ const styles = StyleSheet.create({
     justifyContent:  'center',
     position:        'relative',
     overflow:        'hidden',
+    backgroundColor: 'transparent',
   },
   avatarCanvas: {
-    width:    AVATAR_WIDTH,
-    height:   AVATAR_HEIGHT,
+    width:           AVATAR_WIDTH,
+    height:          AVATAR_HEIGHT,
+    backgroundColor: 'transparent',
   },
-  bottomVignette: {
+
+  // 4. Smooth Torso & Corner Fade (80px Tall Multi-Stop Mask)
+  bottomTorsoFade: {
     position: 'absolute',
     left:     0,
     right:    0,
     bottom:   0,
-    height:   52,
+    height:   76,
   },
 
-  // 3. Glassmorphic Status Pill
+  // 5. Glassmorphic Status Pill
   statusPill: {
     flexDirection:     'row',
     alignItems:        'center',
@@ -383,8 +475,8 @@ const styles = StyleSheet.create({
     borderRadius:      22,
     backgroundColor:   'rgba(15, 23, 42, 0.85)',
     borderWidth:       1.5,
-    shadowOpacity:     0.4,
-    shadowRadius:      10,
+    shadowOpacity:     0.35,
+    shadowRadius:      8,
     shadowOffset:      { width: 0, height: 2 },
     elevation:         6,
   },

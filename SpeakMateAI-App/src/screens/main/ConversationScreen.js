@@ -221,6 +221,7 @@ export default function ConversationScreen({ navigation, route }) {
   const wasSpeakingOnPause = useRef(false);
   const pausedAiText = useRef('');
   const isPausedRef = useRef(false);
+  const micPressAnim = useRef(new Animated.Value(1)).current;
 
   // VAD / Silence Auto-Stop refs
   const speechDetectedRef = useRef(false);
@@ -1308,8 +1309,15 @@ export default function ConversationScreen({ navigation, route }) {
             {loading ? (
               <ActivityIndicator size="large" color="#FFF" />
             ) : (
-              <TouchableOpacity onPress={handleToggleRecording} activeOpacity={0.8}>
-                <SoundWave isRecording={isRecording} />
+              <TouchableOpacity
+                onPress={handleToggleRecording}
+                onPressIn={() => Animated.spring(micPressAnim, { toValue: 0.94, useNativeDriver: true }).start()}
+                onPressOut={() => Animated.spring(micPressAnim, { toValue: 1.0, friction: 5, tension: 40, useNativeDriver: true }).start()}
+                activeOpacity={0.9}
+              >
+                <Animated.View style={{ transform: [{ scale: micPressAnim }] }}>
+                  <SoundWave isRecording={isRecording} />
+                </Animated.View>
               </TouchableOpacity>
             )}
           </View>
