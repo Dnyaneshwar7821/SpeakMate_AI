@@ -54,6 +54,16 @@ export function AiChat() {
 
   useEffect(() => {
     fetchHistory();
+    const handleAgeUpdate = (e) => {
+      const newAge = e?.detail?.ageGroup || localStorage.getItem("speakmate_age_group");
+      if (newAge) setUserAgeGroup(newAge);
+    };
+    window.addEventListener("speakmate_age_group_changed", handleAgeUpdate);
+    window.addEventListener("speakmate_progress_updated", fetchHistory);
+    return () => {
+      window.removeEventListener("speakmate_age_group_changed", handleAgeUpdate);
+      window.removeEventListener("speakmate_progress_updated", fetchHistory);
+    };
   }, []);
 
   const handleStartSession = (modeKey) => {

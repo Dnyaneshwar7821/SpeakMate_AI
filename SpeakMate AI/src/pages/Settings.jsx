@@ -25,6 +25,25 @@ const LANGUAGE_OPTIONS = [
   { code: "Polish", label: "Polish", native: "Polski", flag: "🇵🇱" },
 ];
 
+const AGE_OPTIONS = [
+  { code: "Kids", label: "Kids (6-12) 🎈", desc: "Simple words, fun stories & high encouragement" },
+  { code: "Teens", label: "Teens (13-17) ⚡", desc: "School life, pop culture & casual chatter" },
+  { code: "Young Adult", label: "Young Adults (18-24) 🎓", desc: "Campus life, travel & interview prep" },
+  { code: "Professional", label: "Professionals (25-50) 💼", desc: "Business English, executive tone & presentations" },
+  { code: "Senior", label: "Seniors (50+) ☕", desc: "Relaxed conversation, culture & life stories" },
+];
+
+export const normalizeAgeGroup = (rawAge) => {
+  if (!rawAge) return "Professional";
+  const s = String(rawAge).toLowerCase();
+  if (s.includes("kid")) return "Kids";
+  if (s.includes("teen")) return "Teens";
+  if (s.includes("young")) return "Young Adult";
+  if (s.includes("senior")) return "Senior";
+  if (s.includes("prof")) return "Professional";
+  return "Professional";
+};
+
 export function Settings() {
   const toast = useToast();
   const { isDark, toggleTheme } = useTheme();
@@ -32,7 +51,7 @@ export function Settings() {
 
   const savedAccent = localStorage.getItem("speakmate_voice_accent") || "US";
   const savedVoice = localStorage.getItem("speakmate_ai_voice") || "Default";
-  const savedAgeGroup = localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional";
+  const savedAgeGroup = normalizeAgeGroup(localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional");
   const savedDailyGoal = localStorage.getItem("speakmate_daily_goal") || "15 min";
   const savedLang = localStorage.getItem("speakmate_app_language") || "English";
   const savedSpeed = parseFloat(localStorage.getItem("speakmate_voice_speed") || "1.0");
@@ -333,13 +352,20 @@ export function Settings() {
             <h2 className="text-base font-black text-[var(--text-primary)] mt-2">Target Persona Age Group</h2>
             <select
               value={selectedAgeGroup}
-              onChange={(e) => setSelectedAgeGroup(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSelectedAgeGroup(val);
+                localStorage.setItem("speakmate_age_group", val);
+                window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
+                window.dispatchEvent(new Event("speakmate_progress_updated"));
+              }}
               className="w-full mt-2 px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
             >
-              <option value="Kids (6-12)">👶 Kids (6-12 years)</option>
-              <option value="Teenager (13-17)">👦 Teenager (13-17 years)</option>
-              <option value="Young Adult (18-24)">🧑 Young Adult (18-24 years)</option>
-              <option value="Professional (25+)">💼 Professional (25+ years)</option>
+              {AGE_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code}>
+                  {opt.label} - {opt.desc}
+                </option>
+              ))}
             </select>
           </div>
         </div>

@@ -31,6 +31,25 @@ const ACCENT_OPTIONS = [
   { code: "IN", label: "Indian English (IN)", flag: "🇮🇳" },
 ];
 
+const AGE_OPTIONS = [
+  { code: "Kids", label: "Kids (6-12) 🎈", desc: "Simple words, fun stories & high encouragement" },
+  { code: "Teens", label: "Teens (13-17) ⚡", desc: "School life, pop culture & casual chatter" },
+  { code: "Young Adult", label: "Young Adults (18-24) 🎓", desc: "Campus life, travel & interview prep" },
+  { code: "Professional", label: "Professionals (25-50) 💼", desc: "Business English, executive tone & presentations" },
+  { code: "Senior", label: "Seniors (50+) ☕", desc: "Relaxed conversation, culture & life stories" },
+];
+
+const normalizeAgeGroup = (rawAge) => {
+  if (!rawAge) return "Professional";
+  const s = String(rawAge).toLowerCase();
+  if (s.includes("kid")) return "Kids";
+  if (s.includes("teen")) return "Teens";
+  if (s.includes("young")) return "Young Adult";
+  if (s.includes("senior")) return "Senior";
+  if (s.includes("prof")) return "Professional";
+  return "Professional";
+};
+
 const getRankTier = (xp = 0) => {
   if (xp < 200) return { name: "Novice Speaker", icon: "🥉", badgeColor: "from-amber-700 to-amber-900", nextXp: 200 };
   if (xp < 500) return { name: "Bronze III", icon: "🥉", badgeColor: "from-amber-600 to-amber-800", nextXp: 500 };
@@ -77,6 +96,9 @@ export function Profile() {
 
   const [schoolGrade, setSchoolGrade] = useState(
     isStudent ? (localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std") : "1st Std"
+  );
+  const [ageGroup, setAgeGroup] = useState(
+    () => normalizeAgeGroup(localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional")
   );
   const [cefrLevel, setCefrLevel] = useState(user?.level || user?.englishLevel || "Intermediate (B1)");
 
@@ -143,6 +165,10 @@ export function Profile() {
     try {
       if (isStudent && schoolGrade) {
         localStorage.setItem("speakmate_school_grade", schoolGrade);
+      } else {
+        localStorage.setItem("speakmate_age_group", ageGroup);
+        window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup } }));
+        window.dispatchEvent(new Event("speakmate_progress_updated"));
       }
       localStorage.setItem("speakmate_daily_goal", dailyGoal.toString());
       localStorage.setItem("speakmate_accent", preferredAccent);
@@ -155,6 +181,7 @@ export function Profile() {
         email: cleanEmail,
         nativeLanguage: form.nativeLanguage,
         avatar: selectedAvatar,
+        ageGroup: isStudent ? undefined : ageGroup,
       }).catch(() => null);
 
       updateUser({
@@ -165,6 +192,7 @@ export function Profile() {
         email: cleanEmail,
         avatar: selectedAvatar,
         schoolGrade: isStudent ? schoolGrade : null,
+        ageGroup: isStudent ? null : ageGroup,
         englishLevel: isStudent ? null : cefrLevel,
       });
 
@@ -393,20 +421,45 @@ export function Profile() {
                   </select>
                 </>
               ) : (
-                <>
-                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
-                    Configured English Proficiency Level
-                  </label>
-                  <select
-                    value={cefrLevel}
-                    onChange={(e) => setCefrLevel(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
-                  >
-                    {ENGLISH_LEVELS.map((lvl) => (
-                      <option key={lvl} value={lvl}>👤 {lvl}</option>
-                    ))}
-                  </select>
-                </>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
+                      Target Persona Age Profile
+                    </label>
+                    <select
+                      value={ageGroup}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setAgeGroup(val);
+                        localStorage.setItem("speakmate_age_group", val);
+                        window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
+                        window.dispatchEvent(new Event("speakmate_progress_updated"));
+                      }}
+                      className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
+                    >
+                      {AGE_OPTIONS.map((opt) => (
+                        <option key={opt.code} value={opt.code}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
+                      Configured English Proficiency Level
+                    </label>
+                    <select
+                      value={cefrLevel}
+                      onChange={(e) => setCefrLevel(e.target.value)}
+                      className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
+                    >
+                      {ENGLISH_LEVELS.map((lvl) => (
+                        <option key={lvl} value={lvl}>👤 {lvl}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               )}
             </div>
 

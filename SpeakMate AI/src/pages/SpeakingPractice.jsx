@@ -159,6 +159,25 @@ const STANDARD_SCENARIOS = {
 
 const CATEGORIES = ["All", "General", "Daily Life", "Travel", "Work", "Career"];
 
+const AGE_GROUPS = [
+  { code: "Kids", label: "Kids (6-12) 🎈", desc: "Fun stories & encouragement" },
+  { code: "Teens", label: "Teens (13-17) ⚡", desc: "School & casual banter" },
+  { code: "Young Adult", label: "Young Adults (18-24) 🎓", desc: "Campus & travel" },
+  { code: "Professional", label: "Professionals (25-50) 💼", desc: "Workplace & meetings" },
+  { code: "Senior", label: "Seniors (50+) ☕", desc: "Relaxed conversations & stories" },
+];
+
+export const normalizeAgeGroup = (rawAge) => {
+  if (!rawAge) return "Professional";
+  const s = String(rawAge).toLowerCase();
+  if (s.includes("kid")) return "Kids";
+  if (s.includes("teen")) return "Teens";
+  if (s.includes("young")) return "Young Adult";
+  if (s.includes("senior")) return "Senior";
+  if (s.includes("prof")) return "Professional";
+  return "Professional";
+};
+
 export function SpeakingPractice() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -177,7 +196,7 @@ export function SpeakingPractice() {
     localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std"
   );
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(
-    localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional"
+    () => normalizeAgeGroup(localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional")
   );
 
   const loadData = async () => {
@@ -189,9 +208,13 @@ export function SpeakingPractice() {
       ]);
       setHistory(historyData || []);
 
-      if (meData?.ageGroup) {
-        setSelectedAgeGroup(meData.ageGroup);
-        localStorage.setItem("speakmate_age_group", meData.ageGroup);
+      const storedAge = localStorage.getItem("speakmate_age_group");
+      if (storedAge) {
+        setSelectedAgeGroup(normalizeAgeGroup(storedAge));
+      } else if (meData?.ageGroup) {
+        const norm = normalizeAgeGroup(meData.ageGroup);
+        setSelectedAgeGroup(norm);
+        localStorage.setItem("speakmate_age_group", norm);
       }
       if (meData?.schoolGrade) {
         setSelectedGrade(meData.schoolGrade);
@@ -207,24 +230,43 @@ export function SpeakingPractice() {
   useEffect(() => {
     loadData();
     const handleProgressUpdate = () => {
+      const storedAge = localStorage.getItem("speakmate_age_group");
+      if (storedAge) setSelectedAgeGroup(normalizeAgeGroup(storedAge));
       loadData();
     };
+    const handleAgeChange = (e) => {
+      const newAge = e?.detail?.ageGroup || localStorage.getItem("speakmate_age_group");
+      if (newAge) setSelectedAgeGroup(normalizeAgeGroup(newAge));
+    };
+
     window.addEventListener("focus", handleProgressUpdate);
     window.addEventListener("speakmate_progress_updated", handleProgressUpdate);
+    window.addEventListener("speakmate_age_group_changed", handleAgeChange);
     return () => {
       window.removeEventListener("focus", handleProgressUpdate);
       window.removeEventListener("speakmate_progress_updated", handleProgressUpdate);
+      window.removeEventListener("speakmate_age_group_changed", handleAgeChange);
     };
   }, []);
+
+  const handleSelectAgeGroup = (ageCode) => {
+    const norm = normalizeAgeGroup(ageCode);
+    setSelectedAgeGroup(norm);
+    localStorage.setItem("speakmate_age_group", norm);
+    window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: norm } }));
+    window.dispatchEvent(new Event("speakmate_progress_updated"));
+    toast.success(`Active age profile switched to ${ageCode}! 🎯`);
+  };
 
   const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
   const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
   const totalSessions = history.length;
   const streakDays = getLiveProgressStats().streak || 1;
 
+  const effAge = normalizeAgeGroup(selectedAgeGroup);
   const currentScenarios = isStudent
     ? (STANDARD_SCENARIOS[selectedGrade] || STANDARD_SCENARIOS["1st Std"])
-    : (AGE_SCENARIOS[selectedAgeGroup] || AGE_SCENARIOS.Professional);
+    : (AGE_SCENARIOS[effAge] || AGE_SCENARIOS.Professional);
 
   const filteredScenarios = currentScenarios.filter((scenario) => {
     const matchesCategory = selectedCategory === "All" || scenario.category === selectedCategory;
@@ -325,6 +367,42 @@ export function SpeakingPractice() {
       {isStudent && (
         <div className="px-4 py-2.5 rounded-2xl bg-[#6C63FF]/15 border border-[#6C63FF]/30 text-[#6C63FF] font-extrabold text-xs sm:text-sm inline-flex items-center gap-2 shadow-sm">
           <span>🎓 School Grade Curriculum Level: <strong>{selectedGrade}</strong></span>
+        </div>
+      )}
+
+      {/* Target Age Profile Switcher for Individual Users (Matches Mobile App) */}
+      {!isStudent && (
+        <div className="p-4 sm:p-5 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider flex items-center gap-1.5">
+              <span>👤</span> Target Age Group Persona
+            </span>
+            <span className="text-xs font-black text-[#6C63FF]">
+              Active: {AGE_GROUPS.find((g) => g.code === effAge)?.label || effAge}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+            {AGE_GROUPS.map((grp) => {
+              const isSelected = effAge === grp.code;
+              return (
+                <button
+                  key={grp.code}
+                  onClick={() => handleSelectAgeGroup(grp.code)}
+                  className={`p-3.5 rounded-2xl text-xs font-black transition-all border text-left flex flex-col justify-between active:scale-95 cursor-pointer ${
+                    isSelected
+                      ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/30 scale-102"
+                      : "bg-[var(--bg-surface)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
+                  }`}
+                >
+                  <span className="text-xs font-black">{grp.label}</span>
+                  <span className={`text-[10px] mt-1 font-medium truncate ${isSelected ? "text-indigo-100" : "text-[var(--text-secondary)]"}`}>
+                    {grp.desc}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
