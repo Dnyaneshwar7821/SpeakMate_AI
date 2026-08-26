@@ -74,12 +74,19 @@ export const getLiveProgressStats = (userContext = null) => {
     } catch (e) {}
   }
 
-  // Ensure default fallback attributes
+  // Ensure default fallback attributes & self-heal streak to at least 1
   if (stored.streakFreezes === undefined) stored.streakFreezes = 1;
   if (!stored.claimedMilestones) stored.claimedMilestones = [];
   if (!stored.streakHistory) stored.streakHistory = {};
-  if (stored.streak === undefined || stored.streak === null) stored.streak = 1;
-  if (!stored.longestStreak) stored.longestStreak = Math.max(1, stored.streak || 1);
+  if (!stored.streak || Number(stored.streak) < 1) {
+    stored.streak = 1;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(stored));
+    } catch (e) {}
+  }
+  if (!stored.longestStreak || Number(stored.longestStreak) < 1) {
+    stored.longestStreak = Math.max(1, stored.streak || 1);
+  }
 
   // Accurate Streak Rollover & Missed Day Management
   if (stored.lastActiveDate !== today) {

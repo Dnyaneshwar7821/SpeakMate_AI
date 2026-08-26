@@ -130,7 +130,7 @@ export function Navbar() {
                   title="View Streak Calendar & Milestones"
                 >
                   <span>🔥</span>
-                  <span>{liveStats.streak || user?.streak || 0}d Streak</span>
+                  <span>{Math.max(1, Number(liveStats.streak || user?.streak || 1))}d Streak</span>
                   {liveStats.streakFreezes > 0 && (
                     <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
                       ❄️{liveStats.streakFreezes}
