@@ -257,7 +257,7 @@ export default function AIAvatar({
               styles.rippleRing,
               {
                 borderColor: colors.ring,
-                transform:   [{ scale }],
+                transform:   [{ scale }, { scaleX: 0.82 }],
                 opacity,
               },
             ]}
@@ -265,7 +265,7 @@ export default function AIAvatar({
         );
       })}
 
-      {/* ── Outer neon glow ring (behind frame) ── */}
+      {/* ── Outer neon glow oval (behind frame) ── */}
       <Animated.View
         style={[
           styles.glowOval,
@@ -273,12 +273,12 @@ export default function AIAvatar({
             borderColor: colors.ring,
             shadowColor: colors.ring,
             opacity:     glowOpacity,
-            transform:   [{ scale: glowScale }, { translateY: floatY }],
+            transform:   [{ scale: glowScale }, { scaleX: 0.82 }, { translateY: floatY }],
           },
         ]}
       />
 
-      {/* ── Avatar circular frame ── */}
+      {/* ── Avatar glowing oval frame ── */}
       <Animated.View
         style={[
           styles.avatarOval,
@@ -326,7 +326,7 @@ export default function AIAvatar({
         {/* Soft bottom vignette for natural torso blend */}
         <LinearGradient
           pointerEvents="none"
-          colors={['transparent', 'rgba(13, 17, 48, 0.4)', 'rgba(13, 17, 48, 0.92)']}
+          colors={['transparent', 'rgba(13, 17, 48, 0.35)', 'rgba(13, 17, 48, 0.85)']}
           style={styles.bottomVignette}
         />
       </Animated.View>
@@ -355,8 +355,9 @@ export default function AIAvatar({
   );
 }
 
-// ── Circular Avatar Stage Dimensions ──────────────────────────────────────────
-const AVATAR_SIZE = 164; // Perfectly proportioned circular portrait stage
+// ── Stylish Oval Avatar Dimensions ──────────────────────────────────────────
+const OW = 132; // Stylish oval width
+const OH = 160; // Sleek vertical oval height
 
 const styles = StyleSheet.create({
   container: {
@@ -377,41 +378,41 @@ const styles = StyleSheet.create({
   // Ripple rings
   rippleRing: {
     position:     'absolute',
-    width:        AVATAR_SIZE + 32,
-    height:       AVATAR_SIZE + 32,
-    borderRadius: (AVATAR_SIZE + 32) / 2,
+    width:        OW + 26,
+    height:       OH + 26,
+    borderRadius: (OH + 26) / 2,
     borderWidth:  1.5,
   },
 
-  // Neon glow ring (behind frame)
+  // Neon glow oval (behind frame)
   glowOval: {
     position:      'absolute',
-    width:         AVATAR_SIZE + 20,
-    height:        AVATAR_SIZE + 20,
-    borderRadius:  (AVATAR_SIZE + 20) / 2,
+    width:         OW + 18,
+    height:        OH + 18,
+    borderRadius:  (OH + 18) / 2,
     borderWidth:   2,
     shadowOpacity: 1,
-    shadowRadius:  24,
+    shadowRadius:  22,
     elevation:     14,
   },
 
-  // Photo frame
+  // Photo frame oval
   avatarOval: {
-    width:           AVATAR_SIZE,
-    height:          AVATAR_SIZE,
-    borderRadius:    AVATAR_SIZE / 2,
-    borderWidth:     3,
+    width:           OW,
+    height:          OH,
+    borderRadius:    OH / 2,
+    borderWidth:     2.5,
     overflow:        'hidden',
     backgroundColor: '#0D1130',
     shadowOpacity:   0.85,
-    shadowRadius:    20,
+    shadowRadius:    18,
     shadowOffset:    { width: 0, height: 0 },
     elevation:       10,
     marginBottom:    4,
   },
   avatarImg: {
-    width:    AVATAR_SIZE,
-    height:   AVATAR_SIZE,
+    width:    OW,
+    height:   OH,
     position: 'absolute',
     top:      0,
     left:     0,
@@ -422,7 +423,7 @@ const styles = StyleSheet.create({
     left:         2,
     right:        2,
     bottom:       2,
-    borderRadius: AVATAR_SIZE / 2,
+    borderRadius: OH / 2,
     borderWidth:  1.5,
   },
   bottomVignette: {
@@ -430,7 +431,7 @@ const styles = StyleSheet.create({
     left:     0,
     right:    0,
     bottom:   0,
-    height:   44,
+    height:   38,
   },
 
   statusPillContainer: {
@@ -463,15 +464,9 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize:   12,
-    fontWeight: '800',
-    minWidth:   54,
+    fontWeight: '700',
   },
-
-  // Waveform bars
   waveRow: {
-    flexDirection: 'row',
-    alignItems:    'center',
-    gap:           3,
     height:        18,
   },
   waveBar: {
