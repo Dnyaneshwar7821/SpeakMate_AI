@@ -2,10 +2,22 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
 import { getLiveProgressStats, recordSpeakingSession, buyStreakFreeze } from "../utils/progressTracker";
+
+const getRankTier = (xp = 0) => {
+  if (xp < 200) return { name: "Novice Speaker", icon: "🥉", badgeColor: "bg-amber-700/20 text-amber-500 border-amber-600/30" };
+  if (xp < 500) return { name: "Bronze III", icon: "🥉", badgeColor: "bg-amber-600/20 text-amber-500 border-amber-500/30" };
+  if (xp < 1000) return { name: "Bronze I", icon: "🥉", badgeColor: "bg-amber-500/20 text-amber-400 border-amber-400/30" };
+  if (xp < 1800) return { name: "Silver II", icon: "🥈", badgeColor: "bg-slate-400/20 text-slate-300 border-slate-300/30" };
+  if (xp < 2800) return { name: "Silver I", icon: "🥈", badgeColor: "bg-slate-300/20 text-slate-200 border-slate-200/30" };
+  if (xp < 4200) return { name: "Gold I", icon: "🥇", badgeColor: "bg-amber-400/20 text-yellow-400 border-yellow-400/30" };
+  if (xp < 6000) return { name: "Platinum Master", icon: "💎", badgeColor: "bg-cyan-500/20 text-cyan-300 border-cyan-400/30" };
+  return { name: "Diamond Orator", icon: "👑", badgeColor: "bg-purple-500/20 text-purple-300 border-purple-400/30" };
+};
 
 const MOTIVATIONAL_QUOTES = [
   { quote: "The limits of my language mean the limits of my world.", author: "Ludwig Wittgenstein" },
@@ -17,6 +29,7 @@ const MOTIVATIONAL_QUOTES = [
 export function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isDark } = useTheme();
   const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
   const isStudent = accountType === "STUDENT";
 
@@ -36,6 +49,8 @@ export function Dashboard() {
   const [timerCompleted, setTimerCompleted] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [challengeClaimed, setChallengeClaimed] = useState(false);
+
+  const rank = getRankTier(stats.xp || user?.xp || 150);
 
   const refreshStats = () => {
     const liveStats = getLiveProgressStats(user);
@@ -119,7 +134,11 @@ export function Dashboard() {
           <div className="space-y-3.5 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
-                {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 Level: ${activeAgeGroup}`}
+                {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 Persona: ${activeAgeGroup}`}
+              </span>
+              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white shadow-sm flex items-center gap-1">
+                <span>{rank.icon}</span>
+                <span>{rank.name}</span>
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 text-slate-950 shadow-md">
                 🔥 {stats.streak}-Day Streak
@@ -355,70 +374,113 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* Quick Learning Action Hub - FEATURING ALL MODULES */}
+          {/* Quick Learning Action Hub - FEATURING ALL 6 MODULES */}
           <div className="space-y-4">
-            <h2 className="text-2xl font-black text-[var(--text-primary)]">Practice Modules</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">Practice Modules</h2>
+              <span className="text-xs font-black text-[#6C63FF]">6 Interactive Studios</span>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               {/* Module 1: Speaking Practice */}
               <div
                 onClick={() => navigate(ROUTES.SPEAKING)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-3 cursor-pointer group border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all shadow-sm"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-[#6C63FF]/15 group-hover:scale-110 transition-transform">🗣️</span>
+                  <span className="text-3xl p-2.5 rounded-2xl bg-[#6C63FF]/15 group-hover:scale-110 transition-transform">🎙️</span>
                   <span className="text-xs font-black text-[#6C63FF] group-hover:translate-x-1 transition-transform">Practice →</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">Speaking Practice</h3>
+                  <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">Speaking Practice Studio</h3>
                   <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
-                    {isStudent ? `Curated ${activeGrade} grade scenarios & phonics.` : "Real-world conversations, interviews & speeches."}
+                    {isStudent ? `Curated ${activeGrade} grade scenarios with Live2D coach.` : "10 real-world scenarios tailored to your age profile."}
                   </p>
                 </div>
               </div>
 
-              {/* Module 2: Grammar Practice */}
+              {/* Module 2: AI Tutor Chat */}
+              <div
+                onClick={() => navigate(ROUTES.AI_CHAT)}
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-3 cursor-pointer group border border-[var(--border-default)] hover:border-indigo-400/50 transition-all shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl p-2.5 rounded-2xl bg-indigo-500/15 group-hover:scale-110 transition-transform">💬</span>
+                  <span className="text-xs font-black text-indigo-400 group-hover:translate-x-1 transition-transform">Chat →</span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-indigo-400 transition-colors">AI Tutor Chat Studio</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
+                    2-column interactive live avatar chat with inline grammar evaluation & lip-sync.
+                  </p>
+                </div>
+              </div>
+
+              {/* Module 3: Grammar Doctor */}
               <div
                 onClick={() => navigate(ROUTES.GRAMMAR)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-3 cursor-pointer group border border-[var(--border-default)] hover:border-emerald-500/50 transition-all shadow-sm"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-emerald-500/15 group-hover:scale-110 transition-transform">✍️</span>
-                  <span className="text-xs font-black text-emerald-500 group-hover:translate-x-1 transition-transform">Analyze →</span>
+                  <span className="text-3xl p-2.5 rounded-2xl bg-emerald-500/15 group-hover:scale-110 transition-transform">✍️</span>
+                  <span className="text-xs font-black text-emerald-500 group-hover:translate-x-1 transition-transform">Diagnose →</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-emerald-500 transition-colors">Grammar Doctor</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Instant sentence correction with AI audio explanation.</p>
+                  <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-emerald-500 transition-colors">Grammar Doctor & Quizzes</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
+                    Instant sentence checker with audio feedback, 16-topic handbook & daily quiz.
+                  </p>
                 </div>
               </div>
 
-              {/* Module 3: CEFR Lessons */}
-              <div
-                onClick={() => navigate(ROUTES.LESSONS)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-rose-500/15 group-hover:scale-110 transition-transform">📖</span>
-                  <span className="text-xs font-black text-rose-500 group-hover:translate-x-1 transition-transform">Study →</span>
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-rose-500 transition-colors">CEFR Lesson Modules</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Structured bite-sized lessons & quizzes from A1 to C2.</p>
-                </div>
-              </div>
-
-              {/* Module 4: Vocabulary Builder */}
+              {/* Module 4: 3D Flashcards & Vocab */}
               <div
                 onClick={() => navigate(ROUTES.VOCABULARY)}
-                className="glass-card glass-card-hover p-6 rounded-3xl space-y-4 cursor-pointer group border border-[var(--border-default)]"
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-3 cursor-pointer group border border-[var(--border-default)] hover:border-amber-500/50 transition-all shadow-sm"
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-3xl p-3 rounded-2xl bg-amber-500/15 group-hover:scale-110 transition-transform">📚</span>
+                  <span className="text-3xl p-2.5 rounded-2xl bg-amber-500/15 group-hover:scale-110 transition-transform">📚</span>
                   <span className="text-xs font-black text-amber-500 group-hover:translate-x-1 transition-transform">Explore →</span>
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-lg text-[var(--text-primary)] group-hover:text-amber-500 transition-colors">3D Flashcards & Vocab</h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">Study definitions, phonetics & AI audio pronunciations.</p>
+                  <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-amber-500 transition-colors">3D Flashcards & Word Bank</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
+                    Master definitions, phonetics, audio pronunciations, and spaced repetition.
+                  </p>
+                </div>
+              </div>
+
+              {/* Module 5: CEFR Lessons */}
+              <div
+                onClick={() => navigate(ROUTES.LESSONS)}
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-3 cursor-pointer group border border-[var(--border-default)] hover:border-rose-500/50 transition-all shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl p-2.5 rounded-2xl bg-rose-500/15 group-hover:scale-110 transition-transform">📖</span>
+                  <span className="text-xs font-black text-rose-500 group-hover:translate-x-1 transition-transform">Study →</span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-rose-500 transition-colors">Curriculum & CEFR Lessons</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
+                    Structured audio lessons with comprehension tests from A1 to C2 and Grades 1-10.
+                  </p>
+                </div>
+              </div>
+
+              {/* Module 6: Analytics & Fluency Studio */}
+              <div
+                onClick={() => navigate(ROUTES.PROGRESS)}
+                className="glass-card glass-card-hover p-6 rounded-3xl space-y-3 cursor-pointer group border border-[var(--border-default)] hover:border-cyan-500/50 transition-all shadow-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-3xl p-2.5 rounded-2xl bg-cyan-500/15 group-hover:scale-110 transition-transform">📊</span>
+                  <span className="text-xs font-black text-cyan-500 group-hover:translate-x-1 transition-transform">Analyze →</span>
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-cyan-500 transition-colors">Analytics & Fluency Studio</h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
+                    Speech rate (WPM) diagnostics, CEFR mastery roadmap ladder & habit rhythm.
+                  </p>
                 </div>
               </div>
             </div>
