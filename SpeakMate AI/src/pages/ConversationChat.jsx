@@ -8,6 +8,8 @@ import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
 import { useLipSync } from "../hooks/useLipSync";
 import { speakGlobalText } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
+import { recordChatMessage } from "../utils/progressTracker";
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 
 // Dynamic contextual suggestion generator matching mobile app
@@ -76,6 +78,7 @@ export function ConversationChat() {
   const [inputText, setInputText] = useState("");
   const [evaluating, setEvaluating] = useState(false);
   const { user } = useAuth();
+  const toast = useToast();
   const [chatLevel] = useState(user?.schoolGrade || user?.englishLevel || "Intermediate");
   const [hints, setHints] = useState([]);
   const [loadingHints, setLoadingHints] = useState(false);
@@ -363,6 +366,10 @@ export function ConversationChat() {
 
       setMessages((prev) => [...prev, response]);
       setEvaluating(false);
+
+      // Award +5 XP per conversational turn
+      recordChatMessage(1);
+      toast.success("+5 XP Earned! 💬");
 
       const fullSpeakableText = getSpeakableText(response);
       handleSpeakText(fullSpeakableText);
