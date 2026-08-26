@@ -168,10 +168,14 @@ export default function ProgressScreen({ navigation }) {
                 <View style={[styles.ribbonIconCircle, { backgroundColor: '#FFF7ED' }]}>
                   <Ionicons name="flame" size={20} color="#F97316" />
                 </View>
-                <Text style={[styles.ribbonValue, { color: '#F97316' }]}>{progress.currentStreak || 0} Days</Text>
+                <Text style={[styles.ribbonValue, { color: '#F97316' }]}>
+                  {Math.max(1, Number(progress.currentStreak || progress.streak || stats.currentStreak || 1))} Days
+                </Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Text style={[styles.ribbonLabel, { color: theme.textSecondary }]}>Best: {progress.longestStreak || 0}d</Text>
+                <Text style={[styles.ribbonLabel, { color: theme.textSecondary }]}>
+                  Best: {Math.max(1, Number(progress.longestStreak || stats.longestStreak || progress.currentStreak || 1))}d
+                </Text>
                 <Text style={{ fontSize: 10, fontWeight: '800', color: '#06B6D4' }}>❄️ Shield Active</Text>
               </View>
             </Card>
