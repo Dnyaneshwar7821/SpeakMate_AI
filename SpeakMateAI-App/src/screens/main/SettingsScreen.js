@@ -78,27 +78,20 @@ export default function SettingsScreen({ navigation }) {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
-  const [showAvatarModal, setShowAvatarModal] = useState(false);
 
-  const [avatarModel, setAvatarModel] = useState('haru');
-  const [avatarMode, setAvatarMode] = useState('live2d');
   const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
 
   const load = async () => {
     try {
-      const [settings, voices, onboardingVoice, onboardingData, savedType, savedVoice, savedAvatarMode, savedAvatarModel] = await Promise.all([
+      const [settings, voices, onboardingVoice, onboardingData, savedType, savedVoice] = await Promise.all([
         settingsService.get().catch(() => null),
         VoiceService.getAvailableEnglishVoices(),
         AsyncStorage.getItem('speakmate_onboarding_voice'),
         onboardingService.get().catch(() => null),
         AsyncStorage.getItem('speakmate_account_type'),
         AsyncStorage.getItem('speakmate_selected_voice'),
-        AsyncStorage.getItem('speakmate_avatar_mode'),
-        AsyncStorage.getItem('speakmate_live2d_model'),
       ]);
       if (savedType) setAccountType(savedType);
-      if (savedAvatarMode) setAvatarMode(savedAvatarMode);
-      if (savedAvatarModel) setAvatarModel(savedAvatarModel);
       const effectiveVoice = savedVoice || settings?.aiVoice || defaults.aiVoice;
       setForm({ ...defaults, ...settings, aiVoice: effectiveVoice, ageGroup: onboardingData?.ageGroup || 'Professional' });
       setAvailableVoices(voices);
@@ -286,31 +279,6 @@ export default function SettingsScreen({ navigation }) {
                   {OnboardingVoiceService.isSystemDefault(form.aiVoice)
                     ? `System Default (${onboardingVoiceStyle})`
                     : (VOICE_PROFILES.find((o) => o.code === form.aiVoice)?.label || form.aiVoice)}
-                </Text>
-                <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
-              </View>
-            </TouchableOpacity>
-
-            <View style={[styles.divider, { backgroundColor: dividerColor }]} />
-
-            {/* AI Avatar Persona Model */}
-            <TouchableOpacity 
-              style={styles.pickerRow} 
-              activeOpacity={0.7}
-              onPress={() => setShowAvatarModal(true)}
-            >
-              <View style={styles.pickerRowLeft}>
-                <View style={[styles.iconBox, { backgroundColor: isDark ? '#3B1E30' : '#FCE7F3' }]}>
-                  <Ionicons name="person-circle" size={18} color="#EC4899" />
-                </View>
-                <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={[styles.rowTitle, { color: labelColor }]}>AI Tutor Avatar</Text>
-                  <Text style={[styles.rowDesc, { color: sublabelColor }]}>Live2D interactive tutor character</Text>
-                </View>
-              </View>
-              <View style={styles.pickerRowRight}>
-                <Text style={styles.pickerValueText} numberOfLines={1} ellipsizeMode="tail">
-                  {avatarMode === 'static' ? 'Classic 2D' : (avatarModel === 'chitose' ? 'Chitose (Live2D)' : 'Haru (Live2D 🌸)')}
                 </Text>
                 <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
               </View>
@@ -617,72 +585,6 @@ export default function SettingsScreen({ navigation }) {
                       </Text>
                       {isSelected && (
                         <Ionicons name="checkmark" size={20} color={COLORS.primary} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          </View>
-        </Modal>
-
-        {/* AVATAR TUTOR SELECTION MODAL */}
-        <Modal
-          visible={showAvatarModal}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowAvatarModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: modalBg }]}>
-              <View style={[styles.modalHeader, { borderBottomColor: dividerColor }]}>
-                <Text style={[styles.modalTitle, { color: labelColor }]}>Choose AI Tutor Avatar</Text>
-                <TouchableOpacity onPress={() => setShowAvatarModal(false)}>
-                  <Ionicons name="close" size={24} color={sublabelColor} />
-                </TouchableOpacity>
-              </View>
-
-              <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScrollView}>
-                {[
-                  { id: 'haru', mode: 'live2d', title: 'Haru 🌸 (Default)', subtitle: 'Interactive Live2D tutor with real-time lip-sync & expressions' },
-                  { id: 'chitose', mode: 'live2d', title: 'Chitose 🎋', subtitle: 'Interactive Live2D tutor with calm, encouraging posture' },
-                  { id: 'static', mode: 'static', title: 'Classic 2D Portrait 🖼️', subtitle: 'Ultra-lightweight static image with pulse rings' },
-                ].map((item) => {
-                  const isSelected = item.mode === 'static' ? avatarMode === 'static' : (avatarMode === 'live2d' && avatarModel === item.id);
-                  return (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={[
-                        styles.modalOptionRow,
-                        isSelected && { backgroundColor: optionActiveBg },
-                        { paddingVertical: 12 }
-                      ]}
-                      onPress={async () => {
-                        setAvatarMode(item.mode);
-                        if (item.mode === 'live2d') setAvatarModel(item.id);
-                        await AsyncStorage.setItem('speakmate_avatar_mode', item.mode);
-                        if (item.mode === 'live2d') await AsyncStorage.setItem('speakmate_live2d_model', item.id);
-                        setShowAvatarModal(false);
-                        showToast('Avatar Persona Updated ✨', 'success', `Switched to ${item.title}`);
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <View style={{ flex: 1, paddingRight: 8 }}>
-                        <Text
-                          style={[
-                            styles.modalOptionText,
-                            { color: isDark ? '#E2E8F0' : '#475569', fontWeight: '800' },
-                            isSelected && { color: COLORS.primary }
-                          ]}
-                        >
-                          {item.title}
-                        </Text>
-                        <Text style={[styles.modalOptionSubtext, { color: sublabelColor, marginTop: 2 }]}>
-                          {item.subtitle}
-                        </Text>
-                      </View>
-                      {isSelected && (
-                        <Ionicons name="checkmark-circle" size={22} color={COLORS.primary} />
                       )}
                     </TouchableOpacity>
                   );

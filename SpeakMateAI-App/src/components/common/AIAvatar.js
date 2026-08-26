@@ -90,12 +90,12 @@ export default function AIAvatar({
   forceStatic = false,
 }) {
   const isFemale      = String(gender).trim().toLowerCase() !== 'male';
+  const targetModel   = isFemale ? 'haru' : 'chitose';
   const resolvedState = isSpeaking ? 'speaking' : state;
   const colors        = STATE_COLORS[resolvedState] || STATE_COLORS.idle;
   const isHappy       = expression === 'happy' || expression === 'encouraging';
 
   const [useLive2D, setUseLive2D] = useState(!forceStatic);
-  const [live2dModel, setLive2dModel] = useState('haru');
   const [live2dReady, setLive2dReady] = useState(false);
   const [live2dError, setLive2dError] = useState(false);
 
@@ -103,10 +103,6 @@ export default function AIAvatar({
     AsyncStorage.getItem('speakmate_avatar_mode').then((val) => {
       if (val === 'static') setUseLive2D(false);
       else if (!forceStatic) setUseLive2D(true);
-    }).catch(() => {});
-
-    AsyncStorage.getItem('speakmate_live2d_model').then((val) => {
-      if (val) setLive2dModel(val);
     }).catch(() => {});
   }, [forceStatic]);
 
@@ -302,7 +298,7 @@ export default function AIAvatar({
             isSpeaking={isSpeaking}
             state={resolvedState}
             mood={isHappy ? 'happy' : 'neutral'}
-            model={live2dModel || 'haru'}
+            model={targetModel}
             style={styles.avatarImg}
             onLoaded={() => setLive2dReady(true)}
             onError={() => setLive2dError(true)}

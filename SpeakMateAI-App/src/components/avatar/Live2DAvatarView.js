@@ -127,15 +127,14 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: true });
         
-        // Auto scale to fill view nicely
-        const scaleX = (app.view.width / model.width) * 0.95;
-        const scaleY = (app.view.height / model.height) * 0.95;
-        const scale = Math.min(scaleX, scaleY);
+        // Portrait framing: Zoom ~2.15x to focus on Face, Neck & Upper Chest
+        const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
+        const portraitScale = baseScale * 2.15;
 
-        model.scale.set(scale);
-        model.anchor.set(0.5, 0.5);
+        model.scale.set(portraitScale);
+        model.anchor.set(0.5, 0.18); // Anchor at face/eyes level
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
-        model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) + 15;
+        model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.72;
 
         app.stage.addChild(model);
       } catch(err) {
