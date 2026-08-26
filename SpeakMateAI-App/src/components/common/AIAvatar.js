@@ -7,58 +7,42 @@ import Live2DAvatarView from '../avatar/Live2DAvatarView';
 const FEMALE_AVATAR = require('../../../assets/images/tutor_female_anime.png');
 const MALE_AVATAR   = require('../../../assets/images/tutor_male_anime.png');
 
-const BAR_COUNT  = 5;
-const RING_COUNT = 3;
+const BAR_COUNT = 5;
 
 export const STATE_CONFIG = {
   idle: {
-    glow:      'rgba(139, 92, 246, 0.45)',
-    ring:      '#8B5CF6',
+    glow:      'rgba(139, 92, 246, 0.35)',
     innerRing: '#A78BFA',
-    portalBg:  ['#181145', '#0A0E28'],
     dot:       '#A855F7',
     label:     'Ready',
-    speed:     2800,
-    pulseSpeed: 1600,
+    pulseSpeed: 1800,
   },
   paused: {
-    glow:      'rgba(245, 158, 11, 0.45)',
-    ring:      '#F59E0B',
+    glow:      'rgba(245, 158, 11, 0.35)',
     innerRing: '#FCD34D',
-    portalBg:  ['#3D260F', '#181108'],
     dot:       '#FBBF24',
     label:     'Paused',
-    speed:     3200,
-    pulseSpeed: 2000,
+    pulseSpeed: 2200,
   },
   listening: {
-    glow:      'rgba(6, 182, 212, 0.65)',
-    ring:      '#06B6D4',
+    glow:      'rgba(6, 182, 212, 0.55)',
     innerRing: '#67E8F9',
-    portalBg:  ['#0E3347', '#081726'],
     dot:       '#22D3EE',
     label:     'Listening...',
-    speed:     1200,
-    pulseSpeed: 800,
+    pulseSpeed: 900,
   },
   thinking: {
-    glow:      'rgba(168, 85, 247, 0.6)',
-    ring:      '#9333EA',
+    glow:      'rgba(168, 85, 247, 0.5)',
     innerRing: '#C084FC',
-    portalBg:  ['#251347', '#0E0926'],
     dot:       '#C084FC',
     label:     'Thinking...',
-    speed:     1600,
-    pulseSpeed: 1100,
+    pulseSpeed: 1200,
   },
   speaking: {
-    glow:      'rgba(192, 132, 252, 0.75)',
-    ring:      '#A855F7',
+    glow:      'rgba(192, 132, 252, 0.65)',
     innerRing: '#F472B6',
-    portalBg:  ['#2D1554', '#110A2E'],
     dot:       '#F472B6',
     label:     'Speaking',
-    speed:     550,
     pulseSpeed: 450,
   },
 };
@@ -121,7 +105,7 @@ function ThinkingDots() {
   );
 }
 
-// ── Main AIAvatar Component (3D Pop-Out Holographic Portal) ───────────────────
+// ── Main AIAvatar Component (Full-Width Studio Avatar without clipping frames) ──
 export default function AIAvatar({
   gender     = 'female',
   isSpeaking = false,
@@ -153,9 +137,6 @@ export default function AIAvatar({
   const entranceAnim = useRef(new Animated.Value(0)).current;
   const breatheAnim  = useRef(new Animated.Value(0)).current;
   const pulseAnim    = useRef(new Animated.Value(0)).current;
-  const ringAnims    = useRef(
-    Array.from({ length: RING_COUNT }, () => new Animated.Value(0))
-  ).current;
 
   // 1. Entrance Spring
   useEffect(() => {
@@ -167,7 +148,7 @@ export default function AIAvatar({
     }).start();
   }, []);
 
-  // 2. Idle Natural Breathing Motion (Subtle 3D floating)
+  // 2. Idle Natural Breathing Motion (Subtle vertical floating)
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -189,7 +170,7 @@ export default function AIAvatar({
     return () => loop.stop();
   }, []);
 
-  // 3. State Pulse
+  // 3. State Glow Pulse
   useEffect(() => {
     const duration = config.pulseSpeed;
     const loop = Animated.loop(
@@ -212,49 +193,22 @@ export default function AIAvatar({
     return () => loop.stop();
   }, [resolvedState]);
 
-  // 4. Harmonic Ripple Rings (Speaking & Listening)
-  useEffect(() => {
-    const isRippling = isSpeaking || resolvedState === 'listening';
-    if (!isRippling) {
-      ringAnims.forEach((a) => a.setValue(0));
-      return;
-    }
-
-    const interval = isSpeaking ? 400 : 700;
-    const loops = ringAnims.map((anim, index) => {
-      return Animated.loop(
-        Animated.sequence([
-          Animated.delay(index * interval),
-          Animated.timing(anim, {
-            toValue: 1,
-            duration: isSpeaking ? 1300 : 1800,
-            easing: Easing.out(Easing.cubic),
-            useNativeDriver: true,
-          }),
-        ])
-      );
-    });
-
-    loops.forEach((l) => l.start());
-    return () => loops.forEach((l) => l.stop());
-  }, [isSpeaking, resolvedState]);
-
   // ── Interpolations ─────────────────────────────────────────────────────────
-  const entranceScale   = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] });
+  const entranceScale   = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] });
   const entranceOpacity = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
   // Floating: ±2.5px
   const floatY = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [-2.5, 2.5] });
   
   // Presence Scale
-  const stateScale = resolvedState === 'listening' ? 1.025 : resolvedState === 'speaking' ? 1.02 : 1.0;
-  const breatheScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.012] });
+  const stateScale = resolvedState === 'listening' ? 1.02 : resolvedState === 'speaking' ? 1.015 : 1.0;
+  const breatheScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.01] });
 
   // Glow Opacity & Scale
   const glowScale   = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.08] });
   const glowOpacity = pulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: isSpeaking ? [0.7, 0.95] : resolvedState === 'listening' ? [0.6, 0.9] : [0.35, 0.65],
+    outputRange: isSpeaking ? [0.65, 0.95] : resolvedState === 'listening' ? [0.55, 0.85] : [0.35, 0.6],
   });
 
   return (
@@ -268,65 +222,25 @@ export default function AIAvatar({
         },
       ]}
     >
-      {/* ── STAGE WRAPPER ── */}
+      {/* ── STAGE WRAPPER (Full-Width, No Oval Borders) ── */}
       <View style={styles.stageWrapper}>
         
-        {/* ── Layer 1: Ambient Background Glow ── */}
+        {/* ── Soft Ambient Glow Behind Avatar (No hard borders) ── */}
         <Animated.View
           style={[
             styles.ambientGlow,
             {
               backgroundColor: config.glow,
               opacity: glowOpacity,
-              transform: [{ scale: glowScale }, { scaleX: 0.84 }, { translateY: floatY }],
+              transform: [{ scale: glowScale }, { translateY: floatY }],
             },
           ]}
         />
 
-        {/* ── Layer 2: Harmonic Multi-Rings (Behind Portal) ── */}
-        {ringAnims.map((anim, i) => {
-          const ringScale   = anim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.35 + i * 0.16] });
-          const ringOpacity = anim.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 0.55, 0] });
-          return (
-            <Animated.View
-              key={i}
-              style={[
-                styles.rippleRing,
-                {
-                  borderColor: config.ring,
-                  opacity: ringOpacity,
-                  transform: [{ scale: ringScale }, { scaleX: 0.84 }, { translateY: floatY }],
-                },
-              ]}
-            />
-          );
-        })}
-
-        {/* ── Layer 3: Neon Oval Portal Backdrop (Behind Haru) ── */}
+        {/* ── Full-Bust Avatar Canvas (Ponytail, Shoulders & Head 100% Unclipped) ── */}
         <Animated.View
           style={[
-            styles.portalBackdrop,
-            {
-              borderColor: config.ring,
-              shadowColor: config.innerRing,
-              transform: [{ translateY: floatY }],
-            },
-          ]}
-        >
-          <LinearGradient
-            colors={config.portalBg}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.portalGradient}
-          />
-          {/* Inner Shimmer Rim */}
-          <View style={[styles.portalInnerRim, { borderColor: `${config.innerRing}60` }]} />
-        </Animated.View>
-
-        {/* ── Layer 4: Pop-Out Avatar (Emerging Outward & Floating over Top Rim) ── */}
-        <Animated.View
-          style={[
-            styles.popOutAvatarContainer,
+            styles.avatarContainer,
             {
               transform: [
                 { translateY: floatY },
@@ -355,23 +269,23 @@ export default function AIAvatar({
             />
           )}
 
-          {/* Smooth Bottom Vignette to Anchor Torso into Portal */}
+          {/* Smooth Bottom Vignette to Taper Blazer into Dark Backdrop */}
           <LinearGradient
             pointerEvents="none"
-            colors={['transparent', 'rgba(11, 15, 36, 0.45)', 'rgba(11, 15, 36, 0.95)']}
-            locations={[0, 0.55, 1.0]}
+            colors={['transparent', 'rgba(11, 15, 25, 0.4)', 'rgba(11, 15, 25, 0.95)']}
+            locations={[0, 0.6, 1.0]}
             style={styles.bottomVignette}
           />
         </Animated.View>
       </View>
 
-      {/* ── Layer 5: Glassmorphic State / Speaking Pill ── */}
+      {/* ── Glassmorphic State / Speaking Pill ── */}
       {!hideStatusPill && (
         <Animated.View
           style={[
             styles.statusPill,
             {
-              borderColor: `${config.innerRing}60`,
+              borderColor: `${config.innerRing}55`,
               shadowColor: config.innerRing,
               transform: [{ translateY: floatY }],
             },
@@ -403,102 +317,66 @@ export default function AIAvatar({
   );
 }
 
-// ── 3D Pop-Out Dimensions ─────────────────────────────────────────────────────
-const PORTAL_W = 146; // Oval Portal Width
-const PORTAL_H = 176; // Oval Portal Height
-const AVATAR_W = 176; // Pop-out Avatar Width (wider than portal)
-const AVATAR_H = 205; // Pop-out Avatar Height (taller than portal, breaks out of top rim)
+// ── Full-Bust Dimensions (Wide & Generous to Prevent Any Clipping) ────────────
+const AVATAR_WIDTH = 290; // Ample width for full ponytail & both shoulders
+const AVATAR_HEIGHT = 205; // Generous height for full head & hair clearance
 
 const styles = StyleSheet.create({
   container: {
     width:          '100%',
-    height:         '100%',
     alignItems:     'center',
     justifyContent: 'center',
     position:       'relative',
   },
 
   stageWrapper: {
-    width:          AVATAR_W,
-    height:         PORTAL_H + 16,
+    width:          AVATAR_WIDTH,
+    height:         AVATAR_HEIGHT,
     alignItems:     'center',
     justifyContent: 'center',
     position:       'relative',
+    overflow:       'visible',
   },
 
-  // 1. Ambient Background Glow
+  // 1. Soft Ambient Radial Glow (Behind Avatar, No Lines)
   ambientGlow: {
     position:      'absolute',
-    width:         PORTAL_W + 36,
-    height:        PORTAL_H + 36,
-    borderRadius:  (PORTAL_H + 36) / 2,
+    width:         180,
+    height:        180,
+    borderRadius:  90,
     shadowOpacity: 1,
-    shadowRadius:  32,
-    elevation:     10,
+    shadowRadius:  45,
+    elevation:     8,
   },
 
-  // 2. Harmonic Ripple Rings (Behind Portal)
-  rippleRing: {
-    position:     'absolute',
-    width:        PORTAL_W + 28,
-    height:       PORTAL_H + 28,
-    borderRadius: (PORTAL_H + 28) / 2,
-    borderWidth:  1.5,
-  },
-
-  // 3. Neon Oval Portal Backdrop (Behind Haru)
-  portalBackdrop: {
-    position:        'absolute',
-    width:           PORTAL_W,
-    height:          PORTAL_H,
-    borderRadius:    PORTAL_W / 2,
-    borderWidth:     2.5,
-    overflow:        'hidden',
-    shadowOpacity:   0.85,
-    shadowRadius:    20,
-    elevation:       8,
-    top:             14,
-  },
-  portalGradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  portalInnerRim: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: PORTAL_W / 2,
-    borderWidth:  1.5,
-    margin:       2,
-  },
-
-  // 4. Pop-Out Avatar (Foreground - breaks out over top rim)
-  popOutAvatarContainer: {
-    position:        'absolute',
-    width:           AVATAR_W,
-    height:          AVATAR_H,
-    top:             -8, // Head and hair pop out 22px ABOVE the portal rim!
+  // 2. Avatar Container & Canvas (Unclipped)
+  avatarContainer: {
+    width:           AVATAR_WIDTH,
+    height:          AVATAR_HEIGHT,
     alignItems:      'center',
     justifyContent:  'center',
-    overflow:        'visible',
-    zIndex:          10,
+    position:        'relative',
+    overflow:        'hidden',
   },
   avatarCanvas: {
-    width:    AVATAR_W,
-    height:   AVATAR_H,
+    width:    AVATAR_WIDTH,
+    height:   AVATAR_HEIGHT,
   },
   bottomVignette: {
     position: 'absolute',
     left:     0,
     right:    0,
     bottom:   0,
-    height:   48,
+    height:   52,
   },
 
-  // 5. Glassmorphic Status Pill
+  // 3. Glassmorphic Status Pill
   statusPill: {
     flexDirection:     'row',
     alignItems:        'center',
     justifyContent:    'center',
     gap:               8,
-    marginTop:         8,
+    marginTop:         6,
     minWidth:          120,
     paddingHorizontal: 15,
     paddingVertical:   6.5,
@@ -509,7 +387,6 @@ const styles = StyleSheet.create({
     shadowRadius:      10,
     shadowOffset:      { width: 0, height: 2 },
     elevation:         6,
-    zIndex:            20,
   },
   statusDot: {
     width:        8,

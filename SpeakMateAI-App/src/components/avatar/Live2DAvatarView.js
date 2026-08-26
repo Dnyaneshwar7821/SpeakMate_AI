@@ -215,20 +215,20 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // 3D Pop-Out Portrait Framing: Zoom 2.10x
+        // Full-Bust Framing: Zoom 1.82x for full ponytail, shoulder span, and headroom
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
-        const portraitScale = baseScale * 2.10;
+        const portraitScale = baseScale * 1.82;
 
         model.scale.set(portraitScale);
         
-        // 3D Pop-Out Anchor: Head and ears float above and in front of portal rim
+        // Top headroom clearance + centered bust anchor
         if (currentModelName === 'chitose') {
-          model.anchor.set(0.5, 0.13);
-          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.80;
+          model.anchor.set(0.5, 0.10);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.90;
         } else {
-          // Haru Pop-Out Anchor
-          model.anchor.set(0.5, 0.14);
-          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.76;
+          // Haru unclipped anchor with generous top headroom
+          model.anchor.set(0.5, 0.10);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.88;
         }
 
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
