@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Live2DAvatarView from '../avatar/Live2DAvatarView';
 
@@ -11,45 +12,50 @@ const BAR_COUNT = 5;
 
 export const STATE_CONFIG = {
   idle: {
-    glowCenter: 'rgba(139, 92, 246, 0.16)',
+    glowCenter: 'rgba(139, 92, 246, 0.14)',
     glowOuter:  'rgba(139, 92, 246, 0.0)',
-    ring:       'rgba(167, 139, 250, 0.35)',
+    innerRing:  'rgba(167, 139, 250, 0.75)',
+    outerRing:  'rgba(139, 92, 246, 0.28)',
     ringGlow:   '#8B5CF6',
     dot:        '#A855F7',
     label:      'Ready',
     pulseSpeed: 2800,
   },
   paused: {
-    glowCenter: 'rgba(245, 158, 11, 0.16)',
+    glowCenter: 'rgba(245, 158, 11, 0.14)',
     glowOuter:  'rgba(245, 158, 11, 0.0)',
-    ring:       'rgba(252, 211, 77, 0.35)',
+    innerRing:  'rgba(252, 211, 77, 0.75)',
+    outerRing:  'rgba(245, 158, 11, 0.25)',
     ringGlow:   '#F59E0B',
     dot:        '#FBBF24',
     label:      'Paused',
     pulseSpeed: 3000,
   },
   listening: {
-    glowCenter: 'rgba(6, 182, 212, 0.28)',
+    glowCenter: 'rgba(6, 182, 212, 0.25)',
     glowOuter:  'rgba(6, 182, 212, 0.0)',
-    ring:       'rgba(103, 232, 249, 0.65)',
+    innerRing:  'rgba(103, 232, 249, 0.90)',
+    outerRing:  'rgba(6, 182, 212, 0.45)',
     ringGlow:   '#06B6D4',
     dot:        '#22D3EE',
     label:      'Listening...',
     pulseSpeed: 1000,
   },
   thinking: {
-    glowCenter: 'rgba(168, 85, 247, 0.25)',
+    glowCenter: 'rgba(168, 85, 247, 0.22)',
     glowOuter:  'rgba(168, 85, 247, 0.0)',
-    ring:       'rgba(192, 132, 252, 0.55)',
+    innerRing:  'rgba(192, 132, 252, 0.85)',
+    outerRing:  'rgba(168, 85, 247, 0.38)',
     ringGlow:   '#9333EA',
     dot:        '#C084FC',
     label:      'Thinking...',
     pulseSpeed: 1400,
   },
   speaking: {
-    glowCenter: 'rgba(192, 132, 252, 0.32)',
+    glowCenter: 'rgba(192, 132, 252, 0.28)',
     glowOuter:  'rgba(192, 132, 252, 0.0)',
-    ring:       'rgba(244, 114, 182, 0.7)',
+    innerRing:  'rgba(244, 114, 182, 0.95)',
+    outerRing:  'rgba(192, 132, 252, 0.50)',
     ringGlow:   '#F472B6',
     dot:        '#F472B6',
     label:      'Speaking',
@@ -115,7 +121,7 @@ function ThinkingDots() {
   );
 }
 
-// ── Main AIAvatar Component (Master Polish & Motion) ──────────────────────────
+// ── Main AIAvatar Component (Dual Concentric Halo & Cosmic Studio) ────────────
 export default function AIAvatar({
   gender     = 'female',
   isSpeaking = false,
@@ -144,12 +150,14 @@ export default function AIAvatar({
   }, [forceStatic]);
 
   // ── Animated Values ─────────────────────────────────────────────────────────
-  const entranceAnim = useRef(new Animated.Value(0)).current;
-  const breatheAnim  = useRef(new Animated.Value(0)).current;
-  const pulseAnim    = useRef(new Animated.Value(0)).current;
-  const ringPulseAnim = useRef(new Animated.Value(0)).current;
+  const entranceAnim   = useRef(new Animated.Value(0)).current;
+  const breatheAnim    = useRef(new Animated.Value(0)).current;
+  const pulseAnim      = useRef(new Animated.Value(0)).current;
+  const ringPulseAnim  = useRef(new Animated.Value(0)).current;
+  const outerRingPulse = useRef(new Animated.Value(0)).current;
+  const shimmerAnim    = useRef(new Animated.Value(0)).current;
 
-  // 1. Entrance Spring (Smooth, Fast)
+  // 1. Entrance Spring
   useEffect(() => {
     Animated.spring(entranceAnim, {
       toValue: 1,
@@ -159,7 +167,7 @@ export default function AIAvatar({
     }).start();
   }, []);
 
-  // 2. Idle Natural Breathing Motion (Slow, Organic Floating)
+  // 2. Idle Natural Breathing Motion (Slow, Organic Floating ±2px)
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -204,11 +212,12 @@ export default function AIAvatar({
     return () => loop.stop();
   }, [resolvedState]);
 
-  // 4. Subtle Circular Ring Pulse
+  // 4. Dual Ring Pulses (Inner & Outer Concentric Halo)
   useEffect(() => {
     const isDynamic = isSpeaking || resolvedState === 'listening';
-    const duration = isSpeaking ? 600 : resolvedState === 'listening' ? 1100 : 2800;
-    const loop = Animated.loop(
+    const duration = isSpeaking ? 550 : resolvedState === 'listening' ? 1000 : 2600;
+
+    const innerLoop = Animated.loop(
       Animated.sequence([
         Animated.timing(ringPulseAnim, {
           toValue: 1,
@@ -224,9 +233,44 @@ export default function AIAvatar({
         }),
       ])
     );
+
+    const outerLoop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(180),
+        Animated.timing(outerRingPulse, {
+          toValue: 1,
+          duration: duration * 1.15,
+          easing: isDynamic ? Easing.out(Easing.cubic) : Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(outerRingPulse, {
+          toValue: 0,
+          duration: duration * 1.15,
+          easing: isDynamic ? Easing.in(Easing.cubic) : Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    innerLoop.start();
+    outerLoop.start();
+    return () => {
+      innerLoop.stop();
+      outerLoop.stop();
+    };
+  }, [isSpeaking, resolvedState]);
+
+  // 5. Cosmic Shimmer Dust Rotation / Opacity
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmerAnim, { toValue: 1, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(shimmerAnim, { toValue: 0, duration: 4000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ])
+    );
     loop.start();
     return () => loop.stop();
-  }, [isSpeaking, resolvedState]);
+  }, []);
 
   // ── Interpolations ─────────────────────────────────────────────────────────
   const entranceScale   = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0.94, 1] });
@@ -239,22 +283,34 @@ export default function AIAvatar({
   const stateScale = resolvedState === 'listening' ? 1.02 : resolvedState === 'speaking' ? 1.015 : 1.0;
   const breatheScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.008] });
 
-  // Glow Opacity & Scale (Soft, never a solid disk)
+  // Diffused Glow (Soft, no solid disk)
   const glowScale   = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.08] });
   const glowOpacity = pulseAnim.interpolate({
     inputRange: [0, 1],
     outputRange: isSpeaking ? [0.8, 1.0] : resolvedState === 'listening' ? [0.7, 0.95] : [0.45, 0.75],
   });
 
-  // Perfect Circular Ring Expansion
-  const ringScale = ringPulseAnim.interpolate({
+  // Concentric Inner Ring Pulse
+  const innerRingScale = ringPulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: isSpeaking ? [1.0, 1.06] : resolvedState === 'listening' ? [1.0, 1.04] : [1.0, 1.02],
+    outputRange: isSpeaking ? [1.0, 1.05] : resolvedState === 'listening' ? [1.0, 1.035] : [1.0, 1.015],
   });
-  const ringOpacity = ringPulseAnim.interpolate({
+  const innerRingOpacity = ringPulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: isSpeaking ? [0.6, 0.95] : resolvedState === 'listening' ? [0.5, 0.85] : [0.25, 0.45],
+    outputRange: isSpeaking ? [0.75, 1.0] : resolvedState === 'listening' ? [0.65, 0.95] : [0.45, 0.70],
   });
+
+  // Concentric Outer Ring Pulse
+  const outerRingScale = outerRingPulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: isSpeaking ? [1.0, 1.07] : resolvedState === 'listening' ? [1.0, 1.045] : [1.0, 1.02],
+  });
+  const outerRingOpacity = outerRingPulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: isSpeaking ? [0.40, 0.75] : resolvedState === 'listening' ? [0.30, 0.60] : [0.18, 0.38],
+  });
+
+  const shimmerOpacity = shimmerAnim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 0.85] });
 
   return (
     <Animated.View
@@ -270,7 +326,7 @@ export default function AIAvatar({
       {/* ── STAGE WRAPPER (Centered & Responsive) ── */}
       <View style={styles.stageWrapper}>
         
-        {/* ── Layer 1: Soft Ambient Radial Glow (Diffused Light, No Solid Disk) ── */}
+        {/* ── Layer 1: Diffused Soft Ambient Radial Glow (No Solid Color Disk) ── */}
         <Animated.View
           style={[
             styles.ambientGlowContainer,
@@ -288,20 +344,51 @@ export default function AIAvatar({
           />
         </Animated.View>
 
-        {/* ── Layer 2: Perfect Circular Activity Ring (Centered, Subtle) ── */}
+        {/* ── Layer 2: Ethereal Sound Wave Energy Ribbons (Left & Right Wings) ── */}
+        <View pointerEvents="none" style={styles.ribbonsContainer}>
+          <LinearGradient
+            colors={['transparent', 'rgba(139, 92, 246, 0.12)', 'rgba(99, 102, 241, 0.22)', 'transparent']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.energyRibbon}
+          />
+        </View>
+
+        {/* ── Layer 3: Concentric Outer Luminous Ring (230px Diameter) ── */}
         <Animated.View
           style={[
-            styles.circularRing,
+            styles.outerHaloRing,
             {
-              borderColor: config.ring,
+              borderColor: config.outerRing,
               shadowColor: config.ringGlow,
-              opacity: ringOpacity,
-              transform: [{ scale: ringScale }, { translateY: floatY }],
+              opacity: outerRingOpacity,
+              transform: [{ scale: outerRingScale }, { translateY: floatY }],
             },
           ]}
         />
 
-        {/* ── Layer 3: Unclipped Full-Bust Avatar Canvas ── */}
+        {/* ── Layer 4: Concentric Inner Neon Ring (172px Diameter, Centered) ── */}
+        <Animated.View
+          style={[
+            styles.innerHaloRing,
+            {
+              borderColor: config.innerRing,
+              shadowColor: config.ringGlow,
+              opacity: innerRingOpacity,
+              transform: [{ scale: innerRingScale }, { translateY: floatY }],
+            },
+          ]}
+        />
+
+        {/* ── Layer 5: Cosmic Particle Stars & Sparkles ── */}
+        <Animated.View pointerEvents="none" style={[styles.starsOverlay, { opacity: shimmerOpacity }]}>
+          <Ionicons name="sparkles" size={10} color="#C084FC" style={[styles.starIcon, { top: 18, left: 34 }]} />
+          <Ionicons name="sparkles" size={8} color="#E9D5FF" style={[styles.starIcon, { top: 48, right: 28 }]} />
+          <Ionicons name="sparkles" size={7} color="#A78BFA" style={[styles.starIcon, { bottom: 65, left: 16 }]} />
+          <Ionicons name="sparkles" size={9} color="#F472B6" style={[styles.starIcon, { bottom: 72, right: 20 }]} />
+        </Animated.View>
+
+        {/* ── Layer 6: Unclipped Full-Bust Avatar Canvas ── */}
         <Animated.View
           style={[
             styles.avatarContainer,
@@ -333,13 +420,13 @@ export default function AIAvatar({
             />
           )}
 
-          {/* Layer 4: Multi-Stop Smooth Torso & Corner Fade Mask (Eliminates All Cutoffs) */}
+          {/* Layer 7: Multi-Stop Smooth Torso & Corner Fade Mask (Eliminates All Cutoffs) */}
           <LinearGradient
             pointerEvents="none"
             colors={[
               'transparent',
-              'rgba(11, 15, 25, 0.15)',
-              'rgba(11, 15, 25, 0.65)',
+              'rgba(11, 15, 25, 0.12)',
+              'rgba(11, 15, 25, 0.60)',
               '#0B0F19',
               '#0B0F19'
             ]}
@@ -349,7 +436,7 @@ export default function AIAvatar({
         </Animated.View>
       </View>
 
-      {/* ── Layer 5: Glassmorphic State / Speaking Pill ── */}
+      {/* ── Layer 8: Glassmorphic State / Speaking Pill ── */}
       {!hideStatusPill && (
         <Animated.View
           style={[
@@ -387,8 +474,9 @@ export default function AIAvatar({
   );
 }
 
-// ── Target Stage Dimensions (165-175px focal stage, 280px unclipped bust) ─────
-const STAGE_RING_SIZE = 170; // Perfect 170px Circular Activity Ring
+// ── Target Stage Dimensions (Dual Halo: 172px Inner & 232px Outer) ───────────
+const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
+const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
 const AVATAR_WIDTH    = 280; // Ample width for full ponytail & both shoulders
 const AVATAR_HEIGHT   = 200; // Generous height with natural headroom
 
@@ -409,35 +497,75 @@ const styles = StyleSheet.create({
     overflow:       'visible',
   },
 
-  // 1. Diffused Soft Ambient Glow (No Solid Color Disk)
+  // 1. Diffused Soft Ambient Radial Glow (No Solid Disk)
   ambientGlowContainer: {
     position:        'absolute',
-    width:           STAGE_RING_SIZE + 40,
-    height:          STAGE_RING_SIZE + 40,
-    borderRadius:    (STAGE_RING_SIZE + 40) / 2,
+    width:           OUTER_RING_SIZE + 30,
+    height:          OUTER_RING_SIZE + 30,
+    borderRadius:    (OUTER_RING_SIZE + 30) / 2,
     alignItems:      'center',
     justifyContent:  'center',
     overflow:        'hidden',
   },
   diffuseGlowGradient: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: (STAGE_RING_SIZE + 40) / 2,
+    borderRadius: (OUTER_RING_SIZE + 30) / 2,
   },
 
-  // 2. Perfect Circular Ring (Centered, 170px Diameter)
-  circularRing: {
+  // 2. Ethereal Sound Wave Energy Ribbons
+  ribbonsContainer: {
+    position: 'absolute',
+    left:     -20,
+    right:    -20,
+    top:      90,
+    height:   40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  energyRibbon: {
+    width:  '100%',
+    height: 18,
+    borderRadius: 9,
+  },
+
+  // 3. Concentric Outer Luminous Ring (232px)
+  outerHaloRing: {
     position:      'absolute',
-    width:         STAGE_RING_SIZE,
-    height:        STAGE_RING_SIZE,
-    borderRadius:  STAGE_RING_SIZE / 2,
-    borderWidth:   1.5,
-    shadowOpacity: 0.6,
-    shadowRadius:  14,
+    width:         OUTER_RING_SIZE,
+    height:        OUTER_RING_SIZE,
+    borderRadius:  OUTER_RING_SIZE / 2,
+    borderWidth:   1.2,
+    shadowOpacity: 0.45,
+    shadowRadius:  10,
     shadowOffset:  { width: 0, height: 0 },
-    elevation:     4,
+    elevation:     3,
   },
 
-  // 3. Avatar Container & Canvas
+  // 4. Concentric Inner Neon Ring (172px, Centered around Head)
+  innerHaloRing: {
+    position:      'absolute',
+    width:         INNER_RING_SIZE,
+    height:        INNER_RING_SIZE,
+    borderRadius:  INNER_RING_SIZE / 2,
+    borderWidth:   1.8,
+    shadowOpacity: 0.85,
+    shadowRadius:  18,
+    shadowOffset:  { width: 0, height: 0 },
+    elevation:     6,
+  },
+
+  // 5. Stars / Cosmic Dust
+  starsOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  starIcon: {
+    position: 'absolute',
+    shadowColor: '#FFF',
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+  },
+
+  // 6. Avatar Container & Canvas
   avatarContainer: {
     width:           AVATAR_WIDTH,
     height:          AVATAR_HEIGHT,
@@ -446,6 +574,7 @@ const styles = StyleSheet.create({
     position:        'relative',
     overflow:        'hidden',
     backgroundColor: 'transparent',
+    zIndex:          10,
   },
   avatarCanvas: {
     width:           AVATAR_WIDTH,
@@ -453,16 +582,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // 4. Smooth Torso & Corner Fade (80px Tall Multi-Stop Mask)
+  // 7. Smooth Torso & Corner Fade (76px Tall Multi-Stop Mask)
   bottomTorsoFade: {
     position: 'absolute',
     left:     0,
     right:    0,
     bottom:   0,
     height:   76,
+    zIndex:   12,
   },
 
-  // 5. Glassmorphic Status Pill
+  // 8. Glassmorphic Status Pill
   statusPill: {
     flexDirection:     'row',
     alignItems:        'center',
@@ -479,6 +609,7 @@ const styles = StyleSheet.create({
     shadowRadius:      8,
     shadowOffset:      { width: 0, height: 2 },
     elevation:         6,
+    zIndex:            20,
   },
   statusDot: {
     width:        8,
