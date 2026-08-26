@@ -30,6 +30,35 @@ import AIAvatar from '../../components/common/AIAvatar';
 import JumpingDotsIndicator from '../../components/common/JumpingDotsIndicator';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
 
+// ── Animated Message Bubble Component ────────────────────────────────────────
+function AnimatedChatBubble({ children, isUser, onLongPress }) {
+  const enterAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(enterAnim, {
+      toValue: 1,
+      tension: 65,
+      friction: 9,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const translateY = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [10, 0] });
+  const opacity    = enterAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
+
+  return (
+    <Animated.View style={{ opacity, transform: [{ translateY }] }}>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onLongPress={onLongPress}
+        style={[styles.bubbleWrapper, isUser ? styles.userWrapper : styles.aiWrapper]}
+      >
+        {children}
+      </TouchableOpacity>
+    </Animated.View>
+  );
+}
+
 // ─── Sound Wave Component ────────────────────────────────────────────────────
 function VoiceWaveBars({ isRecording }) {
   const animatedValues = useRef([
@@ -915,11 +944,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           const hasAnyFeedback = !isUser && (showGrammar || showBetter || showVocab || showFollowup);
 
           return (
-            <TouchableOpacity
-              activeOpacity={0.9}
-              onLongPress={() => handleOpenMenu(item)}
-              style={[styles.bubbleWrapper, isUser ? styles.userWrapper : styles.aiWrapper]}
-            >
+            <AnimatedChatBubble isUser={isUser} onLongPress={() => handleOpenMenu(item)}>
               {/* Avatars */}
               {!isUser && (
                 <View style={[styles.avatar, styles.aiAvatar]}>
@@ -999,7 +1024,7 @@ export default function ConversationChatScreen({ navigation, route }) {
                   <Ionicons name="person" size={14} color="#FFF" />
                 </View>
               )}
-            </TouchableOpacity>
+            </AnimatedChatBubble>
           );
         }}
         ListFooterComponent={
@@ -1180,11 +1205,12 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: 'transparent' },
 
   avatarContainer: {
-    height: 220,
+    height: 235,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    marginVertical: 2,
   },
   avatar3d: {
     width: '100%',
