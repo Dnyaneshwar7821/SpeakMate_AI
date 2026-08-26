@@ -1223,74 +1223,79 @@ export default function ConversationScreen({ navigation, route }) {
                 )}
               </View>
             )}
+
+            {/* ── Suggested Response Chips (Inside Chat Stream) ── */}
+            {hints.length > 0 && (
+              <View style={styles.hintsContainer}>
+                <View style={styles.hintsHeaderRow}>
+                  <Ionicons name="chatbox-ellipses-outline" size={13} color="#A5B4FC" />
+                  <Text style={styles.hintsHeaderText}>Suggested Responses (Tap to speak or listen):</Text>
+                  <TouchableOpacity onPress={() => setHints([])} style={{ marginLeft: 'auto', padding: 2 }}>
+                    <Ionicons name="close-circle" size={16} color="#94A3B8" />
+                  </TouchableOpacity>
+                </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hintsScroll}>
+                  {hints.map((hint, i) => (
+                    <View key={i} style={styles.hintChipWrapper}>
+                      <TouchableOpacity
+                        style={styles.hintChip}
+                        onPress={() => {
+                          setHints([]); // hide chips
+                          sendUserText(hint); // send to AI
+                        }}
+                      >
+                        <Text style={styles.hintChipText}>{hint}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.hintAudioBtn}
+                        onPress={() => speakTextWithVoice(hint)}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="volume-medium-outline" size={15} color="#818CF8" />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* ── AI Hint Action Button (Inside Chat Stream) ── */}
+            {messages.length > 0 && !loading && (
+              <View style={styles.chatHintBtnRow}>
+                <TouchableOpacity
+                  style={styles.floatingHintBtn}
+                  onPress={handleFetchHints}
+                  activeOpacity={0.85}
+                  disabled={loadingHints}
+                >
+                  <LinearGradient
+                    colors={hints.length > 0 ? ['#4F46E5', '#3730A3'] : ['#8B5CF6', '#6366F1', '#4F46E5']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.floatingHintGradient}
+                  >
+                    {loadingHints ? (
+                      <ActivityIndicator size="small" color="#FFF" />
+                    ) : (
+                      <>
+                        <View style={styles.hintIconAura}>
+                          <Ionicons name="bulb" size={11} color="#FDE047" />
+                        </View>
+                        <Text style={styles.floatingHintText}>
+                          {hints.length > 0 ? 'Hide Hints' : 'AI Hint ✨'}
+                        </Text>
+                      </>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            )}
           </>
         )}
       />
 
-      {/* ── Attractive Floating AI Hint Button (Positioned above the bottom black controls area at right) ── */}
-      <View style={styles.floatingHintContainer} pointerEvents="box-none">
-        <TouchableOpacity
-          style={styles.floatingHintBtn}
-          onPress={handleFetchHints}
-          activeOpacity={0.85}
-          disabled={loadingHints}
-        >
-          <LinearGradient
-            colors={hints.length > 0 ? ['#4F46E5', '#3730A3'] : ['#8B5CF6', '#6366F1', '#4F46E5']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.floatingHintGradient}
-          >
-            {loadingHints ? (
-              <ActivityIndicator size="small" color="#FFF" />
-            ) : (
-              <>
-                <View style={styles.hintIconAura}>
-                  <Ionicons name="bulb" size={11} color="#FDE047" />
-                </View>
-                <Text style={styles.floatingHintText}>
-                  {hints.length > 0 ? 'Hide Hints' : 'AI Hint ✨'}
-                </Text>
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
-
       {/* ── Bottom Controls ── */}
       <View style={styles.controlsBar}>
-        {/* Interactive Quick-Reply Speech Chips */}
-        {hints.length > 0 && (
-          <View style={styles.hintsContainer}>
-            <View style={styles.hintsHeaderRow}>
-              <Ionicons name="chatbox-ellipses-outline" size={13} color="#A5B4FC" />
-              <Text style={styles.hintsHeaderText}>Suggested Responses (Tap to speak or listen):</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hintsScroll}>
-              {hints.map((hint, i) => (
-                <View key={i} style={styles.hintChipWrapper}>
-                  <TouchableOpacity
-                    style={styles.hintChip}
-                    onPress={() => {
-                      setHints([]); // hide chips
-                      sendUserText(hint); // send to AI
-                    }}
-                  >
-                    <Text style={styles.hintChipText}>{hint}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.hintAudioBtn}
-                    onPress={() => speakTextWithVoice(hint)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="volume-medium-outline" size={15} color="#818CF8" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-        )}
-
         <View style={styles.controlsRow}>
           {/* Speed Toggle */}
           <TouchableOpacity style={styles.auxBtn} onPress={toggleSpeechSpeed}>
@@ -1477,7 +1482,13 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
 
-  // Floating AI Hint Button (Above the black controls bar, aligned at right)
+  // Floating AI Hint Button (Inside chat stream)
+  chatHintBtnRow: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 8,
+    marginTop: 6,
+    marginBottom: 4,
+  },
   floatingHintContainer: {
     alignItems: 'flex-end',
     paddingHorizontal: 16,
