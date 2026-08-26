@@ -489,7 +489,7 @@ const styles = StyleSheet.create({
   },
 
   stageWrapper: {
-    width:          AVATAR_WIDTH,
+    width:          '100%',
     height:         AVATAR_HEIGHT,
     alignItems:     'center',
     justifyContent: 'center',
