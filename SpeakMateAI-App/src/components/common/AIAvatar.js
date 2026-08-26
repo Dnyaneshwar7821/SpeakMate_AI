@@ -12,48 +12,53 @@ const RING_COUNT = 3;
 
 export const STATE_CONFIG = {
   idle: {
-    glow:     'rgba(139, 92, 246, 0.45)',
-    ring:     '#8B5CF6',
-    innerRing:'#A78BFA',
-    dot:      '#A855F7',
-    label:    'Ready',
-    speed:    2800,
+    glow:      'rgba(139, 92, 246, 0.45)',
+    ring:      '#8B5CF6',
+    innerRing: '#A78BFA',
+    portalBg:  ['#181145', '#0A0E28'],
+    dot:       '#A855F7',
+    label:     'Ready',
+    speed:     2800,
     pulseSpeed: 1600,
   },
   paused: {
-    glow:     'rgba(245, 158, 11, 0.45)',
-    ring:     '#F59E0B',
-    innerRing:'#FCD34D',
-    dot:      '#FBBF24',
-    label:    'Paused',
-    speed:    3200,
+    glow:      'rgba(245, 158, 11, 0.45)',
+    ring:      '#F59E0B',
+    innerRing: '#FCD34D',
+    portalBg:  ['#3D260F', '#181108'],
+    dot:       '#FBBF24',
+    label:     'Paused',
+    speed:     3200,
     pulseSpeed: 2000,
   },
   listening: {
-    glow:     'rgba(6, 182, 212, 0.65)',
-    ring:     '#06B6D4',
-    innerRing:'#67E8F9',
-    dot:      '#22D3EE',
-    label:    'Listening...',
-    speed:    1200,
+    glow:      'rgba(6, 182, 212, 0.65)',
+    ring:      '#06B6D4',
+    innerRing: '#67E8F9',
+    portalBg:  ['#0E3347', '#081726'],
+    dot:       '#22D3EE',
+    label:     'Listening...',
+    speed:     1200,
     pulseSpeed: 800,
   },
   thinking: {
-    glow:     'rgba(168, 85, 247, 0.6)',
-    ring:     '#9333EA',
-    innerRing:'#C084FC',
-    dot:      '#C084FC',
-    label:    'Thinking...',
-    speed:    1600,
+    glow:      'rgba(168, 85, 247, 0.6)',
+    ring:      '#9333EA',
+    innerRing: '#C084FC',
+    portalBg:  ['#251347', '#0E0926'],
+    dot:       '#C084FC',
+    label:     'Thinking...',
+    speed:     1600,
     pulseSpeed: 1100,
   },
   speaking: {
-    glow:     'rgba(192, 132, 252, 0.75)',
-    ring:     '#A855F7',
-    innerRing:'#E879F9',
-    dot:      '#F472B6',
-    label:    'Speaking',
-    speed:    550,
+    glow:      'rgba(192, 132, 252, 0.75)',
+    ring:      '#A855F7',
+    innerRing: '#F472B6',
+    portalBg:  ['#2D1554', '#110A2E'],
+    dot:       '#F472B6',
+    label:     'Speaking',
+    speed:     550,
     pulseSpeed: 450,
   },
 };
@@ -116,7 +121,7 @@ function ThinkingDots() {
   );
 }
 
-// ── Main AIAvatar Component ───────────────────────────────────────────────────
+// ── Main AIAvatar Component (3D Pop-Out Holographic Portal) ───────────────────
 export default function AIAvatar({
   gender     = 'female',
   isSpeaking = false,
@@ -144,7 +149,7 @@ export default function AIAvatar({
     }).catch(() => {});
   }, [forceStatic]);
 
-  // ── Entrance & Motion Animated Values ───────────────────────────────────────
+  // ── Animated Values ─────────────────────────────────────────────────────────
   const entranceAnim = useRef(new Animated.Value(0)).current;
   const breatheAnim  = useRef(new Animated.Value(0)).current;
   const pulseAnim    = useRef(new Animated.Value(0)).current;
@@ -152,17 +157,17 @@ export default function AIAvatar({
     Array.from({ length: RING_COUNT }, () => new Animated.Value(0))
   ).current;
 
-  // 1. Entrance Sequence
+  // 1. Entrance Spring
   useEffect(() => {
     Animated.spring(entranceAnim, {
       toValue: 1,
-      tension: 50,
-      friction: 8,
+      tension: 55,
+      friction: 8.5,
       useNativeDriver: true,
     }).start();
   }, []);
 
-  // 2. Idle Natural Breathing Motion (Very subtle, smooth)
+  // 2. Idle Natural Breathing Motion (Subtle 3D floating)
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -184,7 +189,7 @@ export default function AIAvatar({
     return () => loop.stop();
   }, []);
 
-  // 3. State-Adaptive Glow & Scale Pulse
+  // 3. State Pulse
   useEffect(() => {
     const duration = config.pulseSpeed;
     const loop = Animated.loop(
@@ -207,7 +212,7 @@ export default function AIAvatar({
     return () => loop.stop();
   }, [resolvedState]);
 
-  // 4. Harmonic Ripple Rings (Active while speaking or listening)
+  // 4. Harmonic Ripple Rings (Speaking & Listening)
   useEffect(() => {
     const isRippling = isSpeaking || resolvedState === 'listening';
     if (!isRippling) {
@@ -215,7 +220,7 @@ export default function AIAvatar({
       return;
     }
 
-    const interval = isSpeaking ? 420 : 700;
+    const interval = isSpeaking ? 400 : 700;
     const loops = ringAnims.map((anim, index) => {
       return Animated.loop(
         Animated.sequence([
@@ -235,21 +240,21 @@ export default function AIAvatar({
   }, [isSpeaking, resolvedState]);
 
   // ── Interpolations ─────────────────────────────────────────────────────────
-  const entranceScale = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] });
+  const entranceScale   = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0.92, 1] });
   const entranceOpacity = entranceAnim.interpolate({ inputRange: [0, 1], outputRange: [0, 1] });
 
   // Floating: ±2.5px
   const floatY = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [-2.5, 2.5] });
   
-  // Presence Scale: Subtle 1.00 -> 1.015 expansion
-  const stateScale = resolvedState === 'listening' ? 1.02 : resolvedState === 'speaking' ? 1.015 : 1.0;
+  // Presence Scale
+  const stateScale = resolvedState === 'listening' ? 1.025 : resolvedState === 'speaking' ? 1.02 : 1.0;
   const breatheScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.012] });
 
   // Glow Opacity & Scale
-  const glowScale   = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.06] });
+  const glowScale   = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.08] });
   const glowOpacity = pulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: isSpeaking ? [0.65, 0.95] : resolvedState === 'listening' ? [0.55, 0.85] : [0.35, 0.65],
+    outputRange: isSpeaking ? [0.7, 0.95] : resolvedState === 'listening' ? [0.6, 0.9] : [0.35, 0.65],
   });
 
   return (
@@ -263,102 +268,102 @@ export default function AIAvatar({
         },
       ]}
     >
-      {/* ── Layer 1: Ambient Background Glow ── */}
-      <Animated.View
-        style={[
-          styles.ambientGlow,
-          {
-            backgroundColor: config.glow,
-            opacity: glowOpacity,
-            transform: [{ scale: glowScale }, { translateY: floatY }],
-          },
-        ]}
-      />
-
-      {/* ── Layer 2: Harmonic Multi-Rings (Speaking & Listening) ── */}
-      {ringAnims.map((anim, i) => {
-        const ringScale   = anim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.35 + i * 0.16] });
-        const ringOpacity = anim.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 0.55, 0] });
-        return (
-          <Animated.View
-            key={i}
-            style={[
-              styles.rippleRing,
-              {
-                borderColor: config.ring,
-                opacity: ringOpacity,
-                transform: [{ scale: ringScale }, { translateY: floatY }],
-              },
-            ]}
-          />
-        );
-      })}
-
-      {/* ── Layer 3: Inner Illuminated Activity Ring ── */}
-      <Animated.View
-        style={[
-          styles.activityRing,
-          {
-            borderColor: config.innerRing,
-            shadowColor: config.innerRing,
-            opacity: glowOpacity,
-            transform: [{ scale: glowScale }, { translateY: floatY }],
-          },
-        ]}
-      />
-
-      {/* ── Layer 4: Main Circular/Squircle Avatar Stage ── */}
-      <Animated.View
-        style={[
-          styles.avatarStage,
-          {
-            borderColor: config.ring,
-            shadowColor: config.ring,
-            transform: [
-              { translateY: floatY },
-              { scale: Animated.multiply(breatheScale, new Animated.Value(stateScale)) },
-            ],
-          },
-        ]}
-      >
-        {useLive2D && !live2dError ? (
-          <Live2DAvatarView
-            isSpeaking={isSpeaking}
-            state={resolvedState}
-            mood={isHappy ? 'happy' : 'neutral'}
-            model={targetModel}
-            style={styles.avatarCanvas}
-            onLoaded={() => setLive2dReady(true)}
-            onError={() => setLive2dError(true)}
-          />
-        ) : null}
-
-        {(!useLive2D || !live2dReady || live2dError) && (
-          <Image
-            source={isFemale ? FEMALE_AVATAR : MALE_AVATAR}
-            style={[styles.avatarCanvas, (useLive2D && live2dReady && !live2dError) && { display: 'none' }]}
-            resizeMode="cover"
-          />
-        )}
-
-        {/* Inner Luminous Shimmer Ring */}
-        {isSpeaking && (
-          <Animated.View
-            style={[
-              styles.innerShimmer,
-              { borderColor: config.innerRing, opacity: glowOpacity },
-            ]}
-          />
-        )}
-
-        {/* Seamless Bottom Torso Vignette (Natural Bust Cutoff) */}
-        <LinearGradient
-          pointerEvents="none"
-          colors={['transparent', 'rgba(11, 15, 36, 0.4)', 'rgba(11, 15, 36, 0.88)', 'rgba(11, 15, 36, 0.98)']}
-          locations={[0, 0.5, 0.82, 1.0]}
-          style={styles.bottomVignette}
+      {/* ── STAGE WRAPPER ── */}
+      <View style={styles.stageWrapper}>
+        
+        {/* ── Layer 1: Ambient Background Glow ── */}
+        <Animated.View
+          style={[
+            styles.ambientGlow,
+            {
+              backgroundColor: config.glow,
+              opacity: glowOpacity,
+              transform: [{ scale: glowScale }, { scaleX: 0.84 }, { translateY: floatY }],
+            },
+          ]}
         />
-      </Animated.View>
+
+        {/* ── Layer 2: Harmonic Multi-Rings (Behind Portal) ── */}
+        {ringAnims.map((anim, i) => {
+          const ringScale   = anim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.35 + i * 0.16] });
+          const ringOpacity = anim.interpolate({ inputRange: [0, 0.3, 1], outputRange: [0, 0.55, 0] });
+          return (
+            <Animated.View
+              key={i}
+              style={[
+                styles.rippleRing,
+                {
+                  borderColor: config.ring,
+                  opacity: ringOpacity,
+                  transform: [{ scale: ringScale }, { scaleX: 0.84 }, { translateY: floatY }],
+                },
+              ]}
+            />
+          );
+        })}
+
+        {/* ── Layer 3: Neon Oval Portal Backdrop (Behind Haru) ── */}
+        <Animated.View
+          style={[
+            styles.portalBackdrop,
+            {
+              borderColor: config.ring,
+              shadowColor: config.innerRing,
+              transform: [{ translateY: floatY }],
+            },
+          ]}
+        >
+          <LinearGradient
+            colors={config.portalBg}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.portalGradient}
+          />
+          {/* Inner Shimmer Rim */}
+          <View style={[styles.portalInnerRim, { borderColor: `${config.innerRing}60` }]} />
+        </Animated.View>
+
+        {/* ── Layer 4: Pop-Out Avatar (Emerging Outward & Floating over Top Rim) ── */}
+        <Animated.View
+          style={[
+            styles.popOutAvatarContainer,
+            {
+              transform: [
+                { translateY: floatY },
+                { scale: Animated.multiply(breatheScale, new Animated.Value(stateScale)) },
+              ],
+            },
+          ]}
+        >
+          {useLive2D && !live2dError ? (
+            <Live2DAvatarView
+              isSpeaking={isSpeaking}
+              state={resolvedState}
+              mood={isHappy ? 'happy' : 'neutral'}
+              model={targetModel}
+              style={styles.avatarCanvas}
+              onLoaded={() => setLive2dReady(true)}
+              onError={() => setLive2dError(true)}
+            />
+          ) : null}
+
+          {(!useLive2D || !live2dReady || live2dError) && (
+            <Image
+              source={isFemale ? FEMALE_AVATAR : MALE_AVATAR}
+              style={[styles.avatarCanvas, (useLive2D && live2dReady && !live2dError) && { display: 'none' }]}
+              resizeMode="contain"
+            />
+          )}
+
+          {/* Smooth Bottom Vignette to Anchor Torso into Portal */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={['transparent', 'rgba(11, 15, 36, 0.45)', 'rgba(11, 15, 36, 0.95)']}
+            locations={[0, 0.55, 1.0]}
+            style={styles.bottomVignette}
+          />
+        </Animated.View>
+      </View>
 
       {/* ── Layer 5: Glassmorphic State / Speaking Pill ── */}
       {!hideStatusPill && (
@@ -398,8 +403,11 @@ export default function AIAvatar({
   );
 }
 
-// ── Geometry Constants ────────────────────────────────────────────────────────
-const STAGE_SIZE = 170; // 165–175px responsive primary focal stage
+// ── 3D Pop-Out Dimensions ─────────────────────────────────────────────────────
+const PORTAL_W = 146; // Oval Portal Width
+const PORTAL_H = 176; // Oval Portal Height
+const AVATAR_W = 176; // Pop-out Avatar Width (wider than portal)
+const AVATAR_H = 205; // Pop-out Avatar Height (taller than portal, breaks out of top rim)
 
 const styles = StyleSheet.create({
   container: {
@@ -410,67 +418,71 @@ const styles = StyleSheet.create({
     position:       'relative',
   },
 
+  stageWrapper: {
+    width:          AVATAR_W,
+    height:         PORTAL_H + 16,
+    alignItems:     'center',
+    justifyContent: 'center',
+    position:       'relative',
+  },
+
   // 1. Ambient Background Glow
   ambientGlow: {
     position:      'absolute',
-    width:         STAGE_SIZE + 44,
-    height:        STAGE_SIZE + 44,
-    borderRadius:  (STAGE_SIZE + 44) / 2,
+    width:         PORTAL_W + 36,
+    height:        PORTAL_H + 36,
+    borderRadius:  (PORTAL_H + 36) / 2,
     shadowOpacity: 1,
-    shadowRadius:  34,
-    elevation:     12,
+    shadowRadius:  32,
+    elevation:     10,
   },
 
-  // 2. Harmonic Ripple Rings
+  // 2. Harmonic Ripple Rings (Behind Portal)
   rippleRing: {
     position:     'absolute',
-    width:        STAGE_SIZE + 28,
-    height:       STAGE_SIZE + 28,
-    borderRadius: (STAGE_SIZE + 28) / 2,
+    width:        PORTAL_W + 28,
+    height:       PORTAL_H + 28,
+    borderRadius: (PORTAL_H + 28) / 2,
     borderWidth:  1.5,
   },
 
-  // 3. Inner Activity Ring
-  activityRing: {
-    position:      'absolute',
-    width:         STAGE_SIZE + 14,
-    height:        STAGE_SIZE + 14,
-    borderRadius:  (STAGE_SIZE + 14) / 2,
-    borderWidth:   2,
-    shadowOpacity: 0.9,
-    shadowRadius:  20,
-    elevation:     14,
-  },
-
-  // 4. Main Avatar Circular Stage
-  avatarStage: {
-    width:           STAGE_SIZE,
-    height:          STAGE_SIZE,
-    borderRadius:    STAGE_SIZE / 2,
+  // 3. Neon Oval Portal Backdrop (Behind Haru)
+  portalBackdrop: {
+    position:        'absolute',
+    width:           PORTAL_W,
+    height:          PORTAL_H,
+    borderRadius:    PORTAL_W / 2,
     borderWidth:     2.5,
     overflow:        'hidden',
-    backgroundColor: '#0B0F24',
     shadowOpacity:   0.85,
-    shadowRadius:    18,
-    shadowOffset:    { width: 0, height: 0 },
-    elevation:       10,
-    marginBottom:    4,
+    shadowRadius:    20,
+    elevation:       8,
+    top:             14,
+  },
+  portalGradient: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  portalInnerRim: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: PORTAL_W / 2,
+    borderWidth:  1.5,
+    margin:       2,
+  },
+
+  // 4. Pop-Out Avatar (Foreground - breaks out over top rim)
+  popOutAvatarContainer: {
+    position:        'absolute',
+    width:           AVATAR_W,
+    height:          AVATAR_H,
+    top:             -8, // Head and hair pop out 22px ABOVE the portal rim!
+    alignItems:      'center',
+    justifyContent:  'center',
+    overflow:        'visible',
+    zIndex:          10,
   },
   avatarCanvas: {
-    width:    STAGE_SIZE,
-    height:   STAGE_SIZE,
-    position: 'absolute',
-    top:      0,
-    left:     0,
-  },
-  innerShimmer: {
-    position:     'absolute',
-    top:          2,
-    left:         2,
-    right:        2,
-    bottom:       2,
-    borderRadius: STAGE_SIZE / 2,
-    borderWidth:  1.5,
+    width:    AVATAR_W,
+    height:   AVATAR_H,
   },
   bottomVignette: {
     position: 'absolute',
@@ -491,12 +503,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical:   6.5,
     borderRadius:      22,
-    backgroundColor:   'rgba(15, 23, 42, 0.82)',
+    backgroundColor:   'rgba(15, 23, 42, 0.85)',
     borderWidth:       1.5,
     shadowOpacity:     0.4,
     shadowRadius:      10,
     shadowOffset:      { width: 0, height: 2 },
     elevation:         6,
+    zIndex:            20,
   },
   statusDot: {
     width:        8,
