@@ -32,13 +32,14 @@ const ACCENT_OPTIONS = [
 ];
 
 const getRankTier = (xp = 0) => {
-  if (xp < 100) return { name: "Bronze III", icon: "🥉", badgeColor: "from-amber-700 to-amber-900", nextXp: 100 };
-  if (xp < 300) return { name: "Bronze II", icon: "🥉", badgeColor: "from-amber-600 to-amber-800", nextXp: 300 };
-  if (xp < 600) return { name: "Bronze I", icon: "🥉", badgeColor: "from-amber-500 to-amber-700", nextXp: 600 };
-  if (xp < 1000) return { name: "Silver III", icon: "🥈", badgeColor: "from-slate-400 to-slate-600", nextXp: 1000 };
-  if (xp < 1500) return { name: "Silver II", icon: "🥈", badgeColor: "from-slate-300 to-slate-500", nextXp: 1500 };
-  if (xp < 2100) return { name: "Silver I", icon: "🥈", badgeColor: "from-slate-200 to-slate-400", nextXp: 2100 };
-  return { name: "Gold Master", icon: "👑", badgeColor: "from-amber-400 to-yellow-600", nextXp: 3000 };
+  if (xp < 200) return { name: "Novice Speaker", icon: "🥉", badgeColor: "from-amber-700 to-amber-900", nextXp: 200 };
+  if (xp < 500) return { name: "Bronze III", icon: "🥉", badgeColor: "from-amber-600 to-amber-800", nextXp: 500 };
+  if (xp < 1000) return { name: "Bronze I", icon: "🥉", badgeColor: "from-amber-500 to-amber-700", nextXp: 1000 };
+  if (xp < 1800) return { name: "Silver II", icon: "🥈", badgeColor: "from-slate-400 to-slate-600", nextXp: 1800 };
+  if (xp < 2800) return { name: "Silver I", icon: "🥈", badgeColor: "from-slate-300 to-slate-500", nextXp: 2800 };
+  if (xp < 4200) return { name: "Gold I", icon: "🥇", badgeColor: "from-amber-400 to-yellow-600", nextXp: 4200 };
+  if (xp < 6000) return { name: "Platinum Master", icon: "💎", badgeColor: "from-cyan-500 to-blue-600", nextXp: 6000 };
+  return { name: "Diamond Orator", icon: "👑", badgeColor: "from-purple-500 to-indigo-700", nextXp: 10000 };
 };
 
 const isImageAvatar = (avatar) => {
