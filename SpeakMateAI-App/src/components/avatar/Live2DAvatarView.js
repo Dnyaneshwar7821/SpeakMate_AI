@@ -20,6 +20,7 @@ const LIVE2D_HTML = `
       background: transparent;
       user-select: none;
       -webkit-user-select: none;
+      touch-action: none;
     }
     #canvas-container {
       width: 100%;
@@ -47,8 +48,21 @@ const LIVE2D_HTML = `
     window.PIXI = PIXI;
     let app, model;
     let isSpeaking = false;
+    let currentState = 'idle';
     let currentMood = 'neutral';
+    let currentModelName = 'haru';
     let mouthPhase = 0;
+    
+    // Interactive Touch / Gaze
+    let targetLookX = 0;
+    let targetLookY = 0;
+    let currentLookX = 0;
+    let currentLookY = 0;
+    
+    // Natural Blinking
+    let nextBlinkTime = Date.now() + 2500;
+    let isBlinking = false;
+    let blinkProgress = 0;
 
     async function init() {
       try {
@@ -61,7 +75,7 @@ const LIVE2D_HTML = `
           height: height,
           transparent: true,
           backgroundAlpha: 0,
-          resolution: window.devicePixelRatio || 2,
+          resolution: Math.min(window.devicePixelRatio || 2, 2.5),
           autoDensity: true,
           antialias: true,
         });
@@ -70,42 +84,108 @@ const LIVE2D_HTML = `
 
         PIXI.live2d.Live2DModel.registerTicker(PIXI.Ticker);
 
-        await loadModel('${HARU_MODEL_URL}');
+        await loadModel('${HARU_MODEL_URL}', 'haru');
 
-        // Start animation loop for mouth / breathing
+        // Touch tracking listeners
+        window.addEventListener('pointermove', onPointerMove);
+        window.addEventListener('pointerdown', onPointerMove);
+        window.addEventListener('pointerup', onPointerReset);
+
+        // Core animation & expression loop
         app.ticker.add((delta) => {
           if (!model || !model.internalModel) return;
 
           const core = model.internalModel.coreModel;
           if (!core) return;
 
-          // Natural breathing
-          const t = Date.now() / 1000;
-          const breath = (Math.sin(t * 1.5) + 1) / 2;
+          const now = Date.now();
+          const t = now / 1000;
+
+          // 1. Natural Breathing
+          const breath = (Math.sin(t * 1.8) + 1) * 0.4;
           try {
-            model.internalModel.motionManager?.update?.(delta);
+            if (core.setParameterValueById) core.setParameterValueById('ParamBreath', breath);
           } catch(e) {}
 
-          // Speaking Lip-sync
-          if (isSpeaking) {
-            mouthPhase += 0.28 * delta;
-            const mouthOpen = Math.abs(Math.sin(mouthPhase)) * 0.85 + 0.15;
-            
-            // Cubism 4 Parameter ID for Mouth Open
-            if (model.internalModel.focusController) {
-              model.internalModel.focusController.focus(0, 0);
+          // 2. Smooth Gaze & Head Lerp
+          currentLookX += (targetLookX - currentLookX) * 0.08;
+          currentLookY += (targetLookY - currentLookY) * 0.08;
+
+          try {
+            if (core.setParameterValueById) {
+              core.setParameterValueById('ParamEyeBallX', currentLookX * 0.75);
+              core.setParameterValueById('ParamEyeBallY', currentLookY * 0.75);
+              core.setParameterValueById('ParamAngleX', currentLookX * 22);
+              core.setParameterValueById('ParamAngleY', currentLookY * 18);
             }
+          } catch(e) {}
+
+          // 3. Stochastic Blinking Cycle
+          if (now > nextBlinkTime && !isBlinking) {
+            isBlinking = true;
+            blinkProgress = 0;
+          }
+
+          if (isBlinking) {
+            blinkProgress += 0.12 * delta;
+            // Half sine for quick close and open
+            const eyeOpen = Math.max(0, 1 - Math.sin(blinkProgress * Math.PI));
+            try {
+              if (core.setParameterValueById) {
+                core.setParameterValueById('ParamEyeLOpen', eyeOpen);
+                core.setParameterValueById('ParamEyeROpen', eyeOpen);
+              }
+            } catch(e) {}
+
+            if (blinkProgress >= 1.0) {
+              isBlinking = false;
+              nextBlinkTime = now + 2200 + Math.random() * 3200; // Next blink in 2.2-5.4s
+            }
+          }
+
+          // 4. State-Driven Gestures & Expressions
+          if (currentState === 'thinking') {
+            try {
+              if (core.setParameterValueById) {
+                core.setParameterValueById('ParamAngleZ', -6.5);
+                core.setParameterValueById('ParamEyeBallY', 0.45);
+                core.setParameterValueById('ParamBrowLY', -0.3);
+                core.setParameterValueById('ParamBrowRY', -0.3);
+              }
+            } catch(e) {}
+          } else if (currentState === 'listening') {
+            try {
+              if (core.setParameterValueById) {
+                core.setParameterValueById('ParamAngleX', 3.5);
+                core.setParameterValueById('ParamAngleY', -2.5);
+                core.setParameterValueById('ParamBrowLY', 0.25);
+                core.setParameterValueById('ParamBrowRY', 0.25);
+              }
+            } catch(e) {}
+          }
+
+          // 5. Dynamic Phonetic Lip-Sync
+          if (isSpeaking) {
+            mouthPhase += 0.32 * delta;
             
+            // Varied multi-viseme mouth shape modulation
+            const rawOpen = Math.abs(Math.sin(mouthPhase)) * 0.75 + Math.abs(Math.cos(mouthPhase * 0.6)) * 0.25;
+            const mouthOpen = Math.min(1.0, rawOpen);
+            const mouthForm = (currentMood === 'happy' || currentMood === 'encouraging') ? 1.0 : (Math.sin(mouthPhase * 0.5) * 0.4 + 0.2);
+
             try {
               if (core.setParameterValueById) {
                 core.setParameterValueById('ParamMouthOpenY', mouthOpen);
-                core.setParameterValueById('ParamMouthForm', currentMood === 'happy' ? 1.0 : 0.0);
+                core.setParameterValueById('ParamMouthForm', mouthForm);
+                // Subtle speech head bobbing
+                core.setParameterValueById('ParamAngleY', (currentLookY * 18) + Math.sin(mouthPhase * 0.7) * 2.2);
               }
             } catch(e) {}
           } else {
             try {
               if (core.setParameterValueById) {
                 core.setParameterValueById('ParamMouthOpenY', 0);
+                core.setParameterValueById('ParamMouthForm', (currentMood === 'happy' || currentMood === 'encouraging') ? 0.8 : 0);
               }
             } catch(e) {}
           }
@@ -118,23 +198,47 @@ const LIVE2D_HTML = `
       }
     }
 
-    async function loadModel(url) {
+    function onPointerMove(e) {
+      const rect = app.view.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+      targetLookX = Math.max(-1, Math.min(1, x));
+      targetLookY = Math.max(-1, Math.min(1, y));
+    }
+
+    function onPointerReset() {
+      targetLookX = 0;
+      targetLookY = 0;
+    }
+
+    async function loadModel(url, modelName) {
       if (model) {
         app.stage.removeChild(model);
         model.destroy({ children: true });
+        model = null;
       }
 
+      currentModelName = modelName || 'haru';
+
       try {
-        model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: true });
+        model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // Portrait framing: Zoom ~2.15x to focus on Face, Neck & Upper Chest
+        // Portrait Framing (Face to Upper Chest): Zoom 2.15x
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
         const portraitScale = baseScale * 2.15;
 
         model.scale.set(portraitScale);
-        model.anchor.set(0.5, 0.18); // Anchor at face/eyes level
+        
+        // Specific anchor calibration for Haru vs Chitose
+        if (currentModelName === 'chitose') {
+          model.anchor.set(0.5, 0.15);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.76;
+        } else {
+          model.anchor.set(0.5, 0.18);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.72;
+        }
+
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
-        model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.72;
 
         app.stage.addChild(model);
       } catch(err) {
@@ -149,21 +253,16 @@ const LIVE2D_HTML = `
         if (data.type === 'SPEAK') {
           isSpeaking = Boolean(data.isSpeaking);
         } else if (data.type === 'STATE') {
+          currentState = data.state || 'idle';
           isSpeaking = data.state === 'speaking';
-          if (data.state === 'thinking' && model && model.internalModel) {
-            try {
-              model.internalModel.coreModel.setParameterValueById('ParamAngleZ', -8);
-            } catch(e) {}
-          } else if (data.state === 'listening' && model && model.internalModel) {
-            try {
-              model.internalModel.coreModel.setParameterValueById('ParamAngleX', 5);
-            } catch(e) {}
-          }
         } else if (data.type === 'MOOD') {
           currentMood = data.mood || 'neutral';
         } else if (data.type === 'MODEL') {
-          const url = data.model === 'chitose' ? '${CHITOSE_MODEL_URL}' : '${HARU_MODEL_URL}';
-          loadModel(url);
+          const targetName = (data.model || 'haru').toLowerCase();
+          if (targetName !== currentModelName) {
+            const url = targetName === 'chitose' ? '${CHITOSE_MODEL_URL}' : '${HARU_MODEL_URL}';
+            loadModel(url, targetName);
+          }
         }
       } catch(e) {}
     }
@@ -254,6 +353,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
         onError={(err) => onError && onError(err)}
         javaScriptEnabled={true}
         domStorageEnabled={true}
+        androidLayerType="hardware"
       />
       {!isReady && (
         <View style={styles.loadingOverlay}>
