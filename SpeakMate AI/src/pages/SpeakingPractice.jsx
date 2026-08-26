@@ -159,7 +159,7 @@ const STANDARD_SCENARIOS = {
 
 const CATEGORIES = ["All", "General", "Daily Life", "Travel", "Work", "Career"];
 
-export const normalizeAgeGroup = (rawAge) => {
+const normalizeAgeGroup = (rawAge) => {
   if (!rawAge) return "Professional";
   const s = String(rawAge).toLowerCase();
   if (s.includes("kid")) return "Kids";

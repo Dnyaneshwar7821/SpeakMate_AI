@@ -33,7 +33,7 @@ const AGE_OPTIONS = [
   { code: "Senior", label: "Seniors (50+) ☕", desc: "Relaxed conversation, culture & life stories" },
 ];
 
-export const normalizeAgeGroup = (rawAge) => {
+const normalizeAgeGroup = (rawAge) => {
   if (!rawAge) return "Professional";
   const s = String(rawAge).toLowerCase();
   if (s.includes("kid")) return "Kids";
