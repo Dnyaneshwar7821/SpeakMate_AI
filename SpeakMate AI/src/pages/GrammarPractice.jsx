@@ -403,13 +403,13 @@ export function GrammarPractice() {
 
               {/* 2. CORRECTED SENTENCE PROMINENT DISPLAY (FIRST) */}
               <div className="space-y-2">
-                <span className="text-xs font-extrabold text-[var(--text-muted)] uppercase tracking-wider">
+                <span className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider">
                   {analysisResult.isCorrect ? "Your Sentence (100% Correct):" : "Corrected English Sentence:"}
                 </span>
-                <div className={`p-4 sm:p-5 rounded-2xl border text-sm sm:text-base font-bold transition-all ${
+                <div className={`p-4 sm:p-5 rounded-2xl border text-base sm:text-lg font-black tracking-wide transition-all shadow-sm ${
                   analysisResult.isCorrect
-                    ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-950 dark:text-emerald-100"
-                    : "bg-indigo-500/10 border-indigo-500/30 text-indigo-950 dark:text-indigo-100"
+                    ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-500/40 text-emerald-800 dark:text-emerald-300"
+                    : "bg-indigo-50 dark:bg-indigo-950/50 border-indigo-200 dark:border-indigo-500/40 text-[#4338CA] dark:text-indigo-200"
                 }`}>
                   "{analysisResult.correctedText}"
                 </div>
@@ -417,7 +417,7 @@ export function GrammarPractice() {
 
               {/* Praise message if perfect */}
               {analysisResult.isCorrect && (
-                <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs sm:text-sm font-semibold text-emerald-900 dark:text-emerald-200">
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/30 text-xs sm:text-sm font-bold text-emerald-900 dark:text-emerald-200">
                   <span className="text-xl">🎉</span>
                   <span>{analysisResult.praiseMessage || "Given sentence is correct with no grammar mistakes!"}</span>
                 </div>
@@ -425,11 +425,11 @@ export function GrammarPractice() {
 
               {/* Native Upgrade Alternative */}
               {analysisResult.nativeAlternative && (
-                <div className="flex items-start gap-3 p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-xs sm:text-sm">
+                <div className="flex items-start gap-3 p-4 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-500/30 text-xs sm:text-sm">
                   <span className="text-base">💡</span>
                   <div>
-                    <span className="font-extrabold text-[#6C63FF]">Native Natural Phrasing: </span>
-                    <span className="font-semibold text-[var(--text-primary)]">"{analysisResult.nativeAlternative}"</span>
+                    <span className="font-extrabold text-[#4F46E5] dark:text-[#818CF8]">Native Natural Phrasing: </span>
+                    <span className="font-bold text-[var(--text-primary)]">"{analysisResult.nativeAlternative}"</span>
                   </div>
                 </div>
               )}
@@ -448,32 +448,32 @@ export function GrammarPractice() {
                     {analysisResult.errors.map((err, idx) => (
                       <div
                         key={idx}
-                        className="p-4 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)] space-y-2 hover:border-[#6C63FF]/40 transition-all"
+                        className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-2 hover:border-[#6C63FF]/40 transition-all"
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center">
                             {idx + 1}
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-md bg-[#6C63FF]/10 text-[#6C63FF] text-[10px] font-black uppercase">
+                          <span className="px-2.5 py-0.5 rounded-md bg-[#6C63FF]/15 text-[#4F46E5] dark:text-[#A5B4FC] text-[10px] font-black uppercase">
                             {err.type || "Grammar Rule"}
                           </span>
                           {err.errorSnippet &&
                             err.errorSnippet.length <= 25 &&
                             !err.errorSnippet.includes("[") &&
                             !err.errorSnippet.toLowerCase().includes("missing") && (
-                              <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-500 text-xs font-bold line-through">
+                              <span className="px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-bold line-through">
                                 "{err.errorSnippet}"
                               </span>
                             )}
                         </div>
 
-                        <p className="text-xs sm:text-sm font-semibold text-[var(--text-primary)]">
+                        <p className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
                           👉 {err.issue}
                         </p>
 
                         {err.rule && (
-                          <div className="p-2.5 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)]">
-                            <strong className="text-[#6C63FF]">Rule Insight: </strong>
+                          <div className="p-3 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs font-semibold text-[var(--text-secondary)]">
+                            <strong className="text-[#4F46E5] dark:text-[#818CF8] font-bold">Rule Insight: </strong>
                             {err.rule}
                           </div>
                         )}
