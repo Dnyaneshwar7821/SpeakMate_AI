@@ -707,13 +707,15 @@ export const QuickActionsCard = memo(function QuickActionsCard({ navigation }) {
 
 // SECTION 7: LEARNING STREAK
 export const LearningStreakCard = memo(function LearningStreakCard({
-  streak,
-  longestStreak,
+  streak = 1,
+  longestStreak = 1,
   streakFreezes = 1,
   xp = 0,
   onBuyFreeze,
 }) {
   const theme = useTheme();
+  const safeStreak = Math.max(1, Number(streak) || 1);
+  const safeLongest = Math.max(safeStreak, Number(longestStreak) || 1);
   const currentDayOfWeek = (new Date().getDay() + 6) % 7; // 0=Mon, 6=Sun
   const WEEK_DAYS_SHORT = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
@@ -730,7 +732,7 @@ export const LearningStreakCard = memo(function LearningStreakCard({
         <View style={styles.streakColumn}>
           <Ionicons name="flame" size={28} color="#F97316" />
           <View>
-            <Text style={[styles.streakNumber, { color: theme.textPrimary }]}>{streak}</Text>
+            <Text style={[styles.streakNumber, { color: theme.textPrimary }]}>{safeStreak}</Text>
             <Text style={[styles.streakSubText, { color: theme.textSecondary }]}>Current Streak</Text>
           </View>
         </View>
@@ -744,7 +746,7 @@ export const LearningStreakCard = memo(function LearningStreakCard({
         <View style={styles.streakColumn}>
           <Ionicons name="trophy" size={26} color="#CA8A04" />
           <View>
-            <Text style={[styles.streakNumber, { color: theme.textPrimary }]}>{longestStreak}</Text>
+            <Text style={[styles.streakNumber, { color: theme.textPrimary }]}>{safeLongest}</Text>
             <Text style={[styles.streakSubText, { color: theme.textSecondary }]}>Longest Streak</Text>
           </View>
         </View>
@@ -753,7 +755,7 @@ export const LearningStreakCard = memo(function LearningStreakCard({
       <Text style={[styles.streakSubText, { color: theme.textPrimary, marginBottom: 10, marginTop: 12 }]}>Weekly Heatmap</Text>
       <View style={styles.streakDaysRow}>
         {WEEK_DAYS_SHORT.map((day, idx) => {
-          const isActive = idx <= currentDayOfWeek && streak > 0;
+          const isActive = idx <= currentDayOfWeek && safeStreak > 0;
           return (
             <View 
               key={idx} 
@@ -1969,138 +1971,4 @@ export const SchoolAnnouncementsCard = memo(({ announcements = [] }) => {
   );
 });
 
-export const LearningStreakCard = memo(function LearningStreakCard({
-  streak = 1,
-  longestStreak = 1,
-  streakFreezes = 1,
-  xp = 150,
-  onBuyFreeze,
-  isDark = false,
-}) {
-  const { cardBg, cardBorder, textPrimary, textSecondary } = useTheme();
-  const safeStreak = Math.max(1, Number(streak) || 1);
-  const safeLongest = Math.max(safeStreak, Number(longestStreak) || 1);
-
-  const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const todayIndex = (new Date().getDay() + 6) % 7; // Mon=0, Sun=6
-
-  return (
-    <View style={[styles.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
-      {/* Top Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <LinearGradient
-            colors={['#F97316', '#EA580C']}
-            style={{ width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Ionicons name="flame" size={24} color="#FFF" />
-          </LinearGradient>
-          <View>
-            <Text style={{ fontSize: 16, fontWeight: '900', color: textPrimary }}>
-              {safeStreak}-Day Streak Active 🔥
-            </Text>
-            <Text style={{ fontSize: 12, fontWeight: '600', color: textSecondary }}>
-              Best Record: <Text style={{ color: '#F97316', fontWeight: '800' }}>{safeLongest} Days</Text>
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ backgroundColor: '#FFF7ED', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10, borderWidth: 1, borderColor: '#FFEDD5' }}>
-          <Text style={{ fontSize: 11, fontWeight: '900', color: '#EA580C' }}>
-            🔥 {safeStreak}d
-          </Text>
-        </View>
-      </View>
-
-      {/* 7-Day Activity Flame Grid */}
-      <Text style={{ fontSize: 11, fontWeight: '800', color: textSecondary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 8 }}>
-        This Week's Activity Rhythm:
-      </Text>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 16 }}>
-        {daysOfWeek.map((day, idx) => {
-          const isPastOrToday = idx <= todayIndex;
-          const isToday = idx === todayIndex;
-
-          return (
-            <View
-              key={day}
-              style={{
-                alignItems: 'center',
-                gap: 4,
-                padding: 6,
-                borderRadius: 12,
-                borderWidth: isToday ? 1.5 : 1,
-                borderColor: isToday ? '#F97316' : (isDark ? '#334155' : '#F1F5F9'),
-                backgroundColor: isToday ? (isDark ? '#431407' : '#FFF7ED') : (isDark ? '#0F172A' : '#F8FAFC'),
-                flex: 1,
-                marginHorizontal: 2,
-              }}
-            >
-              <Text style={{ fontSize: 10, fontWeight: '800', color: isToday ? '#F97316' : textSecondary }}>
-                {day}
-              </Text>
-              <View
-                style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 13,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: isPastOrToday ? '#F97316' : (isDark ? '#1E293B' : '#E2E8F0'),
-                }}
-              >
-                <Ionicons
-                  name={isPastOrToday ? "flame" : "ellipse-outline"}
-                  size={isPastOrToday ? 15 : 12}
-                  color={isPastOrToday ? "#FFF" : "#94A3B8"}
-                />
-              </View>
-            </View>
-          );
-        })}
-      </View>
-
-      {/* Streak Freeze Reserve Box */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 12,
-          borderRadius: 14,
-          backgroundColor: isDark ? '#082F49' : '#ECFEFF',
-          borderWidth: 1,
-          borderColor: isDark ? '#0284C7' : '#A5F3FC',
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Text style={{ fontSize: 20 }}>❄️</Text>
-          <View>
-            <Text style={{ fontSize: 12, fontWeight: '900', color: isDark ? '#E0F2FE' : '#0E7490' }}>
-              Streak Freeze Shield
-            </Text>
-            <Text style={{ fontSize: 10, fontWeight: '700', color: isDark ? '#BAE6FD' : '#155E75' }}>
-              {streakFreezes} active • Auto-saves missed days
-            </Text>
-          </View>
-        </View>
-
-        <TouchableOpacity
-          onPress={onBuyFreeze}
-          activeOpacity={0.85}
-          style={{
-            backgroundColor: '#0284C7',
-            paddingHorizontal: 12,
-            paddingVertical: 6,
-            borderRadius: 10,
-          }}
-        >
-          <Text style={{ color: '#FFF', fontSize: 11, fontWeight: '900' }}>
-            + Buy (100 XP)
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-});
 
