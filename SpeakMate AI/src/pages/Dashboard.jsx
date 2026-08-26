@@ -59,6 +59,10 @@ export function Dashboard() {
     setStats((prev) => ({
       ...prev,
       ...liveStats,
+      streak: Math.max(1, liveStats.streak || user?.streak || 1),
+      xp: Math.max(liveStats.xp || 0, user?.xp || 0),
+      todayMins: liveStats.todayMins ?? prev.todayMins ?? 0,
+      completedMins: liveStats.todayMins ?? prev.todayMins ?? 0,
       level: isStudent ? activeGrade : activeAgeGroup,
       dailyGoalMins: parseInt(localStorage.getItem("speakmate_daily_goal") || "15", 10),
     }));
@@ -72,7 +76,16 @@ export function Dashboard() {
       .summary()
       .then((data) => {
         if (data) {
-          setStats((prev) => ({ ...prev, ...data }));
+          const liveStats = getLiveProgressStats(user);
+          setStats((prev) => ({
+            ...prev,
+            ...data,
+            ...liveStats,
+            streak: Math.max(1, liveStats.streak || data.streak || data.progress?.streak || user?.streak || 1),
+            xp: Math.max(liveStats.xp || 0, data.xp || data.progress?.xp || user?.xp || 0),
+            todayMins: liveStats.todayMins ?? prev.todayMins ?? 0,
+            completedMins: liveStats.todayMins ?? prev.todayMins ?? 0,
+          }));
         }
       })
       .catch(() => {});

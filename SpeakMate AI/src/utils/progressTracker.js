@@ -78,6 +78,7 @@ export const getLiveProgressStats = (userContext = null) => {
   if (stored.streakFreezes === undefined) stored.streakFreezes = 1;
   if (!stored.claimedMilestones) stored.claimedMilestones = [];
   if (!stored.streakHistory) stored.streakHistory = {};
+  if (stored.streak === undefined || stored.streak === null) stored.streak = 1;
   if (!stored.longestStreak) stored.longestStreak = Math.max(1, stored.streak || 1);
 
   // Accurate Streak Rollover & Missed Day Management
