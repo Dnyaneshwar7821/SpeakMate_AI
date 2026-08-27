@@ -215,22 +215,23 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // Precision Portrait Framing: Zoom 1.62x (Eyes at ring center, 25px headroom below subtitle)
+        // Precision Portrait Framing: Zoom 1.30x (Significantly reduced, full head & shoulders visible)
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
-        const portraitScale = baseScale * 1.62;
+        const portraitScale = baseScale * 1.30;
 
         model.scale.set(portraitScale);
         
-        // Exact Eye-to-Ring Center Alignment (0.52, 0.23 sets anchor directly at eye-level)
+        // Lifted higher within circular rings (Zero header overlap, complete head headroom)
         if (currentModelName === 'chitose') {
-          model.anchor.set(0.50, 0.23);
+          model.anchor.set(0.50, 0.16);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.82;
         } else {
-          // Haru's eyes anchored dead-center to the inner glowing ring
-          model.anchor.set(0.52, 0.23);
+          // Haru positioned slightly higher within the halo rings
+          model.anchor.set(0.52, 0.16);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.82;
         }
 
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
-        model.y = app.view.height / (2 * (window.devicePixelRatio || 2));
 
         // Hook motionManager update to guarantee lipSync is never overridden by idle physics
         if (model.internalModel && model.internalModel.motionManager) {
