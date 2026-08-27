@@ -419,20 +419,6 @@ export default function AIAvatar({
               resizeMode="contain"
             />
           )}
-
-          {/* Layer 7: Multi-Stop Smooth Torso & Corner Fade Mask (Eliminates All Cutoffs) */}
-          <LinearGradient
-            pointerEvents="none"
-            colors={[
-              'transparent',
-              'rgba(11, 15, 25, 0.0)',
-              'rgba(11, 15, 25, 0.35)',
-              'rgba(11, 15, 25, 0.85)',
-              '#0B0F19'
-            ]}
-            locations={[0, 0.40, 0.65, 0.88, 1.0]}
-            style={styles.bottomTorsoFade}
-          />
         </Animated.View>
       </View>
 
@@ -579,17 +565,6 @@ const styles = StyleSheet.create({
     width:           AVATAR_WIDTH,
     height:          AVATAR_HEIGHT,
     backgroundColor: 'transparent',
-  },
-
-  // 7. Smooth Torso & Corner Fade (Centered over Chest, Unobstructed Rings)
-  bottomTorsoFade: {
-    position:  'absolute',
-    width:     190,
-    alignSelf: 'center',
-    bottom:    0,
-    height:    44,
-    borderRadius: 22,
-    zIndex:    12,
   },
 
   // 8. Glassmorphic Status Pill
