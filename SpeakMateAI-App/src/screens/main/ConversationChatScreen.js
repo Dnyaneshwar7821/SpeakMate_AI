@@ -1210,7 +1210,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    marginTop: -4,
+    marginTop: 4,
     marginBottom: 2,
   },
   avatar3d: {
