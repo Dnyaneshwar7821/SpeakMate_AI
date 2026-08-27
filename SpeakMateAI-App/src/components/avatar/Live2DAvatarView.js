@@ -215,20 +215,20 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // Full-Bust Framing: Zoom 1.80x for full ponytail, shoulder span, and headroom
+        // Full-Bust Framing: Zoom 1.50x with 20-30px headroom below subtitle
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
-        const portraitScale = baseScale * 1.80;
+        const portraitScale = baseScale * 1.50;
 
         model.scale.set(portraitScale);
         
-        // Lifted upward positioning
+        // Lifted upward positioning (~30px higher)
         if (currentModelName === 'chitose') {
-          model.anchor.set(0.5, 0.08);
-          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.74;
+          model.anchor.set(0.5, 0.0);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.40;
         } else {
           // Haru lifted upward
-          model.anchor.set(0.5, 0.08);
-          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.72;
+          model.anchor.set(0.5, 0.0);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.38;
         }
 
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
@@ -360,7 +360,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
         onError={(err) => onError && onError(err)}
         javaScriptEnabled={true}
         domStorageEnabled={true}
-        androidLayerType="software"
+        androidLayerType="hardware"
       />
       {!isReady && (
         <View style={styles.loadingOverlay}>

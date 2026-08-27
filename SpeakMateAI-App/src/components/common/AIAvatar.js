@@ -12,50 +12,50 @@ const BAR_COUNT = 5;
 
 export const STATE_CONFIG = {
   idle: {
-    glowCenter: 'rgba(139, 92, 246, 0.14)',
+    glowCenter: 'rgba(139, 92, 246, 0.30)',
     glowOuter:  'rgba(139, 92, 246, 0.0)',
-    innerRing:  'rgba(167, 139, 250, 0.75)',
-    outerRing:  'rgba(139, 92, 246, 0.28)',
+    innerRing:  'rgba(192, 132, 252, 0.95)',
+    outerRing:  'rgba(139, 92, 246, 0.50)',
     ringGlow:   '#8B5CF6',
     dot:        '#A855F7',
     label:      'Ready',
     pulseSpeed: 2800,
   },
   paused: {
-    glowCenter: 'rgba(245, 158, 11, 0.14)',
+    glowCenter: 'rgba(245, 158, 11, 0.28)',
     glowOuter:  'rgba(245, 158, 11, 0.0)',
-    innerRing:  'rgba(252, 211, 77, 0.75)',
-    outerRing:  'rgba(245, 158, 11, 0.25)',
+    innerRing:  'rgba(252, 211, 77, 0.95)',
+    outerRing:  'rgba(245, 158, 11, 0.45)',
     ringGlow:   '#F59E0B',
     dot:        '#FBBF24',
     label:      'Paused',
     pulseSpeed: 3000,
   },
   listening: {
-    glowCenter: 'rgba(6, 182, 212, 0.25)',
+    glowCenter: 'rgba(6, 182, 212, 0.38)',
     glowOuter:  'rgba(6, 182, 212, 0.0)',
-    innerRing:  'rgba(103, 232, 249, 0.90)',
-    outerRing:  'rgba(6, 182, 212, 0.45)',
+    innerRing:  'rgba(103, 232, 249, 1.0)',
+    outerRing:  'rgba(6, 182, 212, 0.65)',
     ringGlow:   '#06B6D4',
     dot:        '#22D3EE',
     label:      'Listening...',
     pulseSpeed: 1000,
   },
   thinking: {
-    glowCenter: 'rgba(168, 85, 247, 0.22)',
+    glowCenter: 'rgba(168, 85, 247, 0.35)',
     glowOuter:  'rgba(168, 85, 247, 0.0)',
-    innerRing:  'rgba(192, 132, 252, 0.85)',
-    outerRing:  'rgba(168, 85, 247, 0.38)',
+    innerRing:  'rgba(192, 132, 252, 0.95)',
+    outerRing:  'rgba(168, 85, 247, 0.55)',
     ringGlow:   '#9333EA',
     dot:        '#C084FC',
     label:      'Thinking...',
     pulseSpeed: 1400,
   },
   speaking: {
-    glowCenter: 'rgba(192, 132, 252, 0.28)',
+    glowCenter: 'rgba(192, 132, 252, 0.42)',
     glowOuter:  'rgba(192, 132, 252, 0.0)',
-    innerRing:  'rgba(244, 114, 182, 0.95)',
-    outerRing:  'rgba(192, 132, 252, 0.50)',
+    innerRing:  'rgba(244, 114, 182, 1.0)',
+    outerRing:  'rgba(192, 132, 252, 0.70)',
     ringGlow:   '#F472B6',
     dot:        '#F472B6',
     label:      'Speaking',
@@ -326,7 +326,7 @@ export default function AIAvatar({
       {/* ── STAGE WRAPPER (Centered & Responsive) ── */}
       <View style={styles.stageWrapper}>
         
-        {/* ── Layer 1: Diffused Soft Ambient Radial Glow (No Solid Color Disk) ── */}
+        {/* ── Layer 1: Diffused Soft Ambient Radial Glow (Center Spotlight Bloom) ── */}
         <Animated.View
           style={[
             styles.ambientGlowContainer,
@@ -337,24 +337,24 @@ export default function AIAvatar({
           ]}
         >
           <LinearGradient
-            colors={[config.glowCenter, config.glowOuter]}
-            start={{ x: 0.5, y: 0.5 }}
-            end={{ x: 1, y: 1 }}
+            colors={['transparent', config.glowCenter, 'transparent']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
             style={styles.diffuseGlowGradient}
           />
         </Animated.View>
 
-        {/* ── Layer 2: Ethereal Sound Wave Energy Ribbons (Left & Right Wings) ── */}
-        <View pointerEvents="none" style={styles.ribbonsContainer}>
+        {/* ── Layer 2: Ethereal Sound Wave Energy Aura ── */}
+        <Animated.View pointerEvents="none" style={[styles.ribbonsContainer, { opacity: glowOpacity }]}>
           <LinearGradient
-            colors={['transparent', 'rgba(139, 92, 246, 0.12)', 'rgba(99, 102, 241, 0.22)', 'transparent']}
-            start={{ x: 0, y: 0.5 }}
-            end={{ x: 1, y: 0.5 }}
+            colors={['transparent', 'rgba(168, 85, 247, 0.22)', 'rgba(236, 72, 153, 0.18)', 'transparent']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
             style={styles.energyRibbon}
           />
-        </View>
+        </Animated.View>
 
-        {/* ── Layer 3: Concentric Outer Luminous Ring (230px Diameter) ── */}
+        {/* ── Layer 3: Concentric Outer Luminous Ring (232px Diameter) ── */}
         <Animated.View
           style={[
             styles.outerHaloRing,
@@ -425,12 +425,12 @@ export default function AIAvatar({
             pointerEvents="none"
             colors={[
               'transparent',
-              'rgba(15, 23, 42, 0.20)',
-              'rgba(15, 23, 42, 0.70)',
-              '#0F172A',
-              '#0F172A'
+              'rgba(11, 15, 25, 0.0)',
+              'rgba(11, 15, 25, 0.35)',
+              'rgba(11, 15, 25, 0.85)',
+              '#0B0F19'
             ]}
-            locations={[0, 0.35, 0.70, 0.92, 1.0]}
+            locations={[0, 0.40, 0.65, 0.88, 1.0]}
             style={styles.bottomTorsoFade}
           />
         </Animated.View>
@@ -477,8 +477,8 @@ export default function AIAvatar({
 // ── Target Stage Dimensions (Dual Halo: 172px Inner & 232px Outer) ───────────
 const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
 const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
-const AVATAR_WIDTH    = 320; // Ample width for full ponytail & both shoulders
-const AVATAR_HEIGHT   = 280; // Generous height with natural headroom
+const AVATAR_WIDTH    = 360; // Wide container allowing full hand and arm gestures
+const AVATAR_HEIGHT   = 200; // Generous height with natural headroom
 
 const styles = StyleSheet.create({
   container: {
@@ -497,35 +497,34 @@ const styles = StyleSheet.create({
     overflow:       'visible',
   },
 
-  // 1. Diffused Soft Ambient Radial Glow (No Solid Disk)
+  // 1. Diffused Soft Ambient Radial Glow (Center Spotlight Bloom)
   ambientGlowContainer: {
     position:        'absolute',
-    width:           OUTER_RING_SIZE + 30,
-    height:          OUTER_RING_SIZE + 30,
-    borderRadius:    (OUTER_RING_SIZE + 30) / 2,
+    width:           OUTER_RING_SIZE + 40,
+    height:          OUTER_RING_SIZE + 40,
+    borderRadius:    (OUTER_RING_SIZE + 40) / 2,
     alignItems:      'center',
     justifyContent:  'center',
     overflow:        'hidden',
   },
   diffuseGlowGradient: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: (OUTER_RING_SIZE + 30) / 2,
+    borderRadius: (OUTER_RING_SIZE + 40) / 2,
   },
 
-  // 2. Ethereal Sound Wave Energy Ribbons
+  // 2. Soft Ambient Cosmic Aura (No Rigid Stripes)
   ribbonsContainer: {
     position: 'absolute',
-    left:     -20,
-    right:    -20,
-    top:      90,
-    height:   40,
+    width:    260,
+    height:   80,
+    top:      60,
     alignItems: 'center',
     justifyContent: 'center',
   },
   energyRibbon: {
     width:  '100%',
-    height: 18,
-    borderRadius: 9,
+    height: '100%',
+    borderRadius: 40,
   },
 
   // 3. Concentric Outer Luminous Ring (232px)
@@ -534,11 +533,11 @@ const styles = StyleSheet.create({
     width:         OUTER_RING_SIZE,
     height:        OUTER_RING_SIZE,
     borderRadius:  OUTER_RING_SIZE / 2,
-    borderWidth:   1.2,
-    shadowOpacity: 0.45,
-    shadowRadius:  10,
+    borderWidth:   1.5,
+    shadowOpacity: 0.75,
+    shadowRadius:  15,
     shadowOffset:  { width: 0, height: 0 },
-    elevation:     3,
+    elevation:     4,
   },
 
   // 4. Concentric Inner Neon Ring (172px, Centered around Head)
@@ -547,11 +546,11 @@ const styles = StyleSheet.create({
     width:         INNER_RING_SIZE,
     height:        INNER_RING_SIZE,
     borderRadius:  INNER_RING_SIZE / 2,
-    borderWidth:   1.8,
-    shadowOpacity: 0.85,
-    shadowRadius:  18,
+    borderWidth:   2.0,
+    shadowOpacity: 0.95,
+    shadowRadius:  22,
     shadowOffset:  { width: 0, height: 0 },
-    elevation:     6,
+    elevation:     8,
   },
 
   // 5. Stars / Cosmic Dust
@@ -565,14 +564,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
 
-  // 6. Avatar Container & Canvas
+  // 6. Avatar Container & Canvas (Unclipped Gestures)
   avatarContainer: {
     width:           AVATAR_WIDTH,
     height:          AVATAR_HEIGHT,
     alignItems:      'center',
     justifyContent:  'center',
     position:        'relative',
-    overflow:        'hidden',
+    overflow:        'visible',
     backgroundColor: 'transparent',
     zIndex:          10,
   },
@@ -582,14 +581,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // 7. Smooth Torso & Corner Fade (76px Tall Multi-Stop Mask)
+  // 7. Smooth Torso & Corner Fade (Centered over Chest, Unobstructed Rings)
   bottomTorsoFade: {
-    position: 'absolute',
-    left:     0,
-    right:    0,
-    bottom:   0,
-    height:   110,
-    zIndex:   12,
+    position:  'absolute',
+    width:     190,
+    alignSelf: 'center',
+    bottom:    0,
+    height:    44,
+    borderRadius: 22,
+    zIndex:    12,
   },
 
   // 8. Glassmorphic Status Pill
