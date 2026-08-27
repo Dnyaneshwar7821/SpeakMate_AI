@@ -70,8 +70,9 @@ const LIVE2D_HTML = `
     async function init() {
       try {
         const container = document.getElementById('canvas-container');
-        const width = window.innerWidth || 300;
-        const height = window.innerHeight || 300;
+        // Force true 100vw/100vh viewport size to prevent 300x300 square squashing
+        const width = container.clientWidth || window.innerWidth || 360;
+        const height = container.clientHeight || window.innerHeight || 218;
 
         app = new PIXI.Application({
           width: width,
@@ -215,8 +216,13 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
+        // Get true physical bounds from the DOM to prevent square fallback stretching
+        const container = document.getElementById('canvas-container');
+        const viewW = container.clientWidth || window.innerWidth;
+        const viewH = container.clientHeight || window.innerHeight;
+
         // Precision Upper-Body Framing: Zoom 1.25x (Face to just above folded hands)
-        const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
+        const baseScale = Math.min(viewW / model.width, viewH / model.height);
         const portraitScale = baseScale * 1.25;
 
         model.scale.set(portraitScale);
@@ -229,8 +235,8 @@ const LIVE2D_HTML = `
           model.anchor.set(0.52, 0.24);
         }
 
-        model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
-        model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) + 6;
+        model.x = viewW / 2;
+        model.y = (viewH / 2) + 12; // Shifted down +12px to guarantee head doesn't clip the top boundary
 
         // Hook motionManager update to guarantee lipSync is never overridden by idle physics
         if (model.internalModel && model.internalModel.motionManager) {

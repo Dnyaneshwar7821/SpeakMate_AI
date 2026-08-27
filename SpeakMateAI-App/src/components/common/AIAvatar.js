@@ -584,6 +584,7 @@ const styles = StyleSheet.create({
     alignSelf:    'center',
     borderRadius: 18,
     zIndex:       12,
+    elevation:    10, // Forces gradient to render above Android WebView
   },
 
   // 8. Glassmorphic Status Pill (20-30px Spacing)
