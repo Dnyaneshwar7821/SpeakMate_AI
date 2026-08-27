@@ -215,20 +215,20 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // Face-to-collar Framing: Zoom 1.70x (Face down to just above chest)
+        // Face to just above chest framing: Zoom 1.58x
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
-        const portraitScale = baseScale * 1.70;
+        const portraitScale = baseScale * 1.58;
 
         model.scale.set(portraitScale);
         
-        // Prominent Face Positioning (Head to just above chest)
+        // Lifted upward to use top headroom (Head near top, shoulders visible, no bottom cutoff)
         if (currentModelName === 'chitose') {
           model.anchor.set(0.5, 0.0);
-          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.30;
+          model.y = 4;
         } else {
-          // Haru centered: Face, scarf, collar framed cleanly
+          // Haru lifted right to the top
           model.anchor.set(0.5, 0.0);
-          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.28;
+          model.y = 0;
         }
 
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
