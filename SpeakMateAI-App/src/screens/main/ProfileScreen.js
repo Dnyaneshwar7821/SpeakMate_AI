@@ -492,8 +492,19 @@ export default function ProfileScreen({ navigation }) {
               {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
             </View>
 
-            <View style={styles.levelSegmentRow}>
-              {['1st Std', '5th Std', '8th Std', '10th Std'].map((grade) => {
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
+              {[
+                '1st Std',
+                '2nd Std',
+                '3rd Std',
+                '4th Std',
+                '5th Std',
+                '6th Std',
+                '7th Std',
+                '8th Std',
+                '9th Std',
+                '10th Std',
+              ].map((grade) => {
                 const active = currentSchoolGrade.toLowerCase() === grade.toLowerCase();
                 return (
                   <TouchableOpacity
@@ -502,6 +513,7 @@ export default function ProfileScreen({ navigation }) {
                       styles.levelSegmentBtn,
                       active && styles.levelSegmentBtnActive,
                       isDark && !active && { backgroundColor: '#334155' },
+                      { paddingHorizontal: 14, minWidth: 72 }
                     ]}
                     onPress={() => handleSelectSchoolGrade(grade)}
                     disabled={updatingLevel}
@@ -518,7 +530,7 @@ export default function ProfileScreen({ navigation }) {
                   </TouchableOpacity>
                 );
               })}
-            </View>
+            </ScrollView>
           </Card>
         ) : (
           /* Individual User Mode: English Proficiency Level + Target Age Group Cards */
