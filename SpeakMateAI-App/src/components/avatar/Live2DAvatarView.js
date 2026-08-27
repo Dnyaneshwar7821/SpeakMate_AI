@@ -215,20 +215,20 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // Natural Bust Framing: Zoom 1.38x (Ends naturally inside canvas with zero bottom cutoff)
+        // Prominent Full-Circle Framing: Zoom 1.75x (Uniform scale, fills circle without stretching)
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
-        const portraitScale = baseScale * 1.38;
+        const portraitScale = baseScale * 1.75;
 
         model.scale.set(portraitScale);
         
-        // Lifted upward to use top headroom (Head near top, shoulders & scarf fully visible)
+        // Exact Dead-Center Alignment (Compensating for side-ponytail to center face in circle)
         if (currentModelName === 'chitose') {
-          model.anchor.set(0.5, 0.0);
-          model.y = 0;
+          model.anchor.set(0.50, 0.10);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.36;
         } else {
-          // Haru lifted right to the top
-          model.anchor.set(0.5, 0.0);
-          model.y = 0;
+          // Haru's face centered dead-center in the concentric rings
+          model.anchor.set(0.53, 0.10);
+          model.y = (app.view.height / (2 * (window.devicePixelRatio || 2))) * 0.36;
         }
 
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
