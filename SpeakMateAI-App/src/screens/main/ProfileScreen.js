@@ -42,7 +42,7 @@ export default function ProfileScreen({ navigation }) {
   const { isDark } = useTheme();
   const { showToast } = useToast();
 
-  const accountType = user?.accountType || (user?.role === 'STUDENT' ? 'STUDENT' : 'INDIVIDUAL_USER');
+  const [accountType, setAccountType] = useState(() => user?.accountType || (user?.role === 'STUDENT' ? 'STUDENT' : 'INDIVIDUAL_USER'));
   const isStudent = Boolean(
     accountType === 'STUDENT' ||
     user?.role === 'STUDENT' ||
@@ -148,8 +148,6 @@ export default function ProfileScreen({ navigation }) {
       ]
     );
   };
-
-  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
 
   const load = async () => {
     try {
