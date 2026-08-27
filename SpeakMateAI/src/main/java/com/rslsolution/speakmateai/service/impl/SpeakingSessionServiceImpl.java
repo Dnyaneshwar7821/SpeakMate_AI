@@ -269,6 +269,15 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	public void deleteSession(Long id) {
 		SpeakingSession session = speakingSessionRepository.findById(id)
 				.orElseThrow(() -> new SpeakingSessionNotFoundException("Speaking session not found"));
+		try {
+			feedbackRepository.findBySession(session).ifPresent(feedbackRepository::delete);
+		} catch (Exception ignored) {}
+		try {
+			List<ConversationMessage> msgs = messageRepository.findBySessionOrderByTimestampAsc(session);
+			if (msgs != null && !msgs.isEmpty()) {
+				messageRepository.deleteAll(msgs);
+			}
+		} catch (Exception ignored) {}
 		speakingSessionRepository.delete(session);
 	}
 

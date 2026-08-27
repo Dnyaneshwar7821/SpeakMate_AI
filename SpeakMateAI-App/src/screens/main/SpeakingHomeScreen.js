@@ -20,6 +20,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
+import { useToast } from '../../context/ToastContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { speakingService, onboardingService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
@@ -275,6 +276,7 @@ export const getScenarioInitialGreeting = (title = '') => {
 
 export default function SpeakingHomeScreen({ navigation }) {
   const { isDark, theme } = useTheme();
+  const { showToast } = useToast();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -322,7 +324,7 @@ export default function SpeakingHomeScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
+      loadData(true);
     }, [])
   );
 
@@ -390,8 +392,10 @@ export default function SpeakingHomeScreen({ navigation }) {
             try {
               await speakingService.deleteHistory(id);
               setHistory((prev) => prev.filter((h) => h.id !== id));
+              showToast('History Deleted', 'success', 'Speaking session removed.');
             } catch (err) {
-              Alert.alert('Error', 'Could not delete speaking session.');
+              console.error('Delete speaking session error:', err);
+              Alert.alert('Error', 'Could not delete speaking session. Please try again.');
             }
           },
         },

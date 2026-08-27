@@ -111,6 +111,8 @@ export const speakingService = {
   history: () => api.get('/api/speaking/history').then((res) => res.data),
   detail: (id) => api.get(`/api/speaking/session/${id}`).then((res) => res.data),
   remove: (id) => api.delete(`/api/speaking/${id}`).then((res) => res.data),
+  deleteHistory: (id) => api.delete(`/api/speaking/${id}`).then((res) => res.data),
+  deleteSession: (id) => api.delete(`/api/speaking/${id}`).then((res) => res.data),
   getHints: (id) => api.get(`/api/speaking/hint/${id}`).then((res) => res.data),
 };
 
