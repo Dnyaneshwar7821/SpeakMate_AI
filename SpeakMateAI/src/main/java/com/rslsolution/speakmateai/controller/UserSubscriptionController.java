@@ -42,4 +42,10 @@ public class UserSubscriptionController {
 		SubscriptionStatusResponse response = userSubscriptionService.getMySubscription();
 		return ResponseEntity.ok(response);
 	}
+
+	@PostMapping("/cancel")
+	public ResponseEntity<SubscriptionStatusResponse> cancelSubscription() {
+		SubscriptionStatusResponse response = userSubscriptionService.cancelSubscription();
+		return ResponseEntity.ok(response);
+	}
 }

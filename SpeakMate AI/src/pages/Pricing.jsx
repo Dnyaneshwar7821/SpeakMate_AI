@@ -43,6 +43,23 @@ export function Pricing() {
 
   const isPro = currentSub?.isPro;
 
+  const handleCancelSubscription = async () => {
+    if (!window.confirm("Are you sure you want to cancel your Pro subscription? You will return to the Free Starter plan.")) {
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await subscriptionService.cancelSubscription();
+      setCurrentSub(res || { isPro: false, planType: "FREE", status: "ACTIVE" });
+      toast.success("Your Pro subscription has been cancelled. You are now on the Free Starter plan.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Failed to cancel subscription.");
+    } finally {
+      setLoading(false);
+      fetchSubscription();
+    }
+  };
+
   const handleUpgrade = async (planType) => {
     setErrorMsg("");
     setLoading(true);
@@ -329,8 +346,18 @@ export function Pricing() {
 
             <div className="pt-8">
               {isPro ? (
-                <div className="text-center p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-sm">
-                  🎉 You are an Active Pro Member!
+                <div className="space-y-3">
+                  <div className="text-center p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-sm">
+                    🎉 You are an Active Pro Member ({currentSub?.planType || "PRO"})!
+                  </div>
+                  <button
+                    type="button"
+                    disabled={loading}
+                    onClick={handleCancelSubscription}
+                    className="w-full py-2.5 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold text-xs transition-all flex items-center justify-center gap-2"
+                  >
+                    Cancel Pro Subscription
+                  </button>
                 </div>
               ) : (
                 <button

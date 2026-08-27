@@ -12,4 +12,6 @@ public interface UserSubscriptionService {
 	SubscriptionStatusResponse verifyPayment(VerifyPaymentRequest request);
 
 	SubscriptionStatusResponse getMySubscription();
+
+	SubscriptionStatusResponse cancelSubscription();
 }

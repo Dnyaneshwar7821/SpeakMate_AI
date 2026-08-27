@@ -157,4 +157,5 @@ export const subscriptionService = {
   createOrder: (planType) => api.post("/api/subscription/create-order", { planType }).then((res) => res.data),
   verifyPayment: (payload) => api.post("/api/subscription/verify-payment", payload).then((res) => res.data),
   getMySubscription: () => optionalGet("/api/subscription/my-subscription", { isPro: false, planType: "FREE", status: "ACTIVE" }),
+  cancelSubscription: () => api.post("/api/subscription/cancel").then((res) => res.data),
 };

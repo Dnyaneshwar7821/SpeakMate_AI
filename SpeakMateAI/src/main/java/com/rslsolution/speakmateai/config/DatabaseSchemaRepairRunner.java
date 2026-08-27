@@ -159,7 +159,9 @@ public class DatabaseSchemaRepairRunner implements CommandLineRunner {
                 "ALTER TABLE IF EXISTS user_subscriptions ALTER COLUMN subscription_status DROP NOT NULL",
                 "ALTER TABLE IF EXISTS user_subscriptions ALTER COLUMN payment_method DROP NOT NULL",
                 "ALTER TABLE IF EXISTS user_subscriptions ALTER COLUMN expiry_date DROP NOT NULL",
-                "ALTER TABLE IF EXISTS user_subscriptions ALTER COLUMN transaction_id DROP NOT NULL"
+                "ALTER TABLE IF EXISTS user_subscriptions ALTER COLUMN transaction_id DROP NOT NULL",
+                "ALTER TABLE IF EXISTS user_subscriptions ALTER COLUMN start_date DROP NOT NULL",
+                "ALTER TABLE IF EXISTS user_subscriptions ALTER COLUMN end_date DROP NOT NULL"
             };
 
             for (String sql : subscriptionColumnMigrations) {

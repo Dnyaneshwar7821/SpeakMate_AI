@@ -204,6 +204,36 @@ export default function SubscriptionScreen({ navigation }) {
     }
   };
 
+  const handleCancelSubscription = () => {
+    Alert.alert(
+      "Cancel Subscription",
+      "Are you sure you want to cancel your Pro subscription? You will return to the Free Starter plan.",
+      [
+        { text: "Keep Subscription", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: async () => {
+            setLoading(true);
+            try {
+              const res = await subscriptionService.cancelSubscription();
+              if (updateUser) {
+                updateUser({ ...user, isPro: false, subscriptionPlan: 'FREE' });
+              }
+              setCurrentSub(res || { isPro: false, planType: 'FREE', status: 'ACTIVE' });
+              Alert.alert("Subscription Cancelled", "Your Pro subscription has been cancelled. You are now on the Free Starter plan.");
+            } catch (err) {
+              Alert.alert("Error", err.response?.data?.message || err.message || "Failed to cancel subscription.");
+            } finally {
+              setLoading(false);
+              loadSubscription();
+            }
+          }
+        }
+      ]
+    );
+  };
+
   const handleSandboxSimulateSuccess = () => {
     setShowSandboxModal(false);
     if (updateUser) {
@@ -390,6 +420,18 @@ export default function SubscriptionScreen({ navigation }) {
               )}
             </LinearGradient>
           </TouchableOpacity>
+
+          {/* Cancel Subscription Option for Active Pro Users */}
+          {isPro && (
+            <TouchableOpacity
+              onPress={handleCancelSubscription}
+              disabled={loading}
+              style={styles.cancelSubscriptionBtn}
+            >
+              <Ionicons name="close-circle-outline" size={16} color="#EF4444" />
+              <Text style={styles.cancelSubscriptionBtnText}>Cancel Pro Subscription</Text>
+            </TouchableOpacity>
+          )}
         </LinearGradient>
 
         {/* Features Checklist */}
@@ -987,5 +1029,23 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '900',
     fontSize: 15,
+  },
+  cancelSubscriptionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+  },
+  cancelSubscriptionBtnText: {
+    color: '#EF4444',
+    fontWeight: '700',
+    fontSize: 13,
   },
 });

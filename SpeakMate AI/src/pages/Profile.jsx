@@ -208,6 +208,22 @@ export function Profile() {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    if (!window.confirm("Are you sure you want to cancel your Pro subscription? You will return to the Free Starter plan.")) {
+      return;
+    }
+    try {
+      const res = await subscriptionService.cancelSubscription();
+      setSubInfo(res || { isPro: false, planType: "FREE", status: "ACTIVE" });
+      if (updateUser) {
+        updateUser({ ...user, isPro: false, subscriptionPlan: "FREE" });
+      }
+      toast.success("Your Pro subscription has been cancelled. You are now on the Free Starter plan.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || err.message || "Failed to cancel subscription.");
+    }
+  };
+
   const handleOpenDeleteModal = () => {
     setDeleteEmail(user?.email || form.email || "");
     setDeleteOtp("");
@@ -607,12 +623,21 @@ export function Profile() {
                   </div>
                 </div>
 
-                <Link
-                  to={ROUTES.PRICING}
-                  className="py-2.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold text-center shadow-md transition-all active:scale-95"
-                >
-                  Change Plan ➔
-                </Link>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelSubscription}
+                    className="py-2.5 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs font-bold text-center shadow-sm transition-all"
+                  >
+                    Cancel Plan
+                  </button>
+                  <Link
+                    to={ROUTES.PRICING}
+                    className="py-2.5 px-5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold text-center shadow-md transition-all active:scale-95"
+                  >
+                    Change Plan ➔
+                  </Link>
+                </div>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">

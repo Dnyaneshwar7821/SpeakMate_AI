@@ -114,6 +114,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 		}
 
 		// Save pending subscription
+		LocalDateTime now = LocalDateTime.now();
 		UserSubscription subscription = UserSubscription.builder()
 				.user(user)
 				.planType(planType)
@@ -121,6 +122,8 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 				.amount(amount)
 				.currency("INR")
 				.razorpayOrderId(orderId)
+				.startDate(now)
+				.endDate(planType.contains("YEAR") ? now.plusYears(1) : now.plusMonths(1))
 				.build();
 
 		userSubscriptionRepository.save(subscription);
@@ -269,6 +272,38 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 				.dailyGrammarLimit(5)
 				.dailyGrammarUsed(0)
 				.message("You are currently on the Free Starter plan.")
+				.build();
+	}
+
+	@Override
+	public SubscriptionStatusResponse cancelSubscription() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		User user = userRepository.findByEmail(authentication.getName())
+				.orElseThrow(() -> new UserNotFoundException("User not found"));
+
+		try {
+			java.util.List<UserSubscription> activeSubs = userSubscriptionRepository.findByUserOrderByCreatedAtDesc(user);
+			for (UserSubscription sub : activeSubs) {
+				if ("ACTIVE".equalsIgnoreCase(sub.getStatus()) || "PENDING".equalsIgnoreCase(sub.getStatus())) {
+					sub.setStatus("CANCELLED");
+					userSubscriptionRepository.save(sub);
+				}
+			}
+		} catch (Exception ex) {
+			log.warn("[SubscriptionService] Could not cancel subscription records: {}", ex.getMessage());
+		}
+
+		return SubscriptionStatusResponse.builder()
+				.isPro(false)
+				.planType("FREE")
+				.status("ACTIVE")
+				.startDate(user.getCreatedAt())
+				.endDate(null)
+				.dailyMinutesLimit(10)
+				.dailyMinutesUsed(0)
+				.dailyGrammarLimit(5)
+				.dailyGrammarUsed(0)
+				.message("Your subscription has been cancelled. You are now on the Free Starter plan.")
 				.build();
 	}
 

@@ -52,6 +52,11 @@ export const subscriptionService = {
     const response = await api.post("/api/subscription/verify-payment", payload);
     return response.data;
   },
+
+  cancelSubscription: async () => {
+    const response = await api.post("/api/subscription/cancel");
+    return response.data;
+  },
 };
 
 export default subscriptionService;
