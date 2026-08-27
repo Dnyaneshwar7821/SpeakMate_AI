@@ -254,7 +254,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 				}
 			}
 		} catch (Exception ex) {
-			logger.warn("[SubscriptionService] Could not fetch subscription from database, falling back to default plan: {}", ex.getMessage());
+			log.warn("[SubscriptionService] Could not fetch subscription from database, falling back to default plan: {}", ex.getMessage());
 		}
 
 		// Default Free Tier

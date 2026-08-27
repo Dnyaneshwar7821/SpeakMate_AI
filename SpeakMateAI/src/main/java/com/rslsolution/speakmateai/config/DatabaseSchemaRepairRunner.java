@@ -137,6 +137,8 @@ public class DatabaseSchemaRepairRunner implements CommandLineRunner {
                 } catch (Exception ex) {
                     logger.debug("[Schema Repair] Table check/update notice for {}: {}", table, ex.getMessage());
                 }
+            }
+
             // 4. Ensure user_subscriptions table has all required columns and valid defaults
             String[] subscriptionColumnMigrations = {
                 "CREATE TABLE IF NOT EXISTS user_subscriptions (id BIGSERIAL PRIMARY KEY, user_id BIGINT NOT NULL, plan_type VARCHAR(255) DEFAULT 'FREE', status VARCHAR(255) DEFAULT 'ACTIVE', amount NUMERIC(38,2), currency VARCHAR(255) DEFAULT 'INR', razorpay_order_id VARCHAR(255), razorpay_payment_id VARCHAR(255), razorpay_signature VARCHAR(255), start_date TIMESTAMP, end_date TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
