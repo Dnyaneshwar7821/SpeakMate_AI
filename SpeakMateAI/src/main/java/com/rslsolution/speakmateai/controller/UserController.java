@@ -43,6 +43,11 @@ public class UserController {
 		return "Registration OTP has been sent to your email address.";
 	}
 
+	@PostMapping("/verify-registration-otp")
+	public VerifyOtpResponse verifyRegistrationOtp(@Valid @RequestBody VerifyOtpRequest request) {
+		return userService.verifyRegistrationOtp(request);
+	}
+
 	@PostMapping("/send-delete-account-otp")
 	public String sendDeleteAccountOtp(@Valid @RequestBody SendDeleteAccountOtpRequest request) {
 		userService.sendDeleteAccountOtp(request);

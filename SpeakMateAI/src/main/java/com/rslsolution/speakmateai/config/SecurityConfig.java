@@ -43,6 +43,7 @@ public class SecurityConfig {
 						.requestMatchers(
 								"/api/users/register", "/api/users/login",
 								"/api/users/google-login", "/api/users/send-registration-otp",
+								"/api/users/verify-registration-otp",
 								"/api/users/send-delete-account-otp", "/api/users/delete-account",
 								"/api/users/forgot-password", "/api/users/verify-otp",
 								"/api/users/reset-password", "/api/users/reset-redirect",

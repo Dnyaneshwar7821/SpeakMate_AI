@@ -45,6 +45,7 @@ export default function RegisterScreen({ navigation }) {
   // OTP state: 'IDLE' | 'SENDING' | 'SENT' | 'VERIFIED'
   const [otpState, setOtpState] = useState('IDLE');
   const [otpError, setOtpError] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -80,22 +81,6 @@ export default function RegisterScreen({ navigation }) {
     return null;
   };
 
-  const validateFullForm = () => {
-    if (!firstName.trim()) return 'First name is required.';
-    if (!lastName.trim()) return 'Last name is required.';
-    if (!email.trim()) return 'Email address is required.';
-    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
-    if (otpState !== 'SENT' && otpState !== 'VERIFIED') return 'Please click "Verify" next to email to get your OTP code.';
-    if (!otp.trim()) return 'Please enter the 6-digit OTP code sent to your email.';
-    if (otp.trim().length < 6) return 'OTP code must be 6 digits.';
-    if (!password) return 'Password is required.';
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
-      return 'Password needs uppercase, lowercase, number, and special character.';
-    }
-    if (password !== confirmPassword) return 'Passwords do not match.';
-    return null;
-  };
-
   const handleSendOtp = async () => {
     Keyboard.dismiss();
     const emailErr = validateEmailOnly();
@@ -118,18 +103,96 @@ export default function RegisterScreen({ navigation }) {
     }
   };
 
+  const handleVerifyOtp = async () => {
+    Keyboard.dismiss();
+    const emailErr = validateEmailOnly();
+    if (emailErr) {
+      setError(emailErr);
+      return;
+    }
+    if (!otp.trim() || otp.trim().length < 6) {
+      setOtpError('Please enter the 6-digit OTP code sent to your email.');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setOtpError('');
+    setError('');
+
+    try {
+      const emailLower = email.trim().toLowerCase();
+      await authService.verifyRegistrationOtp({
+        email: emailLower,
+        otp: otp.trim(),
+      });
+      setOtpState('VERIFIED');
+    } catch (err) {
+      const serverMsg =
+        err.response?.data?.message ||
+        err.userMessage ||
+        'Invalid OTP verification code. Please check your email and try again.';
+      setOtpError(serverMsg);
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  const validateFullForm = () => {
+    if (!firstName.trim()) return 'First name is required.';
+    if (!lastName.trim()) return 'Last name is required.';
+    if (!email.trim()) return 'Email address is required.';
+    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    if (otpState !== 'VERIFIED') {
+      if (otpState === 'IDLE') return 'Please tap "Send OTP" next to email and verify your code.';
+      if (!otp.trim()) return 'Please enter the 6-digit OTP code sent to your email.';
+      if (otp.trim().length < 6) return 'OTP code must be 6 digits.';
+      return 'Please tap "Verify OTP" to verify your code before continuing.';
+    }
+    if (!password) return 'Password is required.';
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+      return 'Password needs uppercase, lowercase, number, and special character.';
+    }
+    if (password !== confirmPassword) return 'Passwords do not match.';
+    return null;
+  };
+
   const handleRegister = async () => {
     Keyboard.dismiss();
+    const emailLower = email.trim().toLowerCase();
+
+    // If user entered 6 digits but hasn't pressed Verify OTP yet, auto-verify first
+    if (otpState !== 'VERIFIED' && otp.trim().length === 6) {
+      setLoading(true);
+      setError('');
+      setOtpError('');
+      try {
+        await authService.verifyRegistrationOtp({
+          email: emailLower,
+          otp: otp.trim(),
+        });
+        setOtpState('VERIFIED');
+      } catch (err) {
+        setLoading(false);
+        const serverMsg =
+          err.response?.data?.message ||
+          err.userMessage ||
+          'Invalid OTP verification code. Please check your email.';
+        setOtpError(serverMsg);
+        return;
+      }
+    }
+
     const validationError = validateFullForm();
     if (validationError) {
       setError(validationError);
+      setLoading(false);
       return;
     }
+
     setError('');
     setLoading(true);
 
     try {
-      const emailLower = email.trim().toLowerCase();
       await AsyncStorage.setItem('speakmate_account_type', 'INDIVIDUAL_USER');
       await register({
         firstName: firstName.trim(),
@@ -144,7 +207,7 @@ export default function RegisterScreen({ navigation }) {
       setRegistered(true);
       animateSuccess();
     } catch (err) {
-      const serverMsg = err.response?.data?.message || err.userMessage || 'Registration failed. Please verify your OTP code.';
+      const serverMsg = err.response?.data?.message || err.userMessage || 'Registration failed. Please verify your details and try again.';
       setError(serverMsg);
     } finally {
       setLoading(false);
@@ -271,25 +334,30 @@ export default function RegisterScreen({ navigation }) {
                   </View>
                 </View>
 
-                {/* Email Address with Green "Verify" action text button */}
+                {/* Email Address with Green "Send OTP" action text button */}
                 <AuthInput
                   label="Email Address"
                   value={email}
                   onChangeText={(t) => {
                     setEmail(t);
                     clearError();
-                    if (otpState !== 'IDLE') setOtpState('IDLE');
+                    if (otpState !== 'IDLE') {
+                      setOtpState('IDLE');
+                      setOtp('');
+                      setOtpError('');
+                    }
                   }}
                   placeholder="jane.doe@example.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   returnKeyType="next"
                   inputRef={emailRef}
+                  editable={otpState !== 'VERIFIED'}
                   onSubmitEditing={handleSendOtp}
                   rightElement={
                     <TouchableOpacity
                       onPress={handleSendOtp}
-                      disabled={otpState === 'SENDING'}
+                      disabled={otpState === 'SENDING' || otpState === 'VERIFIED'}
                       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                       style={styles.verifyActionBtn}
                     >
@@ -297,8 +365,8 @@ export default function RegisterScreen({ navigation }) {
                         <ActivityIndicator size="small" color="#10B981" />
                       ) : otpState === 'SENT' ? (
                         <View style={styles.badgeRow}>
-                          <Ionicons name="checkmark-circle" size={16} color="#10B981" />
-                          <Text style={styles.resendGreenText}>Resend</Text>
+                          <Ionicons name="refresh-outline" size={14} color="#059669" />
+                          <Text style={styles.resendGreenText}>Resend OTP</Text>
                         </View>
                       ) : otpState === 'VERIFIED' ? (
                         <View style={styles.badgeRow}>
@@ -306,34 +374,76 @@ export default function RegisterScreen({ navigation }) {
                           <Text style={styles.verifiedGreenText}>Verified</Text>
                         </View>
                       ) : (
-                        <Text style={styles.verifyGreenText}>Verify</Text>
+                        <View style={styles.badgeRow}>
+                          <Ionicons name="paper-plane-outline" size={14} color="#10B981" />
+                          <Text style={styles.verifyGreenText}>Send OTP</Text>
+                        </View>
                       )}
                     </TouchableOpacity>
                   }
                 />
 
                 {/* OTP Section (opens directly below Email when OTP is sent) */}
-                {(otpState === 'SENT' || otpState === 'VERIFIED') && (
+                {otpState === 'SENT' && (
                   <View style={styles.otpSectionContainer}>
                     <View style={styles.otpSectionHeader}>
-                      <Ionicons name="mail-outline" size={16} color="#059669" />
+                      <Ionicons name="mail-unread-outline" size={16} color="#059669" />
                       <Text style={styles.otpSectionTitle}>
                         Enter 6-digit code sent to <Text style={styles.emailTextBold}>{email}</Text>
                       </Text>
                     </View>
 
-                    <AuthInput
-                      label="6-Digit Verification Code"
-                      value={otp}
-                      onChangeText={(t) => { setOtp(t); clearError(); }}
-                      placeholder="123456"
-                      keyboardType="number-pad"
-                      maxLength={6}
-                      returnKeyType="next"
-                      inputRef={otpRef}
-                      inputStyle={styles.otpInputInline}
-                      onSubmitEditing={() => passwordRef.current?.focus()}
-                    />
+                    <View style={styles.otpInputAndBtnRow}>
+                      <View style={{ flex: 1 }}>
+                        <AuthInput
+                          label="6-Digit OTP Code"
+                          value={otp}
+                          onChangeText={(t) => {
+                            setOtp(t);
+                            if (otpError) setOtpError('');
+                            clearError();
+                          }}
+                          placeholder="123456"
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          returnKeyType="done"
+                          inputRef={otpRef}
+                          inputStyle={styles.otpInputInline}
+                          onSubmitEditing={handleVerifyOtp}
+                        />
+                      </View>
+                      <TouchableOpacity
+                        onPress={handleVerifyOtp}
+                        disabled={verifyingOtp || otp.trim().length < 6}
+                        style={[
+                          styles.verifyOtpActionBtn,
+                          (verifyingOtp || otp.trim().length < 6) && styles.verifyOtpActionBtnDisabled,
+                        ]}
+                      >
+                        {verifyingOtp ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Text style={styles.verifyOtpActionBtnText}>Verify OTP</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                    {otpError ? (
+                      <View style={styles.otpErrorRow}>
+                        <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                        <Text style={styles.otpErrorText}>{otpError}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                )}
+
+                {/* Confirmed Verified Banner */}
+                {otpState === 'VERIFIED' && (
+                  <View style={styles.verifiedSuccessBanner}>
+                    <Ionicons name="checkmark-circle" size={20} color="#059669" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.verifiedSuccessTitle}>Email Verified ✓</Text>
+                      <Text style={styles.verifiedSuccessSubtitle}>Code verified for {email}</Text>
+                    </View>
                   </View>
                 )}
 
@@ -564,11 +674,76 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#047857',
   },
+  otpInputAndBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
   otpInputInline: {
     fontSize: 20,
     letterSpacing: 4,
     fontWeight: '800',
     color: '#065F46',
+  },
+  verifyOtpActionBtn: {
+    backgroundColor: '#059669',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 26,
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  verifyOtpActionBtnDisabled: {
+    backgroundColor: '#9CA3AF',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  verifyOtpActionBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 13,
+    letterSpacing: 0.3,
+  },
+  otpErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  otpErrorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
+  verifiedSuccessBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    marginTop: -4,
+  },
+  verifiedSuccessTitle: {
+    color: '#065F46',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  verifiedSuccessSubtitle: {
+    color: '#047857',
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 1,
   },
   registerBtn: {
     marginTop: 6,

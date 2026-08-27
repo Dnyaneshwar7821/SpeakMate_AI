@@ -18,6 +18,8 @@ public interface UserService {
 
 	void sendRegistrationOtp(SendRegistrationOtpRequest request);
 
+	VerifyOtpResponse verifyRegistrationOtp(VerifyOtpRequest request);
+
 	void sendDeleteAccountOtp(SendDeleteAccountOtpRequest request);
 
 	void deleteAccountWithOtp(DeleteAccountRequest request);

@@ -16,6 +16,11 @@ export const authService = {
     return response.data;
   },
 
+  verifyRegistrationOtp: async (payload) => {
+    const response = await api.post("/api/users/verify-registration-otp", payload);
+    return response.data;
+  },
+
   me: async () => {
     const response = await api.get("/api/users/me", { timeout: 10000 });
     return response.data;

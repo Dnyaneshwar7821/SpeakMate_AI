@@ -161,6 +161,37 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public VerifyOtpResponse verifyRegistrationOtp(VerifyOtpRequest request) {
+		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
+
+		if (email.isEmpty()) {
+			throw new IllegalArgumentException("Email is required.");
+		}
+		if (otp.isEmpty()) {
+			throw new IllegalArgumentException("OTP verification code is required.");
+		}
+
+		RegistrationOtpDetails otpDetails = registrationOtpMap.get(email);
+		if (otpDetails == null) {
+			throw new IllegalArgumentException("No OTP verification code requested for this email or it has expired. Please tap Send OTP again.");
+		}
+
+		if (otpDetails.getExpiry().isBefore(LocalDateTime.now())) {
+			registrationOtpMap.remove(email);
+			throw new IllegalArgumentException("OTP verification code has expired. Please request a new code.");
+		}
+
+		if (!otpDetails.getOtp().equals(otp)) {
+			throw new IllegalArgumentException("Invalid OTP verification code. Please check your email and try again.");
+		}
+
+		return VerifyOtpResponse.builder()
+				.message("Email verified successfully!")
+				.build();
+	}
+
+	@Override
 	public UserResponse register(RegisterRequest request) {
 
 		if (userRepository.existsByEmail(request.getEmail())) {
