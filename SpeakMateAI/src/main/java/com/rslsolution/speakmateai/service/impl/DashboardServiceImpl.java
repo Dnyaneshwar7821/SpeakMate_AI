@@ -464,7 +464,12 @@ public class DashboardServiceImpl implements DashboardService {
 
 		int totalSecondsToday = todaySessions.stream().mapToInt(s -> s.getDuration() != null ? s.getDuration() : 0).sum();
 		int speakingMinutesToday = (int) Math.ceil(totalSecondsToday / 60.0);
-		int lessonsCompletedToday = todaySessions.isEmpty() ? 0 : 1;
+		
+		List<LessonProgress> userCompletedLessons = lessonProgressRepository.findByUserAndCompleted(user, true);
+		int lessonsCompletedToday = (int) userCompletedLessons.stream()
+				.filter(lp -> (lp.getCompletedAt() != null && lp.getCompletedAt().toLocalDate().isEqual(today))
+						|| (lp.getUpdatedAt() != null && lp.getUpdatedAt().toLocalDate().isEqual(today)))
+				.count();
 
 		long vocabularyCompleted = vocabs.stream()
 				.filter(v -> v.getCreatedAt() != null && v.getCreatedAt().toLocalDate().isEqual(today))
@@ -511,6 +516,8 @@ public class DashboardServiceImpl implements DashboardService {
 		LocalDate sunday = monday.plusDays(6);
 
 		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
+		List<LessonProgress> completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true);
+
 		int[] studySeconds = new int[7];
 		int[] speakingSessions = new int[7];
 		int[] lessonsCompleted = new int[7];
@@ -522,8 +529,15 @@ public class DashboardServiceImpl implements DashboardService {
 					int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1; // Mon=1 -> 0, Sun=7 -> 6
 					studySeconds[dayOfWeekIndex] += s.getDuration() != null ? s.getDuration() : 0;
 					speakingSessions[dayOfWeekIndex]++;
-					lessonsCompleted[dayOfWeekIndex] = 1;
 				}
+			}
+		}
+
+		for (LessonProgress lp : completedLessons) {
+			LocalDate date = lp.getCompletedAt() != null ? lp.getCompletedAt().toLocalDate() : (lp.getUpdatedAt() != null ? lp.getUpdatedAt().toLocalDate() : null);
+			if (date != null && !date.isBefore(monday) && !date.isAfter(sunday)) {
+				int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
+				lessonsCompleted[dayOfWeekIndex]++;
 			}
 		}
 
@@ -547,8 +561,7 @@ public class DashboardServiceImpl implements DashboardService {
 		List<Lesson> lessons = lessonRepository.findByActiveTrue();
 
 		int totalLessons = lessons.size();
-		int xp = (progress != null) ? progress.getXp() : 0;
-		int completedLessons = xp / 100;
+		int completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true).size();
 		int speakingSessions = sessions.size();
 		int vocabularyLearned = vocabs.size();
 		int grammarExercises = grammars.size();
