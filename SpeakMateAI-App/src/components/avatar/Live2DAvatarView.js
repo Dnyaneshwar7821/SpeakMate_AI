@@ -261,11 +261,11 @@ const LIVE2D_HTML = `
       const viewH = container.clientHeight || window.innerHeight || 200;
       app.renderer.resize(viewW, viewH);
       const baseScale = Math.min(viewW / model.width, viewH / model.height);
-      const portraitScale = baseScale * 1.58;
+      const portraitScale = baseScale * 2.05;
       model.scale.set(portraitScale);
-      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.22);
+      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.06);
       model.x = viewW / 2;
-      model.y = viewH / 2;
+      model.y = 10;
     }
 
     async function loadModel(url, modelName) {
@@ -285,22 +285,22 @@ const LIVE2D_HTML = `
         const viewW = container.clientWidth || window.innerWidth || 360;
         const viewH = container.clientHeight || window.innerHeight || 200;
 
-        // Precision Upper-Body Framing: Zoom 1.58x (Top of head to chest only, folded hands hidden)
+        // Bigger Full-Bust Framing: Zoom 2.05x (Top of head to chest only, zero cutoff, hands hidden)
         const baseScale = Math.min(viewW / model.width, viewH / model.height);
-        const portraitScale = baseScale * 1.58;
+        const portraitScale = baseScale * 2.05;
 
         model.scale.set(portraitScale);
         
-        // Exact Dead-Center in Concentric Halo Rings with Clean Subtitle Clearance
+        // Exact Head-to-Chest Alignment (Head 10px below top boundary, zero header cutoff)
         if (currentModelName === 'chitose') {
-          model.anchor.set(0.50, 0.22);
+          model.anchor.set(0.50, 0.06);
         } else {
-          // Haru's face centered dead-center in the rings
-          model.anchor.set(0.52, 0.22);
+          // Haru centered horizontally with face inside glowing ring and top of head fully intact
+          model.anchor.set(0.52, 0.06);
         }
 
         model.x = viewW / 2;
-        model.y = viewH / 2;
+        model.y = 10;
 
         // Hook motionManager update to guarantee lipSync is never overridden by idle physics
         if (model.internalModel && model.internalModel.motionManager) {
