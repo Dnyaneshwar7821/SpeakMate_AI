@@ -39,12 +39,13 @@ export const AuthProvider = ({ children }) => {
         const me = await authService.me().catch(() => null);
         const activeUser = me || parsedUser;
         const userEmail = (activeUser?.email || "").toLowerCase();
-        const userSpecificOnboarding = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
         
-        const nextOnboardingCompleted = Boolean(
-          activeUser?.onboardingCompleted === true ||
-          userSpecificOnboarding === "true"
-        );
+        // Strictly check if the user account actually finished onboarding in database
+        const isCompleted = activeUser?.onboardingCompleted === true;
+        if (!isCompleted && userEmail) {
+          await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
+        }
+        const nextOnboardingCompleted = Boolean(isCompleted);
 
         setToken(storedToken);
         setUser(activeUser);
@@ -89,6 +90,10 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
+      const userEmail = (user?.email || "").toLowerCase();
+      if (userEmail) {
+        await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
+      }
       await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
       await AsyncStorage.removeItem(STORAGE_KEYS.user);
       await AsyncStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
@@ -98,7 +103,7 @@ export const AuthProvider = ({ children }) => {
       setOnboardingCompletedState(false);
     } catch (error) {
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     setLogoutCallback(logout);
@@ -116,12 +121,13 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await authService.login(credentials);
         const userEmail = (response.user?.email || credentials.email || "").toLowerCase();
-        const userSpecificOnboarding = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
         
-        const nextOnboardingCompleted = Boolean(
-          response.user?.onboardingCompleted === true ||
-          userSpecificOnboarding === "true"
-        );
+        // Strict database check: if user is not marked completed in DB, clear stale phone storage
+        const isCompleted = response.user?.onboardingCompleted === true;
+        if (!isCompleted && userEmail) {
+          await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
+        }
+        const nextOnboardingCompleted = Boolean(isCompleted);
 
         await persistAuth(response.token, response.user);
         setIsAuthenticated(true);

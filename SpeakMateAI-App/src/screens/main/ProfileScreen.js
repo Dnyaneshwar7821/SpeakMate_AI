@@ -125,6 +125,7 @@ export default function ProfileScreen({ navigation }) {
             setDeletingAccount(true);
             try {
               await authService.deleteAccount({ email: cleanEmail, otp: cleanOtp });
+              await AsyncStorage.removeItem(`speakmate_onboarding_${cleanEmail}`);
               setShowDeleteModal(false);
               Alert.alert(
                 'Account Deleted',
