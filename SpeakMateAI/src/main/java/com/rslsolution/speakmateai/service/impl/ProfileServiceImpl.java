@@ -36,7 +36,13 @@ public class ProfileServiceImpl implements ProfileService {
 			progress.setLevel(calculatedLevel);
 			progressRepository.save(progress);
 		}
-		String effectiveLevel = (user.getSchoolGrade() != null && !user.getSchoolGrade().trim().isEmpty()) ? null : user.getEnglishLevel();
+		String effectiveGrade = user.getSchoolGrade();
+		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
+		boolean isStudent = (user.getSchoolId() != null) ||
+				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||
+				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
+				(user.getAgeGroup() != null && user.getAgeGroup().toLowerCase().contains("school"));
+
 		return ProfileResponse.builder()
 				.id(user.getId())
 				.firstName(user.getFirstName())
@@ -46,6 +52,10 @@ public class ProfileServiceImpl implements ProfileService {
 				.avatar(user.getAvatar())
 				.englishLevel(effectiveLevel)
 				.learningGoal(user.getLearningGoal())
+				.ageGroup(user.getAgeGroup())
+				.schoolGrade(effectiveGrade)
+				.schoolId(user.getSchoolId())
+				.isSchoolStudent(isStudent)
 				.xp(xp)
 				.level(calculatedLevel)
 				.currentStreak(progress != null && progress.getCurrentStreak() != null ? progress.getCurrentStreak() : 0)

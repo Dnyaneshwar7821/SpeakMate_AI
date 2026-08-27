@@ -152,14 +152,18 @@ export const AuthProvider = ({ children }) => {
     [],
   );
 
-  const completeOnboarding = useCallback(async () => {
+  const completeOnboarding = useCallback(async (onboardingData) => {
     const userEmail = (user?.email || "").toLowerCase();
     if (userEmail) {
       await AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true");
     }
     await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
     setOnboardingCompletedState(true);
-    const updatedUser = { ...(user || {}), onboardingCompleted: true };
+    const updatedUser = {
+      ...(user || {}),
+      ...(onboardingData || {}),
+      onboardingCompleted: true,
+    };
     setUser(updatedUser);
     await AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));
   }, [user]);

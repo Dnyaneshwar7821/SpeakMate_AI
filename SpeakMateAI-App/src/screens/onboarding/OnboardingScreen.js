@@ -525,8 +525,17 @@ export default function OnboardingScreen({ navigation }) {
           .catch(err => console.warn('Avatar update failed:', err));
       }
 
-      // Mark onboarding complete in client auth context
-      await completeOnboarding();
+      // Mark onboarding complete in client auth context with immediate profile synchronization
+      await completeOnboarding({
+        englishLevel: finalLevel,
+        schoolGrade: finalGrade,
+        ageGroup: ageGroup || 'Professional',
+        learningGoal: whyLearning.join(', '),
+        dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
+        nativeLanguage: language,
+        preferredVoice: aiVoice,
+        interests: interests.join(', '),
+      });
     } catch (err) {
       setError('Failed to finalize onboarding setup. Please try again.');
     } finally {

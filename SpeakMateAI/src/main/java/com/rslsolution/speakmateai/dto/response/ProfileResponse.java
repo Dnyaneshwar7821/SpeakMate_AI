@@ -27,6 +27,14 @@ public class ProfileResponse {
 
 	private String learningGoal;
 
+	private String ageGroup;
+
+	private String schoolGrade;
+
+	private Long schoolId;
+
+	private Boolean isSchoolStudent;
+
 	private Integer xp;
 
 	private Integer level;

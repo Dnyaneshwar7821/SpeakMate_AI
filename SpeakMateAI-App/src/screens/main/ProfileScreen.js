@@ -376,9 +376,9 @@ export default function ProfileScreen({ navigation }) {
   const xpInCurrentLevel = xp % 500;
   const levelProgress = xpInCurrentLevel / 500;
   const rankTier = getRankTier(xp);
-  const currentSchoolGrade = state.profile?.schoolGrade || user?.schoolGrade || '1st Std';
-  const currentEnglishLevel = state.profile?.englishLevel || user?.englishLevel || 'Beginner';
-  const currentAgeGroup = state.profile?.ageGroup || user?.ageGroup || 'Professional';
+  const currentSchoolGrade = user?.schoolGrade || state.profile?.schoolGrade || '1st Std';
+  const currentEnglishLevel = user?.englishLevel || state.profile?.englishLevel || 'Beginner';
+  const currentAgeGroup = user?.ageGroup || state.profile?.ageGroup || 'Professional';
 
   // Custom colors for dark mode sync
   const cardBg = isDark ? '#1E293B' : '#FFFFFF';

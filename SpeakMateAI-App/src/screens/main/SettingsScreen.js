@@ -103,7 +103,7 @@ export default function SettingsScreen({ navigation }) {
       ]);
       if (savedType) setAccountType(savedType);
       const effectiveVoice = savedVoice || settings?.aiVoice || defaults.aiVoice;
-      setForm({ ...defaults, ...settings, aiVoice: effectiveVoice, ageGroup: onboardingData?.ageGroup || 'Professional' });
+      setForm({ ...defaults, ...settings, aiVoice: effectiveVoice, ageGroup: onboardingData?.ageGroup || user?.ageGroup || 'Professional' });
       setAvailableVoices(voices);
       if (onboardingVoice) {
         setOnboardingVoiceStyle(onboardingVoice);

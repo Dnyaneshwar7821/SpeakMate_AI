@@ -124,6 +124,15 @@ public class DashboardServiceImpl implements DashboardService {
 		else rank = "Gold I";
 
 		// 1. ProfileResponse
+		String effectiveGrade = user.getSchoolGrade();
+		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
+		boolean isStudent = (user.getSchoolId() != null) ||
+				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||
+				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
+				(user.getAgeGroup() != null && user.getAgeGroup().toLowerCase().contains("school"));
+
+		int calculatedLevel = (xp / 500) + 1;
+
 		ProfileResponse profileRes = ProfileResponse.builder()
 				.id(user.getId())
 				.firstName(user.getFirstName())
@@ -131,12 +140,25 @@ public class DashboardServiceImpl implements DashboardService {
 				.email(user.getEmail())
 				.role(user.getRole().name())
 				.avatar(user.getAvatar())
+				.englishLevel(effectiveLevel)
+				.learningGoal(user.getLearningGoal())
+				.ageGroup(user.getAgeGroup())
+				.schoolGrade(effectiveGrade)
+				.schoolId(user.getSchoolId())
+				.isSchoolStudent(isStudent)
+				.xp(xp)
+				.level(calculatedLevel)
+				.currentStreak(progress != null && progress.getCurrentStreak() != null ? progress.getCurrentStreak() : 0)
+				.longestStreak(progress != null && progress.getLongestStreak() != null ? progress.getLongestStreak() : 0)
+				.totalPracticeMinutes(progress != null && progress.getTotalPracticeMinutes() != null ? progress.getTotalPracticeMinutes() : 0)
+				.totalSpeakingSessions(progress != null && progress.getTotalSpeakingSessions() != null ? progress.getTotalSpeakingSessions() : 0)
+				.totalGrammarChecks(progress != null && progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : 0)
+				.totalVocabularyWords(progress != null && progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : 0)
 				.build();
 
 		// 2. ProgressResponse
 		ProgressResponse progressRes = null;
 		if (progress != null) {
-			int calculatedLevel = (xp / 500) + 1;
 			if (progress.getLevel() == null || progress.getLevel() != calculatedLevel) {
 				progress.setLevel(calculatedLevel);
 				progressRepository.save(progress);
