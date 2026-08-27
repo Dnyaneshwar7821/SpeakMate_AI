@@ -244,7 +244,7 @@ export function SpeakingPractice() {
   const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
   const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
   const totalSessions = history.length;
-  const streakDays = getLiveProgressStats().streak || 1;
+  const streakDays = Number(getLiveProgressStats().streak ?? 0);
 
   const effAge = normalizeAgeGroup(selectedAgeGroup);
   const currentScenarios = isStudent

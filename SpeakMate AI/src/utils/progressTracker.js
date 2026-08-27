@@ -55,37 +55,33 @@ export const getLiveProgressStats = (userContext = null) => {
       lessonsCompleted: 0,
       accuracySum: 0,
       accuracyCount: 0,
-      xp: userContext?.xp || 150,
-      streak: userContext?.streak || 1,
-      longestStreak: 1,
+      xp: userContext?.xp || 0,
+      streak: userContext?.streak || 0,
+      longestStreak: userContext?.longestStreak || 0,
       streakFreezes: 1, // New users start with 1 Free Freeze ❄️
       lastActiveDate: today,
-      lastGoalMetDate: today,
+      lastGoalMetDate: null,
       badgesUnlocked: 0,
-      todayMins: 5,
+      todayMins: 0,
       claimedMilestones: [],
       streakHistory: {}, // { [dateStr]: { mins: number, status: 'completed' | 'frozen' | 'missed' } }
       brokenStreakSnapshot: null, // Holds last broken streak for 48h recovery
       lastFreeFreezeClaimedDate: null,
     };
-    stored.streakHistory[today] = { mins: 5, status: "completed" };
     try {
       localStorage.setItem(storageKey, JSON.stringify(stored));
     } catch (e) {}
   }
 
-  // Ensure default fallback attributes & self-heal streak to at least 1
+  // Ensure default fallback attributes
   if (stored.streakFreezes === undefined) stored.streakFreezes = 1;
   if (!stored.claimedMilestones) stored.claimedMilestones = [];
   if (!stored.streakHistory) stored.streakHistory = {};
-  if (!stored.streak || Number(stored.streak) < 1) {
-    stored.streak = 1;
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(stored));
-    } catch (e) {}
+  if (stored.streak === undefined || stored.streak === null) {
+    stored.streak = userContext?.streak || 0;
   }
-  if (!stored.longestStreak || Number(stored.longestStreak) < 1) {
-    stored.longestStreak = Math.max(1, stored.streak || 1);
+  if (stored.longestStreak === undefined || stored.longestStreak === null) {
+    stored.longestStreak = stored.streak || 0;
   }
 
   // Accurate Streak Rollover & Missed Day Management

@@ -156,6 +156,9 @@ export function Settings() {
         });
       }
 
+      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: selectedAgeGroup } }));
+      window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: selectedAgeGroup } }));
+
       setSaved(true);
       toast.success("Settings saved successfully! Applied globally across all AI modules.");
       setTimeout(() => setSaved(false), 2500);

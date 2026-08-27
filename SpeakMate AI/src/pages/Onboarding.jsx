@@ -256,7 +256,8 @@ export function Onboarding() {
     }
 
     if (!isStudent) {
-      localStorage.setItem("speakmate_age_group", ageGroup);
+      localStorage.setItem("speakmate_age_group", ageGroup || "Professional");
+      localStorage.setItem("speakmate_english_level", finalLevel || "Beginner");
     }
     localStorage.setItem("speakmate_onboarding_voice", aiVoice);
     localStorage.setItem("speakmate_voice_persona", aiVoice);

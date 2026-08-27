@@ -39,9 +39,13 @@ export function Dashboard() {
     localStorage.getItem("speakmate_school_grade") ||
     "1st Std";
   const activeAgeGroup =
-    localStorage.getItem("speakmate_age_group") ||
     user?.ageGroup ||
+    localStorage.getItem("speakmate_age_group") ||
     "Professional";
+  const activeEnglishLevel =
+    user?.englishLevel ||
+    localStorage.getItem("speakmate_english_level") ||
+    "Beginner";
 
   const [stats, setStats] = useState(() => getLiveProgressStats(user));
   const [streakModalOpen, setStreakModalOpen] = useState(false);
@@ -52,15 +56,15 @@ export function Dashboard() {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [challengeClaimed, setChallengeClaimed] = useState(false);
 
-  const rank = getRankTier(stats.xp || user?.xp || 150);
+  const rank = getRankTier(stats.xp || user?.xp || 0);
 
   const refreshStats = () => {
     const liveStats = getLiveProgressStats(user);
     setStats((prev) => ({
       ...prev,
       ...liveStats,
-      streak: Math.max(1, liveStats.streak || user?.streak || 1),
-      xp: Math.max(liveStats.xp || 0, user?.xp || 0),
+      streak: Number(liveStats.streak ?? user?.streak ?? 0),
+      xp: Number(liveStats.xp ?? user?.xp ?? 0),
       todayMins: liveStats.todayMins ?? prev.todayMins ?? 0,
       completedMins: liveStats.todayMins ?? prev.todayMins ?? 0,
       level: isStudent ? activeGrade : activeAgeGroup,
@@ -72,6 +76,8 @@ export function Dashboard() {
     refreshStats();
     window.addEventListener("focus", refreshStats);
     window.addEventListener("speakmate_progress_updated", refreshStats);
+    window.addEventListener("speakmate_settings_updated", refreshStats);
+    window.addEventListener("speakmate_age_group_changed", refreshStats);
     dashboardService
       .summary()
       .then((data) => {
@@ -81,8 +87,8 @@ export function Dashboard() {
             ...prev,
             ...data,
             ...liveStats,
-            streak: Math.max(1, liveStats.streak || data.streak || data.progress?.streak || user?.streak || 1),
-            xp: Math.max(liveStats.xp || 0, data.xp || data.progress?.xp || user?.xp || 0),
+            streak: Number(data.streak ?? data.progress?.streak ?? liveStats.streak ?? user?.streak ?? 0),
+            xp: Number(data.xp ?? data.progress?.xp ?? liveStats.xp ?? user?.xp ?? 0),
             todayMins: liveStats.todayMins ?? prev.todayMins ?? 0,
             completedMins: liveStats.todayMins ?? prev.todayMins ?? 0,
           }));
@@ -93,8 +99,10 @@ export function Dashboard() {
     return () => {
       window.removeEventListener("focus", refreshStats);
       window.removeEventListener("speakmate_progress_updated", refreshStats);
+      window.removeEventListener("speakmate_settings_updated", refreshStats);
+      window.removeEventListener("speakmate_age_group_changed", refreshStats);
     };
-  }, [user, activeGrade, activeAgeGroup]);
+  }, [user, activeGrade, activeAgeGroup, activeEnglishLevel]);
 
   useEffect(() => {
     let interval = null;
@@ -149,7 +157,7 @@ export function Dashboard() {
           <div className="space-y-3.5 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
-                {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 Persona: ${activeAgeGroup}`}
+                {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 ${activeAgeGroup} · 🎯 ${activeEnglishLevel}`}
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white shadow-sm flex items-center gap-1">
                 <span>{rank.icon}</span>
