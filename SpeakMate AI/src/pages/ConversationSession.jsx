@@ -444,23 +444,58 @@ export function ConversationSession() {
       setViseme("REST");
     }
     setEnding(true);
+
+    const userMessages = messages.filter((m) => m.sender === "user");
+    const totalUserWords = userMessages.reduce((sum, m) => sum + (m.message || "").trim().split(/\s+/).filter(Boolean).length, 0);
+    const hasActivity = userMessages.length > 0 && totalUserWords > 0;
+
     try {
-      const summary = await speakingService.end(sessionId).catch(() => ({
-        score: 88,
-        xpEarned: xpReward,
-        duration: timer,
-        messagesExchanged: messages.length,
-        summary: `Completed ${scenario} speaking practice session.`,
-        vocabularyLearned: "Proficiency, Natural fluency, Articulate",
-        grammarCorrections: "Great usage of past & present tenses throughout session.",
-        betterSentences: "I would like to enhance my English speaking proficiency.",
-        motivationalMessage: "Excellent work! Keep practicing every day to sound more natural.",
-      }));
-      recordSpeakingSession(Math.max(1, Math.ceil(timer / 60)), summary?.score || 88);
-      navigate(ROUTES.SPEAKING_SUMMARY, { state: { summary } });
+      const summary = await speakingService.end(sessionId).catch(() => null);
+
+      const effectiveScore = summary?.overallScore ?? summary?.score ?? (hasActivity ? 85 : 0);
+      const effectiveXP = summary?.xpEarned ?? (hasActivity ? Math.min(45, Math.max(5, Math.round(totalUserWords * 0.5))) : 0);
+      const effectiveDuration = summary?.duration ?? timer;
+
+      const finalSummary = {
+        score: effectiveScore,
+        overallScore: effectiveScore,
+        grammarScore: summary?.grammarScore ?? (hasActivity ? Math.max(20, effectiveScore - 2) : 0),
+        vocabularyScore: summary?.vocabularyScore ?? (hasActivity ? Math.max(20, effectiveScore) : 0),
+        fluencyScore: summary?.fluencyScore ?? (hasActivity ? Math.max(20, effectiveScore - 5) : 0),
+        pronunciationScore: summary?.pronunciationScore ?? (hasActivity ? Math.max(20, effectiveScore + 2) : 0),
+        xpEarned: effectiveXP,
+        duration: effectiveDuration,
+        messagesExchanged: userMessages.length,
+        summary: summary?.summary || (hasActivity ? `Completed ${scenario} speaking practice session with ${totalUserWords} words spoken.` : "Session ended with no spoken conversation recorded."),
+        vocabularyLearned: summary?.vocabularyLearned || (hasActivity ? "Proficiency, Natural fluency, Articulate" : ""),
+        grammarCorrections: summary?.grammarCorrections || (hasActivity ? "Good attempt! Keep practicing your daily speech turns." : "No spoken sentences were recorded during this session to analyze."),
+        betterSentences: summary?.betterSentences || (hasActivity ? "Try expressing ideas with richer connecting phrases." : ""),
+        motivationalMessage: summary?.motivationalMessage || (hasActivity ? "Excellent effort! Keep speaking regularly to boost confidence." : "Practice makes progress! Press the microphone and speak to practice next time."),
+      };
+
+      if (hasActivity && effectiveScore > 0) {
+        recordSpeakingSession(Math.max(1, Math.ceil(timer / 60)), effectiveScore);
+      }
+
+      navigate(ROUTES.SPEAKING_SUMMARY, { state: { summary: finalSummary } });
     } catch (e) {
-      recordSpeakingSession(Math.max(1, Math.ceil(timer / 60)), 85);
-      navigate(ROUTES.SPEAKING_SUMMARY);
+      navigate(ROUTES.SPEAKING_SUMMARY, {
+        state: {
+          summary: {
+            score: 0,
+            overallScore: 0,
+            grammarScore: 0,
+            vocabularyScore: 0,
+            fluencyScore: 0,
+            pronunciationScore: 0,
+            xpEarned: 0,
+            duration: timer,
+            messagesExchanged: 0,
+            summary: "Session completed.",
+            motivationalMessage: "Practice makes progress! Tap the microphone and speak to practice.",
+          }
+        }
+      });
     } finally {
       setEnding(false);
     }

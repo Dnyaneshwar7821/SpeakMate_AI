@@ -207,8 +207,11 @@ const checkAndUpdateDailyGoal = (stats, userContext = null) => {
   }
 };
 
-// 1. Record Speaking Practice (+25 to +40 XP)
+// 1. Record Speaking Practice (+3 to +45 XP based on effort and score)
 export const recordSpeakingSession = (durationMins = 5, accuracyScore = 90, userContext = null) => {
+  if (durationMins <= 0 || accuracyScore <= 0) {
+    return getLiveProgressStats(userContext);
+  }
   const stats = getLiveProgressStats(userContext);
   stats.speakingMins += durationMins;
   stats.todayMins = (stats.todayMins || 0) + durationMins;
@@ -216,10 +219,9 @@ export const recordSpeakingSession = (durationMins = 5, accuracyScore = 90, user
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
   
-  const baseReward = 20;
-  const timeBonus = Math.min(10, Math.max(0, durationMins * 3));
-  const scoreBonus = accuracyScore >= 90 ? 10 : (accuracyScore >= 80 ? 5 : 0);
-  stats.xp += Math.min(40, Math.max(25, baseReward + timeBonus + scoreBonus));
+  const timeReward = Math.min(25, Math.max(3, durationMins * 5));
+  const scoreBonus = accuracyScore >= 90 ? 15 : (accuracyScore >= 80 ? 10 : (accuracyScore >= 60 ? 5 : 0));
+  stats.xp += Math.min(45, Math.max(3, timeReward + scoreBonus));
   
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
