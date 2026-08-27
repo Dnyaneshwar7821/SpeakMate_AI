@@ -22,7 +22,13 @@ export function Navbar() {
     };
     updateStats();
     window.addEventListener("focus", updateStats);
-    return () => window.removeEventListener("focus", updateStats);
+    window.addEventListener("speakmate_progress_updated", updateStats);
+    window.addEventListener("speakmate_settings_updated", updateStats);
+    return () => {
+      window.removeEventListener("focus", updateStats);
+      window.removeEventListener("speakmate_progress_updated", updateStats);
+      window.removeEventListener("speakmate_settings_updated", updateStats);
+    };
   }, [user]);
 
   const isStudent =
@@ -49,7 +55,7 @@ export function Navbar() {
         {/* Left Section: Brand Logo */}
         <div className="flex items-center gap-6">
           <Link
-            to={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.HOME}
+            to={isAuthenticated ? (isStudent ? ROUTES.STUDENT_DASHBOARD : ROUTES.DASHBOARD) : ROUTES.HOME}
             className="flex items-center gap-3 min-w-0 group"
           >
             <div className="relative">
@@ -130,7 +136,7 @@ export function Navbar() {
                   title="View Streak Calendar & Milestones"
                 >
                   <span>🔥</span>
-                  <span>{Math.max(1, Number(liveStats.streak || user?.streak || 1))}d Streak</span>
+                  <span>{Number(liveStats.streak ?? user?.streak ?? 0)}d Streak</span>
                   {liveStats.streakFreezes > 0 && (
                     <span className="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400">
                       ❄️{liveStats.streakFreezes}
@@ -167,7 +173,7 @@ export function Navbar() {
                         <div className="flex items-center justify-between">
                           <p className="text-sm font-black text-[var(--text-primary)] truncate">{user?.firstName || user?.name || "Learner"}</p>
                           <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#6C63FF]/20 text-[#6C63FF]">
-                            {user?.level || "B1 Intermediate"}
+                            {user?.englishLevel || user?.level || "Beginner"}
                           </span>
                         </div>
                         <p className="text-xs text-[var(--text-muted)] font-medium truncate">{user?.email || ""}</p>
@@ -175,7 +181,7 @@ export function Navbar() {
 
                       <div className="space-y-1">
                         <Link
-                          to={ROUTES.DASHBOARD}
+                          to={isStudent ? ROUTES.STUDENT_DASHBOARD : ROUTES.DASHBOARD}
                           className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all"
                           onClick={() => setDropdownOpen(false)}
                         >
@@ -242,24 +248,26 @@ export function Navbar() {
             <div className="flex items-center gap-3">
               <Link
                 to={ROUTES.LOGIN}
-                className="hidden sm:inline-flex h-11 items-center rounded-2xl px-5 text-sm font-extrabold text-[var(--text-primary)] hover:bg-[var(--bg-surface)] border border-transparent hover:border-[var(--border-default)] transition-all"
+                className="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all"
               >
                 Log In
               </Link>
               <Link
                 to={ROUTES.REGISTER}
-                className="inline-flex h-11 items-center rounded-2xl px-6 text-sm font-black bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:from-[#7C74FF] hover:to-[#9D71FB] text-white transition-all shadow-lg shadow-[#6C63FF]/30 active:scale-95"
+                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-md shadow-[#6C63FF]/25 hover:shadow-lg hover:shadow-[#6C63FF]/35 active:scale-95 transition-all"
               >
-                Get Started
+                Get Started Free
               </Link>
             </div>
           )}
         </div>
       </div>
+
       <StreakModal
         isOpen={streakModalOpen}
         onClose={() => setStreakModalOpen(false)}
-        userContext={user}
+        stats={liveStats}
+        onRefresh={() => setLiveStats(getLiveProgressStats(user))}
       />
     </header>
   );
