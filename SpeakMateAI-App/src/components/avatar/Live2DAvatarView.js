@@ -221,22 +221,22 @@ const LIVE2D_HTML = `
         const viewW = container.clientWidth || window.innerWidth;
         const viewH = container.clientHeight || window.innerHeight;
 
-        // Precision Upper-Body Framing: Zoom 1.25x (Face to just above folded hands)
+        // Precision Upper-Body Framing: Zoom 1.62x (Top of head to chest only, folded hands hidden)
         const baseScale = Math.min(viewW / model.width, viewH / model.height);
-        const portraitScale = baseScale * 1.25;
+        const portraitScale = baseScale * 1.62;
 
         model.scale.set(portraitScale);
         
-        // Exact Dead-Center in Concentric Halo Rings with Generous Subtitle Clearance
+        // Exact Dead-Center in Concentric Halo Rings with Clean Subtitle Clearance
         if (currentModelName === 'chitose') {
-          model.anchor.set(0.50, 0.24);
+          model.anchor.set(0.50, 0.22);
         } else {
-          // Haru centered in rings, positioned down to keep subtitle completely visible
-          model.anchor.set(0.52, 0.24);
+          // Haru's face centered dead-center in the rings
+          model.anchor.set(0.52, 0.22);
         }
 
         model.x = viewW / 2;
-        model.y = (viewH / 2) + 12; // Shifted down +12px to guarantee head doesn't clip the top boundary
+        model.y = viewH / 2;
 
         // Hook motionManager update to guarantee lipSync is never overridden by idle physics
         if (model.internalModel && model.internalModel.motionManager) {
