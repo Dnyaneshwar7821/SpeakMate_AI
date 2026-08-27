@@ -296,28 +296,38 @@ export default function SettingsScreen({ navigation }) {
 
             <View style={[styles.divider, { backgroundColor: dividerColor }]} />
 
-            {/* DYNAMIC ROW: Age Group for Individual Users vs School Grade for Students */}
+            {/* DYNAMIC ROW: Age Group (Locked for Students with Onboarding Note, Interactive for Individual Users) */}
             {isStudent ? (
-              <View style={styles.pickerRow}>
+              <TouchableOpacity 
+                style={[styles.pickerRow, { opacity: 0.65 }]}
+                activeOpacity={0.7}
+                onPress={() => {
+                  Alert.alert(
+                    'School Student Mode 🔒',
+                    `Your age group and learning curriculum are automatically managed according to your School Standard (${user?.schoolGrade || '1st Std'}) selected during onboarding.`
+                  );
+                }}
+              >
                 <View style={styles.pickerRowLeft}>
                   <View style={[styles.iconBox, { backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF' }]}>
-                    <Ionicons name="school" size={18} color="#6366F1" />
+                    <Ionicons name="people" size={18} color="#6366F1" />
                   </View>
                   <View style={{ flex: 1, paddingRight: 8 }}>
                     <Text style={[styles.rowTitle, { color: labelColor }]}>
-                      School Standard Grade
+                      Age Group 🔒 (Student Mode)
                     </Text>
                     <Text style={[styles.rowDesc, { color: sublabelColor }]}>
-                      Managed according to your school standard
+                      Auto-configured for {user?.schoolGrade || 'School Standard'} (Selected at Onboarding)
                     </Text>
                   </View>
                 </View>
                 <View style={styles.pickerRowRight}>
-                  <Text style={[styles.pickerValueText, { color: '#6366F1', fontWeight: '800' }]} numberOfLines={1} ellipsizeMode="tail">
-                    {user?.schoolGrade || '1st Std'}
+                  <Text style={[styles.pickerValueText, { color: '#6366F1', fontWeight: '700' }]} numberOfLines={1} ellipsizeMode="tail">
+                    {user?.schoolGrade || 'Standard Grade'}
                   </Text>
+                  <Ionicons name="lock-closed" size={16} color={sublabelColor} />
                 </View>
-              </View>
+              </TouchableOpacity>
             ) : (
               <TouchableOpacity 
                 style={styles.pickerRow} 
