@@ -4,6 +4,7 @@ import { useToast } from "../context/ToastContext";
 import { useTheme } from "../context/ThemeContext";
 import { speakGlobalText, VOICE_PROFILES, ACCENT_LIST } from "../utils/speechHelper";
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
+import { settingsService, onboardingService } from "../services/appServices";
 
 const LANGUAGE_OPTIONS = [
   { code: "English", label: "English", native: "English", flag: "🇺🇸" },
@@ -46,7 +47,7 @@ const normalizeAgeGroup = (rawAge) => {
 
 export function Settings() {
   const toast = useToast();
-  const { isDark, toggleTheme } = useTheme();
+  const { isDark, setTheme } = useTheme();
   const { user, updateUser, completeOnboarding } = useAuth();
 
   const savedAccent = localStorage.getItem("speakmate_voice_accent") || "US";
@@ -56,6 +57,7 @@ export function Settings() {
   const savedLang = localStorage.getItem("speakmate_app_language") || "English";
   const savedSpeed = parseFloat(localStorage.getItem("speakmate_voice_speed") || "1.0");
 
+  const [draftDark, setDraftDark] = useState(isDark);
   const [accent, setAccent] = useState(savedAccent);
   const [selectedVoice, setSelectedVoice] = useState(savedVoice);
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(savedAgeGroup);
@@ -110,14 +112,6 @@ export function Settings() {
   const handleSelectVoiceCode = (voiceCode, previewText) => {
     setSelectedVoice(voiceCode);
     playVoicePreview(voiceCode, previewText);
-
-    const profile = VOICE_PROFILES.find((p) => p.code === voiceCode);
-    const gender = profile?.gender || (voiceCode.toLowerCase().includes("male") && !voiceCode.toLowerCase().includes("female") ? "male" : "female");
-
-    localStorage.setItem("speakmate_ai_voice", voiceCode);
-    localStorage.setItem("speakmate_voice_code", voiceCode);
-    localStorage.setItem("speakmate_voice_gender", gender);
-    EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender });
   };
 
   const handleSaveSettings = async (e) => {
@@ -125,9 +119,13 @@ export function Settings() {
     setSaving(true);
 
     try {
+      // 1. Apply Theme change only on Save
+      setTheme(draftDark ? "dark" : "light");
+
       const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
       const gender = profile?.gender || (selectedVoice.toLowerCase().includes("male") && !selectedVoice.toLowerCase().includes("female") ? "male" : "female");
 
+      // 2. Persist voice & language preferences
       localStorage.setItem("speakmate_ai_voice", selectedVoice);
       localStorage.setItem("speakmate_voice_code", selectedVoice);
       localStorage.setItem("speakmate_voice_gender", gender);
@@ -140,6 +138,17 @@ export function Settings() {
       localStorage.setItem("speakmate_autoplay_audio", String(autoPlayAudio));
 
       EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender });
+
+      // 3. Sync to backend services
+      settingsService.update({
+        darkMode: draftDark,
+        aiVoice: selectedVoice,
+        language: selectedLang,
+        soundEffects,
+        autoPlayAudio,
+        dailyReminder: reminders,
+        notificationsEnabled: reminders,
+      }).catch(() => {});
 
       try {
         await completeOnboarding({
@@ -215,17 +224,18 @@ export function Settings() {
           <div className="space-y-0.5">
             <p className="text-xs font-black text-[var(--text-primary)]">Dark Theme</p>
             <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-              {isDark ? "Dark theme active (easier on eyes)" : "Light theme active"}
+              {draftDark ? "Dark theme selected (click Save to apply)" : "Light theme selected (click Save to apply)"}
             </p>
           </div>
           <button
-            onClick={toggleTheme}
+            type="button"
+            onClick={() => setDraftDark((prev) => !prev)}
             className={`w-14 h-7 rounded-full transition-all relative flex items-center px-1 ${
-              isDark ? "bg-[#6C63FF] justify-end" : "bg-gray-400 justify-start"
+              draftDark ? "bg-[#6C63FF] justify-end" : "bg-gray-400 justify-start"
             }`}
           >
             <span className="w-5 h-5 rounded-full bg-white shadow-md flex items-center justify-center text-[10px]">
-              {isDark ? "🌙" : "☀️"}
+              {draftDark ? "🌙" : "☀️"}
             </span>
           </button>
         </div>
