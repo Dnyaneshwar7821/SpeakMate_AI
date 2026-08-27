@@ -62,7 +62,7 @@ const defaults = {
 };
 
 export default function SettingsScreen({ navigation }) {
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const { isDark: globalIsDark, setDarkMode } = useTheme();
   const { showToast } = useToast();
   const [form, setForm] = useState(defaults);
@@ -144,10 +144,13 @@ export default function SettingsScreen({ navigation }) {
         await AsyncStorage.setItem('speakmate_ai_voice', form.aiVoice);
       }
 
-      // 3. Sync Age Group via Onboarding Service & AsyncStorage
+      // 3. Sync Age Group via Onboarding Service, AuthContext & AsyncStorage
       if (form.ageGroup) {
         await AsyncStorage.setItem('speakmate_age_group', form.ageGroup);
         await onboardingService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Onboarding age sync warning:', e));
+        if (updateUser) {
+          await updateUser({ ageGroup: form.ageGroup });
+        }
       }
 
       showToast('Preferences Saved ✓', 'success', 'All tutor voice and language settings updated');

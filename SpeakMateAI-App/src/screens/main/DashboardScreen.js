@@ -61,7 +61,7 @@ const DashboardCache = {
 import { useToast } from '../../context/ToastContext';
 
 export default function DashboardScreen({ navigation }) {
-  const { user } = useContext(AuthContext);
+  const { user, updateUser } = useContext(AuthContext);
   const { openDrawer, setProfile, setProgress } = useDrawer();
   const { isDark } = useTheme();
   const { showToast, triggerConfetti } = useToast();
@@ -106,6 +106,13 @@ export default function DashboardScreen({ navigation }) {
       if (dashboard) {
         if (dashboard.profile) {
           setProfile(dashboard.profile);
+          if (updateUser && (dashboard.profile.ageGroup || dashboard.profile.englishLevel)) {
+            updateUser({
+              ...(dashboard.profile.ageGroup ? { ageGroup: dashboard.profile.ageGroup } : {}),
+              ...(dashboard.profile.englishLevel ? { englishLevel: dashboard.profile.englishLevel } : {}),
+              ...(dashboard.profile.schoolGrade ? { schoolGrade: dashboard.profile.schoolGrade } : {}),
+            });
+          }
         }
         if (dashboard.progress) {
           setProgress(dashboard.progress);
