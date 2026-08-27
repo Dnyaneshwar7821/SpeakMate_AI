@@ -56,11 +56,17 @@ const LIVE2D_HTML = `
     let currentMouthY = 0;
     let currentMouthForm = 0;
     
-    // Interactive Touch / Gaze
+    // Interactive Touch / Gaze & Lifelike Saccades
     let targetLookX = 0;
     let targetLookY = 0;
     let currentLookX = 0;
     let currentLookY = 0;
+    let isPointerInteracting = false;
+    
+    // Natural Autonomous Saccadic Gaze Glances
+    let nextSaccadeTime = Date.now() + 2000;
+    let saccadeTargetX = 0;
+    let saccadeTargetY = 0;
     
     // Natural Blinking
     let nextBlinkTime = Date.now() + 2500;
@@ -70,9 +76,8 @@ const LIVE2D_HTML = `
     async function init() {
       try {
         const container = document.getElementById('canvas-container');
-        // Force true 100vw/100vh viewport size to prevent 300x300 square squashing
         const width = container.clientWidth || window.innerWidth || 360;
-        const height = container.clientHeight || window.innerHeight || 218;
+        const height = container.clientHeight || window.innerHeight || 200;
 
         app = new PIXI.Application({
           width: width,
@@ -92,10 +97,14 @@ const LIVE2D_HTML = `
 
         // Touch tracking listeners
         window.addEventListener('pointermove', onPointerMove);
-        window.addEventListener('pointerdown', onPointerMove);
+        window.addEventListener('pointerdown', onPointerDown);
         window.addEventListener('pointerup', onPointerReset);
+        window.addEventListener('pointercancel', onPointerReset);
 
-        // Core ticker loop
+        // Window resize responsive adjustment
+        window.addEventListener('resize', onResize);
+
+        // Core ticker loop (60 FPS fluid rendering)
         app.ticker.add((delta) => {
           if (!model || !model.internalModel) return;
 
@@ -105,18 +114,30 @@ const LIVE2D_HTML = `
           const now = Date.now();
           const t = now / 1000;
 
-          // 1. Natural Breathing
+          // 1. Natural Breathing Physics (chest & hair resonance)
           const breath = (Math.sin(t * 1.8) + 1) * 0.45;
           setParam(core, 'ParamBreath', 'PARAM_BREATH', breath);
 
-          // 2. Smooth Gaze & Head Lerp
-          currentLookX += (targetLookX - currentLookX) * 0.08;
-          currentLookY += (targetLookY - currentLookY) * 0.08;
+          // 2. Autonomous Saccadic Eye Movements (Lifelike Glances)
+          if (!isPointerInteracting) {
+            if (now > nextSaccadeTime) {
+              saccadeTargetX = (Math.random() - 0.5) * 0.35;
+              saccadeTargetY = (Math.random() - 0.5) * 0.20;
+              nextSaccadeTime = now + 2200 + Math.random() * 3500;
+            }
+            targetLookX = saccadeTargetX;
+            targetLookY = saccadeTargetY;
+          }
 
-          setParam(core, 'ParamEyeBallX', 'PARAM_EYE_BALL_X', currentLookX * 0.75);
-          setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', currentLookY * 0.75);
-          setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', currentLookX * 22);
-          setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', currentLookY * 18);
+          // Smooth Gaze & Head Lerping
+          currentLookX += (targetLookX - currentLookX) * 0.09;
+          currentLookY += (targetLookY - currentLookY) * 0.09;
+
+          setParam(core, 'ParamEyeBallX', 'PARAM_EYE_BALL_X', currentLookX * 0.85);
+          setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', currentLookY * 0.85);
+          setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', currentLookX * 18);
+          setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', currentLookY * 14);
+          setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', currentLookX * 6);
 
           // 3. Stochastic Blinking Cycle
           if (now > nextBlinkTime && !isBlinking) {
@@ -125,48 +146,71 @@ const LIVE2D_HTML = `
           }
 
           if (isBlinking) {
-            blinkProgress += 0.14 * delta;
+            blinkProgress += 0.15 * delta;
             const eyeOpen = Math.max(0, 1 - Math.sin(blinkProgress * Math.PI));
             setParam(core, 'ParamEyeLOpen', 'PARAM_EYE_L_OPEN', eyeOpen);
             setParam(core, 'ParamEyeROpen', 'PARAM_EYE_R_OPEN', eyeOpen);
 
             if (blinkProgress >= 1.0) {
               isBlinking = false;
-              nextBlinkTime = now + 2000 + Math.random() * 3200;
+              nextBlinkTime = now + 2400 + Math.random() * 3600;
             }
           }
 
-          // 4. State Gestures
-          if (currentState === 'thinking') {
-            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', -7.0);
-            setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', 0.5);
-            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', -0.3);
-            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', -0.3);
-          } else if (currentState === 'listening') {
-            setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', 4.0);
-            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', -2.5);
-            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', 0.3);
-            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', 0.3);
+          // 4. Mood & Expression Dynamics
+          const isHappy = currentMood === 'happy' || currentMood === 'encouraging';
+          if (isHappy) {
+            setParam(core, 'ParamEyeLSmile', 'PARAM_EYE_L_SMILE', 0.85);
+            setParam(core, 'ParamEyeRSmile', 'PARAM_EYE_R_SMILE', 0.85);
+            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', 0.2);
+            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', 0.2);
+          } else {
+            setParam(core, 'ParamEyeLSmile', 'PARAM_EYE_L_SMILE', 0.0);
+            setParam(core, 'ParamEyeRSmile', 'PARAM_EYE_R_SMILE', 0.0);
           }
 
-          // 5. Dynamic Phonetic Lip-Sync
+          // 5. State-Driven Posture & Micro-Gestures
+          if (currentState === 'thinking') {
+            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', -6.5);
+            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', 3.5 + Math.sin(t * 1.2) * 0.8);
+            setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', 0.45);
+            setParam(core, 'ParamEyeBallX', 'PARAM_EYE_BALL_X', -0.25);
+            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', -0.35);
+            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', -0.35);
+          } else if (currentState === 'listening') {
+            const nod = Math.sin(t * 2.0) * 1.5;
+            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', 4.5);
+            setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', 3.0);
+            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', -2.0 + nod);
+            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', 0.35);
+            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', 0.35);
+            setParam(core, 'ParamEyeLOpen', 'PARAM_EYE_L_OPEN', 1.05);
+            setParam(core, 'ParamEyeROpen', 'PARAM_EYE_R_OPEN', 1.05);
+          } else if (currentState === 'idle') {
+            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', Math.sin(t * 0.9) * 1.2);
+          }
+
+          // 6. Dynamic Phonetic Lip-Sync & Speaking Head Nodding
           if (isSpeaking) {
-            mouthPhase += 0.36 * delta;
+            mouthPhase += 0.38 * delta;
             
             // Dynamic multi-frequency viseme oscillation
             const rawOpen = Math.abs(Math.sin(mouthPhase)) * 0.75 + Math.abs(Math.cos(mouthPhase * 0.65)) * 0.3;
-            const targetMouthY = Math.min(1.0, Math.max(0.15, rawOpen));
-            const targetMouthForm = (currentMood === 'happy' || currentMood === 'encouraging') ? 1.0 : (Math.sin(mouthPhase * 0.5) * 0.4 + 0.3);
+            const targetMouthY = Math.min(1.0, Math.max(0.18, rawOpen));
+            const targetMouthForm = isHappy ? 1.0 : (Math.sin(mouthPhase * 0.5) * 0.4 + 0.35);
 
-            currentMouthY += (targetMouthY - currentMouthY) * 0.4;
-            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.4;
+            currentMouthY += (targetMouthY - currentMouthY) * 0.42;
+            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.42;
 
-            // Speech head nodding
-            const headBob = (currentLookY * 18) + Math.sin(mouthPhase * 0.7) * 2.8;
+            // Rhythmic speech head bob & body rhythm
+            const headBob = (currentLookY * 14) + Math.sin(mouthPhase * 0.7) * 3.2;
+            const headTilt = Math.cos(mouthPhase * 0.4) * 2.0;
             setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', headBob);
+            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', headTilt);
+            setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', Math.sin(mouthPhase * 0.35) * 2.5);
           } else {
-            currentMouthY += (0 - currentMouthY) * 0.25;
-            currentMouthForm = (currentMood === 'happy' || currentMood === 'encouraging') ? 0.8 : 0;
+            currentMouthY += (0 - currentMouthY) * 0.28;
+            currentMouthForm = isHappy ? 0.9 : 0.2;
           }
 
           // Apply Mouth Open & Form forcefully
@@ -191,6 +235,11 @@ const LIVE2D_HTML = `
       } catch(e) {}
     }
 
+    function onPointerDown(e) {
+      isPointerInteracting = true;
+      onPointerMove(e);
+    }
+
     function onPointerMove(e) {
       const rect = app.view.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
@@ -200,8 +249,23 @@ const LIVE2D_HTML = `
     }
 
     function onPointerReset() {
+      isPointerInteracting = false;
       targetLookX = 0;
       targetLookY = 0;
+    }
+
+    function onResize() {
+      if (!app || !model) return;
+      const container = document.getElementById('canvas-container');
+      const viewW = container.clientWidth || window.innerWidth || 360;
+      const viewH = container.clientHeight || window.innerHeight || 200;
+      app.renderer.resize(viewW, viewH);
+      const baseScale = Math.min(viewW / model.width, viewH / model.height);
+      const portraitScale = baseScale * 1.58;
+      model.scale.set(portraitScale);
+      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.22);
+      model.x = viewW / 2;
+      model.y = viewH / 2;
     }
 
     async function loadModel(url, modelName) {
@@ -218,12 +282,12 @@ const LIVE2D_HTML = `
         
         // Get true physical bounds from the DOM to prevent square fallback stretching
         const container = document.getElementById('canvas-container');
-        const viewW = container.clientWidth || window.innerWidth;
-        const viewH = container.clientHeight || window.innerHeight;
+        const viewW = container.clientWidth || window.innerWidth || 360;
+        const viewH = container.clientHeight || window.innerHeight || 200;
 
-        // Precision Upper-Body Framing: Zoom 1.62x (Top of head to chest only, folded hands hidden)
+        // Precision Upper-Body Framing: Zoom 1.58x (Top of head to chest only, folded hands hidden)
         const baseScale = Math.min(viewW / model.width, viewH / model.height);
-        const portraitScale = baseScale * 1.62;
+        const portraitScale = baseScale * 1.58;
 
         model.scale.set(portraitScale);
         

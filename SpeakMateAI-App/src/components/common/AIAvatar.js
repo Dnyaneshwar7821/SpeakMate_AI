@@ -423,8 +423,8 @@ export default function AIAvatar({
           {/* Layer 7: Centered Soft Torso Dissolve (20-30px above Ready pill) */}
           <LinearGradient
             pointerEvents="none"
-            colors={['transparent', 'rgba(11, 15, 25, 0.55)', '#0B0F19']}
-            locations={[0, 0.45, 1.0]}
+            colors={['transparent', 'rgba(11, 15, 25, 0.40)', 'rgba(11, 15, 25, 0.85)', '#0B0F19']}
+            locations={[0, 0.35, 0.75, 1.0]}
             style={styles.softTorsoDissolve}
           />
         </Animated.View>
@@ -578,11 +578,11 @@ const styles = StyleSheet.create({
   // 7. Soft Torso Dissolve (Centered over chest, zero line artifacts)
   softTorsoDissolve: {
     position:     'absolute',
-    width:        220,
-    height:       36,
+    width:        260,
+    height:       42,
     bottom:       0,
     alignSelf:    'center',
-    borderRadius: 18,
+    borderRadius: 21,
     zIndex:       12,
     elevation:    10, // Forces gradient to render above Android WebView
   },
