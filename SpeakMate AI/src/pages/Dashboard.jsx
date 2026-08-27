@@ -6,7 +6,7 @@ import { useTheme } from "../context/ThemeContext";
 import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
-import { getLiveProgressStats, recordSpeakingSession, buyStreakFreeze } from "../utils/progressTracker";
+import { getLiveProgressStats, recordSpeakingSession, buyStreakFreeze, syncBackendProgress } from "../utils/progressTracker";
 import { StreakModal } from "../components/dashboard/StreakModal";
 
 const getRankTier = (xp = 0) => {
@@ -82,15 +82,15 @@ export function Dashboard() {
       .summary()
       .then((data) => {
         if (data) {
-          const liveStats = getLiveProgressStats(user);
+          const synced = syncBackendProgress(data, user);
           setStats((prev) => ({
             ...prev,
             ...data,
-            ...liveStats,
-            streak: Number(data.streak ?? data.progress?.streak ?? liveStats.streak ?? user?.streak ?? 0),
-            xp: Number(data.xp ?? data.progress?.xp ?? liveStats.xp ?? user?.xp ?? 0),
-            todayMins: liveStats.todayMins ?? prev.todayMins ?? 0,
-            completedMins: liveStats.todayMins ?? prev.todayMins ?? 0,
+            ...synced,
+            streak: Number(data.streak ?? data.progress?.streak ?? synced.streak ?? 0),
+            xp: Number(data.xp ?? data.progress?.xp ?? synced.xp ?? 0),
+            todayMins: synced.todayMins ?? prev.todayMins ?? 0,
+            completedMins: synced.todayMins ?? prev.todayMins ?? 0,
           }));
         }
       })

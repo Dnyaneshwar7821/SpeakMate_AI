@@ -1,4 +1,4 @@
-// src/utils/progressTracker.js
+import { progressService } from "../services/appServices";
 
 const getStorageKey = (userContext = null) => {
   let user = userContext;
@@ -10,6 +10,24 @@ const getStorageKey = (userContext = null) => {
   }
   const identifier = user?.id || user?.email || user?.username || "guest";
   return `speakmate_user_progress_stats_${identifier}`;
+};
+
+const persistProgressToBackend = (stats) => {
+  if (!stats) return;
+  try {
+    const token = localStorage.getItem("speakmate_auth_token");
+    if (!token) return;
+    progressService.update({
+      xp: stats.xp || 0,
+      level: Math.max(1, Math.floor((stats.xp || 0) / 500) + 1),
+      currentStreak: stats.streak || 0,
+      longestStreak: stats.longestStreak || stats.streak || 0,
+      totalPracticeMinutes: stats.speakingMins || 0,
+      totalSpeakingSessions: stats.speakingSessions || 0,
+      totalGrammarChecks: stats.grammarChecks || 0,
+      totalVocabularyWords: stats.wordsLearned || 0,
+    }).catch(() => {});
+  } catch (e) {}
 };
 
 const getLocalDateStr = (d = new Date()) => {
@@ -180,7 +198,7 @@ export const getLiveProgressStats = (userContext = null) => {
   };
 };
 
-export const saveProgressStats = (stats, userContext = null) => {
+export const saveProgressStats = (stats, userContext = null, syncToBackend = true) => {
   const key = getStorageKey(userContext);
   try {
     localStorage.setItem(key, JSON.stringify(stats));
@@ -188,6 +206,51 @@ export const saveProgressStats = (stats, userContext = null) => {
       window.dispatchEvent(new CustomEvent("speakmate_progress_updated", { detail: stats }));
     }
   } catch (e) {}
+
+  if (syncToBackend) {
+    persistProgressToBackend(stats);
+  }
+};
+
+export const syncBackendProgress = (backendData, userContext = null) => {
+  if (!backendData) return getLiveProgressStats(userContext);
+  const current = getLiveProgressStats(userContext);
+
+  const backendXp = Number(
+    backendData.xp ??
+    backendData.progress?.xp ??
+    backendData.profile?.xp ??
+    userContext?.xp ??
+    current.xp ??
+    0
+  );
+
+  const backendStreak = Number(
+    backendData.streak ??
+    backendData.progress?.currentStreak ??
+    backendData.progress?.streak ??
+    userContext?.streak ??
+    current.streak ??
+    0
+  );
+
+  const backendMins = Number(
+    backendData.progress?.totalPracticeMinutes ??
+    backendData.totalPracticeMinutes ??
+    current.speakingMins ??
+    0
+  );
+
+  const synced = {
+    ...current,
+    xp: backendXp,
+    streak: backendStreak,
+    speakingMins: Math.max(current.speakingMins, backendMins),
+    longestStreak: Math.max(current.longestStreak || 0, backendStreak),
+  };
+
+  saveProgressStats(synced, userContext, false);
+  return synced;
 };
 
 // Check and increment streak when daily target is satisfied

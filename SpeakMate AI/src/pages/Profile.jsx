@@ -126,13 +126,15 @@ export function Profile() {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState("");
 
-  const rank = getRankTier(liveStats.xp || user?.xp || 150);
+  const rank = getRankTier(liveStats.xp || user?.xp || 0);
 
   useEffect(() => {
     profileService
       .get()
       .then((profile) => {
         if (profile) {
+          syncBackendProgress(profile, user);
+          setLiveStats(getLiveProgressStats(user));
           setForm({
             firstName: profile.firstName || user?.firstName || "",
             lastName: profile.lastName || user?.lastName || "",

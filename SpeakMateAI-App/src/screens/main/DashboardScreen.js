@@ -106,11 +106,13 @@ export default function DashboardScreen({ navigation }) {
       if (dashboard) {
         if (dashboard.profile) {
           setProfile(dashboard.profile);
-          if (updateUser && (dashboard.profile.ageGroup || dashboard.profile.englishLevel)) {
+          if (updateUser) {
             updateUser({
               ...(dashboard.profile.ageGroup ? { ageGroup: dashboard.profile.ageGroup } : {}),
               ...(dashboard.profile.englishLevel ? { englishLevel: dashboard.profile.englishLevel } : {}),
               ...(dashboard.profile.schoolGrade ? { schoolGrade: dashboard.profile.schoolGrade } : {}),
+              ...(dashboard.progress?.xp !== undefined ? { xp: dashboard.progress.xp } : {}),
+              ...(dashboard.progress?.currentStreak !== undefined ? { streak: dashboard.progress.currentStreak } : {}),
             });
           }
         }
