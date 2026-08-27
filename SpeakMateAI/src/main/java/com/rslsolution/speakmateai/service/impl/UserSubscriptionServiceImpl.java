@@ -226,31 +226,35 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 					.build();
 		}
 
-		// Check latest active subscription
-		Optional<UserSubscription> subOpt = userSubscriptionRepository.findFirstByUserAndStatusOrderByCreatedAtDesc(user, "ACTIVE");
+		try {
+			// Check latest active subscription
+			Optional<UserSubscription> subOpt = userSubscriptionRepository.findFirstByUserAndStatusOrderByCreatedAtDesc(user, "ACTIVE");
 
-		if (subOpt.isPresent()) {
-			UserSubscription sub = subOpt.get();
-			LocalDateTime now = LocalDateTime.now();
+			if (subOpt.isPresent()) {
+				UserSubscription sub = subOpt.get();
+				LocalDateTime now = LocalDateTime.now();
 
-			if (sub.getEndDate() != null && sub.getEndDate().isAfter(now)) {
-				return SubscriptionStatusResponse.builder()
-						.isPro(true)
-						.planType(sub.getPlanType())
-						.status("ACTIVE")
-						.startDate(sub.getStartDate())
-						.endDate(sub.getEndDate())
-						.dailyMinutesLimit(9999)
-						.dailyMinutesUsed(0)
-						.dailyGrammarLimit(9999)
-						.dailyGrammarUsed(0)
-						.message("SpeakMate Pro is active.")
-						.build();
-			} else {
-				// Expired
-				sub.setStatus("EXPIRED");
-				userSubscriptionRepository.save(sub);
+				if (sub.getEndDate() != null && sub.getEndDate().isAfter(now)) {
+					return SubscriptionStatusResponse.builder()
+							.isPro(true)
+							.planType(sub.getPlanType() != null ? sub.getPlanType() : "FREE")
+							.status("ACTIVE")
+							.startDate(sub.getStartDate())
+							.endDate(sub.getEndDate())
+							.dailyMinutesLimit(9999)
+							.dailyMinutesUsed(0)
+							.dailyGrammarLimit(9999)
+							.dailyGrammarUsed(0)
+							.message("SpeakMate Pro is active.")
+							.build();
+				} else {
+					// Expired
+					sub.setStatus("EXPIRED");
+					userSubscriptionRepository.save(sub);
+				}
 			}
+		} catch (Exception ex) {
+			logger.warn("[SubscriptionService] Could not fetch subscription from database, falling back to default plan: {}", ex.getMessage());
 		}
 
 		// Default Free Tier

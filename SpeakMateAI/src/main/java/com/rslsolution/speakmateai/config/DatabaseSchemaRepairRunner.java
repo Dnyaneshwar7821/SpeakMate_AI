@@ -137,9 +137,31 @@ public class DatabaseSchemaRepairRunner implements CommandLineRunner {
                 } catch (Exception ex) {
                     logger.debug("[Schema Repair] Table check/update notice for {}: {}", table, ex.getMessage());
                 }
+            // 4. Ensure user_subscriptions table has all required columns and valid defaults
+            String[] subscriptionColumnMigrations = {
+                "CREATE TABLE IF NOT EXISTS user_subscriptions (id BIGSERIAL PRIMARY KEY, user_id BIGINT NOT NULL, plan_type VARCHAR(255) DEFAULT 'FREE', status VARCHAR(255) DEFAULT 'ACTIVE', amount NUMERIC(38,2), currency VARCHAR(255) DEFAULT 'INR', razorpay_order_id VARCHAR(255), razorpay_payment_id VARCHAR(255), razorpay_signature VARCHAR(255), start_date TIMESTAMP, end_date TIMESTAMP, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS plan_type VARCHAR(255) DEFAULT 'FREE'",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS status VARCHAR(255) DEFAULT 'ACTIVE'",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS amount NUMERIC(38,2)",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS currency VARCHAR(255) DEFAULT 'INR'",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS razorpay_order_id VARCHAR(255)",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS razorpay_payment_id VARCHAR(255)",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS razorpay_signature VARCHAR(255)",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS start_date TIMESTAMP",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS end_date TIMESTAMP",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+                "ALTER TABLE IF EXISTS user_subscriptions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+            };
+
+            for (String sql : subscriptionColumnMigrations) {
+                try {
+                    jdbcTemplate.execute(sql);
+                } catch (Exception ex) {
+                    logger.debug("[Schema Repair] Subscription migration notice: {} - {}", sql, ex.getMessage());
+                }
             }
 
-            logger.info("[Schema Repair] Database schema foreign key repair completed successfully!");
+            logger.info("[Schema Repair] Database schema foreign key and subscription repair completed successfully!");
         } catch (Exception e) {
             logger.error("[Schema Repair] Unexpected error during schema repair: {}", e.getMessage(), e);
         }
