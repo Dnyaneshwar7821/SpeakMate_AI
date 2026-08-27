@@ -425,10 +425,10 @@ export default function AIAvatar({
             pointerEvents="none"
             colors={[
               'transparent',
-              'rgba(11, 15, 25, 0.12)',
-              'rgba(11, 15, 25, 0.60)',
-              '#0B0F19',
-              '#0B0F19'
+              'rgba(15, 23, 42, 0.20)',
+              'rgba(15, 23, 42, 0.70)',
+              '#0F172A',
+              '#0F172A'
             ]}
             locations={[0, 0.35, 0.70, 0.92, 1.0]}
             style={styles.bottomTorsoFade}
@@ -477,8 +477,8 @@ export default function AIAvatar({
 // ── Target Stage Dimensions (Dual Halo: 172px Inner & 232px Outer) ───────────
 const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
 const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
-const AVATAR_WIDTH    = 280; // Ample width for full ponytail & both shoulders
-const AVATAR_HEIGHT   = 200; // Generous height with natural headroom
+const AVATAR_WIDTH    = 320; // Ample width for full ponytail & both shoulders
+const AVATAR_HEIGHT   = 280; // Generous height with natural headroom
 
 const styles = StyleSheet.create({
   container: {
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
     left:     0,
     right:    0,
     bottom:   0,
-    height:   76,
+    height:   110,
     zIndex:   12,
   },
 

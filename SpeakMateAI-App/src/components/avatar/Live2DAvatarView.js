@@ -360,7 +360,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
         onError={(err) => onError && onError(err)}
         javaScriptEnabled={true}
         domStorageEnabled={true}
-        androidLayerType="hardware"
+        androidLayerType="software"
       />
       {!isReady && (
         <View style={styles.loadingOverlay}>
