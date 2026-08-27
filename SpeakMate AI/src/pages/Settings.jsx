@@ -202,13 +202,6 @@ export function Settings() {
             Customize target accents, AI tutor voice pitch profiles, themes, pace, and notifications.
           </p>
         </div>
-        <button
-          onClick={handleSaveSettings}
-          disabled={saving}
-          className="px-7 py-3.5 rounded-2xl bg-white text-[#6C63FF] hover:bg-white/90 disabled:opacity-50 text-xs sm:text-sm font-black shadow-xl hover:scale-105 active:scale-95 transition-all shrink-0 flex items-center gap-2"
-        >
-          <span>{saving ? "Saving..." : "💾 Save All Settings"}</span>
-        </button>
       </div>
 
       {saved && (
