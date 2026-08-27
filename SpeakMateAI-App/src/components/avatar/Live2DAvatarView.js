@@ -215,16 +215,16 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // Face to just above chest framing: Zoom 1.58x
+        // Natural Bust Framing: Zoom 1.38x (Ends naturally inside canvas with zero bottom cutoff)
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
-        const portraitScale = baseScale * 1.58;
+        const portraitScale = baseScale * 1.38;
 
         model.scale.set(portraitScale);
         
-        // Lifted upward to use top headroom (Head near top, shoulders visible, no bottom cutoff)
+        // Lifted upward to use top headroom (Head near top, shoulders & scarf fully visible)
         if (currentModelName === 'chitose') {
           model.anchor.set(0.5, 0.0);
-          model.y = 4;
+          model.y = 0;
         } else {
           // Haru lifted right to the top
           model.anchor.set(0.5, 0.0);
@@ -377,7 +377,7 @@ const styles = StyleSheet.create({
     height: '100%',
     position: 'relative',
     backgroundColor: 'transparent',
-    overflow: 'hidden',
+    overflow: 'visible',
   },
   webview: {
     flex: 1,
