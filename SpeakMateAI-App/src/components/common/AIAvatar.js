@@ -419,6 +419,14 @@ export default function AIAvatar({
               resizeMode="contain"
             />
           )}
+
+          {/* Layer 7: Centered Soft Torso Dissolve (20-30px above Ready pill) */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={['transparent', 'rgba(11, 15, 25, 0.55)', '#0B0F19']}
+            locations={[0, 0.45, 1.0]}
+            style={styles.softTorsoDissolve}
+          />
         </Animated.View>
       </View>
 
@@ -567,13 +575,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // 8. Glassmorphic Status Pill
+  // 7. Soft Torso Dissolve (Centered over chest, zero line artifacts)
+  softTorsoDissolve: {
+    position:     'absolute',
+    width:        220,
+    height:       36,
+    bottom:       0,
+    alignSelf:    'center',
+    borderRadius: 18,
+    zIndex:       12,
+  },
+
+  // 8. Glassmorphic Status Pill (20-30px Spacing)
   statusPill: {
     flexDirection:     'row',
     alignItems:        'center',
     justifyContent:    'center',
     gap:               8,
-    marginTop:         6,
+    marginTop:         14,
     minWidth:          120,
     paddingHorizontal: 15,
     paddingVertical:   6.5,

@@ -215,18 +215,18 @@ const LIVE2D_HTML = `
       try {
         model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
         
-        // Natural Circle Framing: Zoom 1.55x (Prominent face, uncropped head, fits halo rings)
+        // Precision Portrait Framing: Zoom 1.62x (Eyes at ring center, 25px headroom below subtitle)
         const baseScale = Math.min(app.view.width / model.width, app.view.height / model.height);
-        const portraitScale = baseScale * 1.55;
+        const portraitScale = baseScale * 1.62;
 
         model.scale.set(portraitScale);
         
-        // Exact Dead-Center Facial Alignment with Halo Rings
+        // Exact Eye-to-Ring Center Alignment (0.52, 0.23 sets anchor directly at eye-level)
         if (currentModelName === 'chitose') {
-          model.anchor.set(0.50, 0.22);
+          model.anchor.set(0.50, 0.23);
         } else {
-          // Anchor set directly to Haru's facial center (0.51, 0.22)
-          model.anchor.set(0.51, 0.22);
+          // Haru's eyes anchored dead-center to the inner glowing ring
+          model.anchor.set(0.52, 0.23);
         }
 
         model.x = app.view.width / (2 * (window.devicePixelRatio || 2));
