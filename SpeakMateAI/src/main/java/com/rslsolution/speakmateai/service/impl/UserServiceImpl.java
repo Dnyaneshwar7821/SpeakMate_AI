@@ -116,15 +116,19 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void sendRegistrationOtp(SendRegistrationOtpRequest request) {
+		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		if (cleanEmail.isEmpty()) {
+			throw new IllegalArgumentException("Email is required.");
+		}
 
-		if (userRepository.existsByEmail(request.getEmail())) {
+		if (userRepository.existsByEmail(cleanEmail)) {
 			throw new DuplicateEmailException("Email is already registered. Please sign in instead.");
 		}
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
-		registrationOtpMap.put(request.getEmail().toLowerCase(), new RegistrationOtpDetails(otp, LocalDateTime.now().plusMinutes(10)));
+		registrationOtpMap.put(cleanEmail, new RegistrationOtpDetails(otp, LocalDateTime.now().plusMinutes(10)));
 
-		System.out.println("[Registration OTP Generated] OTP for " + request.getEmail() + " is: " + otp);
+		System.out.println("[Registration OTP Generated] OTP for " + cleanEmail + " is: " + otp);
 
 		String htmlContent = String.format(
 			"<!DOCTYPE html>\n" +
@@ -157,7 +161,7 @@ public class UserServiceImpl implements UserService {
 			"</body>\n" +
 			"</html>", otp);
 
-		sendAsyncEmail(request.getEmail(), "Verify Your Email - SpeakMateAI Registration", htmlContent, otp);
+		sendAsyncEmail(cleanEmail, "Verify Your Email - SpeakMateAI Registration", htmlContent, otp);
 	}
 
 	@Override
@@ -182,7 +186,7 @@ public class UserServiceImpl implements UserService {
 			throw new IllegalArgumentException("OTP verification code has expired. Please request a new code.");
 		}
 
-		if (!otpDetails.getOtp().equals(otp)) {
+		if (!otpDetails.getOtp().trim().equals(otp)) {
 			throw new IllegalArgumentException("Invalid OTP verification code. Please check your email and try again.");
 		}
 
@@ -193,8 +197,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponse register(RegisterRequest request) {
+		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 
-		if (userRepository.existsByEmail(request.getEmail())) {
+		if (userRepository.existsByEmail(cleanEmail)) {
 			throw new DuplicateEmailException("Email already exists.");
 		}
 
@@ -203,13 +208,14 @@ public class UserServiceImpl implements UserService {
 		}
 
 		// Verify registration OTP
-		RegistrationOtpDetails otpDetails = registrationOtpMap.get(request.getEmail().toLowerCase());
+		RegistrationOtpDetails otpDetails = registrationOtpMap.get(cleanEmail);
 		String inputOtp = request.getOtp() != null ? request.getOtp().trim() : "";
-		if (otpDetails == null || !otpDetails.getOtp().equals(inputOtp)) {
+		if (otpDetails == null || !otpDetails.getOtp().trim().equals(inputOtp)) {
 			throw new IllegalArgumentException("Invalid OTP verification code. Please check your email and try again.");
 		}
 
 		if (otpDetails.getExpiry().isBefore(LocalDateTime.now())) {
+			registrationOtpMap.remove(cleanEmail);
 			throw new IllegalArgumentException("OTP verification code has expired. Please request a new code.");
 		}
 
