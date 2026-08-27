@@ -78,7 +78,9 @@ export default function SpeakingSummaryScreen({ navigation, route }) {
           </View>
         </View>
 
-        <Text style={styles.congratsText}>Excellent Work! 🎉</Text>
+        <Text style={styles.congratsText}>
+          {score >= 80 ? 'Excellent Work! 🎉' : score >= 50 ? 'Good Practice! 👍' : score > 0 ? 'Keep Going! 💪' : 'Session Ended 🎙️'}
+        </Text>
         <Text style={styles.motivationText}>
           {summary?.motivationalMessage || "Keep practicing every day to sound more natural and confident."}
         </Text>
@@ -107,6 +109,34 @@ export default function SpeakingSummaryScreen({ navigation, route }) {
 
       {/* ── Feedback Sections ── */}
       <View style={styles.detailsContainer}>
+        {/* Skill Scores Breakdown */}
+        {score > 0 && (summary?.fluencyScore || summary?.grammarScore || summary?.vocabularyScore || summary?.pronunciationScore) ? (
+          <View style={[styles.detailCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }]}>
+            <View style={styles.detailHeader}>
+              <Ionicons name="stats-chart-outline" size={18} color={COLORS.primary} />
+              <Text style={[styles.detailTitle, { color: theme.textPrimary }]}>Skill Evaluation Breakdown</Text>
+            </View>
+            <View style={{ gap: 10, marginTop: 4 }}>
+              {[
+                { label: '🗣️ Fluency & Flow', val: summary?.fluencyScore || score, color: '#3B82F6' },
+                { label: '✍️ Grammar Accuracy', val: summary?.grammarScore || score, color: '#10B981' },
+                { label: '📖 Vocabulary Variety', val: summary?.vocabularyScore || score, color: '#8B5CF6' },
+                { label: '🎙️ Speech Clarity', val: summary?.pronunciationScore || score, color: '#F59E0B' },
+              ].map((skill, idx) => (
+                <View key={idx}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: theme.textPrimary }}>{skill.label}</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: skill.color }}>{Math.round(skill.val)}%</Text>
+                  </View>
+                  <View style={{ height: 6, backgroundColor: isDark ? '#334155' : '#E2E8F0', borderRadius: 3, overflow: 'hidden' }}>
+                    <View style={{ width: `${Math.min(100, Math.max(0, skill.val))}%`, height: '100%', backgroundColor: skill.color, borderRadius: 3 }} />
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         {/* Summary */}
         <View style={[styles.detailCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }]}>
           <View style={styles.detailHeader}>

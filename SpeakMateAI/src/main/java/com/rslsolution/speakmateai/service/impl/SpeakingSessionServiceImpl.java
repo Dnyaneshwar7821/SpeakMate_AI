@@ -797,141 +797,248 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		List<ConversationMessage> history = messageRepository.findBySessionOrderByTimestampAsc(session);
 
 		// Calculate duration
-		long durationSeconds = 30;
+		long durationSeconds = 0;
 		if (session.getCreatedAt() != null) {
 			durationSeconds = Duration.between(session.getCreatedAt(), LocalDateTime.now()).toSeconds();
-			if (durationSeconds <= 0) durationSeconds = 30;
+			if (durationSeconds < 0) durationSeconds = 0;
 		}
 
-		// Build transcript text for AI review
+		// Calculate user participation metrics
+		int userMessageCount = 0;
+		int userWordCount = 0;
 		StringBuilder transcriptBuilder = new StringBuilder();
 		for (ConversationMessage m : history) {
-			transcriptBuilder.append(m.getSender().toUpperCase()).append(": ").append(m.getMessage()).append("\n");
+			String sender = m.getSender() != null ? m.getSender().trim() : "";
+			String msg = m.getMessage() != null ? m.getMessage().trim() : "";
+			transcriptBuilder.append(sender.toUpperCase()).append(": ").append(msg).append("\n");
+			if ("user".equalsIgnoreCase(sender) && !msg.isEmpty()) {
+				userMessageCount++;
+				userWordCount += msg.split("\\s+").length;
+			}
 		}
 		String fullTranscript = transcriptBuilder.toString();
 
-		// Request overall evaluation from Groq
-		List<GroqRequest.Message> messages = new ArrayList<>();
-		String sysPrompt =
-				"Review the following transcript of an English speaking practice session. " +
-				"Evaluate the student's performance and summarize the feedback.\n\n" +
-				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in markdown or ```json. Do not include any text or explanations outside the JSON object.\n" +
-				"The JSON must have these exact fields and structure:\n" +
-				"{\n" +
-				"  \"score\": 85.0,\n" +
-				"  \"summary\": \"A short summary of how the conversation went.\",\n" +
-				"  \"vocabularyLearned\": \"Key words or phrases suggested to the student during the session.\",\n" +
-				"  \"grammarCorrections\": \"Summary of grammar errors noted.\",\n" +
-				"  \"betterSentences\": \"Alternative native phrasing suggestions.\",\n" +
-				"  \"motivationalMessage\": \"A warm, encouraging wrap-up message.\"\n" +
-				"}\n\n" +
-				"Important: Escape any double quotes inside string values as \\\" to ensure the JSON is valid.";
-		messages.add(new GroqRequest.Message("system", sysPrompt));
-		messages.add(new GroqRequest.Message("user", "Transcript:\n" + fullTranscript));
+		double overallScore = 0.0;
+		double grammarScore = 0.0;
+		double vocabularyScore = 0.0;
+		double fluencyScore = 0.0;
+		double pronunciationScore = 0.0;
+		int xp = 0;
+		int mistakes = 0;
 
-		double score = 75.0;
-		String summary = "Completed speaking practice.";
-		String vocab = "Various vocabulary.";
-		String grammar = "Various grammar points.";
-		String better = "Alternative sentences.";
-		String motivational = "Keep practicing, you are doing great!";
+		String summary;
+		String vocab;
+		String grammar;
+		String better;
+		String motivational;
 
-		try {
-			String rawEval = callGroqChat(messages);
-			String cleanJson = cleanJsonResponse(rawEval);
+		// ── If user had no active participation (0 messages or 0 words) ───
+		if (userMessageCount == 0 || userWordCount == 0) {
+			overallScore = 0.0;
+			grammarScore = 0.0;
+			vocabularyScore = 0.0;
+			fluencyScore = 0.0;
+			pronunciationScore = 0.0;
+			xp = 0;
+			mistakes = 0;
+			summary = "Session ended with no speaking activity.";
+			vocab = "No vocabulary practiced.";
+			grammar = "No dialogue to evaluate.";
+			better = "Tap the microphone to speak with your AI tutor next time!";
+			motivational = "Practice speaking to improve your fluency and earn XP!";
+		} else {
+			// Request comprehensive evaluation from Groq
+			List<GroqRequest.Message> messages = new ArrayList<>();
+			String sysPrompt =
+					"Review the following transcript of an English speaking practice session. " +
+					"Evaluate the student's performance with realistic scores (0 to 100) and actionable feedback.\n\n" +
+					"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in markdown or ```json. Do not include any text outside the JSON.\n" +
+					"The JSON must have these exact fields:\n" +
+					"{\n" +
+					"  \"overallScore\": 84.0,\n" +
+					"  \"grammarScore\": 82.0,\n" +
+					"  \"vocabularyScore\": 85.0,\n" +
+					"  \"fluencyScore\": 86.0,\n" +
+					"  \"pronunciationScore\": 83.0,\n" +
+					"  \"summary\": \"Concise summary of student conversation performance.\",\n" +
+					"  \"vocabularyLearned\": \"Key words or useful phrases used or recommended.\",\n" +
+					"  \"grammarCorrections\": \"Summary of grammar errors noted.\",\n" +
+					"  \"betterSentences\": \"Alternative natural phrasing suggestions.\",\n" +
+					"  \"motivationalMessage\": \"An encouraging wrap-up message.\"\n" +
+					"}\n\n" +
+					"Important: Escape double quotes inside string values as \\\" to ensure valid JSON.";
+			messages.add(new GroqRequest.Message("system", sysPrompt));
+			messages.add(new GroqRequest.Message("user", "Transcript:\n" + fullTranscript));
+
+			// Fallback defaults for participating sessions
+			overallScore = Math.min(80.0, 50.0 + userWordCount * 2.0);
+			grammarScore = overallScore;
+			vocabularyScore = overallScore;
+			fluencyScore = overallScore;
+			pronunciationScore = overallScore;
+			summary = "Completed speaking practice session.";
+			vocab = "Conversational vocabulary.";
+			grammar = "Good effort expressing thoughts.";
+			better = "Keep practicing speaking daily to build fluency!";
+			motivational = "Great effort! Practice every day to become more fluent.";
 
 			try {
-				FinalEvaluation evalObj = objectMapper.readValue(cleanJson, FinalEvaluation.class);
-				if (evalObj.getScore() != null) score = evalObj.getScore();
-				if (evalObj.getSummary() != null) summary = evalObj.getSummary();
-				if (evalObj.getVocabularyLearned() != null) vocab = evalObj.getVocabularyLearned();
-				if (evalObj.getGrammarCorrections() != null) grammar = evalObj.getGrammarCorrections();
-				if (evalObj.getBetterSentences() != null) better = evalObj.getBetterSentences();
-				if (evalObj.getMotivationalMessage() != null) motivational = evalObj.getMotivationalMessage();
-			} catch (Exception e) {
-				// Fallback extraction
-				String extSummary = extractFieldFromJson(cleanJson, "summary");
-				if (extSummary != null) summary = extSummary;
-				String extVocab = extractFieldFromJson(cleanJson, "vocabularyLearned");
-				if (extVocab != null) vocab = extVocab;
-				String extGrammar = extractFieldFromJson(cleanJson, "grammarCorrections");
-				if (extGrammar != null) grammar = extGrammar;
-				String extBetter = extractFieldFromJson(cleanJson, "betterSentences");
-				if (extBetter != null) better = extBetter;
-				String extMotivational = extractFieldFromJson(cleanJson, "motivationalMessage");
-				if (extMotivational != null) motivational = extMotivational;
+				String rawEval = callGroqChat(messages);
+				String cleanJson = cleanJsonResponse(rawEval);
 
-				String extScore = extractFieldFromJson(cleanJson, "score");
-				if (extScore != null) {
-					try {
-						score = Double.parseDouble(extScore);
-					} catch (Exception ex) {
-						// ignore, keep default
+				try {
+					FinalEvaluation evalObj = objectMapper.readValue(cleanJson, FinalEvaluation.class);
+					if (evalObj.getOverallScore() != null) overallScore = evalObj.getOverallScore();
+					if (evalObj.getGrammarScore() != null) grammarScore = evalObj.getGrammarScore();
+					else grammarScore = overallScore;
+					if (evalObj.getVocabularyScore() != null) vocabularyScore = evalObj.getVocabularyScore();
+					else vocabularyScore = overallScore;
+					if (evalObj.getFluencyScore() != null) fluencyScore = evalObj.getFluencyScore();
+					else fluencyScore = overallScore;
+					if (evalObj.getPronunciationScore() != null) pronunciationScore = evalObj.getPronunciationScore();
+					else pronunciationScore = overallScore;
+
+					if (evalObj.getSummary() != null) summary = evalObj.getSummary();
+					if (evalObj.getVocabularyLearned() != null) vocab = evalObj.getVocabularyLearned();
+					if (evalObj.getGrammarCorrections() != null) grammar = evalObj.getGrammarCorrections();
+					if (evalObj.getBetterSentences() != null) better = evalObj.getBetterSentences();
+					if (evalObj.getMotivationalMessage() != null) motivational = evalObj.getMotivationalMessage();
+				} catch (Exception e) {
+					// Fallback extraction
+					String extOverall = extractFieldFromJson(cleanJson, "overallScore");
+					if (extOverall == null) extOverall = extractFieldFromJson(cleanJson, "score");
+					if (extOverall != null) {
+						try { overallScore = Double.parseDouble(extOverall); } catch (Exception ignored) {}
 					}
+					String extGrammarScore = extractFieldFromJson(cleanJson, "grammarScore");
+					if (extGrammarScore != null) {
+						try { grammarScore = Double.parseDouble(extGrammarScore); } catch (Exception ignored) {}
+					} else {
+						grammarScore = overallScore;
+					}
+					String extVocabScore = extractFieldFromJson(cleanJson, "vocabularyScore");
+					if (extVocabScore != null) {
+						try { vocabularyScore = Double.parseDouble(extVocabScore); } catch (Exception ignored) {}
+					} else {
+						vocabularyScore = overallScore;
+					}
+					String extFluencyScore = extractFieldFromJson(cleanJson, "fluencyScore");
+					if (extFluencyScore != null) {
+						try { fluencyScore = Double.parseDouble(extFluencyScore); } catch (Exception ignored) {}
+					} else {
+						fluencyScore = overallScore;
+					}
+					String extPronScore = extractFieldFromJson(cleanJson, "pronunciationScore");
+					if (extPronScore != null) {
+						try { pronunciationScore = Double.parseDouble(extPronScore); } catch (Exception ignored) {}
+					} else {
+						pronunciationScore = overallScore;
+					}
+
+					String extSummary = extractFieldFromJson(cleanJson, "summary");
+					if (extSummary != null) summary = extSummary;
+					String extVocab = extractFieldFromJson(cleanJson, "vocabularyLearned");
+					if (extVocab != null) vocab = extVocab;
+					String extGrammar = extractFieldFromJson(cleanJson, "grammarCorrections");
+					if (extGrammar != null) grammar = extGrammar;
+					String extBetter = extractFieldFromJson(cleanJson, "betterSentences");
+					if (extBetter != null) better = extBetter;
+					String extMotivational = extractFieldFromJson(cleanJson, "motivationalMessage");
+					if (extMotivational != null) motivational = extMotivational;
+				}
+			} catch (Exception e) {
+				System.err.println("⚠️ Groq final evaluation failed, using fallback metrics: " + e.getMessage());
+			}
+
+			// Dynamic XP reward based on genuine effort & performance (No free 25 XP!)
+			int baseReward;
+			if (userWordCount < 5) {
+				baseReward = 3;
+			} else if (userWordCount < 20) {
+				baseReward = 8;
+			} else if (userWordCount < 60) {
+				baseReward = 15;
+			} else {
+				baseReward = 22;
+			}
+
+			long minutes = durationSeconds / 60;
+			int timeBonus = (int) Math.min(10, minutes * 2);
+
+			int scoreBonus;
+			if (overallScore >= 90.0) {
+				scoreBonus = 10;
+			} else if (overallScore >= 80.0) {
+				scoreBonus = 6;
+			} else if (overallScore >= 70.0) {
+				scoreBonus = 3;
+			} else if (overallScore >= 50.0) {
+				scoreBonus = 1;
+			} else {
+				scoreBonus = 0;
+			}
+
+			xp = Math.min(45, baseReward + timeBonus + scoreBonus);
+
+			// Count grammar mistakes based on messages containing corrections
+			for (ConversationMessage m : history) {
+				if ("user".equalsIgnoreCase(m.getSender()) && m.getMessage() != null && m.getMessage().length() > 5) {
+					mistakes++;
 				}
 			}
-		} catch (Exception e) {
-			System.err.println("⚠️ Groq final evaluation failed, using fallback metrics: " + e.getMessage());
+			mistakes = Math.max(0, mistakes / 3);
 		}
-
-		// Calculate XP reward:
-		// Base: 10 XP if session had dialogue or lasted >= 15 seconds
-		// Time bonus: 10 XP per full minute
-		// Performance bonus: rewarding speaking practice (+25 to +40 XP)
-		int baseReward = (session.getMessages() != null && session.getMessages().size() >= 2) || durationSeconds >= 15 ? 20 : 15;
-		long minutes = durationSeconds / 60;
-		int timeBonus = (int) Math.min(10, minutes * 3);
-		int scoreBonus = (score >= 90.0) ? 10 : (score >= 80.0 ? 5 : 0);
-		int xp = Math.min(40, Math.max(25, baseReward + timeBonus + scoreBonus));
 
 		// Update session fields
 		session.setDuration((int) durationSeconds);
 		session.setXpEarned(xp);
-		session.setScore(score);
-		session.setOverallScore(score);
-		session.setGrammarScore(score);
-		session.setVocabularyScore(score);
-		session.setFluencyScore(score);
-		session.setPronunciationScore(score);
+		session.setScore(overallScore);
+		session.setOverallScore(overallScore);
+		session.setGrammarScore(grammarScore);
+		session.setVocabularyScore(vocabularyScore);
+		session.setFluencyScore(fluencyScore);
+		session.setPronunciationScore(pronunciationScore);
 		session.setFeedback(summary);
 		speakingSessionRepository.save(session);
 
-		// Update user's progress
-		try {
-			User user = session.getUser();
-			Progress progress = progressRepository.findByUser(user)
-					.orElseGet(() -> Progress.builder()
-							.user(user)
-							.xp(0)
-							.level(1)
-							.currentStreak(0)
-							.longestStreak(0)
-							.totalPracticeMinutes(0)
-							.totalSpeakingSessions(0)
-							.totalGrammarChecks(0)
-							.totalVocabularyWords(0)
-							.build());
-			int sessionMinutes = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
-			progress.setTotalPracticeMinutes((progress.getTotalPracticeMinutes() == null ? 0 : progress.getTotalPracticeMinutes()) + sessionMinutes);
-			progress.setTotalSpeakingSessions((progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
-			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + xp;
-			progress.setXp(newXp);
-			progress.setLevel(Math.max(1, (newXp / 500) + 1));
-			progressRepository.save(progress);
-		} catch (Exception ex) {
-			// Ignore progress update errors
-		}
-
-		// ── Trigger session-end notification ─────────────────────────────
-		try {
-			if (session.getUser() != null) {
+		// Update user's progress ONLY if the user actively practiced (XP > 0)
+		if (xp > 0 && userWordCount >= 3) {
+			try {
+				User user = session.getUser();
+				Progress progress = progressRepository.findByUser(user)
+						.orElseGet(() -> Progress.builder()
+								.user(user)
+								.xp(0)
+								.level(1)
+								.currentStreak(0)
+								.longestStreak(0)
+								.totalPracticeMinutes(0)
+								.totalSpeakingSessions(0)
+								.totalGrammarChecks(0)
+								.totalVocabularyWords(0)
+								.build());
 				int sessionMinutes = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
-				notificationService.createSystemNotification(session.getUser(),
-						"Speaking Session Complete! 🎙️",
-						"Great job! You practiced \"" + session.getScenario() + "\" for " + sessionMinutes + " min and earned " + xp + " XP.");
+				progress.setTotalPracticeMinutes((progress.getTotalPracticeMinutes() == null ? 0 : progress.getTotalPracticeMinutes()) + sessionMinutes);
+				progress.setTotalSpeakingSessions((progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
+				int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + xp;
+				progress.setXp(newXp);
+				progress.setLevel(Math.max(1, (newXp / 500) + 1));
+				progressRepository.save(progress);
+			} catch (Exception ex) {
+				// Ignore progress update errors
 			}
-		} catch (Exception ex) {
-			System.err.println("⚠️ Could not create session notification: " + ex.getMessage());
+
+			// Trigger session-end notification
+			try {
+				if (session.getUser() != null) {
+					int sessionMinutes = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
+					notificationService.createSystemNotification(session.getUser(),
+							"Speaking Session Complete! 🎙️",
+							"Great job! You practiced \"" + session.getScenario() + "\" for " + sessionMinutes + " min and earned " + xp + " XP.");
+				}
+			} catch (Exception ex) {
+				System.err.println("⚠️ Could not create session notification: " + ex.getMessage());
+			}
 		}
 		
 		// Save feedback entity
@@ -944,17 +1051,6 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				.build();
 		feedbackRepository.save(feedback);
 
-		// Count grammar mistakes based on messages containing corrections
-		int mistakes = 0;
-		for (ConversationMessage m : history) {
-			if (m.getSender().equals("user") && m.getMessage().length() > 5) {
-				// heuristic: we will count based on whether the final eval mentions mistakes,
-				// or just use history size / 4
-				mistakes++;
-			}
-		}
-		mistakes = Math.max(1, mistakes / 3);
-
 		return SpeakingEndResponse.builder()
 				.sessionId(session.getId())
 				.scenario(session.getScenario())
@@ -962,7 +1058,12 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				.messagesExchanged(history.size())
 				.grammarMistakes(mistakes)
 				.xpEarned(xp)
-				.score(score)
+				.score(overallScore)
+				.overallScore(overallScore)
+				.grammarScore(grammarScore)
+				.vocabularyScore(vocabularyScore)
+				.fluencyScore(fluencyScore)
+				.pronunciationScore(pronunciationScore)
 				.summary(summary)
 				.vocabularyLearned(vocab)
 				.motivationalMessage(motivational)
@@ -1164,14 +1265,29 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	// Helper inner class for Jackson deserialization
 	private static class FinalEvaluation {
 		private Double score;
+		private Double overallScore;
+		private Double grammarScore;
+		private Double vocabularyScore;
+		private Double fluencyScore;
+		private Double pronunciationScore;
 		private String summary;
 		private String vocabularyLearned;
 		private String grammarCorrections;
 		private String betterSentences;
 		private String motivationalMessage;
 
-		public Double getScore() { return score; }
+		public Double getScore() { return score != null ? score : overallScore; }
 		public void setScore(Double score) { this.score = score; }
+		public Double getOverallScore() { return overallScore != null ? overallScore : score; }
+		public void setOverallScore(Double overallScore) { this.overallScore = overallScore; }
+		public Double getGrammarScore() { return grammarScore; }
+		public void setGrammarScore(Double grammarScore) { this.grammarScore = grammarScore; }
+		public Double getVocabularyScore() { return vocabularyScore; }
+		public void setVocabularyScore(Double vocabularyScore) { this.vocabularyScore = vocabularyScore; }
+		public Double getFluencyScore() { return fluencyScore; }
+		public void setFluencyScore(Double fluencyScore) { this.fluencyScore = fluencyScore; }
+		public Double getPronunciationScore() { return pronunciationScore; }
+		public void setPronunciationScore(Double pronunciationScore) { this.pronunciationScore = pronunciationScore; }
 		public String getSummary() { return summary; }
 		public void setSummary(String summary) { this.summary = summary; }
 		public String getVocabularyLearned() { return vocabularyLearned; }

@@ -17,7 +17,12 @@ public class SpeakingEndResponse {
 	private Integer messagesExchanged;
 	private Integer grammarMistakes;
 	private Integer xpEarned;
-	private Double score; // heuristic score (0 - 100)
+	private Double score; // overall score (0 - 100)
+	private Double overallScore;
+	private Double grammarScore;
+	private Double vocabularyScore;
+	private Double fluencyScore;
+	private Double pronunciationScore;
 	private String summary;
 	private String vocabularyLearned;
 	private String motivationalMessage;
