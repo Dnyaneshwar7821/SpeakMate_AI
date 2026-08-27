@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
   Alert,
   Modal,
@@ -14,6 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Card, Screen, StateView } from '../../components/ui';
+import { AuthContext } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { settingsService, onboardingService, profileService } from '../../services/appServices';
@@ -61,6 +62,7 @@ const defaults = {
 };
 
 export default function SettingsScreen({ navigation }) {
+  const { user } = useContext(AuthContext);
   const { isDark: globalIsDark, setDarkMode } = useTheme();
   const { showToast } = useToast();
   const [form, setForm] = useState(defaults);
@@ -80,6 +82,14 @@ export default function SettingsScreen({ navigation }) {
   const [showAgeModal, setShowAgeModal] = useState(false);
 
   const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
+  const isStudent = Boolean(
+    accountType === 'STUDENT' ||
+    user?.role === 'STUDENT' ||
+    user?.accountType === 'STUDENT' ||
+    user?.schoolId ||
+    user?.schoolCode ||
+    (user?.schoolGrade && user?.schoolGrade.includes('Std'))
+  );
 
   const load = async () => {
     try {
@@ -190,8 +200,8 @@ export default function SettingsScreen({ navigation }) {
             </View>
           </Card>
 
-          {/* CATEGORY 0: SUBSCRIPTION & MEMBERSHIP (FOR INDIVIDUAL USERS) */}
-          {accountType !== 'STUDENT' && (
+          {/* CATEGORY 0: SUBSCRIPTION & MEMBERSHIP (FOR INDIVIDUAL USERS ONLY) */}
+          {!isStudent && (
             <>
               <View style={styles.sectionHeaderContainer}>
                 <Ionicons name="diamond-outline" size={16} color="#D97706" />
@@ -209,16 +219,16 @@ export default function SettingsScreen({ navigation }) {
                     </View>
                     <View style={{ flex: 1, paddingRight: 8 }}>
                       <Text style={[styles.rowTitle, { color: labelColor, fontWeight: '800' }]}>
-                        SpeakMate Pro Membership
+                        {user?.isPro ? '⭐ SpeakMate Pro Active' : '⭐ Upgrade to Pro'}
                       </Text>
                       <Text style={[styles.rowDesc, { color: sublabelColor }]}>
-                        Manage plan, billing cycle & Razorpay receipts
+                        {user?.isPro ? 'Manage active plan & Razorpay receipts' : 'Unlimited AI Speaking & Accent Coach'}
                       </Text>
                     </View>
                   </View>
                   <View style={styles.pickerRowRight}>
                     <Text style={[styles.pickerValueText, { color: '#4F46E5', fontWeight: '800' }]}>
-                      View Plans
+                      {user?.isPro ? 'Manage' : 'View Plans'}
                     </Text>
                     <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
                   </View>
@@ -286,33 +296,55 @@ export default function SettingsScreen({ navigation }) {
 
             <View style={[styles.divider, { backgroundColor: dividerColor }]} />
 
-            {/* Age Group Selector (Blurred for School Students) */}
-            <TouchableOpacity 
-              style={[styles.pickerRow, accountType === 'STUDENT' && { opacity: 0.45 }]} 
-              activeOpacity={0.7}
-              disabled={accountType === 'STUDENT'}
-              onPress={() => setShowAgeModal(true)}
-            >
-              <View style={styles.pickerRowLeft}>
-                <View style={[styles.iconBox, { backgroundColor: isDark ? '#3B2E1E' : '#FEF3C7' }]}>
-                  <Ionicons name="people" size={18} color="#D97706" />
+            {/* DYNAMIC ROW: Age Group for Individual Users vs School Grade for Students */}
+            {isStudent ? (
+              <View style={styles.pickerRow}>
+                <View style={styles.pickerRowLeft}>
+                  <View style={[styles.iconBox, { backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF' }]}>
+                    <Ionicons name="school" size={18} color="#6366F1" />
+                  </View>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={[styles.rowTitle, { color: labelColor }]}>
+                      School Standard Grade
+                    </Text>
+                    <Text style={[styles.rowDesc, { color: sublabelColor }]}>
+                      Managed according to your school standard
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={[styles.rowTitle, { color: labelColor }]}>
-                    Age Group {accountType === 'STUDENT' && '🔒 (Student Mode)'}
-                  </Text>
-                  <Text style={[styles.rowDesc, { color: sublabelColor }]}>
-                    {accountType === 'STUDENT' ? 'Auto-configured for school curriculum' : 'Personalizes conversation topics & level'}
+                <View style={styles.pickerRowRight}>
+                  <Text style={[styles.pickerValueText, { color: '#6366F1', fontWeight: '800' }]} numberOfLines={1} ellipsizeMode="tail">
+                    {user?.schoolGrade || '1st Std'}
                   </Text>
                 </View>
               </View>
-              <View style={styles.pickerRowRight}>
-                <Text style={styles.pickerValueText} numberOfLines={1} ellipsizeMode="tail">
-                  {accountType === 'STUDENT' ? 'Standard Grade' : (AGE_OPTIONS.find((a) => a.code === form.ageGroup)?.label || form.ageGroup || 'Professional')}
-                </Text>
-                <Ionicons name="lock-closed" size={16} color={sublabelColor} />
-              </View>
-            </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={styles.pickerRow} 
+                activeOpacity={0.7}
+                onPress={() => setShowAgeModal(true)}
+              >
+                <View style={styles.pickerRowLeft}>
+                  <View style={[styles.iconBox, { backgroundColor: isDark ? '#3B2E1E' : '#FEF3C7' }]}>
+                    <Ionicons name="people" size={18} color="#D97706" />
+                  </View>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={[styles.rowTitle, { color: labelColor }]}>
+                      Target Age Group
+                    </Text>
+                    <Text style={[styles.rowDesc, { color: sublabelColor }]}>
+                      Personalizes conversation topics & level
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.pickerRowRight}>
+                  <Text style={styles.pickerValueText} numberOfLines={1} ellipsizeMode="tail">
+                    {AGE_OPTIONS.find((a) => a.code === form.ageGroup)?.label || form.ageGroup || 'Professional'}
+                  </Text>
+                  <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
+                </View>
+              </TouchableOpacity>
+            )}
           </Card>
 
           {/* CATEGORY 2: GENERAL APP BEHAVIOR */}

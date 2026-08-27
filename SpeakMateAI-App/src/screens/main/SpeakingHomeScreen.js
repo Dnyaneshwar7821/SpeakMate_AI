@@ -303,8 +303,10 @@ export default function SpeakingHomeScreen({ navigation }) {
       setAccountType(effectiveAccType);
 
       const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
-      const backendGrade = onboardingData?.schoolGrade || onboardingData?.englishLevel;
-      const effectiveGrade = savedGrade || backendGrade || (effectiveAccType === 'STUDENT' ? '1st Std' : 'Intermediate');
+      const backendGrade = onboardingData?.schoolGrade;
+      const effectiveGrade = (effectiveAccType === 'STUDENT')
+        ? (savedGrade || (backendGrade && backendGrade.includes('Std') ? backendGrade : null) || '1st Std')
+        : (savedGrade || '1st Std');
       setSelectedGrade(effectiveGrade);
 
       if (onboardingData?.ageGroup) {

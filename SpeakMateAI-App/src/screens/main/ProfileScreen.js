@@ -42,12 +42,13 @@ export default function ProfileScreen({ navigation }) {
   const { isDark } = useTheme();
   const { showToast } = useToast();
 
+  const accountType = user?.accountType || (user?.role === 'STUDENT' ? 'STUDENT' : 'INDIVIDUAL_USER');
   const isStudent = Boolean(
+    accountType === 'STUDENT' ||
     user?.role === 'STUDENT' ||
-    user?.accountType === 'STUDENT' ||
     user?.schoolId ||
     user?.schoolCode ||
-    user?.schoolGrade
+    (user?.schoolGrade && user?.schoolGrade.includes('Std'))
   );
   
   const [state, setState] = useState({ loading: true, error: '', profile: null });
@@ -297,6 +298,26 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const handleSelectSchoolGrade = async (newGrade) => {
+    setUpdatingLevel(true);
+    try {
+      const updated = await profileService.update({
+        firstName: form.firstName || user?.firstName,
+        lastName: form.lastName || user?.lastName,
+        email: form.email || user?.email,
+        schoolGrade: newGrade,
+      });
+      await AsyncStorage.setItem('speakmate_school_grade', newGrade);
+      setState((curr) => ({ ...curr, profile: updated }));
+      if (updateUser) updateUser(updated);
+      showToast('Grade Updated 🎓', 'success', `School curriculum set to ${newGrade}`);
+    } catch (err) {
+      showToast('Update Failed', 'error', 'Could not update School Grade.');
+    } finally {
+      setUpdatingLevel(false);
+    }
+  };
+
   const handleSelectProficiencyLevel = async (newLevel) => {
     setUpdatingLevel(true);
     try {
@@ -311,6 +332,26 @@ export default function ProfileScreen({ navigation }) {
       showToast('Proficiency Updated 🎯', 'success', `AI Tutor level set to ${newLevel}`);
     } catch (err) {
       showToast('Update Failed', 'error', 'Could not update English proficiency level.');
+    } finally {
+      setUpdatingLevel(false);
+    }
+  };
+
+  const handleSelectAgeGroup = async (newAge) => {
+    setUpdatingLevel(true);
+    try {
+      const updated = await profileService.update({
+        firstName: form.firstName || user?.firstName,
+        lastName: form.lastName || user?.lastName,
+        email: form.email || user?.email,
+        ageGroup: newAge,
+      });
+      await AsyncStorage.setItem('speakmate_age_group', newAge);
+      setState((curr) => ({ ...curr, profile: updated }));
+      if (updateUser) updateUser(updated);
+      showToast('Age Group Updated 👥', 'success', `Target audience set to ${newAge}`);
+    } catch (err) {
+      showToast('Update Failed', 'error', 'Could not update Age Group.');
     } finally {
       setUpdatingLevel(false);
     }
@@ -336,7 +377,9 @@ export default function ProfileScreen({ navigation }) {
   const xpInCurrentLevel = xp % 500;
   const levelProgress = xpInCurrentLevel / 500;
   const rankTier = getRankTier(xp);
-  const currentEnglishLevel = state.profile?.englishLevel || 'Beginner';
+  const currentSchoolGrade = state.profile?.schoolGrade || user?.schoolGrade || '1st Std';
+  const currentEnglishLevel = state.profile?.englishLevel || user?.englishLevel || 'Beginner';
+  const currentAgeGroup = state.profile?.ageGroup || user?.ageGroup || 'Professional';
 
   // Custom colors for dark mode sync
   const cardBg = isDark ? '#1E293B' : '#FFFFFF';
@@ -433,51 +476,140 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </Card>
 
-        {/* English Proficiency Level / School Standard Quick Switcher */}
-        <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-            <View>
-              <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                {accountType === 'STUDENT' ? '🎓 School Standard Grade' : '👤 AI Tutor English Level'}
-              </Text>
-              <Text style={{ fontSize: 12, color: sublabelColor }}>
-                {accountType === 'STUDENT' ? 'Configured standard curriculum grade' : 'Controls speaking & chat response complexity'}
-              </Text>
+        {/* Dynamic Setting Section based on Student vs Individual User */}
+        {isStudent ? (
+          /* Student Mode: School Standard Grade Card */
+          <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <View>
+                <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                  🎓 School Standard Grade
+                </Text>
+                <Text style={{ fontSize: 12, color: sublabelColor }}>
+                  Configured curriculum standard for school practice
+                </Text>
+              </View>
+              {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
             </View>
-            {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
-          </View>
 
-          <View style={styles.levelSegmentRow}>
-            {(accountType === 'STUDENT'
-              ? ['1st Std', '5th Std', '8th Std', '10th Std']
-              : ['Beginner', 'Intermediate', 'Advanced']
-            ).map((lvl) => {
-              const active = currentEnglishLevel.toLowerCase() === lvl.toLowerCase();
-              return (
-                <TouchableOpacity
-                  key={lvl}
-                  style={[
-                    styles.levelSegmentBtn,
-                    active && styles.levelSegmentBtnActive,
-                    isDark && !active && { backgroundColor: '#334155' },
-                  ]}
-                  onPress={() => handleSelectProficiencyLevel(lvl)}
-                  disabled={updatingLevel}
-                >
-                  <Text
+            <View style={styles.levelSegmentRow}>
+              {['1st Std', '5th Std', '8th Std', '10th Std'].map((grade) => {
+                const active = currentSchoolGrade.toLowerCase() === grade.toLowerCase();
+                return (
+                  <TouchableOpacity
+                    key={grade}
                     style={[
-                      styles.levelSegmentText,
-                      active && styles.levelSegmentTextActive,
-                      isDark && !active && { color: '#94A3B8' },
+                      styles.levelSegmentBtn,
+                      active && styles.levelSegmentBtnActive,
+                      isDark && !active && { backgroundColor: '#334155' },
                     ]}
+                    onPress={() => handleSelectSchoolGrade(grade)}
+                    disabled={updatingLevel}
                   >
-                    {lvl}
+                    <Text
+                      style={[
+                        styles.levelSegmentText,
+                        active && styles.levelSegmentTextActive,
+                        isDark && !active && { color: '#94A3B8' },
+                      ]}
+                    >
+                      {grade}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </Card>
+        ) : (
+          /* Individual User Mode: English Proficiency Level + Target Age Group Cards */
+          <>
+            <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <View>
+                  <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                    👤 AI Tutor English Level
                   </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </Card>
+                  <Text style={{ fontSize: 12, color: sublabelColor }}>
+                    Controls speaking & chat response complexity
+                  </Text>
+                </View>
+                {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
+              </View>
+
+              <View style={styles.levelSegmentRow}>
+                {['Beginner', 'Intermediate', 'Advanced'].map((lvl) => {
+                  const active = currentEnglishLevel.toLowerCase() === lvl.toLowerCase();
+                  return (
+                    <TouchableOpacity
+                      key={lvl}
+                      style={[
+                        styles.levelSegmentBtn,
+                        active && styles.levelSegmentBtnActive,
+                        isDark && !active && { backgroundColor: '#334155' },
+                      ]}
+                      onPress={() => handleSelectProficiencyLevel(lvl)}
+                      disabled={updatingLevel}
+                    >
+                      <Text
+                        style={[
+                          styles.levelSegmentText,
+                          active && styles.levelSegmentTextActive,
+                          isDark && !active && { color: '#94A3B8' },
+                        ]}
+                      >
+                        {lvl}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </Card>
+
+            <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <View>
+                  <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                    👥 Target Age Group
+                  </Text>
+                  <Text style={{ fontSize: 12, color: sublabelColor }}>
+                    Personalizes conversation topics and learning style
+                  </Text>
+                </View>
+                {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
+              </View>
+
+              <View style={styles.levelSegmentRow}>
+                {['Kids', 'Teens', 'Young Adult', 'Professional', 'Senior'].map((age) => {
+                  const active = currentAgeGroup.toLowerCase() === age.toLowerCase();
+                  return (
+                    <TouchableOpacity
+                      key={age}
+                      style={[
+                        styles.levelSegmentBtn,
+                        active && styles.levelSegmentBtnActive,
+                        isDark && !active && { backgroundColor: '#334155' },
+                        { paddingHorizontal: 9 }
+                      ]}
+                      onPress={() => handleSelectAgeGroup(age)}
+                      disabled={updatingLevel}
+                    >
+                      <Text
+                        style={[
+                          styles.levelSegmentText,
+                          active && styles.levelSegmentTextActive,
+                          isDark && !active && { color: '#94A3B8' },
+                          { fontSize: 11 }
+                        ]}
+                      >
+                        {age}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </Card>
+          </>
+        )}
 
         {/* Edit Info Form - Modern layout with full fields */}
         <Card style={{ backgroundColor: cardBg }}>

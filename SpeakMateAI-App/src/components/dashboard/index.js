@@ -145,7 +145,10 @@ function Avatar({ name, uri, size = 56 }) {
 export const DashboardHeader = memo(function DashboardHeader({
   name,
   avatar,
+  isStudent,
+  schoolGrade,
   ageGroup,
+  englishLevel,
   level,
   xp,
   streak,
@@ -217,12 +220,29 @@ export const DashboardHeader = memo(function DashboardHeader({
                 <Ionicons name="flame" size={12} color="#F97316" />
                 <Text style={styles.heroChipText}>{formatNumber(streak)}d streak</Text>
               </View>
-              {ageGroup && (
-                <View style={[styles.heroChip, { backgroundColor: 'rgba(245,158,11,0.2)' }]}>
-                  <Text style={[styles.heroChipText, { color: '#FCD34D', fontWeight: '700' }]}>
-                    {ageGroup === 'Kids' ? '🎈 Kids' : ageGroup === 'Teens' ? '⚡ Teen' : ageGroup === 'Young Adult' ? '🎓 Young Adult' : ageGroup === 'Senior' ? '☕ Senior' : '💼 Professional'}
+              {isStudent && schoolGrade ? (
+                <View style={[styles.heroChip, { backgroundColor: 'rgba(99,102,241,0.3)' }]}>
+                  <Text style={[styles.heroChipText, { color: '#C7D2FE', fontWeight: '800' }]}>
+                    🎓 {schoolGrade}
                   </Text>
                 </View>
+              ) : (
+                <>
+                  {ageGroup && (
+                    <View style={[styles.heroChip, { backgroundColor: 'rgba(245,158,11,0.2)' }]}>
+                      <Text style={[styles.heroChipText, { color: '#FCD34D', fontWeight: '700' }]}>
+                        {ageGroup === 'Kids' ? '🎈 Kids' : ageGroup === 'Teens' ? '⚡ Teen' : ageGroup === 'Young Adult' ? '🎓 Young Adult' : ageGroup === 'Senior' ? '☕ Senior' : '💼 Professional'}
+                      </Text>
+                    </View>
+                  )}
+                  {englishLevel && (
+                    <View style={[styles.heroChip, { backgroundColor: 'rgba(16,185,129,0.25)' }]}>
+                      <Text style={[styles.heroChipText, { color: '#A7F3D0', fontWeight: '700' }]}>
+                        🎯 {englishLevel}
+                      </Text>
+                    </View>
+                  )}
+                </>
               )}
             </View>
 

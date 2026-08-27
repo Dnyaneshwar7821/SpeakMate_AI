@@ -67,15 +67,11 @@ export default function DashboardScreen({ navigation }) {
   const { showToast, triggerConfetti } = useToast();
 
   const isStudentUser = Boolean(
+    user?.accountType === 'STUDENT' ||
+    user?.role === 'STUDENT' ||
     user?.schoolId ||
     user?.schoolCode ||
-    user?.isSchoolStudent ||
-    user?.schoolGrade ||
-    user?.role === 'STUDENT' ||
-    user?.role === 'SCHOOL_STUDENT' ||
-    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('school')) ||
-    (user?.ageGroup && String(user.ageGroup).toLowerCase().includes('student')) ||
-    (user?.learningGoal && String(user.learningGoal).toLowerCase().includes('school'))
+    (user?.schoolGrade && user?.schoolGrade.includes('Std'))
   );
   
   const [state, setState] = useState(() => ({
@@ -194,7 +190,10 @@ export default function DashboardScreen({ navigation }) {
     return {
       name,
       avatar: profile.avatar || user?.avatar,
-      ageGroup: profile.ageGroup || user?.ageGroup,
+      isStudent: isStudentUser,
+      schoolGrade: isStudentUser ? (user?.schoolGrade || profile.schoolGrade || '1st Std') : null,
+      ageGroup: isStudentUser ? null : (profile.ageGroup || user?.ageGroup || 'Professional'),
+      englishLevel: isStudentUser ? null : (profile.englishLevel || user?.englishLevel || 'Beginner'),
       level: Number(progress.level) || 1,
       xp: Number(progress.xp) || 0,
       streak: Math.max(1, Number(progress.currentStreak || progress.streak || d.streak || user?.streak || 1)),
@@ -324,7 +323,10 @@ export default function DashboardScreen({ navigation }) {
         <DashboardHeader
           name={viewModel.name}
           avatar={viewModel.avatar}
+          isStudent={viewModel.isStudent}
+          schoolGrade={viewModel.schoolGrade}
           ageGroup={viewModel.ageGroup}
+          englishLevel={viewModel.englishLevel}
           level={viewModel.level}
           xp={viewModel.xp}
           streak={viewModel.streak}
