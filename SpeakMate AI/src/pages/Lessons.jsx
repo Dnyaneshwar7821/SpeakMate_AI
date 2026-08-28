@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { lessonModuleService } from "../services/appServices";
 import { recordLessonCompleted } from "../utils/progressTracker";
 
@@ -185,11 +185,14 @@ const DEFAULT_LESSONS = [
 
 export function Lessons() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearchQuery = searchParams.get("search") || "";
+
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
   const [lessons, setLessons] = useState(DEFAULT_LESSONS);
   const [continueItems, setContinueItems] = useState([DEFAULT_LESSONS[0]]);
   const [loading, setLoading] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [searchText, setSearchText] = useState(urlSearchQuery);
   const [searchResults, setSearchResults] = useState(null);
   const [activeTab, setActiveTab] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -222,18 +225,7 @@ export function Lessons() {
     loadData();
   }, []);
 
-  const filteredLessons = useMemo(() => {
-    let result = searchResults !== null ? searchResults : lessons;
-    if (activeTab !== "All") {
-      result = result.filter((l) => l.level === activeTab || l.difficulty === activeTab);
-    }
-    if (selectedCategory) {
-      result = result.filter((l) => l.category === selectedCategory);
-    }
-    return result;
-  }, [lessons, searchResults, activeTab, selectedCategory]);
-
-  const handleSearch = async (text) => {
+  const handleSearch = useCallback(async (text, currentLessons = lessons) => {
     setSearchText(text);
     if (!text.trim()) {
       setSearchResults(null);
@@ -245,18 +237,44 @@ export function Lessons() {
         setSearchResults(results);
       } else {
         const query = text.toLowerCase();
-        const localResults = lessons.filter(
+        const localResults = currentLessons.filter(
           (l) =>
             l.title.toLowerCase().includes(query) ||
-            l.description.toLowerCase().includes(query) ||
-            l.category.toLowerCase().includes(query)
+            l.description?.toLowerCase().includes(query) ||
+            l.category?.toLowerCase().includes(query) ||
+            l.level?.toLowerCase().includes(query)
         );
         setSearchResults(localResults);
       }
     } catch (e) {
       setSearchResults([]);
     }
+  }, [lessons]);
+
+  // Sync search filter when URL search parameter changes
+  useEffect(() => {
+    handleSearch(urlSearchQuery, lessons);
+  }, [urlSearchQuery, lessons, handleSearch]);
+
+  const onSearchInputChange = (text) => {
+    setSearchText(text);
+    if (text.trim()) {
+      setSearchParams({ search: text.trim() }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
   };
+
+  const filteredLessons = useMemo(() => {
+    let result = searchResults !== null ? searchResults : lessons;
+    if (activeTab !== "All") {
+      result = result.filter((l) => l.level === activeTab || l.difficulty === activeTab);
+    }
+    if (selectedCategory) {
+      result = result.filter((l) => l.category === selectedCategory);
+    }
+    return result;
+  }, [lessons, searchResults, activeTab, selectedCategory]);
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
@@ -275,13 +293,13 @@ export function Lessons() {
 
         {/* Search Bar */}
         <div className="relative max-w-xl">
-          <input
-            type="text"
-            placeholder="🔍 Search lessons, topics, categories..."
-            value={searchText}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-5 pr-4 py-3.5 rounded-2xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm font-bold focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all shadow-inner"
-          />
+            <input
+              type="text"
+              placeholder="🔍 Search lessons, topics, categories..."
+              value={searchText}
+              onChange={(e) => onSearchInputChange(e.target.value)}
+              className="w-full pl-5 pr-4 py-3.5 rounded-2xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm font-bold focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all shadow-inner"
+            />
         </div>
       </div>
 

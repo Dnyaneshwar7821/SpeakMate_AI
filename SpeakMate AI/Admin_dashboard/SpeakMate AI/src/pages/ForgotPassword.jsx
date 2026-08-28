@@ -18,11 +18,14 @@ export function ForgotPassword() {
     setError("");
     setMessage("");
     try {
-      const response = await authService.forgotPassword(email);
-      setMessage(response.data.message || `OTP sent to ${email}`);
+      const response = await authService.forgotPassword({
+        email: email.trim().toLowerCase(),
+      });
+      const successMsg = typeof response === "string" ? response : (response?.message || `OTP sent to ${email}`);
+      setMessage(successMsg);
       setStep(2);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to send OTP.");
+      setError(err.response?.data?.message || err.response?.data || "Failed to send OTP.");
     }
   };
 
@@ -31,15 +34,22 @@ export function ForgotPassword() {
     setError("");
     setMessage("");
     try {
-      const verifyRes = await authService.verifyOtp(email, otp);
-      const token = verifyRes.data.token;
+      const verifyRes = await authService.verifyOtp({
+        email: email.trim().toLowerCase(),
+        otp: otp.trim(),
+      });
+      const token = verifyRes?.token || verifyRes?.data?.token || resetToken;
       setResetToken(token);
       
-      const resetRes = await authService.resetPassword(token, newPassword);
-      setMessage(resetRes.data.message || "Password reset successfully!");
+      const resetRes = await authService.resetPassword({
+        token,
+        newPassword,
+      });
+      const successMsg = typeof resetRes === "string" ? resetRes : (resetRes?.message || "Password reset successfully!");
+      setMessage(successMsg);
       setStep(3);
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid OTP code or failed to reset password.");
+      setError(err.response?.data?.message || err.response?.data || "Invalid OTP code or failed to reset password.");
     }
   };
 
