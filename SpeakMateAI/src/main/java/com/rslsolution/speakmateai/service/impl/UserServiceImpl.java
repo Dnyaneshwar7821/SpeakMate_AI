@@ -56,6 +56,9 @@ public class UserServiceImpl implements UserService {
 	@jakarta.persistence.PersistenceContext
 	private jakarta.persistence.EntityManager entityManager;
 
+	@Autowired(required = false)
+	private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
 	@Autowired
 	private UserRepository userRepository;
 
@@ -659,27 +662,32 @@ public class UserServiceImpl implements UserService {
 				.orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
 		String[] deleteQueries = new String[] {
-			"DELETE FROM vocabulary WHERE user_id = :userId",
-			"DELETE FROM chat_bookmarks WHERE user_id = :userId",
-			"DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE user_id = :userId)",
-			"DELETE FROM chat_sessions WHERE user_id = :userId",
-			"DELETE FROM chat_history WHERE user_id = :userId",
-			"DELETE FROM conversation_feedbacks WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = :userId)",
-			"DELETE FROM conversation_messages WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = :userId)",
-			"DELETE FROM speaking_sessions WHERE user_id = :userId",
-			"DELETE FROM grammar_history WHERE user_id = :userId",
-			"DELETE FROM lesson_progress WHERE user_id = :userId",
-			"DELETE FROM notification WHERE user_id = :userId",
-			"DELETE FROM achievement WHERE user_id = :userId",
-			"DELETE FROM progress WHERE user_id = :userId",
-			"DELETE FROM settings WHERE user_id = :userId",
-			"DELETE FROM onboarding WHERE user_id = :userId",
-			"DELETE FROM users WHERE id = :userId"
+			"DELETE FROM user_subscriptions WHERE user_id = " + id,
+			"DELETE FROM vocabulary WHERE user_id = " + id,
+			"DELETE FROM chat_bookmarks WHERE user_id = " + id,
+			"DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE user_id = " + id + ")",
+			"DELETE FROM chat_sessions WHERE user_id = " + id,
+			"DELETE FROM chat_history WHERE user_id = " + id,
+			"DELETE FROM conversation_feedbacks WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = " + id + ")",
+			"DELETE FROM conversation_messages WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = " + id + ")",
+			"DELETE FROM speaking_sessions WHERE user_id = " + id,
+			"DELETE FROM grammar_history WHERE user_id = " + id,
+			"DELETE FROM lesson_progress WHERE user_id = " + id,
+			"DELETE FROM notification WHERE user_id = " + id,
+			"DELETE FROM achievement WHERE user_id = " + id,
+			"DELETE FROM progress WHERE user_id = " + id,
+			"DELETE FROM settings WHERE user_id = " + id,
+			"DELETE FROM onboarding WHERE user_id = " + id,
+			"DELETE FROM users WHERE id = " + id
 		};
 
 		for (String sql : deleteQueries) {
 			try {
-				entityManager.createNativeQuery(sql).setParameter("userId", id).executeUpdate();
+				if (jdbcTemplate != null) {
+					jdbcTemplate.execute(sql);
+				} else {
+					entityManager.createNativeQuery(sql).executeUpdate();
+				}
 			} catch (Exception e) {
 				System.err.println("[Delete User SQL Warning] " + sql + " -> " + e.getMessage());
 			}
