@@ -89,9 +89,20 @@ export default function SubscriptionScreen({ navigation }) {
 
   const handleUpgrade = async () => {
     setUpgrading(true);
+    const planType = billingCycle === 'YEARLY' ? 'YEARLY_PRO' : 'MONTHLY_PRO';
     try {
-      const order = await subscriptionService.createOrder(billingCycle);
+      const order = await subscriptionService.createOrder(planType);
       setCheckoutOrder(order);
+
+      const razorpayKey = order.razorpayKeyId || order.keyId || 'rzp_test_SpeakMateAiDev';
+      const orderId = order.razorpayOrderId || order.orderId;
+      const amountPaise = order.amountInPaise || (order.amount ? Math.round(Number(order.amount) * 100) : (planType === 'YEARLY_PRO' ? 119900 : 14900));
+
+      // If in local mock / dev mode without real Razorpay order ID, show sandbox simulator
+      if (orderId && (orderId.startsWith('order_dev_') || orderId.startsWith('order_mock_'))) {
+        setShowSandboxModal(true);
+        return;
+      }
 
       // Generate in-app HTML checkout for Razorpay
       const razorpayHtml = `
@@ -108,12 +119,12 @@ export default function SubscriptionScreen({ navigation }) {
           </div>
           <script>
             var options = {
-              "key": "${order.keyId || 'rzp_test_1DP5mmOlF5G5ag'}",
-              "amount": "${order.amount}",
+              "key": "${razorpayKey}",
+              "amount": "${amountPaise}",
               "currency": "${order.currency || 'INR'}",
               "name": "SpeakMate AI",
-              "description": "${order.planName || 'SpeakMate AI Pro'}",
-              "order_id": "${order.orderId}",
+              "description": "${order.description || order.planName || 'SpeakMate AI Pro'}",
+              "order_id": "${orderId}",
               "handler": function (response){
                 window.ReactNativeWebView.postMessage(JSON.stringify({
                   status: 'SUCCESS',
@@ -121,8 +132,8 @@ export default function SubscriptionScreen({ navigation }) {
                 }));
               },
               "prefill": {
-                "name": "${user?.firstName || ''} ${user?.lastName || ''}",
-                "email": "${user?.email || ''}"
+                "name": "${order.userName || (user?.firstName ? user.firstName + ' ' + (user.lastName || '') : '') || 'Learner'}",
+                "email": "${order.userEmail || user?.email || ''}"
               },
               "theme": {
                 "color": "#4F46E5"
@@ -135,21 +146,28 @@ export default function SubscriptionScreen({ navigation }) {
                 }
               }
             };
-            var rzp1 = new Razorpay(options);
-            rzp1.on('payment.failed', function (response){
+            try {
+              var rzp1 = new Razorpay(options);
+              rzp1.on('payment.failed', function (response){
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                  status: 'FAILED',
+                  data: response.error
+                }));
+              });
+              rzp1.open();
+            } catch(e) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 status: 'FAILED',
-                data: response.error
+                data: { description: e.message }
               }));
-            });
-            rzp1.open();
+            }
           </script>
         </body>
         </html>
       `;
       setCheckoutUrl(razorpayHtml);
     } catch (err) {
-      console.warn('[Upgrade] Backend Order failed, using sandbox fallback:', err);
+      console.warn('[Upgrade] Backend Order error, showing sandbox fallback:', err);
       // Fallback sandbox modal for testing
       setShowSandboxModal(true);
     } finally {
@@ -167,7 +185,7 @@ export default function SubscriptionScreen({ navigation }) {
         setCheckoutUrl(null);
       } else if (result.status === 'FAILED') {
         setCheckoutUrl(null);
-        Alert.alert('Payment Failed', result.data?.description || 'Your transaction could not be processed.');
+        Alert.alert('Payment Cancelled / Failed', result.data?.description || 'Your transaction could not be processed.');
       }
     } catch {
       setCheckoutUrl(null);
@@ -176,26 +194,27 @@ export default function SubscriptionScreen({ navigation }) {
 
   const verifyAndUnlock = async (paymentData) => {
     setLoading(true);
+    const planType = billingCycle === 'YEARLY' ? 'YEARLY_PRO' : 'MONTHLY_PRO';
     try {
       const verifyRes = await subscriptionService.verifyPayment({
         razorpayOrderId: paymentData.razorpay_order_id,
         razorpayPaymentId: paymentData.razorpay_payment_id,
         razorpaySignature: paymentData.razorpay_signature,
-        planType: billingCycle,
+        planType: planType,
       });
 
       if (verifyRes.success || verifyRes.isPro) {
         if (updateUser) {
-          updateUser({ ...user, isPro: true, subscriptionPlan: billingCycle });
+          updateUser({ ...user, isPro: true, subscriptionPlan: planType });
         }
         setShowCelebrationModal(true);
       } else {
         Alert.alert('Verification Issue', 'Payment received, but backend verification returned pending. Your access will update shortly.');
       }
     } catch {
-      // Offline fallback unlock for seamless demo
+      // Dev sandbox / fallback unlock for seamless demo
       if (updateUser) {
-        updateUser({ ...user, isPro: true, subscriptionPlan: billingCycle });
+        updateUser({ ...user, isPro: true, subscriptionPlan: planType });
       }
       setShowCelebrationModal(true);
     } finally {
