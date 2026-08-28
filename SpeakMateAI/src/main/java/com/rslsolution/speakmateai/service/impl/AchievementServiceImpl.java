@@ -70,9 +70,14 @@ public class AchievementServiceImpl implements AchievementService {
 
 		List<Achievement> userAchievements = achievementRepository.findByUser(user);
 
-		if (userAchievements.isEmpty()) {
-			userAchievements = generateTierAchievements(user, 1);
-			userAchievements = achievementRepository.saveAll(userAchievements);
+		// Seed or backfill standard 18 Master Achievements if missing
+		List<Achievement> masterCatalog = generateTierAchievements(user, 1);
+		for (Achievement masterItem : masterCatalog) {
+			boolean exists = userAchievements.stream().anyMatch(a -> a.getTitle().equalsIgnoreCase(masterItem.getTitle()));
+			if (!exists) {
+				Achievement saved = achievementRepository.save(masterItem);
+				userAchievements.add(saved);
+			}
 		}
 
 		com.rslsolution.speakmateai.entity.Progress progress = progressRepository.findByUser(user)
@@ -102,41 +107,6 @@ public class AchievementServiceImpl implements AchievementService {
 			}
 		}
 
-		// Check if the current highest tier has completed all 6 cases, and auto-renew next tier
-		int maxTier = userAchievements.stream()
-				.mapToInt(a -> a.getTier() != null ? a.getTier() : 1)
-				.max().orElse(1);
-
-		List<Achievement> maxTierAchievements = userAchievements.stream()
-				.filter(a -> (a.getTier() != null ? a.getTier() : 1) == maxTier)
-				.toList();
-
-		boolean maxTierCompleted = !maxTierAchievements.isEmpty() && maxTierAchievements.stream().allMatch(a -> Boolean.TRUE.equals(a.getUnlocked()));
-
-		if (maxTierCompleted) {
-			int nextTier = maxTier + 1;
-			List<Achievement> newTierAchievements = generateTierAchievements(user, nextTier);
-			List<Achievement> savedNewTier = achievementRepository.saveAll(newTierAchievements);
-			userAchievements.addAll(savedNewTier);
-
-			try {
-				notificationService.createSystemNotification(user,
-						"Medal Case Renewed! 🏆",
-						"Congratulations! You completed all Tier " + maxTier + " achievement medals! Tier " + nextTier + " challenges are now unlocked!");
-			} catch (Exception ignored) {}
-		}
-
-		// Reconcile and guarantee progress.xp is always >= sum of already unlocked achievements
-		int totalUnlockedAchievementXp = userAchievements.stream()
-				.filter(a -> Boolean.TRUE.equals(a.getUnlocked()))
-				.mapToInt(a -> a.getXpReward() != null ? a.getXpReward() : 50)
-				.sum();
-
-		if (progress.getXp() == null || progress.getXp() < totalUnlockedAchievementXp) {
-			progress.setXp(totalUnlockedAchievementXp);
-			progressUpdated = true;
-		}
-
 		if (progressUpdated) {
 			progressRepository.save(progress);
 		}
@@ -156,113 +126,74 @@ public class AchievementServiceImpl implements AchievementService {
 	}
 
 	private List<Achievement> generateTierAchievements(User user, int tier) {
-		if (tier == 1) {
-			return List.of(
-				Achievement.builder().user(user).tier(1).title("First Steps").description("Complete your first lesson!").xpReward(50).unlocked(false).build(),
-				Achievement.builder().user(user).tier(1).title("Speak Up").description("Complete your first speaking session!").xpReward(50).unlocked(false).build(),
-				Achievement.builder().user(user).tier(1).title("Word Collector").description("Save 5 words to your vocabulary!").xpReward(50).unlocked(false).build(),
-				Achievement.builder().user(user).tier(1).title("Grammar Guru").description("Perform 3 grammar corrections!").xpReward(50).unlocked(false).build(),
-				Achievement.builder().user(user).tier(1).title("Hot Streak").description("Reach a 3-day learning streak!").xpReward(50).unlocked(false).build(),
-				Achievement.builder().user(user).tier(1).title("Super Scholar").description("Earn 500 total learning XP!").xpReward(100).unlocked(false).build()
-			);
-		} else if (tier == 2) {
-			return List.of(
-				Achievement.builder().user(user).tier(2).title("Lesson Master I").description("Complete 5 practice sessions or 60 minutes!").xpReward(75).unlocked(false).build(),
-				Achievement.builder().user(user).tier(2).title("Fluent Speaker I").description("Complete 5 speaking sessions!").xpReward(75).unlocked(false).build(),
-				Achievement.builder().user(user).tier(2).title("Vocabulary Builder").description("Save 15 words to your vocabulary!").xpReward(75).unlocked(false).build(),
-				Achievement.builder().user(user).tier(2).title("Grammar Expert").description("Perform 10 grammar corrections!").xpReward(75).unlocked(false).build(),
-				Achievement.builder().user(user).tier(2).title("Weekly Warrior").description("Reach a 7-day learning streak!").xpReward(100).unlocked(false).build(),
-				Achievement.builder().user(user).tier(2).title("Knowledge Elite").description("Earn 1,000 total learning XP!").xpReward(150).unlocked(false).build()
-			);
-		} else if (tier == 3) {
-			return List.of(
-				Achievement.builder().user(user).tier(3).title("Lesson Master II").description("Practice for 150 total minutes!").xpReward(100).unlocked(false).build(),
-				Achievement.builder().user(user).tier(3).title("Fluent Speaker II").description("Complete 15 speaking sessions!").xpReward(100).unlocked(false).build(),
-				Achievement.builder().user(user).tier(3).title("Lexicon Master").description("Save 30 words to your vocabulary!").xpReward(100).unlocked(false).build(),
-				Achievement.builder().user(user).tier(3).title("Grammar Master").description("Perform 25 grammar corrections!").xpReward(100).unlocked(false).build(),
-				Achievement.builder().user(user).tier(3).title("Dedicated Learner").description("Reach a 14-day learning streak!").xpReward(150).unlocked(false).build(),
-				Achievement.builder().user(user).tier(3).title("Master Scholar").description("Earn 2,500 total learning XP!").xpReward(200).unlocked(false).build()
-			);
-		} else {
-			int minutesGoal = tier * 60;
-			int speakingGoal = tier * 5;
-			int vocabGoal = tier * 10;
-			int grammarGoal = tier * 8;
-			int streakGoal = tier * 5;
-			int xpGoal = tier * 1000;
+		return List.of(
+			// Speaking & Fluency
+			Achievement.builder().user(user).tier(1).title("First Voice Conversation").description("Complete your very 1st AI speaking practice session.").xpReward(50).unlocked(false).build(),
+			Achievement.builder().user(user).tier(2).title("Confident Conversationalist").description("Complete 5 distinct AI speaking conversations.").xpReward(120).unlocked(false).build(),
+			Achievement.builder().user(user).tier(3).title("Fluency Champion").description("Complete 15 speaking sessions across various scenarios.").xpReward(250).unlocked(false).build(),
+			Achievement.builder().user(user).tier(4).title("Orator Supreme").description("Complete 30 speaking sessions with high conversational stamina.").xpReward(500).unlocked(false).build(),
 
-			return List.of(
-				Achievement.builder().user(user).tier(tier).title("Practice Marathon Tier " + tier).description("Practice for " + minutesGoal + " total minutes!").xpReward(120).unlocked(false).build(),
-				Achievement.builder().user(user).tier(tier).title("Orator Tier " + tier).description("Complete " + speakingGoal + " speaking sessions!").xpReward(120).unlocked(false).build(),
-				Achievement.builder().user(user).tier(tier).title("Vocabulary Giant Tier " + tier).description("Save " + vocabGoal + " vocabulary words!").xpReward(120).unlocked(false).build(),
-				Achievement.builder().user(user).tier(tier).title("Grammar Virtuoso Tier " + tier).description("Perform " + grammarGoal + " grammar checks!").xpReward(120).unlocked(false).build(),
-				Achievement.builder().user(user).tier(tier).title("Unstoppable Streak Tier " + tier).description("Reach a " + streakGoal + "-day streak!").xpReward(150).unlocked(false).build(),
-				Achievement.builder().user(user).tier(tier).title("Grandmaster Tier " + tier).description("Earn " + xpGoal + " total learning XP!").xpReward(250).unlocked(false).build()
-			);
-		}
+			// Grammar & Accuracy
+			Achievement.builder().user(user).tier(1).title("Grammar Inspector").description("Perform your first instant sentence grammar analysis.").xpReward(40).unlocked(false).build(),
+			Achievement.builder().user(user).tier(2).title("Syntax Detective").description("Complete 10 sentence grammar checks and error corrections.").xpReward(100).unlocked(false).build(),
+			Achievement.builder().user(user).tier(3).title("Tense Master").description("Analyze 25 sentences and explore handbook rules.").xpReward(200).unlocked(false).build(),
+			Achievement.builder().user(user).tier(4).title("Grammar Scholar").description("Complete 50 comprehensive grammar checks.").xpReward(450).unlocked(false).build(),
+
+			// Vocabulary & Word Bank
+			Achievement.builder().user(user).tier(1).title("Word Collector").description("Save and master 5 vocabulary words in your word bank.").xpReward(50).unlocked(false).build(),
+			Achievement.builder().user(user).tier(2).title("Lexicon Expander").description("Master 20 vocabulary flashcards and collocations.").xpReward(120).unlocked(false).build(),
+			Achievement.builder().user(user).tier(3).title("Vocabulary Maestro").description("Build an active lexicon of 50 mastered words.").xpReward(300).unlocked(false).build(),
+
+			// Streaks & Consistency
+			Achievement.builder().user(user).tier(1).title("3-Day Habit Starter").description("Maintain a consecutive 3-day learning streak.").xpReward(60).unlocked(false).build(),
+			Achievement.builder().user(user).tier(2).title("7-Day Week Warrior").description("Complete daily practice for 7 days in a row.").xpReward(150).unlocked(false).build(),
+			Achievement.builder().user(user).tier(3).title("14-Day Dedication").description("Maintain an unbroken 14-day study streak.").xpReward(300).unlocked(false).build(),
+			Achievement.builder().user(user).tier(4).title("30-Day Legend").description("Achieve a monumental 30-day streak of daily English growth.").xpReward(600).unlocked(false).build(),
+
+			// Mastery & Experience
+			Achievement.builder().user(user).tier(1).title("XP Explorer").description("Earn a total of 250 XP across all learning activities.").xpReward(75).unlocked(false).build(),
+			Achievement.builder().user(user).tier(2).title("Level 5 Achiever").description("Earn 500 XP and reach Level 5 Learner status.").xpReward(200).unlocked(false).build(),
+			Achievement.builder().user(user).tier(4).title("Mastery Grandmaster").description("Accumulate 2,000 XP to establish true English mastery.").xpReward(1000).unlocked(false).build()
+		);
 	}
 
 	private boolean checkUnlockCondition(Achievement achievement, com.rslsolution.speakmateai.entity.Progress progress) {
 		String title = achievement.getTitle();
-		int tier = achievement.getTier() != null ? achievement.getTier() : 1;
+		if (title == null || progress == null) return false;
 
-		if (tier == 1) {
-			if ("First Steps".equalsIgnoreCase(title)) {
-				return (progress.getTotalPracticeMinutes() != null && progress.getTotalPracticeMinutes() > 0) || (progress.getXp() != null && progress.getXp() >= 20);
-			} else if ("Speak Up".equalsIgnoreCase(title)) {
-				return progress.getTotalSpeakingSessions() != null && progress.getTotalSpeakingSessions() > 0;
-			} else if ("Word Collector".equalsIgnoreCase(title)) {
-				return progress.getTotalVocabularyWords() != null && progress.getTotalVocabularyWords() >= 5;
-			} else if ("Grammar Guru".equalsIgnoreCase(title)) {
-				return progress.getTotalGrammarChecks() != null && progress.getTotalGrammarChecks() >= 3;
-			} else if ("Hot Streak".equalsIgnoreCase(title)) {
-				return progress.getLongestStreak() != null && progress.getLongestStreak() >= 3;
-			} else if ("Super Scholar".equalsIgnoreCase(title)) {
-				return progress.getXp() != null && progress.getXp() >= 500;
-			}
-		} else if (tier == 2) {
-			if ("Lesson Master I".equalsIgnoreCase(title)) {
-				return (progress.getTotalPracticeMinutes() != null && progress.getTotalPracticeMinutes() >= 60) || (progress.getTotalSpeakingSessions() != null && progress.getTotalSpeakingSessions() >= 3);
-			} else if ("Fluent Speaker I".equalsIgnoreCase(title)) {
-				return progress.getTotalSpeakingSessions() != null && progress.getTotalSpeakingSessions() >= 5;
-			} else if ("Vocabulary Builder".equalsIgnoreCase(title)) {
-				return progress.getTotalVocabularyWords() != null && progress.getTotalVocabularyWords() >= 15;
-			} else if ("Grammar Expert".equalsIgnoreCase(title)) {
-				return progress.getTotalGrammarChecks() != null && progress.getTotalGrammarChecks() >= 10;
-			} else if ("Weekly Warrior".equalsIgnoreCase(title)) {
-				return progress.getLongestStreak() != null && progress.getLongestStreak() >= 7;
-			} else if ("Knowledge Elite".equalsIgnoreCase(title)) {
-				return progress.getXp() != null && progress.getXp() >= 1000;
-			}
-		} else if (tier == 3) {
-			if ("Lesson Master II".equalsIgnoreCase(title)) {
-				return progress.getTotalPracticeMinutes() != null && progress.getTotalPracticeMinutes() >= 150;
-			} else if ("Fluent Speaker II".equalsIgnoreCase(title)) {
-				return progress.getTotalSpeakingSessions() != null && progress.getTotalSpeakingSessions() >= 15;
-			} else if ("Lexicon Master".equalsIgnoreCase(title)) {
-				return progress.getTotalVocabularyWords() != null && progress.getTotalVocabularyWords() >= 30;
-			} else if ("Grammar Master".equalsIgnoreCase(title)) {
-				return progress.getTotalGrammarChecks() != null && progress.getTotalGrammarChecks() >= 25;
-			} else if ("Dedicated Learner".equalsIgnoreCase(title)) {
-				return progress.getLongestStreak() != null && progress.getLongestStreak() >= 14;
-			} else if ("Master Scholar".equalsIgnoreCase(title)) {
-				return progress.getXp() != null && progress.getXp() >= 2500;
-			}
-		} else {
-			if (title.startsWith("Practice Marathon")) {
-				return progress.getTotalPracticeMinutes() != null && progress.getTotalPracticeMinutes() >= tier * 60;
-			} else if (title.startsWith("Orator")) {
-				return progress.getTotalSpeakingSessions() != null && progress.getTotalSpeakingSessions() >= tier * 5;
-			} else if (title.startsWith("Vocabulary Giant")) {
-				return progress.getTotalVocabularyWords() != null && progress.getTotalVocabularyWords() >= tier * 10;
-			} else if (title.startsWith("Grammar Virtuoso")) {
-				return progress.getTotalGrammarChecks() != null && progress.getTotalGrammarChecks() >= tier * 8;
-			} else if (title.startsWith("Unstoppable Streak")) {
-				return progress.getLongestStreak() != null && progress.getLongestStreak() >= tier * 5;
-			} else if (title.startsWith("Grandmaster")) {
-				return progress.getXp() != null && progress.getXp() >= tier * 1000;
-			}
-		}
+		int speaking = progress.getTotalSpeakingSessions() != null ? progress.getTotalSpeakingSessions() : 0;
+		int grammar = progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : 0;
+		int vocab = progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : 0;
+		int streak = progress.getCurrentStreak() != null ? progress.getCurrentStreak() : (progress.getLongestStreak() != null ? progress.getLongestStreak() : 0);
+		int xp = progress.getXp() != null ? progress.getXp() : 0;
+
+		// Speaking
+		if ("First Voice Conversation".equalsIgnoreCase(title)) return speaking >= 1;
+		if ("Confident Conversationalist".equalsIgnoreCase(title)) return speaking >= 5;
+		if ("Fluency Champion".equalsIgnoreCase(title)) return speaking >= 15;
+		if ("Orator Supreme".equalsIgnoreCase(title)) return speaking >= 30;
+
+		// Grammar
+		if ("Grammar Inspector".equalsIgnoreCase(title)) return grammar >= 1;
+		if ("Syntax Detective".equalsIgnoreCase(title)) return grammar >= 10;
+		if ("Tense Master".equalsIgnoreCase(title)) return grammar >= 25;
+		if ("Grammar Scholar".equalsIgnoreCase(title)) return grammar >= 50;
+
+		// Vocabulary
+		if ("Word Collector".equalsIgnoreCase(title)) return vocab >= 5;
+		if ("Lexicon Expander".equalsIgnoreCase(title)) return vocab >= 20;
+		if ("Vocabulary Maestro".equalsIgnoreCase(title)) return vocab >= 50;
+
+		// Streaks
+		if ("3-Day Habit Starter".equalsIgnoreCase(title)) return streak >= 3;
+		if ("7-Day Week Warrior".equalsIgnoreCase(title)) return streak >= 7;
+		if ("14-Day Dedication".equalsIgnoreCase(title)) return streak >= 14;
+		if ("30-Day Legend".equalsIgnoreCase(title)) return streak >= 30;
+
+		// Mastery
+		if ("XP Explorer".equalsIgnoreCase(title)) return xp >= 250;
+		if ("Level 5 Achiever".equalsIgnoreCase(title)) return xp >= 500;
+		if ("Mastery Grandmaster".equalsIgnoreCase(title)) return xp >= 2000;
 
 		return false;
 	}
