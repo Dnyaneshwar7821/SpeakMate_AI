@@ -580,12 +580,15 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void sendDeleteAccountOtp(com.rslsolution.speakmateai.dto.request.SendDeleteAccountOtpRequest request) {
-		String email = request.getEmail().toLowerCase().trim();
+		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 		User user = userRepository.findByEmail(email)
-				.orElseThrow(() -> new UserNotFoundException("No account found registered with email: " + email));
+				.orElseGet(() -> userRepository.findAll().stream()
+						.filter(u -> u.getEmail() != null && u.getEmail().trim().equalsIgnoreCase(email))
+						.findFirst()
+						.orElseThrow(() -> new UserNotFoundException("No account found registered with email: " + email)));
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
-		deleteAccountOtpMap.put(email, new RegistrationOtpDetails(otp, LocalDateTime.now().plusMinutes(10)));
+		deleteAccountOtpMap.put(user.getEmail().trim().toLowerCase(), new RegistrationOtpDetails(otp, LocalDateTime.now().plusMinutes(10)));
 
 		System.out.println("[Delete Account OTP Generated] OTP for " + email + " is: " + otp);
 
@@ -629,7 +632,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void deleteAccountWithOtp(com.rslsolution.speakmateai.dto.request.DeleteAccountRequest request) {
-		String email = request.getEmail().toLowerCase().trim();
+		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
 
 		RegistrationOtpDetails otpDetails = deleteAccountOtpMap.get(email);
@@ -650,7 +653,10 @@ public class UserServiceImpl implements UserService {
 		deleteAccountOtpMap.remove(email);
 
 		User user = userRepository.findByEmail(email)
-				.orElseThrow(() -> new UserNotFoundException("No account found with email: " + email));
+				.orElseGet(() -> userRepository.findAll().stream()
+						.filter(u -> u.getEmail() != null && u.getEmail().trim().equalsIgnoreCase(email))
+						.findFirst()
+						.orElseThrow(() -> new UserNotFoundException("No account found with email: " + email)));
 
 		deleteUser(user.getId());
 	}
@@ -663,6 +669,9 @@ public class UserServiceImpl implements UserService {
 
 		String[] deleteQueries = new String[] {
 			"DELETE FROM user_subscriptions WHERE user_id = " + id,
+			"DELETE FROM audit_logs WHERE user_id = " + id,
+			"DELETE FROM ai_usage_logs WHERE user_id = " + id,
+			"DELETE FROM assignments WHERE teacher_id = " + id,
 			"DELETE FROM vocabulary WHERE user_id = " + id,
 			"DELETE FROM chat_bookmarks WHERE user_id = " + id,
 			"DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE user_id = " + id + ")",
