@@ -103,11 +103,11 @@ public class Achievement {
             obj.setUser(user);
             obj.setTitle(title);
             obj.setDescription(description);
-            obj.setXpReward(xpReward);
-            obj.setTier(tier);
-            obj.setUnlocked(unlocked);
+            obj.setXpReward(xpReward != null ? xpReward : 50);
+            obj.setTier(tier != null ? tier : 1);
+            obj.setUnlocked(unlocked != null ? unlocked : false);
             obj.setUnlockedAt(unlockedAt);
-            obj.setCreatedAt(createdAt);
+            obj.setCreatedAt(createdAt != null ? createdAt : LocalDateTime.now());
             return obj;
         }
 	}

@@ -80,8 +80,8 @@ public class Notification {
             obj.setUser(user);
             obj.setTitle(title);
             obj.setMessage(message);
-            obj.setIsRead(isRead);
-            obj.setCreatedAt(createdAt);
+            obj.setIsRead(isRead != null ? isRead : false);
+            obj.setCreatedAt(createdAt != null ? createdAt : LocalDateTime.now());
             return obj;
         }
 	}

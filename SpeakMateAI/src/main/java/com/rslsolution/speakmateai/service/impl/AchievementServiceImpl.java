@@ -1,6 +1,7 @@
 package com.rslsolution.speakmateai.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
@@ -68,7 +69,7 @@ public class AchievementServiceImpl implements AchievementService {
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
-		List<Achievement> userAchievements = achievementRepository.findByUser(user);
+		List<Achievement> userAchievements = new ArrayList<>(achievementRepository.findByUser(user));
 
 		// Seed or backfill standard 18 Master Achievements if missing
 		List<Achievement> masterCatalog = generateTierAchievements(user, 1);
