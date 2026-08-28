@@ -42,7 +42,6 @@ import {
   DailyMotivationCard,
   UpcomingRecommendations,
   AchievementsCard,
-  NotificationsCard,
   AssignmentsCard,
   SchoolAnnouncementsCard,
 } from '../../components/dashboard';
@@ -238,9 +237,12 @@ export default function DashboardScreen({ navigation }) {
   }, [navigation]);
 
   const handleContinueLearningPress = useCallback((item) => {
-    if (!item) return;
+    if (!item) {
+      navigation.navigate('Lessons');
+      return;
+    }
     if (item.module === 'Speaking Session') {
-      navigation.navigate('Speaking');
+      navigation.navigate('BottomTabs', { screen: 'Speaking' });
     } else if (item.module === 'Lesson') {
       navigation.navigate('Lessons', {
         screen: 'LessonDetail',
@@ -251,25 +253,56 @@ export default function DashboardScreen({ navigation }) {
     } else if (item.module === 'Grammar Exercise') {
       navigation.navigate('Grammar');
     } else if (item.module === 'AI Chat') {
-      navigation.navigate('AIChat', {
-        screen: 'ConversationChat',
-        params: { sessionId: item.targetId, title: item.title }
+      navigation.navigate('BottomTabs', {
+        screen: 'AIChat',
+        params: {
+          screen: 'ConversationChat',
+          params: { sessionId: item.targetId, title: item.title }
+        }
       });
+    } else {
+      navigation.navigate('Lessons');
     }
   }, [navigation]);
 
   const [purchasedFreezes, setPurchasedFreezes] = useState(0);
 
-  const handleBuyFreeze = useCallback(() => {
+  // Load persisted streak freezes from local storage
+  useEffect(() => {
+    const loadFreezes = async () => {
+      try {
+        const freezeKey = `@speakmate_streak_freezes_${user?.id || 'default'}`;
+        const stored = await AsyncStorage.getItem(freezeKey);
+        if (stored !== null) {
+          setPurchasedFreezes(Number(stored) || 0);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadFreezes();
+  }, [user?.id]);
+
+  const handleBuyFreeze = useCallback(async () => {
     const currentXp = viewModel.xp;
     if (currentXp >= 100) {
-      setPurchasedFreezes((prev) => prev + 1);
+      const nextFreezes = purchasedFreezes + 1;
+      setPurchasedFreezes(nextFreezes);
+      try {
+        const freezeKey = `@speakmate_streak_freezes_${user?.id || 'default'}`;
+        await AsyncStorage.setItem(freezeKey, String(nextFreezes));
+        if (updateUser) {
+          updateUser({ ...user, xp: Math.max(0, currentXp - 100) });
+        }
+      } catch {
+        // ignore
+      }
       triggerConfetti();
-      showToast('Streak Freeze Purchased! ❄️', 'warning', '1 Streak Freeze added to your reserve');
+      showToast('Streak Freeze Purchased! ❄️', 'warning', '1 Streak Freeze added to your reserve (-100 XP)');
     } else {
-      showToast('Earn More XP ❄️', 'info', 'You need 100 XP to buy a Streak Freeze');
+      showToast('Earn More XP ❄️', 'info', 'You need at least 100 XP to buy a Streak Freeze');
     }
-  }, [viewModel.xp, showToast, triggerConfetti]);
+  }, [viewModel.xp, purchasedFreezes, user, updateUser, showToast, triggerConfetti]);
 
   const handleRecommendationPress = useCallback((rec) => {
     if (!rec) return;
@@ -280,13 +313,15 @@ export default function DashboardScreen({ navigation }) {
         navigation.navigate('Lessons');
       }
     } else if (rec.type === 'speaking') {
-      navigation.navigate('Speaking');
+      navigation.navigate('BottomTabs', { screen: 'Speaking' });
     } else if (rec.type === 'vocabulary') {
       navigation.navigate('Vocabulary');
     } else if (rec.type === 'grammar') {
       navigation.navigate('Grammar');
     } else if (rec.type === 'chat') {
-      navigation.navigate('AIChat');
+      navigation.navigate('BottomTabs', { screen: 'AIChat' });
+    } else {
+      navigation.navigate('Lessons');
     }
   }, [navigation]);
 
@@ -423,13 +458,6 @@ export default function DashboardScreen({ navigation }) {
         <AchievementsCard
           achievements={viewModel.achievements}
           onViewAll={() => navigation.navigate('Achievements')}
-          isDark={isDark}
-        />
-
-        {/* SECTION 12: NOTIFICATIONS */}
-        <NotificationsCard
-          notifications={viewModel.notifications}
-          onPress={handleNotificationsNav}
           isDark={isDark}
         />
       </ScrollView>

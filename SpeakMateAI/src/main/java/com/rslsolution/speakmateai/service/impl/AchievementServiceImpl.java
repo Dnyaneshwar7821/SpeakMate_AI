@@ -126,6 +126,17 @@ public class AchievementServiceImpl implements AchievementService {
 			} catch (Exception ignored) {}
 		}
 
+		// Reconcile and guarantee progress.xp is always >= sum of already unlocked achievements
+		int totalUnlockedAchievementXp = userAchievements.stream()
+				.filter(a -> Boolean.TRUE.equals(a.getUnlocked()))
+				.mapToInt(a -> a.getXpReward() != null ? a.getXpReward() : 50)
+				.sum();
+
+		if (progress.getXp() == null || progress.getXp() < totalUnlockedAchievementXp) {
+			progress.setXp(totalUnlockedAchievementXp);
+			progressUpdated = true;
+		}
+
 		if (progressUpdated) {
 			progressRepository.save(progress);
 		}
