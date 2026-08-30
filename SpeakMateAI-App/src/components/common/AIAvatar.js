@@ -384,10 +384,10 @@ export default function AIAvatar({
 }
 
 // ── Target Stage Dimensions (Head to Mid-Chest Portrait) ──────────────────────
-const INNER_RING_SIZE = 185; // Inner Neon Halo Ring
-const OUTER_RING_SIZE = 245; // Outer Luminous Halo Ring
+const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
+const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
 const AVATAR_WIDTH    = 360; // Wide container
-const AVATAR_HEIGHT   = 215; // Balanced portrait height
+const AVATAR_HEIGHT   = 200; // Generous height
 
 const styles = StyleSheet.create({
   container: {
@@ -425,8 +425,8 @@ const styles = StyleSheet.create({
   soundWaveAura: {
     position:   'absolute',
     width:      '100%',
-    height:     75,
-    top:        70,
+    height:     70,
+    top:        65,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
 
-  // 3. Luminous Outer Neon Halo Ring (245px)
+  // 3. Luminous Outer Neon Halo Ring (232px)
   outerHaloRing: {
     position:      'absolute',
     width:         OUTER_RING_SIZE,
@@ -443,12 +443,12 @@ const styles = StyleSheet.create({
     borderRadius:  OUTER_RING_SIZE / 2,
     borderWidth:   1.2,
     shadowOpacity: 0.65,
-    shadowRadius:  15,
+    shadowRadius:  14,
     shadowOffset:  { width: 0, height: 0 },
     elevation:     4,
   },
 
-  // 4. Luminous Inner Neon Halo Ring (185px Centered on Face)
+  // 4. Luminous Inner Neon Halo Ring (172px Centered on Face)
   innerHaloRing: {
     position:      'absolute',
     width:         INNER_RING_SIZE,

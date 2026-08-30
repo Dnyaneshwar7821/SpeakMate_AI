@@ -328,8 +328,8 @@ export default function ConversationScreen({ navigation, route }) {
       
       // 4. Sync background session if live backend session is available
       try {
-        if (sessionId && !String(sessionId).startsWith('sim_')) {
-          const detail = await speakingService.detail(sessionId);
+        if (sessionId && !String(sessionId).startsWith('sim_') && !isNaN(Number(sessionId))) {
+          const detail = await speakingService.detail(sessionId).catch(() => null);
           if (detail && detail.messages && detail.messages.length > 0) {
             const cleanMsgs = detail.messages.map((m) => {
               if (m.sender === 'ai' && (m.message.includes('Analyze User Input:') || m.message.includes('Context:') || m.message.includes('Requirements:'))) {
@@ -345,7 +345,7 @@ export default function ConversationScreen({ navigation, route }) {
           }
         }
       } catch (e) {
-        console.warn('Initial session sync note:', e);
+        // Quietly ignore draft sync
       }
 
       const initialMessageObj = {

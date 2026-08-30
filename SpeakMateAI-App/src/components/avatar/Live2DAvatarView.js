@@ -258,14 +258,14 @@ const LIVE2D_HTML = `
       if (!app || !model) return;
       const container = document.getElementById('canvas-container');
       const viewW = container.clientWidth || window.innerWidth || 360;
-      const viewH = container.clientHeight || window.innerHeight || 215;
+      const viewH = container.clientHeight || window.innerHeight || 200;
       app.renderer.resize(viewW, viewH);
       const baseScale = Math.min(viewW / model.width, viewH / model.height);
-      const portraitScale = baseScale * 2.55;
+      const portraitScale = baseScale * 1.85;
       model.scale.set(portraitScale);
-      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.155);
+      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.20);
       model.x = viewW / 2;
-      model.y = (viewH / 2) - 10;
+      model.y = (viewH / 2) + 2;
     }
 
     async function loadModel(url, modelName) {
@@ -283,16 +283,16 @@ const LIVE2D_HTML = `
         // Get true physical bounds from the DOM to prevent square fallback stretching
         const container = document.getElementById('canvas-container');
         const viewW = container.clientWidth || window.innerWidth || 360;
-        const viewH = container.clientHeight || window.innerHeight || 215;
+        const viewH = container.clientHeight || window.innerHeight || 200;
 
-        // Balanced Head-to-Chest Portrait Framing: Zoom 2.55x
+        // Clean Head-to-Chest Framing: Zoom 1.85x with Face Center in Halo
         const baseScale = Math.min(viewW / model.width, viewH / model.height);
-        const portraitScale = baseScale * 2.55;
+        const portraitScale = baseScale * 1.85;
 
         model.scale.set(portraitScale);
-        model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.155);
+        model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.20);
         model.x = viewW / 2;
-        model.y = (viewH / 2) - 10;
+        model.y = (viewH / 2) + 2;
 
         // Hook motionManager update to guarantee lipSync is never overridden by idle physics
         if (model.internalModel && model.internalModel.motionManager) {
