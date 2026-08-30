@@ -124,6 +124,22 @@ public class LessonServiceImpl implements LessonService {
 		return mapToResponse(lesson, prog.orElse(null));
 	}
 
+	private List<LessonResponse> mapLessonsWithUserProgress(List<Lesson> lessons, User user) {
+		if (lessons == null || lessons.isEmpty()) {
+			return List.of();
+		}
+		if (user == null) {
+			return lessons.stream().map(this::mapToResponse).toList();
+		}
+		List<LessonProgress> userProgressList = progressRepository.findByUser(user);
+		Map<Long, LessonProgress> progressMap = userProgressList.stream()
+				.filter(p -> p.getLesson() != null && p.getLesson().getId() != null)
+				.collect(Collectors.toMap(p -> p.getLesson().getId(), p -> p, (existing, replacement) -> existing));
+		return lessons.stream()
+				.map(l -> mapToResponse(l, progressMap.get(l.getId())))
+				.toList();
+	}
+
 	private LessonProgressResponse mapProgressToResponse(LessonProgress p) {
 		return LessonProgressResponse.builder()
 				.id(p.getId())
@@ -175,9 +191,7 @@ public class LessonServiceImpl implements LessonService {
 	@Override
 	public List<LessonResponse> getAllLessons() {
 		User user = currentUser();
-		return lessonRepository.findAll().stream()
-				.map(l -> mapWithUserProgress(l, user))
-				.toList();
+		return mapLessonsWithUserProgress(lessonRepository.findAll(), user);
 	}
 
 	@Override
@@ -191,33 +205,25 @@ public class LessonServiceImpl implements LessonService {
 	@Override
 	public List<LessonResponse> getLessonsByCategory(String category) {
 		User user = currentUser();
-		return lessonRepository.findByCategory(category).stream()
-				.map(l -> mapWithUserProgress(l, user))
-				.toList();
+		return mapLessonsWithUserProgress(lessonRepository.findByCategory(category), user);
 	}
 
 	@Override
 	public List<LessonResponse> getLessonsByLevel(String level) {
 		User user = currentUser();
-		return lessonRepository.findByLevel(level).stream()
-				.map(l -> mapWithUserProgress(l, user))
-				.toList();
+		return mapLessonsWithUserProgress(lessonRepository.findByLevel(level), user);
 	}
 
 	@Override
 	public List<LessonResponse> getLessonsByCategoryAndLevel(String category, String level) {
 		User user = currentUser();
-		return lessonRepository.findByCategoryAndLevel(category, level).stream()
-				.map(l -> mapWithUserProgress(l, user))
-				.toList();
+		return mapLessonsWithUserProgress(lessonRepository.findByCategoryAndLevel(category, level), user);
 	}
 
 	@Override
 	public List<LessonResponse> getActiveLessons() {
 		User user = currentUser();
-		return lessonRepository.findByActiveTrue().stream()
-				.map(l -> mapWithUserProgress(l, user))
-				.toList();
+		return mapLessonsWithUserProgress(lessonRepository.findByActiveTrue(), user);
 	}
 
 	@Override
@@ -312,8 +318,7 @@ public class LessonServiceImpl implements LessonService {
 			// fallback: first 10 active
 			pool = lessonRepository.findByActiveTrue().stream().limit(10).toList();
 		}
-		final User finalUser = user;
-		return pool.stream().map(l -> mapWithUserProgress(l, finalUser)).toList();
+		return mapLessonsWithUserProgress(pool, user);
 	}
 
 	@Override
@@ -348,8 +353,7 @@ public class LessonServiceImpl implements LessonService {
 			base = base.stream().filter(l -> l.getLevel().equalsIgnoreCase(difficulty)).toList();
 		}
 
-		final User finalUser = user;
-		return base.stream().map(l -> mapWithUserProgress(l, finalUser)).toList();
+		return mapLessonsWithUserProgress(base, user);
 	}
 
 	@Override

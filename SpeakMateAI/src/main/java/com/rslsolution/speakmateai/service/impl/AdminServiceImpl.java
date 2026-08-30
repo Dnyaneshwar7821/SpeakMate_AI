@@ -45,7 +45,7 @@ public class AdminServiceImpl implements AdminService {
 
 		return AdminDashboardResponse.builder().totalUsers(userRepository.count())
 				.activeUsers(userRepository.countByActiveTrue()).totalLessons(lessonRepository.count())
-				.activeLessons(lessonRepository.findByActiveTrue().stream().count())
+				.activeLessons(lessonRepository.countByActiveTrue())
 				.totalSpeakingSessions(speakingSessionRepository.count())
 				.totalVocabularyWords(vocabularyRepository.count()).totalAchievements(achievementRepository.count())
 				.totalNotifications(notificationRepository.count()).build();

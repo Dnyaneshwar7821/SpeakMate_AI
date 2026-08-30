@@ -24,6 +24,8 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
 	List<Lesson> findByActiveTrueAndFeaturedTrue();
 
+	long countByActiveTrue();
+
 	@Query("SELECT l FROM Lesson l WHERE l.active = true AND (LOWER(l.title) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(l.description) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(l.category) LIKE LOWER(CONCAT('%', :q, '%')))")
 	List<Lesson> searchActive(@Param("q") String query);
 }

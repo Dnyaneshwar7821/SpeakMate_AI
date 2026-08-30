@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,19 +20,18 @@ import com.rslsolution.speakmateai.service.ExpoPushService;
 import com.rslsolution.speakmateai.service.NotificationService;
 
 /**
- * NotificationScheduler — Phase 2 automated reminders.
+ * NotificationScheduler — Automated reminders.
+ *
+ * Controlled via app.scheduling.enabled (default: false for local dev, true for production).
  *
  * Daily Practice Reminder : fires at 19:00 every day.
  * Streak Warning          : fires at 20:30 every day for users with an active
  *                           streak who have not practiced today.
  * Weekly Summary          : fires every Sunday at 09:00.
- *
- * All jobs respect the user's Settings:
- *   - notificationsEnabled = false → skip all notifications for that user
- *   - dailyReminder = false        → skip daily practice reminder only
  */
 @Component
 @Transactional
+@ConditionalOnProperty(name = "app.scheduling.enabled", havingValue = "true", matchIfMissing = false)
 public class NotificationScheduler {
 
     private final UserRepository userRepository;
@@ -77,24 +77,19 @@ public class NotificationScheduler {
 
     @Scheduled(cron = "0 0 19 * * ?")
     public void sendDailyPracticeReminder() {
-        List<User> allUsers = userRepository.findAll();
-        for (User user : allUsers) {
-            if (!user.isActive()) continue;
+        List<User> activeUsers = userRepository.findByActiveTrue();
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
 
+        for (User user : activeUsers) {
             Settings settings = getSettingsOrDefault(user);
 
             // Respect user preferences
             if (isNotificationsDisabled(settings)) continue;
             if (isDailyReminderDisabled(settings)) continue;
 
-            // Avoid duplicating: check if a daily reminder was already sent today
-            LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+            // Direct database-level exists check (1 byte query)
             boolean alreadySent = notificationRepository
-                    .findByUserOrderByCreatedAtDesc(user)
-                    .stream()
-                    .anyMatch(n -> n.getTitle().startsWith("Daily Practice") &&
-                                  n.getCreatedAt() != null &&
-                                  n.getCreatedAt().isAfter(startOfDay));
+                    .existsByUserAndTitleStartingWithAndCreatedAtAfter(user, "Daily Practice", startOfDay);
 
             if (!alreadySent) {
                 try {
@@ -114,6 +109,7 @@ public class NotificationScheduler {
     @Scheduled(cron = "0 30 20 * * ?")
     public void sendStreakWarning() {
         List<Progress> activeStreaks = progressRepository.findByCurrentStreakGreaterThan(0);
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
 
         for (Progress progress : activeStreaks) {
             User user = progress.getUser();
@@ -124,15 +120,8 @@ public class NotificationScheduler {
             // Respect global notifications toggle
             if (isNotificationsDisabled(settings)) continue;
 
-            // Check if already warned today
-            LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-            boolean alreadyWarned = notificationRepository
-                    .findByUserOrderByCreatedAtDesc(user)
-                    .stream()
-                    .anyMatch(n -> n.getTitle().contains("Streak") &&
-                                  n.getTitle().contains("Risk") &&
-                                  n.getCreatedAt() != null &&
-                                  n.getCreatedAt().isAfter(startOfDay));
+            // Direct database-level exists check (1 byte query)
+            boolean alreadyWarned = notificationRepository.existsStreakWarningToday(user, startOfDay);
 
             if (!alreadyWarned) {
                 try {

@@ -350,11 +350,8 @@ public class UserServiceImpl implements UserService {
 	public void forgotPassword(ForgotPasswordRequest request) {
 		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 
-		User user = userRepository.findByEmail(cleanEmail)
-				.orElseGet(() -> userRepository.findAll().stream()
-						.filter(u -> u.getEmail() != null && u.getEmail().trim().equalsIgnoreCase(cleanEmail))
-						.findFirst()
-						.orElseThrow(() -> new IllegalArgumentException("No registered account found with email: " + cleanEmail)));
+		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+				.orElseThrow(() -> new IllegalArgumentException("No registered account found with email: " + cleanEmail));
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 		user.setResetOtp(otp);
@@ -581,11 +578,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void sendDeleteAccountOtp(com.rslsolution.speakmateai.dto.request.SendDeleteAccountOtpRequest request) {
 		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
-		User user = userRepository.findByEmail(email)
-				.orElseGet(() -> userRepository.findAll().stream()
-						.filter(u -> u.getEmail() != null && u.getEmail().trim().equalsIgnoreCase(email))
-						.findFirst()
-						.orElseThrow(() -> new UserNotFoundException("No account found registered with email: " + email)));
+		User user = userRepository.findByEmailIgnoreCase(email)
+				.orElseThrow(() -> new UserNotFoundException("No account found registered with email: " + email));
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 		deleteAccountOtpMap.put(user.getEmail().trim().toLowerCase(), new RegistrationOtpDetails(otp, LocalDateTime.now().plusMinutes(10)));
@@ -652,11 +646,8 @@ public class UserServiceImpl implements UserService {
 
 		deleteAccountOtpMap.remove(email);
 
-		User user = userRepository.findByEmail(email)
-				.orElseGet(() -> userRepository.findAll().stream()
-						.filter(u -> u.getEmail() != null && u.getEmail().trim().equalsIgnoreCase(email))
-						.findFirst()
-						.orElseThrow(() -> new UserNotFoundException("No account found with email: " + email)));
+		User user = userRepository.findByEmailIgnoreCase(email)
+				.orElseThrow(() -> new UserNotFoundException("No account found with email: " + email));
 
 		deleteUser(user.getId());
 	}
