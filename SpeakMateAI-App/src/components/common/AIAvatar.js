@@ -383,9 +383,11 @@ export default function AIAvatar({
   );
 }
 
-// ── Target Stage Dimensions (Head to Mid-Chest Framing) ───────────────────────
-const AVATAR_STAGE_HEIGHT = 195; // Clean portrait height
-const AVATAR_WIDTH        = 340; // Focused bust framing
+// ── Target Stage Dimensions (Head to Mid-Chest Portrait) ──────────────────────
+const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
+const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
+const AVATAR_WIDTH    = 360; // Wide container
+const AVATAR_HEIGHT   = 200; // Generous height
 
 const styles = StyleSheet.create({
   container: {
@@ -397,26 +399,26 @@ const styles = StyleSheet.create({
 
   stageWrapper: {
     width:          '100%',
-    height:         AVATAR_STAGE_HEIGHT,
+    height:         AVATAR_HEIGHT,
     alignItems:     'center',
     justifyContent: 'center',
     position:       'relative',
-    overflow:       'hidden',
+    overflow:       'visible',
   },
 
-  // 1. Diffused Soft Ambient Radial Glow (Studio Spotlight Bloom)
+  // 1. Diffused Soft Ambient Radial Glow
   ambientGlowContainer: {
     position:        'absolute',
-    width:           260,
-    height:          200,
-    borderRadius:    100,
+    width:           OUTER_RING_SIZE + 40,
+    height:          OUTER_RING_SIZE + 40,
+    borderRadius:    (OUTER_RING_SIZE + 40) / 2,
     alignItems:      'center',
     justifyContent:  'center',
     overflow:        'hidden',
   },
   diffuseGlowGradient: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: 100,
+    borderRadius: (OUTER_RING_SIZE + 40) / 2,
   },
 
   // 2. Ethereal Horizontal Sound Wave Energy Aura
@@ -433,32 +435,30 @@ const styles = StyleSheet.create({
     height: '100%',
   },
 
-  // 3. Luminous Outer Neon Halo Ring (225px)
+  // 3. Luminous Outer Neon Halo Ring (232px)
   outerHaloRing: {
     position:      'absolute',
-    width:         225,
-    height:        225,
-    borderRadius:  112.5,
-    borderWidth:   1.0,
+    width:         OUTER_RING_SIZE,
+    height:        OUTER_RING_SIZE,
+    borderRadius:  OUTER_RING_SIZE / 2,
+    borderWidth:   1.2,
     shadowOpacity: 0.65,
     shadowRadius:  14,
     shadowOffset:  { width: 0, height: 0 },
     elevation:     4,
-    top:           -15,
   },
 
-  // 4. Luminous Inner Neon Halo Ring (175px)
+  // 4. Luminous Inner Neon Halo Ring (172px Centered on Face)
   innerHaloRing: {
     position:      'absolute',
-    width:         175,
-    height:        175,
-    borderRadius:  87.5,
-    borderWidth:   1.6,
+    width:         INNER_RING_SIZE,
+    height:        INNER_RING_SIZE,
+    borderRadius:  INNER_RING_SIZE / 2,
+    borderWidth:   1.8,
     shadowOpacity: 0.95,
     shadowRadius:  20,
     shadowOffset:  { width: 0, height: 0 },
     elevation:     8,
-    top:           10,
   },
 
   // 5. Ambient Stars & Sparkles
@@ -472,32 +472,33 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
 
-  // 6. Avatar Container & Canvas (Head to Mid-Chest Portrait)
+  // 6. Avatar Container & Canvas (Head to Chest Portrait)
   avatarContainer: {
     width:           AVATAR_WIDTH,
-    height:          AVATAR_STAGE_HEIGHT,
+    height:          AVATAR_HEIGHT,
     alignItems:      'center',
     justifyContent:  'center',
     position:        'relative',
-    overflow:        'hidden',
+    overflow:        'visible',
     backgroundColor: 'transparent',
     zIndex:          10,
   },
   avatarCanvas: {
     width:           AVATAR_WIDTH,
-    height:          AVATAR_STAGE_HEIGHT,
+    height:          AVATAR_HEIGHT,
     backgroundColor: 'transparent',
   },
 
   // 7. Smooth Chest-Line Fade into Dark Background
   softTorsoDissolve: {
-    position:  'absolute',
-    left:      0,
-    right:     0,
-    bottom:    0,
-    height:    38,
-    zIndex:    12,
-    elevation: 10,
+    position:     'absolute',
+    width:        260,
+    height:       42,
+    bottom:       0,
+    alignSelf:    'center',
+    borderRadius: 21,
+    zIndex:       12,
+    elevation:    10,
   },
 
   // 8. Glassmorphic Status Pill
@@ -506,11 +507,11 @@ const styles = StyleSheet.create({
     alignItems:        'center',
     justifyContent:    'center',
     gap:               8,
-    marginTop:         8,
-    minWidth:          115,
-    paddingHorizontal: 14,
-    paddingVertical:   6,
-    borderRadius:      20,
+    marginTop:         14,
+    minWidth:          120,
+    paddingHorizontal: 15,
+    paddingVertical:   6.5,
+    borderRadius:      22,
     backgroundColor:   'rgba(15, 23, 42, 0.85)',
     borderWidth:       1.5,
     shadowOpacity:     0.35,
