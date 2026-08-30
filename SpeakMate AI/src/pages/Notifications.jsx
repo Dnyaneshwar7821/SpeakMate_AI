@@ -120,25 +120,47 @@ export function Notifications() {
     return { icon: Bell, color: "text-[#6C63FF] bg-[#6C63FF]/15 border-[#6C63FF]/30" };
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "Recently";
-    try {
-      const date = new Date(dateStr);
-      if (isNaN(date.getTime())) return "Recently";
-      const now = new Date();
-      const diffMs = now - date;
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  // Live timer tick every 5 seconds to update 's ago' and 'm ago' in real-time
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
-      if (diffMins < 1) return "Just now";
+  const parseDate = (dateStr) => {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return dateStr;
+    let str = String(dateStr).trim();
+    if (str.includes("T") && !str.endsWith("Z") && !str.includes("+") && !str.match(/-\d{2}:\d{2}$/)) {
+      str = `${str}Z`;
+    }
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? new Date(dateStr) : d;
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "Just now";
+    try {
+      const date = parseDate(dateStr);
+      if (!date || isNaN(date.getTime())) return "Just now";
+      const now = new Date();
+      const diffMs = Math.max(0, now.getTime() - date.getTime());
+      const diffSecs = Math.floor(diffMs / 1000);
+      const diffMins = Math.floor(diffSecs / 60);
+      const diffHours = Math.floor(diffMins / 60);
+      const diffDays = Math.floor(diffHours / 24);
+
+      if (diffSecs < 10) return "Just now";
+      if (diffSecs < 60) return `${diffSecs}s ago`;
       if (diffMins < 60) return `${diffMins}m ago`;
       if (diffHours < 24) return `${diffHours}h ago`;
       if (diffDays === 1) return "Yesterday";
       if (diffDays < 7) return `${diffDays}d ago`;
       return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
     } catch {
-      return "Recently";
+      return "Just now";
     }
   };
 

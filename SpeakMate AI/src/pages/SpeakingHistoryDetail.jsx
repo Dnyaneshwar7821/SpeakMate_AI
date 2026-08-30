@@ -63,7 +63,7 @@ export function SpeakingHistoryDetail() {
         </Link>
 
         <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full">
-          Score: {sessionData?.score || 88}%
+          Score: {sessionData?.score !== null && sessionData?.score !== undefined ? Math.round(sessionData.score) : 0}%
         </span>
       </div>
 

@@ -433,6 +433,26 @@ export function ConversationSession() {
     }
   };
 
+  const handleEscapeSession = async () => {
+    if (coachingTimerRef.current) {
+      clearTimeout(coachingTimerRef.current);
+      coachingTimerRef.current = null;
+    }
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setIsAiSpeaking(false);
+      setViseme("REST");
+    }
+    if (sessionId && !String(sessionId).startsWith("sim_")) {
+      try {
+        await speakingService.deleteHistory(sessionId);
+      } catch (err) {
+        console.warn("Failed to discard draft session:", err);
+      }
+    }
+    navigate(ROUTES.SPEAKING, { replace: true });
+  };
+
   const handleEndSession = async () => {
     if (coachingTimerRef.current) {
       clearTimeout(coachingTimerRef.current);
@@ -452,7 +472,7 @@ export function ConversationSession() {
     try {
       const summary = await speakingService.end(sessionId).catch(() => null);
 
-      const effectiveScore = summary?.overallScore ?? summary?.score ?? (hasActivity ? 85 : 0);
+      const effectiveScore = summary?.overallScore ?? summary?.score ?? (hasActivity ? 80 : 0);
       const effectiveXP = summary?.xpEarned ?? (hasActivity ? Math.min(45, Math.max(5, Math.round(totalUserWords * 0.5))) : 0);
       const effectiveDuration = summary?.duration ?? timer;
 
@@ -524,17 +544,17 @@ export function ConversationSession() {
           isDark ? "bg-slate-800/40 border-white/10" : "bg-slate-50/90 border-slate-200/90"
         }`}>
           <div className="flex items-center gap-2.5 min-w-0">
-            <Link
-              to={ROUTES.SPEAKING}
-              className={`p-2 rounded-xl border transition-colors shrink-0 shadow-sm ${
+            <button
+              onClick={handleEscapeSession}
+              className={`p-2 rounded-xl border transition-colors shrink-0 shadow-sm cursor-pointer ${
                 isDark ? "bg-slate-800/80 border-white/10 text-slate-300 hover:text-white" : "bg-white border-slate-200 text-slate-700 hover:text-slate-900"
               }`}
-              title="Back to Scenarios"
+              title="Close & Discard without Finishing"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </Link>
+            </button>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />

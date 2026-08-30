@@ -474,7 +474,9 @@ export function SpeakingPractice() {
                     </h4>
                     <p className="text-[11px] text-[var(--text-secondary)] font-bold mt-0.5">
                       {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : "Recent"} • {Math.round((item.duration || 0) / 60)} min •{" "}
-                      <span className="text-emerald-500 font-extrabold">{item.score || 85}% Score</span>
+                      <span className={`font-extrabold ${(item.score ?? 0) > 0 ? "text-emerald-500" : "text-amber-500"}`}>
+                        {item.score !== null && item.score !== undefined ? Math.round(item.score) : 0}% Score
+                      </span>
                     </p>
                     <p className="text-xs text-[var(--text-secondary)] font-medium line-clamp-1 mt-1">
                       {item.previewMessage || item.feedback || "Completed speaking practice simulation."}
