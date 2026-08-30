@@ -10,9 +10,9 @@ public class DatabaseMigrationTest {
 
     @Test
     public void executeMigration() {
-        String dbUrl = "jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require";
-        String username = "neondb_owner";
-        String password = "npg_KB5TRnXJ1Szt";
+        String dbUrl = System.getenv().getOrDefault("SPRING_DATASOURCE_URL", "jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require");
+        String username = System.getenv().getOrDefault("SPRING_DATASOURCE_USERNAME", "neondb_owner");
+        String password = System.getenv().getOrDefault("SPRING_DATASOURCE_PASSWORD", "");
 
         try (Connection conn = DriverManager.getConnection(dbUrl, username, password);
              Statement stmt = conn.createStatement()) {
