@@ -131,24 +131,26 @@ export function useLipSync(model, isSpeakingProp = false) {
 
       if (isSpeaking) {
         const t = now * 0.001;
-        const phoneticY = targetMouthYRef.current > 0 ? targetMouthYRef.current : 1.0;
+        const phoneticY = targetMouthYRef.current > 0 ? targetMouthYRef.current : 0.9;
         const phoneticForm = targetMouthFormRef.current || 0.2;
 
         const timeSinceWord = now - lastWordTimeRef.current;
         let envelope = 0;
 
-        // Perfect Word-Boundary Envelope (Attack, Sustain, Decay)
-        if (timeSinceWord < 80) {
-          envelope = timeSinceWord / 80; // Attack
-        } else if (timeSinceWord < 220) {
+        // Word-Boundary Envelope (Attack, Sustain, Decay)
+        if (timeSinceWord < 90) {
+          envelope = timeSinceWord / 90; // Attack
+        } else if (timeSinceWord < 240) {
           envelope = 1.0; // Sustain
-        } else if (timeSinceWord < 350) {
-          envelope = 1.0 - ((timeSinceWord - 220) / 130); // Decay
+        } else if (timeSinceWord < 380) {
+          envelope = 1.0 - ((timeSinceWord - 240) / 140); // Decay
         } else {
-          envelope = 0; // Fully closed between words
+          // Robust universal speech cadence fallback (For voices that do not fire onboundary events)
+          const harmonicCadence = Math.abs(Math.sin(t * 11.5)) * 0.45 + Math.abs(Math.sin(t * 17.2)) * 0.35 + 0.2;
+          envelope = Math.min(1.0, Math.max(0.25, harmonicCadence));
         }
 
-        const microTremor = envelope > 0.1 ? Math.sin(t * 7.0 * Math.PI) * 0.05 : 0;
+        const microTremor = envelope > 0.1 ? Math.sin(t * 8.0 * Math.PI) * 0.04 : 0;
         targetMouthY = Math.min(1.0, Math.max(0.0, (phoneticY * envelope) + microTremor));
         targetMouthForm = phoneticForm;
       }

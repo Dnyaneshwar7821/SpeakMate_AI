@@ -177,29 +177,35 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
     // Profile-specific voice lists
     const US_MALE = ["guy", "david", "mark", "alex", "us male", "en-us"];
     const US_FEMALE = ["jenny", "zira", "samantha", "us female", "en-us"];
-    const UK_MALE = ["ryan", "george", "oliver", "daniel", "malcolm", "uk male", "british", "en-gb"];
-    const UK_FEMALE = ["sonia", "hazel", "fiona", "kate", "serena", "uk female", "british", "en-gb"];
-    const AU_MALE = ["william", "russell", "au male", "australian", "en-au"];
-    const AU_FEMALE = ["natasha", "catherine", "karen", "au female", "australian", "en-au"];
-    const IN_MALE = ["prabhat", "rishi", "ravi", "in male", "indian", "en-in"];
-    const IN_FEMALE = ["neerja", "veena", "heera", "kalpana", "ananya", "in female", "indian", "en-in", "hindi"];
+    const UK_MALE = ["ryan", "george", "oliver", "daniel", "malcolm", "uk male", "british", "en-gb", "en_gb", "united kingdom"];
+    const UK_FEMALE = ["sonia", "hazel", "fiona", "kate", "serena", "libby", "mia", "uk female", "british", "en-gb", "en_gb", "united kingdom"];
+    const AU_MALE = ["william", "russell", "au male", "australian", "en-au", "en_au", "australia"];
+    const AU_FEMALE = ["natasha", "catherine", "karen", "annette", "au female", "australian", "en-au", "en_au", "australia"];
+    const IN_MALE = ["prabhat", "rishi", "ravi", "in male", "indian", "en-in", "en_in"];
+    const IN_FEMALE = ["neerja", "veena", "heera", "kalpana", "ananya", "in female", "indian", "en-in", "en_in", "hindi"];
 
     const MALE_NAMES = ["guy", "david", "mark", "alex", "tom", "chris", "george", "james", "ryan", "oliver", "daniel", "william", "russell", "prabhat", "rishi", "ravi", "male"];
-    const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "neerja", "veena", "heera", "female"];
+    const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "libby", "mia", "annette", "neerja", "veena", "heera", "female"];
 
     // Profile-driven targeted voice matching for AU Female (Explicitly excludes Indian & US female voices)
     if (settings.effectiveVoiceCode === "AU Female") {
-      const EXCLUDE_IN_FEMALES = ["neerja", "veena", "heera", "kalpana", "ananya", "indian", "in-in", "zira", "jenny"];
+      const EXCLUDE_IN_FEMALES = ["neerja", "veena", "heera", "kalpana", "ananya", "indian", "in-in", "zira", "jenny", "david", "guy"];
       targetVoice = voices.find((v) =>
-        (v.lang.toLowerCase().includes("au") || v.name.toLowerCase().includes("australia") || v.name.toLowerCase().includes("natasha") || v.name.toLowerCase().includes("catherine") || v.name.toLowerCase().includes("karen")) &&
+        (v.lang.toLowerCase().includes("au") || v.name.toLowerCase().includes("australia") || AU_FEMALE.some((k) => v.name.toLowerCase().includes(k))) &&
         !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) &&
         !EXCLUDE_IN_FEMALES.some((k) => v.name.toLowerCase().includes(k))
       );
       if (!targetVoice) {
         targetVoice = voices.find((v) =>
-          (v.name.toLowerCase().includes("natasha") || v.name.toLowerCase().includes("catherine") || v.name.toLowerCase().includes("karen") || v.name.toLowerCase().includes("hazel") || v.name.toLowerCase().includes("fiona") || v.name.toLowerCase().includes("serena")) &&
+          AU_FEMALE.some((k) => v.name.toLowerCase().includes(k)) &&
           !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) &&
           !EXCLUDE_IN_FEMALES.some((k) => v.name.toLowerCase().includes(k))
+        );
+      }
+      if (!targetVoice) {
+        targetVoice = voices.find((v) =>
+          v.lang.toLowerCase().includes("au") &&
+          !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
         );
       }
       if (!targetVoice) {
@@ -219,15 +225,22 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
       }
     } else if (settings.effectiveVoiceCode === "UK Female") {
       targetVoice = voices.find((v) =>
-        v.lang.toLowerCase().includes("gb") && FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
-      ) || voices.find((v) => UK_FEMALE.some((k) => v.name.toLowerCase().includes(k)));
+        (v.lang.toLowerCase().includes("gb") || v.name.toLowerCase().includes("uk") || v.name.toLowerCase().includes("british")) &&
+        (FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) || UK_FEMALE.some((k) => v.name.toLowerCase().includes(k))) &&
+        !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+      ) || voices.find((v) => UK_FEMALE.some((k) => v.name.toLowerCase().includes(k)))
+        || voices.find((v) => v.lang.toLowerCase().includes("gb") && !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
     } else if (settings.effectiveVoiceCode === "UK Male") {
       targetVoice = voices.find((v) =>
-        v.lang.toLowerCase().includes("gb") && MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
-      ) || voices.find((v) => UK_MALE.some((k) => v.name.toLowerCase().includes(k)));
+        (v.lang.toLowerCase().includes("gb") || v.name.toLowerCase().includes("uk") || v.name.toLowerCase().includes("british")) &&
+        (MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)) || UK_MALE.some((k) => v.name.toLowerCase().includes(k))) &&
+        !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+      ) || voices.find((v) => UK_MALE.some((k) => v.name.toLowerCase().includes(k)))
+        || voices.find((v) => v.lang.toLowerCase().includes("gb") && !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
     } else if (settings.effectiveVoiceCode === "AU Male") {
       targetVoice = voices.find((v) =>
-        AU_MALE.some((k) => v.name.toLowerCase().includes(k) || v.lang.toLowerCase().includes("au"))
+        (v.lang.toLowerCase().includes("au") || AU_MALE.some((k) => v.name.toLowerCase().includes(k))) &&
+        !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       );
       if (!targetVoice) {
         targetVoice = voices.find((v) => v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("george") || v.name.toLowerCase().includes("chris") || v.name.toLowerCase().includes("alex")) ||
@@ -354,6 +367,43 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
   window._speakmate_ai_is_speaking = true;
 
   let keepAliveInterval = null;
+  let wordTickerInterval = null;
+
+  const startWordTicker = () => {
+    if (wordTickerInterval) return;
+    const words = cleanText.split(/\s+/).filter(Boolean);
+    if (!words.length) return;
+    let wordIdx = 0;
+    const intervalMs = Math.max(180, Math.min(340, Math.round(230 / (speedMultiplier || 1.0))));
+
+    // Emit initial word viseme immediately
+    const firstWord = words[wordIdx++];
+    const firstViseme = getPrimaryVisemeForWord(firstWord);
+    EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, {
+      word: firstWord,
+      viseme: firstViseme.viseme,
+      yVal: firstViseme.yVal,
+      formVal: firstViseme.formVal,
+    });
+
+    wordTickerInterval = setInterval(() => {
+      if (wordIdx < words.length && window._speakmate_ai_is_speaking) {
+        const word = words[wordIdx++];
+        const visemeObj = getPrimaryVisemeForWord(word);
+        EventBus.emit(AVATAR_EVENTS.LIP_SYNC_UPDATE, {
+          word,
+          viseme: visemeObj.viseme,
+          yVal: visemeObj.yVal,
+          formVal: visemeObj.formVal,
+        });
+      } else {
+        if (wordTickerInterval) {
+          clearInterval(wordTickerInterval);
+          wordTickerInterval = null;
+        }
+      }
+    }, intervalMs);
+  };
 
   EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
 
@@ -371,6 +421,10 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
       clearInterval(keepAliveInterval);
       keepAliveInterval = null;
     }
+    if (wordTickerInterval) {
+      clearInterval(wordTickerInterval);
+      wordTickerInterval = null;
+    }
     window._activeUtterance = null;
   };
 
@@ -379,6 +433,8 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
 
   utterance.onstart = (e) => {
     window._speakmate_ai_is_speaking = true;
+    EventBus.emit(AVATAR_EVENTS.SPEECH_STARTED, { text: cleanText, speed: speedMultiplier });
+    startWordTicker();
     if (options.onstart) options.onstart(e);
   };
 
