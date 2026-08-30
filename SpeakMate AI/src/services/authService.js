@@ -32,22 +32,26 @@ export const authService = {
   },
 
   forgotPassword: async (payload) => {
-    const response = await api.post("/api/users/forgot-password", payload);
+    const data = typeof payload === "string" ? { email: payload } : payload;
+    const response = await api.post("/api/users/forgot-password", data);
     return response.data;
   },
 
-  verifyOtp: async (payload) => {
-    const response = await api.post("/api/users/verify-otp", payload);
+  verifyOtp: async (payload, otp) => {
+    const data = typeof payload === "string" ? { email: payload, otp } : payload;
+    const response = await api.post("/api/users/verify-otp", data);
     return response.data;
   },
 
-  resetPassword: async (payload) => {
-    const response = await api.post("/api/users/reset-password", payload);
+  resetPassword: async (payload, newPassword) => {
+    const data = typeof payload === "string" ? { token: payload, newPassword } : payload;
+    const response = await api.post("/api/users/reset-password", data);
     return response.data;
   },
 
   sendDeleteAccountOtp: async (payload) => {
-    const response = await api.post("/api/users/send-delete-account-otp", payload);
+    const data = typeof payload === "string" ? { email: payload } : payload;
+    const response = await api.post("/api/users/send-delete-account-otp", data);
     return response.data;
   },
 
