@@ -3,7 +3,7 @@
  * Premium post-session report showing metrics, score, mistakes,
  * vocabulary list, and motivational feedback.
  */
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -14,14 +14,14 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
+import { AuthContext } from '../../context/AuthContext';
 import { COLORS } from '../../constants/colors';
-
-import { useEffect } from 'react';
 import { useToast } from '../../context/ToastContext';
 import { assignmentService } from '../../services/appServices';
 
 export default function SpeakingSummaryScreen({ navigation, route }) {
   const { isDark, theme } = useTheme();
+  const { user } = useContext(AuthContext);
   const { summary } = route.params || {};
   const { showToast, triggerConfetti } = useToast();
 
@@ -39,9 +39,10 @@ export default function SpeakingSummaryScreen({ navigation, route }) {
       showToast('Session Complete! 🎙️', 'info', 'Keep practicing daily to earn XP!');
     }
 
-    // Auto submit student homework assignment if completed
-    const assignmentId = summary?.assignmentId || route.params?.assignmentId || 101;
-    if (assignmentId && score >= 70) {
+    // Auto submit student homework assignment ONLY if this was an actual assigned homework task
+    const isStudentUser = Boolean(user?.isSchoolStudent || user?.schoolGrade || user?.schoolId);
+    const assignmentId = summary?.assignmentId || route.params?.assignmentId;
+    if (isStudentUser && assignmentId && score >= 70) {
       assignmentService.submit(assignmentId, { score: Math.round(score), status: 'SUBMITTED' })
         .then(() => {
           showToast('Homework Submitted to Teacher! 📝', 'success', `Scored ${Math.round(score)}% (Target >= 70%)`);
