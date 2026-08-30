@@ -15,7 +15,7 @@ import { Card, Screen, StateView } from '../../components/ui';
 import { useTheme } from '../../context/ThemeContext';
 import { useNotifications } from '../../context/NotificationContext';
 import { notificationService, announcementService } from '../../services/appServices';
-import { formatDate } from '../../utils/format';
+import { formatDate, formatRelativeTime } from '../../utils/format';
 import { COLORS } from '../../constants/colors';
 
 export default function NotificationsScreen() {
@@ -26,6 +26,15 @@ export default function NotificationsScreen() {
   const [announcements, setAnnouncements] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('ALL'); // 'ALL' | 'UNREAD'
+
+  // Live timer ticker every 5s to update 1s ago, 1m ago in real time
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const isStudentUser = Boolean(
     user?.accountType === 'STUDENT' ||
@@ -251,7 +260,7 @@ export default function NotificationsScreen() {
                         {item.title}
                       </Text>
                       <Text style={[styles.notifMessageText, isDark && { color: '#94A3B8' }]}>{item.message}</Text>
-                      <Text style={styles.notifDateText}>{formatDate(item.createdAt)}</Text>
+                      <Text style={styles.notifDateText}>{formatRelativeTime(item.createdAt)}</Text>
                     </View>
 
                     <View style={styles.actionColumn}>
