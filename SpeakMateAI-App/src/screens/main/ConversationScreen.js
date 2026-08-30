@@ -222,6 +222,16 @@ export default function ConversationScreen({ navigation, route }) {
   const pausedAiText = useRef('');
   const isPausedRef = useRef(false);
   const micPressAnim = useRef(new Animated.Value(1)).current;
+  const hasEndedRef = useRef(false);
+
+  // Clean up incomplete session draft if user navigated away without finishing
+  useEffect(() => {
+    return () => {
+      if (!hasEndedRef.current && sessionId) {
+        speakingService.deleteSession(sessionId).catch(() => {});
+      }
+    };
+  }, [sessionId]);
 
   // VAD / Silence Auto-Stop refs
   const speechDetectedRef = useRef(false);
@@ -1000,6 +1010,7 @@ export default function ConversationScreen({ navigation, route }) {
           text: 'End & Evaluate',
           style: 'default',
           onPress: async () => {
+            hasEndedRef.current = true;
             setEnding(true);
             try {
               const summary = await speakingService.end(sessionId);
