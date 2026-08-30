@@ -340,8 +340,8 @@ export default function AIAvatar({
 }
 
 // ── Target Stage Dimensions (Head to Mid-Chest Framing) ───────────────────────
-const AVATAR_STAGE_HEIGHT = 175; // Clean portrait height
-const AVATAR_WIDTH        = 280; // Focused bust framing
+const AVATAR_STAGE_HEIGHT = 190; // Clean portrait height
+const AVATAR_WIDTH        = 320; // Focused bust framing
 
 const styles = StyleSheet.create({
   container: {
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   // 1. Diffused Soft Ambient Radial Glow (Studio Spotlight Bloom)
   ambientGlowContainer: {
     position:        'absolute',
-    width:           240,
+    width:           260,
     height:          200,
     borderRadius:    100,
     alignItems:      'center',
@@ -388,8 +388,7 @@ const styles = StyleSheet.create({
   },
   avatarCanvas: {
     width:           AVATAR_WIDTH,
-    height:          230,
-    transform:       [{ translateY: -12 }, { scale: 1.15 }],
+    height:          AVATAR_STAGE_HEIGHT,
     backgroundColor: 'transparent',
   },
 
@@ -399,7 +398,7 @@ const styles = StyleSheet.create({
     left:      0,
     right:     0,
     bottom:    0,
-    height:    48,
+    height:    40,
     zIndex:    12,
     elevation: 10,
   },

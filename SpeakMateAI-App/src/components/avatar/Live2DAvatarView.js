@@ -261,11 +261,11 @@ const LIVE2D_HTML = `
       const viewH = container.clientHeight || window.innerHeight || 200;
       app.renderer.resize(viewW, viewH);
       const baseScale = Math.min(viewW / model.width, viewH / model.height);
-      const portraitScale = baseScale * 2.05;
+      const portraitScale = baseScale * 1.45;
       model.scale.set(portraitScale);
-      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.06);
+      model.anchor.set(0.50, 0.08);
       model.x = viewW / 2;
-      model.y = 10;
+      model.y = 8;
     }
 
     async function loadModel(url, modelName) {
@@ -285,22 +285,14 @@ const LIVE2D_HTML = `
         const viewW = container.clientWidth || window.innerWidth || 360;
         const viewH = container.clientHeight || window.innerHeight || 200;
 
-        // Bigger Full-Bust Framing: Zoom 2.05x (Top of head to chest only, zero cutoff, hands hidden)
+        // Head-to-Chest Portrait Framing: 1.45x zoom
         const baseScale = Math.min(viewW / model.width, viewH / model.height);
-        const portraitScale = baseScale * 2.05;
+        const portraitScale = baseScale * 1.45;
 
         model.scale.set(portraitScale);
-        
-        // Exact Head-to-Chest Alignment (Head 10px below top boundary, zero header cutoff)
-        if (currentModelName === 'chitose') {
-          model.anchor.set(0.50, 0.06);
-        } else {
-          // Haru centered horizontally with face inside glowing ring and top of head fully intact
-          model.anchor.set(0.52, 0.06);
-        }
-
+        model.anchor.set(0.50, 0.08);
         model.x = viewW / 2;
-        model.y = 10;
+        model.y = 8;
 
         // Hook motionManager update to guarantee lipSync is never overridden by idle physics
         if (model.internalModel && model.internalModel.motionManager) {
