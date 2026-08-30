@@ -128,6 +128,21 @@ export function ConversationSession() {
   const recognitionRef = useRef(null);
   const chatEndRef = useRef(null);
   const hasSpokenInitialRef = useRef(false);
+  const hasFinishedRef = useRef(false);
+  const sessionIdRef = useRef(sessionId);
+
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
+  // Clean up incomplete session draft if user navigated away without finishing
+  useEffect(() => {
+    return () => {
+      if (!hasFinishedRef.current && sessionIdRef.current && !String(sessionIdRef.current).startsWith("sim_")) {
+        speakingService.deleteHistory(sessionIdRef.current).catch(() => {});
+      }
+    };
+  }, []);
 
   // Phonetic Lip-Sync Event Bus Listener
   useEffect(() => {
@@ -454,6 +469,7 @@ export function ConversationSession() {
   };
 
   const handleEndSession = async () => {
+    hasFinishedRef.current = true;
     if (coachingTimerRef.current) {
       clearTimeout(coachingTimerRef.current);
       coachingTimerRef.current = null;

@@ -119,6 +119,12 @@ public class SpeakingSession {
 	public LocalDateTime getCreatedAt() { return createdAt; }
 	public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
+	@Builder.Default
+	private Boolean completed = false;
+
+	public Boolean getCompleted() { return completed != null ? completed : false; }
+	public void setCompleted(Boolean completed) { this.completed = completed; }
+
 	public static SpeakingSessionBuilder builder() {
 		return new SpeakingSessionBuilder();
 	}
@@ -141,6 +147,7 @@ public class SpeakingSession {
 		private List<ConversationMessage> messages = new ArrayList<>();
 		private ConversationFeedback sessionFeedback;
 		private LocalDateTime createdAt;
+		private Boolean completed = false;
 
 		public SpeakingSessionBuilder id(Long id) { this.id = id; return this; }
 		public SpeakingSessionBuilder user(User user) { this.user = user; return this; }
@@ -159,6 +166,7 @@ public class SpeakingSession {
 		public SpeakingSessionBuilder messages(List<ConversationMessage> messages) { this.messages = messages; return this; }
 		public SpeakingSessionBuilder sessionFeedback(ConversationFeedback sessionFeedback) { this.sessionFeedback = sessionFeedback; return this; }
 		public SpeakingSessionBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
+		public SpeakingSessionBuilder completed(Boolean completed) { this.completed = completed; return this; }
 
 		public SpeakingSession build() {
             SpeakingSession obj = new SpeakingSession();
@@ -179,6 +187,7 @@ public class SpeakingSession {
             obj.setMessages(messages);
             obj.setSessionFeedback(sessionFeedback);
             obj.setCreatedAt(createdAt);
+            obj.setCompleted(completed != null ? completed : false);
             return obj;
         }
 	}

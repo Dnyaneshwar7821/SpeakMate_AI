@@ -254,6 +254,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	public List<SpeakingSessionResponse> getAllSessions() {
 		User user = currentUser();
 		return speakingSessionRepository.findByUserOrderByCreatedAtDesc(user).stream()
+				.filter(s -> Boolean.TRUE.equals(s.getCompleted()))
 				.map(this::mapToResponse)
 				.toList();
 	}
@@ -408,6 +409,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				.xpEarned(0)
 				.score(0.0)
 				.transcript("")
+				.completed(false)
 				.build();
 
 		SpeakingSession saved = safeSaveSession(session);
@@ -1008,6 +1010,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		session.setFluencyScore(fluencyScore);
 		session.setPronunciationScore(pronunciationScore);
 		session.setFeedback(summary);
+		session.setCompleted(true);
 		speakingSessionRepository.save(session);
 
 		// Update user's progress ONLY if the user actively practiced (XP > 0)
@@ -1083,6 +1086,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	public List<SpeakingHistoryResponse> getSessionHistory() {
 		User user = currentUser();
 		return speakingSessionRepository.findByUserOrderByCreatedAtDesc(user).stream()
+				.filter(s -> Boolean.TRUE.equals(s.getCompleted()))
 				.map(s -> {
 					String preview = "";
 					if (s.getMessages() != null && !s.getMessages().isEmpty()) {
