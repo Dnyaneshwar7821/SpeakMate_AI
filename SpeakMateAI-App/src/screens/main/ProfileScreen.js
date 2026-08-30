@@ -163,6 +163,9 @@ export default function ProfileScreen({ navigation }) {
       });
       setAccountType(savedAccType || profile.accountType || 'INDIVIDUAL_USER');
       setState({ loading: false, error: '', profile });
+      if (updateUser && profile) {
+        updateUser(profile);
+      }
     } catch (error) {
       setForm({
         firstName: user?.firstName || '',

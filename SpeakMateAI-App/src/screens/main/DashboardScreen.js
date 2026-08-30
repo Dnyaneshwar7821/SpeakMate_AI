@@ -107,6 +107,9 @@ export default function DashboardScreen({ navigation }) {
           setProfile(dashboard.profile);
           if (updateUser) {
             updateUser({
+              ...(dashboard.profile.avatar ? { avatar: dashboard.profile.avatar } : {}),
+              ...(dashboard.profile.firstName ? { firstName: dashboard.profile.firstName } : {}),
+              ...(dashboard.profile.lastName ? { lastName: dashboard.profile.lastName } : {}),
               ...(dashboard.profile.ageGroup ? { ageGroup: dashboard.profile.ageGroup } : {}),
               ...(dashboard.profile.englishLevel ? { englishLevel: dashboard.profile.englishLevel } : {}),
               ...(dashboard.profile.schoolGrade ? { schoolGrade: dashboard.profile.schoolGrade } : {}),

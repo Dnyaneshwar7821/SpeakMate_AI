@@ -208,6 +208,43 @@ export function Profile() {
     }
   };
 
+  const handleSelectPresetAvatar = async (emoji) => {
+    setSelectedAvatar(emoji);
+    setShowAvatarModal(false);
+    try {
+      await profileService.updateAvatar(emoji);
+      if (updateUser) updateUser({ avatar: emoji });
+      toast.success(`Avatar updated to ${emoji}! 🎉`);
+    } catch {
+      toast.error("Failed to save avatar to server.");
+    }
+  };
+
+  const handleUploadPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image file size should be less than 5MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const dataUri = reader.result;
+      setSelectedAvatar(dataUri);
+      setShowAvatarModal(false);
+      try {
+        await profileService.updateAvatar(dataUri);
+        if (updateUser) updateUser({ avatar: dataUri });
+        toast.success("Profile photo updated successfully! 📸");
+      } catch {
+        toast.error("Failed to upload profile photo.");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleCancelSubscription = async () => {
     if (!window.confirm("Are you sure you want to cancel your Pro subscription? You will return to the Free Starter plan.")) {
       return;
@@ -754,24 +791,7 @@ export function Profile() {
                   type="file"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      if (file.size > 4 * 1024 * 1024) {
-                        toast.error("Image size must be less than 4MB.");
-                        return;
-                      }
-                      const reader = new FileReader();
-                      reader.onload = () => {
-                        if (reader.result) {
-                          setSelectedAvatar(reader.result);
-                          setShowAvatarModal(false);
-                          toast.success("Photo selected! Click 'Save Profile Changes' to save.");
-                        }
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
+                  onChange={handleUploadPhoto}
                 />
               </label>
             </div>
@@ -782,10 +802,8 @@ export function Profile() {
               {PRESET_AVATARS.map((emoji) => (
                 <button
                   key={emoji}
-                  onClick={() => {
-                    setSelectedAvatar(emoji);
-                    setShowAvatarModal(false);
-                  }}
+                  type="button"
+                  onClick={() => handleSelectPresetAvatar(emoji)}
                   className={`h-12 text-2xl rounded-2xl border-2 flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
                     selectedAvatar === emoji
                       ? "border-[#6C63FF] bg-[#6C63FF]/15 scale-105"

@@ -97,6 +97,9 @@ public class ProfileServiceImpl implements ProfileService {
 		user.setFirstName(request.getFirstName());
 		user.setLastName(request.getLastName());
 
+		if (request.getAvatar() != null && !request.getAvatar().trim().isEmpty()) {
+			user.setAvatar(request.getAvatar().trim());
+		}
 		if (request.getEnglishLevel() != null && !request.getEnglishLevel().trim().isEmpty()) {
 			user.setEnglishLevel(request.getEnglishLevel().trim());
 		}
