@@ -261,11 +261,11 @@ const LIVE2D_HTML = `
       const viewH = container.clientHeight || window.innerHeight || 200;
       app.renderer.resize(viewW, viewH);
       const baseScale = Math.min(viewW / model.width, viewH / model.height);
-      const portraitScale = baseScale * 1.58;
+      const portraitScale = baseScale * 2.35;
       model.scale.set(portraitScale);
-      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.22);
+      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.16);
       model.x = viewW / 2;
-      model.y = viewH / 2;
+      model.y = (viewH / 2) - 10;
     }
 
     async function loadModel(url, modelName) {
@@ -285,14 +285,14 @@ const LIVE2D_HTML = `
         const viewW = container.clientWidth || window.innerWidth || 360;
         const viewH = container.clientHeight || window.innerHeight || 200;
 
-        // Exact Head-to-Chest Portrait Framing: Zoom 1.58x with Face Centered
+        // Head-to-Chest Portrait Framing: Zoom 2.35x (Hands and waist hidden)
         const baseScale = Math.min(viewW / model.width, viewH / model.height);
-        const portraitScale = baseScale * 1.58;
+        const portraitScale = baseScale * 2.35;
 
         model.scale.set(portraitScale);
-        model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.22);
+        model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.16);
         model.x = viewW / 2;
-        model.y = viewH / 2;
+        model.y = (viewH / 2) - 10;
 
         // Hook motionManager update to guarantee lipSync is never overridden by idle physics
         if (model.internalModel && model.internalModel.motionManager) {

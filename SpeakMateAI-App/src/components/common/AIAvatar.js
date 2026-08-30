@@ -479,7 +479,7 @@ const styles = StyleSheet.create({
     alignItems:      'center',
     justifyContent:  'center',
     position:        'relative',
-    overflow:        'visible',
+    overflow:        'hidden',
     backgroundColor: 'transparent',
     zIndex:          10,
   },
