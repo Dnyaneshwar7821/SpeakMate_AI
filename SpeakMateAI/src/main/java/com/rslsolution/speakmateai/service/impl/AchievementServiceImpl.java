@@ -87,15 +87,24 @@ public class AchievementServiceImpl implements AchievementService {
 		boolean progressUpdated = false;
 
 		for (Achievement achievement : userAchievements) {
-			if (!Boolean.TRUE.equals(achievement.getUnlocked())) {
-				boolean shouldUnlock = checkUnlockCondition(achievement, progress);
+			boolean conditionMet = checkUnlockCondition(achievement, progress);
 
-				if (shouldUnlock) {
+			if (Boolean.TRUE.equals(achievement.getUnlocked())) {
+				// Re-validate in case speaking achievement was falsely unlocked with 0 valid sessions
+				if (!conditionMet && isProgressDependent(achievement, progress)) {
+					achievement.setUnlocked(false);
+					achievement.setUnlockedAt(null);
+					achievementRepository.save(achievement);
+				}
+			} else {
+				if (conditionMet) {
 					achievement.setUnlocked(true);
 					achievement.setUnlockedAt(LocalDateTime.now());
 					achievementRepository.save(achievement);
 
-					progress.setXp((progress.getXp() == null ? 0 : progress.getXp()) + (achievement.getXpReward() == null ? 50 : achievement.getXpReward()));
+					int reward = achievement.getXpReward() == null ? 50 : achievement.getXpReward();
+					int currentXp = progress.getXp() == null ? 0 : progress.getXp();
+					progress.setXp(currentXp + reward);
 					progressUpdated = true;
 
 					try {
@@ -109,6 +118,8 @@ public class AchievementServiceImpl implements AchievementService {
 		}
 
 		if (progressUpdated) {
+			int finalXp = progress.getXp() == null ? 0 : progress.getXp();
+			progress.setLevel(Math.max(1, (finalXp / 500) + 1));
 			progressRepository.save(progress);
 		}
 
@@ -196,6 +207,17 @@ public class AchievementServiceImpl implements AchievementService {
 		if ("Level 5 Achiever".equalsIgnoreCase(title)) return xp >= 500;
 		if ("Mastery Grandmaster".equalsIgnoreCase(title)) return xp >= 2000;
 
+		return false;
+	}
+
+	private boolean isProgressDependent(Achievement achievement, com.rslsolution.speakmateai.entity.Progress progress) {
+		String title = achievement.getTitle();
+		if (title == null || progress == null) return false;
+		int speaking = progress.getTotalSpeakingSessions() != null ? progress.getTotalSpeakingSessions() : 0;
+		if ("First Voice Conversation".equalsIgnoreCase(title) && speaking == 0) return true;
+		if ("Confident Conversationalist".equalsIgnoreCase(title) && speaking < 5) return true;
+		if ("Fluency Champion".equalsIgnoreCase(title) && speaking < 15) return true;
+		if ("Orator Supreme".equalsIgnoreCase(title) && speaking < 30) return true;
 		return false;
 	}
 

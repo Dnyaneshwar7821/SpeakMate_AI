@@ -284,21 +284,26 @@ export default function AchievementsScreen() {
 
   const stats = state.dashboard?.statistics || {};
   const progress = state.dashboard?.progress || {};
+  const backendList = state.backendAchievements || [];
 
-  // Resolve dynamic live metrics
+  // Resolve dynamic live metrics from verified progress counter
   const liveMetrics = {
-    speakingSessions: stats.speakingSessions || 0,
-    grammarExercises: stats.grammarExercises || 0,
-    vocabularyLearned: stats.vocabularyLearned || 0,
+    speakingSessions: progress.totalSpeakingSessions != null ? progress.totalSpeakingSessions : (stats.speakingSessions || 0),
+    grammarExercises: progress.totalGrammarChecks != null ? progress.totalGrammarChecks : (stats.grammarExercises || 0),
+    vocabularyLearned: progress.totalVocabularyWords != null ? progress.totalVocabularyWords : (stats.vocabularyLearned || 0),
     streak: Math.max(progress.currentStreak || 0, progress.longestStreak || 0),
     xp: progress.xp || 0,
   };
 
-  // Merge master achievements with live progress and unlock status
+  // Merge master achievements with backend unlock status and verified progress
   const enrichedAchievements = useMemo(() => {
     return MASTER_ACHIEVEMENTS.map((ach) => {
       const currentVal = liveMetrics[ach.metricKey] || 0;
-      const unlocked = currentVal >= ach.target;
+      const backendItem = backendList.find(
+        (b) => b.title && b.title.trim().toLowerCase() === ach.title.trim().toLowerCase()
+      );
+      // Strictly unlocked only when verified by backend or valid progress target met
+      const unlocked = backendItem ? Boolean(backendItem.unlocked) : currentVal >= ach.target;
       const progressPercent = Math.min(100, Math.max(0, (currentVal / ach.target) * 100));
 
       return {
@@ -308,7 +313,7 @@ export default function AchievementsScreen() {
         progressPercent,
       };
     });
-  }, [liveMetrics]);
+  }, [liveMetrics, backendList]);
 
   // Filtered achievements
   const filteredItems = useMemo(() => {

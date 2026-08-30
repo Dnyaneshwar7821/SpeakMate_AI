@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { achievementService } from "../services/appServices";
-import { getLiveProgressStats } from "../utils/progressTracker";
+import { achievementService, dashboardService } from "../services/appServices";
+import { getLiveProgressStats, syncBackendProgress } from "../utils/progressTracker";
 
 const MASTER_ACHIEVEMENTS = [
   // --- Speaking & Fluency ---
@@ -245,11 +245,19 @@ export function Achievements() {
   const [selectedFilter, setSelectedFilter] = useState("ALL"); // 'ALL' | 'UNLOCKED' | 'LOCKED'
   const [searchQuery, setSearchQuery] = useState("");
   const [liveStats, setLiveStats] = useState(() => getLiveProgressStats());
+  const [backendAchievements, setBackendAchievements] = useState([]);
 
   const syncAchievements = async () => {
     setLoading(true);
     try {
-      await achievementService.all().catch(() => []);
+      const [list, summary] = await Promise.all([
+        achievementService.all().catch(() => []),
+        dashboardService.summary().catch(() => null),
+      ]);
+      setBackendAchievements(list || []);
+      if (summary) {
+        syncBackendProgress(summary);
+      }
       setLiveStats(getLiveProgressStats());
     } catch (e) {
       setLiveStats(getLiveProgressStats());
@@ -268,11 +276,14 @@ export function Achievements() {
     };
   }, []);
 
-  // Merge live metrics with master achievements
+  // Merge live metrics with master achievements and backend unlock status
   const enrichedAchievements = useMemo(() => {
     return MASTER_ACHIEVEMENTS.map((ach) => {
       const currentVal = liveStats[ach.metricKey] || 0;
-      const unlocked = currentVal >= ach.target;
+      const backendItem = backendAchievements.find(
+        (b) => b.title && b.title.trim().toLowerCase() === ach.title.trim().toLowerCase()
+      );
+      const unlocked = backendItem ? Boolean(backendItem.unlocked) : currentVal >= ach.target;
       const progressPercent = Math.min(100, Math.max(0, (currentVal / ach.target) * 100));
 
       return {
@@ -282,7 +293,7 @@ export function Achievements() {
         progressPercent,
       };
     });
-  }, [liveStats]);
+  }, [liveStats, backendAchievements]);
 
   // Filter items
   const filteredItems = useMemo(() => {

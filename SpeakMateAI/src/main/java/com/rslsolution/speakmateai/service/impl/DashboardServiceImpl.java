@@ -523,6 +523,8 @@ public class DashboardServiceImpl implements DashboardService {
 		int[] lessonsCompleted = new int[7];
 
 		for (SpeakingSession s : sessions) {
+			boolean isValid = (s.getScore() != null && s.getScore() > 0) || (s.getXpEarned() != null && s.getXpEarned() > 0) || (s.getDuration() != null && s.getDuration() >= 15);
+			if (!isValid) continue;
 			if (s.getCreatedAt() != null) {
 				LocalDate date = s.getCreatedAt().toLocalDate();
 				if (!date.isBefore(monday) && !date.isAfter(sunday)) {
@@ -560,13 +562,17 @@ public class DashboardServiceImpl implements DashboardService {
 		Progress progress = progressRepository.findByUser(user).orElse(null);
 		List<Lesson> lessons = lessonRepository.findByActiveTrue();
 
+		List<SpeakingSession> validSessions = sessions.stream()
+				.filter(s -> (s.getScore() != null && s.getScore() > 0) || (s.getXpEarned() != null && s.getXpEarned() > 0) || (s.getDuration() != null && s.getDuration() >= 15))
+				.toList();
+
 		int totalLessons = lessons.size();
 		int completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true).size();
-		int speakingSessions = sessions.size();
-		int vocabularyLearned = vocabs.size();
-		int grammarExercises = grammars.size();
+		int speakingSessions = progress != null && progress.getTotalSpeakingSessions() != null ? progress.getTotalSpeakingSessions() : validSessions.size();
+		int vocabularyLearned = progress != null && progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : vocabs.size();
+		int grammarExercises = progress != null && progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : grammars.size();
 
-		int totalPracticeSeconds = sessions.stream().mapToInt(s -> s.getDuration() != null ? s.getDuration() : 0).sum();
+		int totalPracticeSeconds = validSessions.stream().mapToInt(s -> s.getDuration() != null ? s.getDuration() : 0).sum();
 		double totalStudyHours = Math.round((totalPracticeSeconds / 3600.0) * 10.0) / 10.0;
 
 		int currentStreak = (progress != null) ? progress.getCurrentStreak() : 0;
