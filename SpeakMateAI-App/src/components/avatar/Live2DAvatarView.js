@@ -258,12 +258,12 @@ const LIVE2D_HTML = `
       if (!app || !model) return;
       const container = document.getElementById('canvas-container');
       const viewW = container.clientWidth || window.innerWidth || 360;
-      const viewH = container.clientHeight || window.innerHeight || 200;
+      const viewH = container.clientHeight || window.innerHeight || 215;
       app.renderer.resize(viewW, viewH);
       const baseScale = Math.min(viewW / model.width, viewH / model.height);
-      const portraitScale = baseScale * 2.35;
+      const portraitScale = baseScale * 2.55;
       model.scale.set(portraitScale);
-      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.16);
+      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.155);
       model.x = viewW / 2;
       model.y = (viewH / 2) - 10;
     }
@@ -283,14 +283,14 @@ const LIVE2D_HTML = `
         // Get true physical bounds from the DOM to prevent square fallback stretching
         const container = document.getElementById('canvas-container');
         const viewW = container.clientWidth || window.innerWidth || 360;
-        const viewH = container.clientHeight || window.innerHeight || 200;
+        const viewH = container.clientHeight || window.innerHeight || 215;
 
-        // Head-to-Chest Portrait Framing: Zoom 2.35x (Hands and waist hidden)
+        // Balanced Head-to-Chest Portrait Framing: Zoom 2.55x
         const baseScale = Math.min(viewW / model.width, viewH / model.height);
-        const portraitScale = baseScale * 2.35;
+        const portraitScale = baseScale * 2.55;
 
         model.scale.set(portraitScale);
-        model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.16);
+        model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.155);
         model.x = viewW / 2;
         model.y = (viewH / 2) - 10;
 
