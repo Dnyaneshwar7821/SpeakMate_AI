@@ -259,7 +259,51 @@ export default function AIAvatar({
           />
         </Animated.View>
 
-        {/* ── Layer 2: Clean Upper-Bust Avatar Canvas (Head to Mid-Chest) ── */}
+        {/* ── Layer 2: Ethereal Sound Wave Energy Aura (Horizontal Curves) ── */}
+        <Animated.View pointerEvents="none" style={[styles.soundWaveAura, { opacity: glowOpacity }]}>
+          <LinearGradient
+            colors={['transparent', 'rgba(168, 85, 247, 0.35)', 'rgba(139, 92, 246, 0.20)', 'transparent']}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={styles.soundWaveGradient}
+          />
+        </Animated.View>
+
+        {/* ── Layer 3: Luminous Outer Neon Halo Ring (225px) ── */}
+        <Animated.View
+          style={[
+            styles.outerHaloRing,
+            {
+              borderColor: config.outerRing,
+              shadowColor: config.ringGlow,
+              opacity: glowOpacity,
+              transform: [{ translateY: floatY }],
+            },
+          ]}
+        />
+
+        {/* ── Layer 4: Luminous Inner Neon Halo Ring (175px Centered behind Head) ── */}
+        <Animated.View
+          style={[
+            styles.innerHaloRing,
+            {
+              borderColor: config.innerRing,
+              shadowColor: config.ringGlow,
+              opacity: glowOpacity,
+              transform: [{ translateY: floatY }],
+            },
+          ]}
+        />
+
+        {/* ── Layer 5: Ambient Celestial Sparkle Dust ── */}
+        <Animated.View pointerEvents="none" style={[styles.starsOverlay, { opacity: glowOpacity }]}>
+          <Ionicons name="sparkles" size={9} color="#E9D5FF" style={[styles.starIcon, { top: 16, left: 38 }]} />
+          <Ionicons name="sparkles" size={8} color="#C084FC" style={[styles.starIcon, { top: 42, right: 34 }]} />
+          <Ionicons name="sparkles" size={7} color="#A78BFA" style={[styles.starIcon, { bottom: 50, left: 24 }]} />
+          <Ionicons name="sparkles" size={8} color="#F472B6" style={[styles.starIcon, { bottom: 56, right: 28 }]} />
+        </Animated.View>
+
+        {/* ── Layer 6: Clean Upper-Bust Avatar Canvas (Head to Mid-Chest) ── */}
         <Animated.View
           style={[
             styles.avatarContainer,
@@ -291,7 +335,7 @@ export default function AIAvatar({
             />
           )}
 
-          {/* Layer 3: Smooth Chest-Line Fade into Dark Background */}
+          {/* Layer 7: Smooth Chest-Line Fade into Dark Background */}
           <LinearGradient
             pointerEvents="none"
             colors={['transparent', 'rgba(11, 15, 25, 0.40)', 'rgba(11, 15, 25, 0.85)', '#0B0F19']}
@@ -301,7 +345,7 @@ export default function AIAvatar({
         </Animated.View>
       </View>
 
-      {/* ── Layer 4: Glassmorphic State / Speaking Pill ── */}
+      {/* ── Layer 8: Glassmorphic State / Speaking Pill ── */}
       {!hideStatusPill && (
         <Animated.View
           style={[
@@ -340,8 +384,8 @@ export default function AIAvatar({
 }
 
 // ── Target Stage Dimensions (Head to Mid-Chest Framing) ───────────────────────
-const AVATAR_STAGE_HEIGHT = 190; // Clean portrait height
-const AVATAR_WIDTH        = 320; // Focused bust framing
+const AVATAR_STAGE_HEIGHT = 195; // Clean portrait height
+const AVATAR_WIDTH        = 340; // Focused bust framing
 
 const styles = StyleSheet.create({
   container: {
@@ -375,7 +419,60 @@ const styles = StyleSheet.create({
     borderRadius: 100,
   },
 
-  // 2. Avatar Container & Canvas (Head to Mid-Chest Portrait)
+  // 2. Ethereal Horizontal Sound Wave Energy Aura
+  soundWaveAura: {
+    position:   'absolute',
+    width:      '100%',
+    height:     70,
+    top:        65,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  soundWaveGradient: {
+    width:  '100%',
+    height: '100%',
+  },
+
+  // 3. Luminous Outer Neon Halo Ring (225px)
+  outerHaloRing: {
+    position:      'absolute',
+    width:         225,
+    height:        225,
+    borderRadius:  112.5,
+    borderWidth:   1.0,
+    shadowOpacity: 0.65,
+    shadowRadius:  14,
+    shadowOffset:  { width: 0, height: 0 },
+    elevation:     4,
+    top:           -15,
+  },
+
+  // 4. Luminous Inner Neon Halo Ring (175px)
+  innerHaloRing: {
+    position:      'absolute',
+    width:         175,
+    height:        175,
+    borderRadius:  87.5,
+    borderWidth:   1.6,
+    shadowOpacity: 0.95,
+    shadowRadius:  20,
+    shadowOffset:  { width: 0, height: 0 },
+    elevation:     8,
+    top:           10,
+  },
+
+  // 5. Ambient Stars & Sparkles
+  starsOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  starIcon: {
+    position: 'absolute',
+    shadowColor: '#FFF',
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+  },
+
+  // 6. Avatar Container & Canvas (Head to Mid-Chest Portrait)
   avatarContainer: {
     width:           AVATAR_WIDTH,
     height:          AVATAR_STAGE_HEIGHT,
@@ -392,24 +489,24 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // 3. Smooth Chest-Line Fade into Dark Background
+  // 7. Smooth Chest-Line Fade into Dark Background
   softTorsoDissolve: {
     position:  'absolute',
     left:      0,
     right:     0,
     bottom:    0,
-    height:    40,
+    height:    38,
     zIndex:    12,
     elevation: 10,
   },
 
-  // 4. Glassmorphic Status Pill
+  // 8. Glassmorphic Status Pill
   statusPill: {
     flexDirection:     'row',
     alignItems:        'center',
     justifyContent:    'center',
     gap:               8,
-    marginTop:         10,
+    marginTop:         8,
     minWidth:          115,
     paddingHorizontal: 14,
     paddingVertical:   6,
