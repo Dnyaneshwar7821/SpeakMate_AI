@@ -210,21 +210,36 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 			
 			String prompt;
 			if (rawPrompt.contains("Student Question/Topic:")) {
-				prompt = "You are a real-life English tutor having a 1-on-1 tutoring session.\n"
-						+ "Answer the student's question clearly with simple explanations, 2 practical everyday examples, and an encouraging tone (100-140 words):\n\n"
+				prompt = "You are a warm, supportive, world-class 1-on-1 English tutor.\n"
+						+ "Answer the student's question about the lesson topic with crystal clarity.\n"
+						+ "Include simple intuitive explanations, 2-3 real-life examples with dialogue context, and an encouraging closing tip (120-180 words):\n\n"
 						+ rawPrompt;
 			} else {
-				prompt = "You are a master classroom English teacher.\n"
-						+ "Teach a comprehensive, highly engaging lesson on:\n"
+				prompt = "You are a master English teacher conducting a complete, in-depth masterclass on:\n"
 						+ rawPrompt
-						+ "\n\nStructure your teaching in these clear, spoken sections (use natural punctuation and conversational pauses):\n"
-						+ "1. WHAT IS THIS CONCEPT: Explain the core meaning in friendly, relatable words with a helpful analogy.\n"
-						+ "2. WHY IT IS CRUCIAL: Tell the student how this elevates their everyday English fluency and confidence.\n"
-						+ "3. SENTENCE FORMULAS AND RULES: Give exact sentence structures (positive, negative, and questions) with step-by-step guidance.\n"
-						+ "4. PRACTICAL CONVERSATIONAL EXAMPLES: Provide natural dialogue sentences that native speakers use.\n"
-						+ "5. COMMON MISTAKES TO AVOID: Highlight typical learner errors and explain how to fix them effortlessly.\n"
-						+ "6. PRO-TIP FOR MASTERY: Give one quick interactive speaking exercise for the student to try right now.\n\n"
-						+ "Speak directly to the student in 250-320 words without asterisks or meta-text.";
+						+ "\n\nTeach literally everything about this topic thoroughly with rich real-life examples. Structure your complete lesson into these clear sections:\n\n"
+						+ "🎯 1. WHAT IS THIS CONCEPT & WHY IT MATTERS:\n"
+						+ "Explain the core concept in clear, simple, conversational English. Use an intuitive real-life analogy so it clicks instantly.\n\n"
+						+ "📐 2. GOLDEN RULES & SENTENCE FORMULAS:\n"
+						+ "Provide the exact step-by-step grammatical structures:\n"
+						+ "• Positive (+): [Subject + Verb form + Object/Complement]\n"
+						+ "• Negative (-): [Subject + Auxiliary + not + Verb form]\n"
+						+ "• Question (?): [Auxiliary + Subject + Verb form?]\n"
+						+ "Explain any key verb tense rules, subject-verb agreements, and exceptions.\n\n"
+						+ "🌟 3. REAL-LIFE SITUATION EXAMPLES:\n"
+						+ "Give 4 realistic, full conversational sentences covering:\n"
+						+ "a) Everyday Daily Life / Friends: (e.g. at a cafe, planning weekends)\n"
+						+ "b) School / College / Academic: (e.g. asking a teacher, discussing homework)\n"
+						+ "c) Professional / Workplace / Career: (e.g. meetings, emails, client requests)\n"
+						+ "d) Travel / Practical Situations: (e.g. airports, hotels, shopping)\n"
+						+ "Explain WHY each sentence works and what nuance it expresses.\n\n"
+						+ "⚠️ 4. COMMON MISTAKES VS NATIVE CORRECTIONS:\n"
+						+ "Show 2 typical mistakes learners make and explain how to fix them:\n"
+						+ "• ❌ Incorrect: ...\n"
+						+ "• ✅ Correct: ... (Why: explain the reason)\n\n"
+						+ "💡 5. NATIVE SPEAKER PRO-TIPS & SPEAKING DRILL:\n"
+						+ "Share how native speakers naturally use this in fast speech, plus 1 quick speaking challenge to practice out loud right now.\n\n"
+						+ "Format cleanly with clear headings and bullet points. Never output raw JSON or internal reasoning tags.";
 			}
 
 			List<GroqRequest.Message> messages = List.of(
@@ -234,7 +249,7 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 			return executeGroqCall("llama-3.3-70b-versatile", messages, 0.7);
 		} catch (Exception e) {
 			return AiResponse.builder()
-					.response("Welcome to your detailed lesson masterclass! Today we are exploring this topic thoroughly to build your English fluency.\n\n1. What is this concept: This topic forms the backbone of natural, confident communication. It gives your sentences proper grammatical structure and clarity.\n\n2. Why it matters: Mastering this allows you to express thoughts precisely without second-guessing yourself or getting stuck mid-sentence.\n\n3. The Core Rules: Always pay attention to subject-verb agreement and natural word order. Practice formulating positive, negative, and question sentences.\n\n4. Common Pitfalls: Avoid translating word-for-word from your native language. Instead, think in full phrases.\n\n5. Action Step: Speak 3 original sentences out loud using this concept right now to lock it into your memory!")
+					.response("Welcome to your detailed lesson masterclass! Today we are exploring this topic thoroughly to build your English fluency.\n\n🎯 1. What Is This Concept & Why It Matters:\nThis topic forms the backbone of natural, confident communication. It gives your sentences proper grammatical structure and clarity so you express yourself effortlessly.\n\n📐 2. Golden Rules & Sentence Formulas:\n• Positive (+): Subject + Verb + Complement (e.g., 'I practice speaking daily.')\n• Negative (-): Subject + do/does/did not + Base Verb (e.g., 'She does not hesitate.')\n• Question (?): Do/Does/Did + Subject + Base Verb? (e.g., 'Do you practice every morning?')\n\n🌟 3. Real-Life Examples:\n• Daily Life: 'I usually catch the morning bus at 8 AM to reach on time.'\n• Workplace: 'Could we schedule a quick call to review the project milestones?'\n• Travel: 'Excuse me, could you point me toward the departure terminal?'\n\n⚠️ 4. Common Mistakes to Avoid:\n• ❌ Incorrect: 'He don't like speaking.'\n• ✅ Correct: 'He doesn't like speaking.' (Use 'doesn't' with third-person singular he/she/it)\n\n💡 5. Pro-Tip & Quick Practice:\nSpeak 3 original sentences out loud right now using this formula to lock it into your muscle memory!")
 					.build();
 		}
 	}

@@ -525,11 +525,11 @@ export default function LessonDetailScreen({ navigation, route }) {
     // Background enhancement without blocking UI
     const fetchDynamicTeach = async () => {
       try {
-        const prompt = `Teach the lesson "${lesson.title}" (${lesson.category} - ${lesson.level}) in 120 words with simple explanation, why it matters, and key tips.`;
+        const prompt = `Teach the complete comprehensive masterclass on "${lesson.title}" (${lesson.category} - ${lesson.level}). Explain the core concept with real-world analogies, sentence formulas (positive, negative, question), 4 real-life dialogue examples (daily life, school, work, travel), common mistakes vs corrections, and native pro-tips.`;
         const res = await aiService.lessonTutor(prompt);
         if (res?.response) {
           const clean = cleanAiText(res.response);
-          if (clean && clean.length > 30) {
+          if (clean && clean.length > 50) {
             setAiTeachContent(clean);
           }
         }

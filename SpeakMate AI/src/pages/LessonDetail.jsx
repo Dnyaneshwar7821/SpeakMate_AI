@@ -195,17 +195,19 @@ export function LessonDetail() {
   useEffect(() => {
     if (!showStudy || studyStep !== 1 || !lesson) return;
 
+    setAiTeachLoading(true);
     aiService
-      .lessonTutor(`Teach the lesson "${lesson.title}" (${lesson.category} - ${lesson.level}) in 120 words with simple explanation, why it matters, and key tips.`)
+      .lessonTutor(`Teach the complete comprehensive masterclass on "${lesson.title}" (${lesson.category} - ${lesson.level}). Explain the core concept with real-world analogies, sentence formulas (positive, negative, question), 4 real-life dialogue examples (daily life, school, work, travel), common mistakes vs corrections, and native pro-tips.`)
       .then((res) => {
         if (res?.response) {
           const cleaned = cleanAiText(res.response);
-          if (cleaned && cleaned.length > 30) {
+          if (cleaned && cleaned.length > 50) {
             setAiTeachContent(cleaned);
           }
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setAiTeachLoading(false));
   }, [showStudy, studyStep, lesson]);
 
   // Step 2: Auto AI Examples
@@ -318,13 +320,28 @@ export function LessonDetail() {
   }, [showStudy, studyStep, lesson]);
 
   const handleStartStudyFlow = () => {
-    const defaultTeach = `Welcome to your detailed masterclass on "${lesson.title}"!\n\n` +
-      `1. WHAT IS THIS CONCEPT:\nThis topic is a foundational pillar of ${lesson.category} in English. ${lesson.description || 'Mastering this will significantly boost your fluency, confidence, and grammatical accuracy.'}\n\n` +
-      `2. WHY IT IS CRUCIAL:\nWhen you master "${lesson.title}", your English transitions from basic textbook translation to spontaneous, natural communication. It gives you the confidence to speak fluently in casual, academic, and business conversations.\n\n` +
-      `3. SENTENCE FORMULA & RULES:\n• Always ensure proper subject-verb agreement.\n• Pay close attention to helping verbs and correct verb tenses.\n• Form positive, negative, and question forms with natural sentence rhythm.\n\n` +
-      `4. PRACTICAL APPLICATION:\nNative speakers use this concept daily to tell stories, give opinions, make polite requests, and express complex thoughts with ease.\n\n` +
-      `5. COMMON MISTAKES TO AVOID:\n• Translating word-for-word from your native language instead of thinking in English phrases.\n• Skipping speaking practice and only reading silently.\n\n` +
-      `6. PRO-TIP FOR MASTERY:\nSpeak 3 complete sentences out loud right now using this concept to lock it into your muscle memory!`;
+    const defaultTeach = [
+      `🎯 1. WHAT IS THIS CONCEPT & WHY IT MATTERS:`,
+      `Mastering "${lesson.title}" is an essential foundation for natural English fluency in ${lesson.category} (${lesson.level}). ${lesson.description || 'It gives your sentences proper grammatical structure and clarity so you express yourself effortlessly.'}`,
+      ``,
+      `📐 2. GOLDEN RULES & SENTENCE FORMULAS:`,
+      `• Positive (+): Subject + Verb + Complement (e.g., "I express my ideas clearly in meetings.")`,
+      `• Negative (-): Subject + Auxiliary + not + Base Verb (e.g., "She does not hesitate when speaking.")`,
+      `• Question (?): Auxiliary + Subject + Base Verb? (e.g., "Do you practice your speaking turns every day?")`,
+      ``,
+      `🌟 3. REAL-LIFE SITUATION EXAMPLES:`,
+      `• Daily Life: "I usually prepare my morning schedule before heading out."`,
+      `• School / Academic: "Could the teacher please explain this grammatical rule once more?"`,
+      `• Workplace / Career: "We are finalizing the deliverables for the upcoming client review."`,
+      `• Travel / Public: "Excuse me, where can I find the information counter for international flights?"`,
+      ``,
+      `⚠️ 4. COMMON MISTAKES VS NATIVE CORRECTIONS:`,
+      `• ❌ Incorrect: "He don't know the exact schedule."`,
+      `• ✅ Correct: "He doesn't know the exact schedule." (Use 'doesn't' with third-person singular).`,
+      ``,
+      `💡 5. NATIVE SPEAKER PRO-TIP:`,
+      `Focus on connecting phrases with natural rhythm rather than pausing before each word. Speak 3 full sentences out loud right now!`,
+    ].join("\n");
 
     const defaultExamples = [
       { sentence: "She has been studying English every day to build confidence.", context: "Daily Routine", explanation: "Demonstrates continuous habitual practice with natural sentence flow." },
