@@ -477,11 +477,13 @@ export const VoiceService = {
     let pitch = 1.0;
     let rate  = Number(effectiveSpeed) || 1.0;
 
-    // Distinct masculine pitch for Indian Male (shifts vocal formant to natural male depth)
+    // Align with Web App Voice Profiles
     if (gs.includes('in') && gs.includes('male') && !gs.includes('female')) {
-      pitch = 0.78;
+      pitch = 0.95; // Exact Web App Indian Male pitch
+      rate  = 1.02 * (Number(effectiveSpeed) || 1.0);
     } else if (gs.includes('in') && gs.includes('female')) {
-      pitch = 1.08;
+      pitch = 1.12; // Exact Web App Indian Female pitch
+      rate  = 1.02 * (Number(effectiveSpeed) || 1.0);
     }
 
     // ── 6. Build TTS options ──────────────────────────────────────────────────
@@ -509,6 +511,16 @@ export const VoiceService = {
     const systemVoiceId = pinnedVoiceId || VoiceService.selectSystemVoice(voices, resolvedVoice);
     if (systemVoiceId) {
       options.voice = systemVoiceId;
+      
+      // If resolving male requested voice to a female voice fallback, apply Web App pitch-shift
+      const voiceObj = voices.find(v => v.identifier === systemVoiceId);
+      if (voiceObj && gs.includes('male') && !gs.includes('female')) {
+        const vid = (voiceObj.identifier || '').toLowerCase();
+        const vname = (voiceObj.name || '').toLowerCase();
+        if (isFemalePattern(vid, vname, voiceObj.gender)) {
+          options.pitch = 0.88; // Match Web App fallback male pitch
+        }
+      }
     }
 
     // ── 7. Speak ──────────────────────────────────────────────────────────────
