@@ -342,6 +342,8 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
     (user?.schoolGrade && user?.schoolGrade.includes('Std'))
   );
 
+  const isProUser = !isStudentUser && Boolean(user?.isPro || user?.pro);
+
   const navSections = useMemo(() => {
     return NAV_SECTIONS.map((sec) => {
       let items = [...sec.items];
@@ -352,7 +354,7 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
         if (!isStudentUser) {
           items.push({
             key: 'Subscription',
-            label: '⭐ Subscription & Pro',
+            label: isProUser ? '⭐ Manage Pro Subscription' : '⭐ Subscription & Pro',
             icon: 'diamond',
             tab: 'Subscription',
           });
@@ -360,7 +362,7 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
       }
       return { ...sec, items };
     });
-  }, [isStudentUser]);
+  }, [isStudentUser, isProUser]);
 
   const containerBg = isDark ? '#0F172A' : '#F8FAFC';
   const sectionTitleColor = isDark ? '#64748B' : '#94A3B8';
@@ -409,8 +411,8 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
           </View>
         ))}
 
-        {/* Pro Upgrade Banner for Individual Users */}
-        {!isStudentUser && !user?.isPro && (
+        {/* Pro Upgrade Banner for Individual Free Users */}
+        {!isStudentUser && !isProUser && (
           <TouchableOpacity
             onPress={() => {
               if (navigation?.closeDrawer) navigation.closeDrawer();
@@ -430,6 +432,32 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
               </View>
               <Text style={styles.proUpgradeSubtitle}>
                 Unlock unlimited AI drills from ₹1/mo
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
+        {/* Pro Active Card for Individual Pro Users */}
+        {!isStudentUser && isProUser && (
+          <TouchableOpacity
+            onPress={() => {
+              if (navigation?.closeDrawer) navigation.closeDrawer();
+              navigation.navigate('Subscription');
+            }}
+            style={styles.proUpgradeBanner}
+          >
+            <LinearGradient
+              colors={['#059669', '#10B981']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.proUpgradeGradient}
+            >
+              <View style={styles.proUpgradeIconRow}>
+                <Ionicons name="shield-checkmark" size={16} color="#FFFFFF" />
+                <Text style={styles.proUpgradeTitle}>SpeakMate Pro Active ⭐</Text>
+              </View>
+              <Text style={styles.proUpgradeSubtitle}>
+                Unlimited 24/7 AI Speaking & Grammar Doctor
               </Text>
             </LinearGradient>
           </TouchableOpacity>

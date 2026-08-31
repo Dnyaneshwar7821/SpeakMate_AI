@@ -92,6 +92,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired(required = false)
 	private GrammarHistoryRepository grammarHistoryRepository;
 
+	@Autowired(required = false)
+	private com.rslsolution.speakmateai.repository.UserSubscriptionRepository userSubscriptionRepository;
+
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
@@ -539,8 +542,28 @@ public class UserServiceImpl implements UserService {
 				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
 				(user.getAgeGroup() != null && user.getAgeGroup().toLowerCase().contains("school"));
 
+		boolean isPro = false;
+		String subPlan = "FREE";
+
+		if (!isStudent && userSubscriptionRepository != null) {
+			try {
+				java.util.Optional<com.rslsolution.speakmateai.entity.UserSubscription> subOpt = 
+						userSubscriptionRepository.findFirstByUserAndStatusOrderByCreatedAtDesc(user, "ACTIVE");
+				if (subOpt.isPresent()) {
+					com.rslsolution.speakmateai.entity.UserSubscription sub = subOpt.get();
+					if (sub.getEndDate() != null && sub.getEndDate().isAfter(java.time.LocalDateTime.now())) {
+						isPro = true;
+						subPlan = sub.getPlanType() != null ? sub.getPlanType() : "MONTHLY_PRO";
+					}
+				}
+			} catch (Exception e) {
+				// fallback
+			}
+		}
+
 		return UserResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
 				.email(user.getEmail()).role(user.getRole()).avatar(user.getAvatar()).active(user.isActive())
+				.isPro(isPro).subscriptionPlan(subPlan)
 				.createdAt(user.getCreatedAt()).welcomeCompleted(user.isWelcomeCompleted())
 				.onboardingCompleted(isCompleted)
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())

@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,6 +30,16 @@ public class UserResponse {
 	private String avatar;
 
 	private boolean active;
+
+	@JsonProperty("isPro")
+	private boolean isPro;
+
+	@JsonProperty("pro")
+	public boolean getPro() {
+		return isPro;
+	}
+
+	private String subscriptionPlan; // FREE, MONTHLY_PRO, YEARLY_PRO
 
 	private LocalDateTime createdAt;
 
@@ -125,6 +137,12 @@ public class UserResponse {
 	public Boolean getIsSchoolStudent() { return isSchoolStudent; }
 	public void setIsSchoolStudent(Boolean isSchoolStudent) { this.isSchoolStudent = isSchoolStudent; }
 
+	public boolean isPro() { return isPro; }
+	public void setPro(boolean isPro) { this.isPro = isPro; }
+
+	public String getSubscriptionPlan() { return subscriptionPlan; }
+	public void setSubscriptionPlan(String subscriptionPlan) { this.subscriptionPlan = subscriptionPlan; }
+
 	public static UserResponseBuilder builder() {
 		return new UserResponseBuilder();
 	}
@@ -137,6 +155,8 @@ public class UserResponse {
 		private Role role;
 		private String avatar;
 		private boolean active;
+		private boolean isPro;
+		private String subscriptionPlan;
 		private LocalDateTime createdAt;
 		private boolean welcomeCompleted;
 		private boolean onboardingCompleted;
@@ -160,6 +180,9 @@ public class UserResponse {
 		public UserResponseBuilder role(Role role) { this.role = role; return this; }
 		public UserResponseBuilder avatar(String avatar) { this.avatar = avatar; return this; }
 		public UserResponseBuilder active(boolean active) { this.active = active; return this; }
+		public UserResponseBuilder isPro(boolean isPro) { this.isPro = isPro; return this; }
+		public UserResponseBuilder pro(boolean isPro) { this.isPro = isPro; return this; }
+		public UserResponseBuilder subscriptionPlan(String subscriptionPlan) { this.subscriptionPlan = subscriptionPlan; return this; }
 		public UserResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 		public UserResponseBuilder welcomeCompleted(boolean welcomeCompleted) { this.welcomeCompleted = welcomeCompleted; return this; }
 		public UserResponseBuilder onboardingCompleted(boolean onboardingCompleted) { this.onboardingCompleted = onboardingCompleted; return this; }
@@ -185,6 +208,8 @@ public class UserResponse {
             obj.setRole(role);
             obj.setAvatar(avatar);
             obj.setActive(active);
+            obj.setPro(isPro);
+            obj.setSubscriptionPlan(subscriptionPlan);
             obj.setCreatedAt(createdAt);
             obj.setWelcomeCompleted(welcomeCompleted);
             obj.setOnboardingCompleted(onboardingCompleted);

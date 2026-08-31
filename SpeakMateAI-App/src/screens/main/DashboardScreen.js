@@ -385,6 +385,7 @@ export default function DashboardScreen({ navigation }) {
           name={viewModel.name}
           avatar={viewModel.avatar}
           isStudent={viewModel.isStudent}
+          isPro={!isStudentUser && Boolean(user?.isPro || user?.pro)}
           schoolGrade={viewModel.schoolGrade}
           ageGroup={viewModel.ageGroup}
           englishLevel={viewModel.englishLevel}

@@ -267,11 +267,11 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 				.status("ACTIVE")
 				.startDate(user.getCreatedAt())
 				.endDate(null)
-				.dailyMinutesLimit(10)
+				.dailyMinutesLimit(15)
 				.dailyMinutesUsed(0)
-				.dailyGrammarLimit(5)
+				.dailyGrammarLimit(15)
 				.dailyGrammarUsed(0)
-				.message("You are currently on the Free Starter plan.")
+				.message("You are currently on the Free Starter plan (15 mins practice per refill).")
 				.build();
 	}
 
@@ -299,11 +299,11 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 				.status("ACTIVE")
 				.startDate(user.getCreatedAt())
 				.endDate(null)
-				.dailyMinutesLimit(10)
+				.dailyMinutesLimit(15)
 				.dailyMinutesUsed(0)
-				.dailyGrammarLimit(5)
+				.dailyGrammarLimit(15)
 				.dailyGrammarUsed(0)
-				.message("Your subscription has been cancelled. You are now on the Free Starter plan.")
+				.message("Your subscription has been cancelled. You are now on the Free Starter plan (15 mins practice per refill).")
 				.build();
 	}
 

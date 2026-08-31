@@ -456,7 +456,7 @@ export function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-base shadow-md shadow-[#6C63FF]/30 hover:scale-105 active:scale-95 transition-all overflow-hidden cursor-pointer"
+                  className="relative grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white font-black text-base shadow-md shadow-[#6C63FF]/30 hover:scale-105 active:scale-95 transition-all overflow-hidden cursor-pointer"
                   aria-label="Open user menu"
                 >
                   {user?.avatar && (user.avatar.startsWith("data:image/") || user.avatar.startsWith("http") || user.avatar.startsWith("/")) ? (
@@ -467,6 +467,11 @@ export function Navbar() {
                     user?.firstName ? user.firstName.charAt(0).toUpperCase() : user?.name ? user.name.charAt(0).toUpperCase() : "U"
                   )}
                 </button>
+                {!isStudent && (user?.isPro || user?.pro) && (
+                  <span className="absolute -top-1.5 -right-1.5 px-1 py-0.2 rounded-full text-[9px] font-black bg-amber-400 text-amber-950 shadow-md pointer-events-none">
+                    👑
+                  </span>
+                )}
 
                 {dropdownOpen && (
                   <>
@@ -474,7 +479,12 @@ export function Navbar() {
                     <div className="absolute right-0 mt-3 w-72 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-2xl p-2 z-20 animate-scale-in">
                       <div className="px-4 py-3 rounded-2xl bg-[var(--bg-elevated)] mb-2 space-y-1">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-black text-[var(--text-primary)] truncate">{user?.firstName || user?.name || "Learner"}</p>
+                          <div className="flex items-center gap-1.5 truncate">
+                            <p className="text-sm font-black text-[var(--text-primary)] truncate">{user?.firstName || user?.name || "Learner"}</p>
+                            {!isStudent && (user?.isPro || user?.pro) && (
+                              <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-amber-400 text-amber-950">PRO</span>
+                            )}
+                          </div>
                           <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-[#6C63FF]/20 text-[#6C63FF]">
                             {user?.englishLevel || user?.level || "Beginner"}
                           </span>
@@ -529,7 +539,7 @@ export function Navbar() {
                             className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-xs font-bold text-amber-500 hover:bg-amber-500/10 transition-all"
                             onClick={() => setDropdownOpen(false)}
                           >
-                            <span>⭐</span> Upgrade to Pro
+                            <span>⭐</span> {(user?.isPro || user?.pro) ? "Manage Pro Plan" : "Upgrade to Pro"}
                           </Link>
                         )}
 

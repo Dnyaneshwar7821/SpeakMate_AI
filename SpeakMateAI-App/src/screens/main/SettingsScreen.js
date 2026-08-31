@@ -230,16 +230,16 @@ export default function SettingsScreen({ navigation }) {
                     </View>
                     <View style={{ flex: 1, paddingRight: 8 }}>
                       <Text style={[styles.rowTitle, { color: labelColor, fontWeight: '800' }]}>
-                        {user?.isPro ? '⭐ SpeakMate Pro Active' : '⭐ Upgrade to Pro'}
+                        {(!isStudent && (user?.isPro || user?.pro)) ? '⭐ SpeakMate Pro Active' : '⭐ Upgrade to Pro'}
                       </Text>
                       <Text style={[styles.rowDesc, { color: sublabelColor }]}>
-                        {user?.isPro ? 'Manage active plan & Razorpay receipts' : 'Unlimited AI Speaking & Accent Coach'}
+                        {(!isStudent && (user?.isPro || user?.pro)) ? 'Manage active plan & Razorpay receipts' : 'Unlimited AI Speaking & Accent Coach'}
                       </Text>
                     </View>
                   </View>
                   <View style={styles.pickerRowRight}>
                     <Text style={[styles.pickerValueText, { color: '#4F46E5', fontWeight: '800' }]}>
-                      {user?.isPro ? 'Manage' : 'View Plans'}
+                      {(!isStudent && (user?.isPro || user?.pro)) ? 'Manage' : 'View Plans'}
                     </Text>
                     <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
                   </View>

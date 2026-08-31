@@ -236,10 +236,10 @@ export function Pricing() {
               {/* Features List */}
               <ul className="space-y-3 text-xs sm:text-sm text-[var(--text-secondary)]">
                 <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
-                  <span className="text-emerald-500 font-bold">✓</span> 10 minutes daily AI Speaking Practice
+                  <span className="text-emerald-500 font-bold">✓</span> 15 minutes AI Speaking Practice per refill (Recharges in 5–6h)
                 </li>
                 <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
-                  <span className="text-emerald-500 font-bold">✓</span> 5 Grammar Doctor checks / day
+                  <span className="text-emerald-500 font-bold">✓</span> 15 Grammar Doctor checks / day
                 </li>
                 <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
                   <span className="text-emerald-500 font-bold">✓</span> 1 Standard Avatar & Default Voice

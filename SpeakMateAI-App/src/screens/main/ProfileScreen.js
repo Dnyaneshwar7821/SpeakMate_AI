@@ -780,10 +780,10 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View style={styles.optionTextContainer}>
                 <Text style={[styles.optionTitle, { color: isDark ? '#FFFFFF' : '#312E81', fontWeight: '800' }]}>
-                  {user?.isPro ? '⭐ SpeakMate Pro Member' : '⭐ Upgrade to Pro'}
+                  {(!isStudent && (user?.isPro || user?.pro)) ? '⭐ SpeakMate Pro Member' : '⭐ Upgrade to Pro'}
                 </Text>
                 <Text style={[styles.optionSubtitle, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
-                  {user?.isPro ? 'Manage your active subscription' : 'Unlimited AI Speaking & Accent Coach'}
+                  {(!isStudent && (user?.isPro || user?.pro)) ? 'Manage your active subscription' : 'Unlimited AI Speaking & Accent Coach'}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={16} color={isDark ? '#818CF8' : '#4F46E5'} />

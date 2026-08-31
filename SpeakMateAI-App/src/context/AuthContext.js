@@ -8,6 +8,7 @@ import React, {
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { authService } from "../services/authService";
+import { subscriptionService } from "../services/subscriptionService";
 import { setLogoutCallback } from "../api/api";
 import { STORAGE_KEYS } from "../utils/storageKeys";
 
@@ -47,10 +48,38 @@ export const AuthProvider = ({ children }) => {
         }
         const nextOnboardingCompleted = Boolean(isCompleted);
 
+        const isStudent = Boolean(
+          activeUser?.isSchoolStudent ||
+          activeUser?.accountType === "STUDENT" ||
+          activeUser?.role === "STUDENT" ||
+          activeUser?.schoolId
+        );
+
+        let isProUser = Boolean(activeUser?.isPro || activeUser?.pro);
+        let subPlan = activeUser?.subscriptionPlan || "FREE";
+
+        if (!isStudent) {
+          try {
+            const sub = await subscriptionService.getMySubscription().catch(() => null);
+            if (sub && (sub.isPro || sub.pro || sub.status === "ACTIVE")) {
+              isProUser = true;
+              subPlan = sub.planType || "MONTHLY_PRO";
+            }
+          } catch {
+            // ignore
+          }
+        }
+
+        const enrichedUser = {
+          ...activeUser,
+          isPro: !isStudent && isProUser,
+          subscriptionPlan: subPlan,
+        };
+
         setToken(storedToken);
-        setUser(activeUser);
+        setUser(enrichedUser);
         setIsAuthenticated(true);
-        await AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(activeUser));
+        await AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(enrichedUser));
         await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(nextOnboardingCompleted));
         setOnboardingCompletedState(nextOnboardingCompleted);
       } else {

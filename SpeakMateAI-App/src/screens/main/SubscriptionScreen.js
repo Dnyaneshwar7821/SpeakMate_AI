@@ -317,7 +317,7 @@ export default function SubscriptionScreen({ navigation }) {
     );
   }
 
-  const isPro = currentSub?.isPro || user?.isPro;
+  const isPro = Boolean(currentSub?.isPro || currentSub?.pro || currentSub?.status === 'ACTIVE' || user?.isPro || user?.pro);
   const isYearly = billingCycle === 'YEARLY';
   const price = isYearly ? '₹1,199' : '₹1';
   const period = isYearly ? '/ year' : '/ month';

@@ -146,6 +146,7 @@ export const DashboardHeader = memo(function DashboardHeader({
   name,
   avatar,
   isStudent,
+  isPro,
   schoolGrade,
   ageGroup,
   englishLevel,
@@ -217,7 +218,22 @@ export const DashboardHeader = memo(function DashboardHeader({
           </TouchableOpacity>
           <View style={styles.heroText}>
             <Text style={styles.greetingText}>{getGreeting()}</Text>
-            <Text style={styles.heroName} numberOfLines={1}>{name || 'Learner'}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+              <Text style={styles.heroName} numberOfLines={1}>{name || 'Learner'}</Text>
+              {!isStudent && isPro && (
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 3,
+                  backgroundColor: '#F59E0B',
+                  paddingHorizontal: 7,
+                  paddingVertical: 2,
+                  borderRadius: 8,
+                }}>
+                  <Text style={{ fontSize: 10, fontWeight: '900', color: '#78350F' }}>👑 PRO VIP</Text>
+                </View>
+              )}
+            </View>
             <View style={styles.heroMetaRow}>
               <View style={styles.heroChip}>
                 <Ionicons name="trophy" size={12} color="#818CF8" />
