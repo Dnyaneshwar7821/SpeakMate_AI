@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { authService } from "../services/authService";
+import { subscriptionService } from "../services/appServices";
 import { setLogoutCallback } from "../services/api";
 
 const AuthContext = createContext(null);
@@ -71,9 +72,37 @@ export function AuthProvider({ children }) {
         );
 
         if (activeUser) {
-          setUser(activeUser);
-          syncSchoolGrade(activeUser);
-          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(activeUser));
+          const isStudent = Boolean(
+            activeUser?.isSchoolStudent ||
+            activeUser?.accountType === "STUDENT" ||
+            activeUser?.role === "STUDENT" ||
+            activeUser?.schoolId
+          );
+
+          let isProUser = Boolean(activeUser?.isPro || activeUser?.pro);
+          let subPlan = activeUser?.subscriptionPlan || "FREE";
+
+          if (!isStudent) {
+            try {
+              const sub = await subscriptionService.getMySubscription().catch(() => null);
+              if (sub && (sub.isPro || sub.pro || sub.status === "ACTIVE")) {
+                isProUser = true;
+                subPlan = sub.planType || "MONTHLY_PRO";
+              }
+            } catch {
+              // ignore
+            }
+          }
+
+          const enrichedUser = {
+            ...activeUser,
+            isPro: !isStudent && isProUser,
+            subscriptionPlan: subPlan,
+          };
+
+          setUser(enrichedUser);
+          syncSchoolGrade(enrichedUser);
+          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(enrichedUser));
         }
 
         setOnboardingCompleted(isCompleted);

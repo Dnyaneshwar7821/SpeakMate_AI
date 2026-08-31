@@ -10,13 +10,16 @@ import { getLiveProgressStats, recordSpeakingSession, buyStreakFreeze, syncBacke
 import { StreakModal } from "../components/dashboard/StreakModal";
 
 const getRankTier = (xp = 0) => {
-  if (xp < 200) return { name: "Novice Speaker", icon: "🥉", badgeColor: "bg-amber-700/20 text-amber-500 border-amber-600/30" };
-  if (xp < 500) return { name: "Bronze III", icon: "🥉", badgeColor: "bg-amber-600/20 text-amber-500 border-amber-500/30" };
-  if (xp < 1000) return { name: "Bronze I", icon: "🥉", badgeColor: "bg-amber-500/20 text-amber-400 border-amber-400/30" };
-  if (xp < 1800) return { name: "Silver II", icon: "🥈", badgeColor: "bg-slate-400/20 text-slate-300 border-slate-300/30" };
-  if (xp < 2800) return { name: "Silver I", icon: "🥈", badgeColor: "bg-slate-300/20 text-slate-200 border-slate-200/30" };
-  if (xp < 4200) return { name: "Gold I", icon: "🥇", badgeColor: "bg-amber-400/20 text-yellow-400 border-yellow-400/30" };
-  if (xp < 6000) return { name: "Platinum Master", icon: "💎", badgeColor: "bg-cyan-500/20 text-cyan-300 border-cyan-400/30" };
+  if (xp < 100) return { name: "Bronze III", icon: "🥉", badgeColor: "bg-amber-700/20 text-amber-500 border-amber-600/30" };
+  if (xp < 300) return { name: "Bronze II", icon: "🥉", badgeColor: "bg-amber-600/20 text-amber-500 border-amber-500/30" };
+  if (xp < 600) return { name: "Bronze I", icon: "🥉", badgeColor: "bg-amber-500/20 text-amber-400 border-amber-400/30" };
+  if (xp < 1000) return { name: "Silver III", icon: "🥈", badgeColor: "bg-slate-400/20 text-slate-300 border-slate-300/30" };
+  if (xp < 1500) return { name: "Silver II", icon: "🥈", badgeColor: "bg-slate-300/20 text-slate-200 border-slate-200/30" };
+  if (xp < 2200) return { name: "Silver I", icon: "🥈", badgeColor: "bg-slate-200/20 text-slate-100 border-slate-100/30" };
+  if (xp < 3000) return { name: "Gold III", icon: "🥇", badgeColor: "bg-amber-400/20 text-yellow-400 border-yellow-400/30" };
+  if (xp < 4000) return { name: "Gold II", icon: "🥇", badgeColor: "bg-amber-400/20 text-yellow-400 border-yellow-400/30" };
+  if (xp < 5000) return { name: "Gold I", icon: "🥇", badgeColor: "bg-amber-400/20 text-yellow-400 border-yellow-400/30" };
+  if (xp < 7000) return { name: "Platinum Master", icon: "💎", badgeColor: "bg-cyan-500/20 text-cyan-300 border-cyan-400/30" };
   return { name: "Diamond Orator", icon: "👑", badgeColor: "bg-purple-500/20 text-purple-300 border-purple-400/30" };
 };
 
@@ -56,7 +59,17 @@ export function Dashboard() {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [challengeClaimed, setChallengeClaimed] = useState(false);
 
-  const rank = getRankTier(stats.xp || user?.xp || 0);
+  const calculatedRank = getRankTier(stats.xp || user?.xp || 0);
+  const currentRankName = stats.rank || user?.rank || calculatedRank.name;
+  const currentRankIcon = currentRankName.includes("Bronze")
+    ? "🥉"
+    : currentRankName.includes("Silver")
+    ? "🥈"
+    : currentRankName.includes("Gold")
+    ? "🥇"
+    : currentRankName.includes("Platinum")
+    ? "💎"
+    : "👑";
 
   const refreshStats = () => {
     const liveStats = getLiveProgressStats(user);
@@ -156,12 +169,18 @@ export function Dashboard() {
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="space-y-3.5 max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
+              {!isStudent && (user?.isPro || user?.pro) && (
+                <span className="text-xs font-black px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 shadow-lg border border-amber-300/60 flex items-center gap-1 animate-pulse">
+                  <span>👑</span>
+                  <span>PRO VIP</span>
+                </span>
+              )}
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
                 {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 ${activeAgeGroup} · 🎯 ${activeEnglishLevel}`}
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white shadow-sm flex items-center gap-1">
-                <span>{rank.icon}</span>
-                <span>{rank.name}</span>
+                <span>{currentRankIcon}</span>
+                <span>{currentRankName}</span>
               </span>
               <button
                 onClick={() => setStreakModalOpen(true)}
