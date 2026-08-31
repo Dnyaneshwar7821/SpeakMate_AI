@@ -141,8 +141,12 @@ export default function SettingsScreen({ navigation }) {
 
       // 2. Sync Voice to AsyncStorage
       if (form.aiVoice) {
+        const profile = VOICE_PROFILES.find((p) => p.code === form.aiVoice);
         await AsyncStorage.setItem('speakmate_selected_voice', form.aiVoice);
         await AsyncStorage.setItem('speakmate_ai_voice', form.aiVoice);
+        if (profile?.gender) {
+          await AsyncStorage.setItem('speakmate_voice_gender', profile.gender);
+        }
       }
 
       // 3. Sync Age Group via Onboarding Service, AuthContext & AsyncStorage
@@ -597,21 +601,13 @@ export default function SettingsScreen({ navigation }) {
                       ]}
                       onPress={async () => {
                         update('aiVoice', profile.code);
-                        try {
-                          await AsyncStorage.setItem('speakmate_selected_voice', profile.code);
-                          await AsyncStorage.setItem('speakmate_ai_voice', profile.code);
-                          await AsyncStorage.setItem('speakmate_voice_gender', profile.gender || 'female');
-                          settingsService.update({ ...form, aiVoice: profile.code }).catch(() => {});
-                        } catch (e) {
-                          console.warn('Failed to save selected voice preference:', e);
-                        }
 
                         if (profile.code === 'Default') {
                           // Load the exact saved onboarding voice config and play it
                           const onboardingConfig = await OnboardingVoiceService.load();
                           const previewMsg = `Hello! I am your ${onboardingConfig.style.toLowerCase()} English tutor.`;
                           VoiceService.speak(previewMsg, {
-                            voiceType: 'Default', // speak() will resolve via OnboardingVoiceService
+                            voiceType: 'Default',
                             availableVoices,
                           });
                         } else {
