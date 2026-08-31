@@ -114,23 +114,23 @@ const getLive2DHtml = (initialModel = 'haru') => {
     let mouthPhase = 0;
     let isPointerInteracting = false;
 
-    // ── PHONETIC VISEME ENGINE ──────────────────────────────────────────
+    // ── HIGH-DEFINITION PHONETIC VISEME ENGINE ──────────────────────────
     const VISEME_PARAMS = {
-      REST: { yVal: 0.0,  formVal: 0.0 },
-      MBP:  { yVal: 0.06, formVal: 0.0 },   // Bilabials (M, B, P) - Lips touching
-      AA:   { yVal: 0.95, formVal: 0.25 },  // Open vowels (A, AH, AA, AY) - Deep drop
-      EE:   { yVal: 0.58, formVal: 0.85 },  // Wide smile vowels (E, EE, I, EA)
-      IH:   { yVal: 0.62, formVal: 0.25 },  // Short neutral vowels (IH, EH, UH)
-      OO:   { yVal: 0.68, formVal: -0.75 }, // Pursed lips (O, OO, U, W) - Rounded
-      OH:   { yVal: 0.88, formVal: -0.35 }, // Tall open (O, OH, AU, AW, OW)
-      FV:   { yVal: 0.38, formVal: -0.15 }, // Labiodentals (F, V) - Teeth on lip
-      LNT:  { yVal: 0.48, formVal: 0.18 },  // Alveolars/Dentals (L, N, T, D, S, Z, R)
+      REST: { yVal: 0.0,   formVal: 0.0 },   // Closed / resting lips
+      MBP:  { yVal: 0.0,   formVal: 0.0 },   // Bilabials (M, B, P) - Lips firmly closed
+      AA:   { yVal: 0.98,  formVal: 0.30 },  // Open vowels (A, AH, AA, AY, AW) - Deep, clear jaw drop
+      EE:   { yVal: 0.58,  formVal: 0.95 },  // Wide smile vowels (E, EE, I, EA) - Horizontal stretch
+      IH:   { yVal: 0.52,  formVal: 0.20 },  // Short neutral vowels (IH, EH, UH) - Natural opening
+      OO:   { yVal: 0.65,  formVal: -0.85 }, // Pursed lips (O, OO, U, W) - Rounded circle
+      OH:   { yVal: 0.88,  formVal: -0.40 }, // Tall oval open (O, OH, AU, AW, OW) - Distinct vertical oval
+      FV:   { yVal: 0.36,  formVal: -0.20 }, // Labiodentals (F, V) - Teeth over lower lip
+      LNT:  { yVal: 0.42,  formVal: 0.15 },  // Alveolars/Dentals (L, N, T, D, S, Z, R, TH, CH, SH)
     };
 
     function getWordVisemes(word) {
-      if (!word) return [{ ...VISEME_PARAMS.REST, duration: 100 }];
+      if (!word) return [{ ...VISEME_PARAMS.REST, duration: 150 }];
       const clean = word.toLowerCase().replace(/[^a-z]/g, '');
-      if (!clean) return [{ ...VISEME_PARAMS.REST, duration: 100 }];
+      if (!clean) return [{ ...VISEME_PARAMS.REST, duration: 150 }];
 
       const seq = [];
       let i = 0;
@@ -139,77 +139,116 @@ const getLive2DHtml = (initialModel = 'haru') => {
         const pair = clean.substr(i, 2);
 
         if (['oo', 'ou', 'ow'].includes(pair)) {
-          seq.push({ ...VISEME_PARAMS.OO, duration: 130 });
+          seq.push({ ...VISEME_PARAMS.OO, duration: 220 });
           i += 2;
         } else if (['ee', 'ea', 'ie', 'ei'].includes(pair)) {
-          seq.push({ ...VISEME_PARAMS.EE, duration: 130 });
+          seq.push({ ...VISEME_PARAMS.EE, duration: 210 });
           i += 2;
         } else if (['ai', 'ay', 'ae'].includes(pair)) {
-          seq.push({ ...VISEME_PARAMS.EE, duration: 120 });
+          seq.push({ ...VISEME_PARAMS.EE, duration: 200 });
           i += 2;
         } else if (['oa', 'oh', 'aw', 'au'].includes(pair)) {
-          seq.push({ ...VISEME_PARAMS.OH, duration: 130 });
+          seq.push({ ...VISEME_PARAMS.OH, duration: 220 });
           i += 2;
-        } else if (['th', 'sh', 'ch'].includes(pair)) {
-          seq.push({ ...VISEME_PARAMS.LNT, duration: 95 });
+        } else if (['th', 'sh', 'ch', 'ph'].includes(pair)) {
+          seq.push({ ...VISEME_PARAMS.LNT, duration: 130 });
           i += 2;
         } else if (['mb', 'mp'].includes(pair)) {
-          seq.push({ ...VISEME_PARAMS.MBP, duration: 85 });
+          seq.push({ ...VISEME_PARAMS.MBP, duration: 120 });
           i += 2;
         } else {
-          if (['m', 'b', 'p'].includes(c)) seq.push({ ...VISEME_PARAMS.MBP, duration: 75 });
-          else if (['f', 'v'].includes(c)) seq.push({ ...VISEME_PARAMS.FV, duration: 80 });
-          else if (c === 'a') seq.push({ ...VISEME_PARAMS.AA, duration: 120 });
-          else if (['e', 'i'].includes(c)) seq.push({ ...VISEME_PARAMS.EE, duration: 105 });
-          else if (c === 'o') seq.push({ ...VISEME_PARAMS.OH, duration: 115 });
-          else if (['u', 'w'].includes(c)) seq.push({ ...VISEME_PARAMS.OO, duration: 100 });
-          else if (['l', 'n', 't', 'd', 's', 'z', 'r'].includes(c)) seq.push({ ...VISEME_PARAMS.LNT, duration: 75 });
-          else seq.push({ ...VISEME_PARAMS.IH, duration: 75 });
+          if (['m', 'b', 'p'].includes(c)) seq.push({ ...VISEME_PARAMS.MBP, duration: 110 });
+          else if (['f', 'v'].includes(c)) seq.push({ ...VISEME_PARAMS.FV, duration: 120 });
+          else if (c === 'a') seq.push({ ...VISEME_PARAMS.AA, duration: 190 });
+          else if (['e', 'i'].includes(c)) seq.push({ ...VISEME_PARAMS.EE, duration: 170 });
+          else if (c === 'o') seq.push({ ...VISEME_PARAMS.OH, duration: 190 });
+          else if (['u', 'w'].includes(c)) seq.push({ ...VISEME_PARAMS.OO, duration: 170 });
+          else if (['l', 'n', 't', 'd', 's', 'z', 'r'].includes(c)) seq.push({ ...VISEME_PARAMS.LNT, duration: 120 });
+          else seq.push({ ...VISEME_PARAMS.IH, duration: 120 });
           i++;
         }
       }
-      return seq.length ? seq : [{ ...VISEME_PARAMS.IH, duration: 100 }];
+      return seq.length ? seq : [{ ...VISEME_PARAMS.IH, duration: 150 }];
     }
 
     let speechSchedule = [];
     let speechScheduleIndex = 0;
     let speechScheduleStartTime = 0;
     let speechDurationMs = 0;
+    let lastScheduledText = '';
 
     function scheduleSpokenText(text, speed = 1.0) {
-      if (!text) {
+      if (!text || typeof text !== 'string' || !text.trim()) {
         speechSchedule = [];
+        lastScheduledText = '';
         return;
       }
-      const words = text.trim().split(/\\s+/).filter(Boolean);
+
+      if (text === lastScheduledText && speechSchedule.length > 0) {
+        return; // Avoid resetting speech timeline on identical re-renders
+      }
+      lastScheduledText = text;
+
+      const words = text.trim().split(/\s+/).filter(Boolean);
       const schedule = [];
       let cumulativeTime = 0;
       const timeScale = 1.0 / (Math.max(0.4, speed) || 1.0);
 
-      for (const w of words) {
+      for (let wIndex = 0; wIndex < words.length; wIndex++) {
+        const w = words[wIndex];
         const visemes = getWordVisemes(w);
-        const hasPunctuation = /[.,!?;:]$/.test(w);
+
+        // Detect punctuation at the end of word
+        const hasMajorPunctuation = /[.!?…]+$/.test(w);
+        const hasMinorPunctuation = /[,;:\-—]+$/.test(w);
 
         for (const v of visemes) {
-          const dur = Math.max(45, v.duration * timeScale);
+          const dur = Math.max(60, v.duration * timeScale);
           schedule.push({
             start: cumulativeTime,
             end: cumulativeTime + dur,
             yVal: v.yVal,
             formVal: v.formVal,
+            isPause: false,
           });
           cumulativeTime += dur;
         }
 
-        // Micro-pause between words or after punctuation
-        const pauseDur = hasPunctuation ? (/[.!?]/.test(w) ? 260 : 150) * timeScale : (40 * timeScale);
-        schedule.push({
-          start: cumulativeTime,
-          end: cumulativeTime + pauseDur,
-          yVal: 0.05,
-          formVal: 0.0,
-        });
-        cumulativeTime += pauseDur;
+        // Punctuation pauses & word boundary spacing
+        if (hasMajorPunctuation) {
+          // Major pause (sentence end: . ! ?): 650ms full closed-mouth breathing pause
+          const majorPauseDur = 650 * timeScale;
+          schedule.push({
+            start: cumulativeTime,
+            end: cumulativeTime + majorPauseDur,
+            yVal: 0.0,
+            formVal: 0.0,
+            isPause: true,
+          });
+          cumulativeTime += majorPauseDur;
+        } else if (hasMinorPunctuation) {
+          // Minor pause (clause boundary: , ; : —): 380ms full closed-mouth pause
+          const minorPauseDur = 380 * timeScale;
+          schedule.push({
+            start: cumulativeTime,
+            end: cumulativeTime + minorPauseDur,
+            yVal: 0.0,
+            formVal: 0.0,
+            isPause: true,
+          });
+          cumulativeTime += minorPauseDur;
+        } else {
+          // Natural micro-gap between normal words: 70ms with relaxed near-closure
+          const wordGapDur = 70 * timeScale;
+          schedule.push({
+            start: cumulativeTime,
+            end: cumulativeTime + wordGapDur,
+            yVal: 0.05,
+            formVal: 0.0,
+            isPause: false,
+          });
+          cumulativeTime += wordGapDur;
+        }
       }
 
       speechSchedule = schedule;
@@ -360,10 +399,8 @@ const getLive2DHtml = (initialModel = 'haru') => {
             setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', Math.sin(t * 0.9) * 1.2);
           }
 
-          // 6. Phonetic Lip-Sync & Speaking Head Gestures
+          // 6. Phonetic Lip-Sync & Speaking Head Gestures (Human Speech Sync)
           if (isSpeaking) {
-            mouthPhase += 0.28 * delta;
-
             let targetMouthY = 0;
             let targetMouthForm = isHappy ? 0.85 : 0.2;
 
@@ -380,47 +417,69 @@ const getLive2DHtml = (initialModel = 'haru') => {
               }
 
               if (activeFrame) {
-                const frameElapsed = elapsed - activeFrame.start;
-                const frameDur = activeFrame.end - activeFrame.start;
-                const frameProgress = frameElapsed / frameDur;
+                if (activeFrame.isPause || activeFrame.yVal === 0.0) {
+                  // Clean complete pause: lips firmly closed during punctuation or bilabial stop
+                  targetMouthY = 0.0;
+                  targetMouthForm = isHappy ? 0.40 : 0.0;
+                } else {
+                  const frameElapsed = elapsed - activeFrame.start;
+                  const frameDur = activeFrame.end - activeFrame.start;
+                  const frameProgress = Math.min(1.0, Math.max(0.0, frameElapsed / frameDur));
 
-                // Smooth bell curve: open to peak in center, close at syllable boundaries
-                const env = Math.sin(Math.min(1.0, Math.max(0.0, frameProgress)) * Math.PI);
-                targetMouthY = activeFrame.yVal * env;
-                targetMouthForm = isHappy ? Math.max(0.6, activeFrame.formVal) : activeFrame.formVal;
+                  // Smooth parabolic arch (smooth opening and closing within syllable)
+                  const env = Math.sin(frameProgress * Math.PI);
+                  targetMouthY = activeFrame.yVal * env;
+                  targetMouthForm = isHappy ? Math.max(0.5, activeFrame.formVal) : activeFrame.formVal;
+                }
               } else if (elapsed > speechDurationMs) {
-                // Natural syllabic cadence (3.5 Hz) when audio continues
-                const syllablePhase = (mouthPhase * 3.5) % (Math.PI * 2);
-                const syllabicOpen = Math.pow(Math.max(0, Math.sin(syllablePhase)), 1.5);
-                targetMouthY = syllabicOpen * 0.90;
-                targetMouthForm = isHappy ? 0.9 : 0.2;
+                // Natural 1.9 Hz conversational rhythm with micro-breaths if audio continues past schedule
+                const speechCycle = (now * 0.0019 * Math.PI * 2) % (Math.PI * 2);
+                const breathCycle = Math.sin(now * 0.0006 * Math.PI * 2);
+
+                if (breathCycle < -0.65) {
+                  // Natural 0.3s breathing pause between phrase clusters
+                  targetMouthY = 0.0;
+                  targetMouthForm = isHappy ? 0.4 : 0.0;
+                } else {
+                  const rawOpen = Math.pow(Math.max(0, Math.sin(speechCycle)), 1.4);
+                  targetMouthY = rawOpen * 0.88;
+                  targetMouthForm = isHappy ? 0.85 : 0.20;
+                }
               }
             } else {
-              // Natural syllabic cadence (3.5 Hz) fallback that cleanly opens and closes
-              const syllablePhase = (mouthPhase * 3.5) % (Math.PI * 2);
-              const syllabicOpen = Math.pow(Math.max(0, Math.sin(syllablePhase)), 1.5);
-              targetMouthY = syllabicOpen * 0.90;
-              targetMouthForm = isHappy ? 0.9 : 0.2;
+              // Natural conversational 1.9 Hz cadence (smooth, visible, human-paced)
+              const speechCycle = (now * 0.0019 * Math.PI * 2) % (Math.PI * 2);
+              const breathCycle = Math.sin(now * 0.0006 * Math.PI * 2);
+
+              if (breathCycle < -0.65) {
+                targetMouthY = 0.0;
+                targetMouthForm = isHappy ? 0.4 : 0.0;
+              } else {
+                const rawOpen = Math.pow(Math.max(0, Math.sin(speechCycle)), 1.4);
+                targetMouthY = rawOpen * 0.88;
+                targetMouthForm = isHappy ? 0.85 : 0.20;
+              }
             }
 
-            // Snappy attack, smooth decay lerping for natural jaw articulation
-            const lerpY = targetMouthY > currentMouthY ? 0.50 : 0.35;
+            // Snappy opening attack (0.42) and smooth organic closing decay (0.28)
+            const lerpY = targetMouthY > currentMouthY ? 0.42 : 0.28;
             currentMouthY += (targetMouthY - currentMouthY) * lerpY;
-            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.35;
+            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.28;
 
-            // Rhythmic speech head bob & body rhythm
-            const headBob = (currentLookY * 14) + Math.sin(mouthPhase * 0.7) * 3.2;
-            const headTilt = Math.cos(mouthPhase * 0.45) * 2.0;
-            const bodyBob = Math.sin(mouthPhase * 0.35) * 2.5;
+            // Rhythmic speech head motion (subtle conversational nods on stressed syllables)
+            const headNod = (currentLookY * 12) + (targetMouthY * -2.4) + Math.sin(now * 0.0022) * 1.5;
+            const headTilt = Math.cos(now * 0.0015) * 1.8;
+            const bodyBob = Math.sin(now * 0.0012) * 1.6;
 
-            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', headBob);
+            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', headNod);
             setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', headTilt);
             setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', bodyBob);
           } else {
-            // Clean return to REST
-            currentMouthY += (0 - currentMouthY) * 0.25;
-            currentMouthForm += ((isHappy ? 0.8 : 0.0) - currentMouthForm) * 0.25;
+            // Smooth return to resting lips
+            currentMouthY += (0 - currentMouthY) * 0.22;
+            currentMouthForm += ((isHappy ? 0.6 : 0.0) - currentMouthForm) * 0.22;
             speechSchedule = [];
+            lastScheduledText = '';
           }
 
           // Apply Mouth Open & Form forcefully on every frame to CoreModel

@@ -454,6 +454,7 @@ export default function ConversationScreen({ navigation, route }) {
       !cleanBetter.includes('✅');
 
     pausedAiText.current = mainReply;
+    setCurrentSpokenText(mainReply);
 
     // Stage 1: Speak in-character conversational response
     VoiceService.speak(mainReply, {
@@ -473,6 +474,7 @@ export default function ConversationScreen({ navigation, route }) {
             if (!isPausedRef.current && !isMuted) {
               const coachingPhrase = `A better way to say that is: ${cleanBetter}`;
               pausedAiText.current = coachingPhrase;
+              setCurrentSpokenText(coachingPhrase);
               VoiceService.speak(coachingPhrase, {
                 isMuted,
                 voiceType: preferredVoice,
@@ -485,11 +487,13 @@ export default function ConversationScreen({ navigation, route }) {
                 onDone: () => {
                   setStatusText('Waiting for Response');
                   setIsSpeaking(false);
+                  setCurrentSpokenText('');
                   wasSpeakingOnPause.current = false;
                 },
                 onError: () => {
                   setStatusText('Waiting for Response');
                   setIsSpeaking(false);
+                  setCurrentSpokenText('');
                   wasSpeakingOnPause.current = false;
                 }
               });
@@ -498,12 +502,14 @@ export default function ConversationScreen({ navigation, route }) {
         } else {
           setStatusText('Waiting for Response');
           setIsSpeaking(false);
+          setCurrentSpokenText('');
           wasSpeakingOnPause.current = false;
         }
       },
       onError: () => {
         setStatusText('Waiting for Response');
         setIsSpeaking(false);
+        setCurrentSpokenText('');
         wasSpeakingOnPause.current = false;
       }
     });
