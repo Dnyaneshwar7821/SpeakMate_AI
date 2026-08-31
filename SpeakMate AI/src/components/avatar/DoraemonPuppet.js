@@ -152,7 +152,7 @@ export class DoraemonPuppet extends PIXI.Container {
     // Center seam line from nose to mouth
     nwg.lineStyle(2.5, 0x0F172A);
     nwg.moveTo(0, -31);
-    nwg.lineTo(0, -6);
+    nwg.lineTo(0, 5);
 
     // 6 Whiskers (3 on each cheek)
     nwg.lineStyle(2.5, 0x0F172A);
@@ -303,7 +303,7 @@ export class DoraemonPuppet extends PIXI.Container {
 
     const mY = Math.max(0, Math.min(1.0, this.mouthY));
     const mForm = Math.max(-1.0, Math.min(1.0, this.mouthForm));
-    const centerY = -6;
+    const centerY = 5;
 
     if (mY < 0.10) {
       // Resting / Closed Smile: Classic cute Doraemon wide smile curve
