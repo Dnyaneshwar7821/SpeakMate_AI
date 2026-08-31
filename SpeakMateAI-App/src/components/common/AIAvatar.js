@@ -1,12 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Image, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Live2DAvatarView from '../avatar/Live2DAvatarView';
-
-const FEMALE_AVATAR = require('../../../assets/images/tutor_female_anime.png');
-const MALE_AVATAR   = require('../../../assets/images/tutor_male_anime.png');
 
 const BAR_COUNT = 5;
 
@@ -317,28 +314,18 @@ export default function AIAvatar({
             },
           ]}
         >
-          {useLive2D && !live2dError ? (
-            <Live2DAvatarView
-              key={targetModel}
-              isSpeaking={isSpeaking}
-              spokenText={spokenText}
-              speechSpeed={speechSpeed}
-              state={resolvedState}
-              mood={isHappy ? 'happy' : 'neutral'}
-              model={targetModel}
-              style={styles.avatarCanvas}
-              onLoaded={() => setLive2dReady(true)}
-              onError={() => setLive2dError(true)}
-            />
-          ) : null}
-
-          {(!useLive2D || !live2dReady || live2dError) && (
-            <Image
-              source={isFemale ? FEMALE_AVATAR : MALE_AVATAR}
-              style={[styles.avatarCanvas, (useLive2D && live2dReady && !live2dError) && { display: 'none' }]}
-              resizeMode="contain"
-            />
-          )}
+          <Live2DAvatarView
+            key={targetModel}
+            isSpeaking={isSpeaking}
+            spokenText={spokenText}
+            speechSpeed={speechSpeed}
+            state={resolvedState}
+            mood={isHappy ? 'happy' : 'neutral'}
+            model={targetModel}
+            style={styles.avatarCanvas}
+            onLoaded={() => setLive2dReady(true)}
+            onError={() => setLive2dError(true)}
+          />
 
           {/* Layer 7: Smooth Chest-Line Fade into Dark Background */}
           <LinearGradient
