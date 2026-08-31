@@ -134,7 +134,8 @@ const isFemalePattern = (id, name, voiceGender) => {
   const maleKeywords = [
     'david', 'daniel', 'george', 'alex', 'bruce', 'tom', 'fred', 'oliver', 'rishi',
     'ravi', 'prabhat', 'aaron', 'guy', 'mister', 'mike', 'james', 'mark', 'paul',
-    'richard', 'robert', 'stephen', 'william', 'russell', 'neel', 'lee', 'male', 'man'
+    'richard', 'robert', 'stephen', 'william', 'russell', 'neel', 'lee', 'male', 'man',
+    'tpf', 'iog', 'tpc', 'gbc', 'gbd', 'rjs', 'aud', 'ctb', 'ctd', 'ind', 'inc', 'inb', 'end', 'ene', 'enf'
   ];
   if (maleKeywords.some(k => combined.includes(k))) {
     return false;
@@ -145,9 +146,16 @@ const isFemalePattern = (id, name, voiceGender) => {
     'samantha', 'victoria', 'karen', 'tessa', 'moira', 'fiona', 'catherine', 'cathy',
     'kate', 'serena', 'nicky', 'alice', 'allison', 'joanna', 'ivy', 'kendra', 'kimberly',
     'salli', 'emma', 'amy', 'jessa', 'claire', 'vicki', 'lekha', 'veena', 'heera', 'zira',
-    'hazel', 'zosia', 'zoe', 'susan', 'aria', 'jenny', 'natasha', 'female', 'woman'
+    'hazel', 'zosia', 'zoe', 'susan', 'aria', 'jenny', 'natasha', 'female', 'woman',
+    'sfg', 'iom', 'iol', 'rgf', 'gba', 'gbb', 'gbf', 'gbg', 'fis', 'aub', 'auc', 'auf', 'aug', 'aum',
+    'cta', 'ctc', 'inf', 'ing', 'inm', 'cbf', 'ena', 'enc'
   ];
   if (femaleKeywords.some(k => combined.includes(k))) {
+    return true;
+  }
+
+  // Indian locale voices default to female if not explicitly male
+  if (combined.includes('en-in') || combined.includes('en_in') || combined.includes('india')) {
     return true;
   }
 
@@ -189,14 +197,30 @@ export const VoiceService = {
     if (OnboardingVoiceService.isSystemDefault(voiceCode)) {
       return onboardingVoiceStyle || 'Friendly';
     }
-    return voiceCode;
+    return voiceCode || 'Friendly';
   },
 
-  getAvatarGender: (voiceCode, onboardingVoiceStyle = 'Friendly') => {
-    const resolvedVoice = VoiceService.resolveVoiceType(voiceCode, onboardingVoiceStyle);
-    const profile = VoiceService.getVoiceProfile(resolvedVoice);
-    if (profile?.gender) return profile.gender;
+  getAvatarGender: (voiceType, onboardingVoiceStyle = 'Friendly') => {
+    const vt = (voiceType || '').toLowerCase();
+    if (vt === 'chitose') return 'male';
+    if (vt === 'haru') return 'female';
+    if (vt === 'male') return 'male';
+    if (vt === 'female') return 'female';
+    if (vt.includes('male') && !vt.includes('female')) {
+      return 'male';
+    }
+    if (vt.includes('female')) {
+      return 'female';
+    }
+    if (OnboardingVoiceService.isSystemDefault(voiceType)) {
+      const style = (onboardingVoiceStyle || 'Friendly').toLowerCase();
+      if (style.includes('male') && !style.includes('female')) return 'male';
+      return 'female';
+    }
+    return 'female';
+  },
 
+  getEffectiveGender: (resolvedVoice) => {
     const normalized = (resolvedVoice || '').toLowerCase();
     if (normalized.includes('male') && !normalized.includes('female')) return 'male';
     if (normalized.includes('female')) return 'female';
@@ -261,11 +285,13 @@ export const VoiceService = {
         if (notExplicitlyFemale) return { voice: notExplicitlyFemale, isFallback: true };
       }
 
-      // Fallback: Use first locale voice
-      return { voice: localeVoices[0], isFallback: true, fallbackReason: 'Locale default' };
+      // If female requested and locale has voices, return first locale voice
+      if (targetGender === 'female') {
+        return { voice: localeVoices[0], isFallback: true, fallbackReason: 'Locale default' };
+      }
     }
 
-    // Step 2: Match gender across any English locale
+    // Step 2: Match gender across any English locale (Guarantees Male voice when requested)
     const allEn = sortVoices(availableVoices.filter(v => getLoc(v).startsWith('en')));
     const sameGender = allEn.find(v => {
       const id = (v.identifier || '').toLowerCase();
@@ -287,9 +313,31 @@ export const VoiceService = {
     const gs = (voiceCode || '').toLowerCase();
     const isBritish = gs.includes('uk') || gs.includes('gb') || gs.includes('british');
     const isIndian = gs.includes('in') || gs.includes('indian');
+    const isMale = gs.includes('male') && !gs.includes('female');
+
+    // For IN Male specifically:
+    if (isIndian && isMale) {
+      // 1. Look for explicit Indian male voice
+      const indianMale = availableVoices.find(v => {
+        const id = (v.identifier || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        const lang = (v.language || '').toLowerCase().replace('_', '-');
+        const isMaleVoice = !isFemalePattern(id, name, v.gender);
+        return (lang.startsWith('en-in') || name.includes('india')) && isMaleVoice;
+      });
+      if (indianMale) return indianMale.identifier;
+
+      // 2. If no Indian male voice installed, select confirmed English male voice (never a female voice)
+      const confirmedEnglishMale = availableVoices.find(v => {
+        const id = (v.identifier || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        return !isFemalePattern(id, name, v.gender);
+      });
+      if (confirmedEnglishMale) return confirmedEnglishMale.identifier;
+    }
 
     let targetGender = 'female';
-    if (gs.includes('male') && !gs.includes('female')) {
+    if (isMale) {
       targetGender = (isBritish || isIndian) ? 'male' : 'female';
     } else if (gs.includes('female')) {
       targetGender = (isBritish || isIndian) ? 'female' : 'male';
@@ -313,35 +361,19 @@ export const VoiceService = {
         const isFemale = isFemalePattern(id, name, selectedVoiceObj.gender);
 
         if (targetGender === 'female' && !isFemale) {
-          // Scan for any confirmed female voice in the available voice pool
           const anyFemale = availableVoices.find(v => {
             const vid = (v.identifier || '').toLowerCase();
             const vname = (v.name || '').toLowerCase();
             return isFemalePattern(vid, vname, v.gender);
           });
-          if (anyFemale) {
-            selected = anyFemale.identifier;
-          }
+          if (anyFemale) selected = anyFemale.identifier;
         } else if (targetGender === 'male' && isFemale) {
-          // Scan for any confirmed male voice in the available voice pool (prefer Indian male if isIndian)
-          let anyMale = isIndian ? availableVoices.find(v => {
+          const anyMale = availableVoices.find(v => {
             const vid = (v.identifier || '').toLowerCase();
             const vname = (v.name || '').toLowerCase();
-            const vlang = (v.language || '').toLowerCase();
-            return vlang.includes('in') && !isFemalePattern(vid, vname, v.gender);
-          }) : null;
-
-          if (!anyMale) {
-            anyMale = availableVoices.find(v => {
-              const vid = (v.identifier || '').toLowerCase();
-              const vname = (v.name || '').toLowerCase();
-              return !isFemalePattern(vid, vname, v.gender);
-            });
-          }
-
-          if (anyMale) {
-            selected = anyMale.identifier;
-          }
+            return !isFemalePattern(vid, vname, v.gender);
+          });
+          if (anyMale) selected = anyMale.identifier;
         }
       }
     }
