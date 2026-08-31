@@ -57,7 +57,6 @@ export function Settings() {
   const savedLang = localStorage.getItem("speakmate_app_language") || "English";
   const savedSpeed = parseFloat(localStorage.getItem("speakmate_voice_speed") || "1.0");
 
-  const [draftDark, setDraftDark] = useState(isDark);
   const [accent, setAccent] = useState(savedAccent);
   const [selectedVoice, setSelectedVoice] = useState(savedVoice);
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(savedAgeGroup);
@@ -78,6 +77,12 @@ export function Settings() {
 
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const toggleVisualTheme = () => {
+    const nextMode = isDark ? "light" : "dark";
+    setTheme(nextMode);
+    settingsService.update({ darkMode: nextMode === "dark" }).catch(() => {});
+  };
 
   const onboardingVoiceStyle =
     localStorage.getItem("speakmate_onboarding_voice") ||
@@ -119,13 +124,10 @@ export function Settings() {
     setSaving(true);
 
     try {
-      // 1. Apply Theme change only on Save
-      setTheme(draftDark ? "dark" : "light");
-
       const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
       const gender = profile?.gender || (selectedVoice.toLowerCase().includes("male") && !selectedVoice.toLowerCase().includes("female") ? "male" : "female");
 
-      // 2. Persist voice & language preferences
+      // 1. Persist voice, language, audio and learning preferences to localStorage
       localStorage.setItem("speakmate_ai_voice", selectedVoice);
       localStorage.setItem("speakmate_voice_code", selectedVoice);
       localStorage.setItem("speakmate_voice_gender", gender);
@@ -139,15 +141,22 @@ export function Settings() {
 
       EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender });
 
-      // 3. Sync to backend services
-      settingsService.update({
-        darkMode: draftDark,
+      // 2. Sync preferences to backend services
+      await settingsService.update({
+        darkMode: isDark,
         aiVoice: selectedVoice,
         language: selectedLang,
         soundEffects,
         autoPlayAudio,
         dailyReminder: reminders,
         notificationsEnabled: reminders,
+      }).catch(() => {});
+
+      await onboardingService.update({
+        ageGroup: selectedAgeGroup,
+        preferredVoice: selectedVoice,
+        preferredAccent: accent,
+        dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
       }).catch(() => {});
 
       try {
@@ -158,22 +167,25 @@ export function Settings() {
           ageGroup: selectedAgeGroup,
         });
       } catch {
-        updateUser({
-          preferredVoice: selectedVoice,
-          preferredAccent: accent,
-          ageGroup: selectedAgeGroup,
-        });
+        if (updateUser) {
+          updateUser({
+            preferredVoice: selectedVoice,
+            preferredAccent: accent,
+            ageGroup: selectedAgeGroup,
+          });
+        }
       }
 
       window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: selectedAgeGroup } }));
       window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: selectedAgeGroup } }));
+      window.dispatchEvent(new Event("speakmate_progress_updated"));
 
       setSaved(true);
-      toast.success("Settings saved successfully! Applied globally across all AI modules.");
+      toast.success("Preferences Saved ✓");
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
       console.error("Save settings error:", err);
-      toast.error("Failed to save settings. Please try again.");
+      toast.error("Failed to save preferences. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -206,29 +218,29 @@ export function Settings() {
 
       {saved && (
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs sm:text-sm font-black text-center animate-in fade-in duration-200">
-          ✓ All application settings saved and applied globally across all learning modules!
+          ✓ Preferences Saved and synced across all AI modules!
         </div>
       )}
 
-      {/* SECTION 1: THEME & DISPLAY PREFERENCES */}
+      {/* SECTION 1: THEME & DISPLAY PREFERENCES (REAL-TIME PREVIEW) */}
       <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
         <h2 className="text-base font-black text-[var(--text-primary)]">🎨 Display & Appearance</h2>
         <div className="flex items-center justify-between p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
           <div className="space-y-0.5">
-            <p className="text-xs font-black text-[var(--text-primary)]">Dark Theme</p>
+            <p className="text-xs font-black text-[var(--text-primary)]">Night Theme Mode</p>
             <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-              {draftDark ? "Dark theme selected (click Save to apply)" : "Light theme selected (click Save to apply)"}
+              Toggle dark mode visual layout (Previews immediately in real-time)
             </p>
           </div>
           <button
             type="button"
-            onClick={() => setDraftDark((prev) => !prev)}
-            className={`w-14 h-7 rounded-full transition-all relative flex items-center px-1 ${
-              draftDark ? "bg-[#6C63FF] justify-end" : "bg-gray-400 justify-start"
+            onClick={toggleVisualTheme}
+            className={`w-14 h-7 rounded-full transition-all relative flex items-center px-1 cursor-pointer ${
+              isDark ? "bg-[#6C63FF] justify-end" : "bg-gray-400 justify-start"
             }`}
           >
             <span className="w-5 h-5 rounded-full bg-white shadow-md flex items-center justify-center text-[10px]">
-              {draftDark ? "🌙" : "☀️"}
+              {isDark ? "🌙" : "☀️"}
             </span>
           </button>
         </div>
@@ -358,13 +370,7 @@ export function Settings() {
             <h2 className="text-base font-black text-[var(--text-primary)] mt-2">Target Persona Age Group</h2>
             <select
               value={selectedAgeGroup}
-              onChange={(e) => {
-                const val = e.target.value;
-                setSelectedAgeGroup(val);
-                localStorage.setItem("speakmate_age_group", val);
-                window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
-                window.dispatchEvent(new Event("speakmate_progress_updated"));
-              }}
+              onChange={(e) => setSelectedAgeGroup(e.target.value)}
               className="w-full mt-2 px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
             >
               {AGE_OPTIONS.map((opt) => (
@@ -588,9 +594,7 @@ export function Settings() {
                   key={lang.code}
                   onClick={() => {
                     setSelectedLang(lang.code);
-                    localStorage.setItem("speakmate_app_language", lang.code);
                     setShowLangModal(false);
-                    toast.success(`Language set to ${lang.label}`);
                   }}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2 transition-all ${
                     selectedLang === lang.code
