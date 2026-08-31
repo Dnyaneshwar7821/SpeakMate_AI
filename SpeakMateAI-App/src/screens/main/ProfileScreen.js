@@ -156,11 +156,12 @@ export default function ProfileScreen({ navigation }) {
 
   const load = async () => {
     try {
-      const [profile, savedAccType, savedVoice, savedGender] = await Promise.all([
+      const [profile, savedAccType, savedVoice, savedGender, savedAvatarModel] = await Promise.all([
         profileService.get(),
         AsyncStorage.getItem('speakmate_account_type'),
         AsyncStorage.getItem('speakmate_selected_voice'),
         AsyncStorage.getItem('speakmate_voice_gender'),
+        AsyncStorage.getItem('speakmate_avatar_model'),
       ]);
       setForm({
         firstName: profile.firstName || '',
@@ -168,7 +169,9 @@ export default function ProfileScreen({ navigation }) {
         email: profile.email || '',
       });
       setAccountType(savedAccType || profile.accountType || 'INDIVIDUAL_USER');
-      if (savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'))) {
+      if (savedAvatarModel === 'robopaws' || savedGender === 'robopaws' || (savedVoice && savedVoice.toLowerCase().includes('robo'))) {
+        setTutorGender('robopaws');
+      } else if (savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'))) {
         setTutorGender('male');
       } else {
         setTutorGender('female');
@@ -187,14 +190,28 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleSelectTutor = async (gender) => {
-    setTutorGender(gender);
-    const voiceCode = gender === 'male' ? 'US Male' : 'Default';
+  const handleSelectTutor = async (genderOrModel) => {
+    setTutorGender(genderOrModel);
     try {
-      await AsyncStorage.setItem('speakmate_voice_gender', gender);
-      await AsyncStorage.setItem('speakmate_selected_voice', voiceCode);
-      await AsyncStorage.setItem('speakmate_ai_voice', voiceCode);
-      showToast('Tutor Updated ✓', 'success', gender === 'male' ? '👨 Chitose (Male Tutor) active' : '👩 Haru (Female Tutor) active');
+      if (genderOrModel === 'robopaws') {
+        await AsyncStorage.setItem('speakmate_avatar_model', 'robopaws');
+        await AsyncStorage.setItem('speakmate_voice_gender', 'robopaws');
+        await AsyncStorage.setItem('speakmate_selected_voice', 'Robo-Paws');
+        await AsyncStorage.setItem('speakmate_ai_voice', 'Robo-Paws');
+        showToast('Tutor Updated ✓', 'success', '🤖 Robo-Paws (Kids Robot Buddy) active');
+      } else if (genderOrModel === 'male') {
+        await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
+        await AsyncStorage.setItem('speakmate_voice_gender', 'male');
+        await AsyncStorage.setItem('speakmate_selected_voice', 'US Male');
+        await AsyncStorage.setItem('speakmate_ai_voice', 'US Male');
+        showToast('Tutor Updated ✓', 'success', '👨 Chitose (Male Tutor) active');
+      } else {
+        await AsyncStorage.setItem('speakmate_avatar_model', 'haru');
+        await AsyncStorage.setItem('speakmate_voice_gender', 'female');
+        await AsyncStorage.setItem('speakmate_selected_voice', 'Default');
+        await AsyncStorage.setItem('speakmate_ai_voice', 'Default');
+        showToast('Tutor Updated ✓', 'success', '👩 Haru (Female Tutor) active');
+      }
     } catch (e) {}
   };
 
@@ -654,7 +671,9 @@ export default function ProfileScreen({ navigation }) {
               🎭 AI Speaking Tutor
             </Text>
             <Text style={{ fontSize: 12, color: sublabelColor }}>
-              Select your Live2D avatar practice tutor
+              {isKidsAgeGroup
+                ? 'Select your Live2D cartoon buddy or tutor'
+                : 'Select your Live2D avatar practice tutor'}
             </Text>
           </View>
 
@@ -666,20 +685,20 @@ export default function ProfileScreen({ navigation }) {
               style={[
                 styles.tutorCard,
                 {
-                  backgroundColor: tutorGender === 'female' ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
-                  borderColor: tutorGender === 'female' ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
-                  borderWidth: tutorGender === 'female' ? 2 : 1,
+                  backgroundColor: tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup) ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
+                  borderColor: tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup) ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
+                  borderWidth: tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup) ? 2 : 1,
                 }
               ]}
             >
               <Text style={styles.tutorCardEmoji}>👩</Text>
-              <Text style={[styles.tutorCardName, { color: tutorGender === 'female' ? '#6366F1' : labelColor }]}>
+              <Text style={[styles.tutorCardName, { color: tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup) ? '#6366F1' : labelColor }]}>
                 Haru (Female)
               </Text>
               <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
                 Warm & encouraging
               </Text>
-              {tutorGender === 'female' && (
+              {(tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup)) && (
                 <View style={styles.tutorCheckmark}>
                   <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
                 </View>
@@ -712,6 +731,35 @@ export default function ProfileScreen({ navigation }) {
                 </View>
               )}
             </TouchableOpacity>
+
+            {/* ROBO-PAWS (CARTOON ROBOT CAT) - Only if Age Group is Kids / Early Primary */}
+            {isKidsAgeGroup && (
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => handleSelectTutor('robopaws')}
+                style={[
+                  styles.tutorCard,
+                  {
+                    backgroundColor: tutorGender === 'robopaws' ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
+                    borderColor: tutorGender === 'robopaws' ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
+                    borderWidth: tutorGender === 'robopaws' ? 2 : 1,
+                  }
+                ]}
+              >
+                <Text style={styles.tutorCardEmoji}>🤖</Text>
+                <Text style={[styles.tutorCardName, { color: tutorGender === 'robopaws' ? '#6366F1' : labelColor }]}>
+                  Robo-Paws
+                </Text>
+                <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
+                  Kids Robot Buddy
+                </Text>
+                {tutorGender === 'robopaws' && (
+                  <View style={styles.tutorCheckmark}>
+                    <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
+                  </View>
+                )}
+              </TouchableOpacity>
+            )}
           </View>
         </Card>
 

@@ -509,7 +509,14 @@ export function Settings() {
                 </div>
               </div>
 
-              {VOICE_PROFILES.filter((vp) => vp.code !== "Default").map((profile, idx) => {
+              {VOICE_PROFILES.filter((vp) => {
+                if (vp.code === "Default") return false;
+                if (vp.code === "Robo-Paws") {
+                  const currentAge = (targetAudience || localStorage.getItem("speakmate_age_group") || "").toLowerCase();
+                  return currentAge.includes("kid") || currentAge.includes("child") || currentAge.includes("6-12");
+                }
+                return true;
+              }).map((profile, idx) => {
                 const isSelected = selectedVoice === profile.code;
                 return (
                   <div

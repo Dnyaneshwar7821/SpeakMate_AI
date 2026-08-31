@@ -593,14 +593,36 @@ export function Profile() {
 
             <div>
               <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">
-                Tutor Voice & Avatar Buddy
+                {Boolean(
+                  ageGroup?.toLowerCase() === "kids" ||
+                  ageGroup?.toLowerCase().includes("6-12") ||
+                  (isStudent && ["1st", "2nd", "3rd", "4th", "5th"].some((g) => (schoolGrade || "").toLowerCase().includes(g)))
+                )
+                  ? "Tutor Voice & Avatar Buddy"
+                  : "Tutor Voice & Avatar"}
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div
+                className={`grid gap-3 ${
+                  Boolean(
+                    ageGroup?.toLowerCase() === "kids" ||
+                    ageGroup?.toLowerCase().includes("6-12") ||
+                    (isStudent && ["1st", "2nd", "3rd", "4th", "5th"].some((g) => (schoolGrade || "").toLowerCase().includes(g)))
+                  )
+                    ? "grid-cols-1 sm:grid-cols-3"
+                    : "grid-cols-1 sm:grid-cols-2"
+                }`}
+              >
                 <button
                   type="button"
                   onClick={() => setPreferredVoice("female")}
                   className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                    preferredVoice === "female"
+                    preferredVoice === "female" ||
+                    (preferredVoice === "robopaws" &&
+                      !Boolean(
+                        ageGroup?.toLowerCase() === "kids" ||
+                        ageGroup?.toLowerCase().includes("6-12") ||
+                        (isStudent && ["1st", "2nd", "3rd", "4th", "5th"].some((g) => (schoolGrade || "").toLowerCase().includes(g)))
+                      ))
                       ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                   }`}
@@ -622,18 +644,24 @@ export function Profile() {
                   <span className="text-xs opacity-75">Confident, articulate, and supportive</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setPreferredVoice("robopaws")}
-                  className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                    preferredVoice === "robopaws" || preferredVoice === "robot"
-                      ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                  }`}
-                >
-                  <span className="text-2xl block mb-1">🤖 Robo-Paws</span>
-                  <span className="text-xs opacity-75">Playful robot cat buddy for kids</span>
-                </button>
+                {Boolean(
+                  ageGroup?.toLowerCase() === "kids" ||
+                  ageGroup?.toLowerCase().includes("6-12") ||
+                  (isStudent && ["1st", "2nd", "3rd", "4th", "5th"].some((g) => (schoolGrade || "").toLowerCase().includes(g)))
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() => setPreferredVoice("robopaws")}
+                    className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
+                      preferredVoice === "robopaws" || preferredVoice === "robot"
+                        ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                    }`}
+                  >
+                    <span className="text-2xl block mb-1">🤖 Robo-Paws</span>
+                    <span className="text-xs opacity-75">Playful robot cat buddy for kids</span>
+                  </button>
+                )}
               </div>
             </div>
 

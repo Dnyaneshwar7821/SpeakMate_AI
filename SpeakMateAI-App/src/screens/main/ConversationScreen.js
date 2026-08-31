@@ -312,16 +312,26 @@ export default function ConversationScreen({ navigation, route }) {
         if (onboardingVoice) {
           setOnboardingVoiceStyle(onboardingVoice);
         }
+        const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
+        const savedAgeGroup = await AsyncStorage.getItem('speakmate_age_group');
+        const isKids = Boolean(
+          (savedAgeGroup && savedAgeGroup.toLowerCase() === 'kids') ||
+          (savedGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(savedGrade.toLowerCase()))
+        );
+
         if (savedAvatarModel) {
-          setSelectedAvatarModel(savedAvatarModel);
+          if (savedAvatarModel === 'robopaws' && !isKids) {
+            setSelectedAvatarModel(savedGender === 'male' ? 'chitose' : 'haru');
+          } else {
+            setSelectedAvatarModel(savedAvatarModel);
+          }
+        } else if (isKids) {
+          setSelectedAvatarModel('robopaws');
         } else if (savedGender === 'male') {
           setSelectedAvatarModel('chitose');
-        } else if (savedGender === 'female') {
-          setSelectedAvatarModel('haru');
         } else {
-          setSelectedAvatarModel('robopaws');
+          setSelectedAvatarModel('haru');
         }
-        const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
         if (savedGrade) {
           setChatLevel(savedGrade);
         } else if (profile && profile.englishLevel) {
@@ -1159,48 +1169,6 @@ export default function ConversationScreen({ navigation, route }) {
       {/* ─── AI Tutor Avatar Stage (collapses when keyboard is active) ─── */}
       {!isKeyboardVisible && (
         <View style={styles.avatarContainer}>
-          {/* Quick Avatar Buddy Selector */}
-          <View style={styles.avatarSwitchRow}>
-            <TouchableOpacity
-              onPress={() => handleSelectAvatarModel('robopaws')}
-              style={[
-                styles.avatarPillBtn,
-                selectedAvatarModel === 'robopaws' && styles.avatarPillBtnActive,
-              ]}
-            >
-              <Text style={styles.avatarPillEmoji}>🤖</Text>
-              <Text style={[styles.avatarPillText, selectedAvatarModel === 'robopaws' && styles.avatarPillTextActive]}>
-                Robo-Paws
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => handleSelectAvatarModel('haru')}
-              style={[
-                styles.avatarPillBtn,
-                selectedAvatarModel === 'haru' && styles.avatarPillBtnActive,
-              ]}
-            >
-              <Text style={styles.avatarPillEmoji}>👩</Text>
-              <Text style={[styles.avatarPillText, selectedAvatarModel === 'haru' && styles.avatarPillTextActive]}>
-                Haru
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => handleSelectAvatarModel('chitose')}
-              style={[
-                styles.avatarPillBtn,
-                selectedAvatarModel === 'chitose' && styles.avatarPillBtnActive,
-              ]}
-            >
-              <Text style={styles.avatarPillEmoji}>👨</Text>
-              <Text style={[styles.avatarPillText, selectedAvatarModel === 'chitose' && styles.avatarPillTextActive]}>
-                Chitose
-              </Text>
-            </TouchableOpacity>
-          </View>
-
           <AIAvatar
             model={selectedAvatarModel}
             gender={selectedAvatarModel === 'chitose' ? 'male' : selectedAvatarModel === 'robopaws' ? 'robopaws' : 'female'}
@@ -1447,53 +1415,13 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#0B0F19' },
 
   avatarContainer: {
-    height: 228,
+    height: 218,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     marginTop: 4,
     marginBottom: 2,
-  },
-  avatarSwitchRow: {
-    position: 'absolute',
-    top: 2,
-    zIndex: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  avatarPillBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 14,
-    backgroundColor: 'transparent',
-  },
-  avatarPillBtnActive: {
-    backgroundColor: 'rgba(139, 92, 246, 0.40)',
-    borderWidth: 1,
-    borderColor: '#C084FC',
-  },
-  avatarPillEmoji: {
-    fontSize: 11,
-  },
-  avatarPillText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#94A3B8',
-  },
-  avatarPillTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '800',
   },
   avatar3d: {
     width: '100%',
