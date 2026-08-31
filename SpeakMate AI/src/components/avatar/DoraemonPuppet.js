@@ -125,13 +125,13 @@ export class DoraemonPuppet extends PIXI.Container {
     // Spherical Robot Head
     hg.beginFill(0x0284C7);
     hg.lineStyle(3.8, 0x0F172A);
-    hg.drawCircle(0, -32, 82);
+    hg.drawCircle(0, -30, 80);
     hg.endFill();
 
-    // White Face Disc
+    // White Face Plate (Natural Round Lower-Cheek Mask)
     hg.beginFill(0xFFFFFF);
-    hg.lineStyle(3.2, 0x0F172A);
-    hg.drawEllipse(0, -18, 70, 56);
+    hg.lineStyle(2.2, 0x0F172A);
+    hg.drawEllipse(0, -10, 66, 48);
     hg.endFill();
 
     // --- 4. Red Button Nose & 6 Whiskers (Drawn in front of eyes) ---
@@ -141,29 +141,29 @@ export class DoraemonPuppet extends PIXI.Container {
     // Red Sphere Nose in front of eyes
     nwg.beginFill(0xEF4444);
     nwg.lineStyle(2.5, 0x0F172A);
-    nwg.drawCircle(0, -34, 11);
+    nwg.drawCircle(0, -30, 11);
     nwg.endFill();
 
     // Nose White Shine Highlight
     nwg.beginFill(0xFFFFFF, 0.9);
-    nwg.drawCircle(-3, -37, 3.5);
+    nwg.drawCircle(-3, -33, 3.5);
     nwg.endFill();
 
     // Center seam line from nose to mouth
     nwg.lineStyle(2.5, 0x0F172A);
-    nwg.moveTo(0, -23);
-    nwg.lineTo(0, 5);
+    nwg.moveTo(0, -19);
+    nwg.lineTo(0, 6);
 
     // 6 Whiskers (3 on each cheek)
-    nwg.lineStyle(2.5, 0x0F172A);
+    nwg.lineStyle(2.2, 0x0F172A);
     // Left
-    nwg.moveTo(-16, -26); nwg.lineTo(-58, -32);
-    nwg.moveTo(-18, -17); nwg.lineTo(-64, -17);
-    nwg.moveTo(-16, -8); nwg.lineTo(-58, -2);
+    nwg.moveTo(-16, -20); nwg.lineTo(-58, -26);
+    nwg.moveTo(-18, -12); nwg.lineTo(-64, -12);
+    nwg.moveTo(-16, -4); nwg.lineTo(-58, 2);
     // Right
-    nwg.moveTo(16, -26); nwg.lineTo(58, -32);
-    nwg.moveTo(18, -17); nwg.lineTo(64, -17);
-    nwg.moveTo(16, -8); nwg.lineTo(58, -2);
+    nwg.moveTo(16, -20); nwg.lineTo(58, -26);
+    nwg.moveTo(18, -12); nwg.lineTo(64, -12);
+    nwg.moveTo(16, -4); nwg.lineTo(58, 2);
 
     this.drawHands(0);
   }
@@ -251,7 +251,7 @@ export class DoraemonPuppet extends PIXI.Container {
 
     const leftEyeX = -15;
     const rightEyeX = 15;
-    const eyeY = -52;
+    const eyeY = -48;
     const eyeW = 15;
     const eyeH = 20;
 
