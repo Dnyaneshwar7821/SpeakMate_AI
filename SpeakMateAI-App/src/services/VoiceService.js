@@ -285,17 +285,17 @@ export const VoiceService = {
     if (directMatch) return directMatch.identifier;
 
     const gs = (voiceCode || '').toLowerCase();
+    const isBritish = gs.includes('uk') || gs.includes('gb') || gs.includes('british');
 
     let targetGender = 'female';
     if (gs.includes('male') && !gs.includes('female')) {
-      targetGender = 'male';
+      targetGender = isBritish ? 'male' : 'female';
     } else if (gs.includes('female')) {
-      targetGender = 'female';
+      targetGender = isBritish ? 'female' : 'male';
     }
 
     let targetLocale = 'en-us';
-    if      (gs.includes('us') || gs.includes('american'))   targetLocale = 'en-us';
-    else if (gs.includes('uk') || gs.includes('gb') || gs.includes('british')) targetLocale = 'en-gb';
+    if      (isBritish)                                      targetLocale = 'en-gb';
     else if (gs.includes('in') || gs.includes('indian'))     targetLocale = 'en-in';
     else if (gs.includes('au') || gs.includes('australian')) targetLocale = 'en-au';
     else if (gs.includes('ca') || gs.includes('canadian'))   targetLocale = 'en-ca';
@@ -440,23 +440,24 @@ export const VoiceService = {
     }
 
     const gs = (resolvedVoice || '').toLowerCase();
+    const isBritish = gs.includes('uk') || gs.includes('british') || gs.includes('gb');
 
     // ── 3. Locale resolution ──────────────────────────────────────────────────
     let targetLocale = voiceConfig?.locale?.toLowerCase().replace('_', '-') || 'en-us';
     if (!voiceConfig) {
-      if      (gs.includes('uk') || gs.includes('british') || gs.includes('gb')) targetLocale = 'en-gb';
-      else if (gs.includes('in') || gs.includes('indian'))                        targetLocale = 'en-in';
-      else if (gs.includes('au') || gs.includes('australian'))                    targetLocale = 'en-au';
-      else if (gs.includes('ca') || gs.includes('canadian'))                      targetLocale = 'en-ca';
+      if      (isBritish)                                  targetLocale = 'en-gb';
+      else if (gs.includes('in') || gs.includes('indian')) targetLocale = 'en-in';
+      else if (gs.includes('au') || gs.includes('australian')) targetLocale = 'en-au';
+      else if (gs.includes('ca') || gs.includes('canadian')) targetLocale = 'en-ca';
     }
 
-    // ── 4. Gender logic ──────────────────────────────────────────────────────
+    // ── 4. Gender logic (switch genders for non-British voices as requested) ───
     let targetGender = voiceConfig?.gender || 'female';
     if (!voiceConfig) {
       if (gs.includes('male') && !gs.includes('female')) {
-        targetGender = 'male';
+        targetGender = isBritish ? 'male' : 'female';
       } else if (gs.includes('female')) {
-        targetGender = 'female';
+        targetGender = isBritish ? 'female' : 'male';
       }
     }
 
