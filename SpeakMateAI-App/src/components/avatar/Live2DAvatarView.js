@@ -264,31 +264,354 @@ const getLive2DHtml = (initialModel = 'haru') => {
       speechDurationMs = cumulativeTime;
     }
 
-    // Dynamic Upper-Bust Framing Configuration
-    function getModelFraming(name) {
-      if (name === 'chitose') {
-        return {
-          zoom: 2.50,
-          anchor: { x: 0.50, y: 0.22 },
-          yOffset: 10,
-        };
+    // ── DORAEMON-STYLE ROBOT CAT PUPPET CLASS (PIXI WebGL) ────────────────
+    class DoraemonPuppet extends PIXI.Container {
+      constructor() {
+        super();
+        this.isDoraemonPuppet = true;
+
+        this.rootContainer = new PIXI.Container();
+        this.addChild(this.rootContainer);
+
+        // 1. Torso / Body Layer
+        this.bodyGfx = new PIXI.Graphics();
+        this.rootContainer.addChild(this.bodyGfx);
+
+        // 2. Collar & Bell Layer
+        this.collarGfx = new PIXI.Graphics();
+        this.rootContainer.addChild(this.collarGfx);
+
+        // 3. Round White Robotic Hands
+        this.leftHandGfx = new PIXI.Graphics();
+        this.rightHandGfx = new PIXI.Graphics();
+        this.rootContainer.addChild(this.leftHandGfx);
+        this.rootContainer.addChild(this.rightHandGfx);
+
+        // 4. Head Container (Nods & Tilts)
+        this.headContainer = new PIXI.Container();
+        this.rootContainer.addChild(this.headContainer);
+
+        // 5. Head Base & White Face Plate
+        this.headBaseGfx = new PIXI.Graphics();
+        this.headContainer.addChild(this.headBaseGfx);
+
+        // 6. Whiskers & Red Button Nose
+        this.noseWhiskersGfx = new PIXI.Graphics();
+        this.headContainer.addChild(this.noseWhiskersGfx);
+
+        // 7. Dynamic Phonetic Mouth
+        this.mouthGfx = new PIXI.Graphics();
+        this.headContainer.addChild(this.mouthGfx);
+
+        // 8. Expressive Cartoon Eyes
+        this.eyesGfx = new PIXI.Graphics();
+        this.headContainer.addChild(this.eyesGfx);
+
+        // Puppet Animation State
+        this.blinkTimer = performance.now() + 2500;
+        this.isBlinking = false;
+        this.blinkProgress = 0;
+        this.lookX = 0;
+        this.lookY = 0;
+        this.mouthY = 0;
+        this.mouthForm = 0;
+        this.isHappy = false;
+        this.isSpeaking = false;
+
+        this.drawStaticFeatures();
       }
-      if (name === 'robopaws' || name === 'robocat' || name === 'hijiki' || name === 'robot' || name === 'kid') {
-        return {
-          zoom: 2.35,
-          anchor: { x: 0.50, y: 0.28 },
-          yOffset: 20,
-        };
+
+      drawStaticFeatures() {
+        // --- 1. Torso: Cyan-Blue Torso + White Belly + Gadget Pocket ---
+        const bg = this.bodyGfx;
+        bg.clear();
+
+        // Metallic Cyan-Blue Body (Round, futuristic)
+        bg.beginFill(0x0284C7);
+        bg.lineStyle(3.5, 0x0F172A);
+        bg.drawRoundedRect(-58, 42, 116, 95, 34);
+        bg.endFill();
+
+        // White Circular Belly Disc
+        bg.beginFill(0xFFFFFF);
+        bg.lineStyle(2.5, 0x0F172A);
+        bg.drawCircle(0, 84, 38);
+        bg.endFill();
+
+        // 22nd Century Gadget Pouch (Half-circle with horizontal slot)
+        bg.beginFill(0xFFFFFF);
+        bg.lineStyle(2.5, 0x0F172A);
+        bg.arc(0, 84, 27, 0, Math.PI);
+        bg.lineTo(27, 84);
+        bg.endFill();
+        bg.lineStyle(2.5, 0x0F172A);
+        bg.moveTo(-27, 84);
+        bg.lineTo(27, 84);
+
+        // --- 2. Red Neck Collar & Golden Gadget Bell ---
+        const col = this.collarGfx;
+        col.clear();
+
+        // Bright Red Collar Band
+        col.beginFill(0xEF4444);
+        col.lineStyle(3, 0x0F172A);
+        col.drawRoundedRect(-48, 35, 96, 16, 7);
+        col.endFill();
+
+        // Golden Bell
+        col.beginFill(0xFBBF24);
+        col.lineStyle(2.5, 0x0F172A);
+        col.drawCircle(0, 50, 14);
+        col.endFill();
+
+        // Bell golden highlight ring & center hole
+        col.lineStyle(2, 0x0F172A);
+        col.moveTo(-12, 48);
+        col.lineTo(12, 48);
+        col.beginFill(0x334155);
+        col.drawCircle(0, 54, 3.5);
+        col.endFill();
+        col.moveTo(0, 57.5);
+        col.lineTo(0, 64);
+
+        // --- 3. Head Base: Round Cyan-Blue Robotic Sphere (No pointy animal ears!) ---
+        const hg = this.headBaseGfx;
+        hg.clear();
+
+        // Large Spherical Robot Head
+        hg.beginFill(0x0284C7);
+        hg.lineStyle(4, 0x0F172A);
+        hg.drawCircle(0, -32, 82);
+        hg.endFill();
+
+        // Soft Futuristic Highlight on Head
+        hg.beginFill(0x38BDF8, 0.45);
+        hg.drawEllipse(-28, -80, 24, 12);
+        hg.endFill();
+
+        // White Face Plate (Lower Face Disc)
+        hg.beginFill(0xFFFFFF);
+        hg.lineStyle(3.2, 0x0F172A);
+        hg.drawEllipse(0, -18, 68, 56);
+        hg.endFill();
+
+        // --- 4. Red Button Nose & 6 Whiskers ---
+        const nwg = this.noseWhiskersGfx;
+        nwg.clear();
+
+        // Bright Red Sphere Nose
+        nwg.beginFill(0xEF4444);
+        nwg.lineStyle(2.5, 0x0F172A);
+        nwg.drawCircle(0, -42, 11);
+        nwg.endFill();
+
+        // Nose white shine highlight
+        nwg.beginFill(0xFFFFFF, 0.9);
+        nwg.drawCircle(-3, -45, 3.5);
+        nwg.endFill();
+
+        // Center seam line from nose to mouth
+        nwg.lineStyle(2.5, 0x0F172A);
+        nwg.moveTo(0, -31);
+        nwg.lineTo(0, -6);
+
+        // 6 Whiskers (3 on each cheek)
+        nwg.lineStyle(2.5, 0x0F172A);
+        // Left whiskers
+        nwg.moveTo(-18, -32); nwg.lineTo(-58, -38);
+        nwg.moveTo(-20, -22); nwg.lineTo(-64, -22);
+        nwg.moveTo(-18, -12); nwg.lineTo(-58, -6);
+        // Right whiskers
+        nwg.moveTo(18, -32); nwg.lineTo(58, -38);
+        nwg.moveTo(20, -22); nwg.lineTo(64, -22);
+        nwg.moveTo(18, -12); nwg.lineTo(58, -6);
+
+        this.drawHands(0);
       }
-      return {
-        zoom: 2.70,
-        anchor: { x: 0.50, y: 0.16 },
-        yOffset: 16,
-      };
+
+      drawHands(t) {
+        const lh = this.leftHandGfx;
+        const rh = this.rightHandGfx;
+        lh.clear();
+        rh.clear();
+
+        const lOffset = Math.sin(t) * 4;
+        const rOffset = Math.cos(t) * 4;
+
+        // Left Round White Robotic Hand
+        lh.beginFill(0xFFFFFF);
+        lh.lineStyle(3, 0x0F172A);
+        lh.drawCircle(-66, 68 + lOffset, 16);
+        lh.endFill();
+
+        // Right Round White Robotic Hand
+        rh.beginFill(0xFFFFFF);
+        rh.lineStyle(3, 0x0F172A);
+        rh.drawCircle(66, 68 + rOffset, 16);
+        rh.endFill();
+      }
+
+      update(now, lookX, lookY, mouthY, mouthForm, isSpeaking, isHappy, state) {
+        this.lookX = lookX;
+        this.lookY = lookY;
+        this.mouthY = mouthY;
+        this.mouthForm = mouthForm;
+        this.isSpeaking = isSpeaking;
+        this.isHappy = isHappy;
+
+        const t = now * 0.001;
+
+        // 1. Natural Floating Bob & Ambient Breathing
+        const hoverY = Math.sin(t * 2.2) * 5;
+        const headTilt = isSpeaking ? (Math.sin(t * 3.5) * 0.04 + lookX * 0.04) : (lookX * 0.04);
+        const headNod = isSpeaking ? (Math.cos(t * 2.8) * 3 - (mouthY * 4)) : (Math.sin(t * 1.5) * 2);
+
+        this.rootContainer.y = hoverY;
+        this.headContainer.rotation = headTilt;
+        this.headContainer.y = headNod;
+
+        this.drawHands(t * 2.5);
+
+        // 2. Eye Blinking Logic
+        if (now > this.blinkTimer) {
+          this.isBlinking = true;
+          this.blinkProgress = 0;
+          this.blinkTimer = now + 2600 + Math.random() * 3200;
+        }
+        if (this.isBlinking) {
+          this.blinkProgress += 0.18;
+          if (this.blinkProgress >= 1.0) {
+            this.isBlinking = false;
+            this.blinkProgress = 0;
+          }
+        }
+
+        // 3. Render Expressive Eyes
+        this.renderEyes();
+
+        // 4. Render Dynamic Phonetic Mouth
+        this.renderMouth();
+      }
+
+      renderEyes() {
+        const eg = this.eyesGfx;
+        eg.clear();
+
+        const leftEyeX = -18;
+        const rightEyeX = 18;
+        const eyeY = -56;
+        const eyeW = 16;
+        const eyeH = 21;
+
+        if (this.isBlinking && this.blinkProgress > 0.3 && this.blinkProgress < 0.7) {
+          // Closed Happy Eye Curves (^ ^)
+          eg.lineStyle(3.5, 0x0F172A);
+          eg.arc(leftEyeX, eyeY + 4, 11, Math.PI * 1.1, Math.PI * 1.9);
+          eg.arc(rightEyeX, eyeY + 4, 11, Math.PI * 1.1, Math.PI * 1.9);
+        } else {
+          // Left Eye Capsule (White)
+          eg.beginFill(0xFFFFFF);
+          eg.lineStyle(3, 0x0F172A);
+          eg.drawEllipse(leftEyeX, eyeY, eyeW, eyeH);
+          eg.endFill();
+
+          // Right Eye Capsule (White)
+          eg.beginFill(0xFFFFFF);
+          eg.lineStyle(3, 0x0F172A);
+          eg.drawEllipse(rightEyeX, eyeY, eyeW, eyeH);
+          eg.endFill();
+
+          // Smooth Pupil Gaze Tracking
+          const pX = this.lookX * 5.2;
+          const pY = this.lookY * 4.0;
+
+          // Left Pupil
+          eg.beginFill(0x0F172A);
+          eg.drawCircle(leftEyeX + 3 + pX, eyeY + 2 + pY, 6.5);
+          eg.endFill();
+          // Left Pupil Shine
+          eg.beginFill(0xFFFFFF);
+          eg.drawCircle(leftEyeX + 1 + pX, eyeY - 1 + pY, 2.5);
+          eg.endFill();
+
+          // Right Pupil
+          eg.beginFill(0x0F172A);
+          eg.drawCircle(rightEyeX - 3 + pX, eyeY + 2 + pY, 6.5);
+          eg.endFill();
+          // Right Pupil Shine
+          eg.beginFill(0xFFFFFF);
+          eg.drawCircle(rightEyeX - 5 + pX, eyeY - 1 + pY, 2.5);
+          eg.endFill();
+        }
+      }
+
+      renderMouth() {
+        const mg = this.mouthGfx;
+        mg.clear();
+
+        const mY = Math.max(0, Math.min(1.0, this.mouthY));
+        const mForm = Math.max(-1.0, Math.min(1.0, this.mouthForm));
+        const centerY = -6;
+
+        if (mY < 0.10) {
+          // Resting / Closed Smile: Classic cute Doraemon wide smile curve
+          mg.lineStyle(3, 0x0F172A);
+          const smileSpread = 28 + (this.isHappy ? 6 : 0);
+          const smileDrop = 14 + (this.isHappy ? 4 : 0);
+          mg.moveTo(-smileSpread, centerY);
+          mg.quadraticCurveTo(0, centerY + smileDrop, smileSpread, centerY);
+        } else {
+          // Active Speech Phonetic Mouth Shape
+          const openHeight = 8 + (mY * 36);
+          const openWidth = Math.max(14, 24 + (mForm * 10) + (mY * 6));
+
+          // Dark Red Mouth Cavity
+          mg.beginFill(0x881337);
+          mg.lineStyle(3, 0x0F172A);
+
+          // Top Lip Arc
+          mg.moveTo(-openWidth, centerY);
+          mg.quadraticCurveTo(0, centerY - (openHeight * 0.15), openWidth, centerY);
+          // Bottom Lip Arc
+          mg.quadraticCurveTo(0, centerY + openHeight, -openWidth, centerY);
+          mg.endFill();
+
+          // Upper White Teeth Arc
+          if (mY > 0.22) {
+            mg.beginFill(0xFFFFFF);
+            mg.lineStyle(0);
+            mg.moveTo(-openWidth * 0.72, centerY);
+            mg.quadraticCurveTo(0, centerY - (openHeight * 0.1), openWidth * 0.72, centerY);
+            mg.lineTo(openWidth * 0.68, centerY + 5);
+            mg.quadraticCurveTo(0, centerY + 7, -openWidth * 0.68, centerY + 5);
+            mg.closePath();
+            mg.endFill();
+          }
+
+          // Pink Tongue Arc
+          if (mY > 0.18) {
+            mg.beginFill(0xFB7185);
+            mg.lineStyle(0);
+            const tongueW = openWidth * 0.65;
+            const tongueBaseY = centerY + openHeight - 2;
+            mg.moveTo(-tongueW, tongueBaseY);
+            mg.quadraticCurveTo(0, tongueBaseY - (openHeight * 0.45), tongueW, tongueBaseY);
+            mg.quadraticCurveTo(0, tongueBaseY + 2, -tongueW, tongueBaseY);
+            mg.endFill();
+          }
+        }
+      }
     }
 
     function framePortrait(viewW, viewH) {
       if (!model) return;
+      if (model.isDoraemonPuppet) {
+        const baseScale = (viewH * 0.78) / 200;
+        model.scale.set(baseScale, baseScale);
+        model.x = viewW / 2;
+        model.y = viewH * 0.52;
+        return;
+      }
       const framing = getModelFraming(currentModelName);
       const nativeH = (model.internalModel && model.internalModel.height) ? model.internalModel.height : (model.height || 1000);
 
@@ -330,18 +653,12 @@ const getLive2DHtml = (initialModel = 'haru') => {
 
         // Continuous 60fps Animation Loop
         app.ticker.add((delta) => {
-          if (!model || !model.internalModel) return;
-          const core = model.internalModel.coreModel;
-          if (!core) return;
+          if (!model) return;
 
           const now = performance.now();
           const t = now * 0.001;
 
-          // 1. Natural Ambient Breathing
-          const breath = (Math.sin(t * 1.5) + 1) * 0.5;
-          setParam(core, 'ParamBreath', 'PARAM_BREATH', breath);
-
-          // 2. Autonomous Saccadic Eye Movements
+          // 1. Natural Ambient Gaze Tracking
           if (!isPointerInteracting) {
             if (now > nextSaccadeTime) {
               saccadeTargetX = (Math.random() - 0.5) * 0.35;
@@ -352,68 +669,12 @@ const getLive2DHtml = (initialModel = 'haru') => {
             targetLookY = saccadeTargetY;
           }
 
-          // Smooth Gaze & Head Lerping
           currentLookX += (targetLookX - currentLookX) * 0.09;
           currentLookY += (targetLookY - currentLookY) * 0.09;
 
-          setParam(core, 'ParamEyeBallX', 'PARAM_EYE_BALL_X', currentLookX * 0.85);
-          setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', currentLookY * 0.85);
-          setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', currentLookX * 18);
-          setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', currentLookY * 14);
-          setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', currentLookX * 6);
-
-          // 3. Stochastic Blinking Cycle
-          if (now > nextBlinkTime && !isBlinking) {
-            isBlinking = true;
-            blinkProgress = 0;
-          }
-
-          if (isBlinking) {
-            blinkProgress += 0.15 * delta;
-            const eyeOpen = Math.max(0, 1 - Math.sin(blinkProgress * Math.PI));
-            setParam(core, 'ParamEyeLOpen', 'PARAM_EYE_L_OPEN', eyeOpen);
-            setParam(core, 'ParamEyeROpen', 'PARAM_EYE_R_OPEN', eyeOpen);
-
-            if (blinkProgress >= 1.0) {
-              isBlinking = false;
-              nextBlinkTime = now + 2400 + Math.random() * 3600;
-            }
-          }
-
-          // 4. Mood & Expression Dynamics
           const isHappy = currentMood === 'happy' || currentMood === 'encouraging';
-          if (isHappy) {
-            setParam(core, 'ParamEyeLSmile', 'PARAM_EYE_L_SMILE', 0.85);
-            setParam(core, 'ParamEyeRSmile', 'PARAM_EYE_R_SMILE', 0.85);
-            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', 0.2);
-            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', 0.2);
-          } else {
-            setParam(core, 'ParamEyeLSmile', 'PARAM_EYE_L_SMILE', 0.0);
-            setParam(core, 'ParamEyeRSmile', 'PARAM_EYE_R_SMILE', 0.0);
-          }
 
-          // 5. State-Driven Posture
-          if (currentState === 'thinking') {
-            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', -6.5);
-            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', 3.5 + Math.sin(t * 1.2) * 0.8);
-            setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', 0.45);
-            setParam(core, 'ParamEyeBallX', 'PARAM_EYE_BALL_X', -0.25);
-            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', -0.35);
-            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', -0.35);
-          } else if (currentState === 'listening') {
-            const nod = Math.sin(t * 2.0) * 1.5;
-            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', 4.5);
-            setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', 3.0);
-            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', -2.0 + nod);
-            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', 0.35);
-            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', 0.35);
-            setParam(core, 'ParamEyeLOpen', 'PARAM_EYE_L_OPEN', 1.05);
-            setParam(core, 'ParamEyeROpen', 'PARAM_EYE_R_OPEN', 1.05);
-          } else if (currentState === 'idle') {
-            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', Math.sin(t * 0.9) * 1.2);
-          }
-
-          // 6. Phonetic Lip-Sync & Speaking Head Gestures (Human Speech Sync)
+          // 2. Phonetic Lip-Sync Calculations
           if (isSpeaking) {
             let targetMouthY = 0;
             let targetMouthForm = isHappy ? 0.85 : 0.2;
@@ -432,26 +693,21 @@ const getLive2DHtml = (initialModel = 'haru') => {
 
               if (activeFrame) {
                 if (activeFrame.isPause || activeFrame.yVal === 0.0) {
-                  // Clean complete pause: lips firmly closed during punctuation or bilabial stop
                   targetMouthY = 0.0;
                   targetMouthForm = isHappy ? 0.40 : 0.0;
                 } else {
                   const frameElapsed = elapsed - activeFrame.start;
                   const frameDur = activeFrame.end - activeFrame.start;
                   const frameProgress = Math.min(1.0, Math.max(0.0, frameElapsed / frameDur));
-
-                  // Smooth parabolic arch (smooth opening and closing within syllable)
                   const env = Math.sin(frameProgress * Math.PI);
                   targetMouthY = activeFrame.yVal * env;
                   targetMouthForm = isHappy ? Math.max(0.5, activeFrame.formVal) : activeFrame.formVal;
                 }
               } else if (elapsed > speechDurationMs) {
-                // Natural 1.9 Hz conversational rhythm with micro-breaths if audio continues past schedule
                 const speechCycle = (now * 0.0019 * Math.PI * 2) % (Math.PI * 2);
                 const breathCycle = Math.sin(now * 0.0006 * Math.PI * 2);
 
                 if (breathCycle < -0.65) {
-                  // Natural 0.3s breathing pause between phrase clusters
                   targetMouthY = 0.0;
                   targetMouthForm = isHappy ? 0.4 : 0.0;
                 } else {
@@ -461,7 +717,6 @@ const getLive2DHtml = (initialModel = 'haru') => {
                 }
               }
             } else {
-              // Natural conversational 1.9 Hz cadence (smooth, visible, human-paced)
               const speechCycle = (now * 0.0019 * Math.PI * 2) % (Math.PI * 2);
               const breathCycle = Math.sin(now * 0.0006 * Math.PI * 2);
 
@@ -475,28 +730,71 @@ const getLive2DHtml = (initialModel = 'haru') => {
               }
             }
 
-            // Snappy opening attack (0.42) and smooth organic closing decay (0.28)
             const lerpY = targetMouthY > currentMouthY ? 0.42 : 0.28;
             currentMouthY += (targetMouthY - currentMouthY) * lerpY;
             currentMouthForm += (targetMouthForm - currentMouthForm) * 0.28;
-
-            // Rhythmic speech head motion (subtle conversational nods on stressed syllables)
-            const headNod = (currentLookY * 12) + (targetMouthY * -2.4) + Math.sin(now * 0.0022) * 1.5;
-            const headTilt = Math.cos(now * 0.0015) * 1.8;
-            const bodyBob = Math.sin(now * 0.0012) * 1.6;
-
-            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', headNod);
-            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', headTilt);
-            setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', bodyBob);
           } else {
-            // Smooth return to resting lips
             currentMouthY += (0 - currentMouthY) * 0.22;
             currentMouthForm += ((isHappy ? 0.6 : 0.0) - currentMouthForm) * 0.22;
             speechSchedule = [];
             lastScheduledText = '';
           }
 
-          // Apply Mouth Open & Form forcefully on every frame to CoreModel
+          // 3. Render either Doraemon Puppet or Live2D CoreModel
+          if (model.isDoraemonPuppet) {
+            model.update(now, currentLookX, currentLookY, currentMouthY, currentMouthForm, isSpeaking, isHappy, currentState);
+            return;
+          }
+
+          if (!model.internalModel || !model.internalModel.coreModel) return;
+          const core = model.internalModel.coreModel;
+
+          const breath = (Math.sin(t * 1.5) + 1) * 0.5;
+          setParam(core, 'ParamBreath', 'PARAM_BREATH', breath);
+
+          setParam(core, 'ParamEyeBallX', 'PARAM_EYE_BALL_X', currentLookX * 0.85);
+          setParam(core, 'ParamEyeBallY', 'PARAM_EYE_BALL_Y', currentLookY * 0.85);
+          setParam(core, 'ParamAngleX', 'PARAM_ANGLE_X', currentLookX * 18);
+          setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', currentLookY * 14);
+          setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', currentLookX * 6);
+
+          if (now > nextBlinkTime && !isBlinking) {
+            isBlinking = true;
+            blinkProgress = 0;
+          }
+
+          if (isBlinking) {
+            blinkProgress += 0.15 * delta;
+            const eyeOpen = Math.max(0, 1 - Math.sin(blinkProgress * Math.PI));
+            setParam(core, 'ParamEyeLOpen', 'PARAM_EYE_L_OPEN', eyeOpen);
+            setParam(core, 'ParamEyeROpen', 'PARAM_EYE_R_OPEN', eyeOpen);
+
+            if (blinkProgress >= 1.0) {
+              isBlinking = false;
+              nextBlinkTime = now + 2400 + Math.random() * 3600;
+            }
+          }
+
+          if (isHappy) {
+            setParam(core, 'ParamEyeLSmile', 'PARAM_EYE_L_SMILE', 0.85);
+            setParam(core, 'ParamEyeRSmile', 'PARAM_EYE_R_SMILE', 0.85);
+            setParam(core, 'ParamBrowLY', 'PARAM_BROW_L_Y', 0.2);
+            setParam(core, 'ParamBrowRY', 'PARAM_BROW_R_Y', 0.2);
+          } else {
+            setParam(core, 'ParamEyeLSmile', 'PARAM_EYE_L_SMILE', 0.0);
+            setParam(core, 'ParamEyeRSmile', 'PARAM_EYE_R_SMILE', 0.0);
+          }
+
+          if (isSpeaking) {
+            const headNod = (currentLookY * 12) + (currentMouthY * -2.4) + Math.sin(now * 0.0022) * 1.5;
+            const headTilt = Math.cos(now * 0.0015) * 1.8;
+            const bodyBob = Math.sin(now * 0.0012) * 1.6;
+
+            setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', headNod);
+            setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', headTilt);
+            setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', bodyBob);
+          }
+
           setParam(core, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, currentMouthY)));
           setParam(core, 'ParamMouthForm', 'PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, currentMouthForm)));
         });
@@ -566,6 +864,19 @@ const getLive2DHtml = (initialModel = 'haru') => {
       currentModelName = (modelName || 'haru').toLowerCase();
 
       try {
+        const container = document.getElementById('canvas-container');
+        const viewW = container.clientWidth || window.innerWidth || 360;
+        const viewH = container.clientHeight || window.innerHeight || 200;
+
+        // If Robo-Paws, instantiate Doraemon WebGL puppet directly!
+        if (currentModelName === 'robopaws' || currentModelName === 'robocat' || currentModelName === 'robot' || currentModelName === 'kid') {
+          model = new DoraemonPuppet();
+          app.stage.addChild(model);
+          framePortrait(viewW, viewH);
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+          return;
+        }
+
         const Live2DModelClass = await waitForLive2DSDK();
         if (typeof Live2DModelClass.registerTicker === 'function' && window.PIXI && window.PIXI.Ticker) {
           try {
@@ -573,10 +884,6 @@ const getLive2DHtml = (initialModel = 'haru') => {
           } catch(e) {}
         }
         model = await Live2DModelClass.from(url, { autoInteract: false });
-        
-        const container = document.getElementById('canvas-container');
-        const viewW = container.clientWidth || window.innerWidth || 360;
-        const viewH = container.clientHeight || window.innerHeight || 200;
 
         framePortrait(viewW, viewH);
 
@@ -600,6 +907,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
         model.interactive = false;
 
         app.stage.addChild(model);
+        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
       } catch(err) {
         window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ERROR', message: err.message }));
       }

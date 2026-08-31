@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as PIXI from 'pixi.js';
 import { ModelLoader } from '../../services/live2d/ModelLoader';
+import { DoraemonPuppet } from './DoraemonPuppet';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 import { getCurrentVoiceGender } from '../../utils/speechHelper';
 import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
@@ -33,9 +34,9 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
   const maleModelPath = "/models/avatar/chitose/chitose.model.json";
   const robopawsModelPath = "https://cdn.jsdelivr.net/npm/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json";
 
+  const norm = String(gender).toLowerCase();
   let targetModelPath = modelPath;
   if (!targetModelPath) {
-    const norm = String(gender).toLowerCase();
     if (norm === 'robopaws' || norm === 'robocat' || norm === 'robot' || norm === 'kid' || norm === 'kids') {
       targetModelPath = robopawsModelPath;
     } else if (norm === 'male' || norm === 'chitose') {
@@ -64,7 +65,56 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     pixiAppRef.current = app;
     container.appendChild(app.view);
 
-    // Resize Handler
+    const isRoboPaws = targetModelPath === robopawsModelPath ||
+      norm === 'robopaws' || norm === 'robocat' || norm === 'robot' || norm === 'kid' || norm === 'kids';
+
+    if (isRoboPaws) {
+      const puppet = new DoraemonPuppet();
+      app.stage.addChild(puppet);
+      modelRef.current = puppet;
+      setModelInstance(puppet);
+
+      const resizePuppet = () => {
+        if (!app || !app.renderer || !container) return;
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        app.renderer.resize(width, height);
+        const scale = (height * 0.76) / 200;
+        puppet.scale.set(scale, scale);
+        puppet.x = width / 2;
+        puppet.y = height * 0.52;
+      };
+
+      resizePuppet();
+      window.addEventListener('resize', resizePuppet);
+
+      const tickerFn = () => {
+        puppet.update(performance.now());
+      };
+      app.ticker.add(tickerFn);
+
+      if (onModelLoaded) onModelLoaded(puppet);
+
+      return () => {
+        isMounted = false;
+        window.removeEventListener('resize', resizePuppet);
+        app.ticker.remove(tickerFn);
+        setModelInstance(null);
+        if (modelRef.current) {
+          try { modelRef.current.destroy({ children: true }); } catch (e) {}
+          modelRef.current = null;
+        }
+        if (app) {
+          try { app.destroy(true, { children: true, texture: true, baseTexture: true }); } catch (e) {}
+          pixiAppRef.current = null;
+        }
+        if (container && container.contains(app?.view)) {
+          try { container.removeChild(app.view); } catch (e) {}
+        }
+      };
+    }
+
+    // Resize Handler for Live2D Models
     const handleResize = () => {
       if (!app || !app.renderer || !container) return;
       const width = container.clientWidth;

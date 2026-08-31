@@ -7,7 +7,14 @@ import { getPrimaryVisemeForWord } from '../utils/PhoneticVisemeEngine';
  * Safely applies parameters directly to the CoreModel buffers every frame.
  */
 function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
-  if (!model || !model.internalModel) return;
+  if (!model) return;
+  if (model.isDoraemonPuppet) {
+    model.mouthY = yVal;
+    model.mouthForm = formVal;
+    model.isSpeaking = isSpeaking;
+    return;
+  }
+  if (!model.internalModel) return;
   
   const im = model.internalModel;
   const cm = im.coreModel;
