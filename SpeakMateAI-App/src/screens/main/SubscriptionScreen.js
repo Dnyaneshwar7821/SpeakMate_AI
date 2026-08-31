@@ -96,7 +96,7 @@ export default function SubscriptionScreen({ navigation }) {
 
       const razorpayKey = order.razorpayKeyId || order.keyId || 'rzp_test_SpeakMateAiDev';
       const orderId = order.razorpayOrderId || order.orderId;
-      const amountPaise = order.amountInPaise || (order.amount ? Math.round(Number(order.amount) * 100) : (planType === 'YEARLY_PRO' ? 119900 : 14900));
+      const amountPaise = order.amountInPaise || (order.amount ? Math.round(Number(order.amount) * 100) : (planType === 'YEARLY_PRO' ? 119900 : 100));
 
       // If in local mock / dev mode without real Razorpay order ID, show sandbox simulator
       if (orderId && (orderId.startsWith('order_dev_') || orderId.startsWith('order_mock_'))) {
@@ -310,7 +310,7 @@ export default function SubscriptionScreen({ navigation }) {
 
   const isPro = currentSub?.isPro || user?.isPro;
   const isYearly = billingCycle === 'YEARLY';
-  const price = isYearly ? '₹1,199' : '₹149';
+  const price = isYearly ? '₹1,199' : '₹1';
   const period = isYearly ? '/ year' : '/ month';
   const savings = isYearly ? 'Save 33% (₹99/mo)' : 'Cancel anytime';
 

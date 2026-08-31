@@ -76,8 +76,8 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 			description = "Unlimited AI English conversations, all voice avatars, and full grammar analysis for 1 year.";
 		} else {
 			planType = "MONTHLY_PRO";
-			amount = new BigDecimal("149.00");
-			amountInPaise = 14900L;
+			amount = new BigDecimal("1.00");
+			amountInPaise = 100L;
 			planName = "SpeakMate Pro (1 Month Pass)";
 			description = "Unlimited AI English conversations and grammar practice for 1 month.";
 		}
@@ -177,7 +177,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 		Optional<UserSubscription> subOpt = userSubscriptionRepository.findByRazorpayOrderId(orderId);
 		UserSubscription subscription = subOpt.orElseGet(() -> UserSubscription.builder()
 				.user(user)
-				.amount("YEARLY_PRO".equalsIgnoreCase(planType) ? new BigDecimal("1199.00") : new BigDecimal("149.00"))
+				.amount("YEARLY_PRO".equalsIgnoreCase(planType) ? new BigDecimal("1199.00") : new BigDecimal("1.00"))
 				.currency("INR")
 				.razorpayOrderId(orderId)
 				.build());

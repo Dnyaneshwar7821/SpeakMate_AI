@@ -109,7 +109,7 @@ export function SubscriptionModal({ isOpen, onClose, triggerReason = "daily_limi
                 : "bg-[var(--bg-base)] text-[var(--text-secondary)] border border-[var(--border-subtle)]"
             }`}
           >
-            Monthly Pass (₹149/mo)
+            Monthly Pass (₹1/mo)
           </button>
           <button
             type="button"
@@ -163,7 +163,7 @@ export function SubscriptionModal({ isOpen, onClose, triggerReason = "daily_limi
           >
             {loading
               ? "Connecting Razorpay..."
-              : `Unlock Pro Now (${billingCycle === "YEARLY" ? "₹1,199 / year" : "₹149 / month"}) ➔`}
+              : `Unlock Pro Now (${billingCycle === "YEARLY" ? "₹1,199 / year" : "₹1 / month"}) ➔`}
           </button>
           <p className="text-[10px] text-center text-[var(--text-tertiary)]">
             🔒 Safe & Secure via Razorpay (UPI, GPay, PhonePe, Paytm, Cards)

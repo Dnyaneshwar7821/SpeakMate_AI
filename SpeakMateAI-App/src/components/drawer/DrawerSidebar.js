@@ -429,7 +429,7 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
                 <Text style={styles.proUpgradeTitle}>Upgrade to Pro</Text>
               </View>
               <Text style={styles.proUpgradeSubtitle}>
-                Unlock unlimited AI drills from ₹149/mo
+                Unlock unlimited AI drills from ₹1/mo
               </Text>
             </LinearGradient>
           </TouchableOpacity>

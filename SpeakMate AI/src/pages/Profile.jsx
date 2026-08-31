@@ -715,7 +715,7 @@ export function Profile() {
                   to={ROUTES.PRICING}
                   className="py-3 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-white text-xs font-black text-center shadow-lg shadow-indigo-500/25 transition-all transform active:scale-95"
                 >
-                  Upgrade to Pro (From ₹149/mo) ➔
+                  Upgrade to Pro (From ₹1/mo) ➔
                 </Link>
               </div>
 

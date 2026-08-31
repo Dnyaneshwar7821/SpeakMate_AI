@@ -25,7 +25,7 @@ export const subscriptionService = {
           id: "MONTHLY_PRO",
           planType: "MONTHLY",
           name: "Monthly Pro",
-          price: 149,
+          price: 1,
           currency: "INR",
           billingCycle: "month",
           description: "Full unlimited access to AI Conversation & Speaking Coach",

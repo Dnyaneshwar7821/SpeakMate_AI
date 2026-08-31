@@ -204,7 +204,7 @@ export function Sidebar() {
             to={ROUTES.PRICING}
             className="block text-center w-full py-1.5 px-2 rounded-xl bg-white text-indigo-700 font-extrabold text-[11px] hover:bg-white/90 shadow-sm transition-all active:scale-95"
           >
-            Upgrade Now (From ₹149) ➔
+            Upgrade Now (From ₹1) ➔
           </NavLink>
         </div>
       )}

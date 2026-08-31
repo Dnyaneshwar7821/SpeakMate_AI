@@ -73,8 +73,8 @@ export function Pricing() {
         const isYearly = planType === "YEARLY_PRO";
         orderData = {
           razorpayOrderId: "order_dev_" + Date.now(),
-          amount: isYearly ? 1199.0 : 149.0,
-          amountInPaise: isYearly ? 119900 : 14900,
+          amount: isYearly ? 1199.0 : 1.0,
+          amountInPaise: isYearly ? 119900 : 100,
           currency: "INR",
           razorpayKeyId: "rzp_test_SpeakMateAiDev",
           planType,
@@ -104,7 +104,7 @@ export function Pricing() {
                 isPro: true,
                 planType: planType,
                 status: "ACTIVE",
-                amount: planType === "YEARLY_PRO" ? "1,199" : "149",
+                amount: planType === "YEARLY_PRO" ? "1,199" : "1",
               };
             }
 
@@ -295,7 +295,7 @@ export function Pricing() {
 
                 <div className="mt-4 flex items-baseline gap-2">
                   <span className="text-4xl sm:text-5xl font-black text-[var(--text-primary)]">
-                    {billingCycle === "YEARLY" ? "₹1,199" : "₹149"}
+                    {billingCycle === "YEARLY" ? "₹1,199" : "₹1"}
                   </span>
                   <span className="text-sm text-[var(--text-secondary)]">
                     {billingCycle === "YEARLY" ? "/ year (₹99/mo)" : "/ month"}
@@ -370,7 +370,7 @@ export function Pricing() {
                     <span>Processing Secure Checkout...</span>
                   ) : (
                     <>
-                      <span>Upgrade to Pro Now ({billingCycle === "YEARLY" ? "₹1,199/yr" : "₹149/mo"})</span>
+                      <span>Upgrade to Pro Now ({billingCycle === "YEARLY" ? "₹1,199/yr" : "₹1/mo"})</span>
                       <span>➔</span>
                     </>
                   )}
@@ -414,7 +414,7 @@ export function Pricing() {
               How does the 33% discount on the Annual Pass work?
             </h3>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1.5 leading-relaxed">
-              The Annual Pass costs ₹1,199 for an entire year (which calculates to just <strong>₹99/month</strong>), saving you ₹589 compared to renewing the ₹149 monthly pass each month.
+              The Annual Pass costs ₹1,199 for an entire year (which calculates to just <strong>₹99/month</strong>), saving you compared to renewing monthly passes.
             </p>
           </div>
         </div>
@@ -431,7 +431,7 @@ export function Pricing() {
               Welcome to SpeakMate Pro!
             </h3>
             <p className="text-sm text-[var(--text-secondary)]">
-              Your payment of <strong>₹{successDetails?.amount || (billingCycle === "YEARLY" ? "1,199" : "149")}</strong> was verified successfully. All premium AI conversation and grammar features are now unlocked!
+              Your payment of <strong>₹{successDetails?.amount || (billingCycle === "YEARLY" ? "1,199" : "1")}</strong> was verified successfully. All premium AI conversation and grammar features are now unlocked!
             </p>
 
             <div className="p-3 rounded-xl bg-[var(--bg-base)] border border-[var(--border-subtle)] text-xs text-[var(--text-secondary)] space-y-1">
