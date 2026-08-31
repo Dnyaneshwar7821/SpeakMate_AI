@@ -295,7 +295,7 @@ export function Pricing() {
 
                 <div className="mt-4 flex items-baseline gap-2">
                   <span className="text-4xl sm:text-5xl font-black text-[var(--text-primary)]">
-                    {billingCycle === "YEARLY" ? "₹1,199" : "₹1"}
+                    {billingCycle === "YEARLY" ? "₹1,199" : "₹149"}
                   </span>
                   <span className="text-sm text-[var(--text-secondary)]">
                     {billingCycle === "YEARLY" ? "/ year (₹99/mo)" : "/ month"}
@@ -370,7 +370,7 @@ export function Pricing() {
                     <span>Processing Secure Checkout...</span>
                   ) : (
                     <>
-                      <span>Upgrade to Pro Now ({billingCycle === "YEARLY" ? "₹1,199/yr" : "₹1/mo"})</span>
+                      <span>Upgrade to Pro Now ({billingCycle === "YEARLY" ? "₹1,199/yr" : "₹149/mo"})</span>
                       <span>➔</span>
                     </>
                   )}
