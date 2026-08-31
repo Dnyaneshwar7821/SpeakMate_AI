@@ -267,6 +267,7 @@ export default function ConversationScreen({ navigation, route }) {
   const [preferredVoice, setPreferredVoice] = useState('Friendly');
   const [onboardingVoiceStyle, setOnboardingVoiceStyle] = useState('Friendly');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentSpokenText, setCurrentSpokenText] = useState('');
 
   const avatarGender = VoiceService.getAvatarGender(preferredVoice, onboardingVoiceStyle);
 
@@ -292,13 +293,14 @@ export default function ConversationScreen({ navigation, route }) {
       // 2. Fetch user preferences & onboarding defaults & profile level
       let currentVoice = 'Friendly';
       try {
-        const [settings, onboardingVoice, profile, savedVoice] = await Promise.all([
+        const [settings, onboardingVoice, profile, savedVoice, savedGender] = await Promise.all([
           settingsService.get().catch(() => null),
           AsyncStorage.getItem('speakmate_onboarding_voice'),
           profileService.get().catch(() => null),
           AsyncStorage.getItem('speakmate_selected_voice'),
+          AsyncStorage.getItem('speakmate_voice_gender'),
         ]);
-        let rawVoice = savedVoice || settings?.aiVoice || 'Default';
+        let rawVoice = savedVoice || settings?.aiVoice || (savedGender === 'male' ? 'US Male' : 'Default');
         setPreferredVoice(rawVoice);
         if (onboardingVoice) {
           setOnboardingVoiceStyle(onboardingVoice);
@@ -512,6 +514,7 @@ export default function ConversationScreen({ navigation, route }) {
     const rawVoice = voiceOverride || preferredVoice;
     const effectiveSpeed = speedOverride !== null && speedOverride !== undefined ? speedOverride : speechSpeed;
     pausedAiText.current = text;
+    setCurrentSpokenText(text);
     VoiceService.speak(text, {
       isMuted,
       voiceType: rawVoice,
@@ -524,11 +527,13 @@ export default function ConversationScreen({ navigation, route }) {
       onDone: () => {
         setStatusText('Waiting for Response');
         setIsSpeaking(false);
+        setCurrentSpokenText('');
         wasSpeakingOnPause.current = false;
       },
       onError: () => {
         setStatusText('Waiting for Response');
         setIsSpeaking(false);
+        setCurrentSpokenText('');
         wasSpeakingOnPause.current = false;
       }
     });
@@ -558,6 +563,7 @@ export default function ConversationScreen({ navigation, route }) {
     if (nextMuted) {
       VoiceService.stop();
       setIsSpeaking(false);
+      setCurrentSpokenText('');
       setStatusText('Waiting for Response');
     }
   };
@@ -1134,6 +1140,8 @@ export default function ConversationScreen({ navigation, route }) {
           <AIAvatar
             gender={avatarGender}
             isSpeaking={isSpeaking && !isPaused}
+            spokenText={currentSpokenText}
+            speechSpeed={speechSpeed}
             state={avatarState}
             expression={avatarExpression}
             style={styles.avatar3d}

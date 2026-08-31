@@ -5,16 +5,22 @@ import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 import { getCurrentVoiceGender } from '../../utils/speechHelper';
 import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
 
+import { useLipSync } from '../../hooks/useLipSync';
+
 // Make PIXI available on window for Live2D SDK Cubism integration
 if (typeof window !== 'undefined' && !window.PIXI) {
   window.PIXI = PIXI;
 }
 
-export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = '', framing = 'faceToChest' }) {
+export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = '', framing = 'faceToChest', isSpeaking = false }) {
   const containerRef = useRef(null);
   const pixiAppRef = useRef(null);
   const modelRef = useRef(null);
+  const [modelInstance, setModelInstance] = useState(null);
   const [gender, setGender] = useState(() => getCurrentVoiceGender());
+
+  // Automatic Lip-Sync & Viseme Hook
+  useLipSync(modelInstance, isSpeaking);
 
   useEffect(() => {
     const unsubGender = EventBus.on(AVATAR_EVENTS.GENDER_CHANGED, (data) => {
@@ -83,6 +89,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         loadedModel.isInteractive = () => false;
 
         modelRef.current = loadedModel;
+        setModelInstance(loadedModel);
         handleResize();
         if (onModelLoaded) {
           onModelLoaded(loadedModel);
@@ -100,6 +107,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     return () => {
       isMounted = false;
       window.removeEventListener('resize', handleResize);
+      setModelInstance(null);
 
       if (modelRef.current) {
         ModelLoader.destroyModel(modelRef.current);

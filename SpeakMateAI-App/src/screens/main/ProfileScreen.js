@@ -57,6 +57,7 @@ export default function ProfileScreen({ navigation }) {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [updatingLevel, setUpdatingLevel] = useState(false);
+  const [tutorGender, setTutorGender] = useState('female');
 
   // Delete Account Modal States
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -152,9 +153,11 @@ export default function ProfileScreen({ navigation }) {
 
   const load = async () => {
     try {
-      const [profile, savedAccType] = await Promise.all([
+      const [profile, savedAccType, savedVoice, savedGender] = await Promise.all([
         profileService.get(),
         AsyncStorage.getItem('speakmate_account_type'),
+        AsyncStorage.getItem('speakmate_selected_voice'),
+        AsyncStorage.getItem('speakmate_voice_gender'),
       ]);
       setForm({
         firstName: profile.firstName || '',
@@ -162,6 +165,11 @@ export default function ProfileScreen({ navigation }) {
         email: profile.email || '',
       });
       setAccountType(savedAccType || profile.accountType || 'INDIVIDUAL_USER');
+      if (savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'))) {
+        setTutorGender('male');
+      } else {
+        setTutorGender('female');
+      }
       setState({ loading: false, error: '', profile });
       if (updateUser && profile) {
         updateUser(profile);
@@ -174,6 +182,17 @@ export default function ProfileScreen({ navigation }) {
       });
       setState({ loading: false, error: error.userMessage || 'Unable to load profile.', profile: user });
     }
+  };
+
+  const handleSelectTutor = async (gender) => {
+    setTutorGender(gender);
+    const voiceCode = gender === 'male' ? 'US Male' : 'Default';
+    try {
+      await AsyncStorage.setItem('speakmate_voice_gender', gender);
+      await AsyncStorage.setItem('speakmate_selected_voice', voiceCode);
+      await AsyncStorage.setItem('speakmate_ai_voice', voiceCode);
+      showToast('Tutor Updated ✓', 'success', gender === 'male' ? '👨 Chitose (Male Tutor) active' : '👩 Haru (Female Tutor) active');
+    } catch (e) {}
   };
 
   useFocusEffect(
@@ -624,6 +643,74 @@ export default function ProfileScreen({ navigation }) {
             </Card>
           </>
         )}
+
+        {/* AI Speaking Tutor Avatar Selection Card */}
+        <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
+          <View style={{ marginBottom: 12 }}>
+            <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+              🎭 AI Speaking Tutor
+            </Text>
+            <Text style={{ fontSize: 12, color: sublabelColor }}>
+              Select your Live2D avatar practice tutor
+            </Text>
+          </View>
+
+          <View style={styles.tutorCardsRow}>
+            {/* HARU (FEMALE) */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => handleSelectTutor('female')}
+              style={[
+                styles.tutorCard,
+                {
+                  backgroundColor: tutorGender === 'female' ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
+                  borderColor: tutorGender === 'female' ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
+                  borderWidth: tutorGender === 'female' ? 2 : 1,
+                }
+              ]}
+            >
+              <Text style={styles.tutorCardEmoji}>👩</Text>
+              <Text style={[styles.tutorCardName, { color: tutorGender === 'female' ? '#6366F1' : labelColor }]}>
+                Haru (Female)
+              </Text>
+              <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
+                Warm & encouraging
+              </Text>
+              {tutorGender === 'female' && (
+                <View style={styles.tutorCheckmark}>
+                  <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {/* CHITOSE (MALE) */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => handleSelectTutor('male')}
+              style={[
+                styles.tutorCard,
+                {
+                  backgroundColor: tutorGender === 'male' ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
+                  borderColor: tutorGender === 'male' ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
+                  borderWidth: tutorGender === 'male' ? 2 : 1,
+                }
+              ]}
+            >
+              <Text style={styles.tutorCardEmoji}>👨</Text>
+              <Text style={[styles.tutorCardName, { color: tutorGender === 'male' ? '#6366F1' : labelColor }]}>
+                Chitose (Male)
+              </Text>
+              <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
+                Confident & supportive
+              </Text>
+              {tutorGender === 'male' && (
+                <View style={styles.tutorCheckmark}>
+                  <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
+        </Card>
 
         {/* Edit Info Form - Modern layout with full fields */}
         <Card style={{ backgroundColor: cardBg }}>
@@ -1271,5 +1358,38 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 2,
+  },
+  tutorCardsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  tutorCard: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  tutorCardEmoji: {
+    fontSize: 28,
+    marginBottom: 6,
+  },
+  tutorCardName: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  tutorCardDesc: {
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 14,
+  },
+  tutorCheckmark: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
 });

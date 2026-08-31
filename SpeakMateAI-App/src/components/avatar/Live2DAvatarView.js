@@ -1,11 +1,16 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, ActivityIndicator } from 'react-native';
+import React, { memo, useEffect, useRef, useState, useMemo } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 const HARU_MODEL_URL = 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json';
-const CHITOSE_MODEL_URL = 'https://cdn.jsdelivr.net/gh/Eikanya/Live2d-model/Live2D/SenrenBanka/chitose/chitose.model.json';
+const CHITOSE_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-chitose@1.0.5/assets/chitose.model.json';
 
-const LIVE2D_HTML = `
+const getLive2DHtml = (initialModel = 'haru') => {
+  const isChitose = initialModel === 'chitose';
+  const initialUrl = isChitose ? CHITOSE_MODEL_URL : HARU_MODEL_URL;
+  const initialName = isChitose ? 'chitose' : 'haru';
+
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -18,107 +23,272 @@ const LIVE2D_HTML = `
       height: 100%;
       overflow: hidden;
       background: transparent;
-      user-select: none;
-      -webkit-user-select: none;
       touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
     }
     #canvas-container {
       width: 100%;
       height: 100%;
       display: flex;
-      align-items: center;
       justify-content: center;
-      background: transparent;
+      align-items: center;
     }
     canvas {
-      display: block;
       width: 100% !important;
       height: 100% !important;
-      background: transparent !important;
+      display: block;
     }
   </style>
-  <!-- Cubism 2 & 4 Core SDKs with Unified Pixi-Live2D Display -->
-  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <!-- PixiJS v7 -->
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.3.3/dist/pixi.min.js"></script>
+  <!-- Cubism 2 Core SDK (Chitose) -->
   <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.3.2/dist/pixi.min.js"></script>
+  <!-- Cubism 4 Core SDK (Haru) -->
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <!-- Pixi Live2D Display (Universal Cubism 2 + 4 Bundle) -->
   <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
 </head>
 <body>
   <div id="canvas-container"></div>
   <script>
-    window.PIXI = PIXI;
+    // Ensure PIXI is on window
+    if (!window.PIXI && typeof PIXI !== 'undefined') {
+      window.PIXI = PIXI;
+    }
+
+    function getLive2DModelClass() {
+      if (window.PIXI && window.PIXI.live2d && window.PIXI.live2d.Live2DModel) {
+        return window.PIXI.live2d.Live2DModel;
+      }
+      if (window.PIXI && window.PIXI.Live2DModel) {
+        return window.PIXI.Live2DModel;
+      }
+      if (window.PIXILive2D && window.PIXILive2D.Live2DModel) {
+        return window.PIXILive2D.Live2DModel;
+      }
+      if (window.Live2DModel) {
+        return window.Live2DModel;
+      }
+      if (window.PIXI && window.PIXI.live2d && typeof window.PIXI.live2d.from === 'function') {
+        return window.PIXI.live2d;
+      }
+      return null;
+    }
+
+    async function waitForLive2DSDK(timeout = 10000) {
+      const start = performance.now();
+      while (performance.now() - start < timeout) {
+        const cls = getLive2DModelClass();
+        if (cls && typeof cls.from === 'function') {
+          return cls;
+        }
+        await new Promise((r) => setTimeout(r, 50));
+      }
+      const cls = getLive2DModelClass();
+      if (cls && typeof cls.from === 'function') return cls;
+      throw new Error("Live2D SDK scripts failed to initialize in WebView.");
+    }
     let app, model;
-    let isSpeaking = false;
+    let currentModelName = '${initialName}';
     let currentState = 'idle';
     let currentMood = 'neutral';
-    let currentModelName = 'haru';
-    let mouthPhase = 0;
-    let currentMouthY = 0;
-    let currentMouthForm = 0;
-    
-    // Interactive Touch / Gaze & Lifelike Saccades
-    let targetLookX = 0;
-    let targetLookY = 0;
-    let currentLookX = 0;
-    let currentLookY = 0;
-    let isPointerInteracting = false;
-    
-    // Natural Autonomous Saccadic Gaze Glances
-    let nextSaccadeTime = Date.now() + 2000;
-    let saccadeTargetX = 0;
-    let saccadeTargetY = 0;
-    
-    // Natural Blinking
-    let nextBlinkTime = Date.now() + 2500;
+    let isSpeaking = false;
+    let spokenText = '';
+    let speechSpeed = 1.0;
+
+    // Autonomous Saccadic & Gaze Tracking
+    let targetLookX = 0, targetLookY = 0;
+    let currentLookX = 0, currentLookY = 0;
+    let nextSaccadeTime = 0;
+    let saccadeTargetX = 0, saccadeTargetY = 0;
+
+    // Stochastic Eye Blinking
     let isBlinking = false;
     let blinkProgress = 0;
+    let nextBlinkTime = 0;
+
+    // Dynamic Phonetic Viseme Lip Sync State
+    let currentMouthY = 0;
+    let currentMouthForm = 0;
+    let mouthPhase = 0;
+    let isPointerInteracting = false;
+
+    // ── PHONETIC VISEME ENGINE ──────────────────────────────────────────
+    const VISEME_PARAMS = {
+      REST: { yVal: 0.0,  formVal: 0.0 },
+      MBP:  { yVal: 0.06, formVal: 0.0 },   // Bilabials (M, B, P) - Lips touching
+      AA:   { yVal: 0.95, formVal: 0.25 },  // Open vowels (A, AH, AA, AY) - Deep drop
+      EE:   { yVal: 0.58, formVal: 0.85 },  // Wide smile vowels (E, EE, I, EA)
+      IH:   { yVal: 0.62, formVal: 0.25 },  // Short neutral vowels (IH, EH, UH)
+      OO:   { yVal: 0.68, formVal: -0.75 }, // Pursed lips (O, OO, U, W) - Rounded
+      OH:   { yVal: 0.88, formVal: -0.35 }, // Tall open (O, OH, AU, AW, OW)
+      FV:   { yVal: 0.38, formVal: -0.15 }, // Labiodentals (F, V) - Teeth on lip
+      LNT:  { yVal: 0.48, formVal: 0.18 },  // Alveolars/Dentals (L, N, T, D, S, Z, R)
+    };
+
+    function getWordVisemes(word) {
+      if (!word) return [{ ...VISEME_PARAMS.REST, duration: 100 }];
+      const clean = word.toLowerCase().replace(/[^a-z]/g, '');
+      if (!clean) return [{ ...VISEME_PARAMS.REST, duration: 100 }];
+
+      const seq = [];
+      let i = 0;
+      while (i < clean.length) {
+        const c = clean[i];
+        const pair = clean.substr(i, 2);
+
+        if (['oo', 'ou', 'ow'].includes(pair)) {
+          seq.push({ ...VISEME_PARAMS.OO, duration: 130 });
+          i += 2;
+        } else if (['ee', 'ea', 'ie', 'ei'].includes(pair)) {
+          seq.push({ ...VISEME_PARAMS.EE, duration: 130 });
+          i += 2;
+        } else if (['ai', 'ay', 'ae'].includes(pair)) {
+          seq.push({ ...VISEME_PARAMS.EE, duration: 120 });
+          i += 2;
+        } else if (['oa', 'oh', 'aw', 'au'].includes(pair)) {
+          seq.push({ ...VISEME_PARAMS.OH, duration: 130 });
+          i += 2;
+        } else if (['th', 'sh', 'ch'].includes(pair)) {
+          seq.push({ ...VISEME_PARAMS.LNT, duration: 95 });
+          i += 2;
+        } else if (['mb', 'mp'].includes(pair)) {
+          seq.push({ ...VISEME_PARAMS.MBP, duration: 85 });
+          i += 2;
+        } else {
+          if (['m', 'b', 'p'].includes(c)) seq.push({ ...VISEME_PARAMS.MBP, duration: 75 });
+          else if (['f', 'v'].includes(c)) seq.push({ ...VISEME_PARAMS.FV, duration: 80 });
+          else if (c === 'a') seq.push({ ...VISEME_PARAMS.AA, duration: 120 });
+          else if (['e', 'i'].includes(c)) seq.push({ ...VISEME_PARAMS.EE, duration: 105 });
+          else if (c === 'o') seq.push({ ...VISEME_PARAMS.OH, duration: 115 });
+          else if (['u', 'w'].includes(c)) seq.push({ ...VISEME_PARAMS.OO, duration: 100 });
+          else if (['l', 'n', 't', 'd', 's', 'z', 'r'].includes(c)) seq.push({ ...VISEME_PARAMS.LNT, duration: 75 });
+          else seq.push({ ...VISEME_PARAMS.IH, duration: 75 });
+          i++;
+        }
+      }
+      return seq.length ? seq : [{ ...VISEME_PARAMS.IH, duration: 100 }];
+    }
+
+    let speechSchedule = [];
+    let speechScheduleIndex = 0;
+    let speechScheduleStartTime = 0;
+    let speechDurationMs = 0;
+
+    function scheduleSpokenText(text, speed = 1.0) {
+      if (!text) {
+        speechSchedule = [];
+        return;
+      }
+      const words = text.trim().split(/\\s+/).filter(Boolean);
+      const schedule = [];
+      let cumulativeTime = 0;
+      const timeScale = 1.0 / (Math.max(0.4, speed) || 1.0);
+
+      for (const w of words) {
+        const visemes = getWordVisemes(w);
+        const hasPunctuation = /[.,!?;:]$/.test(w);
+
+        for (const v of visemes) {
+          const dur = Math.max(45, v.duration * timeScale);
+          schedule.push({
+            start: cumulativeTime,
+            end: cumulativeTime + dur,
+            yVal: v.yVal,
+            formVal: v.formVal,
+          });
+          cumulativeTime += dur;
+        }
+
+        // Micro-pause between words or after punctuation
+        const pauseDur = hasPunctuation ? (/[.!?]/.test(w) ? 260 : 150) * timeScale : (40 * timeScale);
+        schedule.push({
+          start: cumulativeTime,
+          end: cumulativeTime + pauseDur,
+          yVal: 0.05,
+          formVal: 0.0,
+        });
+        cumulativeTime += pauseDur;
+      }
+
+      speechSchedule = schedule;
+      speechScheduleIndex = 0;
+      speechScheduleStartTime = performance.now();
+      speechDurationMs = cumulativeTime;
+    }
+
+    // Dynamic Upper-Bust Framing Configuration
+    function getModelFraming(name) {
+      if (name === 'chitose') {
+        return {
+          zoom: 2.50,
+          anchor: { x: 0.50, y: 0.22 },
+          yOffset: 10,
+        };
+      }
+      return {
+        zoom: 2.70,
+        anchor: { x: 0.50, y: 0.16 },
+        yOffset: 16,
+      };
+    }
+
+    function framePortrait(viewW, viewH) {
+      if (!model) return;
+      const framing = getModelFraming(currentModelName);
+      const nativeH = (model.internalModel && model.internalModel.height) ? model.internalModel.height : (model.height || 1000);
+
+      if (model.anchor) {
+        model.anchor.set(framing.anchor.x, framing.anchor.y);
+      }
+
+      const baseScale = (viewH * framing.zoom) / nativeH;
+      model.scale.set(baseScale, baseScale);
+
+      model.x = viewW / 2;
+      model.y = (viewH * 0.5) + framing.yOffset;
+    }
 
     async function init() {
+      const container = document.getElementById('canvas-container');
+      const viewW = container.clientWidth || window.innerWidth || 360;
+      const viewH = container.clientHeight || window.innerHeight || 200;
+
+      app = new PIXI.Application({
+        width: viewW,
+        height: viewH,
+        backgroundAlpha: 0,
+        antialias: true,
+        autoDensity: true,
+        resolution: window.devicePixelRatio || 1,
+      });
+
+      container.appendChild(app.view);
+
+      window.addEventListener('resize', onResize);
+      document.addEventListener('pointerdown', onPointerDown);
+      document.addEventListener('pointermove', onPointerMove);
+      document.addEventListener('pointerup', onPointerReset);
+      document.addEventListener('pointercancel', onPointerReset);
+
       try {
-        const container = document.getElementById('canvas-container');
-        const width = container.clientWidth || window.innerWidth || 360;
-        const height = container.clientHeight || window.innerHeight || 200;
+        await loadModel('${initialUrl}', '${initialName}');
 
-        app = new PIXI.Application({
-          width: width,
-          height: height,
-          transparent: true,
-          backgroundAlpha: 0,
-          resolution: Math.min(window.devicePixelRatio || 2, 2.5),
-          autoDensity: true,
-          antialias: true,
-        });
-
-        container.appendChild(app.view);
-
-        PIXI.live2d.Live2DModel.registerTicker(PIXI.Ticker);
-
-        await loadModel('${HARU_MODEL_URL}', 'haru');
-
-        // Touch tracking listeners
-        window.addEventListener('pointermove', onPointerMove);
-        window.addEventListener('pointerdown', onPointerDown);
-        window.addEventListener('pointerup', onPointerReset);
-        window.addEventListener('pointercancel', onPointerReset);
-
-        // Window resize responsive adjustment
-        window.addEventListener('resize', onResize);
-
-        // Core ticker loop (60 FPS fluid rendering)
+        // Continuous 60fps Animation Loop
         app.ticker.add((delta) => {
           if (!model || !model.internalModel) return;
-
           const core = model.internalModel.coreModel;
           if (!core) return;
 
-          const now = Date.now();
-          const t = now / 1000;
+          const now = performance.now();
+          const t = now * 0.001;
 
-          // 1. Natural Breathing Physics (chest & hair resonance)
-          const breath = (Math.sin(t * 1.8) + 1) * 0.45;
+          // 1. Natural Ambient Breathing
+          const breath = (Math.sin(t * 1.5) + 1) * 0.5;
           setParam(core, 'ParamBreath', 'PARAM_BREATH', breath);
 
-          // 2. Autonomous Saccadic Eye Movements (Lifelike Glances)
+          // 2. Autonomous Saccadic Eye Movements
           if (!isPointerInteracting) {
             if (now > nextSaccadeTime) {
               saccadeTargetX = (Math.random() - 0.5) * 0.35;
@@ -169,7 +339,7 @@ const LIVE2D_HTML = `
             setParam(core, 'ParamEyeRSmile', 'PARAM_EYE_R_SMILE', 0.0);
           }
 
-          // 5. State-Driven Posture & Micro-Gestures
+          // 5. State-Driven Posture
           if (currentState === 'thinking') {
             setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', -6.5);
             setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', 3.5 + Math.sin(t * 1.2) * 0.8);
@@ -190,35 +360,75 @@ const LIVE2D_HTML = `
             setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', Math.sin(t * 0.9) * 1.2);
           }
 
-          // 6. Dynamic Phonetic Lip-Sync & Speaking Head Nodding
+          // 6. Phonetic Lip-Sync & Speaking Head Gestures
           if (isSpeaking) {
             mouthPhase += 0.38 * delta;
-            
-            // Dynamic multi-frequency viseme oscillation
-            const rawOpen = Math.abs(Math.sin(mouthPhase)) * 0.75 + Math.abs(Math.cos(mouthPhase * 0.65)) * 0.3;
-            const targetMouthY = Math.min(1.0, Math.max(0.18, rawOpen));
-            const targetMouthForm = isHappy ? 1.0 : (Math.sin(mouthPhase * 0.5) * 0.4 + 0.35);
 
-            currentMouthY += (targetMouthY - currentMouthY) * 0.42;
-            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.42;
+            let targetMouthY = 0;
+            let targetMouthForm = isHappy ? 0.85 : 0.2;
+
+            if (speechSchedule && speechSchedule.length > 0) {
+              const elapsed = now - speechScheduleStartTime;
+              let activeFrame = null;
+
+              for (let f = speechScheduleIndex; f < speechSchedule.length; f++) {
+                if (elapsed >= speechSchedule[f].start && elapsed < speechSchedule[f].end) {
+                  activeFrame = speechSchedule[f];
+                  speechScheduleIndex = f;
+                  break;
+                }
+              }
+
+              if (activeFrame) {
+                const frameElapsed = elapsed - activeFrame.start;
+                const frameDur = activeFrame.end - activeFrame.start;
+                const frameProgress = frameElapsed / frameDur;
+
+                // Attack-Sustain-Decay Envelope per Phoneme
+                let env = 1.0;
+                if (frameProgress < 0.22) env = frameProgress / 0.22;
+                else if (frameProgress > 0.78) env = (1.0 - frameProgress) / 0.22;
+
+                targetMouthY = Math.max(0.12, activeFrame.yVal * env);
+                targetMouthForm = isHappy ? Math.max(0.6, activeFrame.formVal) : activeFrame.formVal;
+              } else if (elapsed > speechDurationMs) {
+                // Harmonic cadence fallback if speech audio is still continuing
+                const rawOpen = Math.abs(Math.sin(mouthPhase * 1.2)) * 0.55 + Math.abs(Math.sin(mouthPhase * 2.0)) * 0.35;
+                targetMouthY = Math.min(1.0, Math.max(0.15, rawOpen));
+                targetMouthForm = isHappy ? 0.9 : (Math.sin(mouthPhase * 0.6) * 0.4 + 0.3);
+              }
+            } else {
+              // High-frequency harmonic cadence fallback
+              const rawOpen = Math.abs(Math.sin(mouthPhase * 1.3)) * 0.55 + Math.abs(Math.sin(mouthPhase * 2.1)) * 0.35;
+              targetMouthY = Math.min(1.0, Math.max(0.18, rawOpen));
+              targetMouthForm = isHappy ? 0.9 : (Math.sin(mouthPhase * 0.5) * 0.4 + 0.35);
+            }
+
+            // Snappy attack, smooth decay lerping
+            const lerpY = targetMouthY > currentMouthY ? 0.55 : 0.38;
+            currentMouthY += (targetMouthY - currentMouthY) * lerpY;
+            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.38;
 
             // Rhythmic speech head bob & body rhythm
             const headBob = (currentLookY * 14) + Math.sin(mouthPhase * 0.7) * 3.2;
-            const headTilt = Math.cos(mouthPhase * 0.4) * 2.0;
+            const headTilt = Math.cos(mouthPhase * 0.45) * 2.0;
+            const bodyBob = Math.sin(mouthPhase * 0.35) * 2.5;
+
             setParam(core, 'ParamAngleY', 'PARAM_ANGLE_Y', headBob);
             setParam(core, 'ParamAngleZ', 'PARAM_ANGLE_Z', headTilt);
-            setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', Math.sin(mouthPhase * 0.35) * 2.5);
+            setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', bodyBob);
           } else {
-            currentMouthY += (0 - currentMouthY) * 0.28;
-            currentMouthForm = isHappy ? 0.9 : 0.2;
+            // Clean return to REST
+            currentMouthY += (0 - currentMouthY) * 0.30;
+            currentMouthForm += ((isHappy ? 0.8 : 0.0) - currentMouthForm) * 0.30;
+            speechSchedule = [];
           }
 
-          // Apply Mouth Open & Form forcefully
-          setParam(core, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', currentMouthY);
-          setParam(core, 'ParamMouthForm', 'PARAM_MOUTH_FORM', currentMouthForm);
+          // Apply Mouth Open & Form forcefully on every frame to CoreModel
+          setParam(core, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, currentMouthY)));
+          setParam(core, 'ParamMouthForm', 'PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, currentMouthForm)));
         });
 
-        // Notify React Native that avatar is ready
         window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
       } catch (err) {
         window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ERROR', message: err.message }));
@@ -260,53 +470,53 @@ const LIVE2D_HTML = `
       const viewW = container.clientWidth || window.innerWidth || 360;
       const viewH = container.clientHeight || window.innerHeight || 200;
       app.renderer.resize(viewW, viewH);
-      const baseScale = Math.min(viewW / model.width, viewH / model.height);
-      const portraitScale = baseScale * 1.85;
-      model.scale.set(portraitScale);
-      model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.20);
-      model.x = viewW / 2;
-      model.y = (viewH / 2) + 2;
+      framePortrait(viewW, viewH);
     }
 
     async function loadModel(url, modelName) {
       if (model) {
-        app.stage.removeChild(model);
-        model.destroy({ children: true });
+        try {
+          app.stage.removeChild(model);
+          model.destroy({ children: true, texture: true, baseTexture: true });
+        } catch(e) {}
         model = null;
       }
 
-      currentModelName = modelName || 'haru';
+      currentModelName = (modelName || 'haru').toLowerCase();
 
       try {
-        model = await PIXI.live2d.Live2DModel.from(url, { autoInteract: false });
+        const Live2DModelClass = await waitForLive2DSDK();
+        if (typeof Live2DModelClass.registerTicker === 'function' && window.PIXI && window.PIXI.Ticker) {
+          try {
+            Live2DModelClass.registerTicker(window.PIXI.Ticker);
+          } catch(e) {}
+        }
+        model = await Live2DModelClass.from(url, { autoInteract: false });
         
-        // Get true physical bounds from the DOM to prevent square fallback stretching
         const container = document.getElementById('canvas-container');
         const viewW = container.clientWidth || window.innerWidth || 360;
         const viewH = container.clientHeight || window.innerHeight || 200;
 
-        // Clean Head-to-Chest Framing: Zoom 1.85x with Face Center in Halo
-        const baseScale = Math.min(viewW / model.width, viewH / model.height);
-        const portraitScale = baseScale * 1.85;
+        framePortrait(viewW, viewH);
 
-        model.scale.set(portraitScale);
-        model.anchor.set(currentModelName === 'chitose' ? 0.50 : 0.52, 0.20);
-        model.x = viewW / 2;
-        model.y = (viewH / 2) + 2;
-
-        // Hook motionManager update to guarantee lipSync is never overridden by idle physics
+        // Hook motionManager update to guarantee lipSync overrides motion curves
         if (model.internalModel && model.internalModel.motionManager) {
           const origUpdate = model.internalModel.motionManager.update ? model.internalModel.motionManager.update.bind(model.internalModel.motionManager) : null;
           if (origUpdate) {
             model.internalModel.motionManager.update = function(coreModel, now) {
               origUpdate(coreModel, now);
               if (coreModel) {
-                setParam(coreModel, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', currentMouthY);
-                setParam(coreModel, 'ParamMouthForm', 'PARAM_MOUTH_FORM', currentMouthForm);
+                setParam(coreModel, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, currentMouthY)));
+                setParam(coreModel, 'ParamMouthForm', 'PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, currentMouthForm)));
               }
             };
           }
         }
+
+        if ('eventMode' in model) {
+          model.eventMode = 'none';
+        }
+        model.interactive = false;
 
         app.stage.addChild(model);
       } catch(err) {
@@ -320,9 +530,19 @@ const LIVE2D_HTML = `
         const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
         if (data.type === 'SPEAK') {
           isSpeaking = Boolean(data.isSpeaking);
+          if (isSpeaking && data.text) {
+            scheduleSpokenText(data.text, data.speed || 1.0);
+          }
         } else if (data.type === 'STATE') {
           currentState = data.state || 'idle';
-          isSpeaking = data.state === 'speaking';
+          isSpeaking = Boolean(data.isSpeaking || data.state === 'speaking');
+          if (isSpeaking && data.text) {
+            scheduleSpokenText(data.text, data.speed || 1.0);
+          }
+        } else if (data.type === 'TEXT') {
+          if (data.text) {
+            scheduleSpokenText(data.text, data.speed || 1.0);
+          }
         } else if (data.type === 'MOOD') {
           currentMood = data.mood || 'neutral';
         } else if (data.type === 'MODEL') {
@@ -343,9 +563,12 @@ const LIVE2D_HTML = `
 </body>
 </html>
 `;
+};
 
 export const Live2DAvatarView = memo(function Live2DAvatarView({
   isSpeaking = false,
+  spokenText = '',
+  speechSpeed = 1.0,
   state = 'idle',
   mood = 'neutral',
   model = 'haru',
@@ -355,8 +578,12 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
 }) {
   const webViewRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
+  const normalizedModel = (model || 'haru').toLowerCase();
 
-  // Send state updates to Live2D WebView
+  const initialModelName = useRef(normalizedModel).current;
+  const htmlSource = useMemo(() => getLive2DHtml(initialModelName), [initialModelName]);
+
+  // Send state and spoken text updates to Live2D WebView
   useEffect(() => {
     if (webViewRef.current && isReady) {
       webViewRef.current.postMessage(
@@ -364,10 +591,12 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
           type: 'STATE',
           state: isSpeaking ? 'speaking' : state,
           isSpeaking,
+          text: spokenText,
+          speed: speechSpeed,
         })
       );
     }
-  }, [isSpeaking, state, isReady]);
+  }, [isSpeaking, spokenText, speechSpeed, state, isReady]);
 
   // Send mood updates
   useEffect(() => {
@@ -387,11 +616,11 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       webViewRef.current.postMessage(
         JSON.stringify({
           type: 'MODEL',
-          model,
+          model: normalizedModel,
         })
       );
     }
-  }, [model, isReady]);
+  }, [normalizedModel, isReady]);
 
   const onMessage = (event) => {
     try {
@@ -400,9 +629,12 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
         setIsReady(true);
         if (onLoaded) onLoaded();
       } else if (data.type === 'ERROR') {
-        if (onError) onError(data.message);
+        console.warn('Live2D WebView Error:', data.message);
+        if (onError) onError(new Error(data.message));
       }
-    } catch (e) {}
+    } catch (e) {
+      // ignore
+    }
   };
 
   return (
@@ -410,24 +642,20 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
-        source={{ html: LIVE2D_HTML }}
-        style={styles.webview}
+        source={{ html: htmlSource }}
+        style={styles.webView}
         scrollEnabled={false}
         bounces={false}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        transparent={true}
-        onMessage={onMessage}
-        onError={(err) => onError && onError(err)}
+        overScrollMode="never"
+        scalesPageToFit={false}
         javaScriptEnabled={true}
         domStorageEnabled={true}
-        androidLayerType="hardware"
+        allowsInlineMediaPlayback={true}
+        mediaPlaybackRequiresUserAction={false}
+        transparent={true}
+        backgroundColor="transparent"
+        onMessage={onMessage}
       />
-      {!isReady && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="small" color="#8B5CF6" />
-        </View>
-      )}
     </View>
   );
 });
@@ -436,18 +664,12 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: '100%',
-    position: 'relative',
     backgroundColor: 'transparent',
-    overflow: 'visible',
+    overflow: 'hidden',
   },
-  webview: {
-    flex: 1,
-    backgroundColor: 'transparent',
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
+  webView: {
+    width: '100%',
+    height: '100%',
     backgroundColor: 'transparent',
   },
 });

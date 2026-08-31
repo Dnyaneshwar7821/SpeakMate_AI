@@ -125,6 +125,8 @@ function ThinkingDots() {
 export default function AIAvatar({
   gender     = 'female',
   isSpeaking = false,
+  spokenText = '',
+  speechSpeed = 1.0,
   state      = 'idle',
   expression,
   style,
@@ -317,7 +319,10 @@ export default function AIAvatar({
         >
           {useLive2D && !live2dError ? (
             <Live2DAvatarView
+              key={targetModel}
               isSpeaking={isSpeaking}
+              spokenText={spokenText}
+              speechSpeed={speechSpeed}
               state={resolvedState}
               mood={isHappy ? 'happy' : 'neutral'}
               model={targetModel}

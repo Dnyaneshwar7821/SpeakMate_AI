@@ -231,6 +231,7 @@ export default function ConversationChatScreen({ navigation, route }) {
   const [recording, setRecording] = useState(false);
   const [statusText, setStatusText] = useState('Waiting for Response');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [currentSpokenText, setCurrentSpokenText] = useState('');
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -278,13 +279,14 @@ export default function ConversationChatScreen({ navigation, route }) {
       }
 
       try {
-        const [settings, onboardingVoice, profile, savedVoice] = await Promise.all([
+        const [settings, onboardingVoice, profile, savedVoice, savedGender] = await Promise.all([
           settingsService.get().catch(() => null),
           AsyncStorage.getItem('speakmate_onboarding_voice'),
           profileService.get().catch(() => null),
           AsyncStorage.getItem('speakmate_selected_voice'),
+          AsyncStorage.getItem('speakmate_voice_gender'),
         ]);
-        const effectiveVoice = savedVoice || settings?.aiVoice || 'Default';
+        const effectiveVoice = savedVoice || settings?.aiVoice || (savedGender === 'male' ? 'US Male' : 'Default');
         setPreferredVoice(effectiveVoice);
         if (onboardingVoice) {
           setOnboardingVoiceStyle(onboardingVoice);
@@ -381,13 +383,14 @@ export default function ConversationChatScreen({ navigation, route }) {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
       try {
-        const [settings, voices, onboardingVoice, savedVoice] = await Promise.all([
+        const [settings, voices, onboardingVoice, savedVoice, savedGender] = await Promise.all([
           settingsService.get().catch(() => null),
           VoiceService.getAvailableEnglishVoices(),
           AsyncStorage.getItem('speakmate_onboarding_voice'),
           AsyncStorage.getItem('speakmate_selected_voice'),
+          AsyncStorage.getItem('speakmate_voice_gender'),
         ]);
-        const effectiveVoice = savedVoice || settings?.aiVoice;
+        const effectiveVoice = savedVoice || settings?.aiVoice || (savedGender === 'male' ? 'US Male' : undefined);
         if (effectiveVoice) {
           setPreferredVoice(effectiveVoice);
         }
@@ -430,6 +433,7 @@ export default function ConversationChatScreen({ navigation, route }) {
 
   const speakText = (text, speedOverride = null) => {
     const effectiveSpeed = speedOverride !== null && speedOverride !== undefined ? speedOverride : speechSpeed;
+    setCurrentSpokenText(text);
     VoiceService.speak(text, {
       isMuted,
       voiceType: preferredVoice,
@@ -442,10 +446,12 @@ export default function ConversationChatScreen({ navigation, route }) {
       onDone: () => {
         setStatusText('Waiting for Response');
         setIsSpeaking(false);
+        setCurrentSpokenText('');
       },
       onError: () => {
         setStatusText('Waiting for Response');
         setIsSpeaking(false);
+        setCurrentSpokenText('');
       }
     });
   };
@@ -490,6 +496,7 @@ export default function ConversationChatScreen({ navigation, route }) {
     }
 
     // Stage 1: Speak ONLY the conversational tutor reply
+    setCurrentSpokenText(mainReply);
     VoiceService.speak(mainReply, {
       isMuted,
       voiceType: preferredVoice,
@@ -505,6 +512,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           setStatusText('Coaching Tip');
           setTimeout(() => {
             if (!isMuted) {
+              setCurrentSpokenText(coachingPhrase);
               VoiceService.speak(coachingPhrase, {
                 isMuted,
                 voiceType: preferredVoice,
@@ -517,10 +525,12 @@ export default function ConversationChatScreen({ navigation, route }) {
                 onDone: () => {
                   setStatusText('Waiting for Response');
                   setIsSpeaking(false);
+                  setCurrentSpokenText('');
                 },
                 onError: () => {
                   setStatusText('Waiting for Response');
                   setIsSpeaking(false);
+                  setCurrentSpokenText('');
                 },
               });
             }
@@ -528,11 +538,13 @@ export default function ConversationChatScreen({ navigation, route }) {
         } else {
           setStatusText('Waiting for Response');
           setIsSpeaking(false);
+          setCurrentSpokenText('');
         }
       },
       onError: () => {
         setStatusText('Waiting for Response');
         setIsSpeaking(false);
+        setCurrentSpokenText('');
       },
     });
   };
@@ -905,6 +917,8 @@ export default function ConversationChatScreen({ navigation, route }) {
           <AIAvatar
             gender={avatarGender}
             isSpeaking={isSpeaking}
+            spokenText={currentSpokenText}
+            speechSpeed={speechSpeed}
             state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
             expression={avatarExpression}
             style={styles.avatar3d}

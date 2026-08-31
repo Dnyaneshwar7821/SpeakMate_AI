@@ -14,110 +14,148 @@ export const VOICE_PROFILES = [
   { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default' },
 ];
 
-// --- Direct Explicit Lookup for Google TTS Voices (Android Local & Network) ---
+// --- Direct Explicit Lookup for Google TTS & System Voices (Android & iOS) ---
 const DIRECT_VOICE_GENDERS = {
+  // US (American)
+  // Female
   'en-us-x-sfg-local': 'female',
   'en-us-x-sfg-network': 'female',
-  'en-us-x-tpf-local': 'female',
-  'en-us-x-tpf-network': 'female',
+  'en-us-x-iom-local': 'female',
+  'en-us-x-iom-network': 'female',
   'en-us-x-iol-local': 'female',
   'en-us-x-iol-network': 'female',
   'en-us-x-rgf-local': 'female',
   'en-us-x-rgf-network': 'female',
-  'en-us-x-iom-local': 'male',
-  'en-us-x-iom-network': 'male',
+  // Male
+  'en-us-x-tpf-local': 'male',
+  'en-us-x-tpf-network': 'male',
   'en-us-x-iog-local': 'male',
   'en-us-x-iog-network': 'male',
   'en-us-x-tpc-local': 'male',
   'en-us-x-tpc-network': 'male',
   
+  // UK (British)
+  // Female
   'en-gb-x-gba-local': 'female',
   'en-gb-x-gba-network': 'female',
   'en-gb-x-gbb-local': 'female',
   'en-gb-x-gbb-network': 'female',
-  'en-gb-x-gbc-local': 'male',
-  'en-gb-x-gbc-network': 'male',
-  'en-gb-x-gbd-local': 'male',
-  'en-gb-x-gbd-network': 'male',
   'en-gb-x-gbf-local': 'female',
   'en-gb-x-gbf-network': 'female',
   'en-gb-x-gbg-local': 'female',
   'en-gb-x-gbg-network': 'female',
-  'en-gb-x-rjs-local': 'male',
-  'en-gb-x-rjs-network': 'male',
   'en-gb-x-fis-local': 'female',
   'en-gb-x-fis-network': 'female',
+  // Male
+  'en-gb-x-gbc-local': 'male',
+  'en-gb-x-gbc-network': 'male',
+  'en-gb-x-gbd-local': 'male',
+  'en-gb-x-gbd-network': 'male',
+  'en-gb-x-rjs-local': 'male',
+  'en-gb-x-rjs-network': 'male',
 
-  'en-au-x-aud-local': 'female',
-  'en-au-x-aud-network': 'female',
+  // AU (Australian)
+  // Female
+  'en-au-x-aub-local': 'female',
+  'en-au-x-aub-network': 'female',
+  'en-au-x-auc-local': 'female',
+  'en-au-x-auc-network': 'female',
   'en-au-x-auf-local': 'female',
   'en-au-x-auf-network': 'female',
   'en-au-x-aug-local': 'female',
   'en-au-x-aug-network': 'female',
-  'en-au-x-aum-local': 'male',
-  'en-au-x-aum-network': 'male',
-  'en-au-x-aub-local': 'male',
-  'en-au-x-aub-network': 'male',
-  'en-au-x-auc-local': 'male',
-  'en-au-x-auc-network': 'male',
+  'en-au-x-aum-local': 'female',
+  'en-au-x-aum-network': 'female',
   'en-au-x-cta-local': 'female',
   'en-au-x-cta-network': 'female',
-  'en-au-x-ctb-local': 'male',
-  'en-au-x-ctb-network': 'male',
   'en-au-x-ctc-local': 'female',
   'en-au-x-ctc-network': 'female',
+  // Male
+  'en-au-x-aud-local': 'male',
+  'en-au-x-aud-network': 'male',
+  'en-au-x-ctb-local': 'male',
+  'en-au-x-ctb-network': 'male',
   'en-au-x-ctd-local': 'male',
   'en-au-x-ctd-network': 'male',
 
-  'en-in-x-ind-local': 'female',
-  'en-in-x-ind-network': 'female',
+  // IN (Indian)
+  // Female
   'en-in-x-inf-local': 'female',
   'en-in-x-inf-network': 'female',
   'en-in-x-ing-local': 'female',
   'en-in-x-ing-network': 'female',
-  'en-in-x-inm-local': 'male',
-  'en-in-x-inm-network': 'male',
+  'en-in-x-inm-local': 'female',
+  'en-in-x-inm-network': 'female',
+  'en-in-x-cbf-local': 'female',
+  'en-in-x-cbf-network': 'female',
+  'en-in-x-ena-local': 'female',
+  'en-in-x-ena-network': 'female',
+  'en-in-x-enc-local': 'female',
+  'en-in-x-enc-network': 'female',
+  // Male
+  'en-in-x-ind-local': 'male',
+  'en-in-x-ind-network': 'male',
   'en-in-x-inb-local': 'male',
   'en-in-x-inb-network': 'male',
   'en-in-x-inc-local': 'male',
   'en-in-x-inc-network': 'male',
+  'en-in-x-end-local': 'male',
+  'en-in-x-end-network': 'male',
 
+  // CA (Canadian)
+  // Female
   'en-ca-x-caa-local': 'female',
   'en-ca-x-caa-network': 'female',
+  'en-ca-x-cad-local': 'female',
+  'en-ca-x-cad-network': 'female',
+  // Male
   'en-ca-x-cab-local': 'male',
   'en-ca-x-cab-network': 'male',
   'en-ca-x-cac-local': 'male',
   'en-ca-x-cac-network': 'male',
-  'en-ca-x-cad-local': 'female',
-  'en-ca-x-cad-network': 'female',
 };
 
 // --- Classifier to detect if a voice is female ---
 const isFemalePattern = (id, name, voiceGender) => {
   if (voiceGender) {
-    const g = voiceGender.toLowerCase();
+    const g = String(voiceGender).toLowerCase();
     if (g === 'female') return true;
     if (g === 'male') return false;
   }
 
-  const normId = id.replace(/^.*:/, ''); // removes service prefix
+  const normId = String(id || '').toLowerCase().replace(/^.*:/, '');
   if (DIRECT_VOICE_GENDERS[normId]) {
     return DIRECT_VOICE_GENDERS[normId] === 'female';
   }
 
-  const combined = `${name} ${id}`;
+  const combined = `${name || ''} ${id || ''}`.toLowerCase();
 
-  // Wavenet / Standard suffix letter check (A/C/E = Female, B/D/F = Male)
-  const wavenetMatch = name.match(/(wavenet|standard|neural2)[-_]([a-f])/i);
-  if (wavenetMatch) {
-    const letter = wavenetMatch[2].toLowerCase();
-    return ['a', 'c', 'e'].includes(letter);
+  // Explicit male indicator substrings (checked first)
+  const maleKeywords = [
+    'david', 'daniel', 'george', 'alex', 'bruce', 'tom', 'fred', 'oliver', 'rishi',
+    'ravi', 'prabhat', 'aaron', 'guy', 'mister', 'mike', 'james', 'mark', 'paul',
+    'richard', 'robert', 'stephen', 'william', 'russell', 'neel', 'lee', 'male', 'man'
+  ];
+  if (maleKeywords.some(k => combined.includes(k))) {
+    return false;
   }
 
-  const generalMatch = name.match(/[-_ ]([a-f])([-_ ]|$|\()/i);
-  if (generalMatch) {
-    const letter = generalMatch[1].toLowerCase();
-    return ['a', 'c', 'e'].includes(letter);
+  // Explicit female indicator substrings
+  const femaleKeywords = [
+    'samantha', 'victoria', 'karen', 'tessa', 'moira', 'fiona', 'catherine', 'cathy',
+    'kate', 'serena', 'nicky', 'alice', 'allison', 'joanna', 'ivy', 'kendra', 'kimberly',
+    'salli', 'emma', 'amy', 'jessa', 'claire', 'vicki', 'lekha', 'veena', 'heera', 'zira',
+    'hazel', 'zosia', 'zoe', 'susan', 'aria', 'jenny', 'natasha', 'female', 'woman'
+  ];
+  if (femaleKeywords.some(k => combined.includes(k))) {
+    return true;
+  }
+
+  // Wavenet / Neural / Standard letter check (A/C/E/G = Female, B/D/F = Male)
+  const wavenetMatch = combined.match(/(wavenet|standard|neural2|journey)[-_ ]([a-g])/i);
+  if (wavenetMatch) {
+    const letter = wavenetMatch[2].toLowerCase();
+    return ['a', 'c', 'e', 'g'].includes(letter);
   }
 
   // Siri Voice specific gender handling
@@ -128,36 +166,9 @@ const isFemalePattern = (id, name, voiceGender) => {
     if (combined.includes('voice 2') || combined.includes('voice 4') || combined.includes('voice_2') || combined.includes('voice_4')) {
       return true;
     }
-    return !id.includes('en-au');
   }
 
-  // Name string indicators
-  const femaleNames = [
-    'samantha', 'victoria', 'karen', 'tessa', 'moira', 'fiona', 'catherine', 'cathy',
-    'kate', 'serena', 'nicky', 'alice', 'allison', 'joanna', 'ivy', 'kendra', 'kimberly',
-    'salli', 'emma', 'amy', 'jessa', 'claire', 'vicki', 'lekha', 'veena', 'zira', 'hazel',
-    'zosia', 'zoe', 'susan', 'aria', 'female'
-  ];
-  if (femaleNames.some(n => combined.includes(n))) return true;
-
-  const maleNames = [
-    'david', 'daniel', 'george', 'alex', 'bruce', 'tom', 'fred', 'oliver', 'rishi',
-    'aaron', 'guy', 'mister', 'mike', 'james', 'mark', 'paul', 'richard', 'robert',
-    'stephen', 'william', 'neel', 'lee', 'diego', 'carlos', 'jorge', 'male'
-  ];
-  if (maleNames.some(n => combined.includes(n))) return false;
-
-  // Suffix character heuristics fallback
-  const matchX = id.match(/[-_]x[-_]([a-z0-9]+)/);
-  if (matchX) {
-    const code = matchX[1];
-    const lastChar = code.charAt(code.length - 1);
-    if (['f', 'd', 'e', 'h', 'j', 'g'].includes(lastChar)) {
-      return code !== 'iog';
-    }
-  }
-
-  return false; // Default fallback to male/unknown
+  return false; // Default fallback to male
 };
 
 const sortVoices = (voices) =>
@@ -187,8 +198,8 @@ export const VoiceService = {
     if (profile?.gender) return profile.gender;
 
     const normalized = (resolvedVoice || '').toLowerCase();
+    if (normalized.includes('male') && !normalized.includes('female')) return 'male';
     if (normalized.includes('female')) return 'female';
-    if (normalized.includes('male')) return 'male';
 
     return 'female';
   },
@@ -239,6 +250,17 @@ export const VoiceService = {
         if (notExplicitlyMale) return { voice: notExplicitlyMale, isFallback: true };
       }
 
+      // Step 3: Fallback for male target: find first locale voice that is NOT explicitly female
+      if (targetGender === 'male') {
+        const notExplicitlyFemale = localeVoices.find(v => {
+          const id = (v.identifier || '').toLowerCase();
+          const name = (v.name || '').toLowerCase();
+          const isFemale = isFemalePattern(id, name, v.gender);
+          return !isFemale;
+        });
+        if (notExplicitlyFemale) return { voice: notExplicitlyFemale, isFallback: true };
+      }
+
       // Fallback: Use first locale voice
       return { voice: localeVoices[0], isFallback: true, fallbackReason: 'Locale default' };
     }
@@ -264,22 +286,11 @@ export const VoiceService = {
 
     const gs = (voiceCode || '').toLowerCase();
 
-    const isDefaultOrOnboarding = gs.includes('default') || 
-                                  gs.includes('friendly') || 
-                                  gs.includes('professional') || 
-                                  gs.includes('calm') || 
-                                  gs.includes('teacher') || 
-                                  gs.includes('energetic') || 
-                                  gs.includes('native');
-
-    const isBritish = gs.includes('uk') || gs.includes('british') || gs.includes('gb');
     let targetGender = 'female';
-    if (!isDefaultOrOnboarding) {
-      if (gs.includes('female')) {
-        targetGender = isBritish ? 'female' : 'male';
-      } else if (gs.includes('male')) {
-        targetGender = isBritish ? 'male' : 'female';
-      }
+    if (gs.includes('male') && !gs.includes('female')) {
+      targetGender = 'male';
+    } else if (gs.includes('female')) {
+      targetGender = 'female';
     }
 
     let targetLocale = 'en-us';
@@ -292,15 +303,15 @@ export const VoiceService = {
     const mapping = VoiceService.findBestVoice(availableVoices, targetLocale, targetGender);
     let selected = mapping && mapping.voice ? mapping.voice.identifier : null;
 
-    // Safety validation override: If a female voice is requested, but the matcher resolved
-    // to a male voice (e.g. by locale default fallback), override and select a female voice.
-    if (targetGender === 'female' && selected) {
+    // Safety validation override: ensure gender matches targetGender
+    if (selected) {
       const selectedVoiceObj = availableVoices.find(v => v.identifier === selected);
       if (selectedVoiceObj) {
         const id = (selectedVoiceObj.identifier || '').toLowerCase();
         const name = (selectedVoiceObj.name || '').toLowerCase();
         const isFemale = isFemalePattern(id, name, selectedVoiceObj.gender);
-        if (!isFemale) {
+
+        if (targetGender === 'female' && !isFemale) {
           // Scan for any confirmed female voice in the available voice pool
           const anyFemale = availableVoices.find(v => {
             const vid = (v.identifier || '').toLowerCase();
@@ -309,6 +320,16 @@ export const VoiceService = {
           });
           if (anyFemale) {
             selected = anyFemale.identifier;
+          }
+        } else if (targetGender === 'male' && isFemale) {
+          // Scan for any confirmed male voice in the available voice pool
+          const anyMale = availableVoices.find(v => {
+            const vid = (v.identifier || '').toLowerCase();
+            const vname = (v.name || '').toLowerCase();
+            return !isFemalePattern(vid, vname, v.gender);
+          });
+          if (anyMale) {
+            selected = anyMale.identifier;
           }
         }
       }
@@ -429,15 +450,13 @@ export const VoiceService = {
       else if (gs.includes('ca') || gs.includes('canadian'))                      targetLocale = 'en-ca';
     }
 
-    // ── 4. Gender & swap logic ────────────────────────────────────────────────
-    // Onboarding voices are always female — skip swap logic for them.
+    // ── 4. Gender logic ──────────────────────────────────────────────────────
     let targetGender = voiceConfig?.gender || 'female';
     if (!voiceConfig) {
-      const isBritish = gs.includes('uk') || gs.includes('british') || gs.includes('gb');
-      if (gs.includes('female')) {
-        targetGender = isBritish ? 'female' : 'male';
-      } else if (gs.includes('male')) {
-        targetGender = isBritish ? 'male' : 'female';
+      if (gs.includes('male') && !gs.includes('female')) {
+        targetGender = 'male';
+      } else if (gs.includes('female')) {
+        targetGender = 'female';
       }
     }
 

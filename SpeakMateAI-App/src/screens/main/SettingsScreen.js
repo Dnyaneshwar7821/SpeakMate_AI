@@ -169,6 +169,8 @@ export default function SettingsScreen({ navigation }) {
   const modalBg = isDark ? '#1E293B' : '#FFFFFF';
   const optionActiveBg = isDark ? '#334155' : '#EEF2FF';
 
+  const isMaleTutor = VoiceService.getAvatarGender(form.aiVoice, onboardingVoiceStyle) === 'male';
+
   // Filtered languages based on search query
   const filteredLanguages = LANGUAGE_OPTIONS.filter((lang) => 
     lang.label.toLowerCase().includes(languageSearch.toLowerCase()) || 
@@ -190,8 +192,9 @@ export default function SettingsScreen({ navigation }) {
               <View style={styles.statusInfo}>
                 <Text style={styles.statusLabel}>ACTIVE SPEAKING TUTOR</Text>
                 <Text style={[styles.statusVoiceName, { color: labelColor }]}>
+                  {isMaleTutor ? '👨 Chitose (Male)' : '👩 Haru (Female)'} •{' '}
                   {OnboardingVoiceService.isSystemDefault(form.aiVoice)
-                    ? `System Default (${onboardingVoiceStyle})`
+                    ? `Default (${onboardingVoiceStyle})`
                     : (VOICE_PROFILES.find((o) => o.code === form.aiVoice)?.label || form.aiVoice)}
                 </Text>
               </View>
@@ -246,6 +249,88 @@ export default function SettingsScreen({ navigation }) {
             <Text style={[styles.sectionHeader, { color: sublabelColor }]}>Learning Preferences</Text>
           </View>
           <Card style={{ backgroundColor: isDark ? '#1E293B' : '#FFFFFF' }}>
+            {/* AI TUTOR AVATAR SWITCHER */}
+            <View style={styles.tutorSection}>
+              <Text style={[styles.rowTitle, { color: labelColor, marginBottom: 2 }]}>AI Speaking Tutor Avatar</Text>
+              <Text style={[styles.rowDesc, { color: sublabelColor, marginBottom: 12 }]}>Select your Live2D avatar practice partner</Text>
+              
+              <View style={styles.tutorCardsRow}>
+                {/* HARU (FEMALE) */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={async () => {
+                    const nextVoice = 'Default';
+                    update('aiVoice', nextVoice);
+                    try {
+                      await AsyncStorage.setItem('speakmate_selected_voice', nextVoice);
+                      await AsyncStorage.setItem('speakmate_ai_voice', nextVoice);
+                      await AsyncStorage.setItem('speakmate_voice_gender', 'female');
+                      settingsService.update({ ...form, aiVoice: nextVoice }).catch(() => {});
+                    } catch (e) {}
+                    VoiceService.speak("Hello! I am Haru, your AI English tutor.", {
+                      voiceType: nextVoice,
+                      availableVoices,
+                    });
+                  }}
+                  style={[
+                    styles.tutorCard,
+                    {
+                      backgroundColor: !isMaleTutor ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#0F172A' : '#F8FAFC'),
+                      borderColor: !isMaleTutor ? '#6366F1' : (isDark ? '#334155' : '#E2E8F0'),
+                      borderWidth: !isMaleTutor ? 2 : 1,
+                    }
+                  ]}
+                >
+                  <Text style={styles.tutorCardEmoji}>👩</Text>
+                  <Text style={[styles.tutorCardName, { color: !isMaleTutor ? '#6366F1' : labelColor }]}>Haru (Female)</Text>
+                  <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>Warm & encouraging</Text>
+                  {!isMaleTutor && (
+                    <View style={styles.tutorCheckmark}>
+                      <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+
+                {/* CHITOSE (MALE) */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={async () => {
+                    const nextVoice = 'US Male';
+                    update('aiVoice', nextVoice);
+                    try {
+                      await AsyncStorage.setItem('speakmate_selected_voice', nextVoice);
+                      await AsyncStorage.setItem('speakmate_ai_voice', nextVoice);
+                      await AsyncStorage.setItem('speakmate_voice_gender', 'male');
+                      settingsService.update({ ...form, aiVoice: nextVoice }).catch(() => {});
+                    } catch (e) {}
+                    VoiceService.speak("Hello! I am Chitose, your AI English tutor.", {
+                      voiceType: nextVoice,
+                      availableVoices,
+                    });
+                  }}
+                  style={[
+                    styles.tutorCard,
+                    {
+                      backgroundColor: isMaleTutor ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#0F172A' : '#F8FAFC'),
+                      borderColor: isMaleTutor ? '#6366F1' : (isDark ? '#334155' : '#E2E8F0'),
+                      borderWidth: isMaleTutor ? 2 : 1,
+                    }
+                  ]}
+                >
+                  <Text style={styles.tutorCardEmoji}>👨</Text>
+                  <Text style={[styles.tutorCardName, { color: isMaleTutor ? '#6366F1' : labelColor }]}>Chitose (Male)</Text>
+                  <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>Confident & supportive</Text>
+                  {isMaleTutor && (
+                    <View style={styles.tutorCheckmark}>
+                      <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={[styles.divider, { backgroundColor: dividerColor }]} />
+
             {/* Target Language Selector */}
             <TouchableOpacity 
               style={styles.pickerRow} 
@@ -283,7 +368,7 @@ export default function SettingsScreen({ navigation }) {
                   <Ionicons name="volume-medium" size={18} color="#7C3AED" />
                 </View>
                 <View style={{ flex: 1, paddingRight: 8 }}>
-                  <Text style={[styles.rowTitle, { color: labelColor }]}>AI Speaking Voice</Text>
+                  <Text style={[styles.rowTitle, { color: labelColor }]}>Voice Accent & Dialect</Text>
                   <Text style={[styles.rowDesc, { color: sublabelColor }]}>Audio pronunciation tutor model</Text>
                 </View>
               </View>
@@ -592,6 +677,7 @@ export default function SettingsScreen({ navigation }) {
                         try {
                           await AsyncStorage.setItem('speakmate_selected_voice', profile.code);
                           await AsyncStorage.setItem('speakmate_ai_voice', profile.code);
+                          await AsyncStorage.setItem('speakmate_voice_gender', profile.gender || 'female');
                           settingsService.update({ ...form, aiVoice: profile.code }).catch(() => {});
                         } catch (e) {
                           console.warn('Failed to save selected voice preference:', e);
@@ -649,42 +735,37 @@ export default function SettingsScreen({ navigation }) {
           <View style={styles.modalOverlay}>
             <View style={[styles.modalContent, { backgroundColor: modalBg }]}>
               <View style={[styles.modalHeader, { borderBottomColor: dividerColor }]}>
-                <Text style={[styles.modalTitle, { color: labelColor }]}>Select Your Age Group</Text>
+                <Text style={[styles.modalTitle, { color: labelColor }]}>Select Target Age Group</Text>
                 <TouchableOpacity onPress={() => setShowAgeModal(false)}>
                   <Ionicons name="close" size={24} color={sublabelColor} />
                 </TouchableOpacity>
               </View>
 
               <ScrollView showsVerticalScrollIndicator={false} style={styles.modalScrollView}>
-                {AGE_OPTIONS.map((opt) => {
-                  const isSelected = form.ageGroup === opt.code;
+                {AGE_OPTIONS.map((item) => {
+                  const isSelected = form.ageGroup === item.code;
                   return (
                     <TouchableOpacity
-                      key={opt.code}
+                      key={item.code}
                       style={[
                         styles.modalOptionRow,
-                        isSelected && { backgroundColor: optionActiveBg },
-                        { paddingVertical: 12 }
+                        isSelected && { backgroundColor: optionActiveBg }
                       ]}
                       onPress={() => {
-                        update('ageGroup', opt.code);
+                        update('ageGroup', item.code);
                         setShowAgeModal(false);
                       }}
                       activeOpacity={0.7}
                     >
                       <View style={{ flex: 1, paddingRight: 8 }}>
-                        <Text
-                          style={[
-                            styles.modalOptionText,
-                            { color: isDark ? '#E2E8F0' : '#475569', fontWeight: '600' },
-                            isSelected && { color: COLORS.primary }
-                          ]}
-                        >
-                          {opt.label}
+                        <Text style={[
+                          styles.modalOptionText,
+                          { color: isDark ? '#E2E8F0' : '#475569' },
+                          isSelected && { color: COLORS.primary }
+                        ]}>
+                          {item.label}
                         </Text>
-                        <Text style={{ fontSize: 12, color: sublabelColor, marginTop: 2 }}>
-                          {opt.desc}
-                        </Text>
+                        <Text style={[styles.modalOptionSubtext, { color: sublabelColor }]}>{item.desc}</Text>
                       </View>
                       {isSelected && (
                         <Ionicons name="checkmark" size={20} color={COLORS.primary} />
@@ -704,15 +785,11 @@ export default function SettingsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingBottom: 30,
-    paddingHorizontal: 4,
+    paddingBottom: 40,
   },
   statusCard: {
-    padding: 16,
-    borderRadius: 20,
+    marginBottom: 20,
     borderWidth: 1,
-    marginTop: 8,
-    marginBottom: 12,
   },
   statusContainer: {
     flexDirection: 'row',
@@ -724,53 +801,80 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: 12,
   },
   statusInfo: {
     flex: 1,
-    marginLeft: 14,
   },
   statusLabel: {
-    fontSize: 9,
-    fontWeight: '900',
+    fontSize: 10,
+    fontWeight: '800',
     color: '#7C3AED',
     letterSpacing: 0.8,
+    marginBottom: 2,
   },
   statusVoiceName: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '800',
-    marginTop: 2,
   },
   waveContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
+    height: 24,
   },
   waveBar: {
     width: 3,
-    borderRadius: 1.5,
+    borderRadius: 2,
   },
   sectionHeaderContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 8,
-    paddingLeft: 4,
     gap: 6,
+    marginBottom: 8,
+    marginTop: 6,
+    paddingHorizontal: 4,
   },
   sectionHeader: {
-    fontSize: 11,
-    fontWeight: '900',
+    fontSize: 12,
+    fontWeight: '800',
     textTransform: 'uppercase',
-    letterSpacing: 0.8,
+    letterSpacing: 0.5,
   },
-  iconBox: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
+  tutorSection: {
+    paddingVertical: 12,
+  },
+  tutorCardsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  tutorCard: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    position: 'relative',
+  },
+  tutorCardEmoji: {
+    fontSize: 28,
+    marginBottom: 6,
+  },
+  tutorCardName: {
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 2,
+    textAlign: 'center',
+  },
+  tutorCardDesc: {
+    fontSize: 10,
+    fontWeight: '600',
+    textAlign: 'center',
+    lineHeight: 14,
+  },
+  tutorCheckmark: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
   },
   pickerRow: {
     flexDirection: 'row',
@@ -782,20 +886,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    paddingRight: 8,
   },
-  pickerRowRight: {
-    flexDirection: 'row',
+  iconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'center',
+    marginRight: 12,
   },
   rowTitle: {
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   rowDesc: {
     fontSize: 11,
     marginTop: 2,
-    fontWeight: '600',
+    fontWeight: '500',
+  },
+  pickerRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   pickerValueText: {
     fontSize: 13,

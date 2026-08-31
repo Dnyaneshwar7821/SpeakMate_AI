@@ -4,7 +4,7 @@ import { getPrimaryVisemeForWord } from '../utils/PhoneticVisemeEngine';
 
 /**
  * Universal Parameter Applier for Cubism 2 (Chitose) and Cubism 4 (Haru)
- * This safely applies parameters directly to the CoreModel buffers.
+ * Safely applies parameters directly to the CoreModel buffers every frame.
  */
 function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   if (!model || !model.internalModel) return;
@@ -14,14 +14,14 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   if (!cm) return;
 
   const t = performance.now() * 0.001;
-  const vocalHeadY = isSpeaking ? Math.sin(t * 2.2) * 2.5 : 0;
-  const vocalHeadZ = isSpeaking ? Math.sin(t * 1.4) * 1.5 : 0;
-  const vocalBodyX = isSpeaking ? Math.sin(t * 1.0) * 1.2 : 0;
+  const vocalHeadY = isSpeaking ? Math.sin(t * 2.4) * 2.8 : 0;
+  const vocalHeadZ = isSpeaking ? Math.cos(t * 1.5) * 1.8 : 0;
+  const vocalBodyX = isSpeaking ? Math.sin(t * 1.1) * 1.4 : 0;
 
   // 1. Cubism 4 (Haru)
   if (typeof cm.setParameterValueById === 'function') {
-    try { cm.setParameterValueById('ParamMouthOpenY', yVal); } catch (_) {}
-    try { cm.setParameterValueById('ParamMouthForm', formVal); } catch (_) {}
+    try { cm.setParameterValueById('ParamMouthOpenY', Math.max(0, Math.min(1.0, yVal))); } catch (_) {}
+    try { cm.setParameterValueById('ParamMouthForm', Math.max(-1.0, Math.min(1.0, formVal))); } catch (_) {}
     if (isSpeaking) {
       try { cm.setParameterValueById('ParamAngleY', vocalHeadY); } catch (_) {}
       try { cm.setParameterValueById('ParamAngleZ', vocalHeadZ); } catch (_) {}
@@ -31,8 +31,8 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   
   // 2. Cubism 2 (Chitose)
   if (typeof cm.setParamFloat === 'function') {
-    try { cm.setParamFloat('PARAM_MOUTH_OPEN_Y', yVal); } catch (_) {}
-    try { cm.setParamFloat('PARAM_MOUTH_FORM', formVal); } catch (_) {}
+    try { cm.setParamFloat('PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, yVal))); } catch (_) {}
+    try { cm.setParamFloat('PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, formVal))); } catch (_) {}
     if (isSpeaking) {
       try { cm.setParamFloat('PARAM_ANGLE_Y', vocalHeadY); } catch (_) {}
       try { cm.setParamFloat('PARAM_ANGLE_Z', vocalHeadZ); } catch (_) {}
@@ -43,7 +43,7 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
 
 /**
  * useLipSync Custom Hook
- * Overrides motionManager.update to guarantee 100% mouth visibility.
+ * Connects SpeechSynthesis & EventBus to Live2D avatars for perfect phonetic viseme sync.
  */
 export function useLipSync(model, isSpeakingProp = false) {
   const currentMouthY = useRef(0);
@@ -83,7 +83,6 @@ export function useLipSync(model, isSpeakingProp = false) {
       if (typeof window !== 'undefined') window._speakmate_ai_is_speaking = true;
       speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 6000);
       
-      // Crucial: Update the timestamp for the perfect sync envelope!
       lastWordTimeRef.current = performance.now();
 
       const word = data?.word || '';
@@ -115,7 +114,7 @@ export function useLipSync(model, isSpeakingProp = false) {
     };
   }, []);
 
-  // Animation calculation loop
+  // Animation calculation loop (Continuous 60 FPS)
   useEffect(() => {
     const updateStateLoop = () => {
       const now = performance.now();
@@ -145,7 +144,7 @@ export function useLipSync(model, isSpeakingProp = false) {
         } else if (timeSinceWord < 380) {
           envelope = 1.0 - ((timeSinceWord - 240) / 140); // Decay
         } else {
-          // Robust universal speech cadence fallback (For voices that do not fire onboundary events)
+          // Robust universal multi-frequency speech cadence fallback
           const harmonicCadence = Math.abs(Math.sin(t * 11.5)) * 0.45 + Math.abs(Math.sin(t * 17.2)) * 0.35 + 0.2;
           envelope = Math.min(1.0, Math.max(0.25, harmonicCadence));
         }
@@ -155,13 +154,18 @@ export function useLipSync(model, isSpeakingProp = false) {
         targetMouthForm = phoneticForm;
       }
 
-      const lerpSpeed = isSpeaking ? 0.35 : 0.15;
+      const lerpSpeed = isSpeaking ? 0.40 : 0.20;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
 
       if (!isSpeaking && currentMouthY.current < 0.01) {
         currentMouthY.current = 0;
         currentMouthForm.current = 0;
+      }
+
+      // Apply directly to model core on every frame
+      if (model) {
+        applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isSpeaking);
       }
 
       rafRef.current = requestAnimationFrame(updateStateLoop);
@@ -171,9 +175,9 @@ export function useLipSync(model, isSpeakingProp = false) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isSpeakingProp]);
+  }, [model, isSpeakingProp]);
 
-  // The Bulletproof Engine Hook
+  // Hook motionManager update to guarantee mouth parameter overrides motion curves
   useEffect(() => {
     if (!model || !model.internalModel || !model.internalModel.motionManager) return;
 
@@ -182,10 +186,8 @@ export function useLipSync(model, isSpeakingProp = false) {
 
     if (originalMotionUpdate) {
       motionManager.update = function (coreModel, now) {
-        // Run standard motions first
         originalMotionUpdate(coreModel, now);
 
-        // Calculate current speech status
         const currentTime = performance.now();
         const isGlobalLock = typeof window !== 'undefined' && Boolean(window._speakmate_ai_is_speaking);
         const isWithinDeadline = currentTime < speechDeadline.current;
@@ -194,7 +196,6 @@ export function useLipSync(model, isSpeakingProp = false) {
         );
         const isSpeaking = Boolean(isGlobalLock || activeSpeaking.current || isSpeakingProp || isSynthesizing || isWithinDeadline);
 
-        // Apply our mouth parameters FORCEFULLY overriding any idle/speech curves
         applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isSpeaking);
       };
     }
