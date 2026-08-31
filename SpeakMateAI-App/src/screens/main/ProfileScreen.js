@@ -421,6 +421,10 @@ export default function ProfileScreen({ navigation }) {
   const currentSchoolGrade = user?.schoolGrade || state.profile?.schoolGrade || '1st Std';
   const currentEnglishLevel = user?.englishLevel || state.profile?.englishLevel || 'Beginner';
   const currentAgeGroup = user?.ageGroup || state.profile?.ageGroup || 'Professional';
+  const isKidsAgeGroup = Boolean(
+    (currentAgeGroup && currentAgeGroup.toLowerCase() === 'kids') ||
+    (isStudent && currentSchoolGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(currentSchoolGrade.toLowerCase()))
+  );
 
   // Custom colors for dark mode sync
   const cardBg = isDark ? '#1E293B' : '#FFFFFF';
