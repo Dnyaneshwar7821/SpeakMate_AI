@@ -352,6 +352,11 @@ const getLive2DHtml = (initialModel = 'haru') => {
         const col = this.collarGfx;
         col.clear();
 
+        // Soft chin shadow behind collar
+        col.beginFill(0x0F172A, 0.15);
+        col.drawEllipse(0, 33, 48, 6);
+        col.endFill();
+
         // Bright Red Collar Band
         col.beginFill(0xEF4444);
         col.lineStyle(3, 0x0F172A);
@@ -374,25 +379,20 @@ const getLive2DHtml = (initialModel = 'haru') => {
         col.moveTo(0, 57.5);
         col.lineTo(0, 64);
 
-        // --- 3. Head Base: Round Cyan-Blue Robotic Sphere (No pointy animal ears!) ---
+        // --- 3. Head Base: Clean Spherical Cyan-Blue Robotic Head ---
         const hg = this.headBaseGfx;
         hg.clear();
 
         // Large Spherical Robot Head
         hg.beginFill(0x0284C7);
-        hg.lineStyle(4, 0x0F172A);
+        hg.lineStyle(3.8, 0x0F172A);
         hg.drawCircle(0, -32, 82);
-        hg.endFill();
-
-        // Soft Futuristic Highlight on Head
-        hg.beginFill(0x38BDF8, 0.45);
-        hg.drawEllipse(-28, -80, 24, 12);
         hg.endFill();
 
         // White Face Plate (Lower Face Disc)
         hg.beginFill(0xFFFFFF);
         hg.lineStyle(3.2, 0x0F172A);
-        hg.drawEllipse(0, -18, 68, 56);
+        hg.drawEllipse(0, -18, 70, 56);
         hg.endFill();
 
         // --- 4. Red Button Nose & 6 Whiskers ---
@@ -438,13 +438,33 @@ const getLive2DHtml = (initialModel = 'haru') => {
         const lOffset = Math.sin(t) * 4;
         const rOffset = Math.cos(t) * 4;
 
-        // Left Round White Robotic Hand
+        // Left Cyan-Blue Robotic Arm
+        lh.beginFill(0x0284C7);
+        lh.lineStyle(3, 0x0F172A);
+        lh.moveTo(-44, 48);
+        lh.lineTo(-66, 68 + lOffset);
+        lh.lineTo(-56, 76 + lOffset);
+        lh.lineTo(-38, 58);
+        lh.closePath();
+        lh.endFill();
+
+        // Left Round White Robotic Hand (Paw)
         lh.beginFill(0xFFFFFF);
         lh.lineStyle(3, 0x0F172A);
         lh.drawCircle(-66, 68 + lOffset, 16);
         lh.endFill();
 
-        // Right Round White Robotic Hand
+        // Right Cyan-Blue Robotic Arm
+        rh.beginFill(0x0284C7);
+        rh.lineStyle(3, 0x0F172A);
+        rh.moveTo(44, 48);
+        rh.lineTo(66, 68 + rOffset);
+        rh.lineTo(56, 76 + rOffset);
+        rh.lineTo(38, 58);
+        rh.closePath();
+        rh.endFill();
+
+        // Right Round White Robotic Hand (Paw)
         rh.beginFill(0xFFFFFF);
         rh.lineStyle(3, 0x0F172A);
         rh.drawCircle(66, 68 + rOffset, 16);
@@ -606,10 +626,10 @@ const getLive2DHtml = (initialModel = 'haru') => {
     function framePortrait(viewW, viewH) {
       if (!model) return;
       if (model.isDoraemonPuppet) {
-        const baseScale = (viewH * 0.78) / 200;
+        const baseScale = (viewH * 0.88) / 200;
         model.scale.set(baseScale, baseScale);
         model.x = viewW / 2;
-        model.y = viewH * 0.52;
+        model.y = viewH * 0.50;
         return;
       }
       const framing = getModelFraming(currentModelName);
