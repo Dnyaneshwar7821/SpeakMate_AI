@@ -71,7 +71,7 @@ export async function openRazorpayCheckout({ orderData, onSuccess, onFailure, on
 
   const options = {
     key: orderData.razorpayKeyId,
-    amount: orderData.amountInPaise,
+    amount: (orderData.planType === 'MONTHLY_PRO' || orderData.planType === 'MONTHLY') ? 100 : (orderData.amountInPaise || 119900),
     currency: orderData.currency || "INR",
     name: "SpeakMate AI",
     description: orderData.description || "SpeakMate Pro Plan",

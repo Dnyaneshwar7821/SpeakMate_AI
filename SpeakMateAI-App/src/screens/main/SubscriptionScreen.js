@@ -96,7 +96,7 @@ export default function SubscriptionScreen({ navigation }) {
 
       const razorpayKey = order.razorpayKeyId || order.keyId || 'rzp_test_SpeakMateAiDev';
       const orderId = order.razorpayOrderId || order.orderId;
-      const amountPaise = order.amountInPaise || (order.amount ? Math.round(Number(order.amount) * 100) : (planType === 'YEARLY_PRO' ? 119900 : 100));
+      const amountPaise = planType === 'MONTHLY_PRO' ? 100 : (order.amountInPaise || (order.amount ? Math.round(Number(order.amount) * 100) : 119900));
 
       // If in local mock / dev mode without real Razorpay order ID, show sandbox simulator
       if (orderId && (orderId.startsWith('order_dev_') || orderId.startsWith('order_mock_'))) {
