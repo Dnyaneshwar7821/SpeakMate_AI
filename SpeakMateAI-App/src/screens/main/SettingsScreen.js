@@ -103,13 +103,16 @@ export default function SettingsScreen({ navigation }) {
       ]);
       if (savedType) setAccountType(savedType);
       const effectiveVoice = savedVoice || settings?.aiVoice || defaults.aiVoice;
-      setForm({ ...defaults, ...settings, aiVoice: effectiveVoice, ageGroup: onboardingData?.ageGroup || user?.ageGroup || 'Professional' });
+      setForm({
+        ...defaults,
+        ...settings,
+        darkMode: globalIsDark,
+        aiVoice: effectiveVoice,
+        ageGroup: onboardingData?.ageGroup || user?.ageGroup || 'Professional',
+      });
       setAvailableVoices(voices);
       if (onboardingVoice) {
         setOnboardingVoiceStyle(onboardingVoice);
-      }
-      if (settings && settings.darkMode !== undefined) {
-        setDarkMode(settings.darkMode);
       }
       setState({ loading: false, error: '' });
     } catch (error) {
@@ -131,11 +134,9 @@ export default function SettingsScreen({ navigation }) {
     setSaving(true);
     try {
       // 1. Save Settings (Dark Mode, Voice, Language, Sound Effects, Reminders)
-      const savedSettings = await settingsService.update(form);
+      const savedSettings = await settingsService.update({ ...form, darkMode: globalIsDark });
       if (savedSettings && savedSettings.darkMode !== undefined) {
         await setDarkMode(savedSettings.darkMode);
-      } else {
-        await setDarkMode(form.darkMode);
       }
 
       // 2. Sync Voice to AsyncStorage
@@ -421,8 +422,12 @@ export default function SettingsScreen({ navigation }) {
                 </View>
               </View>
               <Switch 
-                value={Boolean(form.darkMode)} 
-                onValueChange={(value) => update('darkMode', value)} 
+                value={Boolean(globalIsDark)} 
+                onValueChange={async (value) => {
+                  update('darkMode', value);
+                  await setDarkMode(value);
+                  settingsService.update({ ...form, darkMode: value }).catch(() => {});
+                }} 
                 trackColor={{ true: COLORS.primary }}
               />
             </View>
