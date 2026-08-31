@@ -31,7 +31,19 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
 
   const femaleModelPath = "/models/avatar/haru/haru_greeter_t03.model3.json";
   const maleModelPath = "/models/avatar/chitose/chitose.model.json";
-  const targetModelPath = modelPath || (gender === 'male' ? maleModelPath : femaleModelPath);
+  const robopawsModelPath = "https://cdn.jsdelivr.net/npm/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json";
+
+  let targetModelPath = modelPath;
+  if (!targetModelPath) {
+    const norm = String(gender).toLowerCase();
+    if (norm === 'robopaws' || norm === 'robocat' || norm === 'robot' || norm === 'kid' || norm === 'kids') {
+      targetModelPath = robopawsModelPath;
+    } else if (norm === 'male' || norm === 'chitose') {
+      targetModelPath = maleModelPath;
+    } else {
+      targetModelPath = femaleModelPath;
+    }
+  }
 
   useEffect(() => {
     if (!containerRef.current) return;

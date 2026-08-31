@@ -4,11 +4,18 @@ import { WebView } from 'react-native-webview';
 
 const HARU_MODEL_URL = 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json';
 const CHITOSE_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-chitose@1.0.5/assets/chitose.model.json';
+const ROBOPAWS_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json';
+
+const getModelUrl = (modelName) => {
+  const norm = (modelName || '').toLowerCase();
+  if (norm === 'chitose') return CHITOSE_MODEL_URL;
+  if (norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid') return ROBOPAWS_MODEL_URL;
+  return HARU_MODEL_URL;
+};
 
 const getLive2DHtml = (initialModel = 'haru') => {
-  const isChitose = initialModel === 'chitose';
-  const initialUrl = isChitose ? CHITOSE_MODEL_URL : HARU_MODEL_URL;
-  const initialName = isChitose ? 'chitose' : 'haru';
+  const initialName = (initialModel || 'haru').toLowerCase();
+  const initialUrl = getModelUrl(initialName);
 
   return `
 <!DOCTYPE html>
@@ -264,6 +271,13 @@ const getLive2DHtml = (initialModel = 'haru') => {
           zoom: 2.50,
           anchor: { x: 0.50, y: 0.22 },
           yOffset: 10,
+        };
+      }
+      if (name === 'robopaws' || name === 'robocat' || name === 'hijiki' || name === 'robot' || name === 'kid') {
+        return {
+          zoom: 2.35,
+          anchor: { x: 0.50, y: 0.28 },
+          yOffset: 20,
         };
       }
       return {
@@ -606,7 +620,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
         } else if (data.type === 'MODEL') {
           const targetName = (data.model || 'haru').toLowerCase();
           if (targetName !== currentModelName) {
-            const url = targetName === 'chitose' ? '${CHITOSE_MODEL_URL}' : '${HARU_MODEL_URL}';
+            const url = getModelUrl(targetName);
             loadModel(url, targetName);
           }
         }

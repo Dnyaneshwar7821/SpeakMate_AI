@@ -232,6 +232,12 @@ export default function ConversationChatScreen({ navigation, route }) {
   const [statusText, setStatusText] = useState('Waiting for Response');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentSpokenText, setCurrentSpokenText] = useState('');
+  const [selectedAvatarModel, setSelectedAvatarModel] = useState('robopaws');
+
+  const handleSelectAvatarModel = async (modelName) => {
+    setSelectedAvatarModel(modelName);
+    await AsyncStorage.setItem('speakmate_avatar_model', modelName).catch(() => {});
+  };
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -279,17 +285,27 @@ export default function ConversationChatScreen({ navigation, route }) {
       }
 
       try {
-        const [settings, onboardingVoice, profile, savedVoice, savedGender] = await Promise.all([
+        const [settings, onboardingVoice, profile, savedVoice, savedGender, savedAvatarModel] = await Promise.all([
           settingsService.get().catch(() => null),
           AsyncStorage.getItem('speakmate_onboarding_voice'),
           profileService.get().catch(() => null),
           AsyncStorage.getItem('speakmate_selected_voice'),
           AsyncStorage.getItem('speakmate_voice_gender'),
+          AsyncStorage.getItem('speakmate_avatar_model'),
         ]);
         const effectiveVoice = savedVoice || settings?.aiVoice || (savedGender === 'male' ? 'US Male' : 'Default');
         setPreferredVoice(effectiveVoice);
         if (onboardingVoice) {
           setOnboardingVoiceStyle(onboardingVoice);
+        }
+        if (savedAvatarModel) {
+          setSelectedAvatarModel(savedAvatarModel);
+        } else if (savedGender === 'male') {
+          setSelectedAvatarModel('chitose');
+        } else if (savedGender === 'female') {
+          setSelectedAvatarModel('haru');
+        } else {
+          setSelectedAvatarModel('robopaws');
         }
         const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
         if (savedGrade) {
@@ -914,8 +930,51 @@ export default function ConversationChatScreen({ navigation, route }) {
       {/* ─── 3D AI Tutor Avatar (collapses when keyboard is active) ─── */}
       {!isKeyboardVisible && (
         <View style={styles.avatarContainer}>
+          {/* Quick Avatar Buddy Selector */}
+          <View style={styles.avatarSwitchRow}>
+            <TouchableOpacity
+              onPress={() => handleSelectAvatarModel('robopaws')}
+              style={[
+                styles.avatarPillBtn,
+                selectedAvatarModel === 'robopaws' && styles.avatarPillBtnActive,
+              ]}
+            >
+              <Text style={styles.avatarPillEmoji}>🤖</Text>
+              <Text style={[styles.avatarPillText, selectedAvatarModel === 'robopaws' && styles.avatarPillTextActive]}>
+                Robo-Paws
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleSelectAvatarModel('haru')}
+              style={[
+                styles.avatarPillBtn,
+                selectedAvatarModel === 'haru' && styles.avatarPillBtnActive,
+              ]}
+            >
+              <Text style={styles.avatarPillEmoji}>👩</Text>
+              <Text style={[styles.avatarPillText, selectedAvatarModel === 'haru' && styles.avatarPillTextActive]}>
+                Haru
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => handleSelectAvatarModel('chitose')}
+              style={[
+                styles.avatarPillBtn,
+                selectedAvatarModel === 'chitose' && styles.avatarPillBtnActive,
+              ]}
+            >
+              <Text style={styles.avatarPillEmoji}>👨</Text>
+              <Text style={[styles.avatarPillText, selectedAvatarModel === 'chitose' && styles.avatarPillTextActive]}>
+                Chitose
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <AIAvatar
-            gender={avatarGender}
+            model={selectedAvatarModel}
+            gender={selectedAvatarModel === 'chitose' ? 'male' : selectedAvatarModel === 'robopaws' ? 'robopaws' : 'female'}
             isSpeaking={isSpeaking}
             spokenText={currentSpokenText}
             speechSpeed={speechSpeed}
@@ -1219,7 +1278,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: 'transparent' },
 
   avatarContainer: {
-    height: 218,
+    height: 228,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
@@ -1227,12 +1286,52 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 2,
   },
+  avatarSwitchRow: {
+    position: 'absolute',
+    top: 2,
+    zIndex: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(15, 23, 42, 0.85)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  avatarPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 14,
+    backgroundColor: 'transparent',
+  },
+  avatarPillBtnActive: {
+    backgroundColor: 'rgba(139, 92, 246, 0.40)',
+    borderWidth: 1,
+    borderColor: '#C084FC',
+  },
+  avatarPillEmoji: {
+    fontSize: 11,
+  },
+  avatarPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#94A3B8',
+  },
+  avatarPillTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
   avatar3d: {
     width: '100%',
     height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-
-  // Header
   header: { paddingBottom: 16, backgroundColor: 'transparent' },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },

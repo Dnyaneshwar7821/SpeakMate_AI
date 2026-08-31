@@ -202,6 +202,7 @@ export const VoiceService = {
 
   getAvatarGender: (voiceType, onboardingVoiceStyle = 'Friendly') => {
     const vt = (voiceType || '').toLowerCase();
+    if (vt === 'robopaws' || vt === 'robocat' || vt === 'robot') return 'robopaws';
     if (vt === 'chitose') return 'male';
     if (vt === 'haru') return 'female';
     if (vt === 'male') return 'male';
@@ -218,6 +219,17 @@ export const VoiceService = {
       return 'female';
     }
     return 'female';
+  },
+
+  getAvatarModel: (avatarOrVoice) => {
+    const v = (avatarOrVoice || '').toLowerCase();
+    if (v === 'robopaws' || v === 'robocat' || v === 'robot' || v.includes('robo') || v.includes('paws')) {
+      return 'robopaws';
+    }
+    if (v === 'chitose' || v === 'male' || (v.includes('male') && !v.includes('female'))) {
+      return 'chitose';
+    }
+    return 'haru';
   },
 
   getEffectiveGender: (resolvedVoice) => {

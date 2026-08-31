@@ -593,9 +593,9 @@ export function Profile() {
 
             <div>
               <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">
-                Tutor Voice & Avatar Gender
+                Tutor Voice & Avatar Buddy
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => setPreferredVoice("female")}
@@ -605,7 +605,7 @@ export function Profile() {
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                   }`}
                 >
-                  <span className="text-2xl block mb-1">👩 Haru (Female Tutor)</span>
+                  <span className="text-2xl block mb-1">👩 Haru</span>
                   <span className="text-xs opacity-75">Warm, clear, and encouraging</span>
                 </button>
 
@@ -618,8 +618,21 @@ export function Profile() {
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
                   }`}
                 >
-                  <span className="text-2xl block mb-1">👨 Chitose (Male Tutor)</span>
+                  <span className="text-2xl block mb-1">👨 Chitose</span>
                   <span className="text-xs opacity-75">Confident, articulate, and supportive</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPreferredVoice("robopaws")}
+                  className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
+                    preferredVoice === "robopaws" || preferredVoice === "robot"
+                      ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                  }`}
+                >
+                  <span className="text-2xl block mb-1">🤖 Robo-Paws</span>
+                  <span className="text-xs opacity-75">Playful robot cat buddy for kids</span>
                 </button>
               </div>
             </div>

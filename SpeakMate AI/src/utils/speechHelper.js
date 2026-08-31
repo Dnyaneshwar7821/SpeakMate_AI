@@ -11,6 +11,7 @@ export const VOICE_PROFILES = [
   { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: 'Hello, I am your Australian Female English tutor.' },
   { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male', previewText: 'Hello, I am your Indian Male English tutor.' },
   { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female', previewText: 'Hello, I am your Indian Female English tutor.' },
+  { code: 'Robo-Paws', accent: 'Cartoon Kids', locale: 'en-US', gender: 'robopaws', label: 'Robo-Paws (Kids Buddy)', previewText: 'Beep-boop! Hello superstar! I am Robo-Paws, your friendly robot cat English buddy!' },
   { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default', previewText: 'Hello, I am your System Default English tutor.' },
 ];
 
@@ -551,7 +552,7 @@ export function getCurrentVoiceGender() {
   if (typeof window === 'undefined') return 'female';
   try {
     const directGender = localStorage.getItem('speakmate_voice_gender');
-    if (directGender === 'male' || directGender === 'female') return directGender;
+    if (directGender === 'male' || directGender === 'female' || directGender === 'robopaws') return directGender;
 
     const savedVoice =
       localStorage.getItem('speakmate_ai_voice') ||
@@ -560,6 +561,9 @@ export function getCurrentVoiceGender() {
       localStorage.getItem('speakmate_voice_persona');
 
     if (savedVoice) {
+      if (savedVoice === 'robopaws' || savedVoice === 'Robo-Paws' || savedVoice.toLowerCase().includes('robo')) {
+        return 'robopaws';
+      }
       const match = VOICE_PROFILES.find((p) => p.code === savedVoice || p.label === savedVoice);
       if (match?.gender) return match.gender;
 

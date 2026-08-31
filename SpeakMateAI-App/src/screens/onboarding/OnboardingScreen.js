@@ -207,6 +207,18 @@ const AVATAR_CATEGORIES = [
       'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelL&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
     ],
   },
+  {
+    key: 'cartoon',
+    label: 'Cartoon & Kids',
+    avatars: [
+      'https://api.dicebear.com/7.x/bottts/png?seed=RoboPaws&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
+      'https://api.dicebear.com/7.x/bottts/png?seed=Bolt&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
+      'https://api.dicebear.com/7.x/bottts/png?seed=Sparky&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
+      'https://api.dicebear.com/7.x/bottts/png?seed=Echo&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
+      'https://api.dicebear.com/7.x/bottts/png?seed=LunaBot&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
+      'https://api.dicebear.com/7.x/bottts/png?seed=Gizmo&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
+    ],
+  },
 ];
 
 export default function OnboardingScreen({ navigation }) {
