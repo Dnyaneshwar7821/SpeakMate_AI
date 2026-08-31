@@ -29,9 +29,13 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
     }
   }
   
-  // 2. Cubism 2 (Chitose)
+  // 2. Cubism 2 (Chitose & Robo-Paws)
   if (typeof cm.setParamFloat === 'function') {
-    try { cm.setParamFloat('PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, yVal)), 1.0); } catch (_) {}
+    const clampedY = Math.max(0, Math.min(1.0, yVal));
+    try { cm.setParamFloat('PARAM_MOUTH_OPEN_Y', clampedY, 1.0); } catch (_) {}
+    try { cm.setParamFloat('PARAM_MOUTH_OPEN', clampedY, 1.0); } catch (_) {}
+    try { cm.setParamFloat('PARAM_MOUTH_A', clampedY, 1.0); } catch (_) {}
+    try { cm.setParamFloat('PARAM_MOUTH_O', clampedY, 1.0); } catch (_) {}
     try { cm.setParamFloat('PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, formVal)), 1.0); } catch (_) {}
     if (isSpeaking) {
       try { cm.setParamFloat('PARAM_ANGLE_Y', vocalHeadY, 1.0); } catch (_) {}

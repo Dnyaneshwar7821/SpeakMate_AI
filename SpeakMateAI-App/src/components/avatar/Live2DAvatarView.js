@@ -508,11 +508,20 @@ const getLive2DHtml = (initialModel = 'haru') => {
     }
 
     function setParam(core, cubism4Id, cubism2Id, val) {
+      if (!core) return;
       try {
         if (core.setParameterValueById) {
           core.setParameterValueById(cubism4Id, val);
-        } else if (core.setParamFloat) {
+        }
+      } catch(e) {}
+      try {
+        if (core.setParamFloat) {
           core.setParamFloat(cubism2Id, val, 1.0);
+          if (cubism2Id === 'PARAM_MOUTH_OPEN_Y') {
+            core.setParamFloat('PARAM_MOUTH_OPEN', val, 1.0);
+            core.setParamFloat('PARAM_MOUTH_A', val, 1.0);
+            core.setParamFloat('PARAM_MOUTH_O', val, 1.0);
+          }
         }
       } catch(e) {}
     }
