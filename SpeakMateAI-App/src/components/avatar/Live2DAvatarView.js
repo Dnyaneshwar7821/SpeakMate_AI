@@ -8,7 +8,7 @@ const ROBOPAWS_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-hij
 
 const getModelUrl = (modelName) => {
   const norm = (modelName || '').toLowerCase();
-  if (norm === 'chitose') return CHITOSE_MODEL_URL;
+  if (norm === 'chitose' || norm === 'male') return CHITOSE_MODEL_URL;
   if (norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid') return ROBOPAWS_MODEL_URL;
   return HARU_MODEL_URL;
 };

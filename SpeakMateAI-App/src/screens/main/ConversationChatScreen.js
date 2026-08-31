@@ -305,19 +305,29 @@ export default function ConversationChatScreen({ navigation, route }) {
           (savedGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(savedGrade.toLowerCase()))
         );
 
-        if (savedAvatarModel) {
-          if (savedAvatarModel === 'robopaws' && !isKids) {
-            setSelectedAvatarModel(savedGender === 'male' ? 'chitose' : 'haru');
-          } else {
-            setSelectedAvatarModel(savedAvatarModel);
-          }
-        } else if (isKids) {
-          setSelectedAvatarModel('robopaws');
-        } else if (savedGender === 'male') {
-          setSelectedAvatarModel('chitose');
+        const isMaleSelected = Boolean(
+          savedAvatarModel === 'chitose' ||
+          savedGender === 'male' ||
+          (effectiveVoice && effectiveVoice.toLowerCase().includes('male')) ||
+          (savedVoice && savedVoice.toLowerCase().includes('male'))
+        );
+        const isRoboPawsSelected = Boolean(
+          savedAvatarModel === 'robopaws' ||
+          savedGender === 'robopaws' ||
+          (effectiveVoice && effectiveVoice.toLowerCase().includes('robo'))
+        );
+
+        let resolvedModel = 'haru';
+        if (isRoboPawsSelected && isKids) {
+          resolvedModel = 'robopaws';
+        } else if (isMaleSelected) {
+          resolvedModel = 'chitose';
+        } else if (isKids && !savedAvatarModel && !savedGender) {
+          resolvedModel = 'robopaws';
         } else {
-          setSelectedAvatarModel('haru');
+          resolvedModel = 'haru';
         }
+        setSelectedAvatarModel(resolvedModel);
         if (savedGrade) {
           setChatLevel(savedGrade);
         } else if (profile && profile.englishLevel) {

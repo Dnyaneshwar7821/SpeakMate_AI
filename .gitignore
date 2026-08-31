@@ -53,6 +53,7 @@ SpeakMateAI-App/.env.local
 *.txt
 *.docx
 *.sql
+*.zip
 SpeakMate_AI_SRS_v2.docx
 backend_all_code.txt
 frontend_all_code.txt

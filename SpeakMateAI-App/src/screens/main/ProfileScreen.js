@@ -171,7 +171,7 @@ export default function ProfileScreen({ navigation }) {
       setAccountType(savedAccType || profile.accountType || 'INDIVIDUAL_USER');
       if (savedAvatarModel === 'robopaws' || savedGender === 'robopaws' || (savedVoice && savedVoice.toLowerCase().includes('robo'))) {
         setTutorGender('robopaws');
-      } else if (savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'))) {
+      } else if (savedAvatarModel === 'chitose' || savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'))) {
         setTutorGender('male');
       } else {
         setTutorGender('female');
