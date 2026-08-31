@@ -183,9 +183,20 @@ export const DashboardHeader = memo(function DashboardHeader({
     >
       <LinearGradient colors={['#0F172A', '#1E1B4B', '#312E81']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.heroCard}>
         <View style={styles.headerToolbar}>
-          <View style={styles.brandPill}>
-            <Ionicons name="sparkles" size={14} color="#818CF8" />
-            <Text style={styles.brandPillText}>SpeakMate AI</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <TouchableOpacity
+              style={styles.iconButtonLight}
+              onPress={onMenuPress}
+              activeOpacity={0.8}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              accessibilityLabel="Open Navigation Menu"
+            >
+              <Ionicons name="menu" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+            <View style={styles.brandPill}>
+              <Ionicons name="sparkles" size={14} color="#818CF8" />
+              <Text style={styles.brandPillText}>SpeakMate AI</Text>
+            </View>
           </View>
           <Animated.View style={{ transform: [{ scale: bellScale }] }}>
             <TouchableOpacity style={styles.iconButtonLight} onPress={onNotificationPress} activeOpacity={0.85}>

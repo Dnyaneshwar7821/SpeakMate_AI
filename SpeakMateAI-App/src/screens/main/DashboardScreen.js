@@ -328,6 +328,20 @@ export default function DashboardScreen({ navigation }) {
     }
   }, [navigation]);
 
+  const handleOpenMenu = useCallback(() => {
+    try {
+      if (navigation?.openDrawer) {
+        navigation.openDrawer();
+      } else if (navigation?.getParent) {
+        navigation.getParent()?.openDrawer?.();
+      } else {
+        openDrawer();
+      }
+    } catch {
+      openDrawer();
+    }
+  }, [navigation, openDrawer]);
+
   const topSafeBg = '#0F172A';
   const contentBg = isDark ? '#0F172A' : '#F8FAFC';
 
@@ -379,6 +393,7 @@ export default function DashboardScreen({ navigation }) {
           streak={viewModel.streak}
           rank={viewModel.rank}
           unreadCount={viewModel.unreadCount}
+          onMenuPress={handleOpenMenu}
           onNotificationPress={handleNotificationsNav}
           onProfilePress={() => navigation.navigate('BottomTabs', { screen: 'Profile' })}
           isDark={isDark}
