@@ -362,7 +362,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
 
           // 6. Phonetic Lip-Sync & Speaking Head Gestures
           if (isSpeaking) {
-            mouthPhase += 0.38 * delta;
+            mouthPhase += 0.28 * delta;
 
             let targetMouthY = 0;
             let targetMouthForm = isHappy ? 0.85 : 0.2;
@@ -384,30 +384,29 @@ const getLive2DHtml = (initialModel = 'haru') => {
                 const frameDur = activeFrame.end - activeFrame.start;
                 const frameProgress = frameElapsed / frameDur;
 
-                // Attack-Sustain-Decay Envelope per Phoneme
-                let env = 1.0;
-                if (frameProgress < 0.22) env = frameProgress / 0.22;
-                else if (frameProgress > 0.78) env = (1.0 - frameProgress) / 0.22;
-
-                targetMouthY = Math.max(0.12, activeFrame.yVal * env);
+                // Smooth bell curve: open to peak in center, close at syllable boundaries
+                const env = Math.sin(Math.min(1.0, Math.max(0.0, frameProgress)) * Math.PI);
+                targetMouthY = activeFrame.yVal * env;
                 targetMouthForm = isHappy ? Math.max(0.6, activeFrame.formVal) : activeFrame.formVal;
               } else if (elapsed > speechDurationMs) {
-                // Harmonic cadence fallback if speech audio is still continuing
-                const rawOpen = Math.abs(Math.sin(mouthPhase * 1.2)) * 0.55 + Math.abs(Math.sin(mouthPhase * 2.0)) * 0.35;
-                targetMouthY = Math.min(1.0, Math.max(0.15, rawOpen));
-                targetMouthForm = isHappy ? 0.9 : (Math.sin(mouthPhase * 0.6) * 0.4 + 0.3);
+                // Natural syllabic cadence (3.5 Hz) when audio continues
+                const syllablePhase = (mouthPhase * 3.5) % (Math.PI * 2);
+                const syllabicOpen = Math.pow(Math.max(0, Math.sin(syllablePhase)), 1.5);
+                targetMouthY = syllabicOpen * 0.90;
+                targetMouthForm = isHappy ? 0.9 : 0.2;
               }
             } else {
-              // High-frequency harmonic cadence fallback
-              const rawOpen = Math.abs(Math.sin(mouthPhase * 1.3)) * 0.55 + Math.abs(Math.sin(mouthPhase * 2.1)) * 0.35;
-              targetMouthY = Math.min(1.0, Math.max(0.18, rawOpen));
-              targetMouthForm = isHappy ? 0.9 : (Math.sin(mouthPhase * 0.5) * 0.4 + 0.35);
+              // Natural syllabic cadence (3.5 Hz) fallback that cleanly opens and closes
+              const syllablePhase = (mouthPhase * 3.5) % (Math.PI * 2);
+              const syllabicOpen = Math.pow(Math.max(0, Math.sin(syllablePhase)), 1.5);
+              targetMouthY = syllabicOpen * 0.90;
+              targetMouthForm = isHappy ? 0.9 : 0.2;
             }
 
-            // Snappy attack, smooth decay lerping
-            const lerpY = targetMouthY > currentMouthY ? 0.55 : 0.38;
+            // Snappy attack, smooth decay lerping for natural jaw articulation
+            const lerpY = targetMouthY > currentMouthY ? 0.50 : 0.35;
             currentMouthY += (targetMouthY - currentMouthY) * lerpY;
-            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.38;
+            currentMouthForm += (targetMouthForm - currentMouthForm) * 0.35;
 
             // Rhythmic speech head bob & body rhythm
             const headBob = (currentLookY * 14) + Math.sin(mouthPhase * 0.7) * 3.2;
@@ -419,8 +418,8 @@ const getLive2DHtml = (initialModel = 'haru') => {
             setParam(core, 'ParamBodyAngleX', 'PARAM_BODY_ANGLE_X', bodyBob);
           } else {
             // Clean return to REST
-            currentMouthY += (0 - currentMouthY) * 0.30;
-            currentMouthForm += ((isHappy ? 0.8 : 0.0) - currentMouthForm) * 0.30;
+            currentMouthY += (0 - currentMouthY) * 0.25;
+            currentMouthForm += ((isHappy ? 0.8 : 0.0) - currentMouthForm) * 0.25;
             speechSchedule = [];
           }
 
@@ -440,7 +439,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
         if (core.setParameterValueById) {
           core.setParameterValueById(cubism4Id, val);
         } else if (core.setParamFloat) {
-          core.setParamFloat(cubism2Id, val);
+          core.setParamFloat(cubism2Id, val, 1.0);
         }
       } catch(e) {}
     }

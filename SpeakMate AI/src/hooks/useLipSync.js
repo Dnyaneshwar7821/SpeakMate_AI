@@ -31,12 +31,12 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   
   // 2. Cubism 2 (Chitose)
   if (typeof cm.setParamFloat === 'function') {
-    try { cm.setParamFloat('PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, yVal))); } catch (_) {}
-    try { cm.setParamFloat('PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, formVal))); } catch (_) {}
+    try { cm.setParamFloat('PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, yVal)), 1.0); } catch (_) {}
+    try { cm.setParamFloat('PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, formVal)), 1.0); } catch (_) {}
     if (isSpeaking) {
-      try { cm.setParamFloat('PARAM_ANGLE_Y', vocalHeadY); } catch (_) {}
-      try { cm.setParamFloat('PARAM_ANGLE_Z', vocalHeadZ); } catch (_) {}
-      try { cm.setParamFloat('PARAM_BODY_ANGLE_X', vocalBodyX); } catch (_) {}
+      try { cm.setParamFloat('PARAM_ANGLE_Y', vocalHeadY, 1.0); } catch (_) {}
+      try { cm.setParamFloat('PARAM_ANGLE_Z', vocalHeadZ, 1.0); } catch (_) {}
+      try { cm.setParamFloat('PARAM_BODY_ANGLE_X', vocalBodyX, 1.0); } catch (_) {}
     }
   }
 }
@@ -91,7 +91,7 @@ export function useLipSync(model, isSpeakingProp = false) {
           ? { yVal: data.yVal, formVal: data.formVal }
           : getPrimaryVisemeForWord(word);
 
-        targetMouthYRef.current = Math.max(0.75, visemeObj.yVal || 1.0);
+        targetMouthYRef.current = Math.max(0.80, visemeObj.yVal || 1.0);
         targetMouthFormRef.current = visemeObj.formVal || 0.2;
       }
     });
@@ -103,7 +103,7 @@ export function useLipSync(model, isSpeakingProp = false) {
       if (!isSynthesizing) {
         if (typeof window !== 'undefined') window._speakmate_ai_is_speaking = false;
         activeSpeaking.current = false;
-        speechDeadline.current = performance.now() + 800;
+        speechDeadline.current = performance.now() + 600;
       }
     });
 
@@ -130,31 +130,28 @@ export function useLipSync(model, isSpeakingProp = false) {
 
       if (isSpeaking) {
         const t = now * 0.001;
-        const phoneticY = targetMouthYRef.current > 0 ? targetMouthYRef.current : 0.9;
+        const phoneticY = targetMouthYRef.current > 0 ? targetMouthYRef.current : 0.95;
         const phoneticForm = targetMouthFormRef.current || 0.2;
 
         const timeSinceWord = now - lastWordTimeRef.current;
         let envelope = 0;
 
-        // Word-Boundary Envelope (Attack, Sustain, Decay)
-        if (timeSinceWord < 90) {
-          envelope = timeSinceWord / 90; // Attack
-        } else if (timeSinceWord < 240) {
-          envelope = 1.0; // Sustain
-        } else if (timeSinceWord < 380) {
-          envelope = 1.0 - ((timeSinceWord - 240) / 140); // Decay
+        // Smooth Syllabic Arc (Bell curve from 0.0 -> peak -> 0.0 per syllable)
+        if (timeSinceWord < 320) {
+          const progress = timeSinceWord / 320;
+          envelope = Math.sin(progress * Math.PI);
         } else {
-          // Robust universal multi-frequency speech cadence fallback
-          const harmonicCadence = Math.abs(Math.sin(t * 11.5)) * 0.45 + Math.abs(Math.sin(t * 17.2)) * 0.35 + 0.2;
-          envelope = Math.min(1.0, Math.max(0.25, harmonicCadence));
+          // Natural 3.5 Hz speech cadence that fully opens and closes between syllables
+          const syllablePhase = (t * 3.5 * Math.PI * 2) % (Math.PI * 2);
+          envelope = Math.pow(Math.max(0, Math.sin(syllablePhase)), 1.5);
         }
 
-        const microTremor = envelope > 0.1 ? Math.sin(t * 8.0 * Math.PI) * 0.04 : 0;
-        targetMouthY = Math.min(1.0, Math.max(0.0, (phoneticY * envelope) + microTremor));
+        targetMouthY = phoneticY * envelope;
         targetMouthForm = phoneticForm;
       }
 
-      const lerpSpeed = isSpeaking ? 0.40 : 0.20;
+      // Responsive interpolation for smooth, lifelike jaw articulation
+      const lerpSpeed = isSpeaking ? 0.45 : 0.25;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
 
