@@ -477,6 +477,13 @@ export const VoiceService = {
     let pitch = 1.0;
     let rate  = Number(effectiveSpeed) || 1.0;
 
+    // Distinct masculine pitch for Indian Male (shifts vocal formant to natural male depth)
+    if (gs.includes('in') && gs.includes('male') && !gs.includes('female')) {
+      pitch = 0.78;
+    } else if (gs.includes('in') && gs.includes('female')) {
+      pitch = 1.08;
+    }
+
     // ── 6. Build TTS options ──────────────────────────────────────────────────
     const options = {
       rate,
