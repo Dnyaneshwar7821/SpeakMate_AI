@@ -159,10 +159,12 @@ export function SubscriptionModal({ isOpen, onClose, triggerReason = "daily_limi
             type="button"
             disabled={loading}
             onClick={() => handleUpgrade(billingCycle === "YEARLY" ? "YEARLY_PRO" : "MONTHLY_PRO")}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-indigo-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-50"
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-indigo-500/30 transition-all transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
           >
             {loading
               ? "Connecting Razorpay..."
+              : (user?.isPro || user?.pro)
+              ? `⚡ Renew / Extend Pro Plan (${billingCycle === "YEARLY" ? "₹1,199 / year" : "₹149 / month"}) ➔`
               : `Unlock Pro Now (${billingCycle === "YEARLY" ? "₹1,199 / year" : "₹149 / month"}) ➔`}
           </button>
           <p className="text-[10px] text-center text-[var(--text-tertiary)]">

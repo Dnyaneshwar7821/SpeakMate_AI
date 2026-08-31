@@ -353,8 +353,23 @@ export function Pricing() {
                   <button
                     type="button"
                     disabled={loading}
+                    onClick={() => handleUpgrade(billingCycle === "YEARLY" ? "YEARLY_PRO" : "MONTHLY_PRO")}
+                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    {loading ? (
+                      <span>Connecting Secure Checkout...</span>
+                    ) : (
+                      <>
+                        <span>⚡ Renew / Extend Plan ({billingCycle === "YEARLY" ? "₹1,199/yr" : "₹149/mo"})</span>
+                        <span>➔</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={loading}
                     onClick={handleCancelSubscription}
-                    className="w-full py-2.5 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold text-xs transition-all flex items-center justify-center gap-2"
+                    className="w-full py-2.5 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     Cancel Pro Subscription
                   </button>
@@ -364,7 +379,7 @@ export function Pricing() {
                   type="button"
                   disabled={loading}
                   onClick={() => handleUpgrade(billingCycle === "YEARLY" ? "YEARLY_PRO" : "MONTHLY_PRO")}
-                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:opacity-95 text-white font-bold text-sm shadow-lg shadow-indigo-500/25 transition-all transform active:scale-98 flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? (
                     <span>Processing Secure Checkout...</span>
