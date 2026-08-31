@@ -149,9 +149,10 @@ export default function SettingsScreen({ navigation }) {
         }
       }
 
-      // 3. Sync Age Group via Onboarding Service, AuthContext & AsyncStorage
+      // 3. Sync Age Group via Profile Service, Onboarding Service, AuthContext & AsyncStorage
       if (form.ageGroup) {
         await AsyncStorage.setItem('speakmate_age_group', form.ageGroup);
+        await profileService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Profile age sync warning:', e));
         await onboardingService.update({ ageGroup: form.ageGroup }).catch((e) => console.warn('Onboarding age sync warning:', e));
         if (updateUser) {
           await updateUser({ ageGroup: form.ageGroup });

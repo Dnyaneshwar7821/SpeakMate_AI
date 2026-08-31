@@ -49,9 +49,9 @@ export default function ProfileScreen({ navigation }) {
   const isStudent = Boolean(
     accountType === 'STUDENT' ||
     user?.role === 'STUDENT' ||
+    user?.accountType === 'STUDENT' ||
     user?.schoolId ||
-    user?.schoolCode ||
-    (user?.schoolGrade && user?.schoolGrade.includes('Std'))
+    user?.schoolCode
   );
   
   const [state, setState] = useState({ loading: true, error: '', profile: null });
@@ -61,6 +61,7 @@ export default function ProfileScreen({ navigation }) {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [updatingLevel, setUpdatingLevel] = useState(false);
   const [tutorGender, setTutorGender] = useState('female');
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState('Professional');
 
   // Delete Account Modal States
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -156,19 +157,21 @@ export default function ProfileScreen({ navigation }) {
 
   const load = async () => {
     try {
-      const [profile, savedAccType, savedVoice, savedGender, savedAvatarModel] = await Promise.all([
-        profileService.get(),
+      const [profile, savedAccType, savedVoice, savedGender, savedAvatarModel, savedAgeGroup, savedGrade] = await Promise.all([
+        profileService.get().catch(() => null),
         AsyncStorage.getItem('speakmate_account_type'),
         AsyncStorage.getItem('speakmate_selected_voice'),
         AsyncStorage.getItem('speakmate_voice_gender'),
         AsyncStorage.getItem('speakmate_avatar_model'),
+        AsyncStorage.getItem('speakmate_age_group'),
+        AsyncStorage.getItem('speakmate_school_grade'),
       ]);
       setForm({
-        firstName: profile.firstName || '',
-        lastName: profile.lastName || '',
-        email: profile.email || '',
+        firstName: profile?.firstName || user?.firstName || '',
+        lastName: profile?.lastName || user?.lastName || '',
+        email: profile?.email || user?.email || '',
       });
-      setAccountType(savedAccType || profile.accountType || 'INDIVIDUAL_USER');
+      setAccountType(savedAccType || profile?.accountType || user?.accountType || 'INDIVIDUAL_USER');
       if (savedAvatarModel === 'robopaws' || savedGender === 'robopaws' || (savedVoice && savedVoice.toLowerCase().includes('robo'))) {
         setTutorGender('robopaws');
       } else if (savedAvatarModel === 'chitose' || savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'))) {
@@ -176,17 +179,37 @@ export default function ProfileScreen({ navigation }) {
       } else {
         setTutorGender('female');
       }
-      setState({ loading: false, error: '', profile });
-      if (updateUser && profile) {
-        updateUser(profile);
+      const effectiveAge = savedAgeGroup || profile?.ageGroup || user?.ageGroup || 'Professional';
+      const effectiveGrade = savedGrade || profile?.schoolGrade || user?.schoolGrade || '1st Std';
+      setSelectedAgeGroup(effectiveAge);
+      const mergedProfile = {
+        ...profile,
+        ageGroup: effectiveAge,
+        schoolGrade: effectiveGrade,
+      };
+      setState({ loading: false, error: '', profile: mergedProfile });
+      if (updateUser && mergedProfile) {
+        updateUser(mergedProfile);
       }
     } catch (error) {
+      const savedAge = await AsyncStorage.getItem('speakmate_age_group').catch(() => null);
+      const savedGrd = await AsyncStorage.getItem('speakmate_school_grade').catch(() => null);
+      const fallbackAge = savedAge || user?.ageGroup || 'Professional';
+      setSelectedAgeGroup(fallbackAge);
       setForm({
         firstName: user?.firstName || '',
         lastName: user?.lastName || '',
         email: user?.email || '',
       });
-      setState({ loading: false, error: error.userMessage || 'Unable to load profile.', profile: user });
+      setState({
+        loading: false,
+        error: error.userMessage || 'Unable to load profile.',
+        profile: {
+          ...user,
+          ageGroup: fallbackAge,
+          schoolGrade: savedGrd || user?.schoolGrade || '1st Std',
+        }
+      });
     }
   };
 
@@ -379,17 +402,32 @@ export default function ProfileScreen({ navigation }) {
   };
 
   const handleSelectAgeGroup = async (newAge) => {
+    setSelectedAgeGroup(newAge);
     setUpdatingLevel(true);
     try {
+      await AsyncStorage.setItem('speakmate_age_group', newAge);
       const updated = await profileService.update({
         firstName: form.firstName || user?.firstName,
         lastName: form.lastName || user?.lastName,
         email: form.email || user?.email,
         ageGroup: newAge,
       });
-      await AsyncStorage.setItem('speakmate_age_group', newAge);
-      setState((curr) => ({ ...curr, profile: updated }));
-      if (updateUser) updateUser(updated);
+      await onboardingService.update({ ageGroup: newAge }).catch(() => {});
+      setState((curr) => ({
+        ...curr,
+        profile: {
+          ...curr.profile,
+          ...updated,
+          ageGroup: newAge,
+        }
+      }));
+      if (updateUser) {
+        updateUser({
+          ...user,
+          ...updated,
+          ageGroup: newAge,
+        });
+      }
       showToast('Age Group Updated 👥', 'success', `Target audience set to ${newAge}`);
     } catch (err) {
       showToast('Update Failed', 'error', 'Could not update Age Group.');
@@ -418,13 +456,10 @@ export default function ProfileScreen({ navigation }) {
   const xpInCurrentLevel = xp % 500;
   const levelProgress = xpInCurrentLevel / 500;
   const rankTier = getRankTier(xp);
-  const currentSchoolGrade = user?.schoolGrade || state.profile?.schoolGrade || '1st Std';
-  const currentEnglishLevel = user?.englishLevel || state.profile?.englishLevel || 'Beginner';
-  const currentAgeGroup = user?.ageGroup || state.profile?.ageGroup || 'Professional';
-  const isKidsAgeGroup = Boolean(
-    (currentAgeGroup && currentAgeGroup.toLowerCase() === 'kids') ||
-    (isStudent && currentSchoolGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(currentSchoolGrade.toLowerCase()))
-  );
+  const currentSchoolGrade = state.profile?.schoolGrade || user?.schoolGrade || '1st Std';
+  const currentEnglishLevel = state.profile?.englishLevel || user?.englishLevel || 'Beginner';
+  const currentAgeGroup = selectedAgeGroup || state.profile?.ageGroup || user?.ageGroup || 'Professional';
+  const isKidsAgeGroup = Boolean(currentAgeGroup && currentAgeGroup.toLowerCase() === 'kids');
 
   // Custom colors for dark mode sync
   const cardBg = isDark ? '#1E293B' : '#FFFFFF';

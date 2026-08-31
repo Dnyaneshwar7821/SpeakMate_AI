@@ -25,6 +25,8 @@ public class ProfileRequest {
 
 	private String ageGroup;
 
+	private String schoolGrade;
+
 	private String avatar;
 
 	public String getFirstName() { return firstName; }
@@ -45,6 +47,9 @@ public class ProfileRequest {
 	public String getAgeGroup() { return ageGroup; }
 	public void setAgeGroup(String ageGroup) { this.ageGroup = ageGroup; }
 
+	public String getSchoolGrade() { return schoolGrade; }
+	public void setSchoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; }
+
 	public String getAvatar() { return avatar; }
 	public void setAvatar(String avatar) { this.avatar = avatar; }
 
@@ -59,6 +64,7 @@ public class ProfileRequest {
 		private String englishLevel;
 		private String learningGoal;
 		private String ageGroup;
+		private String schoolGrade;
 		private String avatar;
 
 		public ProfileRequestBuilder firstName(String firstName) { this.firstName = firstName; return this; }
@@ -67,6 +73,7 @@ public class ProfileRequest {
 		public ProfileRequestBuilder englishLevel(String englishLevel) { this.englishLevel = englishLevel; return this; }
 		public ProfileRequestBuilder learningGoal(String learningGoal) { this.learningGoal = learningGoal; return this; }
 		public ProfileRequestBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
+		public ProfileRequestBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
 		public ProfileRequestBuilder avatar(String avatar) { this.avatar = avatar; return this; }
 
 		public ProfileRequest build() {
@@ -77,6 +84,7 @@ public class ProfileRequest {
             obj.setEnglishLevel(englishLevel);
             obj.setLearningGoal(learningGoal);
             obj.setAgeGroup(ageGroup);
+            obj.setSchoolGrade(schoolGrade);
             obj.setAvatar(avatar);
             return obj;
         }

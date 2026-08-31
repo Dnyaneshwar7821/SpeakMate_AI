@@ -106,6 +106,12 @@ public class ProfileServiceImpl implements ProfileService {
 		if (request.getLearningGoal() != null && !request.getLearningGoal().trim().isEmpty()) {
 			user.setLearningGoal(request.getLearningGoal().trim());
 		}
+		if (request.getAgeGroup() != null && !request.getAgeGroup().trim().isEmpty()) {
+			user.setAgeGroup(request.getAgeGroup().trim());
+		}
+		if (request.getSchoolGrade() != null && !request.getSchoolGrade().trim().isEmpty()) {
+			user.setSchoolGrade(request.getSchoolGrade().trim());
+		}
 
 		User updatedUser = userRepository.save(user);
 
