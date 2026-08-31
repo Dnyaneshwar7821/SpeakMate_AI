@@ -249,88 +249,6 @@ export default function SettingsScreen({ navigation }) {
             <Text style={[styles.sectionHeader, { color: sublabelColor }]}>Learning Preferences</Text>
           </View>
           <Card style={{ backgroundColor: isDark ? '#1E293B' : '#FFFFFF' }}>
-            {/* AI TUTOR AVATAR SWITCHER */}
-            <View style={styles.tutorSection}>
-              <Text style={[styles.rowTitle, { color: labelColor, marginBottom: 2 }]}>AI Speaking Tutor Avatar</Text>
-              <Text style={[styles.rowDesc, { color: sublabelColor, marginBottom: 12 }]}>Select your Live2D avatar practice partner</Text>
-              
-              <View style={styles.tutorCardsRow}>
-                {/* HARU (FEMALE) */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={async () => {
-                    const nextVoice = 'Default';
-                    update('aiVoice', nextVoice);
-                    try {
-                      await AsyncStorage.setItem('speakmate_selected_voice', nextVoice);
-                      await AsyncStorage.setItem('speakmate_ai_voice', nextVoice);
-                      await AsyncStorage.setItem('speakmate_voice_gender', 'female');
-                      settingsService.update({ ...form, aiVoice: nextVoice }).catch(() => {});
-                    } catch (e) {}
-                    VoiceService.speak("Hello! I am Haru, your AI English tutor.", {
-                      voiceType: nextVoice,
-                      availableVoices,
-                    });
-                  }}
-                  style={[
-                    styles.tutorCard,
-                    {
-                      backgroundColor: !isMaleTutor ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#0F172A' : '#F8FAFC'),
-                      borderColor: !isMaleTutor ? '#6366F1' : (isDark ? '#334155' : '#E2E8F0'),
-                      borderWidth: !isMaleTutor ? 2 : 1,
-                    }
-                  ]}
-                >
-                  <Text style={styles.tutorCardEmoji}>👩</Text>
-                  <Text style={[styles.tutorCardName, { color: !isMaleTutor ? '#6366F1' : labelColor }]}>Haru (Female)</Text>
-                  <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>Warm & encouraging</Text>
-                  {!isMaleTutor && (
-                    <View style={styles.tutorCheckmark}>
-                      <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
-                    </View>
-                  )}
-                </TouchableOpacity>
-
-                {/* CHITOSE (MALE) */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={async () => {
-                    const nextVoice = 'US Male';
-                    update('aiVoice', nextVoice);
-                    try {
-                      await AsyncStorage.setItem('speakmate_selected_voice', nextVoice);
-                      await AsyncStorage.setItem('speakmate_ai_voice', nextVoice);
-                      await AsyncStorage.setItem('speakmate_voice_gender', 'male');
-                      settingsService.update({ ...form, aiVoice: nextVoice }).catch(() => {});
-                    } catch (e) {}
-                    VoiceService.speak("Hello! I am Chitose, your AI English tutor.", {
-                      voiceType: nextVoice,
-                      availableVoices,
-                    });
-                  }}
-                  style={[
-                    styles.tutorCard,
-                    {
-                      backgroundColor: isMaleTutor ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#0F172A' : '#F8FAFC'),
-                      borderColor: isMaleTutor ? '#6366F1' : (isDark ? '#334155' : '#E2E8F0'),
-                      borderWidth: isMaleTutor ? 2 : 1,
-                    }
-                  ]}
-                >
-                  <Text style={styles.tutorCardEmoji}>👨</Text>
-                  <Text style={[styles.tutorCardName, { color: isMaleTutor ? '#6366F1' : labelColor }]}>Chitose (Male)</Text>
-                  <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>Confident & supportive</Text>
-                  {isMaleTutor && (
-                    <View style={styles.tutorCheckmark}>
-                      <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            <View style={[styles.divider, { backgroundColor: dividerColor }]} />
-
             {/* Target Language Selector */}
             <TouchableOpacity 
               style={styles.pickerRow} 
@@ -839,42 +757,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-  },
-  tutorSection: {
-    paddingVertical: 12,
-  },
-  tutorCardsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  tutorCard: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  tutorCardEmoji: {
-    fontSize: 28,
-    marginBottom: 6,
-  },
-  tutorCardName: {
-    fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 2,
-    textAlign: 'center',
-  },
-  tutorCardDesc: {
-    fontSize: 10,
-    fontWeight: '600',
-    textAlign: 'center',
-    lineHeight: 14,
-  },
-  tutorCheckmark: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
   },
   pickerRow: {
     flexDirection: 'row',
