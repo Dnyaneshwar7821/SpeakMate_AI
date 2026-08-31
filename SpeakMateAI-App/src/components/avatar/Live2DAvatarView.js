@@ -295,17 +295,17 @@ const getLive2DHtml = (initialModel = 'haru') => {
         this.headBaseGfx = new PIXI.Graphics();
         this.headContainer.addChild(this.headBaseGfx);
 
-        // 6. Whiskers & Red Button Nose
+        // 6. Expressive Cartoon Eyes (Layered behind nose)
+        this.eyesGfx = new PIXI.Graphics();
+        this.headContainer.addChild(this.eyesGfx);
+
+        // 7. Whiskers & Red Button Nose (Layered in front of eyes)
         this.noseWhiskersGfx = new PIXI.Graphics();
         this.headContainer.addChild(this.noseWhiskersGfx);
 
-        // 7. Dynamic Phonetic Mouth
+        // 8. Dynamic Phonetic Mouth
         this.mouthGfx = new PIXI.Graphics();
         this.headContainer.addChild(this.mouthGfx);
-
-        // 8. Expressive Cartoon Eyes
-        this.eyesGfx = new PIXI.Graphics();
-        this.headContainer.addChild(this.eyesGfx);
 
         // Puppet Animation State
         this.blinkTimer = performance.now() + 2500;
@@ -395,36 +395,36 @@ const getLive2DHtml = (initialModel = 'haru') => {
         hg.drawEllipse(0, -18, 70, 56);
         hg.endFill();
 
-        // --- 4. Red Button Nose & 6 Whiskers ---
+        // --- 4. Red Button Nose & 6 Whiskers (Drawn in front of eyes) ---
         const nwg = this.noseWhiskersGfx;
         nwg.clear();
 
-        // Bright Red Sphere Nose
+        // Bright Red Sphere Nose in front of eyes
         nwg.beginFill(0xEF4444);
         nwg.lineStyle(2.5, 0x0F172A);
-        nwg.drawCircle(0, -42, 11);
+        nwg.drawCircle(0, -34, 11);
         nwg.endFill();
 
         // Nose white shine highlight
         nwg.beginFill(0xFFFFFF, 0.9);
-        nwg.drawCircle(-3, -45, 3.5);
+        nwg.drawCircle(-3, -37, 3.5);
         nwg.endFill();
 
         // Center seam line from nose to mouth
         nwg.lineStyle(2.5, 0x0F172A);
-        nwg.moveTo(0, -31);
+        nwg.moveTo(0, -23);
         nwg.lineTo(0, 5);
 
         // 6 Whiskers (3 on each cheek)
         nwg.lineStyle(2.5, 0x0F172A);
         // Left whiskers
-        nwg.moveTo(-18, -32); nwg.lineTo(-58, -38);
-        nwg.moveTo(-20, -22); nwg.lineTo(-64, -22);
-        nwg.moveTo(-18, -12); nwg.lineTo(-58, -6);
+        nwg.moveTo(-16, -26); nwg.lineTo(-58, -32);
+        nwg.moveTo(-18, -17); nwg.lineTo(-64, -17);
+        nwg.moveTo(-16, -8); nwg.lineTo(-58, -2);
         // Right whiskers
-        nwg.moveTo(18, -32); nwg.lineTo(58, -38);
-        nwg.moveTo(20, -22); nwg.lineTo(64, -22);
-        nwg.moveTo(18, -12); nwg.lineTo(58, -6);
+        nwg.moveTo(16, -26); nwg.lineTo(58, -32);
+        nwg.moveTo(18, -17); nwg.lineTo(64, -17);
+        nwg.moveTo(16, -8); nwg.lineTo(58, -2);
 
         this.drawHands(0);
       }
@@ -517,11 +517,11 @@ const getLive2DHtml = (initialModel = 'haru') => {
         const eg = this.eyesGfx;
         eg.clear();
 
-        const leftEyeX = -18;
-        const rightEyeX = 18;
-        const eyeY = -56;
-        const eyeW = 16;
-        const eyeH = 21;
+        const leftEyeX = -15;
+        const rightEyeX = 15;
+        const eyeY = -52;
+        const eyeW = 15;
+        const eyeH = 20;
 
         if (this.isBlinking && this.blinkProgress > 0.3 && this.blinkProgress < 0.7) {
           // Closed Happy Eye Curves (^ ^)
