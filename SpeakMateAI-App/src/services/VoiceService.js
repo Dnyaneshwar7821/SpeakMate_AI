@@ -286,17 +286,18 @@ export const VoiceService = {
 
     const gs = (voiceCode || '').toLowerCase();
     const isBritish = gs.includes('uk') || gs.includes('gb') || gs.includes('british');
+    const isIndian = gs.includes('in') || gs.includes('indian');
 
     let targetGender = 'female';
     if (gs.includes('male') && !gs.includes('female')) {
-      targetGender = isBritish ? 'male' : 'female';
+      targetGender = (isBritish || isIndian) ? 'male' : 'female';
     } else if (gs.includes('female')) {
-      targetGender = isBritish ? 'female' : 'male';
+      targetGender = (isBritish || isIndian) ? 'female' : 'male';
     }
 
     let targetLocale = 'en-us';
     if      (isBritish)                                      targetLocale = 'en-gb';
-    else if (gs.includes('in') || gs.includes('indian'))     targetLocale = 'en-in';
+    else if (isIndian)                                       targetLocale = 'en-in';
     else if (gs.includes('au') || gs.includes('australian')) targetLocale = 'en-au';
     else if (gs.includes('ca') || gs.includes('canadian'))   targetLocale = 'en-ca';
 
@@ -322,12 +323,22 @@ export const VoiceService = {
             selected = anyFemale.identifier;
           }
         } else if (targetGender === 'male' && isFemale) {
-          // Scan for any confirmed male voice in the available voice pool
-          const anyMale = availableVoices.find(v => {
+          // Scan for any confirmed male voice in the available voice pool (prefer Indian male if isIndian)
+          let anyMale = isIndian ? availableVoices.find(v => {
             const vid = (v.identifier || '').toLowerCase();
             const vname = (v.name || '').toLowerCase();
-            return !isFemalePattern(vid, vname, v.gender);
-          });
+            const vlang = (v.language || '').toLowerCase();
+            return vlang.includes('in') && !isFemalePattern(vid, vname, v.gender);
+          }) : null;
+
+          if (!anyMale) {
+            anyMale = availableVoices.find(v => {
+              const vid = (v.identifier || '').toLowerCase();
+              const vname = (v.name || '').toLowerCase();
+              return !isFemalePattern(vid, vname, v.gender);
+            });
+          }
+
           if (anyMale) {
             selected = anyMale.identifier;
           }
@@ -441,23 +452,24 @@ export const VoiceService = {
 
     const gs = (resolvedVoice || '').toLowerCase();
     const isBritish = gs.includes('uk') || gs.includes('british') || gs.includes('gb');
+    const isIndian = gs.includes('in') || gs.includes('indian');
 
     // ── 3. Locale resolution ──────────────────────────────────────────────────
     let targetLocale = voiceConfig?.locale?.toLowerCase().replace('_', '-') || 'en-us';
     if (!voiceConfig) {
       if      (isBritish)                                  targetLocale = 'en-gb';
-      else if (gs.includes('in') || gs.includes('indian')) targetLocale = 'en-in';
+      else if (isIndian)                                   targetLocale = 'en-in';
       else if (gs.includes('au') || gs.includes('australian')) targetLocale = 'en-au';
       else if (gs.includes('ca') || gs.includes('canadian')) targetLocale = 'en-ca';
     }
 
-    // ── 4. Gender logic (switch genders for non-British voices as requested) ───
+    // ── 4. Gender logic ──────────────────────────────────────────────────────
     let targetGender = voiceConfig?.gender || 'female';
     if (!voiceConfig) {
       if (gs.includes('male') && !gs.includes('female')) {
-        targetGender = isBritish ? 'male' : 'female';
+        targetGender = (isBritish || isIndian) ? 'male' : 'female';
       } else if (gs.includes('female')) {
-        targetGender = isBritish ? 'female' : 'male';
+        targetGender = (isBritish || isIndian) ? 'female' : 'male';
       }
     }
 
