@@ -391,12 +391,6 @@ export default function AIAvatar({
   );
 }
 
-// ── Target Stage Dimensions (Head to Mid-Chest Portrait) ──────────────────────
-const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
-const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
-const AVATAR_WIDTH    = 360; // Wide container
-const AVATAR_HEIGHT   = 200; // Generous height
-
 const styles = StyleSheet.create({
   container: {
     width:          '100%',
