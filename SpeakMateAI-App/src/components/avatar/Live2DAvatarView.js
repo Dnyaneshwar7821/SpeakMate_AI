@@ -648,35 +648,6 @@ const getLive2DHtml = (initialModel = 'haru') => {
       return { viewW, viewH };
     }
 
-    function getLocalModelBounds() {
-      if (!model || typeof model.getLocalBounds !== 'function') return null;
-      try {
-        const bounds = model.getLocalBounds();
-        if (bounds && bounds.width > 1 && bounds.height > 1) return bounds;
-      } catch(e) {}
-      return null;
-    }
-
-    function placeFromVisibleBounds(scale, centerYRatio = 0.5) {
-      const dims = getViewDimensions();
-      const w = app ? app.screen.width : dims.viewW;
-      const h = app ? app.screen.height : dims.viewH;
-      const bounds = getLocalModelBounds();
-
-      model.scale.set(scale, scale);
-
-      if (!bounds) {
-        model.x = w / 2;
-        model.y = h * centerYRatio;
-        return;
-      }
-
-      const centerX = bounds.x + (bounds.width / 2);
-      const centerY = bounds.y + (bounds.height / 2);
-      model.x = (w / 2) - (centerX * scale);
-      model.y = (h * centerYRatio) - (centerY * scale);
-    }
-
     function framePortrait(viewW, viewH) {
       if (!model) return;
       const dims = getViewDimensions();
@@ -684,10 +655,10 @@ const getLive2DHtml = (initialModel = 'haru') => {
       const h = viewH || (app ? app.screen.height : dims.viewH);
 
       if (model.isDoraemonPuppet) {
-        const baseScale = Math.min((w * 0.62) / 190, (h * 0.82) / 200);
+        const baseScale = (h * 0.88) / 200;
         model.scale.set(baseScale, baseScale);
         model.x = w / 2;
-        model.y = h * 0.48;
+        model.y = h * 0.52;
         return;
       }
 
@@ -700,19 +671,12 @@ const getLive2DHtml = (initialModel = 'haru') => {
       }
 
       // Live2D Models (Haru and Chitose)
-      const zoom = isMale ? 1.05 : 1.00;
+      const zoom = isMale ? 1.30 : 1.25;
       const baseScale = (h * zoom) / nativeH;
       model.scale.set(baseScale, baseScale);
 
-      const bounds = getLocalModelBounds();
-      if (bounds) {
-        const centerX = bounds.x + (bounds.width / 2);
-        model.x = (w / 2) - (centerX * baseScale);
-        model.y = Math.max(8, h * 0.04) - (bounds.y * baseScale);
-      } else {
-        model.x = w / 2;
-        model.y = Math.max(8, h * 0.06);
-      }
+      model.x = w / 2;
+      model.y = Math.max(8, h * 0.06);
     }
 
     async function init() {

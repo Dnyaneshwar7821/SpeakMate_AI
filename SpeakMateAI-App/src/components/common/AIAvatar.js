@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
 
   // 6. Avatar Container & Canvas (Head to Chest Portrait)
   avatarContainer: {
-    width:           AVATAR_WIDTH,
+    width:           '100%',
     height:          AVATAR_HEIGHT,
     alignItems:      'center',
     justifyContent:  'center',
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     zIndex:          10,
   },
   avatarCanvas: {
-    width:           AVATAR_WIDTH,
+    width:           '100%',
     height:          AVATAR_HEIGHT,
     backgroundColor: 'transparent',
   },
