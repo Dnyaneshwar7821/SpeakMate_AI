@@ -58,21 +58,39 @@ export const AVATAR_CATALOG = {
     yOffsetRatio: 0.06,
   },
 
-  // ── 2. Kids & Students Cartoon Avatars (Unique Live2D & 2.5D Models) ──
+  // ── 2. Kids & Students Cartoon Avatars (Unique Live2D & 2D Models) ──
   robopaws: {
     id: 'robopaws',
     name: 'Robo-Paws',
     gender: 'robopaws',
     category: 'cartoon',
-    badge: 'Cartoon Mascot',
+    badge: 'Doraemon Buddy',
     emoji: '🤖',
     subtitle: 'Cute Robot Cat / Doraemon-Style Mascot',
-    description: 'High-energy 2.5D mascot with 3D red nose & golden bell for fun, stress-free practice.',
+    description: 'High-energy 2D mascot with red nose & golden bell for fun, stress-free practice.',
     voiceProfile: 'Robo-Paws',
     voiceLabel: 'Cute Cartoon Voice',
     defaultPitch: 1.35,
     type: 'puppet',
     puppetType: 'doraemon',
+    modelPath: null,
+    scaleMultiplier: 1.0,
+    yOffsetRatio: 0.50,
+  },
+  motu: {
+    id: 'motu',
+    name: 'Motu',
+    gender: 'male',
+    category: 'cartoon',
+    badge: 'Motu Patlu',
+    emoji: '🥟',
+    subtitle: 'Jolly samosa-loving cartoon friend from Furfuri Nagar',
+    description: 'Enthusiastic and funny friend! Builds everyday confidence through storytelling, laughter, and dialogues.',
+    voiceProfile: 'US Male',
+    voiceLabel: 'Jolly Motu Voice',
+    defaultPitch: 1.15,
+    type: 'puppet',
+    puppetType: 'motu',
     modelPath: null,
     scaleMultiplier: 1.0,
     yOffsetRatio: 0.50,
@@ -146,23 +164,6 @@ export const AVATAR_CATALOG = {
     scaleMultiplier: 1.25,
     yOffsetRatio: 0.06,
   },
-  tororo: {
-    id: 'tororo',
-    name: 'Tororo',
-    gender: 'female',
-    category: 'cartoon',
-    badge: 'Cartoon White Cat',
-    emoji: '🐱',
-    subtitle: 'Adorable white anime cat mascot with animated ears',
-    description: 'Super friendly animal companion for kids, stories, spelling, and pronunciation.',
-    voiceProfile: 'Default',
-    voiceLabel: 'Cute Kitty Voice',
-    defaultPitch: 1.38,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-tororo@1.0.5/assets/tororo.model.json',
-    scaleMultiplier: 0.95,
-    yOffsetRatio: 0.50,
-  },
   wanko: {
     id: 'wanko',
     name: 'Wanko',
@@ -190,6 +191,9 @@ export const AVATAR_LIST = Object.values(AVATAR_CATALOG);
 export function getAvatarById(id) {
   if (!id) return AVATAR_CATALOG.haru;
   const key = String(id).toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (key.includes('motu') || key.includes('patlu')) {
+    return AVATAR_CATALOG.motu;
+  }
   if (key.includes('robo') || key.includes('paws') || key.includes('doraemon')) {
     return AVATAR_CATALOG.robopaws;
   }
@@ -210,9 +214,6 @@ export function getAvatarById(id) {
   }
   if (key.includes('mao') || key.includes('unity')) {
     return AVATAR_CATALOG.mao;
-  }
-  if (key.includes('tororo') || key.includes('cat') || key.includes('shironeko')) {
-    return AVATAR_CATALOG.tororo;
   }
   if (key.includes('wanko') || key.includes('dog') || key.includes('puppy')) {
     return AVATAR_CATALOG.wanko;

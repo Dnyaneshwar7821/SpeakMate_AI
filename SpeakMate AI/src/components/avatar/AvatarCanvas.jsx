@@ -3,6 +3,7 @@ import * as PIXI from 'pixi.js';
 import { ModelLoader } from '../../services/live2d/ModelLoader';
 import { DoraemonPuppet } from './DoraemonPuppet';
 import { SuperheroPuppet } from './SuperheroPuppet';
+import { MotuPuppet } from './MotuPuppet';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 import { getCurrentVoiceGender } from '../../utils/speechHelper';
 import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
@@ -39,7 +40,8 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
   const catalogEntry = getAvatarById(activeModelKey);
   const isRoboPaws = catalogEntry.id === 'robopaws';
   const isSuperhero = catalogEntry.id === 'sparky' || catalogEntry.id === 'hero' || catalogEntry.puppetType === 'superhero';
-  const isPuppet = catalogEntry.type === 'puppet' || isRoboPaws || isSuperhero;
+  const isMotu = catalogEntry.id === 'motu' || catalogEntry.puppetType === 'motu';
+  const isPuppet = catalogEntry.type === 'puppet' || isRoboPaws || isSuperhero || isMotu;
   const targetModelPath = modelPath || catalogEntry.modelPath || AVATAR_CATALOG.haru.modelPath;
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     container.appendChild(app.view);
 
     if (isPuppet) {
-      const puppet = isSuperhero ? new SuperheroPuppet() : new DoraemonPuppet();
+      const puppet = isSuperhero ? new SuperheroPuppet() : isMotu ? new MotuPuppet() : new DoraemonPuppet();
       app.stage.addChild(puppet);
       modelRef.current = puppet;
       setModelInstance(puppet);
@@ -74,6 +76,8 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         app.renderer.resize(width, height);
         const scale = isSuperhero
           ? Math.min((width * 0.90) / 240, (height * 0.85) / 280)
+          : isMotu
+          ? Math.min((width * 0.88) / 230, (height * 0.82) / 270)
           : Math.min((width * 0.85) / 220, (height * 0.80) / 260);
         puppet.scale.set(scale, scale);
         puppet.x = width / 2;
