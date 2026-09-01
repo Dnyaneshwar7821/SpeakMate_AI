@@ -9,54 +9,54 @@ const BAR_COUNT = 5;
 
 export const STATE_CONFIG = {
   idle: {
-    glowCenter: 'rgba(139, 92, 246, 0.30)',
+    glowCenter: 'rgba(139, 92, 246, 0.12)',
     glowOuter:  'rgba(139, 92, 246, 0.0)',
-    innerRing:  'rgba(192, 132, 252, 0.95)',
-    outerRing:  'rgba(139, 92, 246, 0.50)',
+    innerRing:  'rgba(192, 132, 252, 0.35)',
+    outerRing:  'rgba(139, 92, 246, 0.18)',
     ringGlow:   '#8B5CF6',
     dot:        '#A855F7',
     label:      'Ready',
     pulseSpeed: 2800,
   },
   paused: {
-    glowCenter: 'rgba(245, 158, 11, 0.28)',
+    glowCenter: 'rgba(245, 158, 11, 0.12)',
     glowOuter:  'rgba(245, 158, 11, 0.0)',
-    innerRing:  'rgba(252, 211, 77, 0.95)',
-    outerRing:  'rgba(245, 158, 11, 0.45)',
+    innerRing:  'rgba(252, 211, 77, 0.40)',
+    outerRing:  'rgba(245, 158, 11, 0.20)',
     ringGlow:   '#F59E0B',
     dot:        '#FBBF24',
     label:      'Paused',
     pulseSpeed: 3000,
   },
   listening: {
-    glowCenter: 'rgba(6, 182, 212, 0.38)',
+    glowCenter: 'rgba(6, 182, 212, 0.16)',
     glowOuter:  'rgba(6, 182, 212, 0.0)',
-    innerRing:  'rgba(103, 232, 249, 1.0)',
-    outerRing:  'rgba(6, 182, 212, 0.65)',
+    innerRing:  'rgba(103, 232, 249, 0.50)',
+    outerRing:  'rgba(6, 182, 212, 0.25)',
     ringGlow:   '#06B6D4',
     dot:        '#22D3EE',
     label:      'Listening...',
     pulseSpeed: 1000,
   },
   thinking: {
-    glowCenter: 'rgba(168, 85, 247, 0.35)',
+    glowCenter: 'rgba(168, 85, 247, 0.14)',
     glowOuter:  'rgba(168, 85, 247, 0.0)',
-    innerRing:  'rgba(192, 132, 252, 0.95)',
-    outerRing:  'rgba(168, 85, 247, 0.55)',
+    innerRing:  'rgba(192, 132, 252, 0.45)',
+    outerRing:  'rgba(168, 85, 247, 0.22)',
     ringGlow:   '#9333EA',
     dot:        '#C084FC',
     label:      'Thinking...',
     pulseSpeed: 1400,
   },
   speaking: {
-    glowCenter: 'rgba(192, 132, 252, 0.42)',
+    glowCenter: 'rgba(244, 114, 182, 0.18)',
     glowOuter:  'rgba(192, 132, 252, 0.0)',
-    innerRing:  'rgba(244, 114, 182, 1.0)',
-    outerRing:  'rgba(192, 132, 252, 0.70)',
+    innerRing:  'rgba(244, 114, 182, 0.55)',
+    outerRing:  'rgba(192, 132, 252, 0.28)',
     ringGlow:   '#F472B6',
     dot:        '#F472B6',
     label:      'Speaking',
-    pulseSpeed: 500,
+    pulseSpeed: 600,
   },
 };
 
@@ -235,11 +235,11 @@ export default function AIAvatar({
   const stateScale = resolvedState === 'listening' ? 1.02 : resolvedState === 'speaking' ? 1.015 : 1.0;
   const breatheScale = breatheAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.008] });
 
-  // Diffused Glow (Soft, no solid disk)
-  const glowScale   = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.08] });
+  // Diffused Glow (Soft, translucent ambient halo)
+  const glowScale   = pulseAnim.interpolate({ inputRange: [0, 1], outputRange: [1.0, 1.04] });
   const glowOpacity = pulseAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: isSpeaking ? [0.8, 1.0] : resolvedState === 'listening' ? [0.7, 0.95] : [0.45, 0.75],
+    outputRange: isSpeaking ? [0.45, 0.65] : resolvedState === 'listening' ? [0.35, 0.55] : [0.20, 0.35],
   });
 
   return (
@@ -274,17 +274,17 @@ export default function AIAvatar({
           />
         </Animated.View>
 
-        {/* ── Layer 2: Ethereal Sound Wave Energy Aura (Horizontal Curves) ── */}
+        {/* ── Layer 2: Ethereal Sound Wave Energy Aura (Subtle Curves) ── */}
         <Animated.View pointerEvents="none" style={[styles.soundWaveAura, { opacity: glowOpacity }]}>
           <LinearGradient
-            colors={['transparent', 'rgba(168, 85, 247, 0.35)', 'rgba(139, 92, 246, 0.20)', 'transparent']}
+            colors={['transparent', 'rgba(168, 85, 247, 0.12)', 'rgba(139, 92, 246, 0.06)', 'transparent']}
             start={{ x: 0, y: 0.5 }}
             end={{ x: 1, y: 0.5 }}
             style={styles.soundWaveGradient}
           />
         </Animated.View>
 
-        {/* ── Layer 3: Luminous Outer Neon Halo Ring (225px) ── */}
+        {/* ── Layer 3: Luminous Outer Neon Halo Ring (232px) ── */}
         <Animated.View
           style={[
             styles.outerHaloRing,
@@ -297,7 +297,7 @@ export default function AIAvatar({
           ]}
         />
 
-        {/* ── Layer 4: Luminous Inner Neon Halo Ring (175px Centered behind Head) ── */}
+        {/* ── Layer 4: Luminous Inner Neon Halo Ring (172px Centered behind Head) ── */}
         <Animated.View
           style={[
             styles.innerHaloRing,
@@ -449,11 +449,11 @@ const styles = StyleSheet.create({
     width:         OUTER_RING_SIZE,
     height:        OUTER_RING_SIZE,
     borderRadius:  OUTER_RING_SIZE / 2,
-    borderWidth:   1.2,
-    shadowOpacity: 0.65,
-    shadowRadius:  14,
+    borderWidth:   1.0,
+    shadowOpacity: 0.35,
+    shadowRadius:  8,
     shadowOffset:  { width: 0, height: 0 },
-    elevation:     4,
+    elevation:     2,
   },
 
   // 4. Luminous Inner Neon Halo Ring (172px Centered on Face)
@@ -462,11 +462,11 @@ const styles = StyleSheet.create({
     width:         INNER_RING_SIZE,
     height:        INNER_RING_SIZE,
     borderRadius:  INNER_RING_SIZE / 2,
-    borderWidth:   1.8,
-    shadowOpacity: 0.95,
-    shadowRadius:  22,
+    borderWidth:   1.2,
+    shadowOpacity: 0.45,
+    shadowRadius:  10,
     shadowOffset:  { width: 0, height: 0 },
-    elevation:     8,
+    elevation:     4,
   },
 
   // 5. Ambient Stars & Sparkles

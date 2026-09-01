@@ -936,8 +936,6 @@ const getLive2DHtml = (initialModel = 'haru') => {
         }
         model = await Live2DModelClass.from(url, { autoInteract: false });
 
-        framePortrait(viewW, viewH);
-
         // Hook motionManager update to guarantee lipSync overrides motion curves
         if (model.internalModel && model.internalModel.motionManager) {
           const origUpdate = model.internalModel.motionManager.update ? model.internalModel.motionManager.update.bind(model.internalModel.motionManager) : null;
@@ -958,6 +956,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
         model.interactive = false;
 
         app.stage.addChild(model);
+        framePortrait(viewW, viewH);
         window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
       } catch(err) {
         window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ERROR', message: err.message }));
