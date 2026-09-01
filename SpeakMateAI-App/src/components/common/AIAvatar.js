@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -342,6 +342,12 @@ export default function AIAvatar({
             onLoaded={() => setLive2dReady(true)}
             onError={() => setLive2dError(true)}
           />
+
+          {!live2dReady && (
+            <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' }]}>
+              <ActivityIndicator size="small" color="#A855F7" />
+            </View>
+          )}
 
           {/* Layer 7: Smooth Chest-Line Fade into Dark Background */}
           <LinearGradient

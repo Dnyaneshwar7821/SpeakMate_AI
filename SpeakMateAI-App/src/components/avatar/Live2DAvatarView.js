@@ -973,7 +973,12 @@ const getLive2DHtml = (initialModel = 'haru') => {
     window.addEventListener('message', handleMessage);
     document.addEventListener('message', handleMessage);
 
-    window.onload = init;
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      setTimeout(init, 20);
+    } else {
+      window.addEventListener('DOMContentLoaded', init);
+      window.addEventListener('load', init);
+    }
   </script>
 </body>
 </html>
@@ -1056,7 +1061,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
-        source={{ html: htmlSource }}
+        source={{ html: htmlSource, baseUrl: 'https://localhost' }}
         style={styles.webView}
         scrollEnabled={false}
         bounces={false}
@@ -1068,6 +1073,8 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
         mediaPlaybackRequiresUserAction={false}
         transparent={true}
         backgroundColor="transparent"
+        androidLayerType="hardware"
+        mixedContentMode="always"
         onMessage={onMessage}
       />
     </View>

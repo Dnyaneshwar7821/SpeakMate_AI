@@ -318,9 +318,9 @@ export default function ConversationChatScreen({ navigation, route }) {
         );
 
         let resolvedModel = 'haru';
-        if (isRoboPawsSelected && isKids) {
+        if (isRoboPawsSelected || savedAvatarModel === 'robopaws') {
           resolvedModel = 'robopaws';
-        } else if (isMaleSelected) {
+        } else if (isMaleSelected || savedAvatarModel === 'chitose') {
           resolvedModel = 'chitose';
         } else if (isKids && !savedAvatarModel && !savedGender) {
           resolvedModel = 'robopaws';
