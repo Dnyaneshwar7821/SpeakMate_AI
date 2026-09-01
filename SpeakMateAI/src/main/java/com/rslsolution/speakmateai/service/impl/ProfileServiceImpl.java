@@ -40,8 +40,7 @@ public class ProfileServiceImpl implements ProfileService {
 		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
 		boolean isStudent = (user.getSchoolId() != null) ||
 				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||
-				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
-				(user.getAgeGroup() != null && user.getAgeGroup().toLowerCase().contains("school"));
+				(user.getAccountType() != null && user.getAccountType().name().contains("STUDENT"));
 
 		return ProfileResponse.builder()
 				.id(user.getId())
@@ -86,16 +85,24 @@ public class ProfileServiceImpl implements ProfileService {
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
+		if (request == null) {
+			return mapToProfileResponse(user);
+		}
+
 		// Check if email is changing and if new email already exists
-		if (!user.getEmail().equalsIgnoreCase(request.getEmail())) {
+		if (request.getEmail() != null && !request.getEmail().trim().isEmpty() && !user.getEmail().equalsIgnoreCase(request.getEmail().trim())) {
 			if (userRepository.findByEmail(request.getEmail().toLowerCase().trim()).isPresent()) {
 				throw new DuplicateEmailException("Email address is already in use by another account.");
 			}
 			user.setEmail(request.getEmail().toLowerCase().trim());
 		}
 
-		user.setFirstName(request.getFirstName());
-		user.setLastName(request.getLastName());
+		if (request.getFirstName() != null && !request.getFirstName().trim().isEmpty()) {
+			user.setFirstName(request.getFirstName().trim());
+		}
+		if (request.getLastName() != null && !request.getLastName().trim().isEmpty()) {
+			user.setLastName(request.getLastName().trim());
+		}
 
 		if (request.getAvatar() != null && !request.getAvatar().trim().isEmpty()) {
 			user.setAvatar(request.getAvatar().trim());
@@ -109,8 +116,8 @@ public class ProfileServiceImpl implements ProfileService {
 		if (request.getAgeGroup() != null && !request.getAgeGroup().trim().isEmpty()) {
 			user.setAgeGroup(request.getAgeGroup().trim());
 		}
-		if (request.getSchoolGrade() != null && !request.getSchoolGrade().trim().isEmpty()) {
-			user.setSchoolGrade(request.getSchoolGrade().trim());
+		if (request.getSchoolGrade() != null) {
+			user.setSchoolGrade(request.getSchoolGrade().trim().isEmpty() ? null : request.getSchoolGrade().trim());
 		}
 
 		User updatedUser = userRepository.save(user);
