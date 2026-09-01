@@ -53,9 +53,9 @@ export const AVATAR_CATALOG = {
     voiceLabel: 'Soft Female Voice',
     defaultPitch: 1.02,
     type: 'live2d',
-    modelPath: '/models/avatar/shizuku/shizuku.model.json',
-    scaleMultiplier: 1.18,
-    yOffsetRatio: 0.08,
+    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json',
+    scaleMultiplier: 1.22,
+    yOffsetRatio: 0.06,
   },
 
   // ── 2. Kids & Students Cartoon Avatars (Each with a Unique Model) ──
