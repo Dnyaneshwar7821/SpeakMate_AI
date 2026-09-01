@@ -6,6 +6,7 @@ import { authService } from "../services/authService";
 import { profileService, subscriptionService } from "../services/appServices";
 import { getLiveProgressStats } from "../utils/progressTracker";
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
+import { AVATAR_LIST, getAvatarById } from "../config/AvatarCatalog";
 import { Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
 
@@ -112,6 +113,9 @@ export function Profile() {
   const [preferredAccent, setPreferredAccent] = useState(
     () => localStorage.getItem("speakmate_accent") || "US"
   );
+  const [activeAvatarId, setActiveAvatarId] = useState(
+    () => localStorage.getItem("speakmate_avatar_model") || "haru"
+  );
   const [preferredVoice, setPreferredVoice] = useState(
     () => localStorage.getItem("speakmate_voice_gender") || "female"
   );
@@ -155,41 +159,25 @@ export function Profile() {
       .catch(() => {});
   }, [user]);
 
-  const handleSelectTutor = (genderOrModel) => {
-    let voiceCode = "Default";
-    let gender = "female";
-    let model = "haru";
+  const handleSelectTutor = (avatarInput) => {
+    const entry = typeof avatarInput === "object" ? avatarInput : getAvatarById(avatarInput);
+    const model = entry.id;
+    const gender = entry.gender;
+    const voiceCode = entry.voiceProfile;
+    const pitch = entry.defaultPitch;
 
-    if (genderOrModel === "robopaws" || genderOrModel === "robot") {
-      voiceCode = "Robo-Paws";
-      gender = "robopaws";
-      model = "robopaws";
-    } else if (genderOrModel === "male" || genderOrModel === "chitose") {
-      voiceCode = "US Male";
-      gender = "male";
-      model = "chitose";
-    } else {
-      voiceCode = "Default";
-      gender = "female";
-      model = "haru";
-    }
-
+    setActiveAvatarId(model);
     setPreferredVoice(gender);
     localStorage.setItem("speakmate_voice_gender", gender);
     localStorage.setItem("speakmate_avatar_model", model);
     localStorage.setItem("speakmate_selected_voice", voiceCode);
     localStorage.setItem("speakmate_ai_voice", voiceCode);
     localStorage.setItem("speakmate_voice_code", voiceCode);
+    localStorage.setItem("speakmate_voice_pitch", String(pitch));
 
     EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
 
-    toast.success(
-      model === "robopaws"
-        ? "Switched to Robo-Paws (Cute Cartoon Voice & Doraemon Buddy Active) 🤖"
-        : model === "chitose"
-        ? "Switched to Chitose (American Male Voice Active) 👨"
-        : "Switched to Haru (System Default Voice Active) 👩"
-    );
+    toast.success(`Switched to ${entry.name} (${entry.voiceLabel} Active) ${entry.emoji}`);
   };
 
   const handleAgeGroupChange = (newAge) => {
@@ -198,12 +186,6 @@ export function Profile() {
     localStorage.setItem("speakmate_age_group", val);
     window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
     window.dispatchEvent(new Event("speakmate_progress_updated"));
-
-    // If switching to an age group where Robo-Paws is not permitted, safely fallback to Haru
-    const canStillAccessRoboPaws = Boolean(isStudent || val === "Kids" || val === "Teens");
-    if (!canStillAccessRoboPaws && (preferredVoice === "robopaws" || preferredVoice === "robot")) {
-      handleSelectTutor("female");
-    }
   };
 
   const handleSaveProfile = async (e) => {
@@ -229,21 +211,9 @@ export function Profile() {
       localStorage.setItem("speakmate_daily_goal", dailyGoal.toString());
       localStorage.setItem("speakmate_accent", preferredAccent);
       localStorage.setItem("speakmate_voice_gender", preferredVoice);
+      localStorage.setItem("speakmate_avatar_model", activeAvatarId);
 
-      if (preferredVoice === "robopaws") {
-        localStorage.setItem("speakmate_avatar_model", "robopaws");
-        localStorage.setItem("speakmate_selected_voice", "Robo-Paws");
-        localStorage.setItem("speakmate_ai_voice", "Robo-Paws");
-      } else if (preferredVoice === "male") {
-        localStorage.setItem("speakmate_avatar_model", "chitose");
-        localStorage.setItem("speakmate_selected_voice", "US Male");
-        localStorage.setItem("speakmate_ai_voice", "US Male");
-      } else {
-        localStorage.setItem("speakmate_avatar_model", "haru");
-        localStorage.setItem("speakmate_selected_voice", "Default");
-        localStorage.setItem("speakmate_ai_voice", "Default");
-      }
-      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender: preferredVoice });
+      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender: preferredVoice, model: activeAvatarId });
 
       const updatedProfile = await profileService.update({
         firstName: cleanFirstName,
@@ -472,153 +442,75 @@ export function Profile() {
       {/* TAB 1: GENERAL PROFILE DETAILS */}
       {activeTab === "general" && (
         <div className="space-y-6">
-          {/* ── AI Speaking Tutor Persona Card (Matching Mobile App) ── */}
-          {(() => {
-            const normAge = normalizeAgeGroup(ageGroup);
-            const canAccessRoboPaws = Boolean(
-              isStudent ||
-              normAge === "Kids" ||
-              normAge === "Teens"
-            );
-
-            return (
-              <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-5">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
-                  <div>
-                    <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
-                      <span>🎭</span> AI Speaking Tutor Persona
-                    </h2>
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
-                      {canAccessRoboPaws
-                        ? "Select your Live2D avatar practice tutor or cartoon buddy with auto-synced voice"
-                        : "Select your Live2D avatar practice tutor with auto-synced voice"}
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
-                    Auto Voice Sync Active 🎙️
-                  </span>
-                </div>
-
-                <div
-                  className={`grid gap-4 ${
-                    canAccessRoboPaws ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2"
-                  }`}
-                >
-                  {/* 1. HARU (FEMALE) */}
-                  <button
-                    type="button"
-                    onClick={() => handleSelectTutor("female")}
-                    className={`relative p-5 rounded-3xl border text-left transition-all cursor-pointer active:scale-95 group overflow-hidden ${
-                      preferredVoice === "female" || (preferredVoice === "robopaws" && !canAccessRoboPaws)
-                        ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 to-[#8B5CF6]/10 text-[#6C63FF] shadow-lg shadow-[#6C63FF]/15 ring-2 ring-[#6C63FF]/30"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/30 grid place-items-center text-3xl shadow-inner shrink-0">
-                        👩
-                      </div>
-                      {(preferredVoice === "female" || (preferredVoice === "robopaws" && !canAccessRoboPaws)) && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
-                          ✓ Active
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-4 space-y-1">
-                      <h3 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
-                        Haru (Female)
-                      </h3>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium">
-                        Warm, clear, and encouraging
-                      </p>
-                      <div className="pt-2">
-                        <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] inline-block">
-                          🎙️ System Default Voice
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* 2. CHITOSE (MALE) */}
-                  <button
-                    type="button"
-                    onClick={() => handleSelectTutor("male")}
-                    className={`relative p-5 rounded-3xl border text-left transition-all cursor-pointer active:scale-95 group overflow-hidden ${
-                      preferredVoice === "male"
-                        ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 to-[#8B5CF6]/10 text-[#6C63FF] shadow-lg shadow-[#6C63FF]/15 ring-2 ring-[#6C63FF]/30"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 grid place-items-center text-3xl shadow-inner shrink-0">
-                        👨
-                      </div>
-                      {preferredVoice === "male" && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
-                          ✓ Active
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-4 space-y-1">
-                      <h3 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
-                        Chitose (Male)
-                      </h3>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium">
-                        Confident, articulate, and supportive
-                      </p>
-                      <div className="pt-2">
-                        <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] inline-block">
-                          🎙️ American Male Voice
-                        </span>
-                      </div>
-                    </div>
-                  </button>
-
-                  {/* 3. ROBO-PAWS (DORAEMON-STYLE BUDDY) - Kids, Teens & Students Only */}
-                  {canAccessRoboPaws && (
-                    <button
-                      type="button"
-                      onClick={() => handleSelectTutor("robopaws")}
-                      className={`relative p-5 rounded-3xl border text-left transition-all cursor-pointer active:scale-95 group overflow-hidden ${
-                        preferredVoice === "robopaws" || preferredVoice === "robot"
-                          ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 to-[#8B5CF6]/10 text-[#6C63FF] shadow-lg shadow-[#6C63FF]/15 ring-2 ring-[#6C63FF]/30"
-                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-sky-500/20 border border-cyan-500/30 grid place-items-center text-3xl shadow-inner shrink-0">
-                          🤖
-                        </div>
-                        {(preferredVoice === "robopaws" || preferredVoice === "robot") && (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
-                            ✓ Active
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-4 space-y-1">
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
-                            Robo-Paws
-                          </h3>
-                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                            Kids & Students
-                          </span>
-                        </div>
-                        <p className="text-xs text-[var(--text-secondary)] font-medium">
-                          Cute Robot Cat / Doraemon Buddy
-                        </p>
-                        <div className="pt-2">
-                          <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] inline-block">
-                            🎙️ Cute Cartoon Voice
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  )}
-                </div>
+          {/* ── AI Speaking Tutor Persona Card (Universal Catalog) ── */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
+              <div>
+                <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
+                  <span>🎭</span> AI Speaking Tutor Persona
+                </h2>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
+                  Choose your personalized AI speaking partner from our full Live2D & 2.5D tutor catalog.
+                </p>
               </div>
-            );
-          })()}
+              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
+                Auto Voice Sync Active 🎙️
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {AVATAR_LIST.map((av) => {
+                const isSelected = activeAvatarId === av.id;
+                return (
+                  <button
+                    key={av.id}
+                    type="button"
+                    onClick={() => handleSelectTutor(av)}
+                    className={`relative p-5 rounded-3xl border text-left transition-all cursor-pointer active:scale-95 group overflow-hidden ${
+                      isSelected
+                        ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 to-[#8B5CF6]/10 text-[#6C63FF] shadow-lg shadow-[#6C63FF]/15 ring-2 ring-[#6C63FF]/30"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] grid place-items-center text-3xl shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                        {av.emoji}
+                      </div>
+                      {isSelected && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
+                          ✓ Active
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-4 space-y-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <h3 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
+                          {av.name}
+                        </h3>
+                        <span
+                          className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+                            av.category === "cartoon"
+                              ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                              : "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                          }`}
+                        >
+                          {av.badge}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium line-clamp-1">
+                        {av.subtitle}
+                      </p>
+                      <div className="pt-2">
+                        <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] inline-block">
+                          🎙️ {av.voiceLabel}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {/* Personal Information Card */}
           <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
@@ -755,84 +647,66 @@ export function Profile() {
           </div>
 
           <form onSubmit={handleSaveProfile} className="space-y-6">
-            {/* ── AI Speaking Tutor Persona inside Preferences ── */}
-            {(() => {
-              const normAge = normalizeAgeGroup(ageGroup);
-              const canAccessRoboPaws = Boolean(
-                isStudent ||
-                normAge === "Kids" ||
-                normAge === "Teens"
-              );
+            {/* ── AI Speaking Tutor Persona inside Preferences (Universal Catalog) ── */}
+            <div>
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">
+                  🎭 AI Speaking Tutor Persona
+                </label>
+                <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30">
+                  Auto Voice Sync 🎙️
+                </span>
+              </div>
 
-              return (
-                <div>
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">
-                      🎭 AI Speaking Tutor Persona
-                    </label>
-                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30">
-                      Auto Voice Sync 🎙️
-                    </span>
-                  </div>
-
-                  <div
-                    className={`grid gap-4 ${
-                      canAccessRoboPaws ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
-                    }`}
-                  >
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {AVATAR_LIST.map((av) => {
+                  const isSelected = activeAvatarId === av.id;
+                  return (
                     <button
+                      key={av.id}
                       type="button"
-                      onClick={() => handleSelectTutor("female")}
-                      className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                        preferredVoice === "female" || (preferredVoice === "robopaws" && !canAccessRoboPaws)
+                      onClick={() => handleSelectTutor(av)}
+                      className={`p-4 rounded-2xl border text-left font-black transition-all cursor-pointer active:scale-95 flex flex-col justify-between ${
+                        isSelected
                           ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md ring-2 ring-[#6C63FF]/30"
-                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)] hover:border-[#6C63FF]/50"
                       }`}
                     >
-                      <span className="text-2xl block mb-1">👩 Haru (Female)</span>
-                      <span className="text-xs opacity-75 block mb-1">Warm & encouraging</span>
-                      <span className="text-[10px] font-bold opacity-90 px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-default)] inline-block">
-                        🎙️ System Default
-                      </span>
+                      <div className="flex items-start justify-between gap-2 w-full">
+                        <span className="text-2xl">{av.emoji}</span>
+                        {isSelected && (
+                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-[#6C63FF] text-white">
+                            ✓ Active
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-2 space-y-0.5">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-sm font-black">{av.name}</span>
+                          <span
+                            className={`text-[8px] font-black px-1.5 py-0.5 rounded-full border ${
+                              av.category === "cartoon"
+                                ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                                : "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                            }`}
+                          >
+                            {av.badge}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[var(--text-secondary)] font-medium line-clamp-1">
+                          {av.subtitle}
+                        </p>
+                        <div className="pt-1">
+                          <span className="text-[9px] font-bold opacity-90 px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-default)] inline-block">
+                            🎙️ {av.voiceLabel}
+                          </span>
+                        </div>
+                      </div>
                     </button>
-
-                    <button
-                      type="button"
-                      onClick={() => handleSelectTutor("male")}
-                      className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                        preferredVoice === "male"
-                          ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md ring-2 ring-[#6C63FF]/30"
-                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                      }`}
-                    >
-                      <span className="text-2xl block mb-1">👨 Chitose (Male)</span>
-                      <span className="text-xs opacity-75 block mb-1">Confident & supportive</span>
-                      <span className="text-[10px] font-bold opacity-90 px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-default)] inline-block">
-                        🎙️ American Male
-                      </span>
-                    </button>
-
-                    {canAccessRoboPaws && (
-                      <button
-                        type="button"
-                        onClick={() => handleSelectTutor("robopaws")}
-                        className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                          preferredVoice === "robopaws" || preferredVoice === "robot"
-                            ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md ring-2 ring-[#6C63FF]/30"
-                            : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                        }`}
-                      >
-                        <span className="text-2xl block mb-1">🤖 Robo-Paws</span>
-                        <span className="text-xs opacity-75 block mb-1">Cute Doraemon Buddy</span>
-                        <span className="text-[10px] font-bold opacity-90 px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-default)] inline-block">
-                          🎙️ Cartoon Voice
-                        </span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
+                  );
+                })}
+              </div>
+            </div>
 
             <div>
               <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">

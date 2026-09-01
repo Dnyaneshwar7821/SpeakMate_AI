@@ -116,6 +116,16 @@ export function Settings() {
 
   const handleSelectVoiceCode = (voiceCode, previewText) => {
     setSelectedVoice(voiceCode);
+    const profile = VOICE_PROFILES.find((p) => p.code === voiceCode);
+    const gender = profile?.gender || (voiceCode.toLowerCase().includes("male") && !voiceCode.toLowerCase().includes("female") ? "male" : "female");
+    const model = gender === "robopaws" ? "robopaws" : gender === "male" ? "chitose" : "haru";
+
+    localStorage.setItem("speakmate_avatar_model", model);
+    localStorage.setItem("speakmate_voice_gender", gender);
+    localStorage.setItem("speakmate_selected_voice", voiceCode);
+    localStorage.setItem("speakmate_ai_voice", voiceCode);
+    EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
+
     playVoicePreview(voiceCode, previewText);
   };
 
@@ -126,7 +136,8 @@ export function Settings() {
     try {
       const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
       const gender = profile?.gender || (selectedVoice.toLowerCase().includes("male") && !selectedVoice.toLowerCase().includes("female") ? "male" : "female");
-      const model = gender === "robopaws" ? "robopaws" : gender === "male" ? "chitose" : "haru";
+      const currentModel = localStorage.getItem("speakmate_avatar_model") || "haru";
+      const model = gender === "robopaws" ? "robopaws" : gender === "male" ? (currentModel === "haruto" || currentModel === "dexter" || currentModel === "sparky" ? currentModel : "chitose") : (currentModel === "koharu" || currentModel === "shizuku" || currentModel === "mao" ? currentModel : "haru");
 
       // 1. Persist voice, language, audio and learning preferences to localStorage
       localStorage.setItem("speakmate_ai_voice", selectedVoice);

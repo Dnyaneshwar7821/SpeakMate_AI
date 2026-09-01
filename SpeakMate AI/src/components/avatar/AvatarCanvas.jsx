@@ -8,6 +8,8 @@ import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
 
 import { useLipSync } from '../../hooks/useLipSync';
 
+import { getAvatarById, AVATAR_CATALOG } from '../../config/AvatarCatalog';
+
 // Make PIXI available on window for Live2D SDK Cubism integration
 if (typeof window !== 'undefined' && !window.PIXI) {
   window.PIXI = PIXI;
@@ -18,33 +20,24 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
   const pixiAppRef = useRef(null);
   const modelRef = useRef(null);
   const [modelInstance, setModelInstance] = useState(null);
-  const [gender, setGender] = useState(() => getCurrentVoiceGender());
+  const [activeModelKey, setActiveModelKey] = useState(() => {
+    return localStorage.getItem('speakmate_avatar_model') || getCurrentVoiceGender() || 'haru';
+  });
 
   // Automatic Lip-Sync & Viseme Hook
   useLipSync(modelInstance, isSpeaking);
 
   useEffect(() => {
     const unsubGender = EventBus.on(AVATAR_EVENTS.GENDER_CHANGED, (data) => {
-      setGender(data?.gender || getCurrentVoiceGender());
+      const chosen = data?.model || data?.gender || localStorage.getItem('speakmate_avatar_model') || 'haru';
+      setActiveModelKey(chosen);
     });
     return () => unsubGender();
   }, []);
 
-  const femaleModelPath = "/models/avatar/haru/haru_greeter_t03.model3.json";
-  const maleModelPath = "/models/avatar/chitose/chitose.model.json";
-  const robopawsModelPath = "https://cdn.jsdelivr.net/npm/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json";
-
-  const norm = String(gender).toLowerCase();
-  let targetModelPath = modelPath;
-  if (!targetModelPath) {
-    if (norm === 'robopaws' || norm === 'robocat' || norm === 'robot' || norm === 'kid' || norm === 'kids') {
-      targetModelPath = robopawsModelPath;
-    } else if (norm === 'male' || norm === 'chitose') {
-      targetModelPath = maleModelPath;
-    } else {
-      targetModelPath = femaleModelPath;
-    }
-  }
+  const catalogEntry = getAvatarById(activeModelKey);
+  const isPuppet = catalogEntry.type === 'puppet' || catalogEntry.id === 'robopaws';
+  const targetModelPath = modelPath || catalogEntry.modelPath || AVATAR_CATALOG.haru.modelPath;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -65,10 +58,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     pixiAppRef.current = app;
     container.appendChild(app.view);
 
-    const isRoboPaws = targetModelPath === robopawsModelPath ||
-      norm === 'robopaws' || norm === 'robocat' || norm === 'robot' || norm === 'kid' || norm === 'kids';
-
-    if (isRoboPaws) {
+    if (isPuppet) {
       const puppet = new DoraemonPuppet();
       app.stage.addChild(puppet);
       modelRef.current = puppet;
@@ -114,7 +104,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
       };
     }
 
-    // Resize Handler for Live2D Models
+    // Resize Handler for all Live2D Models
     const handleResize = () => {
       if (!app || !app.renderer || !container) return;
       const width = container.clientWidth;
@@ -129,11 +119,13 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
           model.anchor.set(0.5, 0);
         }
 
-        const scale = (height * 1.18) / nativeHeight;
+        const scaleMultiplier = catalogEntry.scaleMultiplier || 1.18;
+        const scale = (height * scaleMultiplier) / nativeHeight;
         model.scale.set(scale, scale);
 
         model.x = width / 2;
-        model.y = Math.max(36, height * 0.08);
+        const yOffset = catalogEntry.yOffsetRatio ?? 0.08;
+        model.y = Math.max(28, height * yOffset);
       }
     };
 
