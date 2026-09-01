@@ -69,8 +69,7 @@ export default function DashboardScreen({ navigation }) {
     user?.accountType === 'STUDENT' ||
     user?.role === 'STUDENT' ||
     user?.schoolId ||
-    user?.schoolCode ||
-    (user?.schoolGrade && user?.schoolGrade.includes('Std'))
+    user?.schoolCode
   );
   
   const [state, setState] = useState(() => ({

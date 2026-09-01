@@ -171,7 +171,23 @@ export default function ProfileScreen({ navigation }) {
         lastName: profile?.lastName || user?.lastName || '',
         email: profile?.email || user?.email || '',
       });
-      setAccountType(savedAccType || profile?.accountType || user?.accountType || 'INDIVIDUAL_USER');
+      const effectiveAccType = savedAccType || profile?.accountType || user?.accountType || (user?.role === 'STUDENT' ? 'STUDENT' : 'INDIVIDUAL_USER');
+      setAccountType(effectiveAccType);
+      const isStudentUser = Boolean(
+        effectiveAccType === 'STUDENT' ||
+        profile?.role === 'STUDENT' ||
+        user?.role === 'STUDENT' ||
+        profile?.accountType === 'STUDENT' ||
+        user?.accountType === 'STUDENT' ||
+        user?.schoolId ||
+        user?.schoolCode ||
+        profile?.schoolId
+      );
+
+      if (!isStudentUser) {
+        AsyncStorage.removeItem('speakmate_school_grade').catch(() => {});
+      }
+
       if (savedAvatarModel === 'robopaws' || savedGender === 'robopaws' || (savedVoice && savedVoice.toLowerCase().includes('robo'))) {
         setTutorGender('robopaws');
       } else if (savedAvatarModel === 'chitose' || savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'))) {
@@ -180,10 +196,11 @@ export default function ProfileScreen({ navigation }) {
         setTutorGender('female');
       }
       const effectiveAge = savedAgeGroup || profile?.ageGroup || user?.ageGroup || 'Professional';
-      const effectiveGrade = savedGrade || profile?.schoolGrade || user?.schoolGrade || '1st Std';
+      const effectiveGrade = isStudentUser ? (savedGrade || profile?.schoolGrade || user?.schoolGrade || '1st Std') : null;
       setSelectedAgeGroup(effectiveAge);
       const mergedProfile = {
         ...profile,
+        accountType: effectiveAccType,
         ageGroup: effectiveAge,
         schoolGrade: effectiveGrade,
       };
@@ -192,6 +209,12 @@ export default function ProfileScreen({ navigation }) {
         updateUser(mergedProfile);
       }
     } catch (error) {
+      const isStudentUser = Boolean(
+        user?.accountType === 'STUDENT' ||
+        user?.role === 'STUDENT' ||
+        user?.schoolId ||
+        user?.schoolCode
+      );
       const savedAge = await AsyncStorage.getItem('speakmate_age_group').catch(() => null);
       const savedGrd = await AsyncStorage.getItem('speakmate_school_grade').catch(() => null);
       const fallbackAge = savedAge || user?.ageGroup || 'Professional';
@@ -206,8 +229,9 @@ export default function ProfileScreen({ navigation }) {
         error: error.userMessage || 'Unable to load profile.',
         profile: {
           ...user,
+          accountType: isStudentUser ? 'STUDENT' : 'INDIVIDUAL_USER',
           ageGroup: fallbackAge,
-          schoolGrade: savedGrd || user?.schoolGrade || '1st Std',
+          schoolGrade: isStudentUser ? (savedGrd || user?.schoolGrade || '1st Std') : null,
         }
       });
     }

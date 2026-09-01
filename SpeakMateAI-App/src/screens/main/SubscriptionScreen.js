@@ -37,11 +37,12 @@ export default function SubscriptionScreen({ navigation }) {
   const { isDark } = useTheme();
 
   // Student detection
-  const isStudent =
+  const isStudent = Boolean(
     user?.role === 'STUDENT' ||
     user?.accountType === 'STUDENT' ||
-    Boolean(user?.schoolGrade) ||
-    Boolean(user?.schoolId);
+    user?.schoolId ||
+    user?.schoolCode
+  );
 
   const [billingCycle, setBillingCycle] = useState('MONTHLY'); // 'MONTHLY' | 'YEARLY'
   const [currentSub, setCurrentSub] = useState(null);

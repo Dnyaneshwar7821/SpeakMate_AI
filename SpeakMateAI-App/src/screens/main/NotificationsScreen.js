@@ -40,8 +40,7 @@ export default function NotificationsScreen() {
     user?.accountType === 'STUDENT' ||
     user?.role === 'STUDENT' ||
     user?.schoolId ||
-    user?.schoolCode ||
-    (user?.schoolGrade && user?.schoolGrade.includes('Std'))
+    user?.schoolCode
   );
 
   const load = async (isRef = false) => {

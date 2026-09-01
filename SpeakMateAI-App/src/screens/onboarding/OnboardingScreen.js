@@ -488,7 +488,7 @@ export default function OnboardingScreen({ navigation }) {
   const handleFinishOnboarding = async () => {
     setLoading(true);
     try {
-      const isStudentMode = accountType === 'STUDENT' || Boolean(schoolGrade && schoolGrade.includes('Std'));
+      const isStudentMode = Boolean(accountType === 'STUDENT' || user?.accountType === 'STUDENT' || user?.role === 'STUDENT');
       const finalGrade = isStudentMode ? (schoolGrade || '1st Std') : null;
       const finalLevel = isStudentMode ? null : level;
       await AsyncStorage.setItem('speakmate_account_type', isStudentMode ? 'STUDENT' : 'INDIVIDUAL_USER');

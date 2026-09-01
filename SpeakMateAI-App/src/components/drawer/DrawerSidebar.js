@@ -338,8 +338,7 @@ export default function DrawerSidebar({ navigation, activeScreen }) {
     user?.accountType === 'STUDENT' ||
     user?.role === 'STUDENT' ||
     user?.schoolId ||
-    user?.schoolCode ||
-    (user?.schoolGrade && user?.schoolGrade.includes('Std'))
+    user?.schoolCode
   );
 
   const isProUser = !isStudentUser && Boolean(user?.isPro || user?.pro);

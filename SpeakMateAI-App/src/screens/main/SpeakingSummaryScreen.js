@@ -40,7 +40,7 @@ export default function SpeakingSummaryScreen({ navigation, route }) {
     }
 
     // Auto submit student homework assignment ONLY if this was an actual assigned homework task
-    const isStudentUser = Boolean(user?.isSchoolStudent || user?.schoolGrade || user?.schoolId);
+    const isStudentUser = Boolean(user?.isSchoolStudent || user?.accountType === 'STUDENT' || user?.role === 'STUDENT' || user?.schoolId || user?.schoolCode);
     const assignmentId = summary?.assignmentId || route.params?.assignmentId;
     if (isStudentUser && assignmentId && score >= 70) {
       assignmentService.submit(assignmentId, { score: Math.round(score), status: 'SUBMITTED' })

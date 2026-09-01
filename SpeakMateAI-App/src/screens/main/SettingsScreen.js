@@ -81,14 +81,13 @@ export default function SettingsScreen({ navigation }) {
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showAgeModal, setShowAgeModal] = useState(false);
 
-  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
+  const [accountType, setAccountType] = useState(() => user?.accountType || (user?.role === 'STUDENT' ? 'STUDENT' : 'INDIVIDUAL_USER'));
   const isStudent = Boolean(
     accountType === 'STUDENT' ||
     user?.role === 'STUDENT' ||
     user?.accountType === 'STUDENT' ||
     user?.schoolId ||
-    user?.schoolCode ||
-    (user?.schoolGrade && user?.schoolGrade.includes('Std'))
+    user?.schoolCode
   );
 
   const load = async () => {
