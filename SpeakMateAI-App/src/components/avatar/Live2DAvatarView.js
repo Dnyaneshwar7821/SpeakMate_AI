@@ -448,21 +448,21 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         this.rootContainer = new PIXI.Container();
         this.addChild(this.rootContainer);
 
-        // 1. Torso
+        // 1. Torso Layer
         this.bodyContainer = new PIXI.Container();
-        this.bodyContainer.position.set(0, 75);
+        this.bodyContainer.position.set(0, 46);
         this.rootContainer.addChild(this.bodyContainer);
 
         if (this.tex.body) {
           this.bodySprite = new PIXI.Sprite(this.tex.body);
           this.bodySprite.anchor.set(0.5, 0.5);
-          this.bodySprite.scale.set(0.68, 0.68);
+          this.bodySprite.scale.set(0.66, 0.66);
           this.bodyContainer.addChild(this.bodySprite);
         }
 
-        // 2. Robotic Floating Paws / Arms
+        // 2. Arms & Robotic White Paws
         this.handsContainer = new PIXI.Container();
-        this.handsContainer.position.set(0, 75);
+        this.handsContainer.position.set(0, 46);
         this.rootContainer.addChild(this.handsContainer);
 
         this.leftArmGfx = new PIXI.Graphics();
@@ -473,82 +473,55 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         if (this.tex.hand) {
           this.leftPawSprite = new PIXI.Sprite(this.tex.hand);
           this.leftPawSprite.anchor.set(0.5, 0.5);
-          this.leftPawSprite.scale.set(0.58, 0.58);
+          this.leftPawSprite.scale.set(0.56, 0.56);
           this.handsContainer.addChild(this.leftPawSprite);
 
           this.rightPawSprite = new PIXI.Sprite(this.tex.hand);
           this.rightPawSprite.anchor.set(0.5, 0.5);
-          this.rightPawSprite.scale.set(0.58, 0.58);
+          this.rightPawSprite.scale.set(0.56, 0.56);
           this.handsContainer.addChild(this.rightPawSprite);
         }
 
-        // 3. Red Collar & 3D Pendulum Bell
-        this.collarContainer = new PIXI.Container();
-        this.collarContainer.position.set(0, 30);
-        this.rootContainer.addChild(this.collarContainer);
-
-        if (this.tex.collar) {
-          this.collarSprite = new PIXI.Sprite(this.tex.collar);
-          this.collarSprite.anchor.set(0.5, 0.5);
-          this.collarSprite.scale.set(0.58, 0.52);
-          this.collarContainer.addChild(this.collarSprite);
-        }
-
-        this.bellContainer = new PIXI.Container();
-        this.bellContainer.position.set(0, 14);
-        this.collarContainer.addChild(this.bellContainer);
-
-        if (this.tex.bell) {
-          this.bellSprite = new PIXI.Sprite(this.tex.bell);
-          this.bellSprite.anchor.set(0.5, 0.5);
-          this.bellSprite.scale.set(0.52, 0.52);
-          this.bellContainer.addChild(this.bellSprite);
-        }
-
-        // 4. Head Master Pivot
+        // 3. Head & Neck Pivot Group
         this.headMaster = new PIXI.Container();
-        this.headMaster.position.set(0, 25);
+        this.headMaster.position.set(0, -30);
         this.rootContainer.addChild(this.headMaster);
 
-        // 5. Spherical Outer Blue Head Shell
         this.headShellContainer = new PIXI.Container();
-        this.headShellContainer.position.set(0, -68);
         this.headMaster.addChild(this.headShellContainer);
 
         if (this.tex.head) {
           this.headSprite = new PIXI.Sprite(this.tex.head);
           this.headSprite.anchor.set(0.5, 0.5);
-          this.headSprite.scale.set(0.68, 0.68);
+          this.headSprite.scale.set(0.66, 0.66);
           this.headShellContainer.addChild(this.headSprite);
         }
 
-        // 6. 2.5D White Face Plate Mask
         this.facePlateContainer = new PIXI.Container();
-        this.facePlateContainer.position.set(0, -56);
+        this.facePlateContainer.position.set(0, 8);
         this.headMaster.addChild(this.facePlateContainer);
 
         if (this.tex.face) {
           this.faceSprite = new PIXI.Sprite(this.tex.face);
           this.faceSprite.anchor.set(0.5, 0.5);
-          this.faceSprite.scale.set(0.64, 0.62);
+          this.faceSprite.scale.set(0.63, 0.60);
           this.facePlateContainer.addChild(this.faceSprite);
         }
 
         if (this.tex.blush) {
           this.leftBlush = new PIXI.Sprite(this.tex.blush);
           this.leftBlush.anchor.set(0.5, 0.5);
-          this.leftBlush.position.set(-44, 18);
-          this.leftBlush.scale.set(0.70, 0.60);
+          this.leftBlush.position.set(-42, 16);
+          this.leftBlush.scale.set(0.68, 0.58);
           this.facePlateContainer.addChild(this.leftBlush);
 
           this.rightBlush = new PIXI.Sprite(this.tex.blush);
           this.rightBlush.anchor.set(0.5, 0.5);
-          this.rightBlush.position.set(44, 18);
-          this.rightBlush.scale.set(0.70, 0.60);
+          this.rightBlush.position.set(42, 16);
+          this.rightBlush.scale.set(0.68, 0.58);
           this.facePlateContainer.addChild(this.rightBlush);
         }
 
-        // 7. 2.5D Dynamic EYES Container
         this.eyesContainer = new PIXI.Container();
         this.eyesContainer.position.set(0, -22);
         this.facePlateContainer.addChild(this.eyesContainer);
@@ -558,15 +531,12 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         this.eyesContainer.addChild(this.leftEyeGfx);
         this.eyesContainer.addChild(this.rightEyeGfx);
 
-        // 8. 2.5D Whiskers & Seam
         this.whiskersGfx = new PIXI.Graphics();
         this.facePlateContainer.addChild(this.whiskersGfx);
 
-        // 9. 2.5D Phonetic MOUTH
         this.mouthGfx = new PIXI.Graphics();
         this.facePlateContainer.addChild(this.mouthGfx);
 
-        // 10. 3D Spherical Red NOSE
         this.noseContainer = new PIXI.Container();
         this.noseContainer.position.set(0, -3);
         this.facePlateContainer.addChild(this.noseContainer);
@@ -574,18 +544,38 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         if (this.tex.nose) {
           this.noseSprite = new PIXI.Sprite(this.tex.nose);
           this.noseSprite.anchor.set(0.5, 0.5);
-          this.noseSprite.scale.set(0.52, 0.52);
+          this.noseSprite.scale.set(0.50, 0.50);
           this.noseContainer.addChild(this.noseSprite);
         }
 
-        this.angleX = 0;
-        this.angleY = 0;
-        this.angleZ = 0;
-        this.bodyAngleX = 0;
+        this.collarContainer = new PIXI.Container();
+        this.collarContainer.position.set(0, 56);
+        this.headMaster.addChild(this.collarContainer);
+
+        if (this.tex.collar) {
+          this.collarSprite = new PIXI.Sprite(this.tex.collar);
+          this.collarSprite.anchor.set(0.5, 0.5);
+          this.collarSprite.scale.set(0.56, 0.48);
+          this.collarContainer.addChild(this.collarSprite);
+        }
+
+        this.bellContainer = new PIXI.Container();
+        this.bellContainer.position.set(0, 13);
+        this.collarContainer.addChild(this.bellContainer);
+
+        if (this.tex.bell) {
+          this.bellSprite = new PIXI.Sprite(this.tex.bell);
+          this.bellSprite.anchor.set(0.5, 0.5);
+          this.bellSprite.scale.set(0.48, 0.48);
+          this.bellContainer.addChild(this.bellSprite);
+        }
 
         this.lookX = 0;
         this.lookY = 0;
+        this.targetLookX = 0;
+        this.targetLookY = 0;
 
+        this.nextSaccadeTime = performance.now() + 2000;
         this.blinkTimer = performance.now() + 2800;
         this.isBlinking = false;
         this.blinkProgress = 0;
@@ -594,8 +584,6 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         this.mouthForm = 0;
         this.isSpeaking = false;
         this.isHappy = false;
-
-        this.bellAngle = 0;
       }
 
       update(now, lookX, lookY, mouthY, mouthForm, isSpeaking, isHappy, state) {
@@ -608,37 +596,23 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
 
         const t = now * 0.001;
 
-        const targetAngleX = this.lookX * 0.42;
-        const targetAngleY = this.lookY * 0.32 + (isSpeaking ? Math.sin(t * 7.0) * 0.05 * Math.max(0.2, this.mouthY) : 0);
-        const targetAngleZ = (isSpeaking ? Math.cos(t * 3.5) * 0.03 : 0);
+        // Grounded breathing & speech nod (Zero tilt!)
+        const breathingY = Math.sin(t * 1.8) * 1.2;
+        this.rootContainer.y = breathingY;
 
-        const ease = 0.12;
-        this.angleX += (targetAngleX - this.angleX) * ease;
-        this.angleY += (targetAngleY - this.angleY) * ease;
-        this.angleZ += (targetAngleZ - this.angleZ) * ease;
-        this.bodyAngleX += (-this.angleX * 0.30 - this.bodyAngleX) * 0.08;
+        const speechNodY = isSpeaking ? (Math.sin(t * 8.0) * 1.8 * Math.max(0.3, this.mouthY)) : 0;
+        this.headMaster.y = -30 + speechNodY;
+        this.headMaster.rotation = 0;
 
-        const hoverY = Math.sin(t * 2.2) * 3.5;
-        this.rootContainer.y = hoverY;
-
-        this.headMaster.rotation = this.angleZ;
-        this.headMaster.x = this.angleX * 7;
-        this.headMaster.y = 25 + (this.angleY * 5);
-
-        this.bodyContainer.rotation = this.bodyAngleX * 0.45;
-        this.bodyContainer.x = -this.angleX * 3;
-
-        const faceParallaxX = this.angleX * 16;
-        const faceParallaxY = this.angleY * 10;
-        this.facePlateContainer.position.set(faceParallaxX, -56 + faceParallaxY);
-        this.facePlateContainer.scale.x = Math.max(0.85, Math.cos(this.angleX * 1.1));
-
-        this.noseContainer.position.set(this.angleX * 7, -3 + (this.angleY * 5));
+        const faceParallaxX = this.lookX * 5.0;
+        const faceParallaxY = this.lookY * 3.0;
+        this.facePlateContainer.position.set(faceParallaxX, 8 + faceParallaxY);
+        this.noseContainer.position.set(this.lookX * 3.0, -3 + (this.lookY * 2.0));
 
         this.render2DEyes();
         this.render2DWhiskers();
         this.render2DMouth();
-        this.render2DArmsAndBell(t);
+        this.render2DHands(t);
 
         if (now > this.blinkTimer) {
           this.isBlinking = true;
@@ -660,35 +634,29 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         le.clear();
         re.clear();
 
-        const yaw = this.angleX;
-        const pitch = this.angleY;
-
         const eyeSpacing = 13.5;
-        const leftX = -eyeSpacing + (yaw * 2.5);
-        const rightX = eyeSpacing + (yaw * 2.5);
-        const eyeY = pitch * 3.5;
-
-        const leftScaleX = Math.max(0.75, 1.0 + (yaw * 0.32));
-        const rightScaleX = Math.max(0.75, 1.0 - (yaw * 0.32));
+        const leftX = -eyeSpacing;
+        const rightX = eyeSpacing;
+        const eyeY = 0;
 
         const eyeW = 13.5;
         const eyeH = 19;
 
-        const pupilX = this.lookX * 4.2;
-        const pupilY = this.lookY * 3.2;
+        const pupilX = this.lookX * 3.8;
+        const pupilY = this.lookY * 2.8;
 
         if (this.isBlinking && this.blinkProgress > 0.3 && this.blinkProgress < 0.7) {
           le.lineStyle(3.5, 0x0F172A);
-          le.arc(leftX, eyeY + 3, 9.5 * leftScaleX, Math.PI * 1.1, Math.PI * 1.9);
+          le.arc(leftX, eyeY + 3, 9.5, Math.PI * 1.1, Math.PI * 1.9);
         } else {
           le.beginFill(0xFFFFFF);
           le.lineStyle(2.8, 0x0F172A);
-          le.drawEllipse(leftX, eyeY, eyeW * leftScaleX, eyeH);
+          le.drawEllipse(leftX, eyeY, eyeW, eyeH);
           le.endFill();
 
           le.beginFill(0xE2E8F0, 0.75);
           le.lineStyle(0);
-          le.drawEllipse(leftX, eyeY - 8, eyeW * leftScaleX * 0.9, 6);
+          le.drawEllipse(leftX, eyeY - 8, eyeW * 0.9, 6);
           le.endFill();
 
           const lpx = leftX + 2.5 + pupilX;
@@ -705,16 +673,16 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
 
         if (this.isBlinking && this.blinkProgress > 0.3 && this.blinkProgress < 0.7) {
           re.lineStyle(3.5, 0x0F172A);
-          re.arc(rightX, eyeY + 3, 9.5 * rightScaleX, Math.PI * 1.1, Math.PI * 1.9);
+          re.arc(rightX, eyeY + 3, 9.5, Math.PI * 1.1, Math.PI * 1.9);
         } else {
           re.beginFill(0xFFFFFF);
           re.lineStyle(2.8, 0x0F172A);
-          re.drawEllipse(rightX, eyeY, eyeW * rightScaleX, eyeH);
+          re.drawEllipse(rightX, eyeY, eyeW, eyeH);
           re.endFill();
 
           re.beginFill(0xE2E8F0, 0.75);
           re.lineStyle(0);
-          re.drawEllipse(rightX, eyeY - 8, eyeW * rightScaleX * 0.9, 6);
+          re.drawEllipse(rightX, eyeY - 8, eyeW * 0.9, 6);
           re.endFill();
 
           const rpx = rightX - 2.5 + pupilX;
@@ -734,25 +702,19 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         const wg = this.whiskersGfx;
         wg.clear();
 
-        const yaw = this.angleX;
-        const pitch = this.angleY;
-
         wg.lineStyle(2.4, 0x0F172A);
-        wg.moveTo(yaw * 7, 7);
-        wg.lineTo(yaw * 5, 28);
-
-        const lSpread = 1.0 - (yaw * 0.38);
-        const rSpread = 1.0 + (yaw * 0.38);
+        wg.moveTo(0, 7);
+        wg.lineTo(0, 27);
 
         wg.lineStyle(2.2, 0x0F172A);
 
-        wg.moveTo(-16 + (yaw * 3), 6); wg.lineTo(-16 - (38 * lSpread), 1 - (pitch * 4));
-        wg.moveTo(-18 + (yaw * 3), 14); wg.lineTo(-18 - (44 * lSpread), 14);
-        wg.moveTo(-16 + (yaw * 3), 22); wg.lineTo(-16 - (38 * lSpread), 27 + (pitch * 4));
+        wg.moveTo(-16, 6); wg.lineTo(-54, 1);
+        wg.moveTo(-18, 14); wg.lineTo(-60, 14);
+        wg.moveTo(-16, 22); wg.lineTo(-54, 27);
 
-        wg.moveTo(16 + (yaw * 3), 6); wg.lineTo(16 + (38 * rSpread), 1 - (pitch * 4));
-        wg.moveTo(18 + (yaw * 3), 14); wg.lineTo(18 + (44 * rSpread), 14);
-        wg.moveTo(16 + (yaw * 3), 22); wg.lineTo(16 + (38 * rSpread), 27 + (pitch * 4));
+        wg.moveTo(16, 6); wg.lineTo(54, 1);
+        wg.moveTo(18, 14); wg.lineTo(60, 14);
+        wg.moveTo(16, 22); wg.lineTo(54, 27);
       }
 
       render2DMouth() {
@@ -761,10 +723,8 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
 
         const mY = Math.max(0, Math.min(1.0, this.mouthY));
         const mForm = Math.max(-1.0, Math.min(1.0, this.mouthForm));
-        const yaw = this.angleX;
-
-        const centerX = yaw * 5;
-        const centerY = 28;
+        const centerX = 0;
+        const centerY = 27;
 
         if (mY < 0.08) {
           mg.lineStyle(2.8, 0x0F172A);
@@ -818,46 +778,40 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         }
       }
 
-      render2DArmsAndBell(t) {
+      render2DHands(t) {
         const la = this.leftArmGfx;
         const ra = this.rightArmGfx;
         la.clear();
         ra.clear();
 
-        const yaw = this.angleX;
-        const lOffset = Math.sin(t * 2.5) * 3.0;
-        const rOffset = Math.cos(t * 2.5) * 3.0;
+        const lOffset = Math.sin(t * 2.0) * 2.5;
+        const rOffset = Math.cos(t * 2.0) * 2.5;
 
         la.beginFill(0x0284C7);
         la.lineStyle(3, 0x0F172A);
         la.moveTo(-36, -2);
-        la.lineTo(-58 - (yaw * 3), 18 + lOffset);
-        la.lineTo(-48 - (yaw * 3), 26 + lOffset);
+        la.lineTo(-58, 18 + lOffset);
+        la.lineTo(-48, 26 + lOffset);
         la.lineTo(-30, 8);
         la.closePath();
         la.endFill();
 
         if (this.leftPawSprite) {
-          this.leftPawSprite.position.set(-58 - (yaw * 3), 20 + lOffset);
+          this.leftPawSprite.position.set(-58, 20 + lOffset);
         }
 
         ra.beginFill(0x0284C7);
         ra.lineStyle(3, 0x0F172A);
         ra.moveTo(36, -2);
-        ra.lineTo(58 - (yaw * 3), 18 + rOffset);
-        ra.lineTo(48 - (yaw * 3), 26 + rOffset);
+        ra.lineTo(58, 18 + rOffset);
+        ra.lineTo(48, 26 + rOffset);
         ra.lineTo(30, 8);
         ra.closePath();
         ra.endFill();
 
         if (this.rightPawSprite) {
-          this.rightPawSprite.position.set(58 - (yaw * 3), 20 + rOffset);
+          this.rightPawSprite.position.set(58, 20 + rOffset);
         }
-
-        const bellTargetAngle = -yaw * 0.45 + Math.sin(t * 3) * 0.04;
-        this.bellAngle += (bellTargetAngle - this.bellAngle) * 0.15;
-        this.bellContainer.position.set(yaw * 3.5, 14);
-        this.bellContainer.rotation = this.bellAngle;
       }
     }
 
