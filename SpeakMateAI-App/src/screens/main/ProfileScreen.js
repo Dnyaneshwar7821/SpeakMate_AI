@@ -613,94 +613,48 @@ export default function ProfileScreen({ navigation }) {
             </ScrollView>
           </Card>
         ) : (
-          /* Individual User Mode: English Proficiency Level + Target Age Group Cards */
-          <>
-            <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <View>
-                  <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                    👤 AI Tutor English Level
-                  </Text>
-                  <Text style={{ fontSize: 12, color: sublabelColor }}>
-                    Controls speaking & chat response complexity
-                  </Text>
-                </View>
-                {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
+          /* Individual User Mode: English Proficiency Level Card */
+          <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <View>
+                <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                  👤 AI Tutor English Level
+                </Text>
+                <Text style={{ fontSize: 12, color: sublabelColor }}>
+                  Controls speaking & chat response complexity
+                </Text>
               </View>
+              {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
+            </View>
 
-              <View style={styles.levelSegmentRow}>
-                {['Beginner', 'Intermediate', 'Advanced'].map((lvl) => {
-                  const active = currentEnglishLevel.toLowerCase() === lvl.toLowerCase();
-                  return (
-                    <TouchableOpacity
-                      key={lvl}
+            <View style={styles.levelSegmentRow}>
+              {['Beginner', 'Intermediate', 'Advanced'].map((lvl) => {
+                const active = currentEnglishLevel.toLowerCase() === lvl.toLowerCase();
+                return (
+                  <TouchableOpacity
+                    key={lvl}
+                    style={[
+                      styles.levelSegmentBtn,
+                      active && styles.levelSegmentBtnActive,
+                      isDark && !active && { backgroundColor: '#334155' },
+                    ]}
+                    onPress={() => handleSelectProficiencyLevel(lvl)}
+                    disabled={updatingLevel}
+                  >
+                    <Text
                       style={[
-                        styles.levelSegmentBtn,
-                        active && styles.levelSegmentBtnActive,
-                        isDark && !active && { backgroundColor: '#334155' },
+                        styles.levelSegmentText,
+                        active && styles.levelSegmentTextActive,
+                        isDark && !active && { color: '#94A3B8' },
                       ]}
-                      onPress={() => handleSelectProficiencyLevel(lvl)}
-                      disabled={updatingLevel}
                     >
-                      <Text
-                        style={[
-                          styles.levelSegmentText,
-                          active && styles.levelSegmentTextActive,
-                          isDark && !active && { color: '#94A3B8' },
-                        ]}
-                      >
-                        {lvl}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </Card>
-
-            <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                <View>
-                  <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                    👥 Target Age Group
-                  </Text>
-                  <Text style={{ fontSize: 12, color: sublabelColor }}>
-                    Personalizes conversation topics and learning style
-                  </Text>
-                </View>
-                {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
-              </View>
-
-              <View style={styles.levelSegmentRow}>
-                {['Kids', 'Teens', 'Young Adult', 'Professional', 'Senior'].map((age) => {
-                  const active = currentAgeGroup.toLowerCase() === age.toLowerCase();
-                  return (
-                    <TouchableOpacity
-                      key={age}
-                      style={[
-                        styles.levelSegmentBtn,
-                        active && styles.levelSegmentBtnActive,
-                        isDark && !active && { backgroundColor: '#334155' },
-                        { paddingHorizontal: 9 }
-                      ]}
-                      onPress={() => handleSelectAgeGroup(age)}
-                      disabled={updatingLevel}
-                    >
-                      <Text
-                        style={[
-                          styles.levelSegmentText,
-                          active && styles.levelSegmentTextActive,
-                          isDark && !active && { color: '#94A3B8' },
-                          { fontSize: 11 }
-                        ]}
-                      >
-                        {age}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </Card>
-          </>
+                      {lvl}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </Card>
         )}
 
         {/* AI Speaking Tutor Avatar Selection Card */}
