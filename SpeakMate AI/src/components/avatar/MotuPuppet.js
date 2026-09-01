@@ -138,13 +138,15 @@ export class MotuPuppet extends PIXI.Container {
     hg.lineTo(-72, -18);
     hg.lineTo(-62, -12);
     hg.closePath();
-    hg.fill();
+    hg.endFill();
     // Right side hair
+    hg.beginFill(0x1E293B);
+    hg.lineStyle(3, 0x0F172A);
     hg.moveTo(60, -32);
     hg.lineTo(72, -18);
     hg.lineTo(62, -12);
     hg.closePath();
-    hg.fill();
+    hg.endFill();
 
     // Motu's Iconic Pear-Shaped Head (Wide chubby cheeks, narrower bald dome)
     hg.beginFill(0xFDBA74);
