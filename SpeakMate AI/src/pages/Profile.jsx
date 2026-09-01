@@ -178,6 +178,17 @@ export function Profile() {
       localStorage.setItem("speakmate_daily_goal", dailyGoal.toString());
       localStorage.setItem("speakmate_accent", preferredAccent);
       localStorage.setItem("speakmate_voice_gender", preferredVoice);
+      if (preferredVoice === "robopaws") {
+        localStorage.setItem("speakmate_avatar_model", "robopaws");
+        localStorage.setItem("speakmate_selected_voice", "Robo-Paws");
+        localStorage.setItem("speakmate_ai_voice", "Robo-Paws");
+      } else if (preferredVoice === "male") {
+        localStorage.setItem("speakmate_avatar_model", "chitose");
+        localStorage.setItem("speakmate_selected_voice", "US Male");
+      } else {
+        localStorage.setItem("speakmate_avatar_model", "haru");
+        localStorage.setItem("speakmate_selected_voice", "Default");
+      }
       EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender: preferredVoice });
 
       const updatedProfile = await profileService.update({
@@ -591,79 +602,72 @@ export function Profile() {
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">
-                {Boolean(
-                  ageGroup?.toLowerCase() === "kids" ||
-                  ageGroup?.toLowerCase().includes("6-12") ||
-                  (isStudent && ["1st", "2nd", "3rd", "4th", "5th"].some((g) => (schoolGrade || "").toLowerCase().includes(g)))
-                )
-                  ? "Tutor Voice & Avatar Buddy"
-                  : "Tutor Voice & Avatar"}
-              </label>
-              <div
-                className={`grid gap-3 ${
-                  Boolean(
-                    ageGroup?.toLowerCase() === "kids" ||
-                    ageGroup?.toLowerCase().includes("6-12") ||
-                    (isStudent && ["1st", "2nd", "3rd", "4th", "5th"].some((g) => (schoolGrade || "").toLowerCase().includes(g)))
-                  )
-                    ? "grid-cols-1 sm:grid-cols-3"
-                    : "grid-cols-1 sm:grid-cols-2"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setPreferredVoice("female")}
-                  className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                    preferredVoice === "female" ||
-                    (preferredVoice === "robopaws" &&
-                      !Boolean(
-                        ageGroup?.toLowerCase() === "kids" ||
-                        ageGroup?.toLowerCase().includes("6-12") ||
-                        (isStudent && ["1st", "2nd", "3rd", "4th", "5th"].some((g) => (schoolGrade || "").toLowerCase().includes(g)))
-                      ))
-                      ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                  }`}
-                >
-                  <span className="text-2xl block mb-1">👩 Haru</span>
-                  <span className="text-xs opacity-75">Warm, clear, and encouraging</span>
-                </button>
+            {(() => {
+              const normAge = (ageGroup || "").toLowerCase();
+              const canAccessRoboPaws = Boolean(
+                isStudent ||
+                normAge === "kids" ||
+                normAge === "teens" ||
+                normAge.includes("kid") ||
+                normAge.includes("teen")
+              );
 
-                <button
-                  type="button"
-                  onClick={() => setPreferredVoice("male")}
-                  className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                    preferredVoice === "male"
-                      ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
-                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                  }`}
-                >
-                  <span className="text-2xl block mb-1">👨 Chitose</span>
-                  <span className="text-xs opacity-75">Confident, articulate, and supportive</span>
-                </button>
-
-                {Boolean(
-                  ageGroup?.toLowerCase() === "kids" ||
-                  ageGroup?.toLowerCase().includes("6-12") ||
-                  (isStudent && ["1st", "2nd", "3rd", "4th", "5th"].some((g) => (schoolGrade || "").toLowerCase().includes(g)))
-                ) && (
-                  <button
-                    type="button"
-                    onClick={() => setPreferredVoice("robopaws")}
-                    className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                      preferredVoice === "robopaws" || preferredVoice === "robot"
-                        ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+              return (
+                <div>
+                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">
+                    {canAccessRoboPaws ? "Tutor Voice & Avatar Buddy" : "Tutor Voice & Avatar"}
+                  </label>
+                  <div
+                    className={`grid gap-3 ${
+                      canAccessRoboPaws
+                        ? "grid-cols-1 sm:grid-cols-3"
+                        : "grid-cols-1 sm:grid-cols-2"
                     }`}
                   >
-                    <span className="text-2xl block mb-1">🤖 Robo-Paws</span>
-                    <span className="text-xs opacity-75">Playful robot cat buddy for kids</span>
-                  </button>
-                )}
-              </div>
-            </div>
+                    <button
+                      type="button"
+                      onClick={() => setPreferredVoice("female")}
+                      className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
+                        preferredVoice === "female" || (preferredVoice === "robopaws" && !canAccessRoboPaws)
+                          ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <span className="text-2xl block mb-1">👩 Haru</span>
+                      <span className="text-xs opacity-75">Warm, clear, and encouraging</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPreferredVoice("male")}
+                      className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
+                        preferredVoice === "male"
+                          ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <span className="text-2xl block mb-1">👨 Chitose</span>
+                      <span className="text-xs opacity-75">Confident, articulate, and supportive</span>
+                    </button>
+
+                    {canAccessRoboPaws && (
+                      <button
+                        type="button"
+                        onClick={() => setPreferredVoice("robopaws")}
+                        className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
+                          preferredVoice === "robopaws" || preferredVoice === "robot"
+                            ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
+                            : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                        }`}
+                      >
+                        <span className="text-2xl block mb-1">🤖 Robo-Paws</span>
+                        <span className="text-xs opacity-75">Cute Robot Cat Buddy</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
               <button

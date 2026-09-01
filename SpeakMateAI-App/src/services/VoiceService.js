@@ -521,8 +521,11 @@ export const VoiceService = {
     let pitch = 1.0;
     let rate  = Number(effectiveSpeed) || 1.0;
 
-    // Align with Web App Voice Profiles
-    if (gs.includes('in') && gs.includes('male') && !gs.includes('female')) {
+    // Align with Web App Voice Profiles & Robo-Paws Cute Voice
+    if (gs.includes('robo') || gs.includes('paws')) {
+      pitch = 1.35; // Dedicated cute, cheerful, high-pitch cartoon robot voice
+      rate  = 1.05 * (Number(effectiveSpeed) || 1.0);
+    } else if (gs.includes('in') && gs.includes('male') && !gs.includes('female')) {
       pitch = 0.95; // Exact Web App Indian Male pitch
       rate  = 1.02 * (Number(effectiveSpeed) || 1.0);
     } else if (gs.includes('in') && gs.includes('female')) {

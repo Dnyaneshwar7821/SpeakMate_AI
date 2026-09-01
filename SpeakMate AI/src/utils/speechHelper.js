@@ -134,6 +134,9 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     } else if (profile.code === "IN Female") {
       pitch = 1.12;
       baseRate = 1.02;
+    } else if (profile.code === "Robo-Paws") {
+      pitch = 1.35; // Dedicated cute, high-pitch cheerful cartoon robot voice
+      baseRate = 1.05;
     }
   }
 

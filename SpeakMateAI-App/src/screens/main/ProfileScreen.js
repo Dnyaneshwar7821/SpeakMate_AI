@@ -483,7 +483,14 @@ export default function ProfileScreen({ navigation }) {
   const currentSchoolGrade = state.profile?.schoolGrade || user?.schoolGrade || '1st Std';
   const currentEnglishLevel = state.profile?.englishLevel || user?.englishLevel || 'Beginner';
   const currentAgeGroup = selectedAgeGroup || state.profile?.ageGroup || user?.ageGroup || 'Professional';
-  const isKidsAgeGroup = Boolean(currentAgeGroup && currentAgeGroup.toLowerCase() === 'kids');
+  const normAge = (currentAgeGroup || '').toLowerCase();
+  const canAccessRoboPaws = Boolean(
+    isStudent ||
+    normAge === 'kids' ||
+    normAge === 'teens' ||
+    normAge.includes('kid') ||
+    normAge.includes('teen')
+  );
 
   // Custom colors for dark mode sync
   const cardBg = isDark ? '#1E293B' : '#FFFFFF';
@@ -542,55 +549,37 @@ export default function ProfileScreen({ navigation }) {
             style={styles.rankTierBadge}
           >
             <Text style={styles.rankTierIcon}>{rankTier.icon}</Text>
-            <Text style={styles.rankTierName}>{rankTier.name} Rank</Text>
+            <Text style={styles.rankTierText}>{rankTier.name}</Text>
           </LinearGradient>
+        </Card>
 
-          {/* Level Progress Indicator */}
-          <View style={styles.levelProgressContainer}>
-            <View style={styles.levelLabelRow}>
-              <Text style={[styles.levelProgressText, { color: sublabelColor }]}>Level {currentLevel}</Text>
-              <Text style={[styles.levelProgressText, { color: COLORS.primary, fontWeight: '800' }]}>{xpInCurrentLevel}/500 XP</Text>
-            </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: `${levelProgress * 100}%` }]} />
-            </View>
+        {/* Level Progress Overview Card */}
+        <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
+          <View style={styles.xpRow}>
+            <Text style={[styles.xpText, { color: labelColor }]}>Level {currentLevel} Speaker</Text>
+            <Text style={[styles.xpSubtext, { color: sublabelColor }]}>{xpInCurrentLevel} / 500 XP to Level {currentLevel + 1}</Text>
           </View>
-
-          {/* Expanded Learning Metrics display */}
-          <View style={[styles.metricsRow, { borderTopColor: dividerColor }]}>
-            <View style={styles.metricItem}>
-              <Text style={styles.metricVal}>{currentLevel}</Text>
-              <Text style={[styles.metricLbl, { color: sublabelColor }]}>Level</Text>
-            </View>
-            <View style={[styles.metricDivider, { backgroundColor: dividerColor }]} />
-            <View style={styles.metricItem}>
-              <Text style={styles.metricVal}>{xp}</Text>
-              <Text style={[styles.metricLbl, { color: sublabelColor }]}>Total XP</Text>
-            </View>
-            <View style={[styles.metricDivider, { backgroundColor: dividerColor }]} />
-            <View style={styles.metricItem}>
-              <Text style={styles.metricVal}>{state.profile?.currentStreak || 0}d</Text>
-              <Text style={[styles.metricLbl, { color: sublabelColor }]}>Streak</Text>
-            </View>
-            <View style={[styles.metricDivider, { backgroundColor: dividerColor }]} />
-            <View style={styles.metricItem}>
-              <Text style={styles.metricVal}>{state.profile?.totalPracticeMinutes || 0}m</Text>
-              <Text style={[styles.metricLbl, { color: sublabelColor }]}>Practice</Text>
-            </View>
+          <View style={[styles.progressBarTrack, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]}>
+            <LinearGradient
+              colors={['#6366F1', '#A855F7']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.progressBarFill, { width: `${Math.min(100, Math.max(5, levelProgress * 100))}%` }]}
+            />
           </View>
         </Card>
 
         {/* Dynamic Setting Section based on Student vs Individual User */}
         {isStudent ? (
-          /* Student Mode: School Standard Grade Card */
+          /* Student Mode: School Standard Curriculum Grade Selection */
           <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <View>
                 <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  🎓 School Standard Grade
+                  🏫 School Curriculum Grade
                 </Text>
                 <Text style={{ fontSize: 12, color: sublabelColor }}>
-                  Configured curriculum standard for school practice
+                  Select your current school standard for personalized tests & syllabus
                 </Text>
               </View>
               {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
@@ -598,18 +587,10 @@ export default function ProfileScreen({ navigation }) {
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
               {[
-                '1st Std',
-                '2nd Std',
-                '3rd Std',
-                '4th Std',
-                '5th Std',
-                '6th Std',
-                '7th Std',
-                '8th Std',
-                '9th Std',
-                '10th Std',
+                '1st Std', '2nd Std', '3rd Std', '4th Std', '5th Std',
+                '6th Std', '7th Std', '8th Std', '9th Std', '10th Std', '11th Std', '12th Std'
               ].map((grade) => {
-                const active = currentSchoolGrade.toLowerCase() === grade.toLowerCase();
+                const active = (currentSchoolGrade || '').toLowerCase() === grade.toLowerCase();
                 return (
                   <TouchableOpacity
                     key={grade}
@@ -617,7 +598,7 @@ export default function ProfileScreen({ navigation }) {
                       styles.levelSegmentBtn,
                       active && styles.levelSegmentBtnActive,
                       isDark && !active && { backgroundColor: '#334155' },
-                      { paddingHorizontal: 14, minWidth: 72 }
+                      { paddingHorizontal: 12, paddingVertical: 8 }
                     ]}
                     onPress={() => handleSelectSchoolGrade(grade)}
                     disabled={updatingLevel}
@@ -688,7 +669,7 @@ export default function ProfileScreen({ navigation }) {
               🎭 AI Speaking Tutor
             </Text>
             <Text style={{ fontSize: 12, color: sublabelColor }}>
-              {isKidsAgeGroup
+              {canAccessRoboPaws
                 ? 'Select your Live2D cartoon buddy or tutor'
                 : 'Select your Live2D avatar practice tutor'}
             </Text>
@@ -702,20 +683,20 @@ export default function ProfileScreen({ navigation }) {
               style={[
                 styles.tutorCard,
                 {
-                  backgroundColor: tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup) ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
-                  borderColor: tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup) ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
-                  borderWidth: tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup) ? 2 : 1,
+                  backgroundColor: tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws) ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
+                  borderColor: tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws) ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
+                  borderWidth: tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws) ? 2 : 1,
                 }
               ]}
             >
               <Text style={styles.tutorCardEmoji}>👩</Text>
-              <Text style={[styles.tutorCardName, { color: tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup) ? '#6366F1' : labelColor }]}>
+              <Text style={[styles.tutorCardName, { color: tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws) ? '#6366F1' : labelColor }]}>
                 Haru (Female)
               </Text>
               <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
                 Warm & encouraging
               </Text>
-              {(tutorGender === 'female' || (tutorGender === 'robopaws' && !isKidsAgeGroup)) && (
+              {(tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws)) && (
                 <View style={styles.tutorCheckmark}>
                   <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
                 </View>
@@ -749,8 +730,8 @@ export default function ProfileScreen({ navigation }) {
               )}
             </TouchableOpacity>
 
-            {/* ROBO-PAWS (CARTOON ROBOT CAT) - Only if Age Group is Kids / Early Primary */}
-            {isKidsAgeGroup && (
+            {/* ROBO-PAWS (CARTOON ROBOT CAT) - Only for Students and Kids / Teens */}
+            {canAccessRoboPaws && (
               <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={() => handleSelectTutor('robopaws')}
@@ -768,7 +749,7 @@ export default function ProfileScreen({ navigation }) {
                   Robo-Paws
                 </Text>
                 <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
-                  Kids Robot Buddy
+                  Cute Robot Cat Buddy
                 </Text>
                 {tutorGender === 'robopaws' && (
                   <View style={styles.tutorCheckmark}>
