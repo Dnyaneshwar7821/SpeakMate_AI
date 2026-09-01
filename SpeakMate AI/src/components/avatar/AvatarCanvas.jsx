@@ -185,7 +185,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         }
       }
     };
-  }, [targetModelPath, gender]);
+  }, [targetModelPath, activeModelKey, isPuppet]);
 
   return (
     <div
