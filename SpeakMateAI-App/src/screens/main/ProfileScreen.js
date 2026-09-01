@@ -555,16 +555,16 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Level Progress Overview Card */}
         <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-          <View style={styles.xpRow}>
-            <Text style={[styles.xpText, { color: labelColor }]}>Level {currentLevel} Speaker</Text>
-            <Text style={[styles.xpSubtext, { color: sublabelColor }]}>{xpInCurrentLevel} / 500 XP to Level {currentLevel + 1}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: labelColor }}>Level {currentLevel} Speaker</Text>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: sublabelColor }}>{xpInCurrentLevel} / 500 XP to Level {currentLevel + 1}</Text>
           </View>
-          <View style={[styles.progressBarTrack, { backgroundColor: isDark ? '#334155' : '#E2E8F0' }]}>
+          <View style={{ height: 8, borderRadius: 4, backgroundColor: isDark ? '#334155' : '#E2E8F0', overflow: 'hidden', width: '100%' }}>
             <LinearGradient
               colors={['#6366F1', '#A855F7']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
-              style={[styles.progressBarFill, { width: `${Math.min(100, Math.max(5, levelProgress * 100))}%` }]}
+              style={{ height: '100%', width: `${Math.min(100, Math.max(5, levelProgress * 100))}%`, borderRadius: 4 }}
             />
           </View>
         </Card>
