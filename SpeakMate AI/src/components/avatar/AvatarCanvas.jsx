@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as PIXI from 'pixi.js';
 import { ModelLoader } from '../../services/live2d/ModelLoader';
 import { DoraemonPuppet } from './DoraemonPuppet';
+import { SuperheroPuppet } from './SuperheroPuppet';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 import { getCurrentVoiceGender } from '../../utils/speechHelper';
 import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
@@ -36,7 +37,9 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
   }, []);
 
   const catalogEntry = getAvatarById(activeModelKey);
-  const isPuppet = catalogEntry.type === 'puppet' || catalogEntry.id === 'robopaws';
+  const isRoboPaws = catalogEntry.id === 'robopaws';
+  const isSuperhero = catalogEntry.id === 'sparky' || catalogEntry.id === 'hero' || catalogEntry.puppetType === 'superhero';
+  const isPuppet = catalogEntry.type === 'puppet' || isRoboPaws || isSuperhero;
   const targetModelPath = modelPath || catalogEntry.modelPath || AVATAR_CATALOG.haru.modelPath;
 
   useEffect(() => {
@@ -59,7 +62,7 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
     container.appendChild(app.view);
 
     if (isPuppet) {
-      const puppet = new DoraemonPuppet();
+      const puppet = isSuperhero ? new SuperheroPuppet() : new DoraemonPuppet();
       app.stage.addChild(puppet);
       modelRef.current = puppet;
       setModelInstance(puppet);
@@ -69,7 +72,9 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         const width = container.clientWidth;
         const height = container.clientHeight;
         app.renderer.resize(width, height);
-        const scale = Math.min((width * 0.85) / 220, (height * 0.80) / 260);
+        const scale = isSuperhero
+          ? Math.min((width * 0.90) / 240, (height * 0.85) / 280)
+          : Math.min((width * 0.85) / 220, (height * 0.80) / 260);
         puppet.scale.set(scale, scale);
         puppet.x = width / 2;
         puppet.y = height * 0.50;
@@ -114,18 +119,28 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
       if (modelRef.current) {
         const model = modelRef.current;
         const nativeHeight = model.internalModel?.height || model.height || 1000;
+        const isAnimal = catalogEntry.id === 'wanko' || catalogEntry.id === 'tororo';
 
-        if (model.anchor) {
-          model.anchor.set(0.5, 0);
+        if (isAnimal) {
+          if (model.anchor) {
+            model.anchor.set(0.5, 0.5);
+          }
+          const scaleMultiplier = catalogEntry.scaleMultiplier || 0.95;
+          const scale = (height * scaleMultiplier) / nativeHeight;
+          model.scale.set(scale, scale);
+          model.x = width / 2;
+          model.y = height * 0.50;
+        } else {
+          if (model.anchor) {
+            model.anchor.set(0.5, 0.0);
+          }
+          const scaleMultiplier = catalogEntry.scaleMultiplier || 1.18;
+          const scale = (height * scaleMultiplier) / nativeHeight;
+          model.scale.set(scale, scale);
+          model.x = width / 2;
+          const yOffset = catalogEntry.yOffsetRatio ?? 0.06;
+          model.y = Math.max(10, height * yOffset);
         }
-
-        const scaleMultiplier = catalogEntry.scaleMultiplier || 1.18;
-        const scale = (height * scaleMultiplier) / nativeHeight;
-        model.scale.set(scale, scale);
-
-        model.x = width / 2;
-        const yOffset = catalogEntry.yOffsetRatio ?? 0.08;
-        model.y = Math.max(28, height * yOffset);
       }
     };
 

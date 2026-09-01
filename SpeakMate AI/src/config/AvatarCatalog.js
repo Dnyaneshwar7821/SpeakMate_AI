@@ -72,6 +72,25 @@ export const AVATAR_CATALOG = {
     voiceLabel: 'Cute Cartoon Voice',
     defaultPitch: 1.35,
     type: 'puppet',
+    puppetType: 'doraemon',
+    modelPath: null,
+    scaleMultiplier: 1.0,
+    yOffsetRatio: 0.50,
+  },
+  sparky: {
+    id: 'sparky',
+    name: 'Sparky',
+    gender: 'male',
+    category: 'cartoon',
+    badge: 'Superhero Kid',
+    emoji: '⚡',
+    subtitle: 'Brave superhero kid with cape & lightning emblem',
+    description: 'High-energy speech sprint drills, level unlocks, and heroic motivational coaching.',
+    voiceProfile: 'US Male',
+    voiceLabel: 'Hero Kid Voice',
+    defaultPitch: 1.30,
+    type: 'puppet',
+    puppetType: 'superhero',
     modelPath: null,
     scaleMultiplier: 1.0,
     yOffsetRatio: 0.50,
@@ -141,25 +160,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 1.38,
     type: 'live2d',
     modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-tororo@1.0.5/assets/tororo.model.json',
-    scaleMultiplier: 1.30,
-    yOffsetRatio: 0.06,
-  },
-  hibiki: {
-    id: 'hibiki',
-    name: 'Hibiki',
-    gender: 'male',
-    category: 'cartoon',
-    badge: 'Hero Kid',
-    emoji: '⚡',
-    subtitle: 'Energetic superhero anime kid in dynamic outfit',
-    description: 'High-energy speech sprint drills, level unlocks, and motivational coaching.',
-    voiceProfile: 'US Male',
-    voiceLabel: 'Hero Kid Voice',
-    defaultPitch: 1.30,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-hibiki@1.0.5/assets/hibiki.model.json',
-    scaleMultiplier: 1.25,
-    yOffsetRatio: 0.06,
+    scaleMultiplier: 0.95,
+    yOffsetRatio: 0.50,
   },
   wanko: {
     id: 'wanko',
@@ -175,8 +177,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 1.32,
     type: 'live2d',
     modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json',
-    scaleMultiplier: 1.30,
-    yOffsetRatio: 0.06,
+    scaleMultiplier: 0.95,
+    yOffsetRatio: 0.50,
   },
 };
 
@@ -190,6 +192,9 @@ export function getAvatarById(id) {
   const key = String(id).toLowerCase().replace(/[^a-z0-9]/g, '');
   if (key.includes('robo') || key.includes('paws') || key.includes('doraemon')) {
     return AVATAR_CATALOG.robopaws;
+  }
+  if (key.includes('sparky') || key.includes('hero') || key.includes('superhero') || key.includes('hibiki')) {
+    return AVATAR_CATALOG.sparky;
   }
   if (key.includes('chitose') || key === 'male') {
     return AVATAR_CATALOG.chitose;
@@ -208,9 +213,6 @@ export function getAvatarById(id) {
   }
   if (key.includes('tororo') || key.includes('cat') || key.includes('shironeko')) {
     return AVATAR_CATALOG.tororo;
-  }
-  if (key.includes('hibiki') || key.includes('hero') || key.includes('sparky')) {
-    return AVATAR_CATALOG.hibiki;
   }
   if (key.includes('wanko') || key.includes('dog') || key.includes('puppy')) {
     return AVATAR_CATALOG.wanko;
