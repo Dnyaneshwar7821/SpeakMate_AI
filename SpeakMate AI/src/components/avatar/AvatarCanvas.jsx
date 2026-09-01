@@ -79,10 +79,10 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
         const width = container.clientWidth;
         const height = container.clientHeight;
         app.renderer.resize(width, height);
-        const scale = (height * 0.76) / 200;
+        const scale = Math.min((width * 0.85) / 220, (height * 0.80) / 260);
         puppet.scale.set(scale, scale);
         puppet.x = width / 2;
-        puppet.y = height * 0.52;
+        puppet.y = height * 0.50;
       };
 
       resizePuppet();
