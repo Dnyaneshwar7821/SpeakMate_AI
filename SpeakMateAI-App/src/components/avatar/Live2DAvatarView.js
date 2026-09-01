@@ -6,15 +6,21 @@ const HARU_MODEL_URL = 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/
 const CHITOSE_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-chitose@1.0.5/assets/chitose.model.json';
 const ROBOPAWS_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json';
 
+const normalizeModelName = (modelName) => (modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const isRoboPawsModel = (modelName) => {
+  const norm = normalizeModelName(modelName);
+  return norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid' || norm === 'kids';
+};
+
 const getModelUrl = (modelName) => {
-  const norm = (modelName || '').toLowerCase();
+  const norm = normalizeModelName(modelName);
   if (norm === 'chitose' || norm === 'male') return CHITOSE_MODEL_URL;
-  if (norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid') return ROBOPAWS_MODEL_URL;
+  if (isRoboPawsModel(norm)) return ROBOPAWS_MODEL_URL;
   return HARU_MODEL_URL;
 };
 
 const getLive2DHtml = (initialModel = 'haru') => {
-  const initialName = (initialModel || 'haru').toLowerCase();
+  const initialName = normalizeModelName(initialModel || 'haru');
   const initialUrl = getModelUrl(initialName);
 
   return `
@@ -184,6 +190,15 @@ const getLive2DHtml = (initialModel = 'haru') => {
     let speechScheduleStartTime = 0;
     let speechDurationMs = 0;
     let lastScheduledText = '';
+
+    function normalizeModelName(modelName) {
+      return (modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    }
+
+    function isRoboPawsName(modelName) {
+      const norm = normalizeModelName(modelName);
+      return norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid' || norm === 'kids';
+    }
 
     function scheduleSpokenText(text, speed = 1.0) {
       if (!text || typeof text !== 'string' || !text.trim()) {
@@ -669,13 +684,10 @@ const getLive2DHtml = (initialModel = 'haru') => {
       const h = viewH || (app ? app.screen.height : dims.viewH);
 
       if (model.isDoraemonPuppet) {
-        const bounds = getLocalModelBounds();
-        const targetWidth = w * 0.58;
-        const targetHeight = h * 0.84;
-        const baseScale = bounds
-          ? Math.min(targetWidth / bounds.width, targetHeight / bounds.height)
-          : (h * 0.72) / 200;
-        placeFromVisibleBounds(baseScale, 0.50);
+        const baseScale = Math.min((w * 0.62) / 190, (h * 0.82) / 200);
+        model.scale.set(baseScale, baseScale);
+        model.x = w / 2;
+        model.y = h * 0.48;
         return;
       }
 
@@ -935,7 +947,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
         model = null;
       }
 
-      currentModelName = (modelName || 'haru').toLowerCase();
+      currentModelName = normalizeModelName(modelName || 'haru');
 
       try {
         const { viewW, viewH } = getViewDimensions();
@@ -944,7 +956,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
         }
 
         // If Robo-Paws, instantiate Doraemon WebGL puppet directly!
-        if (currentModelName === 'robopaws' || currentModelName === 'robocat' || currentModelName === 'robot' || currentModelName === 'kid') {
+        if (isRoboPawsName(currentModelName)) {
           model = new DoraemonPuppet();
           app.stage.addChild(model);
           framePortrait(viewW, viewH);
@@ -1010,7 +1022,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
         } else if (data.type === 'MOOD') {
           currentMood = data.mood || 'neutral';
         } else if (data.type === 'MODEL') {
-          const targetName = (data.model || 'haru').toLowerCase();
+          const targetName = normalizeModelName(data.model || 'haru');
           if (targetName !== currentModelName) {
             const url = getModelUrl(targetName);
             loadModel(url, targetName);
