@@ -1,6 +1,6 @@
 /**
  * SpeakMate AI Master Avatar Catalog (Mobile React Native)
- * Shared registry for all unique AI speaking tutor avatars.
+ * Shared registry for all verified, high-quality AI speaking tutor avatars.
  */
 
 export const AVATAR_CATALOG = {
@@ -51,7 +51,7 @@ export const AVATAR_CATALOG = {
     modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json',
   },
 
-  // ── 2. Kids & Students Cartoon Avatars (Unique Models) ──
+  // ── 2. Kids & Students Cartoon Avatars (Unique Live2D & 2.5D Models) ──
   robopaws: {
     id: 'robopaws',
     name: 'Robo-Paws',
@@ -112,20 +112,20 @@ export const AVATAR_CATALOG = {
     type: 'live2d',
     modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-unitychan@1.0.5/assets/unitychan.model.json',
   },
-  nico: {
-    id: 'nico',
-    name: 'Nico',
-    gender: 'male',
+  tororo: {
+    id: 'tororo',
+    name: 'Tororo',
+    gender: 'female',
     category: 'cartoon',
-    badge: 'Smart Glasses Kid',
-    emoji: '👓',
-    subtitle: 'Clever, curious boy genius with round glasses',
-    description: 'Brain teasers, word puzzles, science roleplays, and "Guess the Word" challenges.',
-    voiceProfile: 'US Male',
-    voiceLabel: 'Smart Kid Voice',
-    defaultPitch: 1.22,
+    badge: 'Cartoon White Cat',
+    emoji: '🐱',
+    subtitle: 'Adorable white anime cat mascot with animated ears',
+    description: 'Super friendly animal companion for kids, stories, spelling, and pronunciation.',
+    voiceProfile: 'Default',
+    voiceLabel: 'Cute Kitty Voice',
+    defaultPitch: 1.38,
     type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-nico@1.0.5/assets/nico.model.json',
+    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-tororo@1.0.5/assets/tororo.model.json',
   },
   hibiki: {
     id: 'hibiki',
@@ -134,7 +134,7 @@ export const AVATAR_CATALOG = {
     category: 'cartoon',
     badge: 'Hero Kid',
     emoji: '⚡',
-    subtitle: 'Energetic superhero kid in dynamic outfit',
+    subtitle: 'Energetic superhero anime kid in dynamic outfit',
     description: 'High-energy speech sprint drills, level unlocks, and motivational coaching.',
     voiceProfile: 'US Male',
     voiceLabel: 'Hero Kid Voice',
@@ -142,20 +142,20 @@ export const AVATAR_CATALOG = {
     type: 'live2d',
     modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-hibiki@1.0.5/assets/hibiki.model.json',
   },
-  nito: {
-    id: 'nito',
-    name: 'Nito',
+  wanko: {
+    id: 'wanko',
+    name: 'Wanko',
     gender: 'male',
     category: 'cartoon',
-    badge: 'Music & Beats Kid',
-    emoji: '🎧',
-    subtitle: 'Cool student practicing with studio headphones',
-    description: 'Rhythm, pronunciation accents, tongue twisters, and conversational flow.',
+    badge: 'Cartoon Puppy',
+    emoji: '🐶',
+    subtitle: 'Playful cartoon puppy with wagging ears & tail',
+    description: 'High encouragement, cheerful barking cheer-ups, and fun interactive conversations.',
     voiceProfile: 'US Male',
-    voiceLabel: 'Youth Male Voice',
-    defaultPitch: 1.24,
+    voiceLabel: 'Playful Pup Voice',
+    defaultPitch: 1.32,
     type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-nito@1.0.5/assets/nito.model.json',
+    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json',
   },
 };
 
@@ -182,14 +182,14 @@ export function getAvatarById(id) {
   if (key.includes('mao') || key.includes('unity')) {
     return AVATAR_CATALOG.mao;
   }
-  if (key.includes('nico') || key.includes('dexter')) {
-    return AVATAR_CATALOG.nico;
+  if (key.includes('tororo') || key.includes('cat') || key.includes('shironeko')) {
+    return AVATAR_CATALOG.tororo;
   }
-  if (key.includes('hibiki') || key.includes('sparky')) {
+  if (key.includes('hibiki') || key.includes('hero') || key.includes('sparky')) {
     return AVATAR_CATALOG.hibiki;
   }
-  if (key.includes('nito')) {
-    return AVATAR_CATALOG.nito;
+  if (key.includes('wanko') || key.includes('dog') || key.includes('puppy')) {
+    return AVATAR_CATALOG.wanko;
   }
   return AVATAR_CATALOG[key] || AVATAR_CATALOG.haru;
 }
