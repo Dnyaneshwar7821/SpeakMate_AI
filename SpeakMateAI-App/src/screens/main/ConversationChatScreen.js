@@ -1256,6 +1256,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: 'transparent' },
 
   avatarContainer: {
+    width: '100%',
     height: 218,
     backgroundColor: 'transparent',
     justifyContent: 'center',

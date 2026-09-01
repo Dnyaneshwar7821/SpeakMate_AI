@@ -667,7 +667,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
       const nativeH = (model.internalModel && model.internalModel.height) ? model.internalModel.height : (model.height || 1000);
 
       if (model.anchor) {
-        model.anchor.set(0.5, 0.0);
+        model.anchor.set(0, 0);
       }
 
       // Live2D Models (Haru and Chitose)
@@ -675,7 +675,28 @@ const getLive2DHtml = (initialModel = 'haru') => {
       const baseScale = (h * zoom) / nativeH;
       model.scale.set(baseScale, baseScale);
 
-      model.x = w / 2;
+      // Robust centering based on actual visual bounding box
+      let visibleCenterOffsetX = 0;
+      try {
+        if (typeof model.getLocalBounds === 'function') {
+          const bounds = model.getLocalBounds();
+          if (bounds && bounds.width > 0) {
+            // Calculate how far the visible mesh center is from the origin
+            const meshCenterX = bounds.x + (bounds.width / 2);
+            // We want to place meshCenterX precisely at w/2
+            // So model.x + meshCenterX * baseScale = w / 2
+            visibleCenterOffsetX = meshCenterX * baseScale;
+          }
+        }
+      } catch(e) {}
+
+      if (visibleCenterOffsetX > 0) {
+        model.x = (w / 2) - visibleCenterOffsetX;
+      } else {
+        // Fallback if bounds fail
+        model.x = (w - model.width) / 2;
+      }
+      
       model.y = Math.max(8, h * 0.06);
     }
 
