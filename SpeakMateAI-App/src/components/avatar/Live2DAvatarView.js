@@ -621,6 +621,12 @@ const getLive2DHtml = (initialModel = 'haru') => {
           }
         }
       }
+    function getModelFraming(name) {
+      const lower = (name || '').toLowerCase();
+      if (lower.includes('chitose') || lower.includes('male')) {
+        return { anchor: { x: 0.5, y: 0.0 }, zoom: 1.15, yOffset: 10 };
+      }
+      return { anchor: { x: 0.5, y: 0.0 }, zoom: 1.18, yOffset: 15 };
     }
 
     function framePortrait(viewW, viewH) {
