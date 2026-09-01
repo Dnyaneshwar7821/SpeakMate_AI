@@ -1,10 +1,11 @@
 /**
  * SpeakMate AI Master Avatar Catalog
- * Central registry for all AI speaking tutor avatars across Web and Mobile.
+ * Central registry for all unique AI speaking tutor avatars across Web and Mobile.
+ * Every avatar has its own unique 2.5D / Live2D character model.
  */
 
 export const AVATAR_CATALOG = {
-  // ── Human Coaches ──
+  // ── 1. Adult & Professional Human Coaches ──
   haru: {
     id: 'haru',
     name: 'Haru',
@@ -57,20 +58,20 @@ export const AVATAR_CATALOG = {
     yOffsetRatio: 0.08,
   },
 
-  // ── Kids & Students Cartoon Avatars ──
+  // ── 2. Kids & Students Cartoon Avatars (Each with a Unique Model) ──
   robopaws: {
     id: 'robopaws',
     name: 'Robo-Paws',
     gender: 'robopaws',
     category: 'cartoon',
-    badge: 'Cartoon Buddy',
+    badge: 'Cartoon Mascot',
     emoji: '🤖',
     subtitle: 'Cute Robot Cat / Doraemon-Style Mascot',
     description: 'High-energy 2.5D mascot with 3D red nose & golden bell for fun, stress-free practice.',
     voiceProfile: 'Robo-Paws',
     voiceLabel: 'Cute Cartoon Voice',
     defaultPitch: 1.35,
-    type: 'puppet', // Volumetric 2.5D shader rig
+    type: 'puppet',
     modelPath: null,
     scaleMultiplier: 1.0,
     yOffsetRatio: 0.50,
@@ -82,7 +83,7 @@ export const AVATAR_CATALOG = {
     category: 'cartoon',
     badge: 'Cartoon Schoolgirl',
     emoji: '🎀',
-    subtitle: 'Cheerful, sweet, and enthusiastic companion',
+    subtitle: 'Cheerful, sweet schoolgirl with twin hair buns',
     description: 'Loves celebrating streaks, storytelling, and building everyday speaking confidence.',
     voiceProfile: 'Default',
     voiceLabel: 'Youth Female Voice',
@@ -99,7 +100,7 @@ export const AVATAR_CATALOG = {
     category: 'cartoon',
     badge: 'Cartoon Explorer',
     emoji: '🧢',
-    subtitle: 'Friendly, casual classmate and peer buddy',
+    subtitle: 'Friendly schoolboy with cap and backpack',
     description: 'Casual chats, school dialogues, sports, gaming, and interactive vocabulary games.',
     voiceProfile: 'US Male',
     voiceLabel: 'Youth Male Voice',
@@ -116,7 +117,7 @@ export const AVATAR_CATALOG = {
     category: 'cartoon',
     badge: 'Chibi Junior',
     emoji: '👧',
-    subtitle: 'Playful chibi tutor with big animated eyes',
+    subtitle: 'Playful chibi tutor with big animated ribbons',
     description: 'Great for primary school learners with repetitive phonics drills and nursery rhymes.',
     voiceProfile: 'Default',
     voiceLabel: 'Cute Chibi Voice',
@@ -126,37 +127,54 @@ export const AVATAR_CATALOG = {
     scaleMultiplier: 1.25,
     yOffsetRatio: 0.06,
   },
-  dexter: {
-    id: 'dexter',
-    name: 'Dexter',
+  nico: {
+    id: 'nico',
+    name: 'Nico',
     gender: 'male',
     category: 'cartoon',
-    badge: 'Cartoon Inventor',
-    emoji: '🧪',
-    subtitle: 'Clever science kid with round forehead goggles',
+    badge: 'Smart Glasses Kid',
+    emoji: '👓',
+    subtitle: 'Clever, curious boy genius with round glasses',
     description: 'Brain teasers, word puzzles, science roleplays, and "Guess the Word" challenges.',
     voiceProfile: 'US Male',
     voiceLabel: 'Smart Kid Voice',
     defaultPitch: 1.22,
     type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json',
+    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-nico@1.0.5/assets/nico.model.json',
     scaleMultiplier: 1.25,
     yOffsetRatio: 0.06,
   },
-  sparky: {
-    id: 'sparky',
-    name: 'Sparky',
+  hibiki: {
+    id: 'hibiki',
+    name: 'Hibiki',
     gender: 'male',
     category: 'cartoon',
-    badge: 'Superhero Kid',
+    badge: 'Hero Kid',
     emoji: '⚡',
-    subtitle: 'Dynamic superhero kid with lightning hoodie',
+    subtitle: 'Energetic superhero kid in dynamic outfit',
     description: 'High-energy speech sprint drills, level unlocks, and motivational coaching.',
     voiceProfile: 'US Male',
     voiceLabel: 'Hero Kid Voice',
     defaultPitch: 1.30,
     type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json',
+    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-hibiki@1.0.5/assets/hibiki.model.json',
+    scaleMultiplier: 1.25,
+    yOffsetRatio: 0.06,
+  },
+  nito: {
+    id: 'nito',
+    name: 'Nito',
+    gender: 'male',
+    category: 'cartoon',
+    badge: 'Music & Beats Kid',
+    emoji: '🎧',
+    subtitle: 'Cool student practicing with studio headphones',
+    description: 'Rhythm, pronunciation accents, tongue twisters, and conversational flow.',
+    voiceProfile: 'US Male',
+    voiceLabel: 'Youth Male Voice',
+    defaultPitch: 1.24,
+    type: 'live2d',
+    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-nito@1.0.5/assets/nito.model.json',
     scaleMultiplier: 1.25,
     yOffsetRatio: 0.06,
   },
@@ -188,11 +206,14 @@ export function getAvatarById(id) {
   if (key.includes('mao') || key.includes('unity')) {
     return AVATAR_CATALOG.mao;
   }
-  if (key.includes('dexter')) {
-    return AVATAR_CATALOG.dexter;
+  if (key.includes('nico') || key.includes('dexter')) {
+    return AVATAR_CATALOG.nico;
   }
-  if (key.includes('sparky')) {
-    return AVATAR_CATALOG.sparky;
+  if (key.includes('hibiki') || key.includes('sparky')) {
+    return AVATAR_CATALOG.hibiki;
+  }
+  if (key.includes('nito')) {
+    return AVATAR_CATALOG.nito;
   }
   return AVATAR_CATALOG[key] || AVATAR_CATALOG.haru;
 }
