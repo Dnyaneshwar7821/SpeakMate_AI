@@ -300,353 +300,432 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         this.rootContainer = new PIXI.Container();
         this.addChild(this.rootContainer);
 
-        // 1. Torso / Body Layer
+        // 1. Torso & Gadget Pouch (Depth Z: 0.2)
+        this.bodyContainer = new PIXI.Container();
+        this.rootContainer.addChild(this.bodyContainer);
         this.bodyGfx = new PIXI.Graphics();
-        this.rootContainer.addChild(this.bodyGfx);
+        this.bodyContainer.addChild(this.bodyGfx);
 
-        // 2. Collar & Bell Layer
-        this.collarGfx = new PIXI.Graphics();
-        this.rootContainer.addChild(this.collarGfx);
-
-        // 3. Round White Robotic Hands
+        // 2. Robotic Hands (Depth Z: 0.4)
+        this.handsContainer = new PIXI.Container();
+        this.rootContainer.addChild(this.handsContainer);
         this.leftHandGfx = new PIXI.Graphics();
         this.rightHandGfx = new PIXI.Graphics();
-        this.rootContainer.addChild(this.leftHandGfx);
-        this.rootContainer.addChild(this.rightHandGfx);
+        this.handsContainer.addChild(this.leftHandGfx);
+        this.handsContainer.addChild(this.rightHandGfx);
 
-        // 4. Head Container (Nods & Tilts)
-        this.headContainer = new PIXI.Container();
-        this.rootContainer.addChild(this.headContainer);
+        // 3. Red Collar & 3D Pendulum Bell (Depth Z: 0.6)
+        this.collarContainer = new PIXI.Container();
+        this.rootContainer.addChild(this.collarContainer);
+        this.collarGfx = new PIXI.Graphics();
+        this.bellContainer = new PIXI.Container();
+        this.bellGfx = new PIXI.Graphics();
+        this.collarContainer.addChild(this.collarGfx);
+        this.collarContainer.addChild(this.bellContainer);
+        this.bellContainer.addChild(this.bellGfx);
 
-        // 5. Head Base & White Face Plate
+        // 4. Head Master Pivot (Neck Joint at Y: 35)
+        this.headMaster = new PIXI.Container();
+        this.headMaster.position.set(0, 35);
+        this.rootContainer.addChild(this.headMaster);
+
+        // 5. Spherical Outer Blue Head Shell (Depth Z: 0.8)
         this.headBaseGfx = new PIXI.Graphics();
-        this.headContainer.addChild(this.headBaseGfx);
+        this.headBaseGfx.position.set(0, -65);
+        this.headMaster.addChild(this.headBaseGfx);
 
-        // 6. Expressive Cartoon Eyes (Layered behind nose)
-        this.eyesGfx = new PIXI.Graphics();
-        this.headContainer.addChild(this.eyesGfx);
+        // 6. 2.5D White Face Plate (Parallax Depth Z: 1.0)
+        this.facePlateContainer = new PIXI.Container();
+        this.facePlateContainer.position.set(0, -65);
+        this.headMaster.addChild(this.facePlateContainer);
+        this.faceGfx = new PIXI.Graphics();
+        this.facePlateContainer.addChild(this.faceGfx);
 
-        // 7. Whiskers & Red Button Nose (Layered in front of eyes)
-        this.noseWhiskersGfx = new PIXI.Graphics();
-        this.headContainer.addChild(this.noseWhiskersGfx);
+        // 7. 2.5D Dynamic EYES Container (Parallax Depth Z: 1.25)
+        this.eyesContainer = new PIXI.Container();
+        this.facePlateContainer.addChild(this.eyesContainer);
+        this.leftEyeGfx = new PIXI.Graphics();
+        this.rightEyeGfx = new PIXI.Graphics();
+        this.eyesContainer.addChild(this.leftEyeGfx);
+        this.eyesContainer.addChild(this.rightEyeGfx);
 
-        // 8. Dynamic Phonetic Mouth
+        // 8. 2.5D Whiskers & Dynamic Seam (Parallax Depth Z: 1.15)
+        this.whiskersGfx = new PIXI.Graphics();
+        this.facePlateContainer.addChild(this.whiskersGfx);
+
+        // 9. 2.5D Phonetic MOUTH (Parallax Depth Z: 1.20)
         this.mouthGfx = new PIXI.Graphics();
-        this.headContainer.addChild(this.mouthGfx);
+        this.facePlateContainer.addChild(this.mouthGfx);
 
-        // Puppet Animation State
-        this.blinkTimer = performance.now() + 2500;
-        this.isBlinking = false;
-        this.blinkProgress = 0;
+        // 10. 3D Spherical Red NOSE (Parallax Depth Z: 1.45 - Frontmost)
+        this.noseGfx = new PIXI.Graphics();
+        this.facePlateContainer.addChild(this.noseGfx);
+
+        // ── 2.5D Physics, Pose & Tracking State ──
+        this.angleX = 0;
+        this.angleY = 0;
+        this.angleZ = 0;
+        this.bodyAngleX = 0;
+
         this.lookX = 0;
         this.lookY = 0;
+        this.targetLookX = 0;
+        this.targetLookY = 0;
+
+        this.blinkTimer = performance.now() + 2800;
+        this.isBlinking = false;
+        this.blinkProgress = 0;
+
         this.mouthY = 0;
         this.mouthForm = 0;
-        this.isHappy = false;
         this.isSpeaking = false;
+        this.isHappy = false;
 
-        this.drawStaticFeatures();
+        this.bellAngle = 0;
+
+        this.initStaticGeometry();
       }
 
-      drawStaticFeatures() {
-        // --- 1. Torso: Cyan-Blue Torso + White Belly + Gadget Pocket ---
-        const bg = this.bodyGfx;
-        bg.clear();
-
-        // Metallic Cyan-Blue Body (Round, futuristic)
-        bg.beginFill(0x0284C7);
-        bg.lineStyle(3.5, 0x0F172A);
-        bg.drawRoundedRect(-58, 42, 116, 95, 34);
-        bg.endFill();
-
-        // White Circular Belly Disc
-        bg.beginFill(0xFFFFFF);
-        bg.lineStyle(2.5, 0x0F172A);
-        bg.drawCircle(0, 84, 38);
-        bg.endFill();
-
-        // 22nd Century Gadget Pouch (Half-circle with horizontal slot)
-        bg.beginFill(0xFFFFFF);
-        bg.lineStyle(2.5, 0x0F172A);
-        bg.arc(0, 84, 27, 0, Math.PI);
-        bg.lineTo(27, 84);
-        bg.endFill();
-        bg.lineStyle(2.5, 0x0F172A);
-        bg.moveTo(-27, 84);
-        bg.lineTo(27, 84);
-
-        // --- 2. Red Neck Collar & Golden Gadget Bell ---
-        const col = this.collarGfx;
-        col.clear();
-
-        // Soft chin shadow behind collar
-        col.beginFill(0x0F172A, 0.15);
-        col.drawEllipse(0, 33, 48, 6);
-        col.endFill();
-
-        // Bright Red Collar Band
-        col.beginFill(0xEF4444);
-        col.lineStyle(3, 0x0F172A);
-        col.drawRoundedRect(-48, 35, 96, 16, 7);
-        col.endFill();
-
-        // Golden Bell
-        col.beginFill(0xFBBF24);
-        col.lineStyle(2.5, 0x0F172A);
-        col.drawCircle(0, 50, 14);
-        col.endFill();
-
-        // Bell golden highlight ring & center hole
-        col.lineStyle(2, 0x0F172A);
-        col.moveTo(-12, 48);
-        col.lineTo(12, 48);
-        col.beginFill(0x334155);
-        col.drawCircle(0, 54, 3.5);
-        col.endFill();
-        col.moveTo(0, 57.5);
-        col.lineTo(0, 64);
-
-        // --- 3. Head Base: Clean Spherical Cyan-Blue Robotic Head ---
+      initStaticGeometry() {
         const hg = this.headBaseGfx;
         hg.clear();
-
-        // Large Spherical Robot Head
         hg.beginFill(0x0284C7);
-        hg.lineStyle(3.8, 0x0F172A);
-        hg.drawCircle(0, -30, 80);
+        hg.lineStyle(3.5, 0x0F172A);
+        hg.drawCircle(0, 0, 78);
         hg.endFill();
 
-        // White Face Plate (Natural Round Lower-Cheek Mask)
-        hg.beginFill(0xFFFFFF);
-        hg.lineStyle(2.2, 0x0F172A);
-        hg.drawEllipse(0, -10, 66, 48);
-        hg.endFill();
+        const bg = this.bodyGfx;
+        bg.clear();
+        bg.beginFill(0x0284C7);
+        bg.lineStyle(3.5, 0x0F172A);
+        bg.drawRoundedRect(-54, 8, 108, 92, 32);
+        bg.endFill();
 
-        // --- 4. Red Button Nose & 6 Whiskers (Drawn in front of eyes) ---
-        const nwg = this.noseWhiskersGfx;
-        nwg.clear();
+        bg.beginFill(0xFFFFFF);
+        bg.lineStyle(2.5, 0x0F172A);
+        bg.drawCircle(0, 48, 36);
+        bg.endFill();
 
-        // Bright Red Sphere Nose in front of eyes
-        nwg.beginFill(0xEF4444);
-        nwg.lineStyle(2.5, 0x0F172A);
-        nwg.drawCircle(0, -30, 11);
-        nwg.endFill();
-
-        // Nose white shine highlight
-        nwg.beginFill(0xFFFFFF, 0.9);
-        nwg.drawCircle(-3, -33, 3.5);
-        nwg.endFill();
-
-        // Center seam line from nose to mouth
-        nwg.lineStyle(2.5, 0x0F172A);
-        nwg.moveTo(0, -19);
-        nwg.lineTo(0, 6);
-
-        // 6 Whiskers (3 on each cheek)
-        nwg.lineStyle(2.2, 0x0F172A);
-        // Left whiskers
-        nwg.moveTo(-16, -20); nwg.lineTo(-58, -26);
-        nwg.moveTo(-18, -12); nwg.lineTo(-64, -12);
-        nwg.moveTo(-16, -4); nwg.lineTo(-58, 2);
-        // Right whiskers
-        nwg.moveTo(16, -20); nwg.lineTo(58, -26);
-        nwg.moveTo(18, -12); nwg.lineTo(64, -12);
-        nwg.moveTo(16, -4); nwg.lineTo(58, 2);
-
-        this.drawHands(0);
-      }
-
-      drawHands(t) {
-        const lh = this.leftHandGfx;
-        const rh = this.rightHandGfx;
-        lh.clear();
-        rh.clear();
-
-        const lOffset = Math.sin(t) * 4;
-        const rOffset = Math.cos(t) * 4;
-
-        // Left Cyan-Blue Robotic Arm
-        lh.beginFill(0x0284C7);
-        lh.lineStyle(3, 0x0F172A);
-        lh.moveTo(-44, 48);
-        lh.lineTo(-66, 68 + lOffset);
-        lh.lineTo(-56, 76 + lOffset);
-        lh.lineTo(-38, 58);
-        lh.closePath();
-        lh.endFill();
-
-        // Left Round White Robotic Hand (Paw)
-        lh.beginFill(0xFFFFFF);
-        lh.lineStyle(3, 0x0F172A);
-        lh.drawCircle(-66, 68 + lOffset, 16);
-        lh.endFill();
-
-        // Right Cyan-Blue Robotic Arm
-        rh.beginFill(0x0284C7);
-        rh.lineStyle(3, 0x0F172A);
-        rh.moveTo(44, 48);
-        rh.lineTo(66, 68 + rOffset);
-        rh.lineTo(56, 76 + rOffset);
-        rh.lineTo(38, 58);
-        rh.closePath();
-        rh.endFill();
-
-        // Right Round White Robotic Hand (Paw)
-        rh.beginFill(0xFFFFFF);
-        rh.lineStyle(3, 0x0F172A);
-        rh.drawCircle(66, 68 + rOffset, 16);
-        rh.endFill();
+        bg.beginFill(0xFFFFFF);
+        bg.lineStyle(2.5, 0x0F172A);
+        bg.arc(0, 48, 25, 0, Math.PI);
+        bg.lineTo(25, 48);
+        bg.endFill();
+        bg.lineStyle(2.5, 0x0F172A);
+        bg.moveTo(-25, 48);
+        bg.lineTo(25, 48);
       }
 
       update(now, lookX, lookY, mouthY, mouthForm, isSpeaking, isHappy, state) {
-        this.lookX = lookX;
-        this.lookY = lookY;
-        this.mouthY = mouthY;
-        this.mouthForm = mouthForm;
+        this.lookX = lookX || 0;
+        this.lookY = lookY || 0;
+        this.mouthY = mouthY || 0;
+        this.mouthForm = mouthForm || 0;
         this.isSpeaking = isSpeaking;
         this.isHappy = isHappy;
 
         const t = now * 0.001;
 
-        // 1. Natural Floating Bob & Ambient Breathing
-        const hoverY = Math.sin(t * 2.2) * 5;
-        const headTilt = isSpeaking ? (Math.sin(t * 3.5) * 0.04 + lookX * 0.04) : (lookX * 0.04);
-        const headNod = isSpeaking ? (Math.cos(t * 2.8) * 3 - (mouthY * 4)) : (Math.sin(t * 1.5) * 2);
+        // 1. Natural 2.5D Head Yaw/Pitch/Roll Tracking
+        const targetAngleX = this.lookX * 0.45;
+        const targetAngleY = this.lookY * 0.35 + (isSpeaking ? Math.sin(t * 7.0) * 0.06 * Math.max(0.2, this.mouthY) : 0);
+        const targetAngleZ = (isSpeaking ? Math.cos(t * 3.5) * 0.04 : 0);
 
+        const ease = 0.12;
+        this.angleX += (targetAngleX - this.angleX) * ease;
+        this.angleY += (targetAngleY - this.angleY) * ease;
+        this.angleZ += (targetAngleZ - this.angleZ) * ease;
+        this.bodyAngleX += (-this.angleX * 0.35 - this.bodyAngleX) * 0.08;
+
+        const hoverY = Math.sin(t * 2.2) * 4;
         this.rootContainer.y = hoverY;
-        this.headContainer.rotation = headTilt;
-        this.headContainer.y = headNod;
 
-        this.drawHands(t * 2.5);
+        this.headMaster.rotation = this.angleZ;
+        this.headMaster.x = this.angleX * 8;
+        this.headMaster.y = 35 + (this.angleY * 6);
 
-        // 2. Eye Blinking Logic
+        this.bodyContainer.rotation = this.bodyAngleX * 0.5;
+        this.bodyContainer.x = -this.angleX * 3;
+
+        // 2. 2.5D Spherical Depth Parallax
+        const faceParallaxX = this.angleX * 18;
+        const faceParallaxY = this.angleY * 12;
+        this.facePlateContainer.position.set(faceParallaxX, -65 + faceParallaxY);
+        this.facePlateContainer.scale.x = Math.max(0.82, Math.cos(this.angleX * 1.1));
+
+        this.render2DFacePlate();
+        this.render2DEyes();
+        this.render2DWhiskersAndNose();
+        this.render2DMouth();
+        this.render2DCollarAndBell(t);
+        this.render2DHands(t);
+
+        // Blinking
         if (now > this.blinkTimer) {
           this.isBlinking = true;
           this.blinkProgress = 0;
-          this.blinkTimer = now + 2600 + Math.random() * 3200;
+          this.blinkTimer = now + 2800 + Math.random() * 3500;
         }
         if (this.isBlinking) {
-          this.blinkProgress += 0.18;
+          this.blinkProgress += 0.22;
           if (this.blinkProgress >= 1.0) {
             this.isBlinking = false;
             this.blinkProgress = 0;
           }
         }
-
-        // 3. Render Expressive Eyes
-        this.renderEyes();
-
-        // 4. Render Dynamic Phonetic Mouth
-        this.renderMouth();
       }
 
-      renderEyes() {
-        const eg = this.eyesGfx;
-        eg.clear();
+      render2DFacePlate() {
+        const fg = this.faceGfx;
+        fg.clear();
+        fg.beginFill(0xFFFFFF);
+        fg.lineStyle(2.2, 0x0F172A);
+        fg.drawEllipse(0, 18, 64, 46);
+        fg.endFill();
 
-        const leftEyeX = -15;
-        const rightEyeX = 15;
-        const eyeY = -48;
-        const eyeW = 15;
+        fg.beginFill(0xF472B6, 0.22);
+        fg.drawEllipse(-36, 16, 10, 6);
+        fg.drawEllipse(36, 16, 10, 6);
+        fg.endFill();
+      }
+
+      render2DEyes() {
+        const le = this.leftEyeGfx;
+        const re = this.rightEyeGfx;
+        le.clear();
+        re.clear();
+
+        const yaw = this.angleX;
+        const pitch = this.angleY;
+
+        const eyeSpacing = 14;
+        const leftEyeBaseX = -eyeSpacing + (yaw * 3);
+        const rightEyeBaseX = eyeSpacing + (yaw * 3);
+        const eyeBaseY = -18 + (pitch * 4);
+
+        const leftScaleX = Math.max(0.72, 1.0 + (yaw * 0.35));
+        const rightScaleX = Math.max(0.72, 1.0 - (yaw * 0.35));
+
+        const eyeW = 14.5;
         const eyeH = 20;
 
+        const pupilXOffset = this.lookX * 4.5;
+        const pupilYOffset = this.lookY * 3.5;
+
+        // LEFT EYE
         if (this.isBlinking && this.blinkProgress > 0.3 && this.blinkProgress < 0.7) {
-          // Closed Happy Eye Curves (^ ^)
-          eg.lineStyle(3.5, 0x0F172A);
-          eg.arc(leftEyeX, eyeY + 4, 11, Math.PI * 1.1, Math.PI * 1.9);
-          eg.arc(rightEyeX, eyeY + 4, 11, Math.PI * 1.1, Math.PI * 1.9);
+          le.lineStyle(3.5, 0x0F172A);
+          le.arc(leftEyeBaseX, eyeBaseY + 4, 10 * leftScaleX, Math.PI * 1.1, Math.PI * 1.9);
         } else {
-          // Left Eye Capsule (White)
-          eg.beginFill(0xFFFFFF);
-          eg.lineStyle(3, 0x0F172A);
-          eg.drawEllipse(leftEyeX, eyeY, eyeW, eyeH);
-          eg.endFill();
+          le.beginFill(0xFFFFFF);
+          le.lineStyle(2.8, 0x0F172A);
+          le.drawEllipse(leftEyeBaseX, eyeBaseY, eyeW * leftScaleX, eyeH);
+          le.endFill();
 
-          // Right Eye Capsule (White)
-          eg.beginFill(0xFFFFFF);
-          eg.lineStyle(3, 0x0F172A);
-          eg.drawEllipse(rightEyeX, eyeY, eyeW, eyeH);
-          eg.endFill();
+          const lpx = leftEyeBaseX + 3 + pupilXOffset;
+          const lpy = eyeBaseY + 2 + pupilYOffset;
+          le.beginFill(0x0F172A);
+          le.drawCircle(lpx, lpy, 6.0);
+          le.endFill();
 
-          // Smooth Pupil Gaze Tracking
-          const pX = this.lookX * 5.2;
-          const pY = this.lookY * 4.0;
+          le.beginFill(0xFFFFFF, 0.95);
+          le.drawCircle(lpx - 2, lpy - 2, 2.4);
+          le.drawCircle(lpx + 2, lpy + 2, 1.2);
+          le.endFill();
+        }
 
-          // Left Pupil
-          eg.beginFill(0x0F172A);
-          eg.drawCircle(leftEyeX + 3 + pX, eyeY + 2 + pY, 6.5);
-          eg.endFill();
-          // Left Pupil Shine
-          eg.beginFill(0xFFFFFF);
-          eg.drawCircle(leftEyeX + 1 + pX, eyeY - 1 + pY, 2.5);
-          eg.endFill();
+        // RIGHT EYE
+        if (this.isBlinking && this.blinkProgress > 0.3 && this.blinkProgress < 0.7) {
+          re.lineStyle(3.5, 0x0F172A);
+          re.arc(rightEyeBaseX, eyeBaseY + 4, 10 * rightScaleX, Math.PI * 1.1, Math.PI * 1.9);
+        } else {
+          re.beginFill(0xFFFFFF);
+          re.lineStyle(2.8, 0x0F172A);
+          re.drawEllipse(rightEyeBaseX, eyeBaseY, eyeW * rightScaleX, eyeH);
+          re.endFill();
 
-          // Right Pupil
-          eg.beginFill(0x0F172A);
-          eg.drawCircle(rightEyeX - 3 + pX, eyeY + 2 + pY, 6.5);
-          eg.endFill();
-          // Right Pupil Shine
-          eg.beginFill(0xFFFFFF);
-          eg.drawCircle(rightEyeX - 5 + pX, eyeY - 1 + pY, 2.5);
-          eg.endFill();
+          const rpx = rightEyeBaseX - 3 + pupilXOffset;
+          const rpy = eyeBaseY + 2 + pupilYOffset;
+          re.beginFill(0x0F172A);
+          re.drawCircle(rpx, rpy, 6.0);
+          re.endFill();
+
+          re.beginFill(0xFFFFFF, 0.95);
+          re.drawCircle(rpx - 2, rpy - 2, 2.4);
+          re.drawCircle(rpx + 2, rpy + 2, 1.2);
+          re.endFill();
         }
       }
 
-      renderMouth() {
+      render2DWhiskersAndNose() {
+        const wg = this.whiskersGfx;
+        const ng = this.noseGfx;
+        wg.clear();
+        ng.clear();
+
+        const yaw = this.angleX;
+        const pitch = this.angleY;
+
+        const noseX = yaw * 8;
+        const noseY = 0 + (pitch * 6);
+
+        ng.beginFill(0x0F172A, 0.18);
+        ng.drawEllipse(noseX + 1.5, noseY + 4, 10, 4);
+        ng.endFill();
+
+        ng.beginFill(0xEF4444);
+        ng.lineStyle(2.5, 0x0F172A);
+        ng.drawCircle(noseX, noseY, 11);
+        ng.endFill();
+
+        ng.beginFill(0xFFFFFF, 0.92);
+        ng.drawCircle(noseX - 3, noseY - 3.5, 3.2);
+        ng.endFill();
+
+        wg.lineStyle(2.5, 0x0F172A);
+        wg.moveTo(noseX, noseY + 11);
+        wg.lineTo(noseX * 0.7, 34);
+
+        const lSpread = 1.0 - (yaw * 0.4);
+        const rSpread = 1.0 + (yaw * 0.4);
+
+        wg.lineStyle(2.2, 0x0F172A);
+        wg.moveTo(-16 + (yaw * 4), 10); wg.lineTo(-16 - (42 * lSpread), 4 - (pitch * 5));
+        wg.moveTo(-18 + (yaw * 4), 18); wg.lineTo(-18 - (48 * lSpread), 18);
+        wg.moveTo(-16 + (yaw * 4), 26); wg.lineTo(-16 - (42 * lSpread), 32 + (pitch * 5));
+
+        wg.moveTo(16 + (yaw * 4), 10); wg.lineTo(16 + (42 * rSpread), 4 - (pitch * 5));
+        wg.moveTo(18 + (yaw * 4), 18); wg.lineTo(18 + (48 * rSpread), 18);
+        wg.moveTo(16 + (yaw * 4), 26); wg.lineTo(16 + (42 * rSpread), 32 + (pitch * 5));
+      }
+
+      render2DMouth() {
         const mg = this.mouthGfx;
         mg.clear();
 
         const mY = Math.max(0, Math.min(1.0, this.mouthY));
         const mForm = Math.max(-1.0, Math.min(1.0, this.mouthForm));
-        const centerY = 5;
+        const yaw = this.angleX;
 
-        if (mY < 0.10) {
-          // Resting / Closed Smile: Classic cute Doraemon wide smile curve
-          mg.lineStyle(3, 0x0F172A);
-          const smileSpread = 28 + (this.isHappy ? 6 : 0);
-          const smileDrop = 14 + (this.isHappy ? 4 : 0);
-          mg.moveTo(-smileSpread, centerY);
-          mg.quadraticCurveTo(0, centerY + smileDrop, smileSpread, centerY);
+        const centerX = yaw * 5;
+        const centerY = 34;
+
+        if (mY < 0.08) {
+          mg.lineStyle(2.8, 0x0F172A);
+          const spread = 27 + (this.isHappy ? 5 : 0);
+          const drop = 13 + (this.isHappy ? 4 : 0);
+          mg.moveTo(centerX - spread, centerY);
+          mg.quadraticCurveTo(centerX, centerY + drop, centerX + spread, centerY);
         } else {
-          // Active Speech Phonetic Mouth Shape
-          const openHeight = 8 + (mY * 36);
-          const openWidth = Math.max(14, 24 + (mForm * 10) + (mY * 6));
+          const openH = 6 + (mY * 34);
+          const openW = Math.max(12, 22 + (mForm * 8) + (mY * 6));
 
-          // Dark Red Mouth Cavity
           mg.beginFill(0x881337);
-          mg.lineStyle(3, 0x0F172A);
-
-          // Top Lip Arc
-          mg.moveTo(-openWidth, centerY);
-          mg.quadraticCurveTo(0, centerY - (openHeight * 0.15), openWidth, centerY);
-          // Bottom Lip Arc
-          mg.quadraticCurveTo(0, centerY + openHeight, -openWidth, centerY);
+          mg.lineStyle(2.8, 0x0F172A);
+          mg.moveTo(centerX - openW, centerY);
+          mg.quadraticCurveTo(centerX, centerY - (openH * 0.15), centerX + openW, centerY);
+          mg.quadraticCurveTo(centerX, centerY + openH, centerX - openW, centerY);
           mg.endFill();
 
-          // Upper White Teeth Arc
-          if (mY > 0.22) {
+          if (mY > 0.20) {
             mg.beginFill(0xFFFFFF);
             mg.lineStyle(0);
-            mg.moveTo(-openWidth * 0.72, centerY);
-            mg.quadraticCurveTo(0, centerY - (openHeight * 0.1), openWidth * 0.72, centerY);
-            mg.lineTo(openWidth * 0.68, centerY + 5);
-            mg.quadraticCurveTo(0, centerY + 7, -openWidth * 0.68, centerY + 5);
+            mg.moveTo(centerX - openW * 0.72, centerY);
+            mg.quadraticCurveTo(centerX, centerY - (openH * 0.1), centerX + openW * 0.72, centerY);
+            mg.lineTo(centerX + openW * 0.66, centerY + 4.5);
+            mg.quadraticCurveTo(centerX, centerY + 6.5, centerX - openW * 0.66, centerY + 4.5);
             mg.closePath();
             mg.endFill();
           }
 
-          // Pink Tongue Arc
-          if (mY > 0.18) {
+          if (mY > 0.16) {
             mg.beginFill(0xFB7185);
             mg.lineStyle(0);
-            const tongueW = openWidth * 0.65;
-            const tongueBaseY = centerY + openHeight - 2;
-            mg.moveTo(-tongueW, tongueBaseY);
-            mg.quadraticCurveTo(0, tongueBaseY - (openHeight * 0.45), tongueW, tongueBaseY);
-            mg.quadraticCurveTo(0, tongueBaseY + 2, -tongueW, tongueBaseY);
+            const tongueW = openW * 0.65;
+            const tongueBaseY = centerY + openH - 2;
+            mg.moveTo(centerX - tongueW, tongueBaseY);
+            mg.quadraticCurveTo(centerX, tongueBaseY - (openH * 0.45), centerX + tongueW, tongueBaseY);
+            mg.quadraticCurveTo(centerX, tongueBaseY + 2, centerX - tongueW, tongueBaseY);
             mg.endFill();
           }
         }
+      }
+
+      render2DCollarAndBell(t) {
+        const cg = this.collarGfx;
+        const bg = this.bellGfx;
+        cg.clear();
+        bg.clear();
+
+        const yaw = this.angleX;
+
+        cg.beginFill(0xEF4444);
+        cg.lineStyle(3, 0x0F172A);
+        cg.drawRoundedRect(-46 + (yaw * 3), 0, 92, 15, 6);
+        cg.endFill();
+
+        const bellTargetAngle = -yaw * 0.5 + Math.sin(t * 3) * 0.05;
+        this.bellAngle += (bellTargetAngle - this.bellAngle) * 0.15;
+
+        this.bellContainer.position.set(yaw * 4, 15);
+        this.bellContainer.rotation = this.bellAngle;
+
+        bg.beginFill(0xFBBF24);
+        bg.lineStyle(2.5, 0x0F172A);
+        bg.drawCircle(0, 0, 13);
+        bg.endFill();
+
+        bg.beginFill(0xFFFFFF, 0.85);
+        bg.drawCircle(-3, -3.5, 3.0);
+        bg.endFill();
+
+        bg.lineStyle(2, 0x0F172A);
+        bg.moveTo(-11, -2);
+        bg.lineTo(11, -2);
+        bg.beginFill(0x334155);
+        bg.drawCircle(0, 3, 3.2);
+        bg.endFill();
+        bg.moveTo(0, 6.2);
+        bg.lineTo(0, 12.5);
+      }
+
+      render2DHands(t) {
+        const lh = this.leftHandGfx;
+        const rh = this.rightHandGfx;
+        lh.clear();
+        rh.clear();
+
+        const lOffset = Math.sin(t * 2.5) * 3.5;
+        const rOffset = Math.cos(t * 2.5) * 3.5;
+        const yaw = this.angleX;
+
+        lh.beginFill(0x0284C7);
+        lh.lineStyle(3, 0x0F172A);
+        lh.moveTo(-42, 24);
+        lh.lineTo(-64 - (yaw * 4), 48 + lOffset);
+        lh.lineTo(-54 - (yaw * 4), 56 + lOffset);
+        lh.lineTo(-36, 34);
+        lh.closePath();
+        lh.endFill();
+
+        lh.beginFill(0xFFFFFF);
+        lh.lineStyle(3, 0x0F172A);
+        lh.drawCircle(-64 - (yaw * 4), 48 + lOffset, 15);
+        lh.endFill();
+
+        rh.beginFill(0x0284C7);
+        rh.lineStyle(3, 0x0F172A);
+        rh.moveTo(42, 24);
+        rh.lineTo(64 - (yaw * 4), 48 + rOffset);
+        rh.lineTo(54 - (yaw * 4), 56 + rOffset);
+        rh.lineTo(36, 34);
+        rh.closePath();
+        rh.endFill();
+
+        rh.beginFill(0xFFFFFF);
+        rh.lineStyle(3, 0x0F172A);
+        rh.drawCircle(64 - (yaw * 4), 48 + rOffset, 15);
+        rh.endFill();
       }
     }
 
