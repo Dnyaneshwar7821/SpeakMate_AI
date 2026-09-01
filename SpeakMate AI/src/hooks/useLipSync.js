@@ -8,10 +8,16 @@ import { getPrimaryVisemeForWord } from '../utils/PhoneticVisemeEngine';
  */
 function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   if (!model) return;
-  if (model.isDoraemonPuppet) {
+  if (model.isDoraemonPuppet || model.isSuperheroPuppet || typeof model.setMouthOpen === 'function' || 'mouthY' in model) {
     model.mouthY = yVal;
     model.mouthForm = formVal;
     model.isSpeaking = isSpeaking;
+    if (typeof model.setMouthOpen === 'function') {
+      model.setMouthOpen(yVal, formVal);
+    }
+    if (typeof model.setSpeaking === 'function') {
+      model.setSpeaking(isSpeaking);
+    }
     return;
   }
   if (!model.internalModel) return;
