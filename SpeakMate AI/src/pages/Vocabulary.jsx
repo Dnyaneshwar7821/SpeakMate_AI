@@ -647,24 +647,14 @@ export function Vocabulary() {
                     )}
                   </div>
 
-                  <div className="flex items-center justify-between pt-2.5 border-t border-[var(--border-default)] text-xs">
-                    {item.synonym && item.synonym !== "None" ? (
+                  {item.synonym && item.synonym !== "None" && (
+                    <div className="pt-2.5 border-t border-[var(--border-default)] text-xs">
                       <p className="text-[var(--text-secondary)]">
                         <span className="font-bold text-[var(--text-primary)]">Synonym: </span>
                         <span className="text-emerald-500 font-semibold">{item.synonym}</span>
                       </p>
-                    ) : <span />}
-                    <button
-                      onClick={() => handleMasterWord(item)}
-                      className={`px-3 py-1 rounded-lg font-bold text-xs transition-all flex items-center gap-1 shadow-sm ${
-                        item.mastered
-                          ? "bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30"
-                          : "bg-indigo-500/10 text-[#6C63FF] hover:bg-indigo-500/20 border border-indigo-500/20"
-                      }`}
-                    >
-                      {item.mastered ? "✓ Mastered" : "🧠 Master (+10 XP)"}
-                    </button>
-                  </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -813,12 +803,6 @@ export function Vocabulary() {
               className="px-6 py-3 bg-[var(--bg-surface)] font-bold text-[var(--text-primary)] rounded-2xl hover:bg-[var(--bg-elevated)] transition-all border border-[var(--border-default)] shadow-sm"
             >
               ← Previous
-            </button>
-            <button
-              onClick={() => handleMasterWord(currentCard)}
-              className="px-4 py-3 bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 font-extrabold rounded-2xl hover:bg-emerald-500/25 transition-all border border-emerald-500/30 flex items-center gap-1.5 shadow-sm text-xs"
-            >
-              🧠 Mastered (+10 XP)
             </button>
             <button
               onClick={() => {
