@@ -621,6 +621,8 @@ const getLive2DHtml = (initialModel = 'haru') => {
           }
         }
       }
+    }
+
     function getModelFraming(name) {
       const lower = (name || '').toLowerCase();
       if (lower.includes('chitose') || lower.includes('male')) {
