@@ -126,11 +126,14 @@ export function Settings() {
     try {
       const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
       const gender = profile?.gender || (selectedVoice.toLowerCase().includes("male") && !selectedVoice.toLowerCase().includes("female") ? "male" : "female");
+      const model = gender === "robopaws" ? "robopaws" : gender === "male" ? "chitose" : "haru";
 
       // 1. Persist voice, language, audio and learning preferences to localStorage
       localStorage.setItem("speakmate_ai_voice", selectedVoice);
       localStorage.setItem("speakmate_voice_code", selectedVoice);
+      localStorage.setItem("speakmate_selected_voice", selectedVoice);
       localStorage.setItem("speakmate_voice_gender", gender);
+      localStorage.setItem("speakmate_avatar_model", model);
       localStorage.setItem("speakmate_voice_accent", accent);
       localStorage.setItem("speakmate_age_group", selectedAgeGroup);
       localStorage.setItem("speakmate_daily_goal", dailyGoal);
@@ -139,7 +142,7 @@ export function Settings() {
       localStorage.setItem("speakmate_sound_effects", String(soundEffects));
       localStorage.setItem("speakmate_autoplay_audio", String(autoPlayAudio));
 
-      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender });
+      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
 
       // 2. Sync preferences to backend services
       await settingsService.update({

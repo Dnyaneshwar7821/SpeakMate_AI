@@ -155,6 +155,57 @@ export function Profile() {
       .catch(() => {});
   }, [user]);
 
+  const handleSelectTutor = (genderOrModel) => {
+    let voiceCode = "Default";
+    let gender = "female";
+    let model = "haru";
+
+    if (genderOrModel === "robopaws" || genderOrModel === "robot") {
+      voiceCode = "Robo-Paws";
+      gender = "robopaws";
+      model = "robopaws";
+    } else if (genderOrModel === "male" || genderOrModel === "chitose") {
+      voiceCode = "US Male";
+      gender = "male";
+      model = "chitose";
+    } else {
+      voiceCode = "Default";
+      gender = "female";
+      model = "haru";
+    }
+
+    setPreferredVoice(gender);
+    localStorage.setItem("speakmate_voice_gender", gender);
+    localStorage.setItem("speakmate_avatar_model", model);
+    localStorage.setItem("speakmate_selected_voice", voiceCode);
+    localStorage.setItem("speakmate_ai_voice", voiceCode);
+    localStorage.setItem("speakmate_voice_code", voiceCode);
+
+    EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
+
+    toast.success(
+      model === "robopaws"
+        ? "Switched to Robo-Paws (Cute Cartoon Voice & Doraemon Buddy Active) 🤖"
+        : model === "chitose"
+        ? "Switched to Chitose (American Male Voice Active) 👨"
+        : "Switched to Haru (System Default Voice Active) 👩"
+    );
+  };
+
+  const handleAgeGroupChange = (newAge) => {
+    const val = normalizeAgeGroup(newAge);
+    setAgeGroup(val);
+    localStorage.setItem("speakmate_age_group", val);
+    window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
+    window.dispatchEvent(new Event("speakmate_progress_updated"));
+
+    // If switching to an age group where Robo-Paws is not permitted, safely fallback to Haru
+    const canStillAccessRoboPaws = Boolean(isStudent || val === "Kids" || val === "Teens");
+    if (!canStillAccessRoboPaws && (preferredVoice === "robopaws" || preferredVoice === "robot")) {
+      handleSelectTutor("female");
+    }
+  };
+
   const handleSaveProfile = async (e) => {
     e.preventDefault();
     const cleanFirstName = form.firstName.trim();
@@ -178,6 +229,7 @@ export function Profile() {
       localStorage.setItem("speakmate_daily_goal", dailyGoal.toString());
       localStorage.setItem("speakmate_accent", preferredAccent);
       localStorage.setItem("speakmate_voice_gender", preferredVoice);
+
       if (preferredVoice === "robopaws") {
         localStorage.setItem("speakmate_avatar_model", "robopaws");
         localStorage.setItem("speakmate_selected_voice", "Robo-Paws");
@@ -185,9 +237,11 @@ export function Profile() {
       } else if (preferredVoice === "male") {
         localStorage.setItem("speakmate_avatar_model", "chitose");
         localStorage.setItem("speakmate_selected_voice", "US Male");
+        localStorage.setItem("speakmate_ai_voice", "US Male");
       } else {
         localStorage.setItem("speakmate_avatar_model", "haru");
         localStorage.setItem("speakmate_selected_voice", "Default");
+        localStorage.setItem("speakmate_ai_voice", "Default");
       }
       EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender: preferredVoice });
 
@@ -417,131 +471,276 @@ export function Profile() {
 
       {/* TAB 1: GENERAL PROFILE DETAILS */}
       {activeTab === "general" && (
-        <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
-          <div>
-            <h2 className="text-xl font-black text-[var(--text-primary)]">Personal Details</h2>
-            <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
-              Manage your personal identity, contact email, and standard level.
-            </p>
-          </div>
+        <div className="space-y-6">
+          {/* ── AI Speaking Tutor Persona Card (Matching Mobile App) ── */}
+          {(() => {
+            const normAge = normalizeAgeGroup(ageGroup);
+            const canAccessRoboPaws = Boolean(
+              isStudent ||
+              normAge === "Kids" ||
+              normAge === "Teens"
+            );
 
-          <form onSubmit={handleSaveProfile} className="space-y-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">First Name</label>
-                <input
-                  type="text"
-                  value={form.firstName}
-                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                  required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Last Name</label>
-                <input
-                  type="text"
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                  required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div>
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Email Address</label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  required
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Native Language</label>
-                <input
-                  type="text"
-                  value={form.nativeLanguage}
-                  onChange={(e) => setForm({ ...form, nativeLanguage: e.target.value })}
-                  className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
-                />
-              </div>
-            </div>
-
-            <div>
-              {isStudent ? (
-                <>
-                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
-                    Configured School Standard Grade
-                  </label>
-                  <select
-                    value={schoolGrade}
-                    onChange={(e) => setSchoolGrade(e.target.value)}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
-                  >
-                    {SCHOOL_GRADES.map((g) => (
-                      <option key={g} value={g}>🎓 {g} Standard</option>
-                    ))}
-                  </select>
-                </>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            return (
+              <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
                   <div>
-                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
-                      Target Persona Age Profile
-                    </label>
-                    <select
-                      value={ageGroup}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setAgeGroup(val);
-                        localStorage.setItem("speakmate_age_group", val);
-                        window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
-                        window.dispatchEvent(new Event("speakmate_progress_updated"));
-                      }}
-                      className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
-                    >
-                      {AGE_OPTIONS.map((opt) => (
-                        <option key={opt.code} value={opt.code}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
+                    <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
+                      <span>🎭</span> AI Speaking Tutor Persona
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
+                      {canAccessRoboPaws
+                        ? "Select your Live2D avatar practice tutor or cartoon buddy with auto-synced voice"
+                        : "Select your Live2D avatar practice tutor with auto-synced voice"}
+                    </p>
                   </div>
-
-                  <div>
-                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
-                      Configured English Proficiency Level
-                    </label>
-                    <select
-                      value={cefrLevel}
-                      onChange={(e) => setCefrLevel(e.target.value)}
-                      className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
-                    >
-                      {ENGLISH_LEVELS.map((lvl) => (
-                        <option key={lvl} value={lvl}>👤 {lvl}</option>
-                      ))}
-                    </select>
-                  </div>
+                  <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
+                    Auto Voice Sync Active 🎙️
+                  </span>
                 </div>
-              )}
+
+                <div
+                  className={`grid gap-4 ${
+                    canAccessRoboPaws ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-2"
+                  }`}
+                >
+                  {/* 1. HARU (FEMALE) */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTutor("female")}
+                    className={`relative p-5 rounded-3xl border text-left transition-all cursor-pointer active:scale-95 group overflow-hidden ${
+                      preferredVoice === "female" || (preferredVoice === "robopaws" && !canAccessRoboPaws)
+                        ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 to-[#8B5CF6]/10 text-[#6C63FF] shadow-lg shadow-[#6C63FF]/15 ring-2 ring-[#6C63FF]/30"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 border border-pink-500/30 grid place-items-center text-3xl shadow-inner shrink-0">
+                        👩
+                      </div>
+                      {(preferredVoice === "female" || (preferredVoice === "robopaws" && !canAccessRoboPaws)) && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
+                          ✓ Active
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-4 space-y-1">
+                      <h3 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
+                        Haru (Female)
+                      </h3>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium">
+                        Warm, clear, and encouraging
+                      </p>
+                      <div className="pt-2">
+                        <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] inline-block">
+                          🎙️ System Default Voice
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* 2. CHITOSE (MALE) */}
+                  <button
+                    type="button"
+                    onClick={() => handleSelectTutor("male")}
+                    className={`relative p-5 rounded-3xl border text-left transition-all cursor-pointer active:scale-95 group overflow-hidden ${
+                      preferredVoice === "male"
+                        ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 to-[#8B5CF6]/10 text-[#6C63FF] shadow-lg shadow-[#6C63FF]/15 ring-2 ring-[#6C63FF]/30"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30 grid place-items-center text-3xl shadow-inner shrink-0">
+                        👨
+                      </div>
+                      {preferredVoice === "male" && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
+                          ✓ Active
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-4 space-y-1">
+                      <h3 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
+                        Chitose (Male)
+                      </h3>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium">
+                        Confident, articulate, and supportive
+                      </p>
+                      <div className="pt-2">
+                        <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] inline-block">
+                          🎙️ American Male Voice
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* 3. ROBO-PAWS (DORAEMON-STYLE BUDDY) - Kids, Teens & Students Only */}
+                  {canAccessRoboPaws && (
+                    <button
+                      type="button"
+                      onClick={() => handleSelectTutor("robopaws")}
+                      className={`relative p-5 rounded-3xl border text-left transition-all cursor-pointer active:scale-95 group overflow-hidden ${
+                        preferredVoice === "robopaws" || preferredVoice === "robot"
+                          ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 to-[#8B5CF6]/10 text-[#6C63FF] shadow-lg shadow-[#6C63FF]/15 ring-2 ring-[#6C63FF]/30"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-sky-500/20 border border-cyan-500/30 grid place-items-center text-3xl shadow-inner shrink-0">
+                          🤖
+                        </div>
+                        {(preferredVoice === "robopaws" || preferredVoice === "robot") && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
+                            ✓ Active
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-4 space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <h3 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
+                            Robo-Paws
+                          </h3>
+                          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
+                            Kids & Students
+                          </span>
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)] font-medium">
+                          Cute Robot Cat / Doraemon Buddy
+                        </p>
+                        <div className="pt-2">
+                          <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] inline-block">
+                            🎙️ Cute Cartoon Voice
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Personal Information Card */}
+          <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
+            <div>
+              <h2 className="text-xl font-black text-[var(--text-primary)]">Personal Details</h2>
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
+                Manage your personal identity, contact email, and standard level.
+              </p>
             </div>
 
-            <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
-              <button
-                type="submit"
-                disabled={saving}
-                className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6C63FF]/25 transition-all cursor-pointer active:scale-95"
-              >
-                {saving ? "Saving Changes..." : "Save Profile Details"}
-              </button>
-            </div>
-          </form>
+            <form onSubmit={handleSaveProfile} className="space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">First Name</label>
+                  <input
+                    type="text"
+                    value={form.firstName}
+                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                    required
+                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Last Name</label>
+                  <input
+                    type="text"
+                    value={form.lastName}
+                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                    required
+                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    required
+                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Native Language</label>
+                  <input
+                    type="text"
+                    value={form.nativeLanguage}
+                    onChange={(e) => setForm({ ...form, nativeLanguage: e.target.value })}
+                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <div>
+                {isStudent ? (
+                  <>
+                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
+                      Configured School Standard Grade
+                    </label>
+                    <select
+                      value={schoolGrade}
+                      onChange={(e) => setSchoolGrade(e.target.value)}
+                      className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
+                    >
+                      {SCHOOL_GRADES.map((g) => (
+                        <option key={g} value={g}>🎓 {g} Standard</option>
+                      ))}
+                    </select>
+                  </>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
+                        Target Persona Age Profile
+                      </label>
+                      <select
+                        value={ageGroup}
+                        onChange={(e) => handleAgeGroupChange(e.target.value)}
+                        className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
+                      >
+                        {AGE_OPTIONS.map((opt) => (
+                          <option key={opt.code} value={opt.code}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
+                        Configured English Proficiency Level
+                      </label>
+                      <select
+                        value={cefrLevel}
+                        onChange={(e) => setCefrLevel(e.target.value)}
+                        className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
+                      >
+                        {ENGLISH_LEVELS.map((lvl) => (
+                          <option key={lvl} value={lvl}>👤 {lvl}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6C63FF]/25 transition-all cursor-pointer active:scale-95"
+                >
+                  {saving ? "Saving Changes..." : "Save Profile Details"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -549,13 +748,92 @@ export function Profile() {
       {activeTab === "preferences" && (
         <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
           <div>
-            <h2 className="text-xl font-black text-[var(--text-primary)]">Learning Goals & Voice Settings</h2>
+            <h2 className="text-xl font-black text-[var(--text-primary)]">Learning Goals & Preferences</h2>
             <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
-              Customize your daily study cadence and Live2D tutor voice.
+              Customize your daily study cadence, target accent, and AI tutor partner.
             </p>
           </div>
 
           <form onSubmit={handleSaveProfile} className="space-y-6">
+            {/* ── AI Speaking Tutor Persona inside Preferences ── */}
+            {(() => {
+              const normAge = normalizeAgeGroup(ageGroup);
+              const canAccessRoboPaws = Boolean(
+                isStudent ||
+                normAge === "Kids" ||
+                normAge === "Teens"
+              );
+
+              return (
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-3">
+                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">
+                      🎭 AI Speaking Tutor Persona
+                    </label>
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30">
+                      Auto Voice Sync 🎙️
+                    </span>
+                  </div>
+
+                  <div
+                    className={`grid gap-4 ${
+                      canAccessRoboPaws ? "grid-cols-1 sm:grid-cols-3" : "grid-cols-1 sm:grid-cols-2"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleSelectTutor("female")}
+                      className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
+                        preferredVoice === "female" || (preferredVoice === "robopaws" && !canAccessRoboPaws)
+                          ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md ring-2 ring-[#6C63FF]/30"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <span className="text-2xl block mb-1">👩 Haru (Female)</span>
+                      <span className="text-xs opacity-75 block mb-1">Warm & encouraging</span>
+                      <span className="text-[10px] font-bold opacity-90 px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-default)] inline-block">
+                        🎙️ System Default
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleSelectTutor("male")}
+                      className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
+                        preferredVoice === "male"
+                          ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md ring-2 ring-[#6C63FF]/30"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                      }`}
+                    >
+                      <span className="text-2xl block mb-1">👨 Chitose (Male)</span>
+                      <span className="text-xs opacity-75 block mb-1">Confident & supportive</span>
+                      <span className="text-[10px] font-bold opacity-90 px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-default)] inline-block">
+                        🎙️ American Male
+                      </span>
+                    </button>
+
+                    {canAccessRoboPaws && (
+                      <button
+                        type="button"
+                        onClick={() => handleSelectTutor("robopaws")}
+                        className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
+                          preferredVoice === "robopaws" || preferredVoice === "robot"
+                            ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md ring-2 ring-[#6C63FF]/30"
+                            : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
+                        }`}
+                      >
+                        <span className="text-2xl block mb-1">🤖 Robo-Paws</span>
+                        <span className="text-xs opacity-75 block mb-1">Cute Doraemon Buddy</span>
+                        <span className="text-[10px] font-bold opacity-90 px-2 py-0.5 rounded bg-[var(--bg-primary)] border border-[var(--border-default)] inline-block">
+                          🎙️ Cartoon Voice
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
+
             <div>
               <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">
                 Daily Speaking Target (Minutes)
@@ -601,73 +879,6 @@ export function Profile() {
                 ))}
               </div>
             </div>
-
-            {(() => {
-              const normAge = (ageGroup || "").toLowerCase();
-              const canAccessRoboPaws = Boolean(
-                isStudent ||
-                normAge === "kids" ||
-                normAge === "teens" ||
-                normAge.includes("kid") ||
-                normAge.includes("teen")
-              );
-
-              return (
-                <div>
-                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-3">
-                    {canAccessRoboPaws ? "Tutor Voice & Avatar Buddy" : "Tutor Voice & Avatar"}
-                  </label>
-                  <div
-                    className={`grid gap-3 ${
-                      canAccessRoboPaws
-                        ? "grid-cols-1 sm:grid-cols-3"
-                        : "grid-cols-1 sm:grid-cols-2"
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setPreferredVoice("female")}
-                      className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                        preferredVoice === "female" || (preferredVoice === "robopaws" && !canAccessRoboPaws)
-                          ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
-                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                      }`}
-                    >
-                      <span className="text-2xl block mb-1">👩 Haru</span>
-                      <span className="text-xs opacity-75">Warm, clear, and encouraging</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setPreferredVoice("male")}
-                      className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                        preferredVoice === "male"
-                          ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
-                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                      }`}
-                    >
-                      <span className="text-2xl block mb-1">👨 Chitose</span>
-                      <span className="text-xs opacity-75">Confident, articulate, and supportive</span>
-                    </button>
-
-                    {canAccessRoboPaws && (
-                      <button
-                        type="button"
-                        onClick={() => setPreferredVoice("robopaws")}
-                        className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                          preferredVoice === "robopaws" || preferredVoice === "robot"
-                            ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
-                            : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                        }`}
-                      >
-                        <span className="text-2xl block mb-1">🤖 Robo-Paws</span>
-                        <span className="text-xs opacity-75">Cute Robot Cat Buddy</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
 
             <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
               <button
