@@ -121,7 +121,7 @@ function ThinkingDots() {
 // ── Target Stage Dimensions (Dual Halo: 172px Inner & 232px Outer) ───────────
 const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
 const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
-const AVATAR_WIDTH    = 280; // Ample width for full ponytail & both shoulders
+const AVATAR_WIDTH    = 320; // Ample width for full ponytail & both shoulders
 const AVATAR_HEIGHT   = 200; // Generous height with natural headroom
 
 // ── Main AIAvatar Component (Dual Concentric Halo & Cosmic Studio) ────────────
@@ -500,11 +500,11 @@ const styles = StyleSheet.create({
   // 7. Smooth Chest-Line Fade into Dark Background
   softTorsoDissolve: {
     position:     'absolute',
-    width:        260,
-    height:       42,
+    width:        '100%',
+    height:       38,
     bottom:       0,
     alignSelf:    'center',
-    borderRadius: 21,
+    borderRadius: 19,
     zIndex:       12,
     elevation:    10,
   },

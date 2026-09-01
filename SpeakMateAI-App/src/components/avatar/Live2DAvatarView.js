@@ -40,11 +40,12 @@ const getLive2DHtml = (initialModel = 'haru') => {
       display: flex;
       justify-content: center;
       align-items: center;
+      position: relative;
+      overflow: hidden;
     }
     canvas {
-      width: 100% !important;
-      height: 100% !important;
       display: block;
+      margin: 0 auto;
     }
   </style>
   <!-- PixiJS v7 -->
@@ -623,41 +624,49 @@ const getLive2DHtml = (initialModel = 'haru') => {
       }
     }
 
-    function getModelFraming(name) {
-      const lower = (name || '').toLowerCase();
-      if (lower.includes('chitose') || lower.includes('male')) {
-        return { anchor: { x: 0.5, y: 0.0 }, zoom: 1.15, yOffset: 10 };
-      }
-      return { anchor: { x: 0.5, y: 0.0 }, zoom: 1.18, yOffset: 15 };
+    function getViewDimensions() {
+      const container = document.getElementById('canvas-container');
+      const w = container ? (container.clientWidth || container.offsetWidth) : 0;
+      const h = container ? (container.clientHeight || container.offsetHeight) : 0;
+      const viewW = w > 50 ? w : (window.innerWidth > 50 ? window.innerWidth : 320);
+      const viewH = h > 50 ? h : (window.innerHeight > 50 ? window.innerHeight : 200);
+      return { viewW, viewH };
     }
 
     function framePortrait(viewW, viewH) {
       if (!model) return;
+      const dims = getViewDimensions();
+      const w = viewW || (app ? app.screen.width : dims.viewW);
+      const h = viewH || (app ? app.screen.height : dims.viewH);
+
       if (model.isDoraemonPuppet) {
-        const baseScale = (viewH * 0.88) / 200;
+        const baseScale = (h * 0.85) / 200;
         model.scale.set(baseScale, baseScale);
-        model.x = viewW / 2;
-        model.y = viewH * 0.50;
+        model.x = w / 2;
+        model.y = h * 0.52;
         return;
       }
-      const framing = getModelFraming(currentModelName);
+
+      const lower = (currentModelName || '').toLowerCase();
+      const isMale = lower.includes('chitose') || lower.includes('male');
       const nativeH = (model.internalModel && model.internalModel.height) ? model.internalModel.height : (model.height || 1000);
 
       if (model.anchor) {
-        model.anchor.set(framing.anchor.x, framing.anchor.y);
+        model.anchor.set(0.5, 0.0);
       }
 
-      const baseScale = (viewH * framing.zoom) / nativeH;
+      // Live2D Models (Haru and Chitose)
+      const zoom = isMale ? 1.25 : 1.20;
+      const baseScale = (h * zoom) / nativeH;
       model.scale.set(baseScale, baseScale);
 
-      model.x = viewW / 2;
-      model.y = (viewH * 0.5) + framing.yOffset;
+      model.x = w / 2;
+      model.y = Math.max(8, h * 0.06);
     }
 
     async function init() {
       const container = document.getElementById('canvas-container');
-      const viewW = container.clientWidth || window.innerWidth || 360;
-      const viewH = container.clientHeight || window.innerHeight || 200;
+      const { viewW, viewH } = getViewDimensions();
 
       app = new PIXI.Application({
         width: viewW,
@@ -873,9 +882,7 @@ const getLive2DHtml = (initialModel = 'haru') => {
 
     function onResize() {
       if (!app || !model) return;
-      const container = document.getElementById('canvas-container');
-      const viewW = container.clientWidth || window.innerWidth || 360;
-      const viewH = container.clientHeight || window.innerHeight || 200;
+      const { viewW, viewH } = getViewDimensions();
       app.renderer.resize(viewW, viewH);
       framePortrait(viewW, viewH);
     }
@@ -892,9 +899,10 @@ const getLive2DHtml = (initialModel = 'haru') => {
       currentModelName = (modelName || 'haru').toLowerCase();
 
       try {
-        const container = document.getElementById('canvas-container');
-        const viewW = container.clientWidth || window.innerWidth || 360;
-        const viewH = container.clientHeight || window.innerHeight || 200;
+        const { viewW, viewH } = getViewDimensions();
+        if (app && app.renderer) {
+          app.renderer.resize(viewW, viewH);
+        }
 
         // If Robo-Paws, instantiate Doraemon WebGL puppet directly!
         if (currentModelName === 'robopaws' || currentModelName === 'robocat' || currentModelName === 'robot' || currentModelName === 'kid') {
