@@ -995,8 +995,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
   const [isReady, setIsReady] = useState(false);
   const normalizedModel = (model || 'haru').toLowerCase();
 
-  const initialModelName = useRef(normalizedModel).current;
-  const htmlSource = useMemo(() => getLive2DHtml(initialModelName), [initialModelName]);
+  const htmlSource = useMemo(() => getLive2DHtml(normalizedModel), [normalizedModel]);
 
   // Send state and spoken text updates to Live2D WebView
   useEffect(() => {

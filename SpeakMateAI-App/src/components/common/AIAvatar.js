@@ -118,6 +118,12 @@ function ThinkingDots() {
   );
 }
 
+// ── Target Stage Dimensions (Dual Halo: 172px Inner & 232px Outer) ───────────
+const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
+const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
+const AVATAR_WIDTH    = 280; // Ample width for full ponytail & both shoulders
+const AVATAR_HEIGHT   = 200; // Generous height with natural headroom
+
 // ── Main AIAvatar Component (Dual Concentric Halo & Cosmic Studio) ────────────
 export default function AIAvatar({
   gender     = 'female',
