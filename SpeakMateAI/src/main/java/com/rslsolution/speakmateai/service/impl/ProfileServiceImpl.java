@@ -39,8 +39,7 @@ public class ProfileServiceImpl implements ProfileService {
 		String effectiveGrade = user.getSchoolGrade();
 		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
 		boolean isStudent = (user.getSchoolId() != null) ||
-				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||
-				(user.getAccountType() != null && user.getAccountType().name().contains("STUDENT"));
+				(user.getRole() != null && user.getRole() == com.rslsolution.speakmateai.enums.Role.STUDENT);
 
 		return ProfileResponse.builder()
 				.id(user.getId())
