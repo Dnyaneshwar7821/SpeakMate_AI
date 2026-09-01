@@ -1,6 +1,8 @@
 import React, { memo, useEffect, useRef, useState, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Dimensions, StyleSheet, View } from 'react-native';
 import { WebView } from 'react-native-webview';
+
+const { width: DEVICE_WINDOW_WIDTH } = Dimensions.get('window');
 
 const HARU_MODEL_URL = 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json';
 const CHITOSE_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-chitose@1.0.5/assets/chitose.model.json';
@@ -19,9 +21,11 @@ const getModelUrl = (modelName) => {
   return HARU_MODEL_URL;
 };
 
-const getLive2DHtml = (initialModel = 'haru') => {
+const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 200) => {
   const initialName = normalizeModelName(initialModel || 'haru');
   const initialUrl = getModelUrl(initialName);
+  const fixedWidth = Math.round(deviceWidth || 360);
+  const fixedHeight = Math.round(stageHeight || 200);
 
   return `
 <!DOCTYPE html>
@@ -32,17 +36,20 @@ const getLive2DHtml = (initialModel = 'haru') => {
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       overflow: hidden;
       background: transparent;
       touch-action: none;
       -webkit-user-select: none;
       user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
     #canvas-container {
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -50,8 +57,12 @@ const getLive2DHtml = (initialModel = 'haru') => {
       overflow: hidden;
     }
     canvas {
-      display: block;
-      margin: 0 auto;
+      display: block !important;
+      margin: 0 auto !important;
+      width: 100% !important;
+      height: 100% !important;
+      max-width: 100vw !important;
+      max-height: 100vh !important;
     }
   </style>
   <!-- PixiJS v7 -->
@@ -639,12 +650,15 @@ const getLive2DHtml = (initialModel = 'haru') => {
       }
     }
 
+    const STAGE_W = ${fixedWidth};
+    const STAGE_H = ${fixedHeight};
+
     function getViewDimensions() {
       const container = document.getElementById('canvas-container');
       const w = container ? (container.clientWidth || container.offsetWidth) : 0;
       const h = container ? (container.clientHeight || container.offsetHeight) : 0;
-      const viewW = w > 50 ? w : (window.innerWidth > 50 ? window.innerWidth : 320);
-      const viewH = h > 50 ? h : (window.innerHeight > 50 ? window.innerHeight : 200);
+      const viewW = (w >= 100 && w <= 700) ? w : ((window.innerWidth >= 100 && window.innerWidth <= 700) ? window.innerWidth : STAGE_W);
+      const viewH = (h >= 80 && h <= 500) ? h : ((window.innerHeight >= 80 && window.innerHeight <= 500) ? window.innerHeight : STAGE_H);
       return { viewW, viewH };
     }
 
@@ -655,10 +669,10 @@ const getLive2DHtml = (initialModel = 'haru') => {
       const h = viewH || (app ? app.screen.height : dims.viewH);
 
       if (model.isDoraemonPuppet) {
-        const baseScale = (h * 0.88) / 200;
+        const baseScale = (h * 0.82) / 200;
         model.scale.set(baseScale, baseScale);
         model.x = w / 2;
-        model.y = h * 0.52;
+        model.y = h * 0.50;
         return;
       }
 
@@ -666,24 +680,18 @@ const getLive2DHtml = (initialModel = 'haru') => {
       const isMale = lower.includes('chitose') || lower.includes('male');
       const nativeH = (model.internalModel && model.internalModel.height) ? model.internalModel.height : (model.height || 1000);
 
+      // Top-centered anchor & framing matching Web App
       if (model.anchor) {
-        model.anchor.set(0, 0);
+        model.anchor.set(0.5, 0.0);
       }
 
       // Live2D Models (Haru and Chitose)
-      const zoom = isMale ? 1.30 : 1.25;
+      const zoom = isMale ? 1.28 : 1.22;
       const baseScale = (h * zoom) / nativeH;
       model.scale.set(baseScale, baseScale);
 
-      // Reset coordinates to top-left of the canvas
-      model.x = 0;
-      model.y = Math.max(8, h * 0.06);
-
-      // Resize the Pixi canvas to tightly fit the model's actual scaled width.
-      // The CSS Flexbox in #canvas-container will perfectly center this canvas on the screen.
-      if (app && app.renderer) {
-        app.renderer.resize(model.width, h);
-      }
+      model.x = w / 2;
+      model.y = Math.max(6, h * 0.05);
     }
 
     async function init() {
@@ -702,6 +710,12 @@ const getLive2DHtml = (initialModel = 'haru') => {
       container.appendChild(app.view);
 
       window.addEventListener('resize', onResize);
+      if (window.ResizeObserver) {
+        try {
+          const ro = new ResizeObserver(() => onResize());
+          ro.observe(document.body);
+        } catch(e) {}
+      }
       document.addEventListener('pointerdown', onPointerDown);
       document.addEventListener('pointermove', onPointerMove);
       document.addEventListener('pointerup', onPointerReset);
@@ -1031,7 +1045,10 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
   const [isReady, setIsReady] = useState(false);
   const normalizedModel = (model || 'haru').toLowerCase();
 
-  const htmlSource = useMemo(() => getLive2DHtml(normalizedModel), [normalizedModel]);
+  const htmlSource = useMemo(
+    () => getLive2DHtml(normalizedModel, DEVICE_WINDOW_WIDTH, 200),
+    [normalizedModel]
+  );
 
   // Send state and spoken text updates to Live2D WebView
   useEffect(() => {
