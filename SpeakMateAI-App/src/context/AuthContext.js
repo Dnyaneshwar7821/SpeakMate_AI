@@ -22,6 +22,31 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const syncUserProfile = useCallback(async (userData) => {
+    if (!userData) return;
+    try {
+      if (userData.schoolGrade && userData.schoolGrade.includes("Std")) {
+        await AsyncStorage.setItem('speakmate_school_grade', userData.schoolGrade);
+      } else if (userData.accountType !== "STUDENT" && !userData.isSchoolStudent) {
+        await AsyncStorage.removeItem('speakmate_school_grade');
+      }
+      if (userData.ageGroup) {
+        await AsyncStorage.setItem('speakmate_age_group', userData.ageGroup);
+      }
+      if (userData.englishLevel) {
+        await AsyncStorage.setItem('speakmate_english_level', userData.englishLevel);
+      }
+      if (userData.accountType) {
+        await AsyncStorage.setItem('speakmate_account_type', userData.accountType);
+      }
+      if (userData.preferredAccent || userData.aiVoice) {
+        await AsyncStorage.setItem('speakmate_ai_voice', userData.preferredAccent || userData.aiVoice);
+      }
+    } catch (e) {
+      console.warn("Mobile syncUserProfile warning:", e);
+    }
+  }, []);
+
   const restoreSession = useCallback(async () => {
     try {
       setLoading(true);
@@ -81,31 +106,6 @@ export const AuthProvider = ({ children }) => {
           ...activeUser,
           isPro: !isStudent && isProUser,
           subscriptionPlan: subPlan,
-        };
-
-        const syncUserProfile = async (userData) => {
-          if (!userData) return;
-          try {
-            if (userData.schoolGrade && userData.schoolGrade.includes("Std")) {
-              await AsyncStorage.setItem('speakmate_school_grade', userData.schoolGrade);
-            } else if (userData.accountType !== "STUDENT" && !userData.isSchoolStudent) {
-              await AsyncStorage.removeItem('speakmate_school_grade');
-            }
-            if (userData.ageGroup) {
-              await AsyncStorage.setItem('speakmate_age_group', userData.ageGroup);
-            }
-            if (userData.englishLevel) {
-              await AsyncStorage.setItem('speakmate_english_level', userData.englishLevel);
-            }
-            if (userData.accountType) {
-              await AsyncStorage.setItem('speakmate_account_type', userData.accountType);
-            }
-            if (userData.preferredAccent || userData.aiVoice) {
-              await AsyncStorage.setItem('speakmate_ai_voice', userData.preferredAccent || userData.aiVoice);
-            }
-          } catch (e) {
-            console.warn("Mobile syncUserProfile warning:", e);
-          }
         };
 
         await syncUserProfile(enrichedUser);
@@ -240,9 +240,10 @@ export const AuthProvider = ({ children }) => {
     setUser((curr) => {
       const next = { ...(curr || {}), ...updatedUserData };
       AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(next));
+      syncUserProfile(next);
       return next;
     });
-  }, []);
+  }, [syncUserProfile]);
 
   const value = useMemo(
     () => ({

@@ -138,7 +138,7 @@ export default function DashboardScreen({ navigation }) {
         error: error.userMessage || 'Unable to load dashboard. Check your connection and try again.',
       }));
     }
-  }, [setProfile, setProgress]);
+  }, [setProfile, setProgress, isStudentUser, updateUser]);
 
   useFocusEffect(
     useCallback(() => {
@@ -151,10 +151,14 @@ export default function DashboardScreen({ navigation }) {
       return {
         name: `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Learner',
         avatar: user?.avatar,
+        isStudent: isStudentUser,
+        schoolGrade: isStudentUser ? (user?.schoolGrade || '1st Std') : null,
+        ageGroup: isStudentUser ? null : (user?.ageGroup || 'Professional'),
+        englishLevel: isStudentUser ? null : (user?.englishLevel || 'Beginner'),
         level: 1,
-        xp: 0,
-        streak: 0,
-        rank: null,
+        xp: Number(user?.xp) || 0,
+        streak: Number(user?.streak) || 0,
+        rank: user?.rank || null,
         activeLesson: null,
         upcomingLessons: [],
         dailyGoal: {
@@ -197,13 +201,17 @@ export default function DashboardScreen({ navigation }) {
     const fullName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
     const name = fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Learner';
 
+    const effectiveGrade = isStudentUser ? (profile.schoolGrade || user?.schoolGrade || '1st Std') : null;
+    const effectiveAge = isStudentUser ? null : (profile.ageGroup || user?.ageGroup || 'Professional');
+    const effectiveLevel = isStudentUser ? null : (profile.englishLevel || user?.englishLevel || 'Beginner');
+
     return {
       name,
       avatar: profile.avatar || user?.avatar,
       isStudent: isStudentUser,
-      schoolGrade: isStudentUser ? (user?.schoolGrade || profile.schoolGrade || '1st Std') : null,
-      ageGroup: isStudentUser ? null : (user?.ageGroup || profile.ageGroup || 'Professional'),
-      englishLevel: isStudentUser ? null : (user?.englishLevel || profile.englishLevel || 'Beginner'),
+      schoolGrade: effectiveGrade,
+      ageGroup: effectiveAge,
+      englishLevel: effectiveLevel,
       level: Number(progress.level) || 1,
       xp: Number(progress.xp) || 0,
       streak: Number(progress.currentStreak ?? progress.streak ?? d.streak ?? user?.streak ?? 0),
@@ -228,7 +236,7 @@ export default function DashboardScreen({ navigation }) {
       unreadCount: Number(d.unreadNotificationsCount) || 0,
       hasAnyData: Boolean(d.progress || d.profile),
     };
-  }, [state.dashboard, user]);
+  }, [state.dashboard, user, isStudentUser]);
 
   const handleLessonPress = useCallback((lesson) => {
     navigation.navigate('Lessons', { screen: 'LessonDetail', params: { lessonId: lesson?.id, lessonTitle: lesson?.title } });
