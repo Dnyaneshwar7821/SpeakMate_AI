@@ -147,9 +147,42 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  const refreshUserProfile = useCallback(async () => {
+    if (!token) return;
+    try {
+      const me = await authService.me().catch(() => null);
+      if (me) {
+        setUser((prev) => {
+          if (!prev) return me;
+          if (
+            prev.ageGroup !== me.ageGroup ||
+            prev.schoolGrade !== me.schoolGrade ||
+            prev.englishLevel !== me.englishLevel ||
+            prev.accountType !== me.accountType ||
+            prev.avatar !== me.avatar
+          ) {
+            const next = { ...prev, ...me };
+            syncUserProfile(next);
+            AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(next));
+            return next;
+          }
+          return prev;
+        });
+      }
+    } catch {}
+  }, [token, syncUserProfile]);
+
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
+
+  useEffect(() => {
+    if (!token) return;
+    const timer = setInterval(() => {
+      refreshUserProfile();
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [token, refreshUserProfile]);
 
   const logout = useCallback(async () => {
     try {

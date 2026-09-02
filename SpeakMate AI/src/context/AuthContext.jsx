@@ -147,9 +147,52 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  const refreshUserProfile = useCallback(async () => {
+    const currentToken = localStorage.getItem(STORAGE_KEYS.token);
+    if (!currentToken || currentToken === "null" || currentToken === "undefined") return;
+    try {
+      const me = await authService.me().catch(() => null);
+      if (me) {
+        setUser((prev) => {
+          if (!prev) return me;
+          if (
+            prev.ageGroup !== me.ageGroup ||
+            prev.schoolGrade !== me.schoolGrade ||
+            prev.englishLevel !== me.englishLevel ||
+            prev.accountType !== me.accountType ||
+            prev.avatar !== me.avatar
+          ) {
+            const next = { ...prev, ...me };
+            syncUserProfile(next);
+            localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(next));
+            return next;
+          }
+          return prev;
+        });
+      }
+    } catch {}
+  }, []);
+
   useEffect(() => {
     restoreSession();
   }, [restoreSession]);
+
+  useEffect(() => {
+    if (!token) return;
+    const handleSync = () => {
+      if (document.visibilityState === "visible") {
+        refreshUserProfile();
+      }
+    };
+    window.addEventListener("focus", handleSync);
+    window.addEventListener("visibilitychange", handleSync);
+    const interval = setInterval(handleSync, 5000);
+    return () => {
+      window.removeEventListener("focus", handleSync);
+      window.removeEventListener("visibilitychange", handleSync);
+      clearInterval(interval);
+    };
+  }, [token, refreshUserProfile]);
 
   const logout = useCallback(() => {
     try {

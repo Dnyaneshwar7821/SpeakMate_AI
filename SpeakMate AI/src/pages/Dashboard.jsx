@@ -32,23 +32,30 @@ const MOTIVATIONAL_QUOTES = [
 
 export function Dashboard() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const { isDark } = useTheme();
-  const accountType = user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+
+  const [accountType, setAccountType] = useState(
+    () => user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER"
+  );
+  const [activeGrade, setActiveGrade] = useState(
+    () => user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std"
+  );
+  const [activeAgeGroup, setActiveAgeGroup] = useState(
+    () => user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional"
+  );
+  const [activeEnglishLevel, setActiveEnglishLevel] = useState(
+    () => user?.englishLevel || localStorage.getItem("speakmate_english_level") || "Beginner"
+  );
+
   const isStudent = accountType === "STUDENT" || user?.role === "STUDENT" || Boolean(user?.isSchoolStudent);
 
-  const activeGrade =
-    user?.schoolGrade ||
-    localStorage.getItem("speakmate_school_grade") ||
-    "1st Std";
-  const activeAgeGroup =
-    user?.ageGroup ||
-    localStorage.getItem("speakmate_age_group") ||
-    "Professional";
-  const activeEnglishLevel =
-    user?.englishLevel ||
-    localStorage.getItem("speakmate_english_level") ||
-    "Beginner";
+  useEffect(() => {
+    if (user?.accountType) setAccountType(user.accountType);
+    if (user?.schoolGrade) setActiveGrade(user.schoolGrade);
+    if (user?.ageGroup) setActiveAgeGroup(user.ageGroup);
+    if (user?.englishLevel) setActiveEnglishLevel(user.englishLevel);
+  }, [user?.accountType, user?.schoolGrade, user?.ageGroup, user?.englishLevel]);
 
   const [stats, setStats] = useState(() => getLiveProgressStats(user));
   const [streakModalOpen, setStreakModalOpen] = useState(false);
@@ -71,7 +78,7 @@ export function Dashboard() {
     ? "💎"
     : "👑";
 
-  const refreshStats = () => {
+  const refreshStats = useCallback(() => {
     const liveStats = getLiveProgressStats(user);
     setStats((prev) => ({
       ...prev,
@@ -83,18 +90,18 @@ export function Dashboard() {
       level: isStudent ? activeGrade : activeAgeGroup,
       dailyGoalMins: parseInt(localStorage.getItem("speakmate_daily_goal") || "15", 10),
     }));
-  };
 
-  useEffect(() => {
-    refreshStats();
-    window.addEventListener("focus", refreshStats);
-    window.addEventListener("speakmate_progress_updated", refreshStats);
-    window.addEventListener("speakmate_settings_updated", refreshStats);
-    window.addEventListener("speakmate_age_group_changed", refreshStats);
     dashboardService
       .summary()
       .then((data) => {
         if (data) {
+          if (data.profile) {
+            if (data.profile.ageGroup) setActiveAgeGroup(data.profile.ageGroup);
+            if (data.profile.schoolGrade) setActiveGrade(data.profile.schoolGrade);
+            if (data.profile.englishLevel) setActiveEnglishLevel(data.profile.englishLevel);
+            if (data.profile.role) setAccountType(data.profile.role);
+            if (updateUser) updateUser(data.profile);
+          }
           const synced = syncBackendProgress(data, user);
           setStats((prev) => ({
             ...prev,
@@ -108,14 +115,51 @@ export function Dashboard() {
         }
       })
       .catch(() => {});
+  }, [user, isStudent, activeGrade, activeAgeGroup, updateUser]);
+
+  useEffect(() => {
+    refreshStats();
+    const handleAgeEvent = (e) => {
+      const newAge = e?.detail?.ageGroup || e?.detail || localStorage.getItem("speakmate_age_group");
+      if (newAge) setActiveAgeGroup(newAge);
+      refreshStats();
+    };
+    const handleSettingsEvent = (e) => {
+      const d = e?.detail;
+      if (d?.ageGroup) setActiveAgeGroup(d.ageGroup);
+      if (d?.schoolGrade) setActiveGrade(d.schoolGrade);
+      if (d?.englishLevel) setActiveEnglishLevel(d.englishLevel);
+      if (d?.accountType) setAccountType(d.accountType);
+      refreshStats();
+    };
+    const handleStorage = (e) => {
+      if (e.key === "speakmate_age_group" && e.newValue) setActiveAgeGroup(e.newValue);
+      if (e.key === "speakmate_school_grade" && e.newValue) setActiveGrade(e.newValue);
+      if (e.key === "speakmate_english_level" && e.newValue) setActiveEnglishLevel(e.newValue);
+      if (e.key === "speakmate_account_type" && e.newValue) setAccountType(e.newValue);
+      refreshStats();
+    };
+
+    window.addEventListener("focus", refreshStats);
+    window.addEventListener("speakmate_progress_updated", refreshStats);
+    window.addEventListener("speakmate_settings_updated", handleSettingsEvent);
+    window.addEventListener("speakmate_age_group_changed", handleAgeEvent);
+    window.addEventListener("storage", handleStorage);
+    const interval = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        refreshStats();
+      }
+    }, 4000);
 
     return () => {
       window.removeEventListener("focus", refreshStats);
       window.removeEventListener("speakmate_progress_updated", refreshStats);
-      window.removeEventListener("speakmate_settings_updated", refreshStats);
-      window.removeEventListener("speakmate_age_group_changed", refreshStats);
+      window.removeEventListener("speakmate_settings_updated", handleSettingsEvent);
+      window.removeEventListener("speakmate_age_group_changed", handleAgeEvent);
+      window.removeEventListener("storage", handleStorage);
+      clearInterval(interval);
     };
-  }, [user, activeGrade, activeAgeGroup, activeEnglishLevel]);
+  }, [refreshStats]);
 
   useEffect(() => {
     let interval = null;
