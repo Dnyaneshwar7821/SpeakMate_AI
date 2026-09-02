@@ -34,8 +34,8 @@ export function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { isDark } = useTheme();
-  const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
-  const isStudent = accountType === "STUDENT";
+  const accountType = user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+  const isStudent = accountType === "STUDENT" || user?.role === "STUDENT" || Boolean(user?.isSchoolStudent);
 
   const activeGrade =
     user?.schoolGrade ||
@@ -444,7 +444,7 @@ export function Dashboard() {
                 <div>
                   <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">Speaking Practice Studio</h3>
                   <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
-                    {isStudent ? `Curated ${activeGrade} grade scenarios with Live2D coach.` : "10 real-world scenarios tailored to your age profile."}
+                    {isStudent ? `Curated ${activeGrade} grade scenarios with Live2D coach.` : `10 real-world scenarios tailored to your ${activeAgeGroup} profile.`}
                   </p>
                 </div>
               </div>

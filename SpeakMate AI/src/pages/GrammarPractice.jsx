@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { grammarService } from "../services/appServices";
 import { speakGlobalText, speakGlobalSequential } from "../utils/speechHelper";
@@ -13,6 +14,7 @@ import {
 } from "../utils/grammarEngine";
 
 export function GrammarPractice() {
+  const { user } = useAuth();
   const { isDark } = useTheme();
   const [activeTab, setActiveTab] = useState("checker"); // 'checker', 'guide', 'quiz', 'history'
   const [textInput, setTextInput] = useState("");
@@ -22,30 +24,9 @@ export function GrammarPractice() {
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
 
   // Automatically read user profile / onboarding attributes (No manual selection needed)
-  const accountType = (() => {
-    try {
-      const stored = localStorage.getItem("speakmate_account_type");
-      return stored === "STUDENT" ? "STUDENT" : "INDIVIDUAL";
-    } catch {
-      return "INDIVIDUAL";
-    }
-  })();
-
-  const selectedGrade = (() => {
-    try {
-      return localStorage.getItem("speakmate_user_grade") || localStorage.getItem("speakmate_school_grade") || "8th Std";
-    } catch {
-      return "8th Std";
-    }
-  })();
-
-  const selectedAgeGroup = (() => {
-    try {
-      return localStorage.getItem("speakmate_age_group") || "Professional";
-    } catch {
-      return "Professional";
-    }
-  })();
+  const accountType = (user?.accountType === "STUDENT" || user?.role === "STUDENT" || Boolean(user?.isSchoolStudent) || localStorage.getItem("speakmate_account_type") === "STUDENT") ? "STUDENT" : "INDIVIDUAL";
+  const selectedGrade = user?.schoolGrade || localStorage.getItem("speakmate_user_grade") || localStorage.getItem("speakmate_school_grade") || "8th Std";
+  const selectedAgeGroup = user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional";
 
   // Handbook search & filter
   const [guideSearch, setGuideSearch] = useState("");
@@ -84,6 +65,22 @@ export function GrammarPractice() {
     setQuizScore(0);
     setQuizCompleted(false);
   }, [accountType, selectedGrade, selectedAgeGroup]);
+
+  useEffect(() => {
+    reloadQuizzes(quizOffset);
+  }, [accountType, selectedGrade, selectedAgeGroup, reloadQuizzes, quizOffset]);
+
+  useEffect(() => {
+    const handleSettingsUpdate = () => {
+      reloadQuizzes(quizOffset);
+    };
+    window.addEventListener("speakmate_age_group_changed", handleSettingsUpdate);
+    window.addEventListener("speakmate_settings_updated", handleSettingsUpdate);
+    return () => {
+      window.removeEventListener("speakmate_age_group_changed", handleSettingsUpdate);
+      window.removeEventListener("speakmate_settings_updated", handleSettingsUpdate);
+    };
+  }, [reloadQuizzes, quizOffset]);
 
   useEffect(() => {
     grammarService

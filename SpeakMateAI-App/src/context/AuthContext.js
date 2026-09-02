@@ -55,15 +55,22 @@ export const AuthProvider = ({ children }) => {
           activeUser?.schoolId
         );
 
-        let isProUser = Boolean(activeUser?.isPro || activeUser?.pro);
+        const isPaidPlan = (plan) => Boolean(plan && plan.toUpperCase() !== "FREE");
+        let isProUser = Boolean((activeUser?.isPro || activeUser?.pro) && isPaidPlan(activeUser?.subscriptionPlan));
         let subPlan = activeUser?.subscriptionPlan || "FREE";
 
         if (!isStudent) {
           try {
             const sub = await subscriptionService.getMySubscription().catch(() => null);
-            if (sub && (sub.isPro || sub.pro || sub.status === "ACTIVE")) {
-              isProUser = true;
-              subPlan = sub.planType || "MONTHLY_PRO";
+            if (sub) {
+              const subIsPro = Boolean(sub.isPro === true || sub.pro === true || (sub.status === "ACTIVE" && isPaidPlan(sub.planType)));
+              if (subIsPro) {
+                isProUser = true;
+                subPlan = sub.planType || "MONTHLY_PRO";
+              } else {
+                isProUser = false;
+                subPlan = sub.planType || "FREE";
+              }
             }
           } catch {
             // ignore
@@ -75,6 +82,33 @@ export const AuthProvider = ({ children }) => {
           isPro: !isStudent && isProUser,
           subscriptionPlan: subPlan,
         };
+
+        const syncUserProfile = async (userData) => {
+          if (!userData) return;
+          try {
+            if (userData.schoolGrade && userData.schoolGrade.includes("Std")) {
+              await AsyncStorage.setItem('speakmate_school_grade', userData.schoolGrade);
+            } else if (userData.accountType !== "STUDENT" && !userData.isSchoolStudent) {
+              await AsyncStorage.removeItem('speakmate_school_grade');
+            }
+            if (userData.ageGroup) {
+              await AsyncStorage.setItem('speakmate_age_group', userData.ageGroup);
+            }
+            if (userData.englishLevel) {
+              await AsyncStorage.setItem('speakmate_english_level', userData.englishLevel);
+            }
+            if (userData.accountType) {
+              await AsyncStorage.setItem('speakmate_account_type', userData.accountType);
+            }
+            if (userData.preferredAccent || userData.aiVoice) {
+              await AsyncStorage.setItem('speakmate_ai_voice', userData.preferredAccent || userData.aiVoice);
+            }
+          } catch (e) {
+            console.warn("Mobile syncUserProfile warning:", e);
+          }
+        };
+
+        await syncUserProfile(enrichedUser);
 
         setToken(storedToken);
         setUser(enrichedUser);

@@ -185,10 +185,10 @@ export function SpeakingPractice() {
   const [selectedCategory, setSelectedCategory] = useState("All");
 
   const [selectedGrade, setSelectedGrade] = useState(
-    localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std"
+    () => user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std"
   );
   const [selectedAgeGroup, setSelectedAgeGroup] = useState(
-    () => normalizeAgeGroup(localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional")
+    () => normalizeAgeGroup(user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional")
   );
 
   const loadData = async () => {
@@ -200,17 +200,16 @@ export function SpeakingPractice() {
       ]);
       setHistory(historyData || []);
 
-      const storedAge = localStorage.getItem("speakmate_age_group");
-      if (storedAge) {
-        setSelectedAgeGroup(normalizeAgeGroup(storedAge));
-      } else if (meData?.ageGroup) {
-        const norm = normalizeAgeGroup(meData.ageGroup);
+      const effectiveAge = meData?.ageGroup || user?.ageGroup || localStorage.getItem("speakmate_age_group");
+      if (effectiveAge) {
+        const norm = normalizeAgeGroup(effectiveAge);
         setSelectedAgeGroup(norm);
         localStorage.setItem("speakmate_age_group", norm);
       }
-      if (meData?.schoolGrade) {
-        setSelectedGrade(meData.schoolGrade);
-        localStorage.setItem("speakmate_school_grade", meData.schoolGrade);
+      const effectiveGrade = meData?.schoolGrade || user?.schoolGrade || localStorage.getItem("speakmate_school_grade");
+      if (effectiveGrade) {
+        setSelectedGrade(effectiveGrade);
+        localStorage.setItem("speakmate_school_grade", effectiveGrade);
       }
     } catch (e) {
       console.warn("Failed to load speaking data", e);
@@ -220,24 +219,38 @@ export function SpeakingPractice() {
   };
 
   useEffect(() => {
+    if (user?.ageGroup) {
+      const norm = normalizeAgeGroup(user.ageGroup);
+      setSelectedAgeGroup(norm);
+      localStorage.setItem("speakmate_age_group", norm);
+    }
+    if (user?.schoolGrade) {
+      setSelectedGrade(user.schoolGrade);
+      localStorage.setItem("speakmate_school_grade", user.schoolGrade);
+    }
+  }, [user?.ageGroup, user?.schoolGrade]);
+
+  useEffect(() => {
     loadData();
     const handleProgressUpdate = () => {
-      const storedAge = localStorage.getItem("speakmate_age_group");
+      const storedAge = user?.ageGroup || localStorage.getItem("speakmate_age_group");
       if (storedAge) setSelectedAgeGroup(normalizeAgeGroup(storedAge));
       loadData();
     };
     const handleAgeChange = (e) => {
-      const newAge = e?.detail?.ageGroup || localStorage.getItem("speakmate_age_group");
+      const newAge = e?.detail?.ageGroup || user?.ageGroup || localStorage.getItem("speakmate_age_group");
       if (newAge) setSelectedAgeGroup(normalizeAgeGroup(newAge));
     };
 
     window.addEventListener("focus", handleProgressUpdate);
     window.addEventListener("speakmate_progress_updated", handleProgressUpdate);
     window.addEventListener("speakmate_age_group_changed", handleAgeChange);
+    window.addEventListener("speakmate_settings_updated", handleProgressUpdate);
     return () => {
       window.removeEventListener("focus", handleProgressUpdate);
       window.removeEventListener("speakmate_progress_updated", handleProgressUpdate);
       window.removeEventListener("speakmate_age_group_changed", handleAgeChange);
+      window.removeEventListener("speakmate_settings_updated", handleProgressUpdate);
     };
   }, []);
 

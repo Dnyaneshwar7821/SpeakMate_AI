@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { chatService } from "../services/appServices";
+import { useAuth } from "../context/AuthContext";
 import { useModal } from "../context/ModalContext";
 import { useToast } from "../context/ToastContext";
 
@@ -21,28 +22,28 @@ const CHAT_MODES = [
 
 export function AiChat() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { showConfirm } = useModal();
   const toast = useToast();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
   const [renameTargetSession, setRenameTargetSession] = useState(null);
   const [newTitle, setNewTitle] = useState("");
   const [renaming, setRenaming] = useState(false);
 
-  const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
-  const isStudent = accountType === "STUDENT";
-  const [userAgeGroup, setUserAgeGroup] = useState("Professional");
-  const [userGrade, setUserGrade] = useState("1st Std");
+  const accountType = user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+  const isStudent = accountType === "STUDENT" || Boolean(user?.isSchoolStudent);
+  const [userAgeGroup, setUserAgeGroup] = useState(() => user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional");
+  const [userGrade, setUserGrade] = useState(() => user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std");
 
   const fetchHistory = async () => {
     setLoading(true);
     try {
       const data = await chatService.history().catch(() => []);
       setHistory(data || []);
-      const savedGrade = localStorage.getItem("speakmate_school_grade");
-      const savedAge = localStorage.getItem("speakmate_age_group");
+      const savedGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade");
+      const savedAge = user?.ageGroup || localStorage.getItem("speakmate_age_group");
       if (savedGrade) setUserGrade(savedGrade);
       if (savedAge) setUserAgeGroup(savedAge);
     } catch (e) {
@@ -53,15 +54,22 @@ export function AiChat() {
   };
 
   useEffect(() => {
+    if (user?.ageGroup) setUserAgeGroup(user.ageGroup);
+    if (user?.schoolGrade) setUserGrade(user.schoolGrade);
+  }, [user?.ageGroup, user?.schoolGrade]);
+
+  useEffect(() => {
     fetchHistory();
     const handleAgeUpdate = (e) => {
-      const newAge = e?.detail?.ageGroup || localStorage.getItem("speakmate_age_group");
+      const newAge = e?.detail?.ageGroup || user?.ageGroup || localStorage.getItem("speakmate_age_group");
       if (newAge) setUserAgeGroup(newAge);
     };
     window.addEventListener("speakmate_age_group_changed", handleAgeUpdate);
+    window.addEventListener("speakmate_settings_updated", handleAgeUpdate);
     window.addEventListener("speakmate_progress_updated", fetchHistory);
     return () => {
       window.removeEventListener("speakmate_age_group_changed", handleAgeUpdate);
+      window.removeEventListener("speakmate_settings_updated", handleAgeUpdate);
       window.removeEventListener("speakmate_progress_updated", fetchHistory);
     };
   }, []);

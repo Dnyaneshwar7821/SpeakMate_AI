@@ -150,7 +150,7 @@ export function Login() {
               </Link>
             </div>
 
-            {/* Login Method Sub-Toggle (Standard vs School Code) */}
+            {/* Login Method Sub-Toggle (Personal vs Student) */}
             <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-[var(--bg-elevated)]/60 border border-[var(--border-default)]">
               <button
                 type="button"
@@ -161,7 +161,7 @@ export function Login() {
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
-                <span>👤 Standard</span>
+                <span>👤 Personal</span>
               </button>
               <button
                 type="button"
@@ -172,7 +172,7 @@ export function Login() {
                     : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                 }`}
               >
-                <span>🏫 School Code</span>
+                <span>🎓 Student</span>
               </button>
             </div>
 
@@ -280,7 +280,7 @@ export function Login() {
                   </>
                 ) : (
                   <>
-                    <span>{loginType === "SCHOOL" ? "Sign In as School Student 🏫" : "Sign In to SpeakMate AI"}</span>
+                    <span>{loginType === "SCHOOL" ? "Sign In as Student 🎓" : "Sign In to SpeakMate AI"}</span>
                     <span>→</span>
                   </>
                 )}

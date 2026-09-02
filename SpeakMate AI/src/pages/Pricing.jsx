@@ -236,25 +236,28 @@ export function Pricing() {
               {/* Features List */}
               <ul className="space-y-3 text-xs sm:text-sm text-[var(--text-secondary)]">
                 <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
-                  <span className="text-emerald-500 font-bold">✓</span> 15 minutes AI Speaking Practice per refill (Recharges in 5–6h)
+                  <span className="text-emerald-500 font-bold">✓</span> 15 minutes AI Speaking Practice daily (Refills daily)
+                </li>
+                <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
+                  <span className="text-emerald-500 font-bold">✓</span> All 100+ Speaking Practice Scenarios
+                </li>
+                <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
+                  <span className="text-emerald-500 font-bold">✓</span> All AI Voice Personas & Accents
                 </li>
                 <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
                   <span className="text-emerald-500 font-bold">✓</span> 15 Grammar Doctor checks / day
                 </li>
                 <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
-                  <span className="text-emerald-500 font-bold">✓</span> 1 Standard Avatar & Default Voice
-                </li>
-                <li className="flex items-center gap-2.5 text-[var(--text-primary)]">
-                  <span className="text-emerald-500 font-bold">✓</span> Daily Vocabulary (5 words)
+                  <span className="text-emerald-500 font-bold">✓</span> Daily Vocabulary & Practice Quizzes
                 </li>
                 <li className="flex items-center gap-2.5 text-[var(--text-tertiary)] opacity-60 line-through">
-                  <span>✕</span> Unlimited AI conversation calls
+                  <span>✕</span> Unlimited 24/7 speaking time (Pro)
                 </li>
                 <li className="flex items-center gap-2.5 text-[var(--text-tertiary)] opacity-60 line-through">
-                  <span>✕</span> All Voice Personas (US/UK/Executive)
+                  <span>✕</span> Unlimited deep grammar diagnostics (Pro)
                 </li>
                 <li className="flex items-center gap-2.5 text-[var(--text-tertiary)] opacity-60 line-through">
-                  <span>✕</span> Multi-error grammar analysis breakdown
+                  <span>✕</span> CEFR Fluency Milestone Certificates (Pro)
                 </li>
               </ul>
             </div>
@@ -319,27 +322,23 @@ export function Pricing() {
                 </li>
                 <li className="flex items-center gap-2.5 font-medium text-[var(--text-primary)]">
                   <span className="text-indigo-500 text-base font-bold">✓</span>
-                  <span><strong>Unlimited Grammar Doctor</strong> (Strict multi-error breakdown)</span>
+                  <span><strong>Unlimited Grammar Doctor</strong> (Detailed explanations & fixes)</span>
                 </li>
                 <li className="flex items-center gap-2.5 font-medium text-[var(--text-primary)]">
                   <span className="text-indigo-500 text-base font-bold">✓</span>
-                  <span><strong>All Voice Personas & Accents</strong> (US, UK, Coach, Executive)</span>
+                  <span><strong>All 100+ Speaking Practice Scenarios & Roleplays</strong></span>
                 </li>
                 <li className="flex items-center gap-2.5 font-medium text-[var(--text-primary)]">
                   <span className="text-indigo-500 text-base font-bold">✓</span>
-                  <span><strong>All Live2D / 3D Avatars</strong> Unlocked</span>
+                  <span><strong>All Neural Voices & Personas</strong> with zero latency</span>
                 </li>
                 <li className="flex items-center gap-2.5 font-medium text-[var(--text-primary)]">
                   <span className="text-indigo-500 text-base font-bold">✓</span>
-                  <span><strong>Tailored Quizzes</strong> (1st-10th Std & Age Groups)</span>
+                  <span><strong>10,000+ Vocabulary Vault</strong> & Spaced Repetition</span>
                 </li>
                 <li className="flex items-center gap-2.5 font-medium text-[var(--text-primary)]">
                   <span className="text-indigo-500 text-base font-bold">✓</span>
-                  <span><strong>Job Interview & Debate Modes</strong></span>
-                </li>
-                <li className="flex items-center gap-2.5 font-medium text-[var(--text-primary)]">
-                  <span className="text-indigo-500 text-base font-bold">✓</span>
-                  <span>Certificate of Completion & Deep Fluency Analytics</span>
+                  <span><strong>Official CEFR Fluency Certificate</strong> & Deep Progress Analytics</span>
                 </li>
               </ul>
             </div>

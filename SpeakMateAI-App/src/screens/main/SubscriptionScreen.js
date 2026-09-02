@@ -24,12 +24,12 @@ import subscriptionService from '../../services/subscriptionService';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const PRO_FEATURES = [
-  { icon: 'infinite', title: 'Unlimited AI Speaking', desc: 'No daily practice limits on conversation drills' },
-  { icon: 'mic', title: 'Real-Time Accent Coach', desc: 'Instant phoneme & syllable level feedback' },
-  { icon: 'color-wand', title: 'AI Grammar Doctor', desc: 'Detailed explanations & natural rephrasing' },
+  { icon: 'infinite', title: 'Unlimited AI Speaking Practice', desc: 'No 15-minute daily cap — practice all scenarios 24/7' },
+  { icon: 'color-wand', title: 'Unlimited AI Grammar Doctor', desc: 'Deep multi-error explanations & native rephrasing' },
+  { icon: 'mic', title: 'Real-Time Accent & Phoneme Coach', desc: 'Instant phoneme & syllable level pronunciation coaching' },
   { icon: 'book', title: '10,000+ Vocabulary Vault', desc: 'Interactive flashcards with spaced repetition' },
-  { icon: 'medal', title: 'CEFR Certification', desc: 'Official fluency certificates to share & download' },
-  { icon: 'sparkles', title: 'Premium Neural Voices', desc: 'Ultra-realistic US, UK, and Australian accents' },
+  { icon: 'medal', title: 'CEFR Fluency Certification', desc: 'Official fluency certificates to share & download' },
+  { icon: 'sparkles', title: 'Priority AI Response Time', desc: 'Instant ultra-fast generation with zero latency' },
 ];
 
 export default function SubscriptionScreen({ navigation }) {
@@ -318,7 +318,13 @@ export default function SubscriptionScreen({ navigation }) {
     );
   }
 
-  const isPro = Boolean(currentSub?.isPro || currentSub?.pro || currentSub?.status === 'ACTIVE' || user?.isPro || user?.pro);
+  const isPaidPlan = (plan) => Boolean(plan && plan.toUpperCase() !== 'FREE');
+  const isPro = Boolean(
+    currentSub?.isPro === true ||
+    currentSub?.pro === true ||
+    (currentSub?.status === 'ACTIVE' && isPaidPlan(currentSub?.planType)) ||
+    ((user?.isPro || user?.pro) && isPaidPlan(user?.subscriptionPlan))
+  );
   const isYearly = billingCycle === 'YEARLY';
   const price = isYearly ? '₹1,199' : '₹149';
   const period = isYearly ? '/ year' : '/ month';

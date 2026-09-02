@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { vocabularyService, progressService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
+import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
 import { recordVocabularyMastered, recordWordAdded, recordQuizCompleted } from "../utils/progressTracker";
@@ -101,6 +102,7 @@ const CURRICULUM_DATA = {
 };
 
 export function Vocabulary() {
+  const { user } = useAuth();
   const { isDark } = useTheme();
   const toast = useToast();
   const [activeTab, setActiveTab] = useState("list"); // 'list', 'flashcards', 'quiz'
@@ -131,14 +133,14 @@ export function Vocabulary() {
   const loadVocabulary = async () => {
     setLoading(true);
     try {
-      const savedAccType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
-      const savedGrade = localStorage.getItem("speakmate_school_grade") || "1st Std";
-      const savedAge = localStorage.getItem("speakmate_age_group") || "Young Adult";
+      const savedAccType = user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+      const savedGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std";
+      const savedAge = user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Young Adult";
 
       let profileKey = "1st Std";
       let title = "Vocabulary";
 
-      if (savedAccType === "STUDENT") {
+      if (savedAccType === "STUDENT" || Boolean(user?.isSchoolStudent)) {
         profileKey = savedGrade;
         title = `Student Standard: ${savedGrade}`;
       } else {
@@ -172,14 +174,22 @@ export function Vocabulary() {
 
   useEffect(() => {
     loadVocabulary();
+  }, [user?.ageGroup, user?.schoolGrade, user?.accountType]);
+
+  useEffect(() => {
+    loadVocabulary();
     const handleRefresh = () => {
       loadVocabulary();
     };
     window.addEventListener("focus", handleRefresh);
     window.addEventListener("speakmate_progress_updated", handleRefresh);
+    window.addEventListener("speakmate_settings_updated", handleRefresh);
+    window.addEventListener("speakmate_age_group_changed", handleRefresh);
     return () => {
       window.removeEventListener("focus", handleRefresh);
       window.removeEventListener("speakmate_progress_updated", handleRefresh);
+      window.removeEventListener("speakmate_settings_updated", handleRefresh);
+      window.removeEventListener("speakmate_age_group_changed", handleRefresh);
     };
   }, []);
 

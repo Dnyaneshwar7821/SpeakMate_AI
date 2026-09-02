@@ -99,10 +99,10 @@ export function Profile() {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
 
   const [schoolGrade, setSchoolGrade] = useState(
-    isStudent ? (localStorage.getItem("speakmate_school_grade") || user?.schoolGrade || "1st Std") : "1st Std"
+    isStudent ? (user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std") : "1st Std"
   );
   const [ageGroup, setAgeGroup] = useState(
-    () => normalizeAgeGroup(localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional")
+    () => normalizeAgeGroup(user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional")
   );
   const [cefrLevel, setCefrLevel] = useState(user?.level || user?.englishLevel || "Intermediate (B1)");
 
@@ -136,6 +136,11 @@ export function Profile() {
   const rank = getRankTier(liveStats.xp || user?.xp || 0);
 
   useEffect(() => {
+    if (user?.ageGroup) setAgeGroup(normalizeAgeGroup(user.ageGroup));
+    if (user?.schoolGrade) setSchoolGrade(user.schoolGrade);
+  }, [user?.ageGroup, user?.schoolGrade]);
+
+  useEffect(() => {
     profileService
       .get()
       .then((profile) => {
@@ -149,6 +154,15 @@ export function Profile() {
             nativeLanguage: profile.nativeLanguage || "English",
           });
           if (profile.avatar) setSelectedAvatar(profile.avatar);
+          if (profile.ageGroup) {
+            const norm = normalizeAgeGroup(profile.ageGroup);
+            setAgeGroup(norm);
+            localStorage.setItem("speakmate_age_group", norm);
+          }
+          if (profile.schoolGrade) {
+            setSchoolGrade(profile.schoolGrade);
+            localStorage.setItem("speakmate_school_grade", profile.schoolGrade);
+          }
         }
       })
       .catch(() => {});

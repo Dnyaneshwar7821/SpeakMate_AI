@@ -31,12 +31,35 @@ export function AuthProvider({ children }) {
     }
   });
 
-  const syncSchoolGrade = (userData) => {
+  const syncUserProfile = (userData) => {
     if (!userData) return;
-    if (userData.schoolGrade && userData.schoolGrade.includes("Std")) {
-      localStorage.setItem("speakmate_school_grade", userData.schoolGrade);
-    } else {
-      localStorage.removeItem("speakmate_school_grade");
+    try {
+      if (userData.schoolGrade && userData.schoolGrade.includes("Std")) {
+        localStorage.setItem("speakmate_school_grade", userData.schoolGrade);
+      } else if (userData.accountType !== "STUDENT" && !userData.isSchoolStudent) {
+        localStorage.removeItem("speakmate_school_grade");
+      }
+
+      if (userData.ageGroup) {
+        localStorage.setItem("speakmate_age_group", userData.ageGroup);
+      }
+
+      if (userData.englishLevel) {
+        localStorage.setItem("speakmate_english_level", userData.englishLevel);
+      }
+
+      if (userData.accountType) {
+        localStorage.setItem("speakmate_account_type", userData.accountType);
+      }
+
+      if (userData.preferredAccent || userData.aiVoice) {
+        localStorage.setItem("speakmate_ai_voice", userData.preferredAccent || userData.aiVoice);
+      }
+
+      window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: userData.ageGroup } }));
+      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: userData }));
+    } catch (e) {
+      console.warn("syncUserProfile warning:", e);
     }
   };
 
@@ -54,7 +77,7 @@ export function AuthProvider({ children }) {
           try {
             parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
-            syncSchoolGrade(parsedUser);
+            syncUserProfile(parsedUser);
           } catch (e) {}
         }
 
@@ -79,15 +102,22 @@ export function AuthProvider({ children }) {
             activeUser?.schoolId
           );
 
-          let isProUser = Boolean(activeUser?.isPro || activeUser?.pro);
+          const isPaidPlan = (plan) => Boolean(plan && plan.toUpperCase() !== "FREE");
+          let isProUser = Boolean((activeUser?.isPro || activeUser?.pro) && isPaidPlan(activeUser?.subscriptionPlan));
           let subPlan = activeUser?.subscriptionPlan || "FREE";
 
           if (!isStudent) {
             try {
               const sub = await subscriptionService.getMySubscription().catch(() => null);
-              if (sub && (sub.isPro || sub.pro || sub.status === "ACTIVE")) {
-                isProUser = true;
-                subPlan = sub.planType || "MONTHLY_PRO";
+              if (sub) {
+                const subIsPro = Boolean(sub.isPro === true || sub.pro === true || (sub.status === "ACTIVE" && isPaidPlan(sub.planType)));
+                if (subIsPro) {
+                  isProUser = true;
+                  subPlan = sub.planType || "MONTHLY_PRO";
+                } else {
+                  isProUser = false;
+                  subPlan = sub.planType || "FREE";
+                }
               }
             } catch {
               // ignore
@@ -101,7 +131,7 @@ export function AuthProvider({ children }) {
           };
 
           setUser(enrichedUser);
-          syncSchoolGrade(enrichedUser);
+          syncUserProfile(enrichedUser);
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(enrichedUser));
         }
 
@@ -150,7 +180,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem(STORAGE_KEYS.token, response.token);
         setToken(response.token);
         if (response.user) {
-          syncSchoolGrade(response.user);
+          syncUserProfile(response.user);
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
           setUser(response.user);
 
@@ -187,7 +217,7 @@ export function AuthProvider({ children }) {
         localStorage.setItem(STORAGE_KEYS.token, response.token);
         setToken(response.token);
         if (response.user) {
-          syncSchoolGrade(response.user);
+          syncUserProfile(response.user);
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
           setUser(response.user);
           setOnboardingCompleted(false);
@@ -210,6 +240,7 @@ export function AuthProvider({ children }) {
       setOnboardingCompleted(true);
       const updatedUser = { ...(user || {}), ...onboardingData, onboardingCompleted: true };
       setUser(updatedUser);
+      syncUserProfile(updatedUser);
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));
     } catch (error) {
       console.error("Complete onboarding error:", error);
@@ -219,7 +250,7 @@ export function AuthProvider({ children }) {
   const updateUser = (updatedFields) => {
     setUser((prev) => {
       const updated = { ...prev, ...updatedFields };
-      syncSchoolGrade(updated);
+      syncUserProfile(updated);
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updated));
       return updated;
     });

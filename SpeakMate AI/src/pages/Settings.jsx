@@ -52,7 +52,7 @@ export function Settings() {
 
   const savedAccent = localStorage.getItem("speakmate_voice_accent") || "US";
   const savedVoice = localStorage.getItem("speakmate_ai_voice") || "Default";
-  const savedAgeGroup = normalizeAgeGroup(localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional");
+  const savedAgeGroup = normalizeAgeGroup(user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional");
   const savedDailyGoal = localStorage.getItem("speakmate_daily_goal") || "15 min";
   const savedLang = localStorage.getItem("speakmate_app_language") || "English";
   const savedSpeed = parseFloat(localStorage.getItem("speakmate_voice_speed") || "1.0");
@@ -63,6 +63,12 @@ export function Settings() {
   const [dailyGoal, setDailyGoal] = useState(savedDailyGoal);
   const [selectedLang, setSelectedLang] = useState(savedLang);
   const [speechSpeed, setSpeechSpeed] = useState(savedSpeed);
+
+  useEffect(() => {
+    if (user?.ageGroup) {
+      setSelectedAgeGroup(normalizeAgeGroup(user.ageGroup));
+    }
+  }, [user?.ageGroup]);
 
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [showLangModal, setShowLangModal] = useState(false);

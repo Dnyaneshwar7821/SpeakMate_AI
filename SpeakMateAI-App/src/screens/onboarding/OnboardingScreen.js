@@ -222,7 +222,7 @@ const AVATAR_CATEGORIES = [
 ];
 
 export default function OnboardingScreen({ navigation }) {
-  const { completeOnboarding, isAuthenticated } = useContext(AuthContext);
+  const { completeOnboarding, isAuthenticated, user } = useContext(AuthContext);
 
   // --- Step Tracking state ---
   // Steps: 1=Welcome, 2=Language, 3=Voice, 4=Goals, 5=Level, 6=Interests,
@@ -423,6 +423,13 @@ export default function OnboardingScreen({ navigation }) {
     });
   };
 
+  const isStudentMode = Boolean(
+    accountType === 'STUDENT' ||
+    user?.accountType === 'STUDENT' ||
+    user?.role === 'STUDENT' ||
+    user?.isSchoolStudent
+  );
+
   const handleNext = () => {
     if (step === 1) {
       transitionToNext(2);
@@ -437,7 +444,13 @@ export default function OnboardingScreen({ navigation }) {
       }
       transitionToNext(5);
     } else if (step === 5) {
-      // Step 5 handles either School Grade (Student) or CEFR Level (Individual)
+      // Students skip Age Group (6) and go directly to Interests (7). Individual users go to Age Group (6).
+      if (isStudentMode) {
+        transitionToNext(7);
+      } else {
+        transitionToNext(6);
+      }
+    } else if (step === 6) {
       transitionToNext(7);
     } else if (step === 7) {
       if (interests.length === 0) {
@@ -460,7 +473,7 @@ export default function OnboardingScreen({ navigation }) {
 
   const handleBack = () => {
     if (step === 7) {
-      transitionToNext(5);
+      transitionToNext(isStudentMode ? 5 : 6);
     } else if (step > 1) {
       transitionToNext(step - 1);
     }
@@ -487,30 +500,47 @@ export default function OnboardingScreen({ navigation }) {
   // --- Backend Sync on Finish ---
   const handleFinishOnboarding = async () => {
     setLoading(true);
+    setError('');
     try {
-      const isStudentMode = Boolean(accountType === 'STUDENT' || user?.accountType === 'STUDENT' || user?.role === 'STUDENT');
+      const isStudentMode = Boolean(
+        accountType === 'STUDENT' ||
+        user?.accountType === 'STUDENT' ||
+        user?.role === 'STUDENT' ||
+        user?.isSchoolStudent
+      );
       const finalGrade = isStudentMode ? (schoolGrade || '1st Std') : null;
-      const finalLevel = isStudentMode ? null : level;
+      const finalLevel = isStudentMode ? null : (level || 'Intermediate');
+      const finalAgeGroup = isStudentMode ? null : (ageGroup || 'Professional');
+
       await AsyncStorage.setItem('speakmate_account_type', isStudentMode ? 'STUDENT' : 'INDIVIDUAL_USER');
       if (finalGrade) {
         await AsyncStorage.setItem('speakmate_school_grade', finalGrade);
       } else {
         await AsyncStorage.removeItem('speakmate_school_grade');
       }
-      await AsyncStorage.setItem('speakmate_age_group', ageGroup || 'Professional');
+      if (finalAgeGroup) {
+        await AsyncStorage.setItem('speakmate_age_group', finalAgeGroup);
+      }
+      if (finalLevel) {
+        await AsyncStorage.setItem('speakmate_english_level', finalLevel);
+      }
+      if (aiVoice) {
+        await AsyncStorage.setItem('speakmate_onboarding_voice', aiVoice);
+        await AsyncStorage.setItem('speakmate_voice_persona', aiVoice);
+      }
 
       // 1. Sync onboarding details (Avoids any 404 blockages)
       await onboardingService.update({
         englishLevel: finalLevel,
         schoolGrade: finalGrade,
-        learningGoal: whyLearning.join(', '),
+        learningGoal: (whyLearning && whyLearning.length > 0) ? whyLearning.join(', ') : 'Improve English speaking skills',
         dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
-        nativeLanguage: language,
-        preferredLearningTime: reminderTime,
-        interests: interests.join(', '),
+        nativeLanguage: language || 'English',
+        preferredLearningTime: reminderTime || 'Evening',
+        interests: (interests && interests.length > 0) ? interests.join(', ') : 'General',
         onboardingCompleted: true,
-        preferredVoice: aiVoice,
-        ageGroup: ageGroup,
+        preferredVoice: aiVoice || 'Friendly',
+        ageGroup: finalAgeGroup,
         studyReminder: reminderTime !== 'None',
       }).catch(err => console.warn('Onboarding sync skipped/failed:', err));
 
@@ -518,37 +548,41 @@ export default function OnboardingScreen({ navigation }) {
       await settingsService.update({
         darkMode: false,
         notificationsEnabled: true,
-        language: language,
-        aiVoice: aiVoice,
+        language: language || 'English',
+        aiVoice: aiVoice || 'Friendly',
         soundEffects: true,
         autoPlayAudio: true,
         dailyReminder: true,
       }).catch(err => console.warn('Settings sync skipped/failed:', err));
 
-      // Save onboarding voice selection + the actual device voice identifier.
-      // This pins the exact system TTS voice that played during onboarding
-      // so System Default always uses the same voice, not a re-resolved one.
-      const systemVoiceId = selectSystemVoice('female'); // same call used during preview
-      await OnboardingVoiceService.save(aiVoice, systemVoiceId);
+      // 3. Save onboarding voice selection + the actual device voice identifier
+      try {
+        const systemVoiceId = selectSystemVoice('female');
+        await OnboardingVoiceService.save(aiVoice || 'Friendly', systemVoiceId);
+      } catch (voiceErr) {
+        console.warn('Voice save failed:', voiceErr);
+      }
 
-      // 3. Save selected avatar to profile
+      // 4. Save selected avatar to profile
       if (selectedAvatar) {
         await profileService.updateAvatar(selectedAvatar)
           .catch(err => console.warn('Avatar update failed:', err));
       }
 
-      // Mark onboarding complete in client auth context with immediate profile synchronization
+      // 5. Mark onboarding complete in client auth context with immediate profile synchronization
       await completeOnboarding({
         englishLevel: finalLevel,
         schoolGrade: finalGrade,
-        ageGroup: ageGroup || 'Professional',
-        learningGoal: whyLearning.join(', '),
+        ageGroup: finalAgeGroup,
+        learningGoal: (whyLearning && whyLearning.length > 0) ? whyLearning.join(', ') : 'Improve English speaking skills',
         dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
-        nativeLanguage: language,
-        preferredVoice: aiVoice,
-        interests: interests.join(', '),
+        nativeLanguage: language || 'English',
+        preferredVoice: aiVoice || 'Friendly',
+        interests: (interests && interests.length > 0) ? interests.join(', ') : 'General',
+        onboardingCompleted: true,
       });
     } catch (err) {
+      console.error('Error finalizing onboarding setup:', err);
       setError('Failed to finalize onboarding setup. Please try again.');
     } finally {
       setLoading(false);
@@ -823,6 +857,47 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
+            {/* Step 6: Age Group (Individual Users) */}
+            {step === 6 && (
+              <View style={styles.stepContent}>
+                <Text style={styles.title}>Select Your Age Group</Text>
+                <Text style={styles.subtitle}>
+                  Helps our AI tailor conversational topics, pace, and context for your daily practice.
+                </Text>
+                <View style={styles.cardList}>
+                  {AGE_GROUPS.map((grp) => {
+                    const active = ageGroup === grp.key;
+                    return (
+                      <TouchableOpacity
+                        key={grp.key}
+                        onPress={() => {
+                          setAgeGroup(grp.key);
+                          AsyncStorage.setItem('speakmate_age_group', grp.key);
+                        }}
+                        style={[
+                          styles.selectCardLarge,
+                          active && styles.selectCardLargeActive,
+                        ]}
+                      >
+                        <View style={styles.levelLeft}>
+                          <View style={styles.levelRatingBox}>
+                            <Text style={{ fontSize: 22 }}>{grp.icon}</Text>
+                          </View>
+                          <View style={styles.levelInfo}>
+                            <Text style={styles.selectCardLabel}>{grp.label}</Text>
+                            <Text style={styles.levelDesc}>{grp.desc}</Text>
+                          </View>
+                        </View>
+                        {active && (
+                          <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
+
             {/* Step 7: Interests */}
             {step === 7 && (
               <View style={styles.stepContent}>
@@ -1055,18 +1130,24 @@ export default function OnboardingScreen({ navigation }) {
                     <Text style={styles.summaryLabel}>🎤 AI Voice:</Text>
                     <Text style={styles.summaryValue}>{aiVoice}</Text>
                   </View>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryLabel}>🎈 Age Group:</Text>
-                    <Text style={styles.summaryValue}>{ageGroup}</Text>
-                  </View>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryLabel}>📈 English Level:</Text>
-                    <Text style={styles.summaryValue}>{level}</Text>
-                  </View>
-                  <View style={styles.summaryItem}>
-                    <Text style={styles.summaryLabel}>🎓 School Standard:</Text>
-                    <Text style={styles.summaryValue}>{schoolGrade}</Text>
-                  </View>
+                  {!isStudentMode && (
+                    <>
+                      <View style={styles.summaryItem}>
+                        <Text style={styles.summaryLabel}>🎈 Age Group:</Text>
+                        <Text style={styles.summaryValue}>{ageGroup}</Text>
+                      </View>
+                      <View style={styles.summaryItem}>
+                        <Text style={styles.summaryLabel}>📈 English Level:</Text>
+                        <Text style={styles.summaryValue}>{level}</Text>
+                      </View>
+                    </>
+                  )}
+                  {isStudentMode && (
+                    <View style={styles.summaryItem}>
+                      <Text style={styles.summaryLabel}>🎓 School Standard:</Text>
+                      <Text style={styles.summaryValue}>{schoolGrade || '1st Std'}</Text>
+                    </View>
+                  )}
                   <View style={styles.summaryItem}>
                     <Text style={styles.summaryLabel}>⏱️ Daily Goal:</Text>
                     <Text style={styles.summaryValue}>{dailyGoal} minutes</Text>
@@ -1084,22 +1165,25 @@ export default function OnboardingScreen({ navigation }) {
 
       {/* --- Wizard Navigation Buttons --- */}
       {step > 1 && (
-        <View style={styles.footerRow}>
-          <TouchableOpacity
-            onPress={handleBack}
-            disabled={loading}
-            style={styles.backBtn}
-          >
-            <Ionicons name="chevron-back" size={24} color="#4F46E5" />
-          </TouchableOpacity>
+        <View style={styles.footerContainer}>
+          {error ? <ErrorMessage message={error} /> : null}
+          <View style={styles.footerRow}>
+            <TouchableOpacity
+              onPress={handleBack}
+              disabled={loading}
+              style={styles.backBtn}
+            >
+              <Ionicons name="chevron-back" size={24} color="#4F46E5" />
+            </TouchableOpacity>
 
-          <PrimaryButton
-            title={step === 12 ? "Let's Start Learning" : 'Next'}
-            onPress={handleNext}
-            loading={loading}
-            disabled={loading}
-            style={styles.nextBtn}
-          />
+            <PrimaryButton
+              title={step === 12 ? "Let's Start Learning" : 'Next'}
+              onPress={handleNext}
+              loading={loading}
+              disabled={loading}
+              style={styles.nextBtn}
+            />
+          </View>
         </View>
       )}
     </SafeAreaView>
@@ -1426,11 +1510,14 @@ const styles = StyleSheet.create({
     color: '#4F46E5',
     fontWeight: '800',
   },
+  footerContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
+    gap: 10,
+  },
   footerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingBottom: Platform.OS === 'ios' ? 36 : 24,
     gap: 12,
   },
   backBtn: {
