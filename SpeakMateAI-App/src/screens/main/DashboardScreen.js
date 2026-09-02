@@ -156,8 +156,12 @@ export default function DashboardScreen({ navigation }) {
         loadDashboard(false);
       }
     });
+    const timer = setInterval(() => {
+      loadDashboard(false);
+    }, 3500);
     return () => {
       sub.remove();
+      clearInterval(timer);
     };
   }, [loadDashboard]);
 
@@ -216,9 +220,9 @@ export default function DashboardScreen({ navigation }) {
     const fullName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
     const name = fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Learner';
 
-    const effectiveGrade = isStudentUser ? (user?.schoolGrade || profile.schoolGrade || '1st Std') : null;
-    const effectiveAge = isStudentUser ? null : (user?.ageGroup || profile.ageGroup || 'Professional');
-    const effectiveLevel = isStudentUser ? null : (user?.englishLevel || profile.englishLevel || 'Beginner');
+    const effectiveGrade = isStudentUser ? (profile.schoolGrade || user?.schoolGrade || '1st Std') : null;
+    const effectiveAge = isStudentUser ? null : (profile.ageGroup || user?.ageGroup || 'Professional');
+    const effectiveLevel = isStudentUser ? null : (profile.englishLevel || user?.englishLevel || 'Beginner');
 
     return {
       name,

@@ -527,10 +527,16 @@ public class UserServiceImpl implements UserService {
 
 	private UserResponse mapToUserResponse(User user) {
 		String effectiveGrade = user.getSchoolGrade();
+		String effectiveAge = user.getAgeGroup();
 		java.util.Optional<Onboarding> ob = onboardingRepository.findByUser(user);
 		if (effectiveGrade == null || effectiveGrade.trim().isEmpty()) {
 			if (ob.isPresent() && ob.get().getSchoolGrade() != null && !ob.get().getSchoolGrade().trim().isEmpty()) {
 				effectiveGrade = ob.get().getSchoolGrade();
+			}
+		}
+		if (effectiveAge == null || effectiveAge.trim().isEmpty() || "Professional".equalsIgnoreCase(effectiveAge)) {
+			if (ob.isPresent() && ob.get().getAgeGroup() != null && !ob.get().getAgeGroup().trim().isEmpty()) {
+				effectiveAge = ob.get().getAgeGroup();
 			}
 		}
 		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
@@ -540,7 +546,7 @@ public class UserServiceImpl implements UserService {
 		boolean isStudent = (user.getSchoolId() != null) ||
 				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||
 				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
-				(user.getAgeGroup() != null && user.getAgeGroup().toLowerCase().contains("school"));
+				(effectiveAge != null && effectiveAge.toLowerCase().contains("school"));
 
 		boolean isPro = false;
 		String subPlan = "FREE";
@@ -569,7 +575,7 @@ public class UserServiceImpl implements UserService {
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
 				.englishLevel(effectiveLevel).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
-				.preferredAccent(user.getPreferredAccent()).ageGroup(user.getAgeGroup()).schoolGrade(effectiveGrade).interests(user.getInterests())
+				.preferredAccent(user.getPreferredAccent()).ageGroup(effectiveAge).schoolGrade(effectiveGrade).interests(user.getInterests())
 				.schoolId(user.getSchoolId()).isSchoolStudent(isStudent).build();
 	}
 

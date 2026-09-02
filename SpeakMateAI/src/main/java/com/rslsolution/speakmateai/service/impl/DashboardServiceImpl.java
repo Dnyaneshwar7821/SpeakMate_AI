@@ -125,11 +125,26 @@ public class DashboardServiceImpl implements DashboardService {
 
 		// 1. ProfileResponse
 		String effectiveGrade = user.getSchoolGrade();
+		String effectiveAge = user.getAgeGroup();
+		if (onboardingRepository != null) {
+			java.util.Optional<com.rslsolution.speakmateai.entity.Onboarding> ob = onboardingRepository.findByUser(user);
+			if (ob.isPresent()) {
+				if (effectiveGrade == null || effectiveGrade.trim().isEmpty()) {
+					effectiveGrade = ob.get().getSchoolGrade();
+				}
+				if (effectiveAge == null || effectiveAge.trim().isEmpty() || "Professional".equalsIgnoreCase(effectiveAge)) {
+					if (ob.get().getAgeGroup() != null && !ob.get().getAgeGroup().trim().isEmpty()) {
+						effectiveAge = ob.get().getAgeGroup();
+					}
+				}
+			}
+		}
+
 		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
 		boolean isStudent = (user.getSchoolId() != null) ||
 				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||
 				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
-				(user.getAgeGroup() != null && user.getAgeGroup().toLowerCase().contains("school"));
+				(effectiveAge != null && effectiveAge.toLowerCase().contains("school"));
 
 		int calculatedLevel = (xp / 500) + 1;
 
@@ -142,7 +157,7 @@ public class DashboardServiceImpl implements DashboardService {
 				.avatar(user.getAvatar())
 				.englishLevel(effectiveLevel)
 				.learningGoal(user.getLearningGoal())
-				.ageGroup(user.getAgeGroup())
+				.ageGroup(effectiveAge)
 				.schoolGrade(effectiveGrade)
 				.schoolId(user.getSchoolId())
 				.isSchoolStudent(isStudent)

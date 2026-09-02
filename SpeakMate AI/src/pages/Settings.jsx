@@ -3,8 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { useTheme } from "../context/ThemeContext";
 import { speakGlobalText, VOICE_PROFILES, ACCENT_LIST } from "../utils/speechHelper";
-import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
-import { settingsService, onboardingService } from "../services/appServices";
+import { settingsService, onboardingService, profileService } from "../services/appServices";
 
 const LANGUAGE_OPTIONS = [
   { code: "English", label: "English", native: "English", flag: "🇺🇸" },
@@ -161,39 +160,37 @@ export function Settings() {
 
       EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
 
-      // 2. Sync preferences to backend services
-      await settingsService.update({
-        darkMode: isDark,
-        aiVoice: selectedVoice,
-        language: selectedLang,
-        soundEffects,
-        autoPlayAudio,
-        dailyReminder: reminders,
-        notificationsEnabled: reminders,
-      }).catch(() => {});
-
-      await onboardingService.update({
-        ageGroup: selectedAgeGroup,
-        preferredVoice: selectedVoice,
-        preferredAccent: accent,
-        dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
-      }).catch(() => {});
-
-      try {
-        await completeOnboarding({
+      // 2. Sync preferences to backend services (Settings, Onboarding, and User Profile)
+      await Promise.allSettled([
+        settingsService.update({
+          darkMode: isDark,
+          aiVoice: selectedVoice,
+          language: selectedLang,
+          soundEffects,
+          autoPlayAudio,
+          dailyReminder: reminders,
+          notificationsEnabled: reminders,
+        }),
+        onboardingService.update({
+          ageGroup: selectedAgeGroup,
           preferredVoice: selectedVoice,
           preferredAccent: accent,
           dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
+        }),
+        profileService.update({
+          ageGroup: selectedAgeGroup,
+          firstName: user?.firstName,
+          lastName: user?.lastName,
+          email: user?.email,
+        }),
+      ]);
+
+      if (updateUser) {
+        updateUser({
+          preferredVoice: selectedVoice,
+          preferredAccent: accent,
           ageGroup: selectedAgeGroup,
         });
-      } catch {
-        if (updateUser) {
-          updateUser({
-            preferredVoice: selectedVoice,
-            preferredAccent: accent,
-            ageGroup: selectedAgeGroup,
-          });
-        }
       }
 
       window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: selectedAgeGroup } }));
