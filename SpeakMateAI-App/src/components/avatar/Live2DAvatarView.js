@@ -111,18 +111,80 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
       return null;
     }
 
-    async function waitForLive2DSDK(timeout = 10000) {
+    function loadScript(src) {
+      return new Promise((resolve) => {
+        try {
+          const existing = document.querySelector('script[src="' + src + '"]');
+          if (existing) {
+            if (existing.getAttribute('data-loaded') === 'true') return resolve(true);
+            existing.addEventListener('load', () => resolve(true));
+            existing.addEventListener('error', () => resolve(false));
+            return;
+          }
+          const s = document.createElement('script');
+          s.src = src;
+          s.crossOrigin = 'anonymous';
+          s.async = false;
+          s.onload = () => { s.setAttribute('data-loaded', 'true'); resolve(true); };
+          s.onerror = () => resolve(false);
+          document.head.appendChild(s);
+        } catch(e) {
+          resolve(false);
+        }
+      });
+    }
+
+    async function ensureSDKLoaded() {
+      let cls = getLive2DModelClass();
+      if (cls && typeof cls.from === 'function') return cls;
+
+      if (!window.PIXI) {
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/pixi.js/6.5.8/browser/pixi.min.js');
+        if (!window.PIXI) {
+          await loadScript('https://cdn.jsdelivr.net/npm/pixi.js@6.5.8/dist/browser/pixi.min.js');
+        }
+      }
+
+      if (!window.Live2D) {
+        await loadScript('https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js');
+      }
+
+      if (!window.Live2DCubismCore) {
+        await loadScript('https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/lib/live2dcubismcore.min.js');
+        if (!window.Live2DCubismCore) {
+          await loadScript('https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js');
+        }
+      }
+
+      cls = getLive2DModelClass();
+      if (cls && typeof cls.from === 'function') return cls;
+
+      await loadScript('https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js');
+      cls = getLive2DModelClass();
+      if (cls && typeof cls.from === 'function') return cls;
+
+      await loadScript('https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/cubism4.min.js');
+      return getLive2DModelClass();
+    }
+
+    async function waitForLive2DSDK(timeout = 8000) {
+      let cls = getLive2DModelClass();
+      if (cls && typeof cls.from === 'function') return cls;
+
+      try {
+        cls = await ensureSDKLoaded();
+        if (cls && typeof cls.from === 'function') return cls;
+      } catch(e) {}
+
       const start = performance.now();
       while (performance.now() - start < timeout) {
-        const cls = getLive2DModelClass();
+        cls = getLive2DModelClass();
         if (cls && typeof cls.from === 'function') {
           return cls;
         }
-        await new Promise((r) => setTimeout(r, 50));
+        await new Promise((r) => setTimeout(r, 80));
       }
-      const cls = getLive2DModelClass();
-      if (cls && typeof cls.from === 'function') return cls;
-      throw new Error("Live2D SDK scripts failed to initialize in WebView.");
+      return getLive2DModelClass();
     }
     let app, model;
     let currentModelName = '${initialName}';
@@ -1136,39 +1198,51 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
           return;
         }
 
-        const Live2DModelClass = await waitForLive2DSDK();
-        if (typeof Live2DModelClass.registerTicker === 'function' && window.PIXI && window.PIXI.Ticker) {
-          try {
-            Live2DModelClass.registerTicker(window.PIXI.Ticker);
-          } catch(e) {}
-        }
-        model = await Live2DModelClass.from(url, { autoInteract: false, crossOrigin: 'anonymous' });
+        let Live2DModelClass = null;
+        try {
+          Live2DModelClass = await waitForLive2DSDK();
+        } catch(e) {}
 
-        // Hook motionManager update to guarantee lipSync overrides motion curves
-        if (model && model.internalModel && model.internalModel.motionManager) {
-          const origUpdate = model.internalModel.motionManager.update ? model.internalModel.motionManager.update.bind(model.internalModel.motionManager) : null;
-          if (origUpdate) {
-            model.internalModel.motionManager.update = function(coreModel, now) {
-              origUpdate(coreModel, now);
-              if (coreModel) {
-                setParam(coreModel, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, currentMouthY)));
-                setParam(coreModel, 'ParamMouthForm', 'PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, currentMouthForm)));
-              }
-            };
+        if (Live2DModelClass && typeof Live2DModelClass.from === 'function') {
+          if (typeof Live2DModelClass.registerTicker === 'function' && window.PIXI && window.PIXI.Ticker) {
+            try {
+              Live2DModelClass.registerTicker(window.PIXI.Ticker);
+            } catch(e) {}
+          }
+          model = await Live2DModelClass.from(url, { autoInteract: false, crossOrigin: 'anonymous' });
+
+          // Hook motionManager update to guarantee lipSync overrides motion curves
+          if (model && model.internalModel && model.internalModel.motionManager) {
+            const origUpdate = model.internalModel.motionManager.update ? model.internalModel.motionManager.update.bind(model.internalModel.motionManager) : null;
+            if (origUpdate) {
+              model.internalModel.motionManager.update = function(coreModel, now) {
+                origUpdate(coreModel, now);
+                if (coreModel) {
+                  setParam(coreModel, 'ParamMouthOpenY', 'PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, currentMouthY)));
+                  setParam(coreModel, 'ParamMouthForm', 'PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, currentMouthForm)));
+                }
+              };
+            }
+          }
+
+          if (model && 'eventMode' in model) {
+            model.eventMode = 'none';
+          }
+          if (model) {
+            model.interactive = false;
+            app.stage.addChild(model);
+            framePortrait(viewW, viewH);
+            window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+            return;
           }
         }
 
-        if (model && 'eventMode' in model) {
-          model.eventMode = 'none';
-        }
-        if (model) {
-          model.interactive = false;
-          app.stage.addChild(model);
-          framePortrait(viewW, viewH);
-          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
-        }
+        // Fallback to high-definition WebGL puppet if Live2D is unavailable
+        model = new DoraemonPuppet();
+        app.stage.addChild(model);
+        framePortrait(viewW, viewH);
+        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
       } catch(err) {
-        console.warn('Live2D load failed, using fallback puppet:', err.message);
         try {
           model = new DoraemonPuppet();
           app.stage.addChild(model);
@@ -1305,7 +1379,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
-        source={{ html: htmlSource, baseUrl: 'https://localhost' }}
+        source={{ html: htmlSource, baseUrl: 'https://cdn.jsdelivr.net' }}
         style={styles.webView}
         scrollEnabled={false}
         bounces={false}
