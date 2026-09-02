@@ -211,7 +211,19 @@ export default function ProfileScreen({ navigation }) {
         AsyncStorage.removeItem('speakmate_school_grade').catch(() => {});
       }
 
-      const effectiveAvatar = getAvatarById(savedAvatarModel || 'haru');
+      let modelId = savedAvatarModel;
+      const isMaleVoice = savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'));
+      const isFemaleVoice = savedGender === 'female' || (savedVoice && (savedVoice === 'Default' || savedVoice.toLowerCase().includes('female')));
+
+      if (!modelId || modelId === 'haru' || modelId === 'chitose') {
+        if (isMaleVoice) {
+          modelId = 'chitose';
+        } else if (isFemaleVoice) {
+          modelId = 'haru';
+        }
+      }
+
+      const effectiveAvatar = getAvatarById(modelId || 'haru');
       setSelectedAvatarId(effectiveAvatar.id);
       setTutorGender(effectiveAvatar.gender);
 

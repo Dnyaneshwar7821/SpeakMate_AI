@@ -613,6 +613,8 @@ export default function SettingsScreen({ navigation }) {
                       ]}
                       onPress={async () => {
                         update('aiVoice', profile.code);
+                        await AsyncStorage.setItem('speakmate_selected_voice', profile.code);
+                        await AsyncStorage.setItem('speakmate_ai_voice', profile.code);
                         if (profile.gender === 'male') {
                           await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
                           await AsyncStorage.setItem('speakmate_voice_gender', 'male');
