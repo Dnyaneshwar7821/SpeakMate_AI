@@ -318,12 +318,15 @@ export default function ConversationChatScreen({ navigation, route }) {
         );
 
         let resolvedModel = 'haru';
-        if (isRoboPawsSelected || savedAvatarModel === 'robopaws') {
+        if (savedAvatarModel) {
+          const av = getAvatarById(savedAvatarModel);
+          resolvedModel = av.id;
+          if (resolvedModel === 'haru' && isMaleSelected) resolvedModel = 'chitose';
+          if (resolvedModel === 'chitose' && !isMaleSelected && !isRoboPawsSelected) resolvedModel = 'haru';
+        } else if (isRoboPawsSelected || isKids) {
           resolvedModel = 'robopaws';
-        } else if (isMaleSelected || savedAvatarModel === 'chitose') {
+        } else if (isMaleSelected) {
           resolvedModel = 'chitose';
-        } else if (isKids && !savedAvatarModel && !savedGender) {
-          resolvedModel = 'robopaws';
         } else {
           resolvedModel = 'haru';
         }
@@ -952,7 +955,7 @@ export default function ConversationChatScreen({ navigation, route }) {
         <View style={styles.avatarContainer}>
           <AIAvatar
             model={selectedAvatarModel}
-            gender={selectedAvatarModel === 'chitose' ? 'male' : selectedAvatarModel === 'robopaws' ? 'robopaws' : 'female'}
+            gender={getAvatarById(selectedAvatarModel).gender}
             isSpeaking={isSpeaking}
             spokenText={currentSpokenText}
             speechSpeed={speechSpeed}
