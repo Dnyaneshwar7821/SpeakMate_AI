@@ -139,13 +139,18 @@ export default function SettingsScreen({ navigation }) {
         await setDarkMode(savedSettings.darkMode);
       }
 
-      // 2. Sync Voice to AsyncStorage
+      // 2. Sync Voice and Haru/Chitose Avatar to AsyncStorage
       if (form.aiVoice) {
         const profile = VOICE_PROFILES.find((p) => p.code === form.aiVoice);
         await AsyncStorage.setItem('speakmate_selected_voice', form.aiVoice);
         await AsyncStorage.setItem('speakmate_ai_voice', form.aiVoice);
         if (profile?.gender) {
           await AsyncStorage.setItem('speakmate_voice_gender', profile.gender);
+          if (profile.gender === 'male') {
+            await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
+          } else if (profile.gender === 'female') {
+            await AsyncStorage.setItem('speakmate_avatar_model', 'haru');
+          }
         }
       }
 
@@ -608,6 +613,13 @@ export default function SettingsScreen({ navigation }) {
                       ]}
                       onPress={async () => {
                         update('aiVoice', profile.code);
+                        if (profile.gender === 'male') {
+                          await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
+                          await AsyncStorage.setItem('speakmate_voice_gender', 'male');
+                        } else if (profile.gender === 'female') {
+                          await AsyncStorage.setItem('speakmate_avatar_model', 'haru');
+                          await AsyncStorage.setItem('speakmate_voice_gender', 'female');
+                        }
 
                         if (profile.code === 'Default') {
                           // Load the exact saved onboarding voice config and play it

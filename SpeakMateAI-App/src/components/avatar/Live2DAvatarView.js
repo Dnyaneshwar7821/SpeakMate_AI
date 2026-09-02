@@ -76,11 +76,11 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
     }
   </style>
   <!-- PixiJS v7 -->
-  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.3.3/dist/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.4.3/dist/pixi.min.js"></script>
   <!-- Cubism 2 Core SDK (Chitose) -->
   <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
   <!-- Cubism 4 Core SDK (Haru) -->
-  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/lib/live2dcubismcore.min.js"></script>
   <!-- Pixi Live2D Display (Universal Cubism 2 + 4 Bundle) -->
   <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
 </head>
@@ -1142,10 +1142,10 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
             Live2DModelClass.registerTicker(window.PIXI.Ticker);
           } catch(e) {}
         }
-        model = await Live2DModelClass.from(url, { autoInteract: false });
+        model = await Live2DModelClass.from(url, { autoInteract: false, crossOrigin: 'anonymous' });
 
         // Hook motionManager update to guarantee lipSync overrides motion curves
-        if (model.internalModel && model.internalModel.motionManager) {
+        if (model && model.internalModel && model.internalModel.motionManager) {
           const origUpdate = model.internalModel.motionManager.update ? model.internalModel.motionManager.update.bind(model.internalModel.motionManager) : null;
           if (origUpdate) {
             model.internalModel.motionManager.update = function(coreModel, now) {
@@ -1158,16 +1158,25 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
           }
         }
 
-        if ('eventMode' in model) {
+        if (model && 'eventMode' in model) {
           model.eventMode = 'none';
         }
-        model.interactive = false;
-
-        app.stage.addChild(model);
-        framePortrait(viewW, viewH);
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+        if (model) {
+          model.interactive = false;
+          app.stage.addChild(model);
+          framePortrait(viewW, viewH);
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+        }
       } catch(err) {
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ERROR', message: err.message }));
+        console.warn('Live2D load failed, using fallback puppet:', err.message);
+        try {
+          model = new DoraemonPuppet();
+          app.stage.addChild(model);
+          framePortrait(viewW, viewH);
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+        } catch(puppetErr) {
+          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ERROR', message: err.message }));
+        }
       }
     }
 
