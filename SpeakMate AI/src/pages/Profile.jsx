@@ -739,47 +739,6 @@ export function Profile() {
                       })}
                     </div>
                   </div>
-
-                  {/* Target Persona Age Group (Matching Mobile App) */}
-                  <div className="p-5 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3">
-                    <div>
-                      <h3 className="text-sm font-black text-[var(--text-primary)] flex items-center gap-2">
-                        <span>👥</span> Target Persona Age Group
-                      </h3>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                        Curates scenarios, speaking cards, and conversation context to your profile
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-                      {AGE_OPTIONS.map((opt) => {
-                        const active = (ageGroup || "").toLowerCase() === opt.code.toLowerCase();
-                        return (
-                          <button
-                            key={opt.code}
-                            type="button"
-                            onClick={() => handleSelectAgeGroup(opt.code)}
-                            className={`p-4 rounded-2xl text-left border transition-all cursor-pointer active:scale-95 ${
-                              active
-                                ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30"
-                                : "bg-[var(--bg-surface)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="text-lg">{opt.icon || "👤"}</span>
-                              {active && <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/20 text-white">Selected</span>}
-                            </div>
-                            <h4 className={`text-sm font-black mt-2 ${active ? "text-white" : "text-[var(--text-primary)]"}`}>
-                              {opt.label}
-                            </h4>
-                            <p className={`text-[11px] font-medium mt-0.5 leading-relaxed ${active ? "text-white/80" : "text-[var(--text-secondary)]"}`}>
-                              {opt.desc}
-                            </p>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
                 </div>
               )}
 

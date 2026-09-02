@@ -386,6 +386,38 @@ export function Settings() {
         </div>
       </div>
 
+      {/* SECTION 3.5: TARGET PERSONA AGE PROFILE DROPDOWN */}
+      <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-[var(--text-primary)] flex items-center gap-2">
+              <span>👥</span> Target Persona Age Profile
+            </h2>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5 font-medium">
+              Curates conversation scenarios, speaking cards, and dashboard tone to your age group.
+            </p>
+          </div>
+
+          <select
+            value={selectedAgeGroup}
+            onChange={(e) => {
+              const val = e.target.value;
+              setSelectedAgeGroup(val);
+              localStorage.setItem("speakmate_age_group", val);
+              window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
+              window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: val } }));
+            }}
+            className="px-5 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-sm cursor-pointer min-w-[240px]"
+          >
+            {AGE_OPTIONS.map((opt) => (
+              <option key={opt.code} value={opt.code}>
+                {opt.label} - {opt.desc}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* SECTION 4: NOTIFICATIONS & SOUND TOGGLES */}
       <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
         <h2 className="text-base font-black text-[var(--text-primary)]">🔔 Notifications & Audio Playback</h2>
