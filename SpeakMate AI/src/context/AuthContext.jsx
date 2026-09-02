@@ -40,8 +40,9 @@ export function AuthProvider({ children }) {
         localStorage.removeItem("speakmate_school_grade");
       }
 
-      if (userData.ageGroup) {
-        localStorage.setItem("speakmate_age_group", userData.ageGroup);
+      const cleanAge = typeof userData.ageGroup === "string" ? userData.ageGroup : (userData.ageGroup?.ageGroup || null);
+      if (cleanAge) {
+        localStorage.setItem("speakmate_age_group", cleanAge);
       }
 
       if (userData.englishLevel) {
@@ -56,8 +57,10 @@ export function AuthProvider({ children }) {
         localStorage.setItem("speakmate_ai_voice", userData.preferredAccent || userData.aiVoice);
       }
 
-      window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: userData.ageGroup } }));
-      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: userData }));
+      if (cleanAge) {
+        window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: cleanAge } }));
+      }
+      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ...userData, ageGroup: cleanAge || userData.ageGroup } }));
     } catch (e) {
       console.warn("syncUserProfile warning:", e);
     }

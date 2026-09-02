@@ -30,31 +30,47 @@ const MOTIVATIONAL_QUOTES = [
   { quote: "Learning another language is not only learning different words for the same things, but learning another way to think about things.", author: "Flora Lewis" },
 ];
 
+const safeString = (val, fallback = "") => {
+  if (val === null || val === undefined) return fallback;
+  if (typeof val === "string") return val;
+  if (typeof val === "object") {
+    if (typeof val.ageGroup === "string") return val.ageGroup;
+    if (typeof val.schoolGrade === "string") return val.schoolGrade;
+    if (typeof val.englishLevel === "string") return val.englishLevel;
+    if (typeof val.role === "string") return val.role;
+    if (typeof val.accountType === "string") return val.accountType;
+    if (typeof val.label === "string") return val.label;
+    if (typeof val.name === "string") return val.name;
+    return fallback;
+  }
+  return String(val);
+};
+
 export function Dashboard() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const { isDark } = useTheme();
 
   const [accountType, setAccountType] = useState(
-    () => user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER"
+    () => safeString(user?.accountType || localStorage.getItem("speakmate_account_type"), "INDIVIDUAL_USER")
   );
   const [activeGrade, setActiveGrade] = useState(
-    () => user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std"
+    () => safeString(user?.schoolGrade || localStorage.getItem("speakmate_school_grade"), "1st Std")
   );
   const [activeAgeGroup, setActiveAgeGroup] = useState(
-    () => user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional"
+    () => safeString(user?.ageGroup || localStorage.getItem("speakmate_age_group"), "Professional")
   );
   const [activeEnglishLevel, setActiveEnglishLevel] = useState(
-    () => user?.englishLevel || localStorage.getItem("speakmate_english_level") || "Beginner"
+    () => safeString(user?.englishLevel || localStorage.getItem("speakmate_english_level"), "Beginner")
   );
 
   const isStudent = accountType === "STUDENT" || user?.role === "STUDENT" || Boolean(user?.isSchoolStudent);
 
   useEffect(() => {
-    if (user?.accountType) setAccountType(user.accountType);
-    if (user?.schoolGrade) setActiveGrade(user.schoolGrade);
-    if (user?.ageGroup) setActiveAgeGroup(user.ageGroup);
-    if (user?.englishLevel) setActiveEnglishLevel(user.englishLevel);
+    if (user?.accountType) setAccountType(safeString(user.accountType, "INDIVIDUAL_USER"));
+    if (user?.schoolGrade) setActiveGrade(safeString(user.schoolGrade, "1st Std"));
+    if (user?.ageGroup) setActiveAgeGroup(safeString(user.ageGroup, "Professional"));
+    if (user?.englishLevel) setActiveEnglishLevel(safeString(user.englishLevel, "Beginner"));
   }, [user?.accountType, user?.schoolGrade, user?.ageGroup, user?.englishLevel]);
 
   const [stats, setStats] = useState(() => getLiveProgressStats(user));
@@ -79,15 +95,14 @@ export function Dashboard() {
     : "👑";
 
   const refreshStats = useCallback(() => {
-    const liveStats = getLiveProgressStats(user);
+    const liveStats = getLiveProgressStats();
     setStats((prev) => ({
       ...prev,
       ...liveStats,
-      streak: Number(liveStats.streak ?? user?.streak ?? 0),
-      xp: Number(liveStats.xp ?? user?.xp ?? 0),
+      streak: Number(liveStats.streak ?? 0),
+      xp: Number(liveStats.xp ?? 0),
       todayMins: liveStats.todayMins ?? prev.todayMins ?? 0,
       completedMins: liveStats.todayMins ?? prev.todayMins ?? 0,
-      level: isStudent ? activeGrade : activeAgeGroup,
       dailyGoalMins: parseInt(localStorage.getItem("speakmate_daily_goal") || "15", 10),
     }));
 
@@ -96,13 +111,12 @@ export function Dashboard() {
       .then((data) => {
         if (data) {
           if (data.profile) {
-            if (data.profile.ageGroup) setActiveAgeGroup(data.profile.ageGroup);
-            if (data.profile.schoolGrade) setActiveGrade(data.profile.schoolGrade);
-            if (data.profile.englishLevel) setActiveEnglishLevel(data.profile.englishLevel);
-            if (data.profile.role) setAccountType(data.profile.role);
-            if (updateUser) updateUser(data.profile);
+            if (data.profile.ageGroup) setActiveAgeGroup(safeString(data.profile.ageGroup, "Professional"));
+            if (data.profile.schoolGrade) setActiveGrade(safeString(data.profile.schoolGrade, "1st Std"));
+            if (data.profile.englishLevel) setActiveEnglishLevel(safeString(data.profile.englishLevel, "Beginner"));
+            if (data.profile.role) setAccountType(safeString(data.profile.role, "INDIVIDUAL_USER"));
           }
-          const synced = syncBackendProgress(data, user);
+          const synced = syncBackendProgress(data);
           setStats((prev) => ({
             ...prev,
             ...data,
@@ -115,29 +129,26 @@ export function Dashboard() {
         }
       })
       .catch(() => {});
-  }, [user, isStudent, activeGrade, activeAgeGroup, updateUser]);
+  }, []);
 
   useEffect(() => {
     refreshStats();
     const handleAgeEvent = (e) => {
-      const newAge = e?.detail?.ageGroup || e?.detail || localStorage.getItem("speakmate_age_group");
-      if (newAge) setActiveAgeGroup(newAge);
-      refreshStats();
+      const raw = e?.detail?.ageGroup || (typeof e?.detail === "string" ? e.detail : null) || localStorage.getItem("speakmate_age_group");
+      if (raw) setActiveAgeGroup(safeString(raw, "Professional"));
     };
     const handleSettingsEvent = (e) => {
       const d = e?.detail;
-      if (d?.ageGroup) setActiveAgeGroup(d.ageGroup);
-      if (d?.schoolGrade) setActiveGrade(d.schoolGrade);
-      if (d?.englishLevel) setActiveEnglishLevel(d.englishLevel);
-      if (d?.accountType) setAccountType(d.accountType);
-      refreshStats();
+      if (d?.ageGroup) setActiveAgeGroup(safeString(d.ageGroup, "Professional"));
+      if (d?.schoolGrade) setActiveGrade(safeString(d.schoolGrade, "1st Std"));
+      if (d?.englishLevel) setActiveEnglishLevel(safeString(d.englishLevel, "Beginner"));
+      if (d?.accountType) setAccountType(safeString(d.accountType, "INDIVIDUAL_USER"));
     };
     const handleStorage = (e) => {
-      if (e.key === "speakmate_age_group" && e.newValue) setActiveAgeGroup(e.newValue);
-      if (e.key === "speakmate_school_grade" && e.newValue) setActiveGrade(e.newValue);
-      if (e.key === "speakmate_english_level" && e.newValue) setActiveEnglishLevel(e.newValue);
-      if (e.key === "speakmate_account_type" && e.newValue) setAccountType(e.newValue);
-      refreshStats();
+      if (e.key === "speakmate_age_group" && e.newValue) setActiveAgeGroup(safeString(e.newValue, "Professional"));
+      if (e.key === "speakmate_school_grade" && e.newValue) setActiveGrade(safeString(e.newValue, "1st Std"));
+      if (e.key === "speakmate_english_level" && e.newValue) setActiveEnglishLevel(safeString(e.newValue, "Beginner"));
+      if (e.key === "speakmate_account_type" && e.newValue) setAccountType(safeString(e.newValue, "INDIVIDUAL_USER"));
     };
 
     window.addEventListener("focus", refreshStats);
@@ -220,7 +231,7 @@ export function Dashboard() {
                 </span>
               )}
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
-                {isStudent ? `🎓 Standard: ${activeGrade}` : `👤 ${activeAgeGroup} · 🎯 ${activeEnglishLevel}`}
+                {isStudent ? `🎓 Standard: ${safeString(activeGrade, "1st Std")}` : `👤 ${safeString(activeAgeGroup, "Professional")} · 🎯 ${safeString(activeEnglishLevel, "Beginner")}`}
               </span>
               <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white shadow-sm flex items-center gap-1">
                 <span>{currentRankIcon}</span>
@@ -488,7 +499,7 @@ export function Dashboard() {
                 <div>
                   <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">Speaking Practice Studio</h3>
                   <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
-                    {isStudent ? `Curated ${activeGrade} grade scenarios with Live2D coach.` : `10 real-world scenarios tailored to your ${activeAgeGroup} profile.`}
+                    {isStudent ? `Curated ${safeString(activeGrade, "1st Std")} grade scenarios with Live2D coach.` : `10 real-world scenarios tailored to your ${safeString(activeAgeGroup, "Professional")} profile.`}
                   </p>
                 </div>
               </div>
