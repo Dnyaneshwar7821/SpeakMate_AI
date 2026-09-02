@@ -75,8 +75,8 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
       max-height: 100vh !important;
     }
   </style>
-  <!-- PixiJS v7 -->
-  <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.4.3/dist/pixi.min.js"></script>
+  <!-- PixiJS v6.5.8 (Target Pixi Runtime for pixi-live2d-display) -->
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.8/dist/browser/pixi.min.js"></script>
   <!-- Cubism 2 Core SDK (Chitose) -->
   <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
   <!-- Cubism 4 Core SDK (Haru) -->
@@ -102,11 +102,11 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
       if (window.PIXILive2D && window.PIXILive2D.Live2DModel) {
         return window.PIXILive2D.Live2DModel;
       }
+      if (window.PIXILive2DDisplay && window.PIXILive2DDisplay.Live2DModel) {
+        return window.PIXILive2DDisplay.Live2DModel;
+      }
       if (window.Live2DModel) {
         return window.Live2DModel;
-      }
-      if (window.PIXI && window.PIXI.live2d && typeof window.PIXI.live2d.from === 'function') {
-        return window.PIXI.live2d;
       }
       return null;
     }
