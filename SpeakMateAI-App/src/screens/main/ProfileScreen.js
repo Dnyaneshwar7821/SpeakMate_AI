@@ -23,6 +23,7 @@ import { profileService } from '../../services/appServices';
 import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
 import { COLORS } from '../../constants/colors';
+import { DashboardCache } from './DashboardScreen';
 
 const PRESET_AVATARS = ['🎓', '🦁', '🚀', '🦉', '👑', '⚡', '🦊', '🎯', '💎', '🌟', '🔥', '🏆'];
 
@@ -396,6 +397,7 @@ export default function ProfileScreen({ navigation }) {
         schoolGrade: newGrade,
       });
       await AsyncStorage.setItem('speakmate_school_grade', newGrade);
+      DashboardCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
       showToast('Grade Updated 🎓', 'success', `School curriculum set to ${newGrade}`);
@@ -415,6 +417,7 @@ export default function ProfileScreen({ navigation }) {
         email: form.email || user?.email,
         englishLevel: newLevel,
       });
+      DashboardCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
       showToast('Proficiency Updated 🎯', 'success', `AI Tutor level set to ${newLevel}`);
@@ -437,6 +440,7 @@ export default function ProfileScreen({ navigation }) {
         ageGroup: newAge,
       });
       await onboardingService.update({ ageGroup: newAge }).catch(() => {});
+      DashboardCache.clear();
       setState((curr) => ({
         ...curr,
         profile: {

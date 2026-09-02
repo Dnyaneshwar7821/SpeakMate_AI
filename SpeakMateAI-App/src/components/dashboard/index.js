@@ -258,7 +258,15 @@ export const DashboardHeader = memo(function DashboardHeader({
                   {ageGroup && (
                     <View style={[styles.heroChip, { backgroundColor: 'rgba(245,158,11,0.2)' }]}>
                       <Text style={[styles.heroChipText, { color: '#FCD34D', fontWeight: '700' }]}>
-                        {ageGroup === 'Kids' ? '🎈 Kids' : ageGroup === 'Teens' ? '⚡ Teen' : ageGroup === 'Young Adult' ? '🎓 Young Adult' : ageGroup === 'Senior' ? '☕ Senior' : '💼 Professional'}
+                        {String(ageGroup).toLowerCase().includes('kid')
+                          ? '🎈 Kids'
+                          : String(ageGroup).toLowerCase().includes('teen')
+                          ? '⚡ Teen'
+                          : String(ageGroup).toLowerCase().includes('senior')
+                          ? '☕ Senior'
+                          : String(ageGroup).toLowerCase().includes('young')
+                          ? '🎓 Young Adult'
+                          : '💼 Professional'}
                       </Text>
                     </View>
                   )}

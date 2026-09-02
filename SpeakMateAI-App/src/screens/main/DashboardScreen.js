@@ -1,6 +1,7 @@
 import React, { useCallback, useContext, useMemo, useState, useEffect } from 'react';
 import {
   Alert,
+  AppState,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -50,10 +51,13 @@ import { COLORS } from '../../constants/colors';
 
 // Simple in-memory cache to make page transitions instant
 let cachedDashboardData = null;
-const DashboardCache = {
+export const DashboardCache = {
   get: () => cachedDashboardData,
   set: (data) => {
     cachedDashboardData = data;
+  },
+  clear: () => {
+    cachedDashboardData = null;
   },
 };
 
@@ -146,6 +150,17 @@ export default function DashboardScreen({ navigation }) {
     }, [loadDashboard])
   );
 
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        loadDashboard(false);
+      }
+    });
+    return () => {
+      sub.remove();
+    };
+  }, [loadDashboard]);
+
   const viewModel = useMemo(() => {
     if (!state.dashboard) {
       return {
@@ -201,9 +216,9 @@ export default function DashboardScreen({ navigation }) {
     const fullName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
     const name = fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Learner';
 
-    const effectiveGrade = isStudentUser ? (profile.schoolGrade || user?.schoolGrade || '1st Std') : null;
-    const effectiveAge = isStudentUser ? null : (profile.ageGroup || user?.ageGroup || 'Professional');
-    const effectiveLevel = isStudentUser ? null : (profile.englishLevel || user?.englishLevel || 'Beginner');
+    const effectiveGrade = isStudentUser ? (user?.schoolGrade || profile.schoolGrade || '1st Std') : null;
+    const effectiveAge = isStudentUser ? null : (user?.ageGroup || profile.ageGroup || 'Professional');
+    const effectiveLevel = isStudentUser ? null : (user?.englishLevel || profile.englishLevel || 'Beginner');
 
     return {
       name,

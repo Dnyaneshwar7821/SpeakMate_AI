@@ -21,6 +21,7 @@ import { settingsService, onboardingService, profileService } from '../../servic
 import { VoiceService, VOICE_PROFILES } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
+import { DashboardCache } from './DashboardScreen';
 
 const AGE_OPTIONS = [
   { code: 'Kids', label: 'Kids (6-12) 🎈', desc: 'Simple words, fun stories & high encouragement' },
@@ -163,6 +164,7 @@ export default function SettingsScreen({ navigation }) {
         }
       }
 
+      DashboardCache.clear();
       showToast('Preferences Saved ✓', 'success', 'All tutor voice and language settings updated');
     } catch (error) {
       console.error('Settings save error:', error);
