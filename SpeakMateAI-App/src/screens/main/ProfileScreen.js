@@ -1056,7 +1056,7 @@ export default function ProfileScreen({ navigation }) {
                   Choose AI Speaking Tutor 🎭
                 </Text>
                 <Text style={{ fontSize: 12, color: sublabelColor }}>
-                  Select your tutor — tap <strong>Test Voice</strong> to preview audio!
+                  Select your tutor — tap <Text style={{ fontWeight: '800', color: labelColor }}>Test Voice</Text> to preview audio!
                 </Text>
               </View>
               <TouchableOpacity
