@@ -318,6 +318,7 @@ export default function ConversationScreen({ navigation, route }) {
         const isKids = Boolean(
           (savedAgeGroup && savedAgeGroup.toLowerCase() === 'kids') ||
           (savedGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(savedGrade.toLowerCase()))
+        );
         const resolvedAvatar = getAvatarById(savedAvatarModel || (isKids ? 'robopaws' : 'haru'));
         setSelectedAvatarModel(resolvedAvatar.id);
         if (savedGrade) {
