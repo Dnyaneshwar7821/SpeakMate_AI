@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { useTheme } from "../context/ThemeContext";
 import { speakGlobalText, VOICE_PROFILES, ACCENT_LIST } from "../utils/speechHelper";
+import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 import { settingsService, onboardingService, profileService } from "../services/appServices";
 
 const LANGUAGE_OPTIONS = [
