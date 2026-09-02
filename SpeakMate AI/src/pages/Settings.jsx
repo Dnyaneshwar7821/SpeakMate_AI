@@ -383,21 +383,6 @@ export function Settings() {
               Change Language 🌐
             </button>
           </div>
-
-          <div>
-            <h2 className="text-base font-black text-[var(--text-primary)] mt-2">Target Persona Age Group</h2>
-            <select
-              value={selectedAgeGroup}
-              onChange={(e) => setSelectedAgeGroup(e.target.value)}
-              className="w-full mt-2 px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
-            >
-              {AGE_OPTIONS.map((opt) => (
-                <option key={opt.code} value={opt.code}>
-                  {opt.label} - {opt.desc}
-                </option>
-              ))}
-            </select>
-          </div>
         </div>
       </div>
 

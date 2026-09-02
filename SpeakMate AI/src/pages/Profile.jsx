@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { authService } from "../services/authService";
-import { profileService, subscriptionService } from "../services/appServices";
-import { getLiveProgressStats } from "../utils/progressTracker";
+import { profileService, subscriptionService, onboardingService } from "../services/appServices";
+import { getLiveProgressStats, syncBackendProgress } from "../utils/progressTracker";
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 import { AVATAR_LIST, getAvatarById } from "../config/AvatarCatalog";
 import { Link } from "react-router-dom";
@@ -18,11 +18,12 @@ const PRESET_AVATARS = [
 
 const SCHOOL_GRADES = [
   "1st Std", "2nd Std", "3rd Std", "4th Std", "5th Std",
-  "6th Std", "7th Std", "8th Std", "9th Std", "10th Std"
+  "6th Std", "7th Std", "8th Std", "9th Std", "10th Std",
+  "11th Std", "12th Std"
 ];
 
 const ENGLISH_LEVELS = [
-  "Basic (A1)", "Elementary (A2)", "Intermediate (B1)", "Upper Intermediate (B2)", "Advanced (C1)", "Mastery (C2)"
+  "Beginner", "Intermediate", "Advanced"
 ];
 
 const ACCENT_OPTIONS = [
@@ -33,11 +34,11 @@ const ACCENT_OPTIONS = [
 ];
 
 const AGE_OPTIONS = [
-  { code: "Kids", label: "Kids (6-12) 🎈", desc: "Simple words, fun stories & high encouragement" },
-  { code: "Teens", label: "Teens (13-17) ⚡", desc: "School life, pop culture & casual chatter" },
-  { code: "Young Adult", label: "Young Adults (18-24) 🎓", desc: "Campus life, travel & interview prep" },
-  { code: "Professional", label: "Professionals (25-50) 💼", desc: "Business English, executive tone & presentations" },
-  { code: "Senior", label: "Seniors (50+) ☕", desc: "Relaxed conversation, culture & life stories" },
+  { code: "Kids", label: "Kids (6-12)", icon: "🎈", desc: "Simple words, fun stories & high encouragement" },
+  { code: "Teens", label: "Teens (13-17)", icon: "⚡", desc: "School life, pop culture & casual chatter" },
+  { code: "Young Adult", label: "Young Adults (18-24)", icon: "🎓", desc: "Campus life, travel & interview prep" },
+  { code: "Professional", label: "Professionals (25-50)", icon: "💼", desc: "Business English, executive tone & presentations" },
+  { code: "Senior", label: "Seniors (50+)", icon: "☕", desc: "Relaxed conversation, culture & life stories" },
 ];
 
 const normalizeAgeGroup = (rawAge) => {
@@ -194,12 +195,70 @@ export function Profile() {
     toast.success(`Switched to ${entry.name} (${entry.voiceLabel} Active) ${entry.emoji}`);
   };
 
-  const handleAgeGroupChange = (newAge) => {
+  const handleSelectProficiencyLevel = async (newLevel) => {
+    setCefrLevel(newLevel);
+    localStorage.setItem("speakmate_english_level", newLevel);
+    try {
+      await Promise.allSettled([
+        profileService.update({
+          firstName: form.firstName || user?.firstName,
+          lastName: form.lastName || user?.lastName,
+          email: form.email || user?.email,
+          englishLevel: newLevel,
+        }),
+        onboardingService.update({ englishLevel: newLevel }),
+      ]);
+      if (updateUser) updateUser({ englishLevel: newLevel });
+      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { englishLevel: newLevel } }));
+      toast.success(`AI Tutor Level set to ${newLevel}! 🎯`);
+    } catch {
+      toast.error("Could not update proficiency level.");
+    }
+  };
+
+  const handleSelectAgeGroup = async (newAge) => {
     const val = normalizeAgeGroup(newAge);
     setAgeGroup(val);
     localStorage.setItem("speakmate_age_group", val);
-    window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
-    window.dispatchEvent(new Event("speakmate_progress_updated"));
+    try {
+      await Promise.allSettled([
+        profileService.update({
+          firstName: form.firstName || user?.firstName,
+          lastName: form.lastName || user?.lastName,
+          email: form.email || user?.email,
+          ageGroup: val,
+        }),
+        onboardingService.update({ ageGroup: val }),
+      ]);
+      if (updateUser) updateUser({ ageGroup: val });
+      window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
+      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: val } }));
+      toast.success(`Target Persona set to ${val}! 👥`);
+    } catch {
+      toast.error("Could not update age group.");
+    }
+  };
+
+  const handleSelectSchoolGrade = async (newGrade) => {
+    setSchoolGrade(newGrade);
+    localStorage.setItem("speakmate_school_grade", newGrade);
+    try {
+      await Promise.allSettled([
+        profileService.update({
+          firstName: form.firstName || user?.firstName,
+          lastName: form.lastName || user?.lastName,
+          email: form.email || user?.email,
+          schoolGrade: newGrade,
+          englishLevel: null,
+        }),
+        onboardingService.update({ schoolGrade: newGrade, englishLevel: null }),
+      ]);
+      if (updateUser) updateUser({ schoolGrade: newGrade, englishLevel: null });
+      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { schoolGrade: newGrade } }));
+      toast.success(`School Curriculum set to ${newGrade}! 🎓`);
+    } catch {
+      toast.error("Could not update school grade.");
+    }
   };
 
   const handleSaveProfile = async (e) => {
@@ -220,8 +279,8 @@ export function Profile() {
       } else {
         localStorage.setItem("speakmate_age_group", ageGroup);
         window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup } }));
-        window.dispatchEvent(new Event("speakmate_progress_updated"));
       }
+      localStorage.setItem("speakmate_english_level", cefrLevel);
       localStorage.setItem("speakmate_daily_goal", dailyGoal.toString());
       localStorage.setItem("speakmate_accent", preferredAccent);
       localStorage.setItem("speakmate_voice_gender", preferredVoice);
@@ -229,14 +288,24 @@ export function Profile() {
 
       EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender: preferredVoice, model: activeAvatarId });
 
-      const updatedProfile = await profileService.update({
-        firstName: cleanFirstName,
-        lastName: cleanLastName,
-        email: cleanEmail,
-        nativeLanguage: form.nativeLanguage,
-        avatar: selectedAvatar,
-        ageGroup: isStudent ? undefined : ageGroup,
-      }).catch(() => null);
+      const [updatedProfile] = await Promise.all([
+        profileService.update({
+          firstName: cleanFirstName,
+          lastName: cleanLastName,
+          email: cleanEmail,
+          nativeLanguage: form.nativeLanguage,
+          avatar: selectedAvatar,
+          ageGroup: isStudent ? undefined : ageGroup,
+          englishLevel: isStudent ? undefined : cefrLevel,
+          schoolGrade: isStudent ? schoolGrade : undefined,
+        }).catch(() => null),
+        onboardingService.update({
+          ageGroup: isStudent ? undefined : ageGroup,
+          englishLevel: isStudent ? undefined : cefrLevel,
+          schoolGrade: isStudent ? schoolGrade : undefined,
+          nativeLanguage: form.nativeLanguage,
+        }).catch(() => null),
+      ]);
 
       updateUser({
         ...(updatedProfile || {}),
@@ -249,6 +318,16 @@ export function Profile() {
         ageGroup: isStudent ? null : ageGroup,
         englishLevel: isStudent ? null : cefrLevel,
       });
+
+      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", {
+        detail: {
+          firstName: cleanFirstName,
+          lastName: cleanLastName,
+          ageGroup: isStudent ? null : ageGroup,
+          englishLevel: isStudent ? null : cefrLevel,
+          schoolGrade: isStudent ? schoolGrade : null,
+        }
+      }));
 
       setSaved(true);
       toast.success("Profile preferences updated successfully!");
@@ -583,58 +662,126 @@ export function Profile() {
                 </div>
               </div>
 
-              <div>
-                {isStudent ? (
-                  <>
-                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
-                      Configured School Standard Grade
-                    </label>
-                    <select
-                      value={schoolGrade}
-                      onChange={(e) => setSchoolGrade(e.target.value)}
-                      className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
-                    >
-                      {SCHOOL_GRADES.map((g) => (
-                        <option key={g} value={g}>🎓 {g} Standard</option>
-                      ))}
-                    </select>
-                  </>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Dynamic Curriculum & Proficiency Settings based on Student vs Individual */}
+              {isStudent ? (
+                <div className="space-y-3 p-5 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                  <div>
+                    <h3 className="text-sm font-black text-[var(--text-primary)] flex items-center gap-2">
+                      <span>🏫</span> School Curriculum Grade
+                    </h3>
+                    <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                      Select your current school standard for personalized syllabus & tests
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {SCHOOL_GRADES.map((grade) => {
+                      const active = (schoolGrade || "").toLowerCase() === grade.toLowerCase();
+                      return (
+                        <button
+                          key={grade}
+                          type="button"
+                          onClick={() => handleSelectSchoolGrade(grade)}
+                          className={`px-3.5 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer border active:scale-95 ${
+                            active
+                              ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/25"
+                              : "bg-[var(--bg-surface)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
+                          }`}
+                        >
+                          🎓 {grade}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  {/* AI Tutor English Level (Matching Mobile App) */}
+                  <div className="p-5 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3">
                     <div>
-                      <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
-                        Target Persona Age Profile
-                      </label>
-                      <select
-                        value={ageGroup}
-                        onChange={(e) => handleAgeGroupChange(e.target.value)}
-                        className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
-                      >
-                        {AGE_OPTIONS.map((opt) => (
-                          <option key={opt.code} value={opt.code}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
+                      <h3 className="text-sm font-black text-[var(--text-primary)] flex items-center gap-2">
+                        <span>👤</span> AI Tutor English Level
+                      </h3>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                        Controls speaking & chat response complexity
+                      </p>
                     </div>
 
-                    <div>
-                      <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">
-                        Configured English Proficiency Level
-                      </label>
-                      <select
-                        value={cefrLevel}
-                        onChange={(e) => setCefrLevel(e.target.value)}
-                        className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
-                      >
-                        {ENGLISH_LEVELS.map((lvl) => (
-                          <option key={lvl} value={lvl}>👤 {lvl}</option>
-                        ))}
-                      </select>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                      {[
+                        { level: "Beginner", icon: "🌱", desc: "Simple words & basic sentence structures" },
+                        { level: "Intermediate", icon: "🚀", desc: "Fluent conversations & daily situations" },
+                        { level: "Advanced", icon: "👑", desc: "Complex vocabulary & executive tone" },
+                      ].map((item) => {
+                        const active = (cefrLevel || "").toLowerCase().includes(item.level.toLowerCase());
+                        return (
+                          <button
+                            key={item.level}
+                            type="button"
+                            onClick={() => handleSelectProficiencyLevel(item.level)}
+                            className={`p-4 rounded-2xl text-left border transition-all cursor-pointer active:scale-95 ${
+                              active
+                                ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30"
+                                : "bg-[var(--bg-surface)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-lg">{item.icon}</span>
+                              {active && <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/20 text-white">Active</span>}
+                            </div>
+                            <h4 className={`text-sm font-black mt-2 ${active ? "text-white" : "text-[var(--text-primary)]"}`}>
+                              {item.level}
+                            </h4>
+                            <p className={`text-[11px] font-medium mt-0.5 leading-relaxed ${active ? "text-white/80" : "text-[var(--text-secondary)]"}`}>
+                              {item.desc}
+                            </p>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
-                )}
-              </div>
+
+                  {/* Target Persona Age Group (Matching Mobile App) */}
+                  <div className="p-5 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3">
+                    <div>
+                      <h3 className="text-sm font-black text-[var(--text-primary)] flex items-center gap-2">
+                        <span>👥</span> Target Persona Age Group
+                      </h3>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                        Curates scenarios, speaking cards, and conversation context to your profile
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
+                      {AGE_OPTIONS.map((opt) => {
+                        const active = (ageGroup || "").toLowerCase() === opt.code.toLowerCase();
+                        return (
+                          <button
+                            key={opt.code}
+                            type="button"
+                            onClick={() => handleSelectAgeGroup(opt.code)}
+                            className={`p-4 rounded-2xl text-left border transition-all cursor-pointer active:scale-95 ${
+                              active
+                                ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30"
+                                : "bg-[var(--bg-surface)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="text-lg">{opt.icon || "👤"}</span>
+                              {active && <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/20 text-white">Selected</span>}
+                            </div>
+                            <h4 className={`text-sm font-black mt-2 ${active ? "text-white" : "text-[var(--text-primary)]"}`}>
+                              {opt.label}
+                            </h4>
+                            <p className={`text-[11px] font-medium mt-0.5 leading-relaxed ${active ? "text-white/80" : "text-[var(--text-secondary)]"}`}>
+                              {opt.desc}
+                            </p>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
                 <button
