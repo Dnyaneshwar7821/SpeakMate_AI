@@ -535,7 +535,99 @@ export function Profile() {
       {/* TAB 1: GENERAL PROFILE DETAILS */}
       {activeTab === "general" && (
         <div className="space-y-6">
-          {/* ── AI Speaking Tutor Persona Card (Universal Catalog) ── */}
+          {/* ── SECTION 1: AI TUTOR ENGLISH LEVEL (OR SCHOOL GRADE FOR STUDENTS) ── */}
+          {isStudent ? (
+            <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
+                    <span>🏫</span> School Curriculum Grade
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
+                    Select your current school standard for personalized tests & syllabus
+                  </p>
+                </div>
+                <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
+                  Syllabus Sync Active 📚
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                {SCHOOL_GRADES.map((grade) => {
+                  const active = (schoolGrade || "").toLowerCase() === grade.toLowerCase();
+                  return (
+                    <button
+                      key={grade}
+                      type="button"
+                      onClick={() => handleSelectSchoolGrade(grade)}
+                      className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer border active:scale-95 ${
+                        active
+                          ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/25"
+                          : "bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
+                      }`}
+                    >
+                      🎓 {grade}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
+                    <span>👤</span> AI Tutor English Level
+                  </h2>
+                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
+                    Controls speaking & chat response complexity
+                  </p>
+                </div>
+                <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
+                  Live Speaking Adaptation 🎯
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+                {[
+                  { level: "Beginner", icon: "🌱", desc: "Simple words & basic sentence structures" },
+                  { level: "Intermediate", icon: "🚀", desc: "Fluent conversations & daily situations" },
+                  { level: "Advanced", icon: "👑", desc: "Complex vocabulary & executive tone" },
+                ].map((item) => {
+                  const active = (cefrLevel || "").toLowerCase().includes(item.level.toLowerCase());
+                  return (
+                    <button
+                      key={item.level}
+                      type="button"
+                      onClick={() => handleSelectProficiencyLevel(item.level)}
+                      className={`p-5 rounded-3xl text-left border transition-all cursor-pointer active:scale-95 group overflow-hidden ${
+                        active
+                          ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30"
+                          : "bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-2xl">{item.icon}</span>
+                        {active && (
+                          <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-white/20 text-white shadow-sm">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <h4 className={`text-base font-black mt-3 ${active ? "text-white" : "text-[var(--text-primary)]"}`}>
+                        {item.level}
+                      </h4>
+                      <p className={`text-xs font-medium mt-1 leading-relaxed ${active ? "text-white/85" : "text-[var(--text-secondary)]"}`}>
+                        {item.desc}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ── SECTION 2: AI SPEAKING TUTOR PERSONA CARD (UNIVERSAL CATALOG) ── */}
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
               <div>
@@ -605,12 +697,12 @@ export function Profile() {
             </div>
           </div>
 
-          {/* Personal Information Card */}
+          {/* ── SECTION 3: PERSONAL INFORMATION CARD ── */}
           <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
             <div>
               <h2 className="text-xl font-black text-[var(--text-primary)]">Personal Details</h2>
               <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
-                Manage your personal identity, contact email, and standard level.
+                Manage your personal identity, contact email, and native language.
               </p>
             </div>
 
@@ -661,86 +753,6 @@ export function Profile() {
                   />
                 </div>
               </div>
-
-              {/* Dynamic Curriculum & Proficiency Settings based on Student vs Individual */}
-              {isStudent ? (
-                <div className="space-y-3 p-5 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
-                  <div>
-                    <h3 className="text-sm font-black text-[var(--text-primary)] flex items-center gap-2">
-                      <span>🏫</span> School Curriculum Grade
-                    </h3>
-                    <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                      Select your current school standard for personalized syllabus & tests
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {SCHOOL_GRADES.map((grade) => {
-                      const active = (schoolGrade || "").toLowerCase() === grade.toLowerCase();
-                      return (
-                        <button
-                          key={grade}
-                          type="button"
-                          onClick={() => handleSelectSchoolGrade(grade)}
-                          className={`px-3.5 py-2 rounded-2xl text-xs font-black transition-all cursor-pointer border active:scale-95 ${
-                            active
-                              ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/25"
-                              : "bg-[var(--bg-surface)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
-                          }`}
-                        >
-                          🎓 {grade}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  {/* AI Tutor English Level (Matching Mobile App) */}
-                  <div className="p-5 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3">
-                    <div>
-                      <h3 className="text-sm font-black text-[var(--text-primary)] flex items-center gap-2">
-                        <span>👤</span> AI Tutor English Level
-                      </h3>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                        Controls speaking & chat response complexity
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-                      {[
-                        { level: "Beginner", icon: "🌱", desc: "Simple words & basic sentence structures" },
-                        { level: "Intermediate", icon: "🚀", desc: "Fluent conversations & daily situations" },
-                        { level: "Advanced", icon: "👑", desc: "Complex vocabulary & executive tone" },
-                      ].map((item) => {
-                        const active = (cefrLevel || "").toLowerCase().includes(item.level.toLowerCase());
-                        return (
-                          <button
-                            key={item.level}
-                            type="button"
-                            onClick={() => handleSelectProficiencyLevel(item.level)}
-                            className={`p-4 rounded-2xl text-left border transition-all cursor-pointer active:scale-95 ${
-                              active
-                                ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30"
-                                : "bg-[var(--bg-surface)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="text-lg">{item.icon}</span>
-                              {active && <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-white/20 text-white">Active</span>}
-                            </div>
-                            <h4 className={`text-sm font-black mt-2 ${active ? "text-white" : "text-[var(--text-primary)]"}`}>
-                              {item.level}
-                            </h4>
-                            <p className={`text-[11px] font-medium mt-0.5 leading-relaxed ${active ? "text-white/80" : "text-[var(--text-secondary)]"}`}>
-                              {item.desc}
-                            </p>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
 
               <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
                 <button
