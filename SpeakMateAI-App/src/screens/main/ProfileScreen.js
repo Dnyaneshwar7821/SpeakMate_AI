@@ -24,6 +24,7 @@ import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
+import { AVATAR_LIST, getAvatarById } from '../../config/AvatarCatalog';
 
 const PRESET_AVATARS = ['🎓', '🦁', '🚀', '🦉', '👑', '⚡', '🦊', '🎯', '💎', '🌟', '🔥', '🏆'];
 
@@ -62,6 +63,7 @@ export default function ProfileScreen({ navigation }) {
   const [showAvatarModal, setShowAvatarModal] = useState(false);
   const [updatingLevel, setUpdatingLevel] = useState(false);
   const [tutorGender, setTutorGender] = useState('female');
+  const [selectedAvatarId, setSelectedAvatarId] = useState('haru');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState('Professional');
 
   // Delete Account Modal States
@@ -189,13 +191,10 @@ export default function ProfileScreen({ navigation }) {
         AsyncStorage.removeItem('speakmate_school_grade').catch(() => {});
       }
 
-      if (savedAvatarModel === 'robopaws' || savedGender === 'robopaws' || (savedVoice && savedVoice.toLowerCase().includes('robo'))) {
-        setTutorGender('robopaws');
-      } else if (savedAvatarModel === 'chitose' || savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'))) {
-        setTutorGender('male');
-      } else {
-        setTutorGender('female');
-      }
+      const effectiveAvatar = getAvatarById(savedAvatarModel || 'haru');
+      setSelectedAvatarId(effectiveAvatar.id);
+      setTutorGender(effectiveAvatar.gender);
+
       const effectiveAge = savedAgeGroup || profile?.ageGroup || user?.ageGroup || 'Professional';
       const effectiveGrade = isStudentUser ? (savedGrade || profile?.schoolGrade || user?.schoolGrade || '1st Std') : null;
       setSelectedAgeGroup(effectiveAge);
@@ -238,28 +237,24 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleSelectTutor = async (genderOrModel) => {
-    setTutorGender(genderOrModel);
+  const handleSelectTutor = async (avatarInput) => {
+    const entry = typeof avatarInput === 'object' ? avatarInput : getAvatarById(avatarInput);
+    const model = entry.id;
+    const gender = entry.gender;
+    const voiceCode = entry.voiceProfile;
+    const pitch = entry.defaultPitch;
+
+    setSelectedAvatarId(model);
+    setTutorGender(gender);
     try {
-      if (genderOrModel === 'robopaws') {
-        await AsyncStorage.setItem('speakmate_avatar_model', 'robopaws');
-        await AsyncStorage.setItem('speakmate_voice_gender', 'robopaws');
-        await AsyncStorage.setItem('speakmate_selected_voice', 'Robo-Paws');
-        await AsyncStorage.setItem('speakmate_ai_voice', 'Robo-Paws');
-        showToast('Tutor Updated ✓', 'success', '🤖 Robo-Paws (Kids Robot Buddy) active');
-      } else if (genderOrModel === 'male') {
-        await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
-        await AsyncStorage.setItem('speakmate_voice_gender', 'male');
-        await AsyncStorage.setItem('speakmate_selected_voice', 'US Male');
-        await AsyncStorage.setItem('speakmate_ai_voice', 'US Male');
-        showToast('Tutor Updated ✓', 'success', '👨 Chitose (Male Tutor) active');
-      } else {
-        await AsyncStorage.setItem('speakmate_avatar_model', 'haru');
-        await AsyncStorage.setItem('speakmate_voice_gender', 'female');
-        await AsyncStorage.setItem('speakmate_selected_voice', 'Default');
-        await AsyncStorage.setItem('speakmate_ai_voice', 'Default');
-        showToast('Tutor Updated ✓', 'success', '👩 Haru (Female Tutor) active');
-      }
+      await AsyncStorage.setItem('speakmate_avatar_model', model);
+      await AsyncStorage.setItem('speakmate_voice_gender', gender);
+      await AsyncStorage.setItem('speakmate_selected_voice', voiceCode);
+      await AsyncStorage.setItem('speakmate_ai_voice', voiceCode);
+      await AsyncStorage.setItem('speakmate_voice_code', voiceCode);
+      await AsyncStorage.setItem('speakmate_voice_pitch', String(pitch));
+
+      showToast('Tutor Updated ✓', 'success', `${entry.emoji} ${entry.name} (${entry.badge}) is active!`);
     } catch (e) {}
   };
 
@@ -666,102 +661,71 @@ export default function ProfileScreen({ navigation }) {
           </Card>
         )}
 
-        {/* AI Speaking Tutor Avatar Selection Card */}
+        {/* AI Speaking Tutor Avatar Selection Card - All 10 Character Avatars */}
         <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-          <View style={{ marginBottom: 12 }}>
-            <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-              🎭 AI Speaking Tutor
-            </Text>
-            <Text style={{ fontSize: 12, color: sublabelColor }}>
-              {canAccessRoboPaws
-                ? 'Select your Live2D cartoon buddy or tutor'
-                : 'Select your Live2D avatar practice tutor'}
-            </Text>
+          <View style={{ marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ flex: 1, marginRight: 8 }}>
+              <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                🎭 AI Speaking Tutor Persona
+              </Text>
+              <Text style={{ fontSize: 12, color: sublabelColor }}>
+                Choose your personalized AI speaking partner from our full character catalog.
+              </Text>
+            </View>
+            <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, backgroundColor: isDark ? '#2E224F' : '#EEF2FF', borderWidth: 1, borderColor: '#6366F1' }}>
+              <Text style={{ fontSize: 10, fontWeight: '800', color: '#6366F1' }}>10 Tutors</Text>
+            </View>
           </View>
 
-          <View style={styles.tutorCardsRow}>
-            {/* HARU (FEMALE) */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => handleSelectTutor('female')}
-              style={[
-                styles.tutorCard,
-                {
-                  backgroundColor: tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws) ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
-                  borderColor: tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws) ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
-                  borderWidth: tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws) ? 2 : 1,
-                }
-              ]}
-            >
-              <Text style={styles.tutorCardEmoji}>👩</Text>
-              <Text style={[styles.tutorCardName, { color: tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws) ? '#6366F1' : labelColor }]}>
-                Haru (Female)
-              </Text>
-              <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
-                Warm & encouraging
-              </Text>
-              {(tutorGender === 'female' || (tutorGender === 'robopaws' && !canAccessRoboPaws)) && (
-                <View style={styles.tutorCheckmark}>
-                  <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {/* CHITOSE (MALE) */}
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => handleSelectTutor('male')}
-              style={[
-                styles.tutorCard,
-                {
-                  backgroundColor: tutorGender === 'male' ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
-                  borderColor: tutorGender === 'male' ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
-                  borderWidth: tutorGender === 'male' ? 2 : 1,
-                }
-              ]}
-            >
-              <Text style={styles.tutorCardEmoji}>👨</Text>
-              <Text style={[styles.tutorCardName, { color: tutorGender === 'male' ? '#6366F1' : labelColor }]}>
-                Chitose (Male)
-              </Text>
-              <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
-                Confident & supportive
-              </Text>
-              {tutorGender === 'male' && (
-                <View style={styles.tutorCheckmark}>
-                  <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
-                </View>
-              )}
-            </TouchableOpacity>
-
-            {/* ROBO-PAWS (CARTOON ROBOT CAT) - Only for Students and Kids / Teens */}
-            {canAccessRoboPaws && (
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => handleSelectTutor('robopaws')}
-                style={[
-                  styles.tutorCard,
-                  {
-                    backgroundColor: tutorGender === 'robopaws' ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
-                    borderColor: tutorGender === 'robopaws' ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
-                    borderWidth: tutorGender === 'robopaws' ? 2 : 1,
-                  }
-                ]}
-              >
-                <Text style={styles.tutorCardEmoji}>🤖</Text>
-                <Text style={[styles.tutorCardName, { color: tutorGender === 'robopaws' ? '#6366F1' : labelColor }]}>
-                  Robo-Paws
-                </Text>
-                <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
-                  Cute Robot Cat Buddy
-                </Text>
-                {tutorGender === 'robopaws' && (
-                  <View style={styles.tutorCheckmark}>
-                    <Ionicons name="checkmark-circle" size={16} color="#6366F1" />
+          <View style={styles.tutorCardsGrid}>
+            {AVATAR_LIST.map((av) => {
+              const isSelected = selectedAvatarId === av.id;
+              return (
+                <TouchableOpacity
+                  key={av.id}
+                  activeOpacity={0.85}
+                  onPress={() => handleSelectTutor(av)}
+                  style={[
+                    styles.tutorGridCard,
+                    {
+                      backgroundColor: isSelected ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
+                      borderColor: isSelected ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
+                      borderWidth: isSelected ? 2 : 1,
+                    }
+                  ]}
+                >
+                  <View style={styles.tutorCardHeader}>
+                    <Text style={styles.tutorCardEmoji}>{av.emoji}</Text>
+                    {isSelected ? (
+                      <View style={styles.tutorActiveBadge}>
+                        <Ionicons name="checkmark-circle" size={12} color="#6366F1" />
+                        <Text style={styles.tutorActiveText}>Active</Text>
+                      </View>
+                    ) : (
+                      <View style={[styles.tutorBadgePill, { backgroundColor: av.category === 'cartoon' ? (isDark ? '#083344' : '#E0F2FE') : (isDark ? '#3B0764' : '#F3E8FF') }]}>
+                        <Text style={[styles.tutorBadgeText, { color: av.category === 'cartoon' ? '#0284C7' : '#9333EA' }]} numberOfLines={1}>
+                          {av.badge}
+                        </Text>
+                      </View>
+                    )}
                   </View>
-                )}
-              </TouchableOpacity>
-            )}
+
+                  <Text style={[styles.tutorCardName, { color: isSelected ? '#6366F1' : labelColor }]} numberOfLines={1}>
+                    {av.name}
+                  </Text>
+
+                  <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
+                    {av.subtitle}
+                  </Text>
+
+                  <View style={styles.tutorVoiceRow}>
+                    <Text style={[styles.tutorVoiceLabel, { color: sublabelColor }]} numberOfLines={1}>
+                      🎙️ {av.voiceLabel}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </Card>
 
@@ -1412,37 +1376,70 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     elevation: 2,
   },
-  tutorCardsRow: {
+  tutorCardsGrid: {
     flexDirection: 'row',
-    gap: 12,
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'space-between',
   },
-  tutorCard: {
-    flex: 1,
-    padding: 14,
+  tutorGridCard: {
+    width: '48%',
+    padding: 12,
     borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
     position: 'relative',
+    marginBottom: 4,
   },
-  tutorCardEmoji: {
-    fontSize: 28,
+  tutorCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 6,
   },
+  tutorCardEmoji: {
+    fontSize: 24,
+  },
+  tutorActiveBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  tutorActiveText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#6366F1',
+  },
+  tutorBadgePill: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  tutorBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+  },
   tutorCardName: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
     marginBottom: 2,
-    textAlign: 'center',
   },
   tutorCardDesc: {
     fontSize: 10,
     fontWeight: '600',
-    textAlign: 'center',
     lineHeight: 14,
+    marginBottom: 4,
   },
-  tutorCheckmark: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+  tutorVoiceRow: {
+    marginTop: 4,
+    paddingTop: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(148, 163, 184, 0.3)',
+  },
+  tutorVoiceLabel: {
+    fontSize: 9,
+    fontWeight: '700',
   },
 });

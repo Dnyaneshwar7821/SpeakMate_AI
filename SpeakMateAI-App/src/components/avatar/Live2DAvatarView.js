@@ -6,17 +6,27 @@ const { width: DEVICE_WINDOW_WIDTH } = Dimensions.get('window');
 
 const HARU_MODEL_URL = 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json';
 const CHITOSE_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-chitose@1.0.5/assets/chitose.model.json';
+const SHIZUKU_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json';
+const KOHARU_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json';
+const HARUTO_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json';
+const MAO_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-unitychan@1.0.5/assets/unitychan.model.json';
+const WANKO_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json';
 const ROBOPAWS_MODEL_URL = 'https://cdn.jsdelivr.net/npm/live2d-widget-model-hijiki@1.0.5/assets/hijiki.model.json';
 
 const normalizeModelName = (modelName) => (modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 const isRoboPawsModel = (modelName) => {
   const norm = normalizeModelName(modelName);
-  return norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid' || norm === 'kids';
+  return norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid' || norm === 'kids' || norm.includes('motu') || norm.includes('sparky');
 };
 
 const getModelUrl = (modelName) => {
   const norm = normalizeModelName(modelName);
   if (norm === 'chitose' || norm === 'male') return CHITOSE_MODEL_URL;
+  if (norm.includes('shizuku')) return SHIZUKU_MODEL_URL;
+  if (norm.includes('koharu')) return KOHARU_MODEL_URL;
+  if (norm.includes('haruto')) return HARUTO_MODEL_URL;
+  if (norm.includes('mao') || norm.includes('unity')) return MAO_MODEL_URL;
+  if (norm.includes('wanko') || norm.includes('dog') || norm.includes('puppy')) return WANKO_MODEL_URL;
   if (isRoboPawsModel(norm)) return ROBOPAWS_MODEL_URL;
   return HARU_MODEL_URL;
 };
@@ -208,7 +218,19 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
 
     function isRoboPawsName(modelName) {
       const norm = normalizeModelName(modelName);
-      return norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid' || norm === 'kids';
+      return norm === 'robopaws' || norm === 'robocat' || norm === 'hijiki' || norm === 'robot' || norm === 'kid' || norm === 'kids' || norm.includes('motu') || norm.includes('sparky');
+    }
+
+    function getModelUrl(modelName) {
+      const norm = normalizeModelName(modelName);
+      if (norm === 'chitose' || norm === 'male') return '${CHITOSE_MODEL_URL}';
+      if (norm.includes('shizuku')) return '${SHIZUKU_MODEL_URL}';
+      if (norm.includes('koharu')) return '${KOHARU_MODEL_URL}';
+      if (norm.includes('haruto')) return '${HARUTO_MODEL_URL}';
+      if (norm.includes('mao') || norm.includes('unity')) return '${MAO_MODEL_URL}';
+      if (norm.includes('wanko') || norm.includes('dog') || norm.includes('puppy')) return '${WANKO_MODEL_URL}';
+      if (isRoboPawsName(norm)) return '${ROBOPAWS_MODEL_URL}';
+      return '${HARU_MODEL_URL}';
     }
 
     function scheduleSpokenText(text, speed = 1.0) {

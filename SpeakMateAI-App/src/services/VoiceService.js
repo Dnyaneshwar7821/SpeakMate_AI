@@ -1,6 +1,7 @@
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingVoiceService } from './OnboardingVoiceService';
+import { getAvatarById } from '../config/AvatarCatalog';
 
 export const VOICE_PROFILES = [
   { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male' },
@@ -201,18 +202,17 @@ export const VoiceService = {
   },
 
   getAvatarGender: (voiceType, onboardingVoiceStyle = 'Friendly') => {
-    const vt = (voiceType || '').toLowerCase();
+    if (!voiceType) return 'female';
+    const vt = String(voiceType).toLowerCase();
     if (vt === 'robopaws' || vt === 'robocat' || vt === 'robot') return 'robopaws';
     if (vt === 'chitose') return 'male';
     if (vt === 'haru') return 'female';
     if (vt === 'male') return 'male';
     if (vt === 'female') return 'female';
-    if (vt.includes('male') && !vt.includes('female')) {
-      return 'male';
-    }
-    if (vt.includes('female')) {
-      return 'female';
-    }
+    if (vt.includes('male') && !vt.includes('female')) return 'male';
+    if (vt.includes('female')) return 'female';
+    const avatar = getAvatarById(voiceType);
+    if (avatar && avatar.gender) return avatar.gender;
     if (OnboardingVoiceService.isSystemDefault(voiceType)) {
       const style = (onboardingVoiceStyle || 'Friendly').toLowerCase();
       if (style.includes('male') && !style.includes('female')) return 'male';
@@ -222,14 +222,8 @@ export const VoiceService = {
   },
 
   getAvatarModel: (avatarOrVoice) => {
-    const v = (avatarOrVoice || '').toLowerCase();
-    if (v === 'robopaws' || v === 'robocat' || v === 'robot' || v.includes('robo') || v.includes('paws')) {
-      return 'robopaws';
-    }
-    if (v === 'chitose' || v === 'male' || (v.includes('male') && !v.includes('female'))) {
-      return 'chitose';
-    }
-    return 'haru';
+    if (!avatarOrVoice) return 'haru';
+    return getAvatarById(avatarOrVoice).id;
   },
 
   getEffectiveGender: (resolvedVoice) => {

@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Live2DAvatarView from '../avatar/Live2DAvatarView';
+import { getAvatarById } from '../../config/AvatarCatalog';
 
 const BAR_COUNT = 5;
 
@@ -138,17 +139,8 @@ export default function AIAvatar({
   showOnlyPill = false,
   forceStatic = false,
 }) {
-  const normGender    = String(gender).trim().toLowerCase();
-  let targetModel     = model;
-  if (!targetModel) {
-    if (normGender === 'robopaws' || normGender === 'robocat' || normGender === 'robot' || normGender === 'kids') {
-      targetModel = 'robopaws';
-    } else if (normGender === 'male' || normGender === 'chitose') {
-      targetModel = 'chitose';
-    } else {
-      targetModel = 'haru';
-    }
-  }
+  const avatarObj = getAvatarById(model || gender);
+  const targetModel = avatarObj.id;
   const resolvedState = isSpeaking ? 'speaking' : state;
   const config        = STATE_CONFIG[resolvedState] || STATE_CONFIG.idle;
   const isHappy       = expression === 'happy' || expression === 'encouraging';

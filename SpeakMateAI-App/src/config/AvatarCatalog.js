@@ -1,6 +1,6 @@
 /**
- * SpeakMate AI Master Avatar Catalog (Mobile React Native)
- * Shared registry for all verified, high-quality AI speaking tutor avatars.
+ * SpeakMate AI Mobile Master Avatar Catalog
+ * Central registry for all 10 verified AI speaking tutor avatars across Web and Mobile.
  */
 
 export const AVATAR_CATALOG = {
@@ -51,7 +51,7 @@ export const AVATAR_CATALOG = {
     modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json',
   },
 
-  // ── 2. Kids & Students Cartoon Avatars (Unique Live2D & 2D Models) ──
+  // ── 2. Kids & Students Cartoon Avatars ──
   robopaws: {
     id: 'robopaws',
     name: 'Robo-Paws',
@@ -107,7 +107,7 @@ export const AVATAR_CATALOG = {
     category: 'cartoon',
     badge: 'Cartoon Schoolgirl',
     emoji: '🎀',
-    subtitle: 'Cheerful schoolgirl with twin hair buns',
+    subtitle: 'Cheerful, sweet schoolgirl with twin hair buns',
     description: 'Loves celebrating streaks, storytelling, and building everyday speaking confidence.',
     voiceProfile: 'Default',
     voiceLabel: 'Youth Female Voice',
@@ -164,35 +164,20 @@ export const AVATAR_CATALOG = {
 
 export const AVATAR_LIST = Object.values(AVATAR_CATALOG);
 
+/**
+ * Get catalog entry by ID with safe fallback to Haru
+ */
 export function getAvatarById(id) {
   if (!id) return AVATAR_CATALOG.haru;
   const key = String(id).toLowerCase().replace(/[^a-z0-9]/g, '');
-  if (key.includes('motu') || key.includes('patlu')) {
-    return AVATAR_CATALOG.motu;
-  }
-  if (key.includes('robo') || key.includes('paws') || key.includes('doraemon')) {
-    return AVATAR_CATALOG.robopaws;
-  }
-  if (key.includes('sparky') || key.includes('hero') || key.includes('superhero') || key.includes('hibiki')) {
-    return AVATAR_CATALOG.sparky;
-  }
-  if (key.includes('chitose') || key === 'male') {
-    return AVATAR_CATALOG.chitose;
-  }
-  if (key.includes('shizuku')) {
-    return AVATAR_CATALOG.shizuku;
-  }
-  if (key.includes('koharu')) {
-    return AVATAR_CATALOG.koharu;
-  }
-  if (key.includes('haruto')) {
-    return AVATAR_CATALOG.haruto;
-  }
-  if (key.includes('mao') || key.includes('unity')) {
-    return AVATAR_CATALOG.mao;
-  }
-  if (key.includes('wanko') || key.includes('dog') || key.includes('puppy')) {
-    return AVATAR_CATALOG.wanko;
-  }
+  if (key.includes('motu') || key.includes('patlu')) return AVATAR_CATALOG.motu;
+  if (key.includes('robo') || key.includes('paws') || key.includes('doraemon') || key.includes('hijiki')) return AVATAR_CATALOG.robopaws;
+  if (key.includes('sparky') || key.includes('hero') || key.includes('superhero')) return AVATAR_CATALOG.sparky;
+  if (key.includes('chitose') || key === 'male') return AVATAR_CATALOG.chitose;
+  if (key.includes('shizuku')) return AVATAR_CATALOG.shizuku;
+  if (key.includes('koharu')) return AVATAR_CATALOG.koharu;
+  if (key.includes('haruto')) return AVATAR_CATALOG.haruto;
+  if (key.includes('mao') || key.includes('unity')) return AVATAR_CATALOG.mao;
+  if (key.includes('wanko') || key.includes('dog') || key.includes('puppy')) return AVATAR_CATALOG.wanko;
   return AVATAR_CATALOG[key] || AVATAR_CATALOG.haru;
 }

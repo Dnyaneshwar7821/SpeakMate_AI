@@ -32,6 +32,7 @@ import { speechService, speakingService, settingsService, profileService } from 
 import { COLORS } from '../../constants/colors';
 import { VoiceService } from '../../services/VoiceService';
 import AIAvatar from '../../components/common/AIAvatar';
+import { getAvatarById } from '../../config/AvatarCatalog';
 import JumpingDotsIndicator from '../../components/common/JumpingDotsIndicator';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
 
@@ -317,31 +318,8 @@ export default function ConversationScreen({ navigation, route }) {
         const isKids = Boolean(
           (savedAgeGroup && savedAgeGroup.toLowerCase() === 'kids') ||
           (savedGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(savedGrade.toLowerCase()))
-        );
-
-        const isMaleSelected = Boolean(
-          savedAvatarModel === 'chitose' ||
-          savedGender === 'male' ||
-          (rawVoice && rawVoice.toLowerCase().includes('male')) ||
-          (savedVoice && savedVoice.toLowerCase().includes('male'))
-        );
-        const isRoboPawsSelected = Boolean(
-          savedAvatarModel === 'robopaws' ||
-          savedGender === 'robopaws' ||
-          (rawVoice && rawVoice.toLowerCase().includes('robo'))
-        );
-
-        let resolvedModel = 'haru';
-        if (isRoboPawsSelected || savedAvatarModel === 'robopaws') {
-          resolvedModel = 'robopaws';
-        } else if (isMaleSelected || savedAvatarModel === 'chitose') {
-          resolvedModel = 'chitose';
-        } else if (isKids && !savedAvatarModel && !savedGender) {
-          resolvedModel = 'robopaws';
-        } else {
-          resolvedModel = 'haru';
-        }
-        setSelectedAvatarModel(resolvedModel);
+        const resolvedAvatar = getAvatarById(savedAvatarModel || (isKids ? 'robopaws' : 'haru'));
+        setSelectedAvatarModel(resolvedAvatar.id);
         if (savedGrade) {
           setChatLevel(savedGrade);
         } else if (profile && profile.englishLevel) {
@@ -1181,7 +1159,7 @@ export default function ConversationScreen({ navigation, route }) {
         <View style={styles.avatarContainer}>
           <AIAvatar
             model={selectedAvatarModel}
-            gender={selectedAvatarModel === 'chitose' ? 'male' : selectedAvatarModel === 'robopaws' ? 'robopaws' : 'female'}
+            gender={getAvatarById(selectedAvatarModel).gender}
             isSpeaking={isSpeaking && !isPaused}
             spokenText={currentSpokenText}
             speechSpeed={speechSpeed}
