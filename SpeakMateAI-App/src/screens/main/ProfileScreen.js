@@ -14,6 +14,7 @@ import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
+import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppButton, AppInput, Card, Screen, StateView } from '../../components/ui';
 import { AuthContext } from '../../context/AuthContext';
@@ -65,6 +66,25 @@ export default function ProfileScreen({ navigation }) {
   const [tutorGender, setTutorGender] = useState('female');
   const [selectedAvatarId, setSelectedAvatarId] = useState('haru');
   const [selectedAgeGroup, setSelectedAgeGroup] = useState('Professional');
+  const [showTutorModal, setShowTutorModal] = useState(false);
+  const [playingTutorId, setPlayingTutorId] = useState(null);
+
+  const playAvatarPreview = async (avatarInput) => {
+    const entry = typeof avatarInput === 'object' ? avatarInput : getAvatarById(avatarInput);
+    setPlayingTutorId(entry.id);
+    try {
+      await Speech.stop();
+      const greeting = `Hello! I'm ${entry.name}, your AI speaking coach. Let's practice speaking English together!`;
+      Speech.speak(greeting, {
+        rate: 1.0,
+        pitch: entry.defaultPitch || 1.0,
+        onDone: () => setPlayingTutorId(null),
+        onError: () => setPlayingTutorId(null),
+      });
+    } catch (e) {
+      setPlayingTutorId(null);
+    }
+  };
 
   // Delete Account Modal States
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -661,73 +681,74 @@ export default function ProfileScreen({ navigation }) {
           </Card>
         )}
 
-        {/* AI Speaking Tutor Avatar Selection Card - All 10 Character Avatars */}
-        <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-          <View style={{ marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                🎭 AI Speaking Tutor Persona
-              </Text>
-              <Text style={{ fontSize: 12, color: sublabelColor }}>
-                Choose your personalized AI speaking partner from our full character catalog.
-              </Text>
-            </View>
-            <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, backgroundColor: isDark ? '#2E224F' : '#EEF2FF', borderWidth: 1, borderColor: '#6366F1' }}>
-              <Text style={{ fontSize: 10, fontWeight: '800', color: '#6366F1' }}>10 Tutors</Text>
-            </View>
-          </View>
+        {/* AI Speaking Tutor Avatar Active Card */}
+        {(() => {
+          const activeTutor = getAvatarById(selectedAvatarId);
+          const isSpeakingActive = playingTutorId === activeTutor.id;
+          return (
+            <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
+              <View style={{ marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ flex: 1, marginRight: 8 }}>
+                  <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                    🎭 Active AI Speaking Tutor
+                  </Text>
+                  <Text style={{ fontSize: 12, color: sublabelColor }}>
+                    Your personalized AI speaking partner
+                  </Text>
+                </View>
+                <View style={{ paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, backgroundColor: isDark ? '#2E224F' : '#EEF2FF', borderWidth: 1, borderColor: '#6366F1' }}>
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#6366F1' }}>Auto-Synced</Text>
+                </View>
+              </View>
 
-          <View style={styles.tutorCardsGrid}>
-            {AVATAR_LIST.map((av) => {
-              const isSelected = selectedAvatarId === av.id;
-              return (
-                <TouchableOpacity
-                  key={av.id}
-                  activeOpacity={0.85}
-                  onPress={() => handleSelectTutor(av)}
-                  style={[
-                    styles.tutorGridCard,
-                    {
-                      backgroundColor: isSelected ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#334155' : '#F8FAFC'),
-                      borderColor: isSelected ? '#6366F1' : (isDark ? '#475569' : '#E2E8F0'),
-                      borderWidth: isSelected ? 2 : 1,
-                    }
-                  ]}
-                >
-                  <View style={styles.tutorCardHeader}>
-                    <Text style={styles.tutorCardEmoji}>{av.emoji}</Text>
-                    {isSelected ? (
-                      <View style={styles.tutorActiveBadge}>
-                        <Ionicons name="checkmark-circle" size={12} color="#6366F1" />
-                        <Text style={styles.tutorActiveText}>Active</Text>
-                      </View>
-                    ) : (
-                      <View style={[styles.tutorBadgePill, { backgroundColor: av.category === 'cartoon' ? (isDark ? '#083344' : '#E0F2FE') : (isDark ? '#3B0764' : '#F3E8FF') }]}>
-                        <Text style={[styles.tutorBadgeText, { color: av.category === 'cartoon' ? '#0284C7' : '#9333EA' }]} numberOfLines={1}>
-                          {av.badge}
+              <View style={[styles.activeTutorHighlightCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
+                <View style={styles.activeTutorLeft}>
+                  <View style={styles.activeTutorEmojiBox}>
+                    <Text style={{ fontSize: 32 }}>{activeTutor.emoji}</Text>
+                  </View>
+                  <View style={{ flex: 1, marginLeft: 12 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                      <Text style={[styles.activeTutorName, { color: labelColor }]}>{activeTutor.name}</Text>
+                      <View style={[styles.tutorBadgePill, { backgroundColor: activeTutor.category === 'cartoon' ? (isDark ? '#083344' : '#E0F2FE') : (isDark ? '#3B0764' : '#F3E8FF') }]}>
+                        <Text style={[styles.tutorBadgeText, { color: activeTutor.category === 'cartoon' ? '#0284C7' : '#9333EA' }]}>
+                          {activeTutor.badge}
                         </Text>
                       </View>
-                    )}
-                  </View>
-
-                  <Text style={[styles.tutorCardName, { color: isSelected ? '#6366F1' : labelColor }]} numberOfLines={1}>
-                    {av.name}
-                  </Text>
-
-                  <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
-                    {av.subtitle}
-                  </Text>
-
-                  <View style={styles.tutorVoiceRow}>
-                    <Text style={[styles.tutorVoiceLabel, { color: sublabelColor }]} numberOfLines={1}>
-                      🎙️ {av.voiceLabel}
+                    </View>
+                    <Text style={[styles.activeTutorSubtitle, { color: sublabelColor }]} numberOfLines={1}>
+                      {activeTutor.subtitle}
+                    </Text>
+                    <Text style={[styles.activeTutorVoiceText, { color: COLORS.primary }]} numberOfLines={1}>
+                      🎙️ {activeTutor.voiceLabel}
                     </Text>
                   </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </Card>
+                </View>
+
+                <View style={styles.activeTutorBtnRow}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => playAvatarPreview(activeTutor)}
+                    style={[styles.activeTutorTestBtn, { borderColor: isDark ? '#475569' : '#CBD5E1', backgroundColor: isDark ? '#334155' : '#FFFFFF' }]}
+                  >
+                    <Ionicons name={isSpeakingActive ? "volume-high" : "play"} size={14} color={COLORS.primary} />
+                    <Text style={[styles.activeTutorTestBtnText, { color: COLORS.primary }]}>
+                      {isSpeakingActive ? 'Playing...' : 'Test Voice'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => setShowTutorModal(true)}
+                    style={styles.activeTutorChooseBtn}
+                  >
+                    <Ionicons name="people" size={14} color="#FFFFFF" />
+                    <Text style={styles.activeTutorChooseBtnText}>Choose Avatar (10)</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </Card>
+          );
+        })()}
 
         {/* Edit Info Form - Modern layout with full fields */}
         <Card style={{ backgroundColor: cardBg }}>
@@ -1016,6 +1037,101 @@ export default function ProfileScreen({ navigation }) {
                 </TouchableOpacity>
               ))}
             </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── 10 AI AVATAR TUTORS SELECTION POPUP MODAL ── */}
+      <Modal
+        visible={showTutorModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowTutorModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: cardBg }]}>
+            <View style={[styles.modalHeader, { justifyContent: 'space-between' }]}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                  Choose AI Speaking Tutor 🎭
+                </Text>
+                <Text style={{ fontSize: 12, color: sublabelColor }}>
+                  Select your tutor — tap <strong>Test Voice</strong> to preview audio!
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowTutorModal(false)}
+                style={{ padding: 4 }}
+              >
+                <Ionicons name="close-circle" size={26} color={sublabelColor} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
+              <View style={styles.modalTutorGrid}>
+                {AVATAR_LIST.map((av) => {
+                  const isSelected = selectedAvatarId === av.id;
+                  const isSpeakingThis = playingTutorId === av.id;
+                  return (
+                    <TouchableOpacity
+                      key={av.id}
+                      activeOpacity={0.8}
+                      onPress={() => {
+                        handleSelectTutor(av);
+                        playAvatarPreview(av);
+                        setShowTutorModal(false);
+                      }}
+                      style={[
+                        styles.modalTutorCard,
+                        {
+                          backgroundColor: isSelected ? (isDark ? '#2E224F' : '#EEF2FF') : (isDark ? '#1E293B' : '#F8FAFC'),
+                          borderColor: isSelected ? '#6366F1' : (isDark ? '#334155' : '#E2E8F0'),
+                          borderWidth: isSelected ? 2 : 1,
+                        }
+                      ]}
+                    >
+                      <View style={styles.tutorCardHeader}>
+                        <Text style={styles.tutorCardEmoji}>{av.emoji}</Text>
+                        {isSelected ? (
+                          <View style={styles.tutorActiveBadge}>
+                            <Ionicons name="checkmark-circle" size={12} color="#6366F1" />
+                            <Text style={styles.tutorActiveText}>Active</Text>
+                          </View>
+                        ) : (
+                          <View style={[styles.tutorBadgePill, { backgroundColor: av.category === 'cartoon' ? (isDark ? '#083344' : '#E0F2FE') : (isDark ? '#3B0764' : '#F3E8FF') }]}>
+                            <Text style={[styles.tutorBadgeText, { color: av.category === 'cartoon' ? '#0284C7' : '#9333EA' }]} numberOfLines={1}>
+                              {av.badge}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <Text style={[styles.tutorCardName, { color: isSelected ? '#6366F1' : labelColor }]} numberOfLines={1}>
+                        {av.name}
+                      </Text>
+                      <Text style={[styles.tutorCardDesc, { color: sublabelColor }]} numberOfLines={2}>
+                        {av.subtitle}
+                      </Text>
+
+                      <View style={styles.modalTutorBottomRow}>
+                        <Text style={[styles.tutorVoiceLabel, { color: sublabelColor, flex: 1 }]} numberOfLines={1}>
+                          🎙️ {av.voiceLabel}
+                        </Text>
+                        <TouchableOpacity
+                          activeOpacity={0.7}
+                          onPress={() => playAvatarPreview(av)}
+                          style={[styles.modalTutorTestBtn, { borderColor: isDark ? '#475569' : '#CBD5E1', backgroundColor: isDark ? '#334155' : '#FFFFFF' }]}
+                        >
+                          <Text style={[styles.modalTutorTestText, { color: COLORS.primary }]}>
+                            {isSpeakingThis ? '🔊' : '▶ Test'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -1376,18 +1492,107 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     elevation: 2,
   },
-  tutorCardsGrid: {
+  activeTutorHighlightCard: {
+    padding: 14,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  activeTutorLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activeTutorEmojiBox: {
+    width: 58,
+    height: 58,
+    borderRadius: 18,
+    backgroundColor: '#6366F1',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeTutorName: {
+    fontSize: 16,
+    fontWeight: '900',
+  },
+  activeTutorSubtitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  activeTutorVoiceText: {
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 2,
+  },
+  activeTutorBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(148, 163, 184, 0.3)',
+  },
+  activeTutorTestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  activeTutorTestBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  activeTutorChooseBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#6366F1',
+  },
+  activeTutorChooseBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  modalTutorGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
     justifyContent: 'space-between',
+    paddingVertical: 6,
   },
-  tutorGridCard: {
+  modalTutorCard: {
     width: '48%',
     padding: 12,
     borderRadius: 18,
-    position: 'relative',
     marginBottom: 4,
+  },
+  modalTutorBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 6,
+    marginTop: 6,
+    paddingTop: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(148, 163, 184, 0.3)',
+  },
+  modalTutorTestBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  modalTutorTestText: {
+    fontSize: 10,
+    fontWeight: '800',
   },
   tutorCardHeader: {
     flexDirection: 'row',
@@ -1431,12 +1636,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     lineHeight: 14,
     marginBottom: 4,
-  },
-  tutorVoiceRow: {
-    marginTop: 4,
-    paddingTop: 4,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(148, 163, 184, 0.3)',
   },
   tutorVoiceLabel: {
     fontSize: 9,

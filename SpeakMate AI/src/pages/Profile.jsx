@@ -124,6 +124,8 @@ export function Profile() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [subInfo, setSubInfo] = useState(null);
+  const [showTutorModal, setShowTutorModal] = useState(false);
+  const [playingTutor, setPlayingTutor] = useState(null);
 
   // Delete account state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -173,6 +175,22 @@ export function Profile() {
       .then((sub) => setSubInfo(sub))
       .catch(() => {});
   }, [user]);
+
+  const playAvatarPreview = (av) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      toast.info(`Switched voice to ${av.name}`);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    setPlayingTutor(av.id);
+    const greetingText = `Hello! I'm ${av.name}, your AI speaking coach. Let's practice English together!`;
+    const utterance = new SpeechSynthesisUtterance(greetingText);
+    utterance.pitch = av.defaultPitch || 1.0;
+    utterance.rate = 1.0;
+    utterance.onend = () => setPlayingTutor(null);
+    utterance.onerror = () => setPlayingTutor(null);
+    window.speechSynthesis.speak(utterance);
+  };
 
   const handleSelectTutor = (avatarInput) => {
     const entry = typeof avatarInput === "object" ? avatarInput : getAvatarById(avatarInput);
@@ -627,15 +645,15 @@ export function Profile() {
             </div>
           )}
 
-          {/* ── SECTION 2: AI SPEAKING TUTOR PERSONA CARD (UNIVERSAL CATALOG) ── */}
+          {/* ── SECTION 2: ACTIVE AI SPEAKING TUTOR SUMMARY CARD WITH POPUP MODAL ── */}
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
               <div>
                 <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
-                  <span>🎭</span> AI Speaking Tutor Persona
+                  <span>🎭</span> Active AI Speaking Tutor Persona
                 </h2>
                 <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
-                  Choose your personalized AI speaking partner from our full Live2D & 2.5D tutor catalog.
+                  Your personalized AI speaking partner from our full character catalog.
                 </p>
               </div>
               <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
@@ -643,58 +661,52 @@ export function Profile() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {AVATAR_LIST.map((av) => {
-                const isSelected = activeAvatarId === av.id;
-                return (
-                  <button
-                    key={av.id}
-                    type="button"
-                    onClick={() => handleSelectTutor(av)}
-                    className={`relative p-5 rounded-3xl border text-left transition-all cursor-pointer active:scale-95 group overflow-hidden ${
-                      isSelected
-                        ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 to-[#8B5CF6]/10 text-[#6C63FF] shadow-lg shadow-[#6C63FF]/15 ring-2 ring-[#6C63FF]/30"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 text-[var(--text-primary)]"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] grid place-items-center text-3xl shadow-inner shrink-0 group-hover:scale-105 transition-transform">
-                        {av.emoji}
-                      </div>
-                      {isSelected && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
-                          ✓ Active
-                        </span>
-                      )}
+            {/* Active Selected Tutor Highlight Card */}
+            {(() => {
+              const activeTutorObj = getAvatarById(activeAvatarId);
+              return (
+                <div className="p-6 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] shadow-inner flex flex-col sm:flex-row items-center justify-between gap-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#FF6584] text-white grid place-items-center text-3xl shadow-lg shrink-0">
+                      {activeTutorObj.emoji}
                     </div>
-                    <div className="mt-4 space-y-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <h3 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
-                          {av.name}
-                        </h3>
-                        <span
-                          className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                            av.category === "cartoon"
-                              ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
-                              : "bg-purple-500/15 text-purple-400 border-purple-500/30"
-                          }`}
-                        >
-                          {av.badge}
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[10px] font-black uppercase text-[#6C63FF] tracking-wider px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15">
+                          Active Selected Tutor
+                        </span>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full border bg-cyan-500/15 text-cyan-400 border-cyan-500/30">
+                          {activeTutorObj.badge}
                         </span>
                       </div>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium line-clamp-1">
-                        {av.subtitle}
+                      <h3 className="text-xl font-black text-[var(--text-primary)] mt-1">
+                        {activeTutorObj.name}
+                      </h3>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                        {activeTutorObj.subtitle} • 🎙️ {activeTutorObj.voiceLabel}
                       </p>
-                      <div className="pt-2">
-                        <span className="text-[10px] font-black px-2.5 py-1 rounded-lg bg-[var(--bg-primary)] border border-[var(--border-default)] text-[var(--text-secondary)] inline-block">
-                          🎙️ {av.voiceLabel}
-                        </span>
-                      </div>
                     </div>
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => playAvatarPreview(activeTutorObj)}
+                      className="px-4 py-3 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs font-black text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white transition-all shrink-0 active:scale-95 shadow-sm cursor-pointer"
+                    >
+                      {playingTutor === activeTutorObj.id ? "🔊 Speaking..." : "▶ Test Voice"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowTutorModal(true)}
+                      className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 text-white text-xs font-black shadow-lg shadow-[#6C63FF]/25 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                    >
+                      <span>🎭 Choose AI Avatar (10 Options)</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* ── SECTION 3: PERSONAL INFORMATION CARD ── */}
@@ -1184,6 +1196,96 @@ export function Profile() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+      {/* ── 10 AI AVATAR OPTIONS POPUP MODAL ── */}
+      {showTutorModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="max-w-4xl w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-6 max-h-[90vh] overflow-y-auto bg-[var(--bg-surface)]">
+            <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
+              <div>
+                <h3 className="font-black text-xl text-[var(--text-primary)]">Choose AI Speaking Partner 🎭</h3>
+                <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                  Select your tutor character — click <strong>Test Voice</strong> to preview their speech and personality!
+                </p>
+              </div>
+              <button
+                onClick={() => setShowTutorModal(false)}
+                className="px-3.5 py-1.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {/* AVATAR OPTIONS GRID */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {AVATAR_LIST.map((av) => {
+                const isSelected = activeAvatarId === av.id;
+                return (
+                  <div
+                    key={av.id}
+                    onClick={() => {
+                      handleSelectTutor(av);
+                      playAvatarPreview(av);
+                      setShowTutorModal(false);
+                    }}
+                    className={`p-5 rounded-3xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between group ${
+                      isSelected
+                        ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102 ring-2 ring-[#6C63FF]/30"
+                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] grid place-items-center text-3xl shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+                          {av.emoji}
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          {isSelected && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
+                              ✓ Active
+                            </span>
+                          )}
+                          <span
+                            className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
+                              av.category === "cartoon"
+                                ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                                : "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                            }`}
+                          >
+                            {av.badge}
+                          </span>
+                        </div>
+                      </div>
+
+                      <h4 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors mt-3">
+                        {av.name}
+                      </h4>
+                      <p className="text-xs text-[var(--text-secondary)] font-medium line-clamp-2 mt-0.5">
+                        {av.subtitle}
+                      </p>
+                    </div>
+
+                    <div className="pt-2 border-t border-[var(--border-default)] flex items-center justify-between gap-2">
+                      <span className="text-[10px] font-black text-[var(--text-secondary)]">
+                        🎙️ {av.voiceLabel}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          playAvatarPreview(av);
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-default)] text-[10px] font-black text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white transition-all shrink-0 cursor-pointer"
+                      >
+                        {playingTutor === av.id ? "🔊 Playing" : "▶ Test"}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}
