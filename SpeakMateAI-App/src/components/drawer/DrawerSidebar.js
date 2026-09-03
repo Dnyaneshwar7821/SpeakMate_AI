@@ -186,6 +186,7 @@ function DrawerHeader({ user, profile, progress, isLoading, isDark, topInset = 0
     ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
     : 'Learner';
 
+  const email   = profile?.email   || user?.email   || '';
   const xp      = progress?.xp ?? profile?.xp ?? user?.xp ?? 0;
   const level   = progress?.level ?? profile?.level ?? user?.level ?? 1;
   const streak  = progress?.currentStreak ?? profile?.currentStreak ?? user?.currentStreak ?? 0;
