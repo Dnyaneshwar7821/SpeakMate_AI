@@ -186,12 +186,11 @@ function DrawerHeader({ user, profile, progress, isLoading, isDark, topInset = 0
     ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
     : 'Learner';
 
-  const email   = profile?.email   || user?.email   || '';
-  const xp      = progress?.xp     || 0;
-  const level   = progress?.level  || 1;
-  const streak  = progress?.currentStreak || 0;
+  const xp      = progress?.xp ?? profile?.xp ?? user?.xp ?? 0;
+  const level   = progress?.level ?? profile?.level ?? user?.level ?? 1;
+  const streak  = progress?.currentStreak ?? profile?.currentStreak ?? user?.currentStreak ?? 0;
   const avatar  = profile?.avatar  || user?.avatar;
-  const levelProgressPct = Math.min(100, Math.max(15, (xp % 500) / 5));
+  const levelProgressPct = Math.min(100, Math.max(0, Math.round(((xp % 500) / 500) * 100)));
 
   const gradientColors = isDark
     ? ['#0F172A', '#1E1B4B', '#312E81']
