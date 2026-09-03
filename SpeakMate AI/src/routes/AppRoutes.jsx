@@ -73,6 +73,7 @@ import Pricing from "../pages/Pricing";
 import Help from "../pages/Help";
 import About from "../pages/About";
 import NotFound from "../pages/NotFound";
+import AvatarEmbed from "../pages/AvatarEmbed";
 
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
@@ -96,6 +97,9 @@ export function AppRoutes() {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
+        {/* Standalone Live2D Avatar Embed for Mobile App WebView */}
+        <Route path="/avatar-embed" element={<AvatarEmbed />} />
+
         {/* Public Marketing Landing */}
         <Route element={<AppLayout />}>
           <Route

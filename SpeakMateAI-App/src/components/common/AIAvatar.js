@@ -149,14 +149,17 @@ export default function AIAvatar({
   const [useLive2D, setUseLive2D] = useState(!forceStatic);
   const [live2dReady, setLive2dReady] = useState(false);
   const [live2dError, setLive2dError] = useState(false);
-  const [avatarEngine, setAvatarEngine] = useState('native');
+  
+  const defaultEngine = (targetModel === 'haru' || targetModel === 'chitose') ? 'live2d' : 'native';
+  const [avatarEngine, setAvatarEngine] = useState(defaultEngine);
 
   useEffect(() => {
     AsyncStorage.getItem('speakmate_avatar_engine').then((engine) => {
       if (engine === 'live2d') setAvatarEngine('live2d');
-      else setAvatarEngine('native');
+      else if (engine === 'native') setAvatarEngine('native');
+      else setAvatarEngine(defaultEngine);
     }).catch(() => {});
-  }, []);
+  }, [defaultEngine]);
 
   useEffect(() => {
     // Safety guard: guarantee spinner is dismissed within 3.5s even on slow network
@@ -339,7 +342,7 @@ export default function AIAvatar({
             },
           ]}
         >
-          {avatarEngine === 'live2d' ? (
+          {avatarEngine === 'live2d' && !live2dError ? (
             <>
               <Live2DAvatarView
                 key={targetModel}
