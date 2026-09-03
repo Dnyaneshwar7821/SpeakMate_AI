@@ -318,7 +318,7 @@ export default function ConversationChatScreen({ navigation, route }) {
         );
 
         let resolvedModel = 'haru';
-        const isCartoon = savedAvatarModel && (savedAvatarModel.includes('robo') || savedAvatarModel.includes('motu') || savedAvatarModel.includes('sparky') || savedAvatarModel.includes('wanko'));
+        const isCartoon = savedAvatarModel && getAvatarById(savedAvatarModel).category === 'cartoon';
         if (isCartoon) {
           resolvedModel = savedAvatarModel;
         } else if (isRoboPawsSelected || (isKids && !savedAvatarModel)) {

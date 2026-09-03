@@ -1,6 +1,7 @@
 /**
  * SpeakMate AI Mobile Master Avatar Catalog
- * Central registry for all 10 verified AI speaking tutor avatars across Web and Mobile.
+ * Central registry for all 10 verified native AI speaking tutor avatars.
+ * 3 Core Coaches + 7 Cartoon Companions.
  */
 
 export const AVATAR_CATALOG = {
@@ -12,46 +13,33 @@ export const AVATAR_CATALOG = {
     category: 'human',
     badge: 'Anime Coach',
     emoji: '👩',
-    subtitle: 'Warm, clear, and encouraging female coach',
+    subtitle: 'Warm, clear, and encouraging anime coach',
     description: 'Calm, patient guidance for daily conversation and foundational fluency.',
     voiceProfile: 'Default',
     voiceLabel: 'System Default Voice',
     defaultPitch: 1.05,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/haru/haru_greeter_t03.model3.json',
+    themeColor: '#EC4899', // Pink / Fuchsia
+    glowColor: 'rgba(236, 72, 153, 0.45)',
+    ringColor: '#F472B6',
   },
   chitose: {
     id: 'chitose',
     name: 'Chitose',
     gender: 'male',
     category: 'human',
-    badge: 'Pro & Business',
+    badge: 'Business Pro',
     emoji: '👨',
     subtitle: 'Confident, articulate, and supportive male coach',
     description: 'Structured English for professional interviews, presentations, and workplace chats.',
     voiceProfile: 'US Male',
     voiceLabel: 'American Male Voice',
     defaultPitch: 0.98,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-chitose@1.0.5/assets/chitose.model.json',
-  },
-  shizuku: {
-    id: 'shizuku',
-    name: 'Shizuku',
-    gender: 'female',
-    category: 'human',
-    badge: 'Academic Mentor',
-    emoji: '🌸',
-    subtitle: 'Gentle, thoughtful, and analytical mentor',
-    description: 'Specializes in grammar explanations, vocabulary enrichment, and CEFR lesson drills.',
-    voiceProfile: 'Default',
-    voiceLabel: 'Soft Female Voice',
-    defaultPitch: 1.02,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json',
+    themeColor: '#3B82F6', // Blue
+    glowColor: 'rgba(59, 130, 246, 0.45)',
+    ringColor: '#60A5FA',
   },
 
-  // ── 2. Kids & Students Cartoon Avatars ──
+  // ── 2. Kids & Students Cartoon Avatars (7 Companions + Robo-Paws) ──
   robopaws: {
     id: 'robopaws',
     name: 'Robo-Paws',
@@ -60,29 +48,29 @@ export const AVATAR_CATALOG = {
     badge: 'Doraemon Buddy',
     emoji: '🤖',
     subtitle: 'Cute Robot Cat / Doraemon-Style Mascot',
-    description: 'High-energy 2D mascot with red nose & golden bell for fun, stress-free practice.',
+    description: 'High-energy 3D mascot with red nose & golden bell for fun, stress-free practice.',
     voiceProfile: 'Robo-Paws',
     voiceLabel: 'Cute Cartoon Voice',
     defaultPitch: 1.35,
-    type: 'puppet',
-    puppetType: 'doraemon',
-    modelPath: null,
+    themeColor: '#0284C7', // Sky Blue
+    glowColor: 'rgba(2, 132, 199, 0.45)',
+    ringColor: '#38BDF8',
   },
   motu: {
     id: 'motu',
     name: 'Motu',
     gender: 'male',
     category: 'cartoon',
-    badge: 'Motu Patlu',
+    badge: 'Furfuri Friend',
     emoji: '🥟',
     subtitle: 'Jolly samosa-loving cartoon friend from Furfuri Nagar',
     description: 'Enthusiastic and funny friend! Builds everyday confidence through storytelling, laughter, and dialogues.',
     voiceProfile: 'US Male',
     voiceLabel: 'Jolly Motu Voice',
     defaultPitch: 1.15,
-    type: 'puppet',
-    puppetType: 'motu',
-    modelPath: null,
+    themeColor: '#EA580C', // Orange
+    glowColor: 'rgba(234, 88, 12, 0.45)',
+    ringColor: '#FB923C',
   },
   sparky: {
     id: 'sparky',
@@ -96,69 +84,89 @@ export const AVATAR_CATALOG = {
     voiceProfile: 'US Male',
     voiceLabel: 'Hero Kid Voice',
     defaultPitch: 1.30,
-    type: 'puppet',
-    puppetType: 'superhero',
-    modelPath: null,
-  },
-  koharu: {
-    id: 'koharu',
-    name: 'Koharu',
-    gender: 'female',
-    category: 'cartoon',
-    badge: 'Cartoon Schoolgirl',
-    emoji: '🎀',
-    subtitle: 'Cheerful, sweet schoolgirl with twin hair buns',
-    description: 'Loves celebrating streaks, storytelling, and building everyday speaking confidence.',
-    voiceProfile: 'Default',
-    voiceLabel: 'Youth Female Voice',
-    defaultPitch: 1.28,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-koharu@1.0.5/assets/koharu.model.json',
-  },
-  haruto: {
-    id: 'haruto',
-    name: 'Haruto',
-    gender: 'male',
-    category: 'cartoon',
-    badge: 'Cartoon Explorer',
-    emoji: '🧢',
-    subtitle: 'Friendly schoolboy with cap and backpack',
-    description: 'Casual chats, school dialogues, sports, gaming, and interactive vocabulary games.',
-    voiceProfile: 'US Male',
-    voiceLabel: 'Youth Male Voice',
-    defaultPitch: 1.25,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-haruto@1.0.5/assets/haruto.model.json',
-  },
-  mao: {
-    id: 'mao',
-    name: 'Mao',
-    gender: 'female',
-    category: 'cartoon',
-    badge: 'Chibi Junior',
-    emoji: '👧',
-    subtitle: 'Playful chibi tutor with big animated ribbons',
-    description: 'Great for primary school learners with repetitive phonics drills and nursery rhymes.',
-    voiceProfile: 'Default',
-    voiceLabel: 'Cute Chibi Voice',
-    defaultPitch: 1.32,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-unitychan@1.0.5/assets/unitychan.model.json',
+    themeColor: '#EF4444', // Red
+    glowColor: 'rgba(239, 68, 68, 0.45)',
+    ringColor: '#F87171',
   },
   wanko: {
     id: 'wanko',
     name: 'Wanko',
     gender: 'male',
     category: 'cartoon',
-    badge: 'Cartoon Puppy',
+    badge: 'Shiba Buddy',
     emoji: '🐶',
-    subtitle: 'Playful cartoon puppy with wagging ears & tail',
-    description: 'High encouragement, cheerful barking cheer-ups, and fun interactive conversations.',
+    subtitle: 'Playful cartoon Shiba puppy with perky ears',
+    description: 'High encouragement, cheerful ear wiggles, and interactive friendly conversations.',
     voiceProfile: 'US Male',
     voiceLabel: 'Playful Pup Voice',
+    defaultPitch: 1.30,
+    themeColor: '#D97706', // Amber
+    glowColor: 'rgba(217, 119, 6, 0.45)',
+    ringColor: '#FBBF24',
+  },
+  koharu: {
+    id: 'koharu',
+    name: 'Koharu',
+    gender: 'female',
+    category: 'cartoon',
+    badge: 'Chibi Student',
+    emoji: '🎀',
+    subtitle: 'Cheerful, sweet schoolgirl with twin ribbon buns',
+    description: 'Loves celebrating streaks, storytelling, and building everyday speaking confidence.',
+    voiceProfile: 'Default',
+    voiceLabel: 'Youth Female Voice',
+    defaultPitch: 1.28,
+    themeColor: '#F43F5E', // Rose
+    glowColor: 'rgba(244, 63, 94, 0.45)',
+    ringColor: '#FB7185',
+  },
+  haruto: {
+    id: 'haruto',
+    name: 'Haruto',
+    gender: 'male',
+    category: 'cartoon',
+    badge: 'Junior Explorer',
+    emoji: '🧢',
+    subtitle: 'Friendly schoolboy with backwards cap and headset',
+    description: 'Casual chats, school dialogues, sports, gaming, and interactive vocabulary games.',
+    voiceProfile: 'US Male',
+    voiceLabel: 'Youth Male Voice',
+    defaultPitch: 1.25,
+    themeColor: '#2563EB', // Indigo Blue
+    glowColor: 'rgba(37, 99, 235, 0.45)',
+    ringColor: '#60A5FA',
+  },
+  tororo: {
+    id: 'tororo',
+    name: 'Tororo',
+    gender: 'female',
+    category: 'cartoon',
+    badge: 'Sakura Kitty',
+    emoji: '🐱',
+    subtitle: 'Fluffy white kitten with pink bow and bell',
+    description: 'Gentle, soothing mentor for slow-paced pronunciation drills and comforting practice.',
+    voiceProfile: 'Default',
+    voiceLabel: 'Soft Kitty Voice',
     defaultPitch: 1.32,
-    type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json',
+    themeColor: '#A855F7', // Purple
+    glowColor: 'rgba(168, 85, 247, 0.45)',
+    ringColor: '#C084FC',
+  },
+  rexy: {
+    id: 'rexy',
+    name: 'Rexy',
+    gender: 'male',
+    category: 'cartoon',
+    badge: 'Baby Dinosaur',
+    emoji: '🦖',
+    subtitle: 'Playful baby green T-Rex with a friendly grin',
+    description: 'Fun-filled practice, prehistoric adventures, and high-energy vocabulary games.',
+    voiceProfile: 'US Male',
+    voiceLabel: 'Cheerful Dino Voice',
+    defaultPitch: 1.28,
+    themeColor: '#10B981', // Emerald Green
+    glowColor: 'rgba(168, 185, 129, 0.45)',
+    ringColor: '#34D399',
   },
 };
 
@@ -174,10 +182,11 @@ export function getAvatarById(id) {
   if (key.includes('robo') || key.includes('paws') || key.includes('doraemon') || key.includes('hijiki')) return AVATAR_CATALOG.robopaws;
   if (key.includes('sparky') || key.includes('hero') || key.includes('superhero')) return AVATAR_CATALOG.sparky;
   if (key.includes('chitose') || key === 'male') return AVATAR_CATALOG.chitose;
-  if (key.includes('shizuku')) return AVATAR_CATALOG.shizuku;
-  if (key.includes('koharu')) return AVATAR_CATALOG.koharu;
-  if (key.includes('haruto')) return AVATAR_CATALOG.haruto;
-  if (key.includes('mao') || key.includes('unity')) return AVATAR_CATALOG.mao;
-  if (key.includes('wanko') || key.includes('dog') || key.includes('puppy')) return AVATAR_CATALOG.wanko;
+  if (key.includes('wanko') || key.includes('dog') || key.includes('puppy') || key.includes('shiba')) return AVATAR_CATALOG.wanko;
+  if (key.includes('koharu') || key.includes('ribbon')) return AVATAR_CATALOG.koharu;
+  if (key.includes('haruto') || key.includes('cap') || key.includes('explorer')) return AVATAR_CATALOG.haruto;
+  if (key.includes('tororo') || key.includes('cat') || key.includes('kitty') || key.includes('sakura')) return AVATAR_CATALOG.tororo;
+  if (key.includes('rexy') || key.includes('dino') || key.includes('trex')) return AVATAR_CATALOG.rexy;
+  if (key.includes('shizuku') || key.includes('mao')) return AVATAR_CATALOG.koharu;
   return AVATAR_CATALOG[key] || AVATAR_CATALOG.haru;
 }

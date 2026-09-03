@@ -212,7 +212,7 @@ export default function ProfileScreen({ navigation }) {
       }
 
       let modelId = savedAvatarModel;
-      const isCartoon = modelId && (modelId.includes('robo') || modelId.includes('motu') || modelId.includes('sparky') || modelId.includes('wanko'));
+      const isCartoon = modelId && getAvatarById(modelId).category === 'cartoon';
       const isMaleVoice = savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male') && !savedVoice.toLowerCase().includes('female'));
 
       if (!isCartoon) {

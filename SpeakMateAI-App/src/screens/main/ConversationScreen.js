@@ -320,7 +320,7 @@ export default function ConversationScreen({ navigation, route }) {
           (savedGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(savedGrade.toLowerCase()))
         );
         let modelToUse = savedAvatarModel;
-        const isCartoon = modelToUse && (modelToUse.includes('robo') || modelToUse.includes('motu') || modelToUse.includes('sparky') || modelToUse.includes('wanko'));
+        const isCartoon = modelToUse && getAvatarById(modelToUse).category === 'cartoon';
         const isMaleVoice = savedGender === 'male' || (rawVoice && rawVoice.toLowerCase().includes('male') && !rawVoice.toLowerCase().includes('female'));
 
         if (!isCartoon) {

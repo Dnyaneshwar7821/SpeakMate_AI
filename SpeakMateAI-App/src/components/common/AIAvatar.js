@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Live2DAvatarView from '../avatar/Live2DAvatarView';
+import NativeAvatarView from '../avatar/NativeAvatarView';
 import { getAvatarById } from '../../config/AvatarCatalog';
 
 const BAR_COUNT = 5;
@@ -148,6 +149,14 @@ export default function AIAvatar({
   const [useLive2D, setUseLive2D] = useState(!forceStatic);
   const [live2dReady, setLive2dReady] = useState(false);
   const [live2dError, setLive2dError] = useState(false);
+  const [avatarEngine, setAvatarEngine] = useState('native');
+
+  useEffect(() => {
+    AsyncStorage.getItem('speakmate_avatar_engine').then((engine) => {
+      if (engine === 'live2d') setAvatarEngine('live2d');
+      else setAvatarEngine('native');
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     // Safety guard: guarantee spinner is dismissed within 3.5s even on slow network
@@ -330,26 +339,41 @@ export default function AIAvatar({
             },
           ]}
         >
-          <Live2DAvatarView
-            key={targetModel}
-            isSpeaking={isSpeaking}
-            spokenText={spokenText}
-            speechSpeed={speechSpeed}
-            state={resolvedState}
-            mood={isHappy ? 'happy' : 'neutral'}
-            model={targetModel}
-            style={styles.avatarCanvas}
-            onLoaded={() => setLive2dReady(true)}
-            onError={() => {
-              setLive2dError(true);
-              setLive2dReady(true);
-            }}
-          />
+          {avatarEngine === 'live2d' ? (
+            <>
+              <Live2DAvatarView
+                key={targetModel}
+                isSpeaking={isSpeaking}
+                spokenText={spokenText}
+                speechSpeed={speechSpeed}
+                state={resolvedState}
+                mood={isHappy ? 'happy' : 'neutral'}
+                model={targetModel}
+                style={styles.avatarCanvas}
+                onLoaded={() => setLive2dReady(true)}
+                onError={() => {
+                  setLive2dError(true);
+                  setLive2dReady(true);
+                }}
+              />
 
-          {!live2dReady && (
-            <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' }]}>
-              <ActivityIndicator size="small" color="#A855F7" />
-            </View>
+              {!live2dReady && (
+                <View style={[StyleSheet.absoluteFillObject, { alignItems: 'center', justifyContent: 'center', backgroundColor: 'transparent' }]}>
+                  <ActivityIndicator size="small" color="#A855F7" />
+                </View>
+              )}
+            </>
+          ) : (
+            <NativeAvatarView
+              key={targetModel}
+              isSpeaking={isSpeaking}
+              spokenText={spokenText}
+              speechSpeed={speechSpeed}
+              state={resolvedState}
+              mood={isHappy ? 'happy' : 'neutral'}
+              model={targetModel}
+              style={styles.avatarCanvas}
+            />
           )}
 
           {/* Layer 7: Smooth Chest-Line Fade into Dark Background */}
