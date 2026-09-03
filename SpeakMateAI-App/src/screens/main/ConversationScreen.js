@@ -319,7 +319,20 @@ export default function ConversationScreen({ navigation, route }) {
           (savedAgeGroup && savedAgeGroup.toLowerCase() === 'kids') ||
           (savedGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(savedGrade.toLowerCase()))
         );
-        const resolvedAvatar = getAvatarById(savedAvatarModel || (isKids ? 'robopaws' : 'haru'));
+        let modelToUse = savedAvatarModel;
+        const isCartoon = modelToUse && (modelToUse.includes('robo') || modelToUse.includes('motu') || modelToUse.includes('sparky') || modelToUse.includes('wanko'));
+        const isMaleVoice = voiceGender === 'male' || (currentVoice && currentVoice.toLowerCase().includes('male') && !currentVoice.toLowerCase().includes('female'));
+
+        if (!isCartoon) {
+          if (isKids && !savedAvatarModel) {
+            modelToUse = 'robopaws';
+          } else if (isMaleVoice) {
+            modelToUse = 'chitose';
+          } else {
+            modelToUse = 'haru';
+          }
+        }
+        const resolvedAvatar = getAvatarById(modelToUse || (isMaleVoice ? 'chitose' : 'haru'));
         setSelectedAvatarModel(resolvedAvatar.id);
         if (savedGrade) {
           setChatLevel(savedGrade);

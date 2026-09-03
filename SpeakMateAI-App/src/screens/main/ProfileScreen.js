@@ -212,18 +212,18 @@ export default function ProfileScreen({ navigation }) {
       }
 
       let modelId = savedAvatarModel;
-      const isMaleVoice = savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male'));
-      const isFemaleVoice = savedGender === 'female' || (savedVoice && (savedVoice === 'Default' || savedVoice.toLowerCase().includes('female')));
+      const isCartoon = modelId && (modelId.includes('robo') || modelId.includes('motu') || modelId.includes('sparky') || modelId.includes('wanko'));
+      const isMaleVoice = savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male') && !savedVoice.toLowerCase().includes('female'));
 
-      if (!modelId || modelId === 'haru' || modelId === 'chitose') {
+      if (!isCartoon) {
         if (isMaleVoice) {
           modelId = 'chitose';
-        } else if (isFemaleVoice) {
+        } else {
           modelId = 'haru';
         }
       }
 
-      const effectiveAvatar = getAvatarById(modelId || 'haru');
+      const effectiveAvatar = getAvatarById(modelId || (isMaleVoice ? 'chitose' : 'haru'));
       setSelectedAvatarId(effectiveAvatar.id);
       setTutorGender(effectiveAvatar.gender);
 

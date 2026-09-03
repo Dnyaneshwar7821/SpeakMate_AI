@@ -79,8 +79,8 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.8/dist/browser/pixi.min.js"></script>
   <!-- Cubism 2 Core SDK (Chitose) -->
   <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
-  <!-- Cubism 4 Core SDK (Haru) -->
-  <script src="https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/lib/live2dcubismcore.min.js"></script>
+  <!-- Cubism 4 Core SDK (Haru) - Official Live2D SDK (same as Web App) -->
+  <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
   <!-- Pixi Live2D Display (Universal Cubism 2 + 4 Bundle) -->
   <script src="https://cdn.jsdelivr.net/npm/pixi-live2d-display@0.4.0/dist/index.min.js"></script>
 </head>
@@ -150,10 +150,7 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
       }
 
       if (!window.Live2DCubismCore) {
-        await loadScript('https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/lib/live2dcubismcore.min.js');
-        if (!window.Live2DCubismCore) {
-          await loadScript('https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js');
-        }
+        await loadScript('https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js');
       }
 
       cls = getLive2DModelClass();
@@ -928,19 +925,22 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
       const lower = (currentModelName || '').toLowerCase();
       const isMale = lower.includes('chitose') || lower.includes('male');
       const nativeH = (model.internalModel && model.internalModel.height) ? model.internalModel.height : (model.height || 1000);
+      const nativeW = (model.internalModel && model.internalModel.width) ? model.internalModel.width : (model.width || 800);
 
       // Top-centered anchor & framing matching Web App
-      if (model.anchor) {
+      if (model.anchor && typeof model.anchor.set === 'function') {
         model.anchor.set(0.5, 0.0);
+      } else if (model.pivot && typeof model.pivot.set === 'function') {
+        model.pivot.set(nativeW / 2, 0);
       }
 
       // Live2D Models (Haru and Chitose)
-      const zoom = isMale ? 1.28 : 1.22;
+      const zoom = isMale ? 1.25 : 1.20;
       const baseScale = (h * zoom) / nativeH;
       model.scale.set(baseScale, baseScale);
 
       model.x = w / 2;
-      model.y = Math.max(6, h * 0.05);
+      model.y = Math.max(4, h * 0.04);
     }
 
     async function init() {
@@ -1379,7 +1379,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
-        source={{ html: htmlSource, baseUrl: 'https://cdn.jsdelivr.net' }}
+        source={{ html: htmlSource }}
         style={styles.webView}
         scrollEnabled={false}
         bounces={false}

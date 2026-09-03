@@ -318,12 +318,10 @@ export default function ConversationChatScreen({ navigation, route }) {
         );
 
         let resolvedModel = 'haru';
-        if (savedAvatarModel) {
-          const av = getAvatarById(savedAvatarModel);
-          resolvedModel = av.id;
-          if (resolvedModel === 'haru' && isMaleSelected) resolvedModel = 'chitose';
-          if (resolvedModel === 'chitose' && !isMaleSelected && !isRoboPawsSelected) resolvedModel = 'haru';
-        } else if (isRoboPawsSelected || isKids) {
+        const isCartoon = savedAvatarModel && (savedAvatarModel.includes('robo') || savedAvatarModel.includes('motu') || savedAvatarModel.includes('sparky') || savedAvatarModel.includes('wanko'));
+        if (isCartoon) {
+          resolvedModel = savedAvatarModel;
+        } else if (isRoboPawsSelected || (isKids && !savedAvatarModel)) {
           resolvedModel = 'robopaws';
         } else if (isMaleSelected) {
           resolvedModel = 'chitose';
