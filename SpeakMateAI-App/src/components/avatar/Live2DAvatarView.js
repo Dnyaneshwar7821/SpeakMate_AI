@@ -92,6 +92,26 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
       window.PIXI = PIXI;
     }
 
+    let currentModelName = '${initialName}';
+
+    function patchPixiTextureSafety() {
+      try {
+        if (window.PIXI && window.PIXI.Texture && !window.PIXI.Texture.__safePatched) {
+          window.PIXI.Texture.__safePatched = true;
+          const origDesc = Object.getOwnPropertyDescriptor(window.PIXI.Texture.prototype, 'valid');
+          if (!origDesc || origDesc.configurable) {
+            Object.defineProperty(window.PIXI.Texture.prototype, 'valid', {
+              get() {
+                return Boolean(this.baseTexture && !this.baseTexture.destroyed && (this.baseTexture.valid !== false));
+              },
+              configurable: true,
+            });
+          }
+        }
+      } catch(e) {}
+    }
+    patchPixiTextureSafety();
+
     function getLive2DModelClass() {
       if (window.PIXI && window.PIXI.live2d && window.PIXI.live2d.Live2DModel) {
         return window.PIXI.live2d.Live2DModel;
@@ -1175,8 +1195,10 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
     async function loadModel(url, modelName) {
       if (model) {
         try {
-          app.stage.removeChild(model);
-          model.destroy({ children: true, texture: true, baseTexture: true });
+          if (app && app.stage) {
+            app.stage.removeChild(model);
+          }
+          model.destroy({ children: true, texture: false, baseTexture: false });
         } catch(e) {}
         model = null;
       }
@@ -1208,8 +1230,8 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
             try {
               Live2DModelClass.registerTicker(window.PIXI.Ticker);
             } catch(e) {}
-          }
-          model = await Live2DModelClass.from(url, { autoInteract: false, crossOrigin: 'anonymous' });
+          patchPixiTextureSafety();
+          model = await Live2DModelClass.from(url, { autoInteract: false });
 
           // Hook motionManager update to guarantee lipSync overrides motion curves
           if (model && model.internalModel && model.internalModel.motionManager) {

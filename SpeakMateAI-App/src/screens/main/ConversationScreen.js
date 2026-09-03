@@ -321,7 +321,7 @@ export default function ConversationScreen({ navigation, route }) {
         );
         let modelToUse = savedAvatarModel;
         const isCartoon = modelToUse && (modelToUse.includes('robo') || modelToUse.includes('motu') || modelToUse.includes('sparky') || modelToUse.includes('wanko'));
-        const isMaleVoice = voiceGender === 'male' || (currentVoice && currentVoice.toLowerCase().includes('male') && !currentVoice.toLowerCase().includes('female'));
+        const isMaleVoice = savedGender === 'male' || (rawVoice && rawVoice.toLowerCase().includes('male') && !rawVoice.toLowerCase().includes('female'));
 
         if (!isCartoon) {
           if (isKids && !savedAvatarModel) {
