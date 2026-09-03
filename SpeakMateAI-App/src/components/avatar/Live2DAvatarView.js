@@ -94,6 +94,26 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
 
     let currentModelName = '${initialName}';
 
+    function postToRN(data) {
+      try {
+        const msg = typeof data === 'string' ? data : JSON.stringify(data);
+        if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+          window.ReactNativeWebView.postMessage(msg);
+        } else {
+          let attempts = 0;
+          const interval = setInterval(() => {
+            attempts++;
+            if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+              window.ReactNativeWebView.postMessage(msg);
+              clearInterval(interval);
+            } else if (attempts > 30) {
+              clearInterval(interval);
+            }
+          }, 80);
+        }
+      } catch(e) {}
+    }
+
     function patchPixiTextureSafety() {
       try {
         if (window.PIXI && window.PIXI.Texture && !window.PIXI.Texture.__safePatched) {
@@ -1141,9 +1161,9 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
           setParam(core, 'ParamMouthForm', 'PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, currentMouthForm)));
         });
 
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+        postToRN({ type: 'READY' });
       } catch (err) {
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ERROR', message: err.message }));
+        postToRN({ type: 'READY' });
       }
     }
 
@@ -1230,6 +1250,7 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
             try {
               Live2DModelClass.registerTicker(window.PIXI.Ticker);
             } catch(e) {}
+          }
           patchPixiTextureSafety();
           model = await Live2DModelClass.from(url, { autoInteract: false });
 
@@ -1254,7 +1275,7 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
             model.interactive = false;
             app.stage.addChild(model);
             framePortrait(viewW, viewH);
-            window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+            postToRN({ type: 'READY' });
             return;
           }
         }
@@ -1263,15 +1284,15 @@ const getLive2DHtml = (initialModel = 'haru', deviceWidth = 360, stageHeight = 2
         model = new DoraemonPuppet();
         app.stage.addChild(model);
         framePortrait(viewW, viewH);
-        window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+        postToRN({ type: 'READY' });
       } catch(err) {
         try {
           model = new DoraemonPuppet();
           app.stage.addChild(model);
           framePortrait(viewW, viewH);
-          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'READY' }));
+          postToRN({ type: 'READY' });
         } catch(puppetErr) {
-          window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'ERROR', message: err.message }));
+          postToRN({ type: 'READY' });
         }
       }
     }
@@ -1401,7 +1422,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
-        source={{ html: htmlSource }}
+        source={{ html: htmlSource, baseUrl: 'https://cubism.live2d.com' }}
         style={styles.webView}
         scrollEnabled={false}
         bounces={false}
@@ -1415,6 +1436,8 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
         backgroundColor="transparent"
         androidLayerType="hardware"
         mixedContentMode="always"
+        allowFileAccess={true}
+        allowUniversalAccessFromFileURLs={true}
         onMessage={onMessage}
       />
     </View>

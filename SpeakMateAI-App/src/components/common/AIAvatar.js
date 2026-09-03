@@ -150,6 +150,14 @@ export default function AIAvatar({
   const [live2dError, setLive2dError] = useState(false);
 
   useEffect(() => {
+    // Safety guard: guarantee spinner is dismissed within 3.5s even on slow network
+    const timer = setTimeout(() => {
+      setLive2dReady(true);
+    }, 3500);
+    return () => clearTimeout(timer);
+  }, [targetModel]);
+
+  useEffect(() => {
     AsyncStorage.getItem('speakmate_avatar_mode').then((val) => {
       if (val === 'static') setUseLive2D(false);
       else if (!forceStatic) setUseLive2D(true);
@@ -332,7 +340,10 @@ export default function AIAvatar({
             model={targetModel}
             style={styles.avatarCanvas}
             onLoaded={() => setLive2dReady(true)}
-            onError={() => setLive2dError(true)}
+            onError={() => {
+              setLive2dError(true);
+              setLive2dReady(true);
+            }}
           />
 
           {!live2dReady && (
