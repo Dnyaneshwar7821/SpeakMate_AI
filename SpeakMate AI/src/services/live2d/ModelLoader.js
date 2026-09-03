@@ -73,11 +73,13 @@ export class ModelLoader {
       if (model.anchor) {
         model.anchor.set(0.5, 0);
       }
-      const scale = (screenHeight * 1.18) / nativeHeight;
+      const isFullBody = path && (path.toLowerCase().includes('haru') || path.toLowerCase().includes('shizuku') || path.toLowerCase().includes('koharu'));
+      const scaleMultiplier = isFullBody ? 2.85 : 1.05;
+      const scale = (screenHeight * scaleMultiplier) / nativeHeight;
       model.scale.set(scale, scale);
 
       model.x = screenWidth / 2;
-      model.y = Math.max(36, screenHeight * 0.08);
+      model.y = Math.max(isFullBody ? 8 : 16, screenHeight * (isFullBody ? 0.05 : 0.10));
 
       // Disable PixiJS interactive flag to avoid isInteractive error in Pixi 7
       if ('eventMode' in model) {

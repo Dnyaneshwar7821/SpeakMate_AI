@@ -138,12 +138,12 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
           if (model.anchor) {
             model.anchor.set(0.5, 0.0);
           }
-          const scaleMultiplier = catalogEntry.scaleMultiplier || 1.18;
+          const scaleMultiplier = catalogEntry.scaleMultiplier || (catalogEntry.id === 'haru' ? 2.85 : 1.05);
           const scale = (height * scaleMultiplier) / nativeHeight;
           model.scale.set(scale, scale);
           model.x = width / 2;
-          const yOffset = catalogEntry.yOffsetRatio ?? 0.06;
-          model.y = Math.max(10, height * yOffset);
+          const yOffset = catalogEntry.yOffsetRatio ?? (catalogEntry.id === 'haru' ? 0.05 : 0.10);
+          model.y = Math.max(6, height * yOffset);
         }
       }
     };

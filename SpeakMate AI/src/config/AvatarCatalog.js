@@ -20,8 +20,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 1.05,
     type: 'live2d',
     modelPath: '/models/avatar/haru/haru_greeter_t03.model3.json',
-    scaleMultiplier: 1.18,
-    yOffsetRatio: 0.08,
+    scaleMultiplier: 2.85,
+    yOffsetRatio: 0.05,
   },
   chitose: {
     id: 'chitose',
@@ -37,8 +37,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 0.98,
     type: 'live2d',
     modelPath: '/models/avatar/chitose/chitose.model.json',
-    scaleMultiplier: 1.18,
-    yOffsetRatio: 0.08,
+    scaleMultiplier: 1.05,
+    yOffsetRatio: 0.10,
   },
   shizuku: {
     id: 'shizuku',
@@ -54,8 +54,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 1.02,
     type: 'live2d',
     modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-shizuku@1.0.5/assets/shizuku.model.json',
-    scaleMultiplier: 1.22,
-    yOffsetRatio: 0.06,
+    scaleMultiplier: 2.75,
+    yOffsetRatio: 0.05,
   },
 
   // ── 2. Kids & Students Cartoon Avatars (Unique Live2D & 2D Models) ──
