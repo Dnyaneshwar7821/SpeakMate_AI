@@ -323,11 +323,11 @@ export function SpeakingPractice() {
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-3.5 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm mb-3.5 sm:mb-4">
               {isStudent ? `🎓 School Grade: ${selectedGrade}` : `👤 Target Profile: ${selectedAgeGroup}`}
             </div>
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">Speaking Practice Studio</h1>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight mb-2.5">Speaking Practice Studio</h1>
             <p className="text-sm sm:text-base text-indigo-200 font-medium leading-relaxed">
               Interactive AI conversation scenarios tailored to your{" "}
               <strong className="text-white">{isStudent ? selectedGrade : selectedAgeGroup}</strong> curriculum and fluency goals.

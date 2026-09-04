@@ -222,9 +222,9 @@ export function Dashboard() {
       >
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-          <div className="space-y-3.5 max-w-2xl">
+          <div className="max-w-2xl">
             {/* Refined Identity & Status Bar */}
-            <div className="flex flex-wrap items-center gap-2.5">
+            <div className="flex flex-wrap items-center gap-2.5 mb-3.5 sm:mb-4">
               {/* Pro VIP Badge */}
               {!isStudent && (user?.isPro || user?.pro) && (
                 <span className="text-xs font-black px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 shadow-md border border-amber-300/80 flex items-center gap-1.5 animate-pulse">
@@ -298,7 +298,7 @@ export function Dashboard() {
               </div>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight mb-2.5">
               Welcome back, {user?.firstName || user?.name || "Learner"}! 👋
             </h1>
             <p className="text-sm sm:text-base text-indigo-100 leading-relaxed font-medium">

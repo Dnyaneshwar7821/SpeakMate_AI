@@ -176,19 +176,19 @@ export function Notifications() {
       {/* ── Top Hero Header ── */}
       <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl space-y-4 border border-white/10 relative overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md px-3 py-1 rounded-full text-amber-300 border border-white/20 flex items-center gap-1.5">
+          <div>
+            <div className="inline-flex items-center gap-2 mb-3.5 sm:mb-4">
+              <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full text-amber-300 border border-white/20 shadow-sm flex items-center gap-1.5">
                 <Bell className="w-3 h-3" />
                 Live Notification Center
               </span>
               {unreadCount > 0 && (
-                <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-rose-500 text-white animate-pulse">
+                <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-full bg-rose-500 text-white animate-pulse shadow-sm">
                   {unreadCount} Unread
                 </span>
               )}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">Notifications & Alerts</h1>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight mb-2">Notifications & Alerts</h1>
             <p className="text-xs text-indigo-200 font-medium leading-relaxed">
               Stay updated with daily practice reminders, streak updates, and achievement rewards.
             </p>

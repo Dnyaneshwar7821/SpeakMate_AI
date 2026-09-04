@@ -68,11 +68,11 @@ export function SpeakingHistoryDetail() {
       </div>
 
       {/* Session Details Card */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white shadow-xl space-y-2">
-        <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">
+      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#6c63ff] to-[#ff6584] text-white shadow-xl">
+        <div className="inline-flex items-center gap-2 text-[10px] font-extrabold uppercase tracking-wider bg-white/20 px-3.5 py-1.5 rounded-full border border-white/25 shadow-sm mb-3">
           Historical Session Replay
-        </span>
-        <h1 className="text-2xl font-extrabold">{sessionData?.scenario}</h1>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold leading-tight mb-2">{sessionData?.scenario}</h1>
         <p className="text-xs opacity-90">
           Practiced on {new Date(sessionData?.createdAt || Date.now()).toLocaleDateString()} • Duration: {Math.round((sessionData?.duration || 300) / 60)} mins
         </p>

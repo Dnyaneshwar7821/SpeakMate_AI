@@ -21,11 +21,11 @@ export function Help() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
-      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl space-y-2 border border-white/10">
-        <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md px-3.5 py-1 rounded-full text-amber-300 border border-white/20">
+      <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl border border-white/10">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm mb-3.5 sm:mb-4">
           💡 Knowledge Base & Support
-        </span>
-        <h1 className="text-2xl sm:text-3xl font-black">Help & FAQ Center</h1>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight mb-2">Help & FAQ Center</h1>
         <p className="text-xs sm:text-sm text-indigo-200 font-medium">Frequently asked questions and direct support contact.</p>
       </div>
 

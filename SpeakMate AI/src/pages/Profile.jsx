@@ -482,23 +482,23 @@ export function Profile() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <span className={`text-[10px] font-black px-3 py-1 rounded-full bg-gradient-to-r ${rank.badgeColor} text-white uppercase tracking-wider shadow-md`}>
+          <div>
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-3.5 sm:mb-4">
+              <span className={`text-[10px] font-black px-3.5 py-1.5 rounded-full bg-gradient-to-r ${rank.badgeColor} text-white uppercase tracking-wider shadow-md inline-flex items-center gap-1.5`}>
                 {rank.icon} {rank.name}
               </span>
-              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30">
+              <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 inline-flex items-center gap-1.5">
                 {isStudent ? `🎓 ${schoolGrade}` : `👤 ${cefrLevel}`}
               </span>
-              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 text-amber-300">
+              <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 text-amber-300 inline-flex items-center gap-1.5">
                 ⭐ {liveStats.xp || 0} XP
               </span>
-              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 text-rose-300">
+              <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 text-rose-300 inline-flex items-center gap-1.5">
                 🔥 {liveStats.streak || 0} Day Streak
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight mb-2">
               {form.firstName || form.lastName ? `${form.firstName} ${form.lastName}`.trim() : "Learner"}
             </h1>
             <p className="text-xs sm:text-sm font-medium opacity-90">{form.email}</p>

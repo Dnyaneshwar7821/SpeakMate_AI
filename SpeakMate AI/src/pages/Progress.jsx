@@ -276,11 +276,11 @@ export function Progress() {
       <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#4338CA] text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/15 blur-3xl pointer-events-none rounded-full" />
 
-        <div className="space-y-2 max-w-xl z-10">
-          <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-amber-300">
+        <div className="max-w-xl z-10">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm mb-3.5 sm:mb-4">
             📊 Learning Intelligence & Fluency Studio
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight">
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-2.5">
             Analytics & Fluency Matrix
           </h1>
           <p className="text-xs sm:text-sm font-medium text-indigo-100 leading-relaxed">

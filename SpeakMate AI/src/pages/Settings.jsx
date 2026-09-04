@@ -223,11 +223,11 @@ export function Settings() {
     <div className="w-full max-w-5xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
       {/* Header Banner */}
       <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#6C63FF] via-[#4F46E5] to-[#312E81] text-white shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border border-white/10">
-        <div className="space-y-2 max-w-xl">
-          <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20 text-amber-300">
+        <div className="max-w-xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm mb-3.5 sm:mb-4">
             ⚙️ System & Voice Preferences
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Application Settings</h1>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-2.5">Application Settings</h1>
           <p className="text-xs sm:text-sm font-medium text-indigo-100 leading-relaxed">
             Customize target accents, AI tutor voice pitch profiles, themes, pace, and notifications.
           </p>

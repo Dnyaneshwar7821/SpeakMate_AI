@@ -134,11 +134,12 @@ export function AiChat() {
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
       {/* Top Banner */}
       <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#312E81] text-white shadow-2xl space-y-4 flex flex-col sm:flex-row sm:items-center justify-between gap-6 border border-white/10">
-        <div className="space-y-2.5 max-w-2xl">
-          <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20">
-            {isStudent ? `24/7 AI Language Tutor · Standard: ${userGrade}` : `24/7 AI Language Tutor · ${userAgeGroup} Profile`}
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">AI Chat Coach</h1>
+        <div className="max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm mb-3.5 sm:mb-4">
+            <span>✨</span>
+            <span>{isStudent ? `24/7 AI Language Tutor · Standard: ${userGrade}` : `24/7 AI Language Tutor · ${userAgeGroup} Profile`}</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight mb-2.5">AI Chat Coach</h1>
           <p className="text-xs sm:text-sm text-indigo-200 font-medium leading-relaxed">
             Practice conversational English with immediate spoken AI corrections, grammar advice, and vocabulary hints.
           </p>

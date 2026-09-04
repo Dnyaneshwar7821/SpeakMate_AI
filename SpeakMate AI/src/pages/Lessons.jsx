@@ -281,11 +281,11 @@ export function Lessons() {
       {/* Top Banner Header */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E1B4B] via-[#312E81] to-[#4338CA] p-6 sm:p-10 text-white shadow-2xl space-y-6 border border-white/10">
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 space-y-3.5 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
+        <div className="relative z-10 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm mb-3.5 sm:mb-4">
             🎓 Structured CEFR Curriculum
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">CEFR English Lessons</h1>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight mb-2.5">CEFR English Lessons</h1>
           <p className="text-sm sm:text-base text-indigo-200 font-medium leading-relaxed">
             Bite-sized interactive lessons covering grammar, vocabulary, business communication, and natural speaking drills.
           </p>
