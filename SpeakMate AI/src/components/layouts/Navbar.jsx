@@ -225,7 +225,7 @@ export function Navbar() {
             <img
               src="/assets/speakmate_logo.png"
               alt="SpeakMate AI"
-              className="h-10 sm:h-11 w-auto object-contain transition-transform group-hover:scale-[1.02] drop-shadow-md"
+              className="h-11 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02] drop-shadow-md"
             />
           </Link>
 
