@@ -57,6 +57,11 @@ export function AuthProvider({ children }) {
         localStorage.setItem("speakmate_ai_voice", userData.preferredAccent || userData.aiVoice);
       }
 
+      const goalMins = parseInt(userData.dailyGoalMinutes || userData.dailyGoal || userData.commitment, 10);
+      if (goalMins && !isNaN(goalMins)) {
+        localStorage.setItem("speakmate_daily_goal", String(goalMins));
+      }
+
       if (cleanAge) {
         window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: cleanAge } }));
       }

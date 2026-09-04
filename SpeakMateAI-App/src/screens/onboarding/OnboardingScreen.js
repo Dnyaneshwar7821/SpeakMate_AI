@@ -528,6 +528,9 @@ export default function OnboardingScreen({ navigation }) {
         await AsyncStorage.setItem('speakmate_onboarding_voice', aiVoice);
         await AsyncStorage.setItem('speakmate_voice_persona', aiVoice);
       }
+      if (dailyGoal) {
+        await AsyncStorage.setItem('speakmate_daily_goal', String(dailyGoal));
+      }
 
       // 1. Sync onboarding details (Avoids any 404 blockages)
       await onboardingService.update({

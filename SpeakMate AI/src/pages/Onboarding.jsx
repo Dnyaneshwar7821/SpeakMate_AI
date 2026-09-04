@@ -262,6 +262,7 @@ export function Onboarding() {
     localStorage.setItem("speakmate_onboarding_voice", aiVoice);
     localStorage.setItem("speakmate_voice_persona", aiVoice);
     localStorage.setItem("speakmate_ai_voice", "Default");
+    localStorage.setItem("speakmate_daily_goal", String(dailyGoal));
 
     await completeOnboarding({
       nativeLanguage: language,
