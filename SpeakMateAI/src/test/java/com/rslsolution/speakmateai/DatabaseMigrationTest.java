@@ -1,5 +1,6 @@
 package com.rslsolution.speakmateai;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,10 +10,16 @@ import java.sql.Statement;
 public class DatabaseMigrationTest {
 
     @Test
+    @Disabled("Manual migration script - disabled during automated CI/CD builds")
     public void executeMigration() {
-        String dbUrl = System.getenv().getOrDefault("SPRING_DATASOURCE_URL", "jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require");
-        String username = System.getenv().getOrDefault("SPRING_DATASOURCE_USERNAME", "neondb_owner");
-        String password = System.getenv().getOrDefault("SPRING_DATASOURCE_PASSWORD", "");
+        String dbUrl = System.getenv("SPRING_DATASOURCE_URL");
+        String username = System.getenv("SPRING_DATASOURCE_USERNAME");
+        String password = System.getenv("SPRING_DATASOURCE_PASSWORD");
+
+        if (dbUrl == null || dbUrl.isBlank()) {
+            System.out.println("Skipping migration: SPRING_DATASOURCE_URL environment variable is not configured.");
+            return;
+        }
 
         try (Connection conn = DriverManager.getConnection(dbUrl, username, password);
              Statement stmt = conn.createStatement()) {
