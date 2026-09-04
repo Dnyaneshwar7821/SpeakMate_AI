@@ -223,37 +223,79 @@ export function Dashboard() {
         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-80 h-80 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div className="space-y-3.5 max-w-2xl">
-            <div className="flex flex-wrap items-center gap-2">
+            {/* Refined Identity & Status Bar */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Pro VIP Badge */}
               {!isStudent && (user?.isPro || user?.pro) && (
-                <span className="text-xs font-black px-3.5 py-1 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-500 text-amber-950 shadow-lg border border-amber-300/60 flex items-center gap-1 animate-pulse">
+                <span className="text-xs font-black px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-amber-950 shadow-md border border-amber-300/80 flex items-center gap-1.5 animate-pulse">
                   <span>👑</span>
                   <span>PRO VIP</span>
                 </span>
               )}
-              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm">
-                {isStudent ? `🎓 Standard: ${safeString(activeGrade, "1st Std")}` : `👤 ${safeString(activeAgeGroup, "Professional")} · 🎯 ${safeString(activeEnglishLevel, "Beginner")}`}
+
+              {/* Learner Identity Pill */}
+              <span className="text-xs font-bold px-3.5 py-1 rounded-full bg-white/10 backdrop-blur-md text-indigo-100 border border-white/15 shadow-sm flex items-center gap-1.5">
+                {isStudent ? (
+                  <>
+                    <span>🎓</span>
+                    <span>Standard: {safeString(activeGrade, "1st Std")}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>👤</span>
+                    <span>{safeString(activeAgeGroup, "Professional")}</span>
+                    <span className="opacity-40">·</span>
+                    <span>🎯 {safeString(activeEnglishLevel, "Beginner")}</span>
+                  </>
+                )}
               </span>
-              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-white shadow-sm flex items-center gap-1">
-                <span>{currentRankIcon}</span>
-                <span>{currentRankName}</span>
-              </span>
-              <button
-                onClick={() => setStreakModalOpen(true)}
-                className="text-xs font-black px-3.5 py-1 rounded-full bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-md cursor-pointer transition-all active:scale-95 flex items-center gap-1"
-                title="Open Streak Hub"
-              >
-                🔥 {stats.streak}-Day Streak
-              </button>
-              <button
-                onClick={() => setStreakModalOpen(true)}
-                className="text-xs font-black px-3.5 py-1 rounded-full bg-cyan-400 hover:bg-cyan-300 text-slate-950 shadow-md cursor-pointer transition-all active:scale-95 flex items-center gap-1"
-                title="Manage Streak Freezes"
-              >
-                ❄️ {stats.streakFreezes || 0} Freezes
-              </button>
-              <span className="text-xs font-black px-3.5 py-1 rounded-full bg-emerald-400 text-slate-950 shadow-md">
-                ⭐ {stats.xp} XP Points
-              </span>
+
+              {/* Unified Gamification Metrics Capsule */}
+              <div className="flex items-center rounded-full bg-black/20 backdrop-blur-md border border-white/15 p-0.5 shadow-inner">
+                {/* Rank */}
+                <div
+                  className="text-xs font-bold px-3 py-1 text-white/90 flex items-center gap-1.5"
+                  title="Current Rank"
+                >
+                  <span className="text-sm">{currentRankIcon}</span>
+                  <span>{currentRankName}</span>
+                </div>
+
+                <div className="h-3.5 w-[1px] bg-white/15" />
+
+                {/* Streak Hub Button */}
+                <button
+                  onClick={() => setStreakModalOpen(true)}
+                  className="text-xs font-black px-3 py-1 rounded-full hover:bg-white/15 text-amber-300 hover:text-amber-200 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  title="Open Streak Hub"
+                >
+                  <span className="text-sm">🔥</span>
+                  <span>{stats.streak}-Day Streak</span>
+                </button>
+
+                <div className="h-3.5 w-[1px] bg-white/15" />
+
+                {/* Streak Freezes Button */}
+                <button
+                  onClick={() => setStreakModalOpen(true)}
+                  className="text-xs font-black px-3 py-1 rounded-full hover:bg-white/15 text-cyan-300 hover:text-cyan-200 transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  title="Manage Streak Freezes"
+                >
+                  <span className="text-sm">❄️</span>
+                  <span>{stats.streakFreezes || 0} Freezes</span>
+                </button>
+
+                <div className="h-3.5 w-[1px] bg-white/15" />
+
+                {/* XP Score */}
+                <div
+                  className="text-xs font-black px-3 py-1 text-emerald-300 flex items-center gap-1.5"
+                  title="Total XP"
+                >
+                  <span className="text-sm">⭐</span>
+                  <span>{stats.xp} XP</span>
+                </div>
+              </div>
             </div>
 
             <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
