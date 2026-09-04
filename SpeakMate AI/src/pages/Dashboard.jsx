@@ -156,11 +156,6 @@ export function Dashboard() {
     window.addEventListener("speakmate_settings_updated", handleSettingsEvent);
     window.addEventListener("speakmate_age_group_changed", handleAgeEvent);
     window.addEventListener("storage", handleStorage);
-    const interval = setInterval(() => {
-      if (document.visibilityState === "visible") {
-        refreshStats();
-      }
-    }, 4000);
 
     return () => {
       window.removeEventListener("focus", refreshStats);
@@ -168,7 +163,6 @@ export function Dashboard() {
       window.removeEventListener("speakmate_settings_updated", handleSettingsEvent);
       window.removeEventListener("speakmate_age_group_changed", handleAgeEvent);
       window.removeEventListener("storage", handleStorage);
-      clearInterval(interval);
     };
   }, [refreshStats]);
 

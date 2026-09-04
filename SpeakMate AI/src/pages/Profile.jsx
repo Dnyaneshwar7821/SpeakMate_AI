@@ -379,17 +379,45 @@ export function Profile() {
     }
 
     const reader = new FileReader();
-    reader.onload = async () => {
-      const dataUri = reader.result;
-      setSelectedAvatar(dataUri);
-      setShowAvatarModal(false);
-      try {
-        await profileService.updateAvatar(dataUri);
-        if (updateUser) updateUser({ avatar: dataUri });
-        toast.success("Profile photo updated successfully! 📸");
-      } catch {
-        toast.error("Failed to upload profile photo.");
-      }
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = async () => {
+        try {
+          // Resize to max 128x128 thumbnail to prevent excessive database egress (< 8KB)
+          const canvas = document.createElement("canvas");
+          const maxDim = 128;
+          let width = img.width;
+          let height = img.height;
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedUri = canvas.toDataURL("image/jpeg", 0.82);
+
+          setSelectedAvatar(compressedUri);
+          setShowAvatarModal(false);
+          await profileService.updateAvatar(compressedUri);
+          if (updateUser) updateUser({ avatar: compressedUri });
+          toast.success("Profile photo updated successfully! 📸");
+        } catch {
+          toast.error("Failed to upload profile photo.");
+        }
+      };
+      img.onerror = () => {
+        toast.error("Failed to process selected image.");
+      };
+      img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   };

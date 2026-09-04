@@ -104,6 +104,9 @@ public class ProfileServiceImpl implements ProfileService {
 		}
 
 		if (request.getAvatar() != null && !request.getAvatar().trim().isEmpty()) {
+			if (request.getAvatar().length() > 65536) {
+				throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (64 KB).");
+			}
 			user.setAvatar(request.getAvatar().trim());
 		}
 		if (request.getEnglishLevel() != null && !request.getEnglishLevel().trim().isEmpty()) {
@@ -131,6 +134,10 @@ public class ProfileServiceImpl implements ProfileService {
 
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
+
+		if (request.getAvatar() != null && request.getAvatar().length() > 65536) {
+			throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (64 KB). Please upload a smaller image.");
+		}
 
 		user.setAvatar(request.getAvatar());
 
