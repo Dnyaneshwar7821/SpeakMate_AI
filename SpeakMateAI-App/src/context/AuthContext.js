@@ -55,7 +55,6 @@ export const AuthProvider = ({ children }) => {
         AsyncStorage.getItem(STORAGE_KEYS.user),
         AsyncStorage.getItem(STORAGE_KEYS.welcomeCompleted),
         AsyncStorage.getItem(STORAGE_KEYS.onboardingCompleted),
-        new Promise((resolve) => setTimeout(resolve, 3000)),
       ]);
 
       setWelcomeCompletedState(storedWelcome === "true");
@@ -240,12 +239,24 @@ export const AuthProvider = ({ children }) => {
   const register = useCallback(
     async (payload) => {
       try {
-        return await authService.register(payload);
+        const response = await authService.register(payload);
+        if (response && response.token) {
+          const userEmail = (response.user?.email || payload.email || "").toLowerCase();
+          const isCompleted = response.user?.onboardingCompleted === true;
+          if (!isCompleted && userEmail) {
+            await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
+          }
+          await persistAuth(response.token, response.user);
+          setIsAuthenticated(true);
+          await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(isCompleted));
+          setOnboardingCompletedState(isCompleted);
+        }
+        return response;
       } catch (error) {
         throw error;
       }
     },
-    [],
+    [persistAuth],
   );
 
   const completeOnboarding = useCallback(async (onboardingData) => {

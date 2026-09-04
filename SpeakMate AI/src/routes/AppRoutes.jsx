@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
@@ -46,48 +47,63 @@ import TeacherDashboardLayout from "@/Admin_panel/components/teacher/layout/Teac
 import AdminProtectedRoute from "@/Admin_panel/routes/AdminProtectedRoute";
 import { ADMIN_ROLES } from "@/Admin_panel/constants/adminRoles";
 
+// Core immediate routes (fast initial paint)
 import LandingPage from "../pages/LandingPage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
-import Onboarding from "../pages/Onboarding";
 import Dashboard from "../pages/Dashboard";
-import AiChat from "../pages/AiChat";
-import ConversationChat from "../pages/ConversationChat";
-import SpeakingPractice from "../pages/SpeakingPractice";
-import ConversationSession from "../pages/ConversationSession";
-import SpeakingSummary from "../pages/SpeakingSummary";
-import SpeakingHistoryDetail from "../pages/SpeakingHistoryDetail";
-import Lessons from "../pages/Lessons";
-import LessonDetail from "../pages/LessonDetail";
-import GrammarPractice from "../pages/GrammarPractice";
-import Vocabulary from "../pages/Vocabulary";
-
-import Progress from "../pages/Progress";
-import Achievements from "../pages/Achievements";
-import Notifications from "../pages/Notifications";
-import Profile from "../pages/Profile";
-import Settings from "../pages/Settings";
-import Pricing from "../pages/Pricing";
-import Help from "../pages/Help";
-import About from "../pages/About";
 import NotFound from "../pages/NotFound";
-import AvatarEmbed from "../pages/AvatarEmbed";
+
+// Lazy-loaded heavy learner pages (bundle splitting & instant initial load)
+const Onboarding = lazy(() => import("../pages/Onboarding"));
+const AiChat = lazy(() => import("../pages/AiChat"));
+const ConversationChat = lazy(() => import("../pages/ConversationChat"));
+const SpeakingPractice = lazy(() => import("../pages/SpeakingPractice"));
+const ConversationSession = lazy(() => import("../pages/ConversationSession"));
+const SpeakingSummary = lazy(() => import("../pages/SpeakingSummary"));
+const SpeakingHistoryDetail = lazy(() => import("../pages/SpeakingHistoryDetail"));
+const Lessons = lazy(() => import("../pages/Lessons"));
+const LessonDetail = lazy(() => import("../pages/LessonDetail"));
+const GrammarPractice = lazy(() => import("../pages/GrammarPractice"));
+const Vocabulary = lazy(() => import("../pages/Vocabulary"));
+const Progress = lazy(() => import("../pages/Progress"));
+const Achievements = lazy(() => import("../pages/Achievements"));
+const Notifications = lazy(() => import("../pages/Notifications"));
+const Profile = lazy(() => import("../pages/Profile"));
+const Settings = lazy(() => import("../pages/Settings"));
+const Pricing = lazy(() => import("../pages/Pricing"));
+const Help = lazy(() => import("../pages/Help"));
+const About = lazy(() => import("../pages/About"));
+const AvatarEmbed = lazy(() => import("../pages/AvatarEmbed"));
 
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 
+function RouteFallback() {
+  return (
+    <div className="min-h-[50vh] flex items-center justify-center">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-9 h-9 border-3 border-[#6C63FF]/30 border-t-[#6C63FF] rounded-full animate-spin" />
+        <span className="text-xs font-semibold text-[var(--text-secondary)]">Loading...</span>
+      </div>
+    </div>
+  );
+}
+
 function PageTransition({ children }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
-    >
-      {children}
-    </motion.div>
+    <Suspense fallback={<RouteFallback />}>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
+        {children}
+      </motion.div>
+    </Suspense>
   );
 }
 
@@ -98,7 +114,14 @@ export function AppRoutes() {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* Standalone Live2D Avatar Embed for Mobile App WebView */}
-        <Route path="/avatar-embed" element={<AvatarEmbed />} />
+        <Route
+          path="/avatar-embed"
+          element={
+            <Suspense fallback={<div className="w-full h-full bg-transparent" />}>
+              <AvatarEmbed />
+            </Suspense>
+          }
+        />
 
         {/* Public Marketing Landing */}
         <Route element={<AppLayout />}>

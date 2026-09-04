@@ -22,16 +22,15 @@ export function ProtectedRoute({ children }) {
     return <Navigate to={ROUTES.LOGIN} replace state={{ from: location }} />;
   }
 
-  // Redirect brand new users to onboarding only if NOT completed
-  const storedOnboardingCompleted = localStorage.getItem("speakmate_onboarding_completed") === "true";
-  const storedGrade = localStorage.getItem("speakmate_school_grade");
-  const storedAgeGroup = localStorage.getItem("speakmate_age_group");
+  // Strictly check onboarding completion for the current authenticated user
+  const userEmail = (user?.email || "").toLowerCase();
+  const userSpecificDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
   const isUserCompleted = Boolean(
     user && (user.onboardingCompleted || user.schoolGrade || user.englishLevel || user.ageGroup || user.learningGoal)
   );
 
   const isCompleted = Boolean(
-    onboardingCompleted || isUserCompleted || storedOnboardingCompleted || storedGrade || storedAgeGroup
+    onboardingCompleted || isUserCompleted || userSpecificDone
   );
 
   if (!isCompleted && location.pathname !== ROUTES.ONBOARDING) {

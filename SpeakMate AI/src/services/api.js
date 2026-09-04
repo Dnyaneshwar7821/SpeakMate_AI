@@ -8,6 +8,7 @@ export const setLogoutCallback = (cb) => {
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || "https://speakmateai-backend.onrender.com",
+  timeout: 45000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -41,7 +42,7 @@ api.interceptors.response.use(
     if (error.code === "ECONNABORTED") {
       message = "Request timed out. Check your connection and try again.";
     } else if (!error.response) {
-      message = "Network error. Make sure your Spring Boot backend is running at http://localhost:9091.";
+      message = "Unable to connect to SpeakMate AI server. Please check your internet connection or verify the server status.";
     } else if (status === 401) {
       message = data?.message || "Your session has expired. Please log in again.";
       if (logoutCallback) {
