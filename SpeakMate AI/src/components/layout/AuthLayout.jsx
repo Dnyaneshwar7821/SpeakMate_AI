@@ -13,13 +13,12 @@ export function AuthLayout() {
 
       {/* Header Bar */}
       <header className="mx-auto w-full max-w-5xl flex items-center justify-between py-3 relative z-20">
-        <Link to={ROUTES.HOME} className="flex items-center gap-3 group">
-          <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-tr from-[#6c63ff] to-[#ff6584] text-base font-black text-white shadow-lg shadow-[#6c63ff]/30 group-hover:scale-105 transition-all">
-            SM
-          </span>
-          <span className="text-xl font-black text-[var(--text-primary)] tracking-tight">
-            SpeakMate <span className="text-[#6c63ff]">AI</span>
-          </span>
+        <Link to={ROUTES.HOME} className="flex items-center group">
+          <img
+            src="/assets/speakmate_logo.png"
+            alt="SpeakMate AI"
+            className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-[1.02] drop-shadow-md"
+          />
         </Link>
 
         <div className="flex items-center gap-3">

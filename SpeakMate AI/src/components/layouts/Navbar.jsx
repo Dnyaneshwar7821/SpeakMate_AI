@@ -222,20 +222,11 @@ export function Navbar() {
             to={isAuthenticated ? (isStudent ? ROUTES.STUDENT_DASHBOARD : ROUTES.DASHBOARD) : ROUTES.HOME}
             className="flex items-center gap-3 min-w-0 group"
           >
-            <div className="relative">
-              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#FF6584] opacity-50 blur-sm group-hover:opacity-100 transition-opacity" />
-              <span className="relative grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr from-[#6C63FF] via-[#7C74FF] to-[#FF6584] text-white font-black text-base shadow-lg shadow-[#6C63FF]/30 group-hover:scale-105 transition-transform">
-                SM
-              </span>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-black text-xl sm:text-2xl tracking-tight bg-gradient-to-r from-[#6C63FF] via-[#9F7AEA] to-[#FF6584] bg-clip-text text-transparent truncate">
-                SpeakMate AI
-              </span>
-              <span className="text-[10px] font-bold text-[var(--text-muted)] tracking-wider uppercase hidden sm:block">
-                Intelligent English Coach
-              </span>
-            </div>
+            <img
+              src="/assets/speakmate_logo.png"
+              alt="SpeakMate AI"
+              className="h-10 sm:h-11 w-auto object-contain transition-transform group-hover:scale-[1.02] drop-shadow-md"
+            />
           </Link>
 
           {/* Desktop Search Bar & Dropdown Container */}

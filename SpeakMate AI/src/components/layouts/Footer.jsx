@@ -6,9 +6,11 @@ export function Footer() {
     <footer className="border-t border-[var(--border-default)] bg-[var(--bg-surface)]/60 backdrop-blur-md py-8 mt-auto transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div className="flex items-center gap-3">
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-tr from-[#6C63FF] to-[#FF6584] text-white font-black text-xs shadow-md">
-            SM
-          </span>
+          <img
+            src="/assets/speakmate_logo.png"
+            alt="SpeakMate AI"
+            className="h-8 w-auto object-contain opacity-90 hover:opacity-100 transition-opacity"
+          />
           <p className="text-xs sm:text-sm font-bold text-[var(--text-secondary)]">
             © {new Date().getFullYear()} <span className="text-[var(--text-primary)] font-black">SpeakMate AI</span>. Built for accelerated English fluency.
           </p>
