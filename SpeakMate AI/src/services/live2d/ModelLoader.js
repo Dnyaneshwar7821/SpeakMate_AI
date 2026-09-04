@@ -73,7 +73,12 @@ export class ModelLoader {
       if (model.anchor) {
         model.anchor.set(0.5, 0);
       }
-      const isFullBody = path && (path.toLowerCase().includes('haru') || path.toLowerCase().includes('shizuku') || path.toLowerCase().includes('koharu'));
+      const isFullBody = path && (
+        path.toLowerCase().includes('haru') ||
+        path.toLowerCase().includes('chitose') ||
+        path.toLowerCase().includes('shizuku') ||
+        path.toLowerCase().includes('koharu')
+      );
       const scaleMultiplier = isFullBody ? 2.85 : 1.05;
       const scale = (screenHeight * scaleMultiplier) / nativeHeight;
       model.scale.set(scale, scale);

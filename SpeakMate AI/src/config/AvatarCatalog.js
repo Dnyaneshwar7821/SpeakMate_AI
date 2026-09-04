@@ -37,8 +37,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 0.98,
     type: 'live2d',
     modelPath: '/models/avatar/chitose/chitose.model.json',
-    scaleMultiplier: 1.05,
-    yOffsetRatio: 0.10,
+    scaleMultiplier: 2.85,
+    yOffsetRatio: 0.05,
   },
   shizuku: {
     id: 'shizuku',

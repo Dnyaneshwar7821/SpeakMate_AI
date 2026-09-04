@@ -90,6 +90,7 @@ export function AvatarEmbed() {
     >
       <AvatarCanvas
         key={activeModel}
+        model={activeModel}
         framing={initialFraming}
         isSpeaking={isSpeaking}
         onModelLoaded={handleModelLoaded}

@@ -17,25 +17,31 @@ if (typeof window !== 'undefined' && !window.PIXI) {
   window.PIXI = PIXI;
 }
 
-export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = '', framing = 'faceToChest', isSpeaking = false }) {
+export function AvatarCanvas({ model, modelPath, onModelLoaded, onError, className = '', framing = 'faceToChest', isSpeaking = false }) {
   const containerRef = useRef(null);
   const pixiAppRef = useRef(null);
   const modelRef = useRef(null);
   const [modelInstance, setModelInstance] = useState(null);
   const [activeModelKey, setActiveModelKey] = useState(() => {
-    return localStorage.getItem('speakmate_avatar_model') || getCurrentVoiceGender() || 'haru';
+    return model || localStorage.getItem('speakmate_avatar_model') || getCurrentVoiceGender() || 'haru';
   });
 
   // Automatic Lip-Sync & Viseme Hook
   useLipSync(modelInstance, isSpeaking);
 
   useEffect(() => {
+    if (model) {
+      setActiveModelKey(model);
+    }
+  }, [model]);
+
+  useEffect(() => {
     const unsubGender = EventBus.on(AVATAR_EVENTS.GENDER_CHANGED, (data) => {
-      const chosen = data?.model || data?.gender || localStorage.getItem('speakmate_avatar_model') || 'haru';
+      const chosen = data?.model || data?.gender || model || localStorage.getItem('speakmate_avatar_model') || 'haru';
       setActiveModelKey(chosen);
     });
     return () => unsubGender();
-  }, []);
+  }, [model]);
 
   const catalogEntry = getAvatarById(activeModelKey);
   const isRoboPaws = catalogEntry.id === 'robopaws';
@@ -138,11 +144,12 @@ export function AvatarCanvas({ modelPath, onModelLoaded, onError, className = ''
           if (model.anchor) {
             model.anchor.set(0.5, 0.0);
           }
-          const scaleMultiplier = catalogEntry.scaleMultiplier || (catalogEntry.id === 'haru' ? 2.85 : 1.05);
+          const isFullBody = catalogEntry.id === 'haru' || catalogEntry.id === 'chitose' || catalogEntry.id === 'shizuku' || catalogEntry.id === 'koharu';
+          const scaleMultiplier = catalogEntry.scaleMultiplier || (isFullBody ? 2.85 : 1.05);
           const scale = (height * scaleMultiplier) / nativeHeight;
           model.scale.set(scale, scale);
           model.x = width / 2;
-          const yOffset = catalogEntry.yOffsetRatio ?? (catalogEntry.id === 'haru' ? 0.05 : 0.10);
+          const yOffset = catalogEntry.yOffsetRatio ?? (isFullBody ? 0.05 : 0.10);
           model.y = Math.max(6, height * yOffset);
         }
       }
