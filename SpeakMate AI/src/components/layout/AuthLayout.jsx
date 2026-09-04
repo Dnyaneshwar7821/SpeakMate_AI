@@ -15,9 +15,9 @@ export function AuthLayout() {
       <header className="mx-auto w-full max-w-5xl flex items-center justify-between py-3 relative z-20">
         <Link to={ROUTES.HOME} className="flex items-center group">
           <img
-            src="/assets/speakmate_logo.png"
+            src={theme === "dark" ? "/assets/speakmate_logo.png" : "/assets/speakmate_logo_light.png"}
             alt="SpeakMate AI"
-            className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-[1.02] drop-shadow-md"
+            className="h-9 sm:h-10 w-auto object-contain transition-transform group-hover:scale-[1.02] dark:drop-shadow-md"
           />
         </Link>
 

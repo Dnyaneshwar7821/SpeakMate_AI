@@ -223,9 +223,9 @@ export function Navbar() {
             className="flex items-center gap-3 min-w-0 group"
           >
             <img
-              src="/assets/speakmate_logo.png"
+              src={isDark ? "/assets/speakmate_logo.png" : "/assets/speakmate_logo_light.png"}
               alt="SpeakMate AI"
-              className="h-11 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02] drop-shadow-md"
+              className="h-11 sm:h-12 w-auto object-contain transition-transform group-hover:scale-[1.02] dark:drop-shadow-md"
             />
           </Link>
 
