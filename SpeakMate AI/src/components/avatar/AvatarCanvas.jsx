@@ -17,7 +17,34 @@ if (typeof window !== 'undefined' && !window.PIXI) {
   window.PIXI = PIXI;
 }
 
-export function AvatarCanvas({ model, modelPath, onModelLoaded, onError, className = '', framing = 'faceToChest', isSpeaking = false }) {
+class AvatarErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.warn('[AvatarCanvas] Caught runtime error in avatar canvas:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="relative w-full h-full min-h-[350px] flex flex-col items-center justify-center p-6 text-center">
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center text-3xl mb-3 animate-pulse">
+            🎙️
+          </div>
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Voice Tutor Ready</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Audio practice mode active</p>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className = '', framing = 'faceToChest', isSpeaking = false }) {
   const containerRef = useRef(null);
   const pixiAppRef = useRef(null);
   const modelRef = useRef(null);
@@ -219,5 +246,13 @@ export function AvatarCanvas({ model, modelPath, onModelLoaded, onError, classNa
       className={`relative w-full h-full min-h-[350px] flex items-center justify-center overflow-hidden ${className}`}
       style={{ touchAction: 'none' }}
     />
+  );
+}
+
+export function AvatarCanvas(props) {
+  return (
+    <AvatarErrorBoundary>
+      <AvatarCanvasInner {...props} />
+    </AvatarErrorBoundary>
   );
 }

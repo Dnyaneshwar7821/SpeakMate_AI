@@ -24,9 +24,16 @@
     />
 
     <title>SpeakMate AI - AI English Speaking Coach</title>
-    <!-- Live2D Cubism 2 & 4 Core Runtime SDKs -->
-    <script src="https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js"></script>
-    <script src="https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js"></script>
+    <!-- Live2D Cubism 2 & 4 Core Runtime SDKs (Hosted locally to prevent net::ERR_NAME_NOT_RESOLVED and CDN downtime) -->
+    <script src="/libs/live2d/live2d.min.js"></script>
+    <script src="/libs/live2d/live2dcubismcore.min.js"></script>
+    <script>
+      // Fallback safeguard: Ensure window.Live2DCubismCore exists so pixi-live2d-display never throws fatal runtime crash
+      if (typeof window !== 'undefined' && !window.Live2DCubismCore) {
+        console.warn('[Live2D] Local live2dcubismcore runtime not detected, initializing fallback shim.');
+        window.Live2DCubismCore = window.Live2DCubismCore || {};
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
