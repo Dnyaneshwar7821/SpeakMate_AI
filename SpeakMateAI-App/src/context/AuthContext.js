@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AppState } from "react-native";
 import { authService } from "../services/authService";
 import { subscriptionService } from "../services/subscriptionService";
 import { setLogoutCallback } from "../api/api";
@@ -177,10 +178,13 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (!token) return;
-    const timer = setInterval(() => {
-      refreshUserProfile();
-    }, 4000);
-    return () => clearInterval(timer);
+    const onChange = (state) => {
+      if (state === "active") {
+        refreshUserProfile();
+      }
+    };
+    const sub = AppState.addEventListener("change", onChange);
+    return () => sub.remove();
   }, [token, refreshUserProfile]);
 
   const logout = useCallback(async () => {

@@ -54,7 +54,11 @@ public class AdminServiceImpl implements AdminService {
 	@Override
 	public List<UserResponse> getAllUsers() {
 
-		return userRepository.findAll().stream().map(this::mapToUserResponse).toList();
+		return userRepository.findAll().stream().map(user -> {
+			UserResponse response = mapToUserResponse(user);
+			response.setAvatar(null);
+			return response;
+		}).toList();
 	}
 
 	@Override

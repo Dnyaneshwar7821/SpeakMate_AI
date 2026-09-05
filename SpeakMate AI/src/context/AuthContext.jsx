@@ -194,11 +194,9 @@ export function AuthProvider({ children }) {
     };
     window.addEventListener("focus", handleSync);
     window.addEventListener("visibilitychange", handleSync);
-    const interval = setInterval(handleSync, 5000);
     return () => {
       window.removeEventListener("focus", handleSync);
       window.removeEventListener("visibilitychange", handleSync);
-      clearInterval(interval);
     };
   }, [token, refreshUserProfile]);
 

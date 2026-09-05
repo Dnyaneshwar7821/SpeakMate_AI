@@ -491,7 +491,11 @@ public class UserServiceImpl implements UserService {
 		List<User> users = userRepository.findAll();
 
 		return users.stream()
-				.map(this::mapToUserResponse)
+				.map(user -> {
+					UserResponse response = mapToUserResponse(user);
+					response.setAvatar(null);
+					return response;
+				})
 				.toList();
 	}
 
