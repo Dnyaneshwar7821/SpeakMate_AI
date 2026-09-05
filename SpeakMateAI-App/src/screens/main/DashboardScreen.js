@@ -156,12 +156,8 @@ export default function DashboardScreen({ navigation }) {
         loadDashboard(false);
       }
     });
-    const timer = setInterval(() => {
-      loadDashboard(false);
-    }, 3500);
     return () => {
       sub.remove();
-      clearInterval(timer);
     };
   }, [loadDashboard]);
 
