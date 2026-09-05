@@ -5,11 +5,33 @@ const path = require('path');
 const pgPath = path.resolve(__dirname, '../SpeakMate AI/node_modules/pg');
 const { Client } = require(pgPath);
 
-const DEFAULT_DB_URL = process.env.DATABASE_URL || 
-  process.env.SPRING_DATASOURCE_URL || 
-  'postgresql://neondb_owner:npg_rj6FX9QgReyV@ep-summer-boat-azuqu2ws-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require';
+// Safely load .env if present without requiring external npm packages
+function loadEnv() {
+  const envPath = path.resolve(__dirname, '../.env');
+  if (fs.existsSync(envPath)) {
+    const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const idx = trimmed.indexOf('=');
+      if (idx !== -1) {
+        const key = trimmed.slice(0, idx).trim();
+        const val = trimmed.slice(idx + 1).trim();
+        if (!process.env[key]) process.env[key] = val;
+      }
+    }
+  }
+}
+loadEnv();
 
-const connectionString = process.argv[2] || DEFAULT_DB_URL;
+const connectionString = process.argv[2] || process.env.DATABASE_URL || process.env.SPRING_DATASOURCE_URL;
+
+if (!connectionString) {
+  console.error("❌ Error: No database URL provided.");
+  console.error("Usage: node scripts/backup_db.cjs \"postgresql://user:pass@host/dbname?sslmode=require\"");
+  console.error("Or define DATABASE_URL in your local git-ignored .env file.");
+  process.exit(1);
+}
 
 function sanitizeUrlForLog(url) {
   try {

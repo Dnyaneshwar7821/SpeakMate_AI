@@ -33,12 +33,20 @@ SpeakMate AI/.env
 */.metadata/
 .idea/
 .vscode/
+.claude/
+*/.claude/
+.codex*/
+*/.codex*/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 .DS_Store
+
+# --- Redundant nested clones ---
+SpeakMate AI/Admin_dashboard/
+
 
 # --- Environment & Credentials ---
 .env
@@ -50,6 +58,8 @@ SpeakMateAI-App/.env
 SpeakMateAI-App/.env.local
 
 # --- Temporary/Output Files ---
+backups/
+scratch/
 *.txt
 *.docx
 *.sql
