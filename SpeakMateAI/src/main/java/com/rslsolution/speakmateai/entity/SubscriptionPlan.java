@@ -19,7 +19,7 @@ public class SubscriptionPlan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "name")
     private String name; // Starter, Professional, Enterprise
 
     private String description;
@@ -35,6 +35,6 @@ public class SubscriptionPlan {
     private String features;
 
     @Builder.Default
-    @Column(nullable = false)
+    @Column(name = "active")
     private boolean active = true;
 }
