@@ -18,13 +18,13 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://speakmateai-backend.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://speakmate-ai-28z5.onrender.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://speakmateai-backend.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://speakmate-ai-28z5.onrender.com"
       }
     }
   },

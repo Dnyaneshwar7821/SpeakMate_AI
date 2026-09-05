@@ -10,7 +10,7 @@ export const setLogoutCallback = (cb) => {
 };
 
 const api = axios.create({
-  baseURL: BASE_URL || 'https://speakmateai-backend.onrender.com',
+  baseURL: BASE_URL || 'https://speakmate-ai-28z5.onrender.com',
   timeout: 120000, // 120s to allow Render free-tier cold starts
   headers: {
     'Content-Type': 'application/json',

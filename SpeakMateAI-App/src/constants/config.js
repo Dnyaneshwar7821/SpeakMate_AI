@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 
-export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://speakmateai-backend.onrender.com';
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://speakmate-ai-28z5.onrender.com';
 
 // Automatically detect developer's host machine IP on local Wi-Fi from Expo Packager
 const getDevHostIp = () => {
