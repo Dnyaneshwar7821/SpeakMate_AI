@@ -164,26 +164,47 @@ export const AVATAR_CATALOG = {
     scaleMultiplier: 1.25,
     yOffsetRatio: 0.06,
   },
-  wanko: {
-    id: 'wanko',
-    name: 'Wanko',
+  puppy: {
+    id: 'puppy',
+    name: 'Puppy',
     gender: 'male',
     category: 'cartoon',
-    badge: 'Cartoon Puppy',
+    badge: 'Cute Puppy',
     emoji: '🐶',
-    subtitle: 'Playful cartoon puppy with wagging ears & tail',
-    description: 'High encouragement, cheerful barking cheer-ups, and fun interactive conversations.',
-    voiceProfile: 'Wanko',
+    subtitle: 'Adorable puppy pal with floppy ears & real-time lip-syncing',
+    description: 'High encouragement, playful cheer-ups, and fun interactive conversations with dynamic lip-syncing.',
+    voiceProfile: 'Puppy',
     voiceLabel: 'Playful Pup Voice',
     defaultPitch: 1.34,
-    type: 'live2d',
-    modelPath: '/models/avatar/wanko/wanko.model.json',
-    scaleMultiplier: 1.05,
-    yOffsetRatio: 0.12,
+    type: 'puppet',
+    puppetType: 'puppy',
+    modelPath: null,
+    scaleMultiplier: 1.0,
+    yOffsetRatio: 0.48,
+  },
+  wanko: {
+    id: 'puppy',
+    name: 'Puppy',
+    gender: 'male',
+    category: 'cartoon',
+    badge: 'Cute Puppy',
+    emoji: '🐶',
+    subtitle: 'Adorable puppy pal with floppy ears & real-time lip-syncing',
+    description: 'High encouragement, playful cheer-ups, and fun interactive conversations with dynamic lip-syncing.',
+    voiceProfile: 'Puppy',
+    voiceLabel: 'Playful Pup Voice',
+    defaultPitch: 1.34,
+    type: 'puppet',
+    puppetType: 'puppy',
+    modelPath: null,
+    scaleMultiplier: 1.0,
+    yOffsetRatio: 0.48,
   },
 };
 
-export const AVATAR_LIST = Object.values(AVATAR_CATALOG);
+export const AVATAR_LIST = Object.values(AVATAR_CATALOG).filter(
+  (av, index, self) => index === self.findIndex((a) => a.id === av.id)
+);
 
 /**
  * Get catalog entry by ID with safe fallback to Haru
@@ -216,7 +237,7 @@ export function getAvatarById(id) {
     return AVATAR_CATALOG.mao;
   }
   if (key.includes('wanko') || key.includes('dog') || key.includes('puppy')) {
-    return AVATAR_CATALOG.wanko;
+    return AVATAR_CATALOG.puppy;
   }
   return AVATAR_CATALOG[key] || AVATAR_CATALOG.haru;
 }

@@ -4,6 +4,7 @@ import { ModelLoader } from '../../services/live2d/ModelLoader';
 import { DoraemonPuppet } from './DoraemonPuppet';
 import { SuperheroPuppet } from './SuperheroPuppet';
 import { MotuPuppet } from './MotuPuppet';
+import { PuppyPuppet } from './PuppyPuppet';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 import { getCurrentVoiceGender } from '../../utils/speechHelper';
 import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
@@ -71,10 +72,11 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
   }, [model]);
 
   const catalogEntry = getAvatarById(activeModelKey);
+  const isPuppy = catalogEntry.id === 'puppy' || catalogEntry.id === 'wanko' || catalogEntry.puppetType === 'puppy';
   const isRoboPaws = catalogEntry.id === 'robopaws';
   const isSuperhero = catalogEntry.id === 'sparky' || catalogEntry.id === 'hero' || catalogEntry.puppetType === 'superhero';
   const isMotu = catalogEntry.id === 'motu' || catalogEntry.puppetType === 'motu';
-  const isPuppet = catalogEntry.type === 'puppet' || isRoboPaws || isSuperhero || isMotu;
+  const isPuppet = catalogEntry.type === 'puppet' || isPuppy || isRoboPaws || isSuperhero || isMotu;
   const targetModelPath = modelPath || catalogEntry.modelPath || AVATAR_CATALOG.haru.modelPath;
 
   useEffect(() => {
@@ -97,7 +99,13 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
     container.appendChild(app.view);
 
     if (isPuppet) {
-      const puppet = isSuperhero ? new SuperheroPuppet() : isMotu ? new MotuPuppet() : new DoraemonPuppet();
+      const puppet = isPuppy
+        ? new PuppyPuppet()
+        : isSuperhero
+        ? new SuperheroPuppet()
+        : isMotu
+        ? new MotuPuppet()
+        : new DoraemonPuppet();
       app.stage.addChild(puppet);
       modelRef.current = puppet;
       setModelInstance(puppet);
@@ -107,14 +115,16 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
         const width = container.clientWidth;
         const height = container.clientHeight;
         app.renderer.resize(width, height);
-        const scale = isSuperhero
+        const scale = isPuppy
+          ? Math.min((width * 0.88) / 210, (height * 0.82) / 240)
+          : isSuperhero
           ? Math.min((width * 0.90) / 240, (height * 0.85) / 280)
           : isMotu
           ? Math.min((width * 0.88) / 230, (height * 0.82) / 270)
           : Math.min((width * 0.85) / 220, (height * 0.80) / 260);
         puppet.scale.set(scale, scale);
         puppet.x = width / 2;
-        puppet.y = height * 0.50;
+        puppet.y = isPuppy ? height * 0.48 : height * 0.50;
       };
 
       resizePuppet();

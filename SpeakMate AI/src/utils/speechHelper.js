@@ -17,8 +17,8 @@ export const VOICE_PROFILES = [
   { code: 'Sparky', accent: 'Cartoon Kids', locale: 'en-US', gender: 'male', label: 'Sparky (Superhero Kid)', previewText: 'Power up! I am Sparky, your superhero English training partner! Let us conquer our daily goal!' },
   { code: 'Koharu', accent: 'Cartoon Kids', locale: 'en-US', gender: 'female', label: 'Koharu (Cartoon Girl)', previewText: 'Yay! Hello! I am Koharu! Let us practice speaking English happily together today!' },
   { code: 'Haruto', accent: 'Cartoon Kids', locale: 'en-US', gender: 'male', label: 'Haruto (Cartoon Explorer)', previewText: 'Hey there explorer! I am Haruto! Grab your backpack and let us practice cool English words!' },
-  { code: 'Mao', accent: 'Cartoon Kids', locale: 'en-US', gender: 'female', label: 'Mao (Cute Chibi)', previewText: 'Hello hello! I am Mao! Practicing English is so easy and fun when we do it together!' },
-  { code: 'Wanko', accent: 'Cartoon Kids', locale: 'en-US', gender: 'male', label: 'Wanko (Playful Pup)', previewText: 'Woof! Hello best friend! I am Wanko! Let us play and speak cheerful English every day!' },
+  { code: 'Puppy', accent: 'Cartoon Kids', locale: 'en-US', gender: 'male', label: 'Puppy (Playful Pup)', previewText: 'Woof! Hello best friend! I am your puppy pal! Let us play and speak cheerful English every day!' },
+  { code: 'Wanko', accent: 'Cartoon Kids', locale: 'en-US', gender: 'male', label: 'Puppy (Playful Pup)', previewText: 'Woof! Hello best friend! I am your puppy pal! Let us play and speak cheerful English every day!' },
   { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default', previewText: 'Hello, I am your System Default English tutor.' },
 ];
 
@@ -119,8 +119,8 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
       aiVoice = "Haruto";
     } else if (currentAvatarModel === "mao" || currentAvatarModel === "unitychan") {
       aiVoice = "Mao";
-    } else if (currentAvatarModel === "wanko") {
-      aiVoice = "Wanko";
+    } else if (currentAvatarModel === "wanko" || currentAvatarModel === "puppy" || currentAvatarModel === "dog") {
+      aiVoice = "Puppy";
     }
   }
 
@@ -186,7 +186,7 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     } else if (profile.code === "Mao") {
       pitch = 1.36; // Sweet chibi tutor
       baseRate = 1.04;
-    } else if (profile.code === "Wanko") {
+    } else if (profile.code === "Wanko" || profile.code === "Puppy") {
       pitch = 1.34; // Playful, lively pup
       baseRate = 1.06;
     }
@@ -324,7 +324,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
         (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("rishi") || v.name.toLowerCase().includes("prabhat")) &&
         !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
       ) || voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
-    } else if (settings.effectiveVoiceCode === "Robo-Paws" || settings.effectiveVoiceCode === "Sparky" || settings.effectiveVoiceCode === "Haruto" || settings.effectiveVoiceCode === "Wanko") {
+    } else if (settings.effectiveVoiceCode === "Robo-Paws" || settings.effectiveVoiceCode === "Sparky" || settings.effectiveVoiceCode === "Haruto" || settings.effectiveVoiceCode === "Wanko" || settings.effectiveVoiceCode === "Puppy") {
       targetVoice = voices.find((v) =>
         v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("guy") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("alex"))
       ) || voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
