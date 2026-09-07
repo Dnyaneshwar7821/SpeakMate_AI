@@ -54,8 +54,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 1.02,
     type: 'live2d',
     modelPath: '/models/avatar/shizuku/shizuku.model.json',
-    scaleMultiplier: 2.85,
-    yOffsetRatio: 0.05,
+    scaleMultiplier: 1.18,
+    yOffsetRatio: 0.02,
   },
 
   // ── 2. Kids & Students Cartoon Avatars (Unique Live2D & 2D Models) ──
@@ -177,9 +177,9 @@ export const AVATAR_CATALOG = {
     voiceLabel: 'Playful Pup Voice',
     defaultPitch: 1.34,
     type: 'live2d',
-    modelPath: 'https://cdn.jsdelivr.net/npm/live2d-widget-model-wanko@1.0.5/assets/wanko.model.json',
-    scaleMultiplier: 0.95,
-    yOffsetRatio: 0.50,
+    modelPath: '/models/avatar/wanko/wanko.model.json',
+    scaleMultiplier: 1.05,
+    yOffsetRatio: 0.12,
   },
 };
 

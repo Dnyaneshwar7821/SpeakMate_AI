@@ -160,24 +160,26 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
 
         if (isAnimal) {
           if (model.anchor) {
-            model.anchor.set(0.5, 0.5);
+            model.anchor.set(0.5, 0.0);
           }
-          const scaleMultiplier = catalogEntry.scaleMultiplier || 0.95;
+          const scaleMultiplier = catalogEntry.scaleMultiplier || 1.05;
           const scale = (height * scaleMultiplier) / nativeHeight;
           model.scale.set(scale, scale);
           model.x = width / 2;
-          model.y = height * 0.50;
+          const yOffset = catalogEntry.yOffsetRatio ?? 0.12;
+          model.y = Math.max(6, height * yOffset);
         } else {
           if (model.anchor) {
             model.anchor.set(0.5, 0.0);
           }
-          const isFullBody = catalogEntry.id === 'haru' || catalogEntry.id === 'chitose' || catalogEntry.id === 'shizuku' || catalogEntry.id === 'koharu';
-          const scaleMultiplier = catalogEntry.scaleMultiplier || (isFullBody ? 2.85 : 1.05);
+          const isShizuku = catalogEntry.id === 'shizuku';
+          const isFullBody = catalogEntry.id === 'haru' || catalogEntry.id === 'chitose' || catalogEntry.id === 'koharu';
+          const scaleMultiplier = catalogEntry.scaleMultiplier || (isShizuku ? 1.18 : (isFullBody ? 2.85 : 1.05));
           const scale = (height * scaleMultiplier) / nativeHeight;
           model.scale.set(scale, scale);
           model.x = width / 2;
-          const yOffset = catalogEntry.yOffsetRatio ?? (isFullBody ? 0.05 : 0.10);
-          model.y = Math.max(6, height * yOffset);
+          const yOffset = catalogEntry.yOffsetRatio ?? (isShizuku ? 0.02 : (isFullBody ? 0.05 : 0.10));
+          model.y = Math.max(4, height * yOffset);
         }
       }
     };
