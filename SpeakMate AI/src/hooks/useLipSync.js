@@ -8,7 +8,7 @@ import { getPrimaryVisemeForWord } from '../utils/PhoneticVisemeEngine';
  */
 function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   if (!model) return;
-  if (model.isBheemPuppet || model.isMotuPuppet || model.isPuppyPuppet || model.isDoraemonPuppet || model.isSuperheroPuppet || typeof model.setMouthOpen === 'function' || 'mouthY' in model) {
+  if (model.isMotuPuppet || model.isPuppyPuppet || model.isDoraemonPuppet || model.isSuperheroPuppet || typeof model.setMouthOpen === 'function' || 'mouthY' in model) {
     model.mouthY = yVal;
     model.mouthForm = formVal;
     model.isSpeaking = isSpeaking;
