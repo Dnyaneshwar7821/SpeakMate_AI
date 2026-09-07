@@ -18,6 +18,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { COLORS } from '../../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { chatService } from '../../services/appServices';
+import { getCachedAvatarModel } from '../../config/AvatarCatalog';
 
 // ─── Chat Modes Specs ────────────────────────────────────────────────────────
 const CHAT_MODES = [
@@ -76,29 +77,35 @@ export default function AIChatScreen({ navigation }) {
   const handleStartSession = async (mode) => {
     setLoading(true);
     try {
+      const activeAvatar = getCachedAvatarModel() || (await AsyncStorage.getItem('speakmate_avatar_model').catch(() => null));
       const session = await chatService.start(mode);
       navigation.navigate('ConversationChat', {
         sessionId: session.id,
         mode: session.mode,
         title: session.title,
+        avatarModel: activeAvatar,
       });
     } catch (e) {
       console.warn('Backend chat start sync note, opening session directly:', e);
+      const activeAvatar = getCachedAvatarModel() || (await AsyncStorage.getItem('speakmate_avatar_model').catch(() => null));
       navigation.navigate('ConversationChat', {
         sessionId: 'sim_' + Date.now(),
         mode: mode,
         title: mode + ' Session',
+        avatarModel: activeAvatar,
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResumeSession = (session) => {
+  const handleResumeSession = async (session) => {
+    const activeAvatar = getCachedAvatarModel() || (await AsyncStorage.getItem('speakmate_avatar_model').catch(() => null));
     navigation.navigate('ConversationChat', {
       sessionId: session.id,
       mode: session.mode,
       title: session.title,
+      avatarModel: activeAvatar,
     });
   };
 

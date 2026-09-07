@@ -27,6 +27,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { chatService, speechService, settingsService, profileService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import AIAvatar from '../../components/common/AIAvatar';
+import { getAvatarById, getCachedAvatarModel, setCachedAvatarModel } from '../../config/AvatarCatalog';
 import JumpingDotsIndicator from '../../components/common/JumpingDotsIndicator';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
 
@@ -232,12 +233,25 @@ export default function ConversationChatScreen({ navigation, route }) {
   const [statusText, setStatusText] = useState('Waiting for Response');
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentSpokenText, setCurrentSpokenText] = useState('');
-  const [selectedAvatarModel, setSelectedAvatarModel] = useState('robopaws');
+  const initialAvatar = route.params?.avatarModel || getCachedAvatarModel() || 'haru';
+  const [selectedAvatarModel, setSelectedAvatarModel] = useState(initialAvatar);
 
   const handleSelectAvatarModel = async (modelName) => {
     setSelectedAvatarModel(modelName);
-    await AsyncStorage.setItem('speakmate_avatar_model', modelName).catch(() => {});
+    setCachedAvatarModel(modelName);
   };
+
+  // Immediate local avatar load (zero network delay) if route param wasn't passed
+  useEffect(() => {
+    if (!route.params?.avatarModel) {
+      AsyncStorage.getItem('speakmate_avatar_model').then((saved) => {
+        if (saved) {
+          setSelectedAvatarModel(saved);
+          setCachedAvatarModel(saved);
+        }
+      }).catch(() => {});
+    }
+  }, [route.params?.avatarModel]);
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -303,32 +317,26 @@ export default function ConversationChatScreen({ navigation, route }) {
         const isKids = Boolean(
           (savedAgeGroup && savedAgeGroup.toLowerCase() === 'kids') ||
           (savedGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(savedGrade.toLowerCase()))
-        );
-
-        const isMaleSelected = Boolean(
-          savedAvatarModel === 'chitose' ||
+        const isMaleVoice = Boolean(
           savedGender === 'male' ||
           (effectiveVoice && effectiveVoice.toLowerCase().includes('male')) ||
           (savedVoice && savedVoice.toLowerCase().includes('male'))
         );
-        const isRoboPawsSelected = Boolean(
-          savedAvatarModel === 'robopaws' ||
-          savedGender === 'robopaws' ||
-          (effectiveVoice && effectiveVoice.toLowerCase().includes('robo'))
-        );
 
-        let resolvedModel = 'haru';
-        const isCartoon = savedAvatarModel && getAvatarById(savedAvatarModel).category === 'cartoon';
-        if (isCartoon) {
-          resolvedModel = savedAvatarModel;
-        } else if (isRoboPawsSelected || (isKids && !savedAvatarModel)) {
-          resolvedModel = 'robopaws';
-        } else if (isMaleSelected) {
-          resolvedModel = 'chitose';
-        } else {
-          resolvedModel = 'haru';
+        // Prioritize explicit user selection (route param -> saved -> cache -> sensible default)
+        let resolvedModel = route.params?.avatarModel || savedAvatarModel || getCachedAvatarModel();
+        if (!resolvedModel) {
+          if (isKids) {
+            resolvedModel = 'robopaws';
+          } else if (isMaleVoice) {
+            resolvedModel = 'chitose';
+          } else {
+            resolvedModel = 'haru';
+          }
         }
-        setSelectedAvatarModel(resolvedModel);
+        const finalAvatar = getAvatarById(resolvedModel);
+        setSelectedAvatarModel(finalAvatar.id);
+        setCachedAvatarModel(finalAvatar.id);
         if (savedGrade) {
           setChatLevel(savedGrade);
         } else if (profile && profile.englishLevel) {

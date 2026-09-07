@@ -15,6 +15,7 @@ import { useAuth } from '../../context/AuthContext';
 import { assignmentService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
 import { useToast } from '../../context/ToastContext';
+import { getCachedAvatarModel } from '../../config/AvatarCatalog';
 
 export default function AssignmentsScreen({ navigation }) {
   const { isDark, theme } = useTheme();
@@ -63,7 +64,7 @@ export default function AssignmentsScreen({ navigation }) {
         screen: 'Speaking',
         params: {
           screen: 'Conversation',
-          params: { scenarioId: item.targetId, assignmentId: item.id },
+          params: { scenarioId: item.targetId, assignmentId: item.id, avatarModel: getCachedAvatarModel() },
         },
       });
     } else if (item.type === 'Lesson') {

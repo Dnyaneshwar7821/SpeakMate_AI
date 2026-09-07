@@ -190,3 +190,25 @@ export function getAvatarById(id) {
   if (key.includes('shizuku') || key.includes('mao')) return AVATAR_CATALOG.koharu;
   return AVATAR_CATALOG[key] || AVATAR_CATALOG.haru;
 }
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+let _cachedAvatarModel = null;
+
+export function getCachedAvatarModel() {
+  return _cachedAvatarModel;
+}
+
+export function setCachedAvatarModel(model) {
+  if (model) {
+    _cachedAvatarModel = model;
+    AsyncStorage.setItem('speakmate_avatar_model', model).catch(() => {});
+  }
+}
+
+// Pre-warm the cache immediately upon module evaluation
+AsyncStorage.getItem('speakmate_avatar_model')
+  .then((val) => {
+    if (val) _cachedAvatarModel = val;
+  })
+  .catch(() => {});

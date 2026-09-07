@@ -545,7 +545,10 @@ public class UserServiceImpl implements UserService {
 		}
 		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
 		boolean isCompleted = user.isOnboardingCompleted() || 
-				(ob.isPresent() && Boolean.TRUE.equals(ob.get().getOnboardingCompleted()));
+				(ob.isPresent() && Boolean.TRUE.equals(ob.get().getOnboardingCompleted())) ||
+				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
+				(effectiveLevel != null && !effectiveLevel.trim().isEmpty()) ||
+				(user.getLearningGoal() != null && !user.getLearningGoal().trim().isEmpty());
 
 		boolean isStudent = (user.getSchoolId() != null) ||
 				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||

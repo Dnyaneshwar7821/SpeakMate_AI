@@ -22,6 +22,7 @@ import { VoiceService, VOICE_PROFILES } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
+import { setCachedAvatarModel } from '../../config/AvatarCatalog';
 
 const AGE_OPTIONS = [
   { code: 'Kids', label: 'Kids (6-12) 🎈', desc: 'Simple words, fun stories & high encouragement' },
@@ -148,8 +149,10 @@ export default function SettingsScreen({ navigation }) {
           await AsyncStorage.setItem('speakmate_voice_gender', profile.gender);
           if (profile.gender === 'male') {
             await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
+            setCachedAvatarModel('chitose');
           } else if (profile.gender === 'female') {
             await AsyncStorage.setItem('speakmate_avatar_model', 'haru');
+            setCachedAvatarModel('haru');
           }
         }
       }
@@ -618,9 +621,11 @@ export default function SettingsScreen({ navigation }) {
                         if (profile.gender === 'male') {
                           await AsyncStorage.setItem('speakmate_avatar_model', 'chitose');
                           await AsyncStorage.setItem('speakmate_voice_gender', 'male');
+                          setCachedAvatarModel('chitose');
                         } else if (profile.gender === 'female') {
                           await AsyncStorage.setItem('speakmate_avatar_model', 'haru');
                           await AsyncStorage.setItem('speakmate_voice_gender', 'female');
+                          setCachedAvatarModel('haru');
                         }
 
                         if (profile.code === 'Default') {

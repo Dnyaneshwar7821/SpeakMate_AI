@@ -151,15 +151,15 @@ export default function AIAvatar({
   const [live2dError, setLive2dError] = useState(false);
   
   const defaultEngine = (targetModel === 'haru' || targetModel === 'chitose') ? 'live2d' : 'native';
-  const [avatarEngine, setAvatarEngine] = useState(defaultEngine);
+  const [engineOverride, setEngineOverride] = useState(null);
 
   useEffect(() => {
     AsyncStorage.getItem('speakmate_avatar_engine').then((engine) => {
-      if (engine === 'live2d') setAvatarEngine('live2d');
-      else if (engine === 'native') setAvatarEngine('native');
-      else setAvatarEngine(defaultEngine);
+      if (engine === 'live2d' || engine === 'native') setEngineOverride(engine);
     }).catch(() => {});
-  }, [defaultEngine]);
+  }, []);
+
+  const avatarEngine = engineOverride || defaultEngine;
 
   useEffect(() => {
     // Safety guard: guarantee spinner is dismissed within 3.5s even on slow network

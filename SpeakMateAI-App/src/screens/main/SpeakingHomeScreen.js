@@ -25,6 +25,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { speakingService, onboardingService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
+import { getCachedAvatarModel } from '../../config/AvatarCatalog';
 
 // ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 
@@ -344,6 +345,7 @@ export default function SpeakingHomeScreen({ navigation }) {
         : parseInt(String(scenario?.xp || '10').replace(/\D/g, ''), 10) || 10;
 
       const effectiveCategory = accountType === 'STUDENT' ? selectedGrade : userAgeGroup;
+      const activeAvatar = getCachedAvatarModel() || (await AsyncStorage.getItem('speakmate_avatar_model').catch(() => null));
 
       const session = await speakingService.start({
         scenario: scenarioName,
@@ -359,9 +361,11 @@ export default function SpeakingHomeScreen({ navigation }) {
         ageGroup: userAgeGroup,
         standard: selectedGrade,
         accountType: accountType,
+        avatarModel: activeAvatar,
       });
     } catch (error) {
       console.warn('Backend session creation failed, proceeding locally:', error);
+      const activeAvatar = getCachedAvatarModel() || (await AsyncStorage.getItem('speakmate_avatar_model').catch(() => null));
       const xpNum = typeof scenario?.xp === 'number'
         ? scenario.xp
         : parseInt(String(scenario?.xp || '10').replace(/\D/g, ''), 10) || 10;
@@ -373,6 +377,7 @@ export default function SpeakingHomeScreen({ navigation }) {
         ageGroup: userAgeGroup,
         standard: selectedGrade,
         accountType: accountType,
+        avatarModel: activeAvatar,
       });
     } finally {
       setLoading(false);

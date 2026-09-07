@@ -11,7 +11,7 @@ import { AuthContext }   from '../context/AuthContext';
 const Stack = createNativeStackNavigator();
 
 export default function AppNavigator() {
-  const { isAuthenticated, loading, welcomeCompleted, onboardingCompleted } = useContext(AuthContext);
+  const { isAuthenticated, loading, welcomeCompleted, onboardingCompleted, user } = useContext(AuthContext);
 
   if (loading) {
     return (
@@ -35,7 +35,16 @@ export default function AppNavigator() {
   }
 
   // ─── Authenticated flow ──────────────────────────────────────────────────────
-  if (!onboardingCompleted) {
+  const isUserOnboarded = Boolean(
+    onboardingCompleted ||
+    user?.onboardingCompleted ||
+    user?.schoolGrade ||
+    user?.englishLevel ||
+    user?.ageGroup ||
+    user?.learningGoal
+  );
+
+  if (!isUserOnboarded) {
     return (
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />

@@ -25,7 +25,7 @@ import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
-import { AVATAR_LIST, getAvatarById } from '../../config/AvatarCatalog';
+import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
 
 const PRESET_AVATARS = ['🎓', '🦁', '🚀', '🦉', '👑', '⚡', '🦊', '🎯', '💎', '🌟', '🔥', '🏆'];
 
@@ -212,20 +212,16 @@ export default function ProfileScreen({ navigation }) {
       }
 
       let modelId = savedAvatarModel;
-      const isCartoon = modelId && getAvatarById(modelId).category === 'cartoon';
       const isMaleVoice = savedGender === 'male' || (savedVoice && savedVoice.toLowerCase().includes('male') && !savedVoice.toLowerCase().includes('female'));
 
-      if (!isCartoon) {
-        if (isMaleVoice) {
-          modelId = 'chitose';
-        } else {
-          modelId = 'haru';
-        }
+      if (!modelId) {
+        modelId = isMaleVoice ? 'chitose' : 'haru';
       }
 
-      const effectiveAvatar = getAvatarById(modelId || (isMaleVoice ? 'chitose' : 'haru'));
+      const effectiveAvatar = getAvatarById(modelId);
       setSelectedAvatarId(effectiveAvatar.id);
       setTutorGender(effectiveAvatar.gender);
+      setCachedAvatarModel(effectiveAvatar.id);
 
       const effectiveAge = savedAgeGroup || profile?.ageGroup || user?.ageGroup || 'Professional';
       const effectiveGrade = isStudentUser ? (savedGrade || profile?.schoolGrade || user?.schoolGrade || '1st Std') : null;
@@ -278,6 +274,7 @@ export default function ProfileScreen({ navigation }) {
 
     setSelectedAvatarId(model);
     setTutorGender(gender);
+    setCachedAvatarModel(model);
     try {
       await AsyncStorage.setItem('speakmate_avatar_model', model);
       await AsyncStorage.setItem('speakmate_voice_gender', gender);

@@ -58,19 +58,22 @@ export const AuthProvider = ({ children }) => {
         AsyncStorage.getItem(STORAGE_KEYS.onboardingCompleted),
       ]);
 
-      setWelcomeCompletedState(storedWelcome === "true");
-
       if (storedToken && storedToken !== "null" && storedToken !== "undefined" && storedUser) {
         const parsedUser = JSON.parse(storedUser);
         const me = await authService.me().catch(() => null);
         const activeUser = me || parsedUser;
         const userEmail = (activeUser?.email || "").toLowerCase();
         
-        // Strictly check if the user account actually finished onboarding in database
-        const isCompleted = activeUser?.onboardingCompleted === true;
-        if (!isCompleted && userEmail) {
-          await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
-        }
+        const storedUserDone = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
+        const isCompleted = Boolean(
+          activeUser?.onboardingCompleted === true ||
+          storedOnboarding === "true" ||
+          storedUserDone === "true" ||
+          activeUser?.schoolGrade ||
+          activeUser?.englishLevel ||
+          activeUser?.ageGroup ||
+          activeUser?.learningGoal
+        );
         const nextOnboardingCompleted = Boolean(isCompleted);
 
         const isStudent = Boolean(
@@ -110,21 +113,33 @@ export const AuthProvider = ({ children }) => {
 
         await syncUserProfile(enrichedUser);
 
+        // Await all disk writes first
+        await Promise.all([
+          AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(enrichedUser)),
+          AsyncStorage.setItem(STORAGE_KEYS.welcomeCompleted, "true"),
+          AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(nextOnboardingCompleted)),
+          userEmail && nextOnboardingCompleted
+            ? AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true")
+            : Promise.resolve(),
+        ]);
+
+        // Batch all state updates together synchronously (no async gap)
         setToken(storedToken);
         setUser(enrichedUser);
-        setIsAuthenticated(true);
-        await AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(enrichedUser));
-        await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(nextOnboardingCompleted));
+        setWelcomeCompletedState(true);
         setOnboardingCompletedState(nextOnboardingCompleted);
+        setIsAuthenticated(true);
       } else {
         await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
         await AsyncStorage.removeItem(STORAGE_KEYS.user);
         await AsyncStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+        setWelcomeCompletedState(storedWelcome === "true");
         setOnboardingCompletedState(false);
+        setIsAuthenticated(false);
       }
       return {
         isAuthenticated: Boolean(storedToken && storedUser),
-        welcomeCompleted: storedWelcome === "true",
+        welcomeCompleted: true,
         onboardingCompleted: false,
       };
     } catch (error) {
@@ -145,7 +160,8 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [syncUserProfile]);
+
 
   const refreshUserProfile = useCallback(async () => {
     if (!token) return;
@@ -189,20 +205,16 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
-      const userEmail = (user?.email || "").toLowerCase();
-      if (userEmail) {
-        await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
-      }
       await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
       await AsyncStorage.removeItem(STORAGE_KEYS.user);
       await AsyncStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
       setToken(null);
       setUser(null);
-      setIsAuthenticated(false);
       setOnboardingCompletedState(false);
+      setIsAuthenticated(false);
     } catch (error) {
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     setLogoutCallback(logout);
@@ -221,23 +233,45 @@ export const AuthProvider = ({ children }) => {
         const response = await authService.login(credentials);
         const userEmail = (response.user?.email || credentials.email || "").toLowerCase();
         
-        // Strict database check: if user is not marked completed in DB, clear stale phone storage
-        const isCompleted = response.user?.onboardingCompleted === true;
-        if (!isCompleted && userEmail) {
-          await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
-        }
+        const storedUserDone = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
+        const storedOnboarding = await AsyncStorage.getItem(STORAGE_KEYS.onboardingCompleted);
+        const isCompleted = Boolean(
+          response.user?.onboardingCompleted === true ||
+          storedOnboarding === "true" ||
+          storedUserDone === "true" ||
+          response.user?.schoolGrade ||
+          response.user?.englishLevel ||
+          response.user?.ageGroup ||
+          response.user?.learningGoal
+        );
         const nextOnboardingCompleted = Boolean(isCompleted);
 
-        await persistAuth(response.token, response.user);
-        setIsAuthenticated(true);
-        await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(nextOnboardingCompleted));
+        // Await all disk writes first
+        await Promise.all([
+          SecureStore.setItemAsync(STORAGE_KEYS.token, response.token),
+          AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user)),
+          AsyncStorage.setItem(STORAGE_KEYS.welcomeCompleted, "true"),
+          AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(nextOnboardingCompleted)),
+          userEmail && nextOnboardingCompleted
+            ? AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true")
+            : Promise.resolve(),
+        ]);
+
+        await syncUserProfile(response.user);
+
+        // Synchronous batch update in the exact same microtask:
+        setToken(response.token);
+        setUser(response.user);
+        setWelcomeCompletedState(true);
         setOnboardingCompletedState(nextOnboardingCompleted);
+        setIsAuthenticated(true);
+
         return response;
       } catch (error) {
         throw error;
       }
     },
-    [persistAuth],
+    [syncUserProfile],
   );
 
   const register = useCallback(
@@ -246,37 +280,54 @@ export const AuthProvider = ({ children }) => {
         const response = await authService.register(payload);
         if (response && response.token) {
           const userEmail = (response.user?.email || payload.email || "").toLowerCase();
-          const isCompleted = response.user?.onboardingCompleted === true;
-          if (!isCompleted && userEmail) {
-            await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
-          }
-          await persistAuth(response.token, response.user);
-          setIsAuthenticated(true);
-          await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(isCompleted));
+          const isCompleted = Boolean(
+            response.user?.onboardingCompleted === true ||
+            response.user?.schoolGrade ||
+            response.user?.englishLevel ||
+            response.user?.ageGroup ||
+            response.user?.learningGoal
+          );
+
+          await Promise.all([
+            SecureStore.setItemAsync(STORAGE_KEYS.token, response.token),
+            AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user)),
+            AsyncStorage.setItem(STORAGE_KEYS.welcomeCompleted, "true"),
+            AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(isCompleted)),
+            userEmail && isCompleted
+              ? AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true")
+              : Promise.resolve(),
+          ]);
+
+          setToken(response.token);
+          setUser(response.user);
+          setWelcomeCompletedState(true);
           setOnboardingCompletedState(isCompleted);
+          setIsAuthenticated(true);
         }
         return response;
       } catch (error) {
         throw error;
       }
     },
-    [persistAuth],
+    [],
   );
 
   const completeOnboarding = useCallback(async (onboardingData) => {
     const userEmail = (user?.email || "").toLowerCase();
-    if (userEmail) {
-      await AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true");
-    }
-    await AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
-    setOnboardingCompletedState(true);
+    await Promise.all([
+      userEmail ? AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true") : Promise.resolve(),
+      AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true"),
+      AsyncStorage.setItem(STORAGE_KEYS.welcomeCompleted, "true"),
+    ]);
     const updatedUser = {
       ...(user || {}),
       ...(onboardingData || {}),
       onboardingCompleted: true,
     };
-    setUser(updatedUser);
     await AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    setWelcomeCompletedState(true);
+    setOnboardingCompletedState(true);
   }, [user]);
 
   const completeWelcome = useCallback(async () => {

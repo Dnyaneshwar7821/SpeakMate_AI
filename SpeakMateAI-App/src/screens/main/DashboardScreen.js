@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getCachedAvatarModel } from '../../config/AvatarCatalog';
 import { useTheme } from '../../context/ThemeContext';
 import { AuthContext } from '../../context/AuthContext';
 import { useDrawer } from '../../context/DrawerContext';
@@ -282,7 +283,7 @@ export default function DashboardScreen({ navigation }) {
         screen: 'AIChat',
         params: {
           screen: 'ConversationChat',
-          params: { sessionId: item.targetId, title: item.title }
+          params: { sessionId: item.targetId, title: item.title, avatarModel: getCachedAvatarModel() }
         }
       });
     } else {
@@ -439,7 +440,7 @@ export default function DashboardScreen({ navigation }) {
                     screen: 'Speaking',
                     params: {
                       screen: 'Conversation',
-                      params: { scenarioId: item.targetId, assignmentId: item.id },
+                      params: { scenarioId: item.targetId, assignmentId: item.id, avatarModel: getCachedAvatarModel() },
                     },
                   });
                 } else if (item.type === 'Lesson') {
