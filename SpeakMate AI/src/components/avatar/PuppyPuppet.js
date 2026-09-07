@@ -295,6 +295,8 @@ export class PuppyPuppet extends PIXI.Container {
       // Cheerful Closed Puppy Eyes (^ ^)
       eg.lineStyle(3.5, 0x0F172A);
       eg.arc(leftX, eyeY + 4, 10, Math.PI * 1.1, Math.PI * 1.9);
+      const rightStart = Math.PI * 1.1;
+      eg.moveTo(rightX + Math.cos(rightStart) * 10, eyeY + 4 + Math.sin(rightStart) * 10);
       eg.arc(rightX, eyeY + 4, 10, Math.PI * 1.1, Math.PI * 1.9);
     } else {
       // Left Eye
@@ -326,11 +328,6 @@ export class PuppyPuppet extends PIXI.Container {
       eg.drawCircle(leftX + 4 + pX, eyeY + 4 + pY, 1.8);
       eg.drawCircle(rightX + pX, eyeY + 4 + pY, 1.8);
       eg.endFill();
-
-      // Cute Little Arched Eyebrows
-      eg.lineStyle(2.8, 0x78350F);
-      eg.arc(leftX + 1, eyeY - 17, 7, Math.PI * 1.2, Math.PI * 1.8);
-      eg.arc(rightX - 1, eyeY - 17, 7, Math.PI * 1.2, Math.PI * 1.8);
     }
   }
 
