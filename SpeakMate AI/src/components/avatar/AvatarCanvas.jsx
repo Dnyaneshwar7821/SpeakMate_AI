@@ -5,7 +5,6 @@ import { DoraemonPuppet } from './DoraemonPuppet';
 import { SuperheroPuppet } from './SuperheroPuppet';
 import { MotuPuppet } from './MotuPuppet';
 import { PuppyPuppet } from './PuppyPuppet';
-import { ThreeAvatarCanvas } from './ThreeAvatarCanvas';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 import { getCurrentVoiceGender } from '../../utils/speechHelper';
 import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
@@ -278,23 +277,6 @@ export function AvatarCanvas(props) {
     });
     return () => unsub();
   }, [props.model]);
-
-  const catalogEntry = getAvatarById(currentModel);
-  const is3D = catalogEntry?.type === '3d';
-
-  if (is3D) {
-    return (
-      <AvatarErrorBoundary>
-        <ThreeAvatarCanvas
-          modelPath={props.modelPath || catalogEntry.modelPath}
-          isSpeaking={props.isSpeaking}
-          className={props.className}
-          onModelLoaded={props.onModelLoaded}
-          onError={props.onError}
-        />
-      </AvatarErrorBoundary>
-    );
-  }
 
   return (
     <AvatarErrorBoundary>

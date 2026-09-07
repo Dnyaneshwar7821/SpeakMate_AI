@@ -95,23 +95,6 @@ export const AVATAR_CATALOG = {
     scaleMultiplier: 1.0,
     yOffsetRatio: 0.50,
   },
-  pikachu: {
-    id: 'pikachu',
-    name: 'Pikachu',
-    gender: 'male',
-    category: 'cartoon',
-    badge: '3D Electric Pal',
-    emoji: '⚡',
-    subtitle: 'Adorable 3D Pokémon companion with reactive ears & voice',
-    description: 'High-energy, cheerful practice partner! Celebrates milestones with electric enthusiasm and 3D animations.',
-    voiceProfile: 'Pikachu',
-    voiceLabel: 'Playful High-Energy Voice',
-    defaultPitch: 1.35,
-    type: '3d',
-    modelPath: '/models/avatar/pikachu/pikachu.glb',
-    scaleMultiplier: 1.0,
-    yOffsetRatio: 0.50,
-  },
   sparky: {
     id: 'sparky',
     name: 'Sparky',
@@ -229,9 +212,6 @@ export const AVATAR_LIST = Object.values(AVATAR_CATALOG).filter(
 export function getAvatarById(id) {
   if (!id) return AVATAR_CATALOG.haru;
   const key = String(id).toLowerCase().replace(/[^a-z0-9]/g, '');
-  if (key.includes('pikachu') || key.includes('pika')) {
-    return AVATAR_CATALOG.pikachu;
-  }
   if (key.includes('motu') || key.includes('patlu')) {
     return AVATAR_CATALOG.motu;
   }
