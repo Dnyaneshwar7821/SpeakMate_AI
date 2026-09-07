@@ -352,42 +352,44 @@ export class DoraemonPuppet extends PIXI.Container {
       mg.moveTo(-smileW, centerY);
       mg.quadraticCurveTo(0, centerY + smileDrop, smileW, centerY);
     } else {
-      // --- SPEAKING: Silky-Smooth Curved Mouth with Soft Double-Lobe Tongue ---
-      const openHeight = 5 + (mY * 16);
+      // --- SPEAKING: Silky-Smooth Crescent Mouth with Tongue Deep Inside Cavity ---
+      const openHeight = 6 + (mY * 16);
       const openWidth = 20 + (mY * 7);
 
-      // 1. Smooth Continuous Crescent Mouth Cavity
+      // 1. Smooth Crescent Mouth Cavity
       mg.beginFill(0xB91C1C);
       mg.lineStyle(3.2, 0x0F172A);
       mg.moveTo(-openWidth, centerY);
       // Top lip contour (gentle smile curve)
       mg.quadraticCurveTo(0, centerY + 1.5, openWidth, centerY);
-      // Continuous smooth rounded lower jaw
-      mg.bezierCurveTo(openWidth * 0.85, centerY + openHeight, -openWidth * 0.85, centerY + openHeight, -openWidth, centerY);
+      // Continuous smooth rounded lower jaw reaching down to (0, centerY + openHeight)
+      mg.quadraticCurveTo(openWidth * 0.75, centerY + openHeight * 0.85, 0, centerY + openHeight);
+      mg.quadraticCurveTo(-openWidth * 0.75, centerY + openHeight * 0.85, -openWidth, centerY);
       mg.closePath();
       mg.endFill();
 
-      // 2. Soft, Smooth Double-Bump Tongue (Clean borderless fill for modern smooth UI aesthetic)
-      const tongueH = openHeight * 0.54;
-      const tongueTop = centerY + openHeight - tongueH;
-      const tW = openWidth * 0.68;
+      // 2. Soft, Smooth Double-Bump Tongue (100% FLOATING COMFORTABLY INSIDE MOUTH CAVITY)
+      const tW = openWidth * 0.52;
+      const tBottom = centerY + openHeight * 0.78; // 22% ruby buffer above floor, NEVER touches border!
+      const tTop = centerY + openHeight * 0.36;
+      const tMid = (tTop + tBottom) * 0.5;
 
       mg.beginFill(0xFB7185);
       mg.lineStyle(0);
-      mg.moveTo(-tW, centerY + openHeight - tongueH * 0.35);
+      mg.moveTo(-tW, tMid);
       // Left soft rounded lobe
-      mg.quadraticCurveTo(-tW * 0.45, tongueTop, 0, tongueTop + tongueH * 0.22);
+      mg.quadraticCurveTo(-tW * 0.5, tTop, 0, tTop + (tBottom - tTop) * 0.22);
       // Right soft rounded lobe
-      mg.quadraticCurveTo(tW * 0.45, tongueTop, tW, centerY + openHeight - tongueH * 0.35);
-      // Bottom curve fitting smoothly into lower jaw
-      mg.bezierCurveTo(tW * 0.8, centerY + openHeight - 0.5, -tW * 0.8, centerY + openHeight - 0.5, -tW, centerY + openHeight - tongueH * 0.35);
+      mg.quadraticCurveTo(tW * 0.5, tTop, tW, tMid);
+      // Bottom curve fitting comfortably inside cavity
+      mg.quadraticCurveTo(0, tBottom, -tW, tMid);
       mg.closePath();
       mg.endFill();
 
-      // Delicate subtle center crease line
-      mg.lineStyle(1.4, 0xE11D48, 0.65);
-      mg.moveTo(0, tongueTop + tongueH * 0.24);
-      mg.lineTo(0, centerY + openHeight - 1.5);
+      // Subtle center crease line
+      mg.lineStyle(1.4, 0xE11D48, 0.7);
+      mg.moveTo(0, tTop + (tBottom - tTop) * 0.22);
+      mg.lineTo(0, tBottom - 1.5);
 
       // 3. Crisp Smooth Top Lip Smile Line
       mg.lineStyle(3.2, 0x0F172A);
