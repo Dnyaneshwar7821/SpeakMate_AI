@@ -322,60 +322,85 @@ export class PuppyPuppet extends PIXI.Container {
     mg.clear();
 
     const mY = Math.max(0, Math.min(1.0, this.mouthY));
-    const mForm = Math.max(-1.0, Math.min(1.0, this.mouthForm));
-    const startY = 2;
+    const startY = 1;
 
     if (mY < 0.08) {
-      // Resting State: Cute Puppy Smile with Little Tongue
-      mg.lineStyle(3, 0x0F172A);
-
-      // Left mouth arc (w-shaped puppy smile)
-      mg.moveTo(-16, startY);
-      mg.quadraticCurveTo(-8, startY + 7, 0, startY + 2);
-      // Right mouth arc
-      mg.quadraticCurveTo(8, startY + 7, 16, startY);
-
-      // Playful Little Tongue peeking out
+      // --- RESTING: Sweet "ω" Puppy Smile with Tongue Peek ---
+      // 1. Cute Little Tongue peeking out between jowls
       mg.beginFill(0xFB7185);
       mg.lineStyle(2, 0x0F172A);
-      mg.drawEllipse(0, startY + 7, 6, 6.5);
+      mg.drawRoundedRect(-4.5, startY + 2, 9, 8, 4);
       mg.endFill();
-      mg.lineStyle(1.5, 0xE11D48);
+      // Tongue crease
+      mg.lineStyle(1.4, 0xE11D48);
       mg.moveTo(0, startY + 3);
-      mg.lineTo(0, startY + 9);
-    } else {
-      // Dynamic Speech Lip-Sync State: Natural Curved Smile Opening (NOT a circular donut/pacifier!)
-      const openHeight = 8 + mY * 18;
-      const mouthWidth = 14 + (mForm > 0 ? mForm * 6 : 0) + mY * 6;
+      mg.lineTo(0, startY + 8);
 
-      // 1. Soft Warm Rose Mouth Cavity
+      // 2. Classic Double-Arc "ω" Smile Line
+      mg.lineStyle(3, 0x0F172A);
+      // Left jowl curve
+      mg.moveTo(-15, startY);
+      mg.quadraticCurveTo(-8, startY + 6, 0, startY + 1.5);
+      // Right jowl curve
+      mg.quadraticCurveTo(8, startY + 6, 15, startY);
+
+      // Cute Smile Corner Dimples
+      mg.moveTo(-15, startY);
+      mg.quadraticCurveTo(-17.5, startY - 1, -16.5, startY - 3.5);
+      mg.moveTo(15, startY);
+      mg.quadraticCurveTo(17.5, startY - 1, 16.5, startY - 3.5);
+
+      // Subtle lower chin curve beneath mouth
+      mg.lineStyle(2, 0xD97706);
+      mg.moveTo(-7, startY + 11);
+      mg.quadraticCurveTo(0, startY + 13.5, 7, startY + 11);
+    } else {
+      // --- SPEAKING: Cute Rounded Open Smile (Natural U-Shape, NOT an Angular Triangle!) ---
+      const openH = 5 + mY * 11; // Stays gracefully within cream muzzle
+      const mouthW = 12 + mY * 3.5;
+
+      // 1. Soft Rounded Open Mouth Cavity
       mg.beginFill(0x831843);
       mg.lineStyle(3, 0x0F172A);
-      mg.moveTo(-mouthWidth, startY);
-      // Top lip line (soft curved smile arch)
-      mg.quadraticCurveTo(0, startY, mouthWidth, startY);
-      // Dropping curved bottom jaw (smile bowl)
-      mg.quadraticCurveTo(mouthWidth * 0.75, startY + openHeight, 0, startY + openHeight);
-      mg.quadraticCurveTo(-mouthWidth * 0.75, startY + openHeight, -mouthWidth, startY);
+      // Left corner
+      mg.moveTo(-mouthW, startY);
+      // Top lip (gentle curve following jowls)
+      mg.quadraticCurveTo(-mouthW * 0.5, startY + 2.5, 0, startY + 1);
+      mg.quadraticCurveTo(mouthW * 0.5, startY + 2.5, mouthW, startY);
+      // Bottom jaw: SMOOTH, ROUNDED U-CURVE (no sharp triangles!)
+      mg.quadraticCurveTo(mouthW * 0.9, startY + openH * 0.7, mouthW * 0.6, startY + openH);
+      mg.quadraticCurveTo(0, startY + openH + 2.5, -mouthW * 0.6, startY + openH);
+      mg.quadraticCurveTo(-mouthW * 0.9, startY + openH * 0.7, -mouthW, startY);
       mg.closePath();
       mg.endFill();
 
-      // 2. Animated Tongue along the bottom curve
-      const tongueTop = startY + openHeight * 0.52;
+      // 2. Soft Pink Tongue in the lower jaw
+      const tongueTop = startY + openH * 0.45;
       mg.beginFill(0xFB7185);
       mg.lineStyle(1.8, 0x9F1239);
-      mg.moveTo(-mouthWidth * 0.62, tongueTop);
-      mg.quadraticCurveTo(0, tongueTop - 2, mouthWidth * 0.62, tongueTop);
-      mg.quadraticCurveTo(mouthWidth * 0.5, startY + openHeight, 0, startY + openHeight);
-      mg.quadraticCurveTo(-mouthWidth * 0.5, startY + openHeight, -mouthWidth * 0.62, tongueTop);
+      mg.moveTo(-mouthW * 0.55, tongueTop);
+      mg.quadraticCurveTo(0, tongueTop - 2, mouthW * 0.55, tongueTop);
+      mg.quadraticCurveTo(mouthW * 0.45, startY + openH, 0, startY + openH);
+      mg.quadraticCurveTo(-mouthW * 0.45, startY + openH, -mouthW * 0.55, tongueTop);
       mg.closePath();
       mg.endFill();
 
-      // 3. Crisp upper lip smile contour
-      mg.lineStyle(3, 0x0F172A);
-      mg.moveTo(-mouthWidth - 1, startY);
-      mg.quadraticCurveTo(-mouthWidth * 0.5, startY + 2, 0, startY + 1);
-      mg.quadraticCurveTo(mouthWidth * 0.5, startY + 2, mouthWidth + 1, startY);
+      // Tongue Center Crease
+      mg.lineStyle(1.4, 0xE11D48);
+      mg.moveTo(0, tongueTop - 1);
+      mg.lineTo(0, startY + openH * 0.85);
+
+      // 3. Cute Smile Dimples at the mouth corners
+      mg.lineStyle(2.8, 0x0F172A);
+      mg.moveTo(-mouthW, startY);
+      mg.quadraticCurveTo(-mouthW - 2.5, startY - 1, -mouthW - 1.5, startY - 3.5);
+      mg.moveTo(mouthW, startY);
+      mg.quadraticCurveTo(mouthW + 2.5, startY - 1, mouthW + 1.5, startY - 3.5);
+
+      // 4. Supporting Lower Chin Arc beneath the open mouth
+      mg.lineStyle(2, 0xD97706);
+      mg.moveTo(-mouthW * 0.5, startY + openH + 3.5);
+      mg.quadraticCurveTo(0, startY + openH + 6, mouthW * 0.5, startY + openH + 3.5);
     }
   }
 
