@@ -5,6 +5,7 @@ import { DoraemonPuppet } from './DoraemonPuppet';
 import { SuperheroPuppet } from './SuperheroPuppet';
 import { MotuPuppet } from './MotuPuppet';
 import { PuppyPuppet } from './PuppyPuppet';
+import { BheemPuppet } from './BheemPuppet';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 import { getCurrentVoiceGender } from '../../utils/speechHelper';
 import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
@@ -73,6 +74,7 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
 
   const catalogEntry = getAvatarById(activeModelKey);
   const isPuppet = catalogEntry.type === 'puppet';
+  const isBheem = isPuppet && (catalogEntry.puppetType === 'bheem' || catalogEntry.id === 'bheem');
   const isPuppy = isPuppet && (catalogEntry.puppetType === 'puppy' || catalogEntry.id === 'puppy');
   const isRoboPaws = isPuppet && (catalogEntry.puppetType === 'doraemon' || catalogEntry.id === 'robopaws');
   const isSuperhero = isPuppet && (catalogEntry.puppetType === 'superhero' || catalogEntry.id === 'sparky' || catalogEntry.id === 'hero');
@@ -99,7 +101,9 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
     container.appendChild(app.view);
 
     if (isPuppet) {
-      const puppet = isPuppy
+      const puppet = isBheem
+        ? new BheemPuppet()
+        : isPuppy
         ? new PuppyPuppet()
         : isSuperhero
         ? new SuperheroPuppet()
@@ -115,7 +119,9 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
         const width = container.clientWidth;
         const height = container.clientHeight;
         app.renderer.resize(width, height);
-        const scale = isPuppy
+        const scale = isBheem
+          ? Math.min((width * 0.88) / 220, (height * 0.84) / 260)
+          : isPuppy
           ? Math.min((width * 0.88) / 210, (height * 0.82) / 240)
           : isSuperhero
           ? Math.min((width * 0.90) / 240, (height * 0.85) / 280)
@@ -124,7 +130,7 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
           : Math.min((width * 0.85) / 220, (height * 0.80) / 260);
         puppet.scale.set(scale, scale);
         puppet.x = width / 2;
-        puppet.y = isPuppy ? height * 0.48 : height * 0.50;
+        puppet.y = isBheem ? height * 0.50 : isPuppy ? height * 0.48 : height * 0.50;
       };
 
       resizePuppet();

@@ -95,6 +95,24 @@ export const AVATAR_CATALOG = {
     scaleMultiplier: 1.0,
     yOffsetRatio: 0.50,
   },
+  bheem: {
+    id: 'bheem',
+    name: 'Chhota Bheem',
+    gender: 'male',
+    category: 'cartoon',
+    badge: 'Hero of Dholakpur',
+    emoji: '💪',
+    subtitle: 'Brave, energetic kid hero from Dholakpur',
+    description: 'High-energy, heroic motivational coaching! Builds everyday English confidence through bravery, fun stories, and celebration.',
+    voiceProfile: 'Bheem',
+    voiceLabel: 'Heroic Kid Voice',
+    defaultPitch: 1.20,
+    type: 'puppet',
+    puppetType: 'bheem',
+    modelPath: null,
+    scaleMultiplier: 1.0,
+    yOffsetRatio: 0.50,
+  },
   sparky: {
     id: 'sparky',
     name: 'Sparky',
@@ -212,6 +230,9 @@ export const AVATAR_LIST = Object.values(AVATAR_CATALOG).filter(
 export function getAvatarById(id) {
   if (!id) return AVATAR_CATALOG.haru;
   const key = String(id).toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (key.includes('bheem') || key.includes('chhota') || key.includes('dholakpur')) {
+    return AVATAR_CATALOG.bheem;
+  }
   if (key.includes('motu') || key.includes('patlu')) {
     return AVATAR_CATALOG.motu;
   }
