@@ -57,10 +57,10 @@ export function ThreeAvatarCanvas({
     const width = container.clientWidth || 400;
     const height = container.clientHeight || 450;
 
-    // 1. Scene & Camera Setup
+    // 1. Scene & Camera Setup - perfectly framed for character portrait
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(32, width / height, 0.1, 100);
-    camera.position.set(0, 0.2, 3.4);
+    const camera = new THREE.PerspectiveCamera(30, width / height, 0.1, 100);
+    camera.position.set(0, 0.1, 2.9);
 
     // 2. High-Performance WebGL Renderer
     const renderer = new THREE.WebGLRenderer({
@@ -74,27 +74,33 @@ export function ThreeAvatarCanvas({
       renderer.outputColorSpace = THREE.SRGBColorSpace;
     }
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.2;
     container.appendChild(renderer.domElement);
 
-    // 3. Studio Lighting Rig
-    const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0x444455, 1.6);
+    // 3. Studio Lighting Rig - Beautifully illuminates face and cheeks from the front
+    const hemiLight = new THREE.HemisphereLight(0xFFFFFF, 0x444455, 1.8);
     scene.add(hemiLight);
 
-    const keyLight = new THREE.DirectionalLight(0xFFF7ED, 2.2);
-    keyLight.position.set(2.5, 3.5, 3.0);
+    const keyLight = new THREE.DirectionalLight(0xFFFBEB, 2.5);
+    keyLight.position.set(2.0, 2.5, 3.5);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x93C5FD, 1.4);
-    rimLight.position.set(-3.0, 2.0, -2.5);
+    const fillLight = new THREE.DirectionalLight(0xFEF08A, 1.3);
+    fillLight.position.set(-2.5, 1.5, 3.0);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0x93C5FD, 1.2);
+    rimLight.position.set(0, 3.0, -2.5);
     scene.add(rimLight);
 
-    const fillLight = new THREE.PointLight(0xFDE047, 0.8, 8);
-    fillLight.position.set(0, -0.5, 2.0);
-    scene.add(fillLight);
+    const bounceLight = new THREE.PointLight(0xFACC15, 0.7, 6);
+    bounceLight.position.set(0, -0.8, 1.8);
+    scene.add(bounceLight);
 
     // 4. Model Container & Rig References
     const avatarGroup = new THREE.Group();
+    // Default 180 deg rotation around Y so GLB model faces the user/camera directly!
+    avatarGroup.rotation.y = Math.PI;
     scene.add(avatarGroup);
 
     let headNode = null;
@@ -106,6 +112,9 @@ export function ThreeAvatarCanvas({
     let initialHeadRot = new THREE.Euler();
     let initialLeftEarRot = new THREE.Euler();
     let initialRightEarRot = new THREE.Euler();
+    let initialLeftArmRot = new THREE.Euler();
+    let initialRightArmRot = new THREE.Euler();
+    let initialMouthScale = new THREE.Vector3(1, 1, 1);
 
     // 5. Load 3D GLB Model
     const loader = new GLTFLoader();
@@ -121,13 +130,14 @@ export function ThreeAvatarCanvas({
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
 
+        // Center on X and Z, and vertically adjust so smiling face and rosy cheeks are at eye-level
         model.position.x = -center.x;
-        model.position.y = -center.y - 0.08;
+        model.position.y = -center.y + 0.16;
         model.position.z = -center.z;
 
-        // Optimal normalization scale
+        // Optimal normalization scale to generously fill the avatar portrait frame
         const maxDim = Math.max(size.x, size.y, size.z) || 1;
-        const targetScale = 1.65 / maxDim;
+        const targetScale = 2.05 / maxDim;
         avatarGroup.scale.set(targetScale, targetScale, targetScale);
         avatarGroup.add(model);
 
@@ -137,30 +147,42 @@ export function ThreeAvatarCanvas({
             child.castShadow = true;
             child.receiveShadow = true;
             if (child.material) {
-              child.material.roughness = 0.55;
+              child.material.roughness = 0.5;
               child.material.metalness = 0.05;
             }
             if (/mouth/i.test(child.name) || /mouth/i.test(child.material?.name || '')) {
               mouthMesh = child;
+              initialMouthScale.copy(child.scale);
             }
           }
           if (/head/i.test(child.name)) {
             headNode = child;
             initialHeadRot.copy(child.rotation);
           }
-          if (/LEar/i.test(child.name) && !leftEarNode) {
+          // Prioritize LEar1 / REar1 (ear base) so the entire ear pivots expressively
+          if (/LEar1/i.test(child.name)) {
+            leftEarNode = child;
+            initialLeftEarRot.copy(child.rotation);
+          } else if (/LEar/i.test(child.name) && !leftEarNode) {
             leftEarNode = child;
             initialLeftEarRot.copy(child.rotation);
           }
-          if (/REar/i.test(child.name) && !rightEarNode) {
+
+          if (/REar1/i.test(child.name)) {
+            rightEarNode = child;
+            initialRightEarRot.copy(child.rotation);
+          } else if (/REar/i.test(child.name) && !rightEarNode) {
             rightEarNode = child;
             initialRightEarRot.copy(child.rotation);
           }
+
           if (/LArm/i.test(child.name) && !leftArmNode) {
             leftArmNode = child;
+            initialLeftArmRot.copy(child.rotation);
           }
           if (/RArm/i.test(child.name) && !rightArmNode) {
             rightArmNode = child;
+            initialRightArmRot.copy(child.rotation);
           }
         });
 
@@ -198,42 +220,59 @@ export function ThreeAvatarCanvas({
 
       const elapsed = clock.getElapsedTime();
       const ptr = pointerRef.current;
-      ptr.x += (ptr.targetX - ptr.x) * 0.07;
-      ptr.y += (ptr.targetY - ptr.y) * 0.07;
+      ptr.x += (ptr.targetX - ptr.x) * 0.08;
+      ptr.y += (ptr.targetY - ptr.y) * 0.08;
 
       const isSpeaking = Boolean(isSpeakingRef.current);
       const mY = Math.max(0, Math.min(1, mouthYRef.current));
 
       // 3D Idle Breathing & Floating Physics
-      const breathe = Math.sin(elapsed * 2.5) * 0.035;
+      const breathe = Math.sin(elapsed * 2.5) * 0.025;
       avatarGroup.position.y = breathe;
+
+      // Whole-body subtle gaze tracking (faces user cursor naturally)
+      avatarGroup.rotation.y = Math.PI - ptr.x * 0.16;
 
       // 3D Head Tracking & Speech Nods
       if (headNode) {
-        const gazeYaw = ptr.x * 0.35;
-        const gazePitch = -ptr.y * 0.22;
-        const speakNod = isSpeaking ? Math.sin(elapsed * 7.5) * 0.06 : 0;
+        const gazeYaw = -ptr.x * 0.20;
+        const gazePitch = -ptr.y * 0.16;
+        const speakNod = isSpeaking ? Math.sin(elapsed * 8.0) * 0.05 : 0;
         headNode.rotation.y = initialHeadRot.y + gazeYaw;
         headNode.rotation.x = initialHeadRot.x + gazePitch + speakNod;
       }
 
       // Reactive Ear Physics (Bouncy ear wiggles when talking or idle)
       const earIdle = Math.sin(elapsed * 2.8) * 0.04;
-      const earSpeakWiggle = isSpeaking ? Math.sin(elapsed * 12.0) * 0.16 : 0;
+      const earSpeakWiggle = isSpeaking ? Math.sin(elapsed * 12.0) * 0.14 : 0;
 
       if (leftEarNode) {
         leftEarNode.rotation.z = initialLeftEarRot.z + earIdle + earSpeakWiggle;
-        leftEarNode.rotation.x = initialLeftEarRot.x + (isSpeaking ? Math.cos(elapsed * 10.0) * 0.08 : 0);
+        leftEarNode.rotation.x = initialLeftEarRot.x + (isSpeaking ? Math.cos(elapsed * 10.0) * 0.07 : 0);
       }
       if (rightEarNode) {
         rightEarNode.rotation.z = initialRightEarRot.z - earIdle - earSpeakWiggle;
-        rightEarNode.rotation.x = initialRightEarRot.x + (isSpeaking ? Math.cos(elapsed * 10.0) * 0.08 : 0);
+        rightEarNode.rotation.x = initialRightEarRot.x + (isSpeaking ? Math.cos(elapsed * 10.0) * 0.07 : 0);
+      }
+
+      // Reactive Arm Gestures while speaking
+      if (leftArmNode) {
+        const armTalk = isSpeaking ? Math.sin(elapsed * 6.0) * 0.08 : 0;
+        leftArmNode.rotation.x = initialLeftArmRot.x + armTalk;
+      }
+      if (rightArmNode) {
+        const armTalk = isSpeaking ? -Math.sin(elapsed * 6.0) * 0.08 : 0;
+        rightArmNode.rotation.x = initialRightArmRot.x + armTalk;
       }
 
       // Mouth deformation / scale during speech
       if (mouthMesh) {
         const openScale = 1.0 + (isSpeaking ? (0.35 + mY * 0.45) : 0);
-        mouthMesh.scale.set(1.0, openScale, 1.0);
+        mouthMesh.scale.set(
+          initialMouthScale.x,
+          initialMouthScale.y * openScale,
+          initialMouthScale.z
+        );
       }
 
       renderer.render(scene, camera);
