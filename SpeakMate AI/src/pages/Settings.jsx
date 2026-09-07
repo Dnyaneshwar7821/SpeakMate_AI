@@ -5,6 +5,7 @@ import { useTheme } from "../context/ThemeContext";
 import { speakGlobalText, VOICE_PROFILES, ACCENT_LIST } from "../utils/speechHelper";
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 import { settingsService, onboardingService, profileService } from "../services/appServices";
+import { getAvatarById } from "../config/AvatarCatalog";
 
 const LANGUAGE_OPTIONS = [
   { code: "English", label: "English", native: "English", flag: "🇺🇸" },
@@ -96,7 +97,25 @@ export function Settings() {
     user?.preferredVoice ||
     "Friendly";
 
+  const [currentModelKey, setCurrentModelKey] = useState(() => {
+    return (localStorage.getItem("speakmate_avatar_model") || "haru").toLowerCase();
+  });
+
+  useEffect(() => {
+    const unsub = EventBus.on(AVATAR_EVENTS.GENDER_CHANGED, (data) => {
+      const chosen = data?.model || data?.gender || localStorage.getItem("speakmate_avatar_model") || "haru";
+      setCurrentModelKey(chosen.toLowerCase());
+    });
+    return () => unsub();
+  }, []);
+
+  const activeAvatar = getAvatarById(currentModelKey);
+  const isHaruOrChitose = currentModelKey === "haru" || currentModelKey === "chitose";
+
   const activeVoiceLabel = (() => {
+    if (!isHaruOrChitose) {
+      return `${activeAvatar.name} — ${activeAvatar.voiceLabel}`;
+    }
     if (selectedVoice === "Default" || !selectedVoice) {
       return `System Default (${onboardingVoiceStyle})`;
     }
@@ -105,16 +124,20 @@ export function Settings() {
   })();
 
   const playVoicePreview = (voiceCode, previewMsg) => {
+    const targetCode = !isHaruOrChitose ? activeAvatar.voiceProfile : (voiceCode || selectedVoice);
     let textToSpeak = previewMsg;
-    if (voiceCode === "Default") {
+    if (!isHaruOrChitose) {
+      const p = VOICE_PROFILES.find((vp) => vp.code === targetCode);
+      textToSpeak = p ? p.previewText : `Hello! I am ${activeAvatar.name}. I am excited to practice English with you!`;
+    } else if (targetCode === "Default") {
       textToSpeak = `Hello! I am your System Default English tutor using the ${onboardingVoiceStyle} voice selected during onboarding.`;
     } else if (!textToSpeak) {
-      const p = VOICE_PROFILES.find((vp) => vp.code === voiceCode);
-      textToSpeak = p ? p.previewText : `Hello! I am your AI speaking tutor using the ${voiceCode} voice. I'm excited to practice English with you!`;
+      const p = VOICE_PROFILES.find((vp) => vp.code === targetCode);
+      textToSpeak = p ? p.previewText : `Hello! I am your AI speaking tutor using the ${targetCode} voice. I'm excited to practice English with you!`;
     }
-    setPlayingVoice(voiceCode);
+    setPlayingVoice(targetCode);
     speakGlobalText(textToSpeak, speechSpeed, {
-      overrideVoiceCode: voiceCode,
+      overrideVoiceCode: targetCode,
       onend: () => setPlayingVoice(null),
       onerror: () => setPlayingVoice(null),
     });
@@ -124,8 +147,10 @@ export function Settings() {
     setSelectedVoice(voiceCode);
     const profile = VOICE_PROFILES.find((p) => p.code === voiceCode);
     const gender = profile?.gender || (voiceCode.toLowerCase().includes("male") && !voiceCode.toLowerCase().includes("female") ? "male" : "female");
-    const model = gender === "robopaws" ? "robopaws" : gender === "male" ? "chitose" : "haru";
+    // Male maps to Chitose, female maps to Haru
+    const model = gender === "male" ? "chitose" : "haru";
 
+    setCurrentModelKey(model);
     localStorage.setItem("speakmate_avatar_model", model);
     localStorage.setItem("speakmate_voice_gender", gender);
     localStorage.setItem("speakmate_selected_voice", voiceCode);
@@ -140,17 +165,25 @@ export function Settings() {
     setSaving(true);
 
     try {
-      const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
-      const gender = profile?.gender || (selectedVoice.toLowerCase().includes("male") && !selectedVoice.toLowerCase().includes("female") ? "male" : "female");
-      const currentModel = localStorage.getItem("speakmate_avatar_model") || "haru";
-      const model = gender === "robopaws" ? "robopaws" : gender === "male" ? (currentModel === "haruto" || currentModel === "dexter" || currentModel === "sparky" ? currentModel : "chitose") : (currentModel === "koharu" || currentModel === "shizuku" || currentModel === "mao" ? currentModel : "haru");
+      if (isHaruOrChitose) {
+        const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
+        const gender = profile?.gender || (selectedVoice.toLowerCase().includes("male") && !selectedVoice.toLowerCase().includes("female") ? "male" : "female");
+        const model = gender === "male" ? "chitose" : "haru";
 
-      // 1. Persist voice, language, audio and learning preferences to localStorage
-      localStorage.setItem("speakmate_ai_voice", selectedVoice);
-      localStorage.setItem("speakmate_voice_code", selectedVoice);
-      localStorage.setItem("speakmate_selected_voice", selectedVoice);
-      localStorage.setItem("speakmate_voice_gender", gender);
-      localStorage.setItem("speakmate_avatar_model", model);
+        localStorage.setItem("speakmate_ai_voice", selectedVoice);
+        localStorage.setItem("speakmate_voice_code", selectedVoice);
+        localStorage.setItem("speakmate_selected_voice", selectedVoice);
+        localStorage.setItem("speakmate_voice_gender", gender);
+        localStorage.setItem("speakmate_avatar_model", model);
+        EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
+      } else {
+        localStorage.setItem("speakmate_avatar_model", activeAvatar.id);
+        localStorage.setItem("speakmate_voice_gender", activeAvatar.gender);
+        localStorage.setItem("speakmate_ai_voice", activeAvatar.voiceProfile);
+        localStorage.setItem("speakmate_voice_code", activeAvatar.voiceProfile);
+        localStorage.setItem("speakmate_voice_pitch", String(activeAvatar.defaultPitch));
+      }
+
       localStorage.setItem("speakmate_voice_accent", accent);
       localStorage.setItem("speakmate_age_group", selectedAgeGroup);
       localStorage.setItem("speakmate_daily_goal", dailyGoal);
@@ -158,8 +191,6 @@ export function Settings() {
       localStorage.setItem("speakmate_voice_speed", String(speechSpeed));
       localStorage.setItem("speakmate_sound_effects", String(soundEffects));
       localStorage.setItem("speakmate_autoplay_audio", String(autoPlayAudio));
-
-      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
 
       // 2. Sync preferences to backend services (Settings, Onboarding, and User Profile)
       await Promise.allSettled([
@@ -291,32 +322,52 @@ export function Settings() {
         <div className="p-6 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] shadow-inner flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#FF6584] text-white grid place-items-center text-3xl shadow-lg shrink-0">
-              🎙️
+              {activeAvatar.emoji || "🎙️"}
             </div>
             <div>
-              <span className="text-[10px] font-black uppercase text-[#6C63FF] tracking-wider px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15">
-                Active Selected AI Voice
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase text-[#6C63FF] tracking-wider px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15">
+                  {isHaruOrChitose ? "Active Adult Tutor Voice" : `${activeAvatar.name}'s Dedicated Voice`}
+                </span>
+                {!isHaruOrChitose && (
+                  <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/30">
+                    Character Voice
+                  </span>
+                )}
+              </div>
               <h3 className="text-xl font-black text-[var(--text-primary)] mt-1">{activeVoiceLabel}</h3>
               <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                Click below to open the Voice Popup with 9 unique AI voices & automatic audio playback.
+                {isHaruOrChitose
+                  ? "Haru & Chitose support switching between custom Male & Female voices and accents below."
+                  : `${activeAvatar.name} uses its dedicated character voice across the entire app. To choose custom Male/Female voices, switch to Haru or Chitose in your Profile.`}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
-              onClick={() => playVoicePreview(selectedVoice)}
+              onClick={() => playVoicePreview(isHaruOrChitose ? selectedVoice : activeAvatar.voiceProfile)}
               className="px-4 py-3 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs font-black text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white transition-all shrink-0 active:scale-95 shadow-sm"
             >
-              {playingVoice === selectedVoice ? "🔊 Playing Audio..." : "▶ Test Audio"}
+              {playingVoice === (isHaruOrChitose ? selectedVoice : activeAvatar.voiceProfile)
+                ? "🔊 Playing Audio..."
+                : `▶ Test Voice`}
             </button>
-            <button
-              onClick={() => setShowVoiceModal(true)}
-              className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 text-white text-xs font-black shadow-lg shadow-[#6C63FF]/25 transition-all flex items-center justify-center gap-2 active:scale-95"
-            >
-              <span>🎙️ Choose AI Voice (9 Options)</span>
-            </button>
+            {isHaruOrChitose ? (
+              <button
+                onClick={() => setShowVoiceModal(true)}
+                className="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 text-white text-xs font-black shadow-lg shadow-[#6C63FF]/25 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <span>🎙️ Choose AI Voice (Male / Female)</span>
+              </button>
+            ) : (
+              <a
+                href="/profile"
+                className="flex-1 sm:flex-none px-5 py-3 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] hover:border-[#6C63FF] text-[var(--text-primary)] text-xs font-black transition-all flex items-center justify-center gap-2 text-center"
+              >
+                <span>🎭 Change Avatar in Profile</span>
+              </a>
+            )}
           </div>
         </div>
 
@@ -545,8 +596,8 @@ export function Settings() {
               </div>
 
               {VOICE_PROFILES.filter((vp) => {
-                if (vp.code === "Default" || vp.code === "Robo-Paws") return false;
-                return true;
+                const HUMAN_VOICES = ["US Male", "US Female", "UK Male", "UK Female", "AU Male", "AU Female", "IN Male", "IN Female"];
+                return HUMAN_VOICES.includes(vp.code);
               }).map((profile, idx) => {
                 const isSelected = selectedVoice === profile.code;
                 return (

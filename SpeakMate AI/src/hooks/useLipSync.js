@@ -147,28 +147,32 @@ export function useLipSync(model, isSpeakingProp = false) {
 
       if (isSpeaking) {
         const t = now * 0.001;
-        const phoneticY = targetMouthYRef.current > 0 ? targetMouthYRef.current : 0.95;
+        const phoneticY = targetMouthYRef.current > 0 ? targetMouthYRef.current : 1.0;
         const phoneticForm = targetMouthFormRef.current || 0.2;
 
         const timeSinceWord = now - lastWordTimeRef.current;
         let envelope = 0;
 
-        // Smooth Syllabic Arc (Bell curve from 0.0 -> peak -> 0.0 per syllable)
-        if (timeSinceWord < 320) {
-          const progress = timeSinceWord / 320;
+        // Snappy Syllabic Arc for immediate word boundary response
+        if (timeSinceWord < 300) {
+          const progress = timeSinceWord / 300;
+          // Sine curve with elevated sustain
           envelope = Math.sin(progress * Math.PI);
         } else {
-          // Natural 3.5 Hz speech cadence that fully opens and closes between syllables
-          const syllablePhase = (t * 3.5 * Math.PI * 2) % (Math.PI * 2);
-          envelope = Math.pow(Math.max(0, Math.sin(syllablePhase)), 1.5);
+          // Dynamic 3.8 Hz speech cadence with full opening range
+          const syllablePhase = (t * 3.8 * Math.PI * 2) % (Math.PI * 2);
+          const rawWave = Math.sin(syllablePhase);
+          envelope = rawWave > 0 ? Math.pow(rawWave, 0.85) : 0;
         }
 
-        targetMouthY = phoneticY * envelope;
+        // Boosted dynamic range for clear visual articulation (peak up to 1.0)
+        targetMouthY = Math.min(1.0, Math.max(0, phoneticY * envelope * 1.15));
         targetMouthForm = phoneticForm;
       }
 
-      // Responsive interpolation for smooth, lifelike jaw articulation
-      const lerpSpeed = isSpeaking ? 0.45 : 0.25;
+      // Fast-attack lerp on opening, smooth natural release on closing
+      const isOpening = targetMouthY > currentMouthY.current;
+      const lerpSpeed = isSpeaking ? (isOpening ? 0.60 : 0.38) : 0.25;
       currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
       currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
 

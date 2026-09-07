@@ -11,7 +11,14 @@ export const VOICE_PROFILES = [
   { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: 'Hello, I am your Australian Female English tutor.' },
   { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male', previewText: 'Hello, I am your Indian Male English tutor.' },
   { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female', previewText: 'Hello, I am your Indian Female English tutor.' },
-  { code: 'Robo-Paws', accent: 'Cartoon Kids', locale: 'en-US', gender: 'robopaws', label: 'Robo-Paws (Kids Buddy)', previewText: 'Beep-boop! Hello superstar! I am Robo-Paws, your friendly robot cat English buddy!' },
+  { code: 'Shizuku', accent: 'Academic Mentor', locale: 'en-US', gender: 'female', label: 'Shizuku (Academic Mentor)', previewText: 'Hello, I am Shizuku. Together we will master English grammar and conversational fluency step by step.' },
+  { code: 'Robo-Paws', accent: 'Cartoon Kids', locale: 'en-US', gender: 'robopaws', label: 'Robo-Paws (Cartoon Cat)', previewText: 'Beep-boop! Hello superstar! I am Robo-Paws, your friendly robot cat English buddy!' },
+  { code: 'Motu', accent: 'Cartoon Kids', locale: 'en-IN', gender: 'male', label: 'Motu (Cartoon Friend)', previewText: 'Arey wah, dost! I am Motu from Furfuri Nagar! Let us practice English with lots of fun and laughter!' },
+  { code: 'Sparky', accent: 'Cartoon Kids', locale: 'en-US', gender: 'male', label: 'Sparky (Superhero Kid)', previewText: 'Power up! I am Sparky, your superhero English training partner! Let us conquer our daily goal!' },
+  { code: 'Koharu', accent: 'Cartoon Kids', locale: 'en-US', gender: 'female', label: 'Koharu (Cartoon Girl)', previewText: 'Yay! Hello! I am Koharu! Let us practice speaking English happily together today!' },
+  { code: 'Haruto', accent: 'Cartoon Kids', locale: 'en-US', gender: 'male', label: 'Haruto (Cartoon Explorer)', previewText: 'Hey there explorer! I am Haruto! Grab your backpack and let us practice cool English words!' },
+  { code: 'Mao', accent: 'Cartoon Kids', locale: 'en-US', gender: 'female', label: 'Mao (Cute Chibi)', previewText: 'Hello hello! I am Mao! Practicing English is so easy and fun when we do it together!' },
+  { code: 'Wanko', accent: 'Cartoon Kids', locale: 'en-US', gender: 'male', label: 'Wanko (Playful Pup)', previewText: 'Woof! Hello best friend! I am Wanko! Let us play and speak cheerful English every day!' },
   { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default', previewText: 'Hello, I am your System Default English tutor.' },
 ];
 
@@ -86,18 +93,42 @@ export const VOICE_PERSONAS = [
 ];
 
 export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
-  const aiVoice = overrideVoiceCode || localStorage.getItem("speakmate_ai_voice") || "Default";
+  const currentAvatarModel = (localStorage.getItem("speakmate_avatar_model") || "haru").toLowerCase();
+  let aiVoice = overrideVoiceCode || localStorage.getItem("speakmate_ai_voice") || "Default";
   const onboardingVoice = localStorage.getItem("speakmate_onboarding_voice") || localStorage.getItem("speakmate_voice_persona") || "Friendly";
   const accent = localStorage.getItem("speakmate_voice_accent") || "US";
   const selectedVoiceName = localStorage.getItem("speakmate_voice_name") || "";
   const customPitch = localStorage.getItem("speakmate_voice_pitch");
   const customRate = localStorage.getItem("speakmate_speech_rate") || "1.0";
 
+  // Automatic Avatar-Intrinsic Voice Resolution:
+  // If the active avatar is Shizuku or any Cartoon avatar, its voice is intrinsic to that avatar.
+  // If the active avatar is Haru or Chitose, honor the user's selected voice from Settings.
+  if (!overrideVoiceCode) {
+    if (currentAvatarModel === "shizuku") {
+      aiVoice = "Shizuku";
+    } else if (currentAvatarModel === "robopaws") {
+      aiVoice = "Robo-Paws";
+    } else if (currentAvatarModel === "motu") {
+      aiVoice = "Motu";
+    } else if (currentAvatarModel === "sparky" || currentAvatarModel === "hero") {
+      aiVoice = "Sparky";
+    } else if (currentAvatarModel === "koharu") {
+      aiVoice = "Koharu";
+    } else if (currentAvatarModel === "haruto") {
+      aiVoice = "Haruto";
+    } else if (currentAvatarModel === "mao" || currentAvatarModel === "unitychan") {
+      aiVoice = "Mao";
+    } else if (currentAvatarModel === "wanko") {
+      aiVoice = "Wanko";
+    }
+  }
+
   const isDefault = aiVoice === "Default" || !aiVoice;
   const effectiveVoiceCode = isDefault ? onboardingVoice : aiVoice;
 
   // Check if effectiveVoiceCode matches a VOICE_PROFILE or VOICE_PERSONA
-  const profile = VOICE_PROFILES.find((p) => p.code === effectiveVoiceCode);
+  const profile = VOICE_PROFILES.find((p) => p.code.toLowerCase() === effectiveVoiceCode.toLowerCase());
   const personaObj = VOICE_PERSONAS.find((p) => p.key === effectiveVoiceCode) || VOICE_PERSONAS[0];
 
   let targetLang = accent === "UK" ? "en-GB" : accent === "AU" ? "en-AU" : accent === "IN" ? "en-IN" : "en-US";
@@ -109,7 +140,7 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     if (profile.locale) targetLang = profile.locale;
     if (profile.gender) gender = profile.gender;
 
-    // Smooth, natural human speech rates & warm pitch profiles (Normal speed)
+    // Dedicated sound profiles
     if (profile.code === "US Male") {
       pitch = 0.98;
       baseRate = 1.05;
@@ -126,17 +157,38 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
       pitch = 1.02;
       baseRate = 1.05;
     } else if (profile.code === "AU Female") {
-      pitch = 1.15; // Bright distinct Australian female pitch
-      baseRate = 1.04; // Fluent Australian female cadence
+      pitch = 1.15;
+      baseRate = 1.04;
     } else if (profile.code === "IN Male") {
       pitch = 0.95;
       baseRate = 1.02;
     } else if (profile.code === "IN Female") {
       pitch = 1.12;
       baseRate = 1.02;
+    } else if (profile.code === "Shizuku") {
+      pitch = 1.02; // Gentle, thoughtful, calm academic mentor
+      baseRate = 0.98;
     } else if (profile.code === "Robo-Paws") {
-      pitch = 1.35; // Dedicated cute, high-pitch cheerful cartoon robot voice
+      pitch = 1.38; // Cheerful robot cat cartoon voice
       baseRate = 1.05;
+    } else if (profile.code === "Motu") {
+      pitch = 1.18; // Jolly, humorous Furfuri Nagar cartoon voice
+      baseRate = 1.04;
+    } else if (profile.code === "Sparky") {
+      pitch = 1.30; // High-energy superhero kid
+      baseRate = 1.10;
+    } else if (profile.code === "Koharu") {
+      pitch = 1.32; // Cheerful cartoon schoolgirl
+      baseRate = 1.04;
+    } else if (profile.code === "Haruto") {
+      pitch = 1.28; // Friendly schoolboy explorer
+      baseRate = 1.05;
+    } else if (profile.code === "Mao") {
+      pitch = 1.36; // Sweet chibi tutor
+      baseRate = 1.04;
+    } else if (profile.code === "Wanko") {
+      pitch = 1.34; // Playful, lively pup
+      baseRate = 1.06;
     }
   }
 
@@ -262,6 +314,24 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
       if (!targetVoice) {
         targetVoice = voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
       }
+    } else if (settings.effectiveVoiceCode === "Shizuku") {
+      targetVoice = voices.find((v) =>
+        (v.name.toLowerCase().includes("natural") || v.name.toLowerCase().includes("online") || v.name.toLowerCase().includes("jenny") || v.name.toLowerCase().includes("samantha") || v.name.toLowerCase().includes("sonia")) &&
+        !MALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+      ) || voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+    } else if (settings.effectiveVoiceCode === "Motu") {
+      targetVoice = voices.find((v) =>
+        (v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("indian") || v.name.toLowerCase().includes("rishi") || v.name.toLowerCase().includes("prabhat")) &&
+        !FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k))
+      ) || voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+    } else if (settings.effectiveVoiceCode === "Robo-Paws" || settings.effectiveVoiceCode === "Sparky" || settings.effectiveVoiceCode === "Haruto" || settings.effectiveVoiceCode === "Wanko") {
+      targetVoice = voices.find((v) =>
+        v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("guy") || v.name.toLowerCase().includes("david") || v.name.toLowerCase().includes("mark") || v.name.toLowerCase().includes("alex"))
+      ) || voices.find((v) => MALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
+    } else if (settings.effectiveVoiceCode === "Koharu" || settings.effectiveVoiceCode === "Mao") {
+      targetVoice = voices.find((v) =>
+        v.lang.toLowerCase().includes("us") && (v.name.toLowerCase().includes("zira") || v.name.toLowerCase().includes("jenny") || v.name.toLowerCase().includes("samantha"))
+      ) || voices.find((v) => FEMALE_NAMES.some((k) => v.name.toLowerCase().includes(k)));
     }
 
     // Generic fallbacks if targetVoice not matched above

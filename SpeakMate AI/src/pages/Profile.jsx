@@ -9,6 +9,7 @@ import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 import { AVATAR_LIST, getAvatarById } from "../config/AvatarCatalog";
 import { Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
+import { speakGlobalText } from "../utils/speechHelper";
 
 const PRESET_AVATARS = [
   "🎓", "🦁", "🚀", "🦉", "👑", "⚡",
@@ -181,15 +182,13 @@ export function Profile() {
       toast.info(`Switched voice to ${av.name}`);
       return;
     }
-    window.speechSynthesis.cancel();
     setPlayingTutor(av.id);
     const greetingText = `Hello! I'm ${av.name}, your AI speaking coach. Let's practice English together!`;
-    const utterance = new SpeechSynthesisUtterance(greetingText);
-    utterance.pitch = av.defaultPitch || 1.0;
-    utterance.rate = 1.0;
-    utterance.onend = () => setPlayingTutor(null);
-    utterance.onerror = () => setPlayingTutor(null);
-    window.speechSynthesis.speak(utterance);
+    speakGlobalText(greetingText, 1.0, {
+      overrideVoiceCode: av.voiceProfile,
+      onend: () => setPlayingTutor(null),
+      onerror: () => setPlayingTutor(null),
+    });
   };
 
   const handleSelectTutor = (avatarInput) => {
@@ -209,6 +208,8 @@ export function Profile() {
     localStorage.setItem("speakmate_voice_pitch", String(pitch));
 
     EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
+
+    playAvatarPreview(entry);
 
     toast.success(`Switched to ${entry.name} (${entry.voiceLabel} Active) ${entry.emoji}`);
   };
