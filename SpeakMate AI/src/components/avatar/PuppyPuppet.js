@@ -175,12 +175,6 @@ export class PuppyPuppet extends PIXI.Container {
     mg.drawEllipse(0, -5, 34, 24);
     mg.endFill();
 
-    // Cute Cheeks Blushing Dots
-    mg.beginFill(0xFDA4AF, 0.6);
-    mg.drawCircle(-32, -12, 9);
-    mg.drawCircle(32, -12, 9);
-    mg.endFill();
-
     // Glossy Heart/Button Nose
     mg.beginFill(0x0F172A);
     mg.drawRoundedRect(-11, -22, 22, 15, 6);
@@ -195,14 +189,6 @@ export class PuppyPuppet extends PIXI.Container {
     mg.lineStyle(2.5, 0x0F172A);
     mg.moveTo(0, -7);
     mg.lineTo(0, 2);
-
-    // Whiskers dots
-    mg.beginFill(0x92400E);
-    mg.drawCircle(-15, -4, 2);
-    mg.drawCircle(-22, -6, 2);
-    mg.drawCircle(15, -4, 2);
-    mg.drawCircle(22, -6, 2);
-    mg.endFill();
   }
 
   update(now = performance.now()) {
