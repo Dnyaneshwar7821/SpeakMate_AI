@@ -8,7 +8,7 @@ import { getPrimaryVisemeForWord } from '../utils/PhoneticVisemeEngine';
  */
 function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   if (!model) return;
-  if (model.isDoraemonPuppet || model.isSuperheroPuppet || typeof model.setMouthOpen === 'function' || 'mouthY' in model) {
+  if (model.isPuppyPuppet || model.isDoraemonPuppet || model.isSuperheroPuppet || typeof model.setMouthOpen === 'function' || 'mouthY' in model) {
     model.mouthY = yVal;
     model.mouthForm = formVal;
     model.isSpeaking = isSpeaking;
@@ -31,18 +31,27 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
   const vocalHeadZ = isSpeaking ? Math.cos(t * 1.5) * 1.8 : 0;
   const vocalBodyX = isSpeaking ? Math.sin(t * 1.1) * 1.4 : 0;
 
-  // 1. Cubism 4 (Haru)
+  // 1. Cubism 4 (Haru & Wanko)
   if (typeof cm.setParameterValueById === 'function') {
     try { cm.setParameterValueById('ParamMouthOpenY', Math.max(0, Math.min(1.0, yVal))); } catch (_) {}
+    try { cm.setParameterValueById('PARAM_MOUTH_OPEN_Y', Math.max(0, Math.min(1.0, yVal))); } catch (_) {}
     try { cm.setParameterValueById('ParamMouthForm', Math.max(-1.0, Math.min(1.0, formVal))); } catch (_) {}
+    try { cm.setParameterValueById('PARAM_MOUTH_FORM', Math.max(-1.0, Math.min(1.0, formVal))); } catch (_) {}
     if (isSpeaking) {
       try { cm.setParameterValueById('ParamAngleY', vocalHeadY); } catch (_) {}
+      try { cm.setParameterValueById('PARAM_ANGLE_Y', vocalHeadY); } catch (_) {}
       try { cm.setParameterValueById('ParamAngleZ', vocalHeadZ); } catch (_) {}
+      try { cm.setParameterValueById('PARAM_ANGLE_Z', vocalHeadZ); } catch (_) {}
       try { cm.setParameterValueById('ParamBodyAngleX', vocalBodyX); } catch (_) {}
+      try { cm.setParameterValueById('PARAM_BODY_ANGLE_X', vocalBodyX); } catch (_) {}
+      try { cm.setParameterValueById('PARAM_EAR_L', Math.sin(t * 3.2) * 0.5); } catch (_) {}
+      try { cm.setParameterValueById('PARAM_EAR_R', Math.cos(t * 3.2) * 0.5); } catch (_) {}
+      try { cm.setParameterValueById('PARAM_HAND_L', Math.sin(t * 2.5) * 0.3); } catch (_) {}
+      try { cm.setParameterValueById('PARAM_HAND_R', Math.cos(t * 2.5) * 0.3); } catch (_) {}
     }
   }
   
-  // 2. Cubism 2 (Chitose & Robo-Paws)
+  // 2. Cubism 2 (Chitose & Robo-Paws & Wanko)
   if (typeof cm.setParamFloat === 'function') {
     const clampedY = Math.max(0, Math.min(1.0, yVal));
     try { cm.setParamFloat('PARAM_MOUTH_OPEN_Y', clampedY, 1.0); } catch (_) {}
@@ -54,6 +63,10 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
       try { cm.setParamFloat('PARAM_ANGLE_Y', vocalHeadY, 1.0); } catch (_) {}
       try { cm.setParamFloat('PARAM_ANGLE_Z', vocalHeadZ, 1.0); } catch (_) {}
       try { cm.setParamFloat('PARAM_BODY_ANGLE_X', vocalBodyX, 1.0); } catch (_) {}
+      try { cm.setParamFloat('PARAM_EAR_L', Math.sin(t * 3.2) * 0.5, 1.0); } catch (_) {}
+      try { cm.setParamFloat('PARAM_EAR_R', Math.cos(t * 3.2) * 0.5, 1.0); } catch (_) {}
+      try { cm.setParamFloat('PARAM_HAND_L', Math.sin(t * 2.5) * 0.3, 1.0); } catch (_) {}
+      try { cm.setParamFloat('PARAM_HAND_R', Math.cos(t * 2.5) * 0.3, 1.0); } catch (_) {}
     }
   }
 }

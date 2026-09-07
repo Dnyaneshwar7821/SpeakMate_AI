@@ -72,11 +72,11 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
   }, [model]);
 
   const catalogEntry = getAvatarById(activeModelKey);
-  const isPuppy = catalogEntry.id === 'puppy' || catalogEntry.id === 'wanko' || catalogEntry.puppetType === 'puppy';
-  const isRoboPaws = catalogEntry.id === 'robopaws';
-  const isSuperhero = catalogEntry.id === 'sparky' || catalogEntry.id === 'hero' || catalogEntry.puppetType === 'superhero';
-  const isMotu = catalogEntry.id === 'motu' || catalogEntry.puppetType === 'motu';
-  const isPuppet = catalogEntry.type === 'puppet' || isPuppy || isRoboPaws || isSuperhero || isMotu;
+  const isPuppet = catalogEntry.type === 'puppet';
+  const isPuppy = isPuppet && (catalogEntry.puppetType === 'puppy' || catalogEntry.id === 'puppy');
+  const isRoboPaws = isPuppet && (catalogEntry.puppetType === 'doraemon' || catalogEntry.id === 'robopaws');
+  const isSuperhero = isPuppet && (catalogEntry.puppetType === 'superhero' || catalogEntry.id === 'sparky' || catalogEntry.id === 'hero');
+  const isMotu = isPuppet && (catalogEntry.puppetType === 'motu' || catalogEntry.id === 'motu');
   const targetModelPath = modelPath || catalogEntry.modelPath || AVATAR_CATALOG.haru.modelPath;
 
   useEffect(() => {
@@ -166,17 +166,17 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
       if (modelRef.current) {
         const model = modelRef.current;
         const nativeHeight = model.internalModel?.height || model.height || 1000;
-        const isAnimal = catalogEntry.id === 'wanko' || catalogEntry.id === 'tororo';
+        const isAnimal = catalogEntry.id === 'wanko' || catalogEntry.id === 'tororo' || catalogEntry.id === 'puppy';
 
         if (isAnimal) {
           if (model.anchor) {
             model.anchor.set(0.5, 0.0);
           }
-          const scaleMultiplier = catalogEntry.scaleMultiplier || 1.05;
+          const scaleMultiplier = catalogEntry.scaleMultiplier || 1.35;
           const scale = (height * scaleMultiplier) / nativeHeight;
           model.scale.set(scale, scale);
           model.x = width / 2;
-          const yOffset = catalogEntry.yOffsetRatio ?? 0.12;
+          const yOffset = catalogEntry.yOffsetRatio ?? 0.08;
           model.y = Math.max(6, height * yOffset);
         } else {
           if (model.anchor) {
