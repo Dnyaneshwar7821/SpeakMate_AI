@@ -317,6 +317,7 @@ export default function ConversationChatScreen({ navigation, route }) {
         const isKids = Boolean(
           (savedAgeGroup && savedAgeGroup.toLowerCase() === 'kids') ||
           (savedGrade && ['1st std', '2nd std', '3rd std', '4th std', '5th std'].includes(savedGrade.toLowerCase()))
+        );
         const isMaleVoice = Boolean(
           savedGender === 'male' ||
           (effectiveVoice && effectiveVoice.toLowerCase().includes('male')) ||
