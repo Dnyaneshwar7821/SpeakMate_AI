@@ -157,12 +157,6 @@ export class PuppyPuppet extends PIXI.Container {
     hg.drawCircle(0, -25, 62);
     hg.endFill();
 
-    // Cheerful Fur Highlights
-    hg.beginFill(0xFBBF24);
-    hg.drawCircle(-25, -60, 12);
-    hg.drawCircle(22, -62, 10);
-    hg.endFill();
-
     // Top hair tuft
     hg.beginFill(0xF59E0B);
     hg.lineStyle(3, 0x0F172A);
@@ -196,6 +190,11 @@ export class PuppyPuppet extends PIXI.Container {
     mg.beginFill(0xFFFFFF);
     mg.drawCircle(-4, -18, 2.5);
     mg.endFill();
+
+    // Philtrum vertical line connecting nose to mouth
+    mg.lineStyle(2.5, 0x0F172A);
+    mg.moveTo(0, -7);
+    mg.lineTo(0, 2);
 
     // Whiskers dots
     mg.beginFill(0x92400E);
@@ -328,10 +327,10 @@ export class PuppyPuppet extends PIXI.Container {
       eg.drawCircle(rightX + pX, eyeY + 4 + pY, 1.8);
       eg.endFill();
 
-      // Cute Little Eyebrows
-      eg.lineStyle(2.5, 0x92400E);
-      eg.drawCircle(leftX + 1, eyeY - 20, 3);
-      eg.drawCircle(rightX - 1, eyeY - 20, 3);
+      // Cute Little Arched Eyebrows
+      eg.lineStyle(2.8, 0x78350F);
+      eg.arc(leftX + 1, eyeY - 17, 7, Math.PI * 1.2, Math.PI * 1.8);
+      eg.arc(rightX - 1, eyeY - 17, 7, Math.PI * 1.2, Math.PI * 1.8);
     }
   }
 
@@ -341,47 +340,59 @@ export class PuppyPuppet extends PIXI.Container {
 
     const mY = Math.max(0, Math.min(1.0, this.mouthY));
     const mForm = Math.max(-1.0, Math.min(1.0, this.mouthForm));
-    const startY = 1;
+    const startY = 2;
 
     if (mY < 0.08) {
       // Resting State: Cute Puppy Smile with Little Tongue
       mg.lineStyle(3, 0x0F172A);
 
       // Left mouth arc (w-shaped puppy smile)
-      mg.moveTo(-18, startY);
-      mg.quadraticCurveTo(-9, startY + 8, 0, startY + 2);
+      mg.moveTo(-16, startY);
+      mg.quadraticCurveTo(-8, startY + 7, 0, startY + 2);
       // Right mouth arc
-      mg.quadraticCurveTo(9, startY + 8, 18, startY);
+      mg.quadraticCurveTo(8, startY + 7, 16, startY);
 
-      // Playful Tongue sticking out
+      // Playful Little Tongue peeking out
       mg.beginFill(0xFB7185);
       mg.lineStyle(2, 0x0F172A);
-      mg.drawEllipse(0, startY + 8, 7, 8);
+      mg.drawEllipse(0, startY + 7, 6, 6.5);
       mg.endFill();
       mg.lineStyle(1.5, 0xE11D48);
-      mg.moveTo(0, startY + 4);
-      mg.lineTo(0, startY + 11);
+      mg.moveTo(0, startY + 3);
+      mg.lineTo(0, startY + 9);
     } else {
-      // Dynamic Speech Lip-Sync State
-      const openHeight = 12 + mY * 26;
-      const mouthWidth = 14 + (mForm > 0 ? mForm * 10 : 0) + mY * 8;
+      // Dynamic Speech Lip-Sync State: Natural Curved Smile Opening (NOT a circular donut/pacifier!)
+      const openHeight = 8 + mY * 18;
+      const mouthWidth = 14 + (mForm > 0 ? mForm * 6 : 0) + mY * 6;
 
-      // Dark Mouth Cavity
-      mg.beginFill(0x881337);
+      // 1. Soft Warm Rose Mouth Cavity
+      mg.beginFill(0x831843);
       mg.lineStyle(3, 0x0F172A);
-      mg.drawEllipse(0, startY + openHeight * 0.45, mouthWidth, openHeight * 0.55);
+      mg.moveTo(-mouthWidth, startY);
+      // Top lip line (soft curved smile arch)
+      mg.quadraticCurveTo(0, startY, mouthWidth, startY);
+      // Dropping curved bottom jaw (smile bowl)
+      mg.quadraticCurveTo(mouthWidth * 0.75, startY + openHeight, 0, startY + openHeight);
+      mg.quadraticCurveTo(-mouthWidth * 0.75, startY + openHeight, -mouthWidth, startY);
+      mg.closePath();
       mg.endFill();
 
-      // Animated Tongue
-      const tongueY = startY + openHeight * 0.45 + (1 - mY) * 3;
+      // 2. Animated Tongue along the bottom curve
+      const tongueTop = startY + openHeight * 0.52;
       mg.beginFill(0xFB7185);
-      mg.drawEllipse(0, tongueY, mouthWidth * 0.65, openHeight * 0.28);
+      mg.lineStyle(1.8, 0x9F1239);
+      mg.moveTo(-mouthWidth * 0.62, tongueTop);
+      mg.quadraticCurveTo(0, tongueTop - 2, mouthWidth * 0.62, tongueTop);
+      mg.quadraticCurveTo(mouthWidth * 0.5, startY + openHeight, 0, startY + openHeight);
+      mg.quadraticCurveTo(-mouthWidth * 0.5, startY + openHeight, -mouthWidth * 0.62, tongueTop);
+      mg.closePath();
       mg.endFill();
 
-      // Upper white puppy tooth accent
-      mg.beginFill(0xFFFFFF);
-      mg.drawRoundedRect(-4, startY, 8, 5, 2);
-      mg.endFill();
+      // 3. Crisp upper lip smile contour
+      mg.lineStyle(3, 0x0F172A);
+      mg.moveTo(-mouthWidth - 1, startY);
+      mg.quadraticCurveTo(-mouthWidth * 0.5, startY + 2, 0, startY + 1);
+      mg.quadraticCurveTo(mouthWidth * 0.5, startY + 2, mouthWidth + 1, startY);
     }
   }
 
