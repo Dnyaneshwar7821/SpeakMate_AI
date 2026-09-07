@@ -13,6 +13,7 @@ export class DoraemonPuppet extends PIXI.Container {
 
     // Speech & Lip-Sync State
     this.mouthY = 0;
+    this.smoothMouthY = 0;
     this.mouthForm = 0;
     this.isSpeaking = false;
     this.currentMood = 'neutral';
@@ -277,6 +278,9 @@ export class DoraemonPuppet extends PIXI.Container {
       }
     }
 
+    const targetMouthY = this.isSpeaking ? this.mouthY : 0;
+    this.smoothMouthY += (targetMouthY - this.smoothMouthY) * 0.25;
+
     this.renderEyes();
     this.renderMouth();
   }
@@ -295,6 +299,8 @@ export class DoraemonPuppet extends PIXI.Container {
       // Closed Happy Eyes (^ ^)
       eg.lineStyle(3.5, 0x0F172A);
       eg.arc(leftEyeX, eyeY + 4, 11, Math.PI * 1.1, Math.PI * 1.9);
+      const rightStart = Math.PI * 1.1;
+      eg.moveTo(rightEyeX + Math.cos(rightStart) * 11, eyeY + 4 + Math.sin(rightStart) * 11);
       eg.arc(rightEyeX, eyeY + 4, 11, Math.PI * 1.1, Math.PI * 1.9);
     } else {
       // Left Eye Capsule (White)
@@ -335,69 +341,58 @@ export class DoraemonPuppet extends PIXI.Container {
     const mg = this.mouthGfx;
     mg.clear();
 
-    const mY = Math.max(0, Math.min(1.0, this.mouthY));
+    const mY = Math.max(0, Math.min(1.0, this.smoothMouthY));
     const centerY = 4;
 
-    if (mY < 0.08) {
-      // --- RESTING: Iconic Wide Doraemon Smile Curve with Corner Ticks ---
+    if (mY < 0.06) {
+      // --- RESTING: Smooth, Clean Iconic Doraemon Smile Line ---
       mg.lineStyle(3.2, 0x0F172A);
-      const smileW = 30;
-      const smileDrop = 8;
-      // Main smile curve
+      const smileW = 28;
+      const smileDrop = 10;
       mg.moveTo(-smileW, centerY);
       mg.quadraticCurveTo(0, centerY + smileDrop, smileW, centerY);
-      // Left cheek smile tick
-      mg.moveTo(-smileW, centerY);
-      mg.quadraticCurveTo(-smileW - 3, centerY - 2, -smileW - 2, centerY - 5);
-      // Right cheek smile tick
-      mg.moveTo(smileW, centerY);
-      mg.quadraticCurveTo(smileW + 3, centerY - 2, smileW + 2, centerY - 5);
     } else {
-      // --- SPEAKING: Iconic Wide Doraemon Mouth with Double-Lobe Tongue (No Teeth, No Overflow!) ---
-      const openHeight = 6 + (mY * 16); // Maximum 22px height: stays safely within white face mask!
-      const openWidth = 22 + (mY * 8);
+      // --- SPEAKING: Silky-Smooth Curved Mouth with Soft Double-Lobe Tongue ---
+      const openHeight = 5 + (mY * 16);
+      const openWidth = 20 + (mY * 7);
 
-      // 1. Vibrant Anime Ruby-Red Mouth Cavity
+      // 1. Smooth Continuous Crescent Mouth Cavity
       mg.beginFill(0xB91C1C);
       mg.lineStyle(3.2, 0x0F172A);
       mg.moveTo(-openWidth, centerY);
-      // Top lip (following gentle smile contour)
-      mg.quadraticCurveTo(0, centerY + 2, openWidth, centerY);
-      // Smooth, wide rounded bottom jaw
-      mg.quadraticCurveTo(openWidth * 0.85, centerY + openHeight, 0, centerY + openHeight);
-      mg.quadraticCurveTo(-openWidth * 0.85, centerY + openHeight, -openWidth, centerY);
+      // Top lip contour (gentle smile curve)
+      mg.quadraticCurveTo(0, centerY + 1.5, openWidth, centerY);
+      // Continuous smooth rounded lower jaw
+      mg.bezierCurveTo(openWidth * 0.85, centerY + openHeight, -openWidth * 0.85, centerY + openHeight, -openWidth, centerY);
       mg.closePath();
       mg.endFill();
 
-      // 2. Doraemon's Iconic Double-Bump Pink Tongue (Fully contained inside mouth!)
-      const tongueBaseY = centerY + openHeight;
-      const tongueH = openHeight * 0.55;
-      const tongueTopY = tongueBaseY - tongueH;
-      const tW = openWidth * 0.72;
+      // 2. Soft, Smooth Double-Bump Tongue (Clean borderless fill for modern smooth UI aesthetic)
+      const tongueH = openHeight * 0.54;
+      const tongueTop = centerY + openHeight - tongueH;
+      const tW = openWidth * 0.68;
 
       mg.beginFill(0xFB7185);
-      mg.lineStyle(1.8, 0x9F1239);
-      // Left lobe
-      mg.moveTo(-tW, tongueBaseY - tongueH * 0.4);
-      mg.quadraticCurveTo(-tW * 0.5, tongueTopY - 2, 0, tongueTopY + 2);
-      // Right lobe
-      mg.quadraticCurveTo(tW * 0.5, tongueTopY - 2, tW, tongueBaseY - tongueH * 0.4);
-      // Bottom contour fitting the mouth floor
-      mg.quadraticCurveTo(0, tongueBaseY + 1, -tW, tongueBaseY - tongueH * 0.4);
+      mg.lineStyle(0);
+      mg.moveTo(-tW, centerY + openHeight - tongueH * 0.35);
+      // Left soft rounded lobe
+      mg.quadraticCurveTo(-tW * 0.45, tongueTop, 0, tongueTop + tongueH * 0.22);
+      // Right soft rounded lobe
+      mg.quadraticCurveTo(tW * 0.45, tongueTop, tW, centerY + openHeight - tongueH * 0.35);
+      // Bottom curve fitting smoothly into lower jaw
+      mg.bezierCurveTo(tW * 0.8, centerY + openHeight - 0.5, -tW * 0.8, centerY + openHeight - 0.5, -tW, centerY + openHeight - tongueH * 0.35);
       mg.closePath();
       mg.endFill();
 
-      // Tongue Center Crease
-      mg.lineStyle(1.5, 0xE11D48);
-      mg.moveTo(0, tongueTopY + 2);
-      mg.lineTo(0, tongueBaseY - 1);
+      // Delicate subtle center crease line
+      mg.lineStyle(1.4, 0xE11D48, 0.65);
+      mg.moveTo(0, tongueTop + tongueH * 0.24);
+      mg.lineTo(0, centerY + openHeight - 1.5);
 
-      // 3. Iconic Corner Smile Ticks
-      mg.lineStyle(3.0, 0x0F172A);
+      // 3. Crisp Smooth Top Lip Smile Line
+      mg.lineStyle(3.2, 0x0F172A);
       mg.moveTo(-openWidth, centerY);
-      mg.quadraticCurveTo(-openWidth - 3, centerY - 2, -openWidth - 2, centerY - 5);
-      mg.moveTo(openWidth, centerY);
-      mg.quadraticCurveTo(openWidth + 3, centerY - 2, openWidth + 2, centerY - 5);
+      mg.quadraticCurveTo(0, centerY + 1.5, openWidth, centerY);
     }
   }
 }
