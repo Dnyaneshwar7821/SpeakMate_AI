@@ -379,14 +379,22 @@ export default function AIAvatar({
             />
           )}
 
-          {/* Layer 7: Smooth Chest-Line Fade into Dark Background (Seamless edge-to-edge) */}
-          <LinearGradient
-            pointerEvents="none"
-            colors={['transparent', 'rgba(10, 15, 29, 0.20)', 'rgba(10, 15, 29, 0.65)', 'rgba(10, 15, 29, 0.95)', '#0A0F1D']}
-            locations={[0, 0.25, 0.60, 0.88, 1.0]}
-            style={styles.softTorsoDissolve}
-          />
         </Animated.View>
+
+        {/* ── Layer 7: Stationary Smooth Seamless Bottom Mask & Fade into Dark Background ── */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={[
+            'transparent',
+            'rgba(7, 10, 18, 0.0)',
+            'rgba(7, 10, 18, 0.35)',
+            'rgba(7, 10, 18, 0.75)',
+            'rgba(7, 10, 18, 0.98)',
+            '#070A12',
+          ]}
+          locations={[0, 0.20, 0.48, 0.76, 0.92, 1.0]}
+          style={styles.softTorsoDissolve}
+        />
       </View>
 
       {/* ── Layer 8: Glassmorphic State / Speaking Pill ── */}
@@ -510,14 +518,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
 
-  // 6. Avatar Container & Canvas (Head to Chest Portrait)
+  // 6. Avatar Container & Canvas (Head to Chest Portrait, no hard bottom clipping)
   avatarContainer: {
     width:           '100%',
     height:          AVATAR_HEIGHT,
     alignItems:      'center',
     justifyContent:  'center',
     position:        'relative',
-    overflow:        'hidden',
+    overflow:        'visible',
     backgroundColor: 'transparent',
     zIndex:          10,
   },
@@ -527,14 +535,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // 7. Smooth Chest-Line Fade into Dark Background (Full-width edge-to-edge, zero corner gaps)
+  // 7. Stationary Smooth Chest-Line Fade into Dark Background (Anchored to stage, zero movement gap)
   softTorsoDissolve: {
     position:     'absolute',
     width:        '100%',
-    height:       56,
+    height:       68,
     bottom:       0,
     alignSelf:    'center',
-    zIndex:       12,
+    zIndex:       15,
     elevation:    10,
   },
 
