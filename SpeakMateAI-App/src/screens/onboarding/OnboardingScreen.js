@@ -277,12 +277,12 @@ export default function OnboardingScreen({ navigation }) {
     // Indicators for categorization
     const MALE_INDICATORS = [
       'male', 'david', 'daniel', 'george', 'mister', 'guy', 'alex', 'bruce', 'tom',
-      'iom', 'iog', 'nep', 'rjs', 'jcb', 'ndf'
+      'tpf', 'tpc', 'iog', 'nep', 'rjs', 'jcb', 'ndf'
     ];
 
     const FEMALE_INDICATORS = [
       'female', 'samantha', 'zira', 'karen', 'hazel', 'siri', 'victoria', 'tessa',
-      'sfg', 'iol', 'lpf', 'fis', 'cxx', 'html', 'aef', 'khf', 'tpf', 'gpf', 'ahp'
+      'sfg', 'iom', 'iol', 'lpf', 'fis', 'cxx', 'html', 'aef', 'khf', 'gpf', 'ahp'
     ];
 
     const getVoiceGender = (voice) => {

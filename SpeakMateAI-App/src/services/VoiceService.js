@@ -274,7 +274,7 @@ export const VoiceService = {
           const name = (v.name || '').toLowerCase();
           const isMale = (v.gender && v.gender.toLowerCase() === 'male') ||
             name.includes('male') || id.includes('male') ||
-            id.includes('iom') || id.includes('iog') || id.includes('rjs');
+            !isFemalePattern(id, name, v.gender);
           return !isMale;
         });
         if (notExplicitlyMale) return { voice: notExplicitlyMale, isFallback: true };
@@ -513,6 +513,9 @@ export const VoiceService = {
 
     // ── 5. Pitch & rate ───────────────────────────────────────────────────────
     let pitch = 1.0;
+    if (voiceConfig && voiceConfig.pitch) {
+      pitch = voiceConfig.pitch;
+    }
     let rate  = Number(effectiveSpeed) || 1.0;
 
     // Align with Web App Voice Profiles & Robo-Paws Cute Voice
@@ -548,18 +551,39 @@ export const VoiceService = {
 
     // Use the saved device voice identifier directly if available (onboarding config),
     // otherwise resolve via the normal system voice matching.
-    const pinnedVoiceId = voiceConfig?.voiceIdentifier || null;
+    let pinnedVoiceId = voiceConfig?.voiceIdentifier || null;
+
+    // Safety validation for pinned voice:
+    // If resolving a female voice (System Default / onboarding voice), ensure pinnedVoiceId is NOT male!
+    if (pinnedVoiceId && targetGender === 'female' && voices && voices.length > 0) {
+      const voiceObj = voices.find(v => v.identifier === pinnedVoiceId);
+      if (voiceObj) {
+        const vid = (voiceObj.identifier || '').toLowerCase();
+        const vname = (voiceObj.name || '').toLowerCase();
+        if (!isFemalePattern(vid, vname, voiceObj.gender)) {
+          // Discard invalid male pinned voice from older onboarding saves
+          pinnedVoiceId = null;
+        }
+      }
+    }
+
     const systemVoiceId = pinnedVoiceId || VoiceService.selectSystemVoice(voices, resolvedVoice);
     if (systemVoiceId) {
       options.voice = systemVoiceId;
       
-      // If resolving male requested voice to a female voice fallback, apply Web App pitch-shift
       const voiceObj = voices.find(v => v.identifier === systemVoiceId);
-      if (voiceObj && gs.includes('male') && !gs.includes('female')) {
+      if (voiceObj) {
         const vid = (voiceObj.identifier || '').toLowerCase();
         const vname = (voiceObj.name || '').toLowerCase();
-        if (isFemalePattern(vid, vname, voiceObj.gender)) {
+        const isActuallyFemale = isFemalePattern(vid, vname, voiceObj.gender);
+
+        // If resolving male requested voice to a female voice fallback, apply Web App pitch-shift
+        if (gs.includes('male') && !gs.includes('female') && isActuallyFemale) {
           options.pitch = 0.88; // Match Web App fallback male pitch
+        }
+        // If resolving female / System Default voice but system fell back to a male voice, pitch shift up
+        else if (targetGender === 'female' && !isActuallyFemale) {
+          options.pitch = Math.max(pitch, 1.15); // Ensure female vocal resonance
         }
       }
     }

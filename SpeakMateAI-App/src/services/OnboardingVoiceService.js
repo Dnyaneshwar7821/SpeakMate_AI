@@ -158,7 +158,11 @@ const OnboardingVoiceService = {
   isSystemDefault: (voiceCode) => {
     if (!voiceCode) return true;
     const v = String(voiceCode).toLowerCase().trim();
-    return v === 'default' || v === 'default ⚙️' || v === 'female' || v === 'male';
+    if (v === 'default' || v === 'default ⚙️' || v === 'system default' || v === 'female' || v.includes('default')) {
+      return true;
+    }
+    const styles = Object.keys(ONBOARDING_VOICE_CONFIGS).map(s => s.toLowerCase());
+    return styles.includes(v);
   },
 };
 
