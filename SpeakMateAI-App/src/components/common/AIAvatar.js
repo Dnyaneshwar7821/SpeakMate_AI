@@ -124,7 +124,7 @@ function ThinkingDots() {
 const INNER_RING_SIZE = 172; // Inner Neon Halo Ring
 const OUTER_RING_SIZE = 232; // Outer Luminous Halo Ring
 const AVATAR_WIDTH    = 320; // Ample width for full ponytail & both shoulders
-const AVATAR_HEIGHT   = 200; // Generous height with natural headroom
+const AVATAR_HEIGHT   = 224; // Generous height with natural headroom matching halo stage
 
 // ── Main AIAvatar Component (Dual Concentric Halo & Cosmic Studio) ────────────
 export default function AIAvatar({

@@ -70,13 +70,13 @@
       const MODEL_REGISTRY = {
         haru: {
           path: './models/avatar/haru/haru_greeter_t03.model3.json',
-          scaleMultiplier: 2.35,
-          yOffsetRatio: 0.12,
+          scaleMultiplier: 3.35,
+          yOffsetRatio: 0.05,
         },
         chitose: {
           path: './models/avatar/chitose/chitose.model.json',
-          scaleMultiplier: 2.35,
-          yOffsetRatio: 0.12,
+          scaleMultiplier: 3.35,
+          yOffsetRatio: 0.05,
         }
       };
 
@@ -142,7 +142,7 @@
         const scale = (screenH * cfg.scaleMultiplier) / nativeH;
         model.scale.set(scale, scale);
         model.x = screenW / 2;
-        model.y = Math.max(16, screenH * cfg.yOffsetRatio);
+        model.y = Math.max(8, screenH * cfg.yOffsetRatio);
       }
 
       // 4. Universal Lip-Sync Applier for Cubism 2 (Chitose) and Cubism 4 (Haru)

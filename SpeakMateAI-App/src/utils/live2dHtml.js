@@ -80,13 +80,13 @@ export function getLive2DAvatarHtml(initialModel = 'haru') {
       var MODEL_REGISTRY = {
         haru: {
           path: CDN_BASE + '/models/avatar/haru/haru_greeter_t03.model3.json',
-          scaleMultiplier: 2.35,
-          yOffsetRatio: 0.12,
+          scaleMultiplier: 3.35,
+          yOffsetRatio: 0.05,
         },
         chitose: {
           path: CDN_BASE + '/models/avatar/chitose/chitose.model.json',
-          scaleMultiplier: 2.35,
-          yOffsetRatio: 0.12,
+          scaleMultiplier: 3.35,
+          yOffsetRatio: 0.05,
         }
       };
 
@@ -146,7 +146,7 @@ export function getLive2DAvatarHtml(initialModel = 'haru') {
         var scale = (screenH * cfg.scaleMultiplier) / nativeH;
         model.scale.set(scale, scale);
         model.x = screenW / 2;
-        model.y = Math.max(16, screenH * cfg.yOffsetRatio);
+        model.y = Math.max(8, screenH * cfg.yOffsetRatio);
       }
 
       function setMouthOpen(val) {
