@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SpeakMate AI Offline Avatar</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: transparent !important;
+      overflow: hidden;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    #stage-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 72%, transparent 95%);
+      mask-image: linear-gradient(to bottom, black 0%, black 72%, transparent 95%);
+    }
+    canvas {
+      display: block;
+      background: transparent !important;
+    }
+  </style>
+
+  <!-- Core Live2D Runtimes (Local APK Assets) -->
+  <script src="./libs/live2d.min.js"></script>
+  <script src="./libs/live2dcubismcore.min.js"></script>
+  <script src="./libs/pixi.min.js"></script>
+  <script src="./libs/cubism-display.min.js"></script>
+</head>
+<body>
+  <div id="stage-container"></div>
+
+  <script>
+    (function () {
+      // 1. Polyfill PixiJS and Live2DCubismCore
+      if (typeof window !== 'undefined') {
+        window.PIXI = PIXI;
+        window.Live2DCubismCore = window.Live2DCubismCore || {};
+      }
+
+      const isInteractiveFn = function() {
+        return Boolean(this.interactive || this.eventMode === 'static' || this.eventMode === 'dynamic');
+      };
+      if (PIXI && PIXI.DisplayObject) {
+        PIXI.DisplayObject.prototype.isInteractive = isInteractiveFn;
+      }
+      if (PIXI && PIXI.Container) {
+        PIXI.Container.prototype.isInteractive = isInteractiveFn;
+      }
+
+      // 2. Model Catalog
+      const MODEL_REGISTRY = {
+        haru: {
+          path: './models/avatar/haru/haru_greeter_t03.model3.json',
+          scaleMultiplier: 2.35,
+          yOffsetRatio: 0.12,
+        },
+        chitose: {
+          path: './models/avatar/chitose/chitose.model.json',
+          scaleMultiplier: 2.35,
+          yOffsetRatio: 0.12,
+        }
+      };
+
+      const params = new URLSearchParams(window.location.search);
+      let activeModelKey = (params.get('model') || 'haru').toLowerCase();
+      if (!MODEL_REGISTRY[activeModelKey]) {
+        activeModelKey = activeModelKey.includes('chitose') || activeModelKey === 'male' ? 'chitose' : 'haru';
+      }
+
+      let app = null;
+      let currentModel = null;
+      let isSpeaking = false;
+      let mouthAnimId = null;
+      let mouthPhase = 0;
+
+      const container = document.getElementById('stage-container');
+
+      function notifyReactNative(payload) {
+        try {
+          if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+            window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+          }
+        } catch (_) {}
+      }
+
+      // 3. Initialize PixiJS Application
+      function initPixi() {
+        const width = window.innerWidth || 360;
+        const height = window.innerHeight || 420;
+
+        app = new PIXI.Application({
+          width: width,
+          height: height,
+          backgroundAlpha: 0,
+          resolution: window.devicePixelRatio || 2,
+          autoDensity: true,
+          antialias: true,
+        });
+
+        container.appendChild(app.view);
+        window.addEventListener('resize', handleResize);
+      }
+
+      function handleResize() {
+        if (!app || !currentModel) return;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        app.renderer.resize(w, h);
+        positionModel(currentModel, activeModelKey);
+      }
+
+      function positionModel(model, modelKey) {
+        if (!model) return;
+        const cfg = MODEL_REGISTRY[modelKey] || MODEL_REGISTRY.haru;
+        const screenW = app.screen.width;
+        const screenH = app.screen.height;
+        const nativeH = model.internalModel?.height || model.height || 1000;
+
+        if (model.anchor) {
+          model.anchor.set(0.5, 0.0);
+        }
+
+        const scale = (screenH * cfg.scaleMultiplier) / nativeH;
+        model.scale.set(scale, scale);
+        model.x = screenW / 2;
+        model.y = Math.max(16, screenH * cfg.yOffsetRatio);
+      }
+
+      // 4. Universal Lip-Sync Applier for Cubism 2 (Chitose) and Cubism 4 (Haru)
+      function setMouthOpen(val) {
+        if (!currentModel || !currentModel.internalModel) return;
+        const core = currentModel.internalModel.coreModel;
+        if (!core) return;
+
+        // Cubism 4 (Haru)
+        if (typeof core.setParameterValueById === 'function') {
+          try {
+            core.setParameterValueById('ParamMouthOpenY', val);
+          } catch (_) {}
+        }
+        // Cubism 2 (Chitose)
+        if (typeof core.setParamFloat === 'function') {
+          try {
+            core.setParamFloat('PARAM_MOUTH_OPEN_Y', val);
+          } catch (_) {}
+        }
+      }
+
+      function startSpeakingAnimation() {
+        if (mouthAnimId) return;
+        function animate() {
+          if (!isSpeaking) {
+            setMouthOpen(0);
+            mouthAnimId = null;
+            return;
+          }
+          mouthPhase += 0.28;
+          // Organic speech rhythm with varied syllable heights
+          const raw = (Math.sin(mouthPhase) * 0.5 + 0.5) * 0.75 + (Math.sin(mouthPhase * 2.3) * 0.25);
+          const open = Math.max(0.0, Math.min(1.0, raw));
+          setMouthOpen(open);
+          mouthAnimId = requestAnimationFrame(animate);
+        }
+        animate();
+      }
+
+      function stopSpeakingAnimation() {
+        isSpeaking = false;
+        if (mouthAnimId) {
+          cancelAnimationFrame(mouthAnimId);
+          mouthAnimId = null;
+        }
+        setMouthOpen(0);
+      }
+
+      // 5. Load Model
+      async function loadModel(modelKey) {
+        const Live2D = (window.PIXI && window.PIXI.live2d) ? window.PIXI.live2d.Live2DModel : null;
+        if (!Live2D) {
+          notifyReactNative({ type: 'ERROR', message: 'Live2D runtime not loaded.' });
+          return;
+        }
+
+        const cfg = MODEL_REGISTRY[modelKey] || MODEL_REGISTRY.haru;
+
+        try {
+          if (currentModel) {
+            app.stage.removeChild(currentModel);
+            currentModel.destroy();
+            currentModel = null;
+          }
+
+          const model = await Live2D.from(cfg.path, {
+            autoInteract: false,
+            onError: function (err) {
+              console.warn('[OfflineLive2D] Model load warning:', err);
+            }
+          });
+
+          if ('eventMode' in model) {
+            model.eventMode = 'none';
+          }
+          model.interactive = false;
+
+          positionModel(model, modelKey);
+          app.stage.addChild(model);
+          currentModel = model;
+          activeModelKey = modelKey;
+
+          notifyReactNative({ type: 'READY', model: modelKey });
+        } catch (err) {
+          console.error('[OfflineLive2D] Failed to load model:', err);
+          notifyReactNative({ type: 'ERROR', message: err.message || 'Failed to load model.' });
+        }
+      }
+
+      // 6. Listen to Messages from React Native
+      function handleMessage(event) {
+        try {
+          const raw = event.data;
+          const data = typeof raw === 'string' ? JSON.parse(raw) : raw;
+          if (!data || typeof data !== 'object') return;
+
+          if (data.type === 'SPEAK' || data.type === 'STATE') {
+            const speaking = Boolean(data.isSpeaking || data.state === 'speaking');
+            if (speaking !== isSpeaking) {
+              isSpeaking = speaking;
+              if (isSpeaking) {
+                startSpeakingAnimation();
+              } else {
+                stopSpeakingAnimation();
+              }
+            }
+          } else if (data.type === 'MODEL') {
+            const req = (data.model || '').toLowerCase();
+            const target = req.includes('chitose') || req === 'male' ? 'chitose' : 'haru';
+            if (target !== activeModelKey) {
+              loadModel(target);
+            }
+          }
+        } catch (_) {}
+      }
+
+      window.addEventListener('message', handleMessage);
+      document.addEventListener('message', handleMessage);
+
+      // Start Pixi & load initial model
+      initPixi();
+      loadModel(activeModelKey);
+    })();
+  </script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://speakmate-ai-28z5.onrender.com';
@@ -18,6 +19,10 @@ export const getWebAvatarEmbedUrl = (model = 'haru') => {
   const customUrl = process.env.EXPO_PUBLIC_WEB_AVATAR_URL;
   if (customUrl) {
     return `${customUrl}?model=${model}&framing=faceToChest`;
+  }
+  // Android 100% Offline Standalone Embed
+  if (Platform.OS === 'android') {
+    return `file:///android_asset/live2d/avatar_embed.html?model=${model}&framing=faceToChest`;
   }
   const hostIp = getDevHostIp();
   return `http://${hostIp}:5173/avatar-embed?model=${model}&framing=faceToChest`;
