@@ -1,7 +1,7 @@
 import React, { memo, useEffect, useRef, useState, useMemo } from 'react';
 import { StyleSheet, View, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { getWebAvatarEmbedUrl } from '../../constants/config';
+import { getLive2DAvatarHtml } from '../../utils/live2dHtml';
 
 export const Live2DAvatarView = memo(function Live2DAvatarView({
   isSpeaking = false,
@@ -19,10 +19,16 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
   const [hasError, setHasError] = useState(false);
   const normalizedModel = (model || 'haru').toLowerCase();
 
-  const embedUrl = useMemo(
-    () => getWebAvatarEmbedUrl(normalizedModel),
-    [normalizedModel]
-  );
+  const webViewSource = useMemo(() => {
+    const customUrl = process.env.EXPO_PUBLIC_WEB_AVATAR_URL;
+    if (customUrl) {
+      return { uri: `${customUrl}?model=${normalizedModel}&framing=faceToChest` };
+    }
+    return {
+      html: getLive2DAvatarHtml(normalizedModel),
+      baseUrl: 'https://cdn.jsdelivr.net',
+    };
+  }, [normalizedModel]);
 
   // Send state and spoken text updates to embedded web avatar
   useEffect(() => {
@@ -102,7 +108,7 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
       <WebView
         ref={webViewRef}
         originWhitelist={['*']}
-        source={{ uri: embedUrl }}
+        source={webViewSource}
         style={styles.webView}
         scrollEnabled={false}
         bounces={false}
