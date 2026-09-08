@@ -262,7 +262,6 @@ export default function RegisterScreen({ navigation }) {
     }
   };
 
-  const clearError = () => { if (error) setError(''); };
 
   return (
     <View style={styles.root}>
