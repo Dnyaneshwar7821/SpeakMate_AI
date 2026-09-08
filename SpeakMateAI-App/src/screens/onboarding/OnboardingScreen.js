@@ -270,6 +270,16 @@ export default function OnboardingScreen({ navigation }) {
 
     const isTargetMale = genderSelection.toLowerCase() === 'male';
 
+    // Prioritize standard Google TTS US Female voice 'sfg' for authentic onboarding tutor
+    if (!isTargetMale) {
+      const sfg = availableVoices.find(v => {
+        const id = (v.identifier || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        return id.includes('sfg') || name.includes('sfg');
+      });
+      if (sfg) return sfg.identifier;
+    }
+
     // 1. Try to match by explicit gender property if present
     const match = availableVoices.find(v => v.gender && v.gender.toLowerCase() === (isTargetMale ? 'male' : 'female'));
     if (match) return match.identifier;
@@ -277,12 +287,12 @@ export default function OnboardingScreen({ navigation }) {
     // Indicators for categorization
     const MALE_INDICATORS = [
       'male', 'david', 'daniel', 'george', 'mister', 'guy', 'alex', 'bruce', 'tom',
-      'tpf', 'tpc', 'iog', 'nep', 'rjs', 'jcb', 'ndf'
+      'tpf', 'tpc', 'iog', 'nep', 'rjs', 'jcb', 'ndf', 'iol', 'iom'
     ];
 
     const FEMALE_INDICATORS = [
       'female', 'samantha', 'zira', 'karen', 'hazel', 'siri', 'victoria', 'tessa',
-      'sfg', 'iom', 'iol', 'lpf', 'fis', 'cxx', 'html', 'aef', 'khf', 'gpf', 'ahp'
+      'sfg', 'rgf', 'cbf', 'lpf', 'fis', 'cxx', 'html', 'aef', 'khf', 'gpf', 'ahp'
     ];
 
     const getVoiceGender = (voice) => {

@@ -310,11 +310,72 @@ export const VoiceService = {
     return { voice: availableVoices[0], isFallback: true, fallbackReason: 'System fallback' };
   },
 
+  // ── Dedicated System Default / Onboarding Tutor Voice Resolution ────────
+  resolveSystemDefaultVoice: (availableVoices) => {
+    if (!availableVoices || availableVoices.length === 0) return null;
+
+    const MALE_IDENTIFIERS = [
+      'iol', 'iom', 'iog', 'tpf', 'tpc', 'gbc', 'gbd', 'rjs',
+      'ind', 'inc', 'inb', 'end', 'david', 'george', 'daniel',
+      'alex', 'guy', 'male'
+    ];
+
+    const isExcludedMale = (v) => {
+      const id = (v.identifier || '').toLowerCase();
+      const name = (v.name || '').toLowerCase();
+      const gender = (v.gender || '').toLowerCase();
+      if (gender === 'male') return true;
+      return MALE_IDENTIFIERS.some(m => id.includes(m) || name.includes(m));
+    };
+
+    // 1. Google TTS US standard female tutor voice 'sfg' (Voice I) - highest priority
+    const sfg = availableVoices.find(v => {
+      const id = (v.identifier || '').toLowerCase();
+      const name = (v.name || '').toLowerCase();
+      return (id.includes('sfg') || name.includes('sfg')) && !isExcludedMale(v);
+    });
+    if (sfg) return sfg.identifier;
+
+    // 2. Known female voices across Android / iOS
+    const knownFemale = availableVoices.find(v => {
+      const id = (v.identifier || '').toLowerCase();
+      const name = (v.name || '').toLowerCase();
+      const hasFemaleId = id.includes('rgf') || id.includes('cbf') ||
+                          id.includes('samantha') || id.includes('victoria') ||
+                          id.includes('karen') || id.includes('zira') ||
+                          name.includes('female') || id.includes('female');
+      return hasFemaleId && !isExcludedMale(v);
+    });
+    if (knownFemale) return knownFemale.identifier;
+
+    // 3. Any English voice with explicit gender === 'female' and not in male list
+    const explicitFemale = availableVoices.find(v => {
+      const lang = (v.language || '').toLowerCase().replace('_', '-');
+      const g = (v.gender || '').toLowerCase();
+      return lang.startsWith('en') && g === 'female' && !isExcludedMale(v);
+    });
+    if (explicitFemale) return explicitFemale.identifier;
+
+    // 4. Any English voice that is NOT male
+    const anyNonMaleEn = availableVoices.find(v => {
+      const lang = (v.language || '').toLowerCase().replace('_', '-');
+      return lang.startsWith('en') && !isExcludedMale(v);
+    });
+    if (anyNonMaleEn) return anyNonMaleEn.identifier;
+
+    return null;
+  },
+
   selectSystemVoice: (availableVoices, voiceCode) => {
     if (!availableVoices || availableVoices.length === 0) return null;
 
     const directMatch = availableVoices.find(v => v.identifier === voiceCode);
     if (directMatch) return directMatch.identifier;
+
+    // ── Dedicated System Default / Onboarding Tutor Voice Resolution ────────
+    if (OnboardingVoiceService.isSystemDefault(voiceCode)) {
+      return VoiceService.resolveSystemDefaultVoice(availableVoices);
+    }
 
     const gs = (voiceCode || '').toLowerCase();
     const isBritish = gs.includes('uk') || gs.includes('gb') || gs.includes('british');
@@ -471,8 +532,9 @@ export const VoiceService = {
     // ── 1. Resolve System Default → onboarding-selected voice config ──────────
     let voiceConfig = null; // full config from OnboardingVoiceService
     let resolvedVoice = voiceType;
+    const isSysDefault = OnboardingVoiceService.isSystemDefault(voiceType);
 
-    if (OnboardingVoiceService.isSystemDefault(voiceType)) {
+    if (isSysDefault) {
       voiceConfig = await OnboardingVoiceService.load();
       resolvedVoice = voiceConfig.style;
     }
@@ -553,21 +615,44 @@ export const VoiceService = {
     // otherwise resolve via the normal system voice matching.
     let pinnedVoiceId = voiceConfig?.voiceIdentifier || null;
 
+    // Male voice identifier substrings that must never be used for female / System Default tutor voices
+    const MALE_VOICE_SUBSTRINGS = [
+      'iol', 'iom', 'iog', 'tpf', 'tpc', 'gbc', 'gbd', 'rjs',
+      'ind', 'inc', 'inb', 'end', 'david', 'george', 'daniel',
+      'alex', 'guy', 'male'
+    ];
+
     // Safety validation for pinned voice:
-    // If resolving a female voice (System Default / onboarding voice), ensure pinnedVoiceId is NOT male!
+    // If resolving a female voice or System Default, ensure pinnedVoiceId is NOT male!
+    if (pinnedVoiceId && (isSysDefault || targetGender === 'female')) {
+      const pLower = pinnedVoiceId.toLowerCase();
+      if (MALE_VOICE_SUBSTRINGS.some(m => pLower.includes(m))) {
+        pinnedVoiceId = null;
+      }
+    }
+
     if (pinnedVoiceId && targetGender === 'female' && voices && voices.length > 0) {
       const voiceObj = voices.find(v => v.identifier === pinnedVoiceId);
       if (voiceObj) {
         const vid = (voiceObj.identifier || '').toLowerCase();
         const vname = (voiceObj.name || '').toLowerCase();
-        if (!isFemalePattern(vid, vname, voiceObj.gender)) {
+        if (!isFemalePattern(vid, vname, voiceObj.gender) || MALE_VOICE_SUBSTRINGS.some(m => vid.includes(m) || vname.includes(m))) {
           // Discard invalid male pinned voice from older onboarding saves
           pinnedVoiceId = null;
         }
       }
     }
 
-    const systemVoiceId = pinnedVoiceId || VoiceService.selectSystemVoice(voices, resolvedVoice);
+    let systemVoiceId = pinnedVoiceId;
+    if (!systemVoiceId && isSysDefault) {
+      systemVoiceId = VoiceService.resolveSystemDefaultVoice(voices);
+      if (systemVoiceId) {
+        OnboardingVoiceService.save(voiceConfig?.style || 'Friendly', systemVoiceId).catch(() => {});
+      }
+    }
+    if (!systemVoiceId) {
+      systemVoiceId = VoiceService.selectSystemVoice(voices, resolvedVoice);
+    }
     if (systemVoiceId) {
       options.voice = systemVoiceId;
       

@@ -121,7 +121,14 @@ const OnboardingVoiceService = {
       if (raw) {
         const parsed = JSON.parse(raw);
         // Validate it has the required fields
-        if (parsed && parsed.style && parsed.gender) return parsed;
+        if (parsed && parsed.style && parsed.gender) {
+          // Safety: If parsed has a voiceIdentifier that is known male, strip it
+          const MALE_IDS = ['iol', 'iom', 'iog', 'tpf', 'tpc', 'gbc', 'gbd', 'rjs', 'ind', 'inc', 'inb', 'end', 'david', 'george', 'daniel', 'alex', 'guy', 'male'];
+          if (parsed.voiceIdentifier && MALE_IDS.some(m => parsed.voiceIdentifier.toLowerCase().includes(m))) {
+            parsed.voiceIdentifier = null;
+          }
+          return parsed;
+        }
       }
       // Fallback: check legacy simple key
       const legacyStyle = await AsyncStorage.getItem('speakmate_onboarding_voice');
