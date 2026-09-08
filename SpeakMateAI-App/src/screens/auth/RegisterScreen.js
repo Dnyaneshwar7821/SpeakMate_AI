@@ -42,12 +42,22 @@ export default function RegisterScreen({ navigation }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [otp, setOtp] = useState('');
 
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+
   // OTP state: 'IDLE' | 'SENDING' | 'SENT' | 'VERIFIED'
   const [otpState, setOtpState] = useState('IDLE');
   const [otpError, setOtpError] = useState('');
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const clearError = () => setError('');
 
   const lastNameRef = useRef(null);
   const emailRef = useRef(null);
@@ -137,27 +147,65 @@ export default function RegisterScreen({ navigation }) {
     }
   };
 
-  const validateFullForm = () => {
+  const getFirstNameError = () => {
     if (!firstName.trim()) return 'First name is required.';
+    return null;
+  };
+
+  const getLastNameError = () => {
     if (!lastName.trim()) return 'Last name is required.';
+    return null;
+  };
+
+  const getEmailError = () => {
     if (!email.trim()) return 'Email address is required.';
     if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    return null;
+  };
+
+  const getPasswordError = () => {
+    if (!password) return 'Password is required.';
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+      return 'Password needs uppercase, lowercase, number, and special character.';
+    }
+    return null;
+  };
+
+  const getConfirmPasswordError = () => {
+    if (!confirmPassword) return 'Please confirm your password.';
+    if (password !== confirmPassword) return 'Passwords do not match.';
+    return null;
+  };
+
+  const validateFullForm = () => {
+    const fnErr = getFirstNameError();
+    if (fnErr) return fnErr;
+    const lnErr = getLastNameError();
+    if (lnErr) return lnErr;
+    const emErr = getEmailError();
+    if (emErr) return emErr;
     if (otpState !== 'VERIFIED') {
       if (otpState === 'IDLE') return 'Please tap "Send OTP" next to email and verify your code.';
       if (!otp.trim()) return 'Please enter the 6-digit OTP code sent to your email.';
       if (otp.trim().length < 6) return 'OTP code must be 6 digits.';
       return 'Please tap "Verify OTP" to verify your code before continuing.';
     }
-    if (!password) return 'Password is required.';
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
-      return 'Password needs uppercase, lowercase, number, and special character.';
-    }
-    if (password !== confirmPassword) return 'Passwords do not match.';
+    const passErr = getPasswordError();
+    if (passErr) return passErr;
+    const confErr = getConfirmPasswordError();
+    if (confErr) return confErr;
     return null;
   };
 
   const handleRegister = async () => {
     Keyboard.dismiss();
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
     const emailLower = email.trim().toLowerCase();
 
     // If user entered 6 digits but hasn't pressed Verify OTP yet, auto-verify first
@@ -314,6 +362,9 @@ export default function RegisterScreen({ navigation }) {
                       label="First Name"
                       value={firstName}
                       onChangeText={(t) => { setFirstName(t); clearError(); }}
+                      onBlur={() => setTouched((p) => ({ ...p, firstName: true }))}
+                      touched={touched.firstName}
+                      error={getFirstNameError()}
                       placeholder="Jane"
                       autoCapitalize="words"
                       returnKeyType="next"
@@ -325,6 +376,9 @@ export default function RegisterScreen({ navigation }) {
                       label="Last Name"
                       value={lastName}
                       onChangeText={(t) => { setLastName(t); clearError(); }}
+                      onBlur={() => setTouched((p) => ({ ...p, lastName: true }))}
+                      touched={touched.lastName}
+                      error={getLastNameError()}
                       placeholder="Doe"
                       autoCapitalize="words"
                       returnKeyType="next"
@@ -347,6 +401,9 @@ export default function RegisterScreen({ navigation }) {
                       setOtpError('');
                     }
                   }}
+                  onBlur={() => setTouched((p) => ({ ...p, email: true }))}
+                  touched={touched.email}
+                  error={getEmailError()}
                   placeholder="jane.doe@example.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -452,6 +509,9 @@ export default function RegisterScreen({ navigation }) {
                   label="Password"
                   value={password}
                   onChangeText={(t) => { setPassword(t); clearError(); }}
+                  onBlur={() => setTouched((p) => ({ ...p, password: true }))}
+                  touched={touched.password}
+                  error={getPasswordError()}
                   placeholder="Create strong password"
                   returnKeyType="next"
                   inputRef={passwordRef}
@@ -463,6 +523,9 @@ export default function RegisterScreen({ navigation }) {
                   label="Confirm Password"
                   value={confirmPassword}
                   onChangeText={(t) => { setConfirmPassword(t); clearError(); }}
+                  onBlur={() => setTouched((p) => ({ ...p, confirmPassword: true }))}
+                  touched={touched.confirmPassword}
+                  error={getConfirmPasswordError()}
                   placeholder="Confirm your password"
                   returnKeyType="done"
                   inputRef={confirmRef}

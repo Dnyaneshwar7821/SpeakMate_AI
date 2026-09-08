@@ -499,11 +499,22 @@ export default function OnboardingScreen({ navigation }) {
       mediaTypes: 'images',
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.6,
     });
     if (!result.canceled && result.assets?.length > 0) {
-      setCustomPhoto(result.assets[0].uri);
-      setSelectedAvatar(result.assets[0].uri);
+      const asset = result.assets[0];
+      const mimeType = (asset.mimeType || 'image/jpeg').toLowerCase();
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(mimeType)) {
+        Alert.alert('Invalid Format', 'Please choose a JPG, PNG, or WebP image.');
+        return;
+      }
+      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
+        Alert.alert('File Too Large', 'Profile image must be 5 MB or less.');
+        return;
+      }
+      setCustomPhoto(asset.uri);
+      setSelectedAvatar(asset.uri);
     }
   };
 

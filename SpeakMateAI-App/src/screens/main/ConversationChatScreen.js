@@ -1179,6 +1179,13 @@ export default function ConversationChatScreen({ navigation, route }) {
         </View>
 
         {/* Typing Input */}
+        {inputText.length > 450 && (
+          <View style={styles.charCountRow}>
+            <Text style={[styles.charCountText, inputText.length >= 500 && styles.charCountLimit]}>
+              {inputText.length}/500
+            </Text>
+          </View>
+        )}
         <View style={styles.inputRow}>
           <TouchableOpacity
             style={[styles.actionBtn, recording && styles.recordingActiveBtn]}
@@ -1203,6 +1210,7 @@ export default function ConversationChatScreen({ navigation, route }) {
             placeholder={recording ? "Listening to speak..." : "Type response to tutor..."}
             placeholderTextColor="#94A3B8"
             editable={!recording && !evaluating}
+            maxLength={500}
             multiline
           />
 
@@ -1422,5 +1430,18 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  charCountRow: {
+    paddingHorizontal: 20,
+    alignItems: 'flex-end',
+    marginBottom: 4,
+  },
+  charCountText: {
+    fontSize: 11,
+    color: '#94A3B8',
+    fontWeight: '600',
+  },
+  charCountLimit: {
+    color: '#EF4444',
   },
 });

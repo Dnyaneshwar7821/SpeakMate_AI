@@ -377,7 +377,19 @@ export default function ProfileScreen({ navigation }) {
         return;
       }
 
-      const mimeType = asset.mimeType || 'image/jpeg';
+      const mimeType = (asset.mimeType || 'image/jpeg').toLowerCase();
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(mimeType)) {
+        showToast('Invalid Format', 'error', 'Please choose a JPG, PNG, or WebP image.');
+        return;
+      }
+
+      // Enforce 5 MB upper limit
+      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
+        showToast('File Too Large', 'error', 'Profile image must be 5 MB or less.');
+        return;
+      }
+
       const dataUri = `data:${mimeType};base64,${asset.base64}`;
 
       setUploadingPhoto(true);

@@ -34,6 +34,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [resending, setResending] = useState(false);
   const [error, setError] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
+  const [touched, setTouched] = useState({ email: false, otp: false });
 
   const validateEmail = () => {
     if (!email.trim()) return 'Please enter your registered email address.';
@@ -49,6 +50,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   const handleSendOtp = async () => {
     Keyboard.dismiss();
+    setTouched((p) => ({ ...p, email: true }));
     const validationError = validateEmail();
     if (validationError) {
       setError(validationError);
@@ -91,6 +93,7 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   const handleVerifyOtp = async () => {
     Keyboard.dismiss();
+    setTouched((p) => ({ ...p, otp: true }));
     const validationError = validateOtp();
     if (validationError) {
       setError(validationError);
@@ -207,6 +210,9 @@ export default function ForgotPasswordScreen({ navigation }) {
                       setEmail(t);
                       if (error) setError('');
                     }}
+                    onBlur={() => setTouched((p) => ({ ...p, email: true }))}
+                    touched={touched.email}
+                    error={validateEmail()}
                     placeholder="you@example.com"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -247,6 +253,9 @@ export default function ForgotPasswordScreen({ navigation }) {
                       setOtp(t);
                       if (error) setError('');
                     }}
+                    onBlur={() => setTouched((p) => ({ ...p, otp: true }))}
+                    touched={touched.otp}
+                    error={validateOtp()}
                     placeholder="123456"
                     keyboardType="number-pad"
                     maxLength={6}

@@ -1597,6 +1597,7 @@ export default function LessonDetailScreen({ navigation, route }) {
                         value={tutorInput}
                         onChangeText={setTutorInput}
                         onSubmitEditing={() => askAiTutor()}
+                        maxLength={500}
                       />
                       <TouchableOpacity
                         style={styles.tutorSendBtn}
@@ -1878,6 +1879,7 @@ export default function LessonDetailScreen({ navigation, route }) {
                     multiline
                     value={speakingInput}
                     onChangeText={setSpeakingInput}
+                    maxLength={500}
                   />
 
                   <TouchableOpacity

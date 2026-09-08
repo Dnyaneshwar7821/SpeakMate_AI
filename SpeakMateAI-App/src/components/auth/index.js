@@ -159,12 +159,24 @@ export function AuthInput({
   rightElement,
   style,
   inputStyle,
+  error,
+  touched,
+  onFocus,
+  onBlur,
 }) {
   const [focused, setFocused] = useState(false);
+  const showError = Boolean(touched && error);
+
   return (
     <View style={[styles.inputGroup, style]}>
       {!!label && <Text style={styles.inputLabel}>{label}</Text>}
-      <View style={[styles.inputWrapperRow, focused && styles.inputFocused]}>
+      <View
+        style={[
+          styles.inputWrapperRow,
+          focused && styles.inputFocused,
+          showError && styles.inputError,
+        ]}
+      >
         <TextInput
           ref={inputRef}
           value={value}
@@ -181,12 +193,19 @@ export function AuthInput({
           }
           returnKeyType={returnKeyType || 'next'}
           onSubmitEditing={onSubmitEditing}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onFocus={(e) => {
+            setFocused(true);
+            if (onFocus) onFocus(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            if (onBlur) onBlur(e);
+          }}
           style={[styles.inputInline, inputStyle]}
         />
         {rightElement}
       </View>
+      {showError && <Text style={styles.inlineErrorText}>{error}</Text>}
     </View>
   );
 }
@@ -200,13 +219,25 @@ export function PasswordInput({
   returnKeyType,
   onSubmitEditing,
   inputRef,
+  error,
+  touched,
+  onFocus,
+  onBlur,
 }) {
   const [focused, setFocused] = useState(false);
   const [visible, setVisible] = useState(false);
+  const showError = Boolean(touched && error);
+
   return (
     <View style={styles.inputGroup}>
       {!!label && <Text style={styles.inputLabel}>{label}</Text>}
-      <View style={[styles.passwordRow, focused && styles.inputFocused]}>
+      <View
+        style={[
+          styles.passwordRow,
+          focused && styles.inputFocused,
+          showError && styles.inputError,
+        ]}
+      >
         <TextInput
           ref={inputRef}
           value={value}
@@ -217,8 +248,14 @@ export function PasswordInput({
           autoCapitalize="none"
           returnKeyType={returnKeyType || 'done'}
           onSubmitEditing={onSubmitEditing}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onFocus={(e) => {
+            setFocused(true);
+            if (onFocus) onFocus(e);
+          }}
+          onBlur={(e) => {
+            setFocused(false);
+            if (onBlur) onBlur(e);
+          }}
           style={styles.passwordInput}
         />
         <TouchableOpacity
@@ -233,6 +270,7 @@ export function PasswordInput({
           />
         </TouchableOpacity>
       </View>
+      {showError && <Text style={styles.inlineErrorText}>{error}</Text>}
     </View>
   );
 }
@@ -459,6 +497,17 @@ const styles = StyleSheet.create({
   inputFocused: {
     borderColor: AUTH_COLORS.borderFocus,
     backgroundColor: '#FFFFFF',
+  },
+  inputError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
+  },
+  inlineErrorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
+    marginLeft: 4,
   },
 
   // PasswordInput

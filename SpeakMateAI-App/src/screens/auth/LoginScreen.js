@@ -34,27 +34,51 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [touched, setTouched] = useState({
+    schoolCode: false,
+    email: false,
+    password: false,
+  });
 
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
 
-  const validate = () => {
-    if (loginType === 'SCHOOL') {
-      if (!schoolCode.trim()) return 'Please enter your School Code (e.g. SCH-1082).';
-      if (!email.trim()) return 'Please enter your Student ID or Email.';
-      if (!password) return 'Please enter your password.';
-      return null;
+  const getSchoolCodeError = () => {
+    if (loginType === 'SCHOOL' && !schoolCode.trim()) {
+      return 'Please enter your School Code (e.g. SCH-1082).';
     }
+    return null;
+  };
 
-    if (!email.trim()) return 'Please enter your email address.';
-    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+  const getEmailError = () => {
+    if (!email.trim()) {
+      return loginType === 'SCHOOL' ? 'Please enter your Student ID or Email.' : 'Please enter your email address.';
+    }
+    if (loginType === 'STANDARD' && !/\S+@\S+\.\S+/.test(email.trim())) {
+      return 'Please enter a valid email address.';
+    }
+    return null;
+  };
+
+  const getPasswordError = () => {
     if (!password) return 'Please enter your password.';
     if (password.length < 6) return 'Password must be at least 6 characters.';
     return null;
   };
 
+  const validate = () => {
+    const codeErr = getSchoolCodeError();
+    if (codeErr) return codeErr;
+    const emailErr = getEmailError();
+    if (emailErr) return emailErr;
+    const passErr = getPasswordError();
+    if (passErr) return passErr;
+    return null;
+  };
+
   const handleLogin = async () => {
     Keyboard.dismiss();
+    setTouched({ schoolCode: true, email: true, password: true });
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -167,6 +191,9 @@ export default function LoginScreen({ navigation }) {
                     label="School Code"
                     value={schoolCode}
                     onChangeText={(t) => { setSchoolCode(t.toUpperCase()); if (error) setError(''); }}
+                    onBlur={() => setTouched((p) => ({ ...p, schoolCode: true }))}
+                    touched={touched.schoolCode}
+                    error={getSchoolCodeError()}
                     placeholder="e.g. SCH-1082"
                     autoCapitalize="characters"
                     returnKeyType="next"
@@ -177,6 +204,9 @@ export default function LoginScreen({ navigation }) {
                     label="Student ID or Email"
                     value={email}
                     onChangeText={(t) => { setEmail(t); if (error) setError(''); }}
+                    onBlur={() => setTouched((p) => ({ ...p, email: true }))}
+                    touched={touched.email}
+                    error={getEmailError()}
                     placeholder="e.g. STU-1082 or student@school.edu"
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -190,6 +220,9 @@ export default function LoginScreen({ navigation }) {
                   label="Email Address"
                   value={email}
                   onChangeText={(t) => { setEmail(t); if (error) setError(''); }}
+                  onBlur={() => setTouched((p) => ({ ...p, email: true }))}
+                  touched={touched.email}
+                  error={getEmailError()}
                   placeholder="you@example.com"
                   keyboardType="email-address"
                   autoCapitalize="none"
@@ -202,6 +235,9 @@ export default function LoginScreen({ navigation }) {
                 label="Password"
                 value={password}
                 onChangeText={(t) => { setPassword(t); if (error) setError(''); }}
+                onBlur={() => setTouched((p) => ({ ...p, password: true }))}
+                touched={touched.password}
+                error={getPasswordError()}
                 placeholder={loginType === 'SCHOOL' ? 'Enter student password' : 'Your password'}
                 returnKeyType="done"
                 onSubmitEditing={handleLogin}

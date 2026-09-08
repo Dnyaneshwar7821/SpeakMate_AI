@@ -331,6 +331,7 @@ export default function AIChatScreen({ navigation }) {
               onChangeText={setNewTitle}
               placeholder="Enter new conversation name..."
               placeholderTextColor={theme.textSecondary}
+              maxLength={60}
               autoFocus
             />
             <View style={styles.modalActions}>

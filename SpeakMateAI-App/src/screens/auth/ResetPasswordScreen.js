@@ -30,6 +30,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [touched, setTouched] = useState({ password: false, confirmPassword: false });
   const passwordRef = useRef(null);
   const confirmRef = useRef(null);
 
@@ -39,18 +40,32 @@ export default function ResetPasswordScreen({ navigation, route }) {
     }
   }, [route?.params?.token]);
 
-  const validate = () => {
-    if (!token) return 'Session token missing. Please verify your OTP code again.';
+  const getPasswordError = () => {
     if (!password) return 'Please enter your new password.';
     if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
       return 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.';
     }
+    return null;
+  };
+
+  const getConfirmPasswordError = () => {
+    if (!confirmPassword) return 'Please confirm your password.';
     if (password !== confirmPassword) return 'Passwords do not match.';
+    return null;
+  };
+
+  const validate = () => {
+    if (!token) return 'Session token missing. Please verify your OTP code again.';
+    const passErr = getPasswordError();
+    if (passErr) return passErr;
+    const confErr = getConfirmPasswordError();
+    if (confErr) return confErr;
     return null;
   };
 
   const submit = async () => {
     Keyboard.dismiss();
+    setTouched({ password: true, confirmPassword: true });
     const validationError = validate();
     if (validationError) {
       setError(validationError);
@@ -98,6 +113,9 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 label="New Password"
                 value={password}
                 onChangeText={(value) => { setPassword(value); if (error) setError(''); }}
+                onBlur={() => setTouched((p) => ({ ...p, password: true }))}
+                touched={touched.password}
+                error={getPasswordError()}
                 placeholder="Strong password"
                 returnKeyType="next"
                 inputRef={passwordRef}
@@ -109,6 +127,9 @@ export default function ResetPasswordScreen({ navigation, route }) {
                 label="Confirm Password"
                 value={confirmPassword}
                 onChangeText={(value) => { setConfirmPassword(value); if (error) setError(''); }}
+                onBlur={() => setTouched((p) => ({ ...p, confirmPassword: true }))}
+                touched={touched.confirmPassword}
+                error={getConfirmPasswordError()}
                 placeholder="Repeat password"
                 returnKeyType="done"
                 inputRef={confirmRef}
