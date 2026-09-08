@@ -15,6 +15,13 @@ export function AvatarEmbed() {
   const [state, setState] = useState('idle');
   const [mood, setMood] = useState('neutral');
 
+  useEffect(() => {
+    const paramModel = searchParams.get('model');
+    if (paramModel && paramModel !== activeModel) {
+      setActiveModel(paramModel);
+    }
+  }, [searchParams]);
+
   // Enforce transparent body & html for clean React Native WebView embed
   useEffect(() => {
     document.documentElement.style.background = 'transparent';

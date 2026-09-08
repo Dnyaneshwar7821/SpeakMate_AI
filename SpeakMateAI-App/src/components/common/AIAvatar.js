@@ -150,7 +150,8 @@ export default function AIAvatar({
   const [live2dReady, setLive2dReady] = useState(false);
   const [live2dError, setLive2dError] = useState(false);
   
-  const defaultEngine = (targetModel === 'haru' || targetModel === 'chitose') ? 'live2d' : 'native';
+  const isLive2DModel = avatarObj.type === 'live2d' || targetModel === 'haru' || targetModel === 'chitose';
+  const defaultEngine = isLive2DModel ? 'live2d' : 'native';
   const [engineOverride, setEngineOverride] = useState(null);
 
   useEffect(() => {
@@ -162,6 +163,8 @@ export default function AIAvatar({
   const avatarEngine = engineOverride || defaultEngine;
 
   useEffect(() => {
+    setLive2dError(false);
+    setLive2dReady(false);
     // Safety guard: guarantee spinner is dismissed within 3.5s even on slow network
     const timer = setTimeout(() => {
       setLive2dReady(true);

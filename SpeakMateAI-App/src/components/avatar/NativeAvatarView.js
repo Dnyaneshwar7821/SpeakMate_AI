@@ -395,35 +395,40 @@ function CharacterRig({ id, blinkAnim, lookX, lookY, mouthOpenY, mouthForm, isSp
     );
   }
 
-  // ── 2. CHITOSE (Pro Male Business Coach) ──
+  // ── 2. CHITOSE (Pro Anime Male Business Coach - Matching Web Live2D) ──
   if (norm.includes('chitose') || norm === 'male') {
     return (
       <View style={rigStyles.charContainer}>
-        {/* Sleek Short Dark Hair */}
-        <View style={rigStyles.chitoseHair} />
+        {/* Layer 0: Brown Anime Hair Back */}
+        <View style={rigStyles.chitoseHairBack} />
 
         {/* Head Base */}
-        <View style={[rigStyles.headBase, { backgroundColor: '#FED7AA' }]}>
-          {/* Eyes */}
-          <View style={{ marginTop: 38 }}>
-            <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
-          </View>
+        <View style={[rigStyles.headBase, { backgroundColor: '#5D4037' }]}>
+          {/* Natural Skin Face */}
+          <View style={rigStyles.skinFace}>
+            {/* Side-swept Anime Bangs */}
+            <View style={rigStyles.chitoseBangs} />
 
-          {/* Strong Jawline Mouth */}
-          <View style={{ marginTop: 16 }}>
-            <DynamicMouth
-              mouthOpenY={mouthOpenY}
-              mouthForm={mouthForm}
-              isSpeaking={isSpeaking}
-              state={state}
-              themeColor="#3B82F6"
-            />
+            {/* Eyes */}
+            <View style={{ marginTop: 28 }}>
+              <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
+            </View>
+
+            {/* Confident Coach Mouth */}
+            <View style={{ marginTop: 14 }}>
+              <DynamicMouth
+                mouthOpenY={mouthOpenY}
+                mouthForm={mouthForm}
+                isSpeaking={isSpeaking}
+                state={state}
+                themeColor="#3B82F6"
+              />
+            </View>
           </View>
         </View>
 
-        {/* Business Executive Headset Mic */}
-        <View style={rigStyles.executiveHeadset} />
-        <View style={rigStyles.headsetMicBoom} />
+        {/* Collar & Navy Suit Accent */}
+        <View style={rigStyles.chitoseCollar} />
       </View>
     );
   }
@@ -839,36 +844,40 @@ const rigStyles = StyleSheet.create({
     backgroundColor: 'rgba(244, 63, 94, 0.35)',
     borderRadius: 8,
   },
-  chitoseHair: {
+  chitoseHairBack: {
     position: 'absolute',
-    top: -10,
-    width: 150,
-    height: 52,
-    backgroundColor: '#18181B',
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    zIndex: 5,
+    top: -14,
+    width: 154,
+    height: 90,
+    backgroundColor: '#5D4037',
+    borderTopLeftRadius: 50,
+    borderTopRightRadius: 50,
+    zIndex: 1,
   },
-  executiveHeadset: {
+  chitoseBangs: {
     position: 'absolute',
-    right: 2,
-    top: 48,
-    width: 18,
+    top: -6,
+    left: 8,
+    width: 130,
     height: 38,
-    backgroundColor: '#0284C7',
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#0F172A',
-    zIndex: 12,
+    backgroundColor: '#6D4C41',
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 18,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    zIndex: 10,
   },
-  headsetMicBoom: {
+  chitoseCollar: {
     position: 'absolute',
-    right: 14,
-    top: 72,
-    width: 32,
-    height: 3,
-    backgroundColor: '#0F172A',
-    transform: [{ rotate: '-15deg' }],
+    bottom: -14,
+    alignSelf: 'center',
+    width: 90,
+    height: 22,
+    backgroundColor: '#1E293B',
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
     zIndex: 12,
   },
   doraemonFaceWhite: {
