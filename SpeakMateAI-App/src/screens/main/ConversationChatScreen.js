@@ -357,6 +357,7 @@ export default function ConversationChatScreen({ navigation, route }) {
             AsyncStorage.getItem('speakmate_selected_voice'),
             VoiceService.getAvailableEnglishVoices().catch(() => []),
           ]);
+          setCurrentSpokenText(text);
           VoiceService.speak(text, {
             isMuted: false,
             voiceType: savedVoice || preferredVoice || 'Friendly',
@@ -369,10 +370,12 @@ export default function ConversationChatScreen({ navigation, route }) {
             onDone: () => {
               setStatusText('Waiting for Response');
               setIsSpeaking(false);
+              setCurrentSpokenText('');
             },
             onError: () => {
               setStatusText('Waiting for Response');
               setIsSpeaking(false);
+              setCurrentSpokenText('');
             },
           });
         } catch (err) {
