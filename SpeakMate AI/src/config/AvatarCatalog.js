@@ -20,8 +20,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 1.05,
     type: 'live2d',
     modelPath: '/models/avatar/haru/haru_greeter_t03.model3.json',
-    scaleMultiplier: 2.30,
-    yOffsetRatio: 0.04,
+    scaleMultiplier: 2.40,
+    yOffsetRatio: 0.13,
   },
   chitose: {
     id: 'chitose',
@@ -37,8 +37,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 0.98,
     type: 'live2d',
     modelPath: '/models/avatar/chitose/chitose.model.json',
-    scaleMultiplier: 2.30,
-    yOffsetRatio: 0.04,
+    scaleMultiplier: 2.40,
+    yOffsetRatio: 0.13,
   },
   shizuku: {
     id: 'shizuku',

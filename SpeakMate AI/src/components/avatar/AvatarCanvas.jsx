@@ -184,12 +184,12 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
           }
           const isShizuku = catalogEntry.id === 'shizuku';
           const isFullBody = catalogEntry.id === 'haru' || catalogEntry.id === 'chitose' || catalogEntry.id === 'koharu';
-          const scaleMultiplier = catalogEntry.scaleMultiplier || (isShizuku ? 1.18 : (isFullBody ? 2.30 : 1.05));
+          const scaleMultiplier = catalogEntry.scaleMultiplier || (isShizuku ? 1.18 : (isFullBody ? 2.40 : 1.05));
           const scale = (height * scaleMultiplier) / nativeHeight;
           model.scale.set(scale, scale);
           model.x = width / 2;
-          const yOffset = catalogEntry.yOffsetRatio ?? (isShizuku ? 0.02 : (isFullBody ? 0.04 : 0.10));
-          model.y = Math.max(4, height * yOffset);
+          const yOffset = catalogEntry.yOffsetRatio ?? (isShizuku ? 0.02 : (isFullBody ? 0.13 : 0.10));
+          model.y = Math.max(16, height * yOffset);
         }
       }
     };

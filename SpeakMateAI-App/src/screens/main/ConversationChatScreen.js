@@ -1280,6 +1280,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    overflow: 'visible',
     marginTop: 4,
     marginBottom: 2,
   },
