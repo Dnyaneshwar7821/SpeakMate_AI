@@ -783,14 +783,17 @@ export default function ConversationScreen({ navigation, route }) {
           const cleanList = data.map(cleanHintText).filter(Boolean);
           if (cleanList.length >= 2) {
             setHints(cleanList);
+            setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
             return;
           }
         }
       }
       setHints(getScenarioHints(scenario));
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (e) {
       console.warn("Failed to fetch hints, using fallback hints:", e);
       setHints(getScenarioHints(scenario));
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     } finally {
       setLoadingHints(false);
     }
@@ -1160,7 +1163,7 @@ export default function ConversationScreen({ navigation, route }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={0}
     >
-    <LinearGradient colors={['#0B0F19', '#111827', '#1E1B4B']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#070A12', '#0A0F1D', '#080C18']} style={{ flex: 1 }}>
       <StatusBar barStyle="light-content" />
 
       {/* ── Header ── */}
@@ -1296,16 +1299,23 @@ export default function ConversationScreen({ navigation, route }) {
         )}
       />
 
-      {/* ── Fixed Chat-to-Controls Boundary (AI Hint ✨ right-aligned above Sound On) ── */}
+      {/* ── Fixed Chat-to-Controls Boundary (Hints Tray & AI Hint button) ── */}
       <View style={styles.chatBoundaryContainer}>
         {/* Quick Reply Chips Drawer if hints are active */}
         {hints.length > 0 && (
           <View style={styles.hintsContainer}>
             <View style={styles.hintsHeaderRow}>
-              <Ionicons name="chatbox-ellipses-outline" size={13} color="#A5B4FC" />
-              <Text style={styles.hintsHeaderText}>Suggested Responses (Tap to speak or listen):</Text>
-              <TouchableOpacity onPress={() => setHints([])} style={{ marginLeft: 'auto', padding: 2 }}>
-                <Ionicons name="close-circle" size={16} color="#94A3B8" />
+              <View style={styles.hintsHeaderTitleRow}>
+                <Ionicons name="chatbox-ellipses-outline" size={14} color="#A5B4FC" />
+                <Text style={styles.hintsHeaderText}>Suggested Responses (Tap to speak or listen):</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setHints([])}
+                style={styles.hintsCloseCrossBtn}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close" size={14} color="#E2E8F0" />
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hintsScroll}>
@@ -1333,35 +1343,35 @@ export default function ConversationScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* AI Hint Button — Anchored to bottom-right edge of chat area, above Sound On */}
-        <View style={styles.fixedHintAnchorRow}>
-          <TouchableOpacity
-            style={styles.floatingHintBtn}
-            onPress={handleFetchHints}
-            activeOpacity={0.85}
-            disabled={loadingHints}
-          >
-            <LinearGradient
-              colors={hints.length > 0 ? ['#4F46E5', '#3730A3'] : ['#8B5CF6', '#6366F1', '#4F46E5']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.floatingHintGradient}
+        {/* AI Hint Button — Only shown when hints are closed, anchored cleanly above Sound On */}
+        {hints.length === 0 && (
+          <View style={styles.fixedHintAnchorRow}>
+            <TouchableOpacity
+              style={styles.floatingHintBtn}
+              onPress={handleFetchHints}
+              activeOpacity={0.85}
+              disabled={loadingHints}
             >
-              {loadingHints ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <>
-                  <View style={styles.hintIconAura}>
-                    <Ionicons name="bulb" size={11} color="#FDE047" />
-                  </View>
-                  <Text style={styles.floatingHintText}>
-                    {hints.length > 0 ? 'Hide Hints' : 'AI Hint ✨'}
-                  </Text>
-                </>
-              )}
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+              <LinearGradient
+                colors={['#8B5CF6', '#6366F1', '#4F46E5']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.floatingHintGradient}
+              >
+                {loadingHints ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <>
+                    <View style={styles.hintIconAura}>
+                      <Ionicons name="bulb" size={11} color="#FDE047" />
+                    </View>
+                    <Text style={styles.floatingHintText}>AI Hint ✨</Text>
+                  </>
+                )}
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* ── Bottom Controls ── */}
@@ -1428,17 +1438,17 @@ export default function ConversationScreen({ navigation, route }) {
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#0B0F19' },
+  root: { flex: 1, backgroundColor: '#070A12' },
 
   avatarContainer: {
     width: '100%',
-    height: 218,
+    height: 252,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    marginTop: 4,
-    marginBottom: 2,
+    marginTop: 2,
+    marginBottom: 6,
   },
   avatar3d: {
     width: '100%',
@@ -1455,7 +1465,7 @@ const styles = StyleSheet.create({
   timerVal: { color: '#FFF', fontSize: 11, fontWeight: '700' },
 
   // Chat Bubbles
-  chatList: { padding: 16, paddingBottom: 24 },
+  chatList: { padding: 16, paddingTop: 4, paddingBottom: 36 },
   bubbleWrapper: { flexDirection: 'row', marginBottom: 12, maxWidth: '85%' },
   userWrapper: { alignSelf: 'flex-end', justifyContent: 'flex-end' },
   aiWrapper: { alignSelf: 'flex-start', justifyContent: 'flex-start', gap: 6 },
@@ -1619,14 +1629,32 @@ const styles = StyleSheet.create({
   hintsHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'space-between',
     paddingHorizontal: 4,
-    marginBottom: 6,
+    marginBottom: 8,
+  },
+  hintsHeaderTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flex: 1,
   },
   hintsHeaderText: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#A5B4FC',
     fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  hintsCloseCrossBtn: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
   hintsScroll: {
     gap: 8,

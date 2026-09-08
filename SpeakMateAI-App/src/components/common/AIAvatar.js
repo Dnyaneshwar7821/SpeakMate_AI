@@ -379,11 +379,11 @@ export default function AIAvatar({
             />
           )}
 
-          {/* Layer 7: Smooth Chest-Line Fade into Dark Background */}
+          {/* Layer 7: Smooth Chest-Line Fade into Dark Background (Seamless edge-to-edge) */}
           <LinearGradient
             pointerEvents="none"
-            colors={['transparent', 'rgba(11, 15, 25, 0.40)', 'rgba(11, 15, 25, 0.85)', '#0B0F19']}
-            locations={[0, 0.35, 0.75, 1.0]}
+            colors={['transparent', 'rgba(10, 15, 29, 0.20)', 'rgba(10, 15, 29, 0.65)', 'rgba(10, 15, 29, 0.95)', '#0A0F1D']}
+            locations={[0, 0.25, 0.60, 0.88, 1.0]}
             style={styles.softTorsoDissolve}
           />
         </Animated.View>
@@ -527,14 +527,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // 7. Smooth Chest-Line Fade into Dark Background
+  // 7. Smooth Chest-Line Fade into Dark Background (Full-width edge-to-edge, zero corner gaps)
   softTorsoDissolve: {
     position:     'absolute',
     width:        '100%',
-    height:       38,
+    height:       56,
     bottom:       0,
     alignSelf:    'center',
-    borderRadius: 19,
     zIndex:       12,
     elevation:    10,
   },
