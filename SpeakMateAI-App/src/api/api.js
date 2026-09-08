@@ -50,14 +50,21 @@ api.interceptors.response.use(
       config.url.includes('/api/v1/')
     );
 
-    // Retry once on network timeout or connection error (e.g. Render free tier cold start)
-    const isNetworkError = !error.response || error.code === 'ECONNABORTED' || error.message === 'Network Error';
-    if (config && isNetworkError && !config._retry) {
-      config._retry = true;
+    // Retry on network timeout, connection error, or Render free-tier cold starts (502, 503, 504)
+    const isColdStartOrNetwork =
+      !error.response ||
+      error.code === 'ECONNABORTED' ||
+      error.message === 'Network Error' ||
+      status === 502 ||
+      status === 503 ||
+      status === 504;
+
+    if (config && isColdStartOrNetwork && (!config._retryCount || config._retryCount < 2)) {
+      config._retryCount = (config._retryCount || 0) + 1;
       if (!isBackgroundEndpoint) {
-        console.warn(`[Axios] Retrying request (${config.url})...`);
+        console.warn(`[Axios] Render cold start / gateway wakeup retry #${config._retryCount} (${config.url})...`);
       }
-      await new Promise((resolve) => setTimeout(resolve, 3000));
+      await new Promise((resolve) => setTimeout(resolve, 4000));
       return api(config);
     }
 

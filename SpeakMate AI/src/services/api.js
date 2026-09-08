@@ -33,9 +33,25 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    const config = error.config;
     const status = error.response?.status;
     const data = error.response?.data;
+
+    // Auto-retry on Render free-tier cold-start (502, 503, 504, timeout, or network disconnect)
+    const isColdStart =
+      !error.response ||
+      error.code === "ECONNABORTED" ||
+      status === 502 ||
+      status === 503 ||
+      status === 504;
+
+    if (config && isColdStart && (!config._retryCount || config._retryCount < 2)) {
+      config._retryCount = (config._retryCount || 0) + 1;
+      console.warn(`[Axios] Render cold start retry #${config._retryCount} for ${config.url}...`);
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      return api(config);
+    }
 
     let message = "Something went wrong. Please try again.";
 
