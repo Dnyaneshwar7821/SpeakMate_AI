@@ -7,6 +7,7 @@ import {
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
+  LayoutAnimation,
   Modal,
   Platform,
   ScrollView,
@@ -16,8 +17,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  UIManager,
   View,
 } from 'react-native';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -274,13 +280,17 @@ export default function ConversationChatScreen({ navigation, route }) {
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       () => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
         setKeyboardVisible(true);
         setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
       }
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => setKeyboardVisible(false)
+      () => {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setKeyboardVisible(false);
+      }
     );
     return () => {
       showSub.remove();
@@ -960,21 +970,26 @@ export default function ConversationChatScreen({ navigation, route }) {
         </SafeAreaView>
       </View>
 
-      {/* ─── 3D AI Tutor Avatar (collapses when keyboard is active) ─── */}
-      {!isKeyboardVisible && (
-        <View style={styles.avatarContainer}>
-          <AIAvatar
-            model={selectedAvatarModel}
-            gender={getAvatarById(selectedAvatarModel).gender}
-            isSpeaking={isSpeaking}
-            spokenText={currentSpokenText}
-            speechSpeed={speechSpeed}
-            state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
-            expression={avatarExpression}
-            style={styles.avatar3d}
-          />
-        </View>
-      )}
+      {/* ─── 3D AI Tutor Avatar (collapses height when typing without unmounting) ─── */}
+      <View
+        style={[
+          styles.avatarContainer,
+          isKeyboardVisible && styles.avatarContainerCollapsed,
+        ]}
+        pointerEvents={isKeyboardVisible ? 'none' : 'auto'}
+      >
+        <AIAvatar
+          model={selectedAvatarModel}
+          gender={getAvatarById(selectedAvatarModel).gender}
+          isSpeaking={isSpeaking}
+          spokenText={currentSpokenText}
+          speechSpeed={speechSpeed}
+          state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
+          expression={avatarExpression}
+          style={styles.avatar3d}
+          hideStatusPill={true}
+        />
+      </View>
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -1278,14 +1293,20 @@ const styles = StyleSheet.create({
 
   avatarContainer: {
     width: '100%',
-    height: 218,
+    height: 224,
     backgroundColor: 'transparent',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    overflow: 'visible',
-    marginTop: 4,
-    marginBottom: 2,
+    overflow: 'hidden',
+    marginTop: 2,
+    marginBottom: 0,
+  },
+  avatarContainerCollapsed: {
+    height: 0,
+    opacity: 0,
+    marginTop: 0,
+    marginBottom: 0,
   },
   avatar3d: {
     width: '100%',
@@ -1301,7 +1322,7 @@ const styles = StyleSheet.create({
   muteBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
 
   // Chat scroll
-  chatScroll: { padding: 16, gap: 14, paddingBottom: 32 },
+  chatScroll: { paddingHorizontal: 16, paddingTop: 10, gap: 14, paddingBottom: 32 },
 
   // Bubble Wrapper
   bubbleWrapper: { flexDirection: 'row', gap: 10, maxWidth: '85%' },
