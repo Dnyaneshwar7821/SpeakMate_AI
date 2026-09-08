@@ -86,6 +86,8 @@ export function AvatarEmbed() {
         justifyContent: 'center',
         touchAction: 'none',
         userSelect: 'none',
+        WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 95%)',
+        maskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 95%)',
       }}
     >
       <AvatarCanvas

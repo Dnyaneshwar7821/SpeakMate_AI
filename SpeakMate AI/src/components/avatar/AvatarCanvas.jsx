@@ -184,11 +184,11 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
           }
           const isShizuku = catalogEntry.id === 'shizuku';
           const isFullBody = catalogEntry.id === 'haru' || catalogEntry.id === 'chitose' || catalogEntry.id === 'koharu';
-          const scaleMultiplier = catalogEntry.scaleMultiplier || (isShizuku ? 1.18 : (isFullBody ? 2.40 : 1.05));
+          const scaleMultiplier = catalogEntry.scaleMultiplier || (isShizuku ? 1.18 : (isFullBody ? 2.35 : 1.05));
           const scale = (height * scaleMultiplier) / nativeHeight;
           model.scale.set(scale, scale);
           model.x = width / 2;
-          const yOffset = catalogEntry.yOffsetRatio ?? (isShizuku ? 0.02 : (isFullBody ? 0.13 : 0.10));
+          const yOffset = catalogEntry.yOffsetRatio ?? (isShizuku ? 0.02 : (isFullBody ? 0.12 : 0.10));
           model.y = Math.max(16, height * yOffset);
         }
       }
@@ -256,7 +256,11 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
     <div
       ref={containerRef}
       className={`relative w-full h-full min-h-[350px] flex items-center justify-center overflow-hidden ${className}`}
-      style={{ touchAction: 'none' }}
+      style={{
+        touchAction: 'none',
+        WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 95%)',
+        maskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 95%)',
+      }}
     />
   );
 }

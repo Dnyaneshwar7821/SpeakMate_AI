@@ -379,9 +379,23 @@ export default function AIAvatar({
             />
           )}
 
+          {/* ── Synchronized Torso Dissolve (Moves with Avatar to guarantee zero gap) ── */}
+          <LinearGradient
+            pointerEvents="none"
+            colors={[
+              'transparent',
+              'rgba(7, 10, 18, 0.0)',
+              'rgba(7, 10, 18, 0.35)',
+              'rgba(7, 10, 18, 0.75)',
+              'rgba(7, 10, 18, 0.98)',
+              '#070A12',
+            ]}
+            locations={[0, 0.20, 0.48, 0.76, 0.92, 1.0]}
+            style={styles.softTorsoDissolve}
+          />
         </Animated.View>
 
-        {/* ── Layer 7: Stationary Smooth Seamless Bottom Mask & Fade into Dark Background ── */}
+        {/* ── Layer 7: Stationary Base Floor Fade (Anchored to Stage Floor) ── */}
         <LinearGradient
           pointerEvents="none"
           colors={[
@@ -488,23 +502,23 @@ const styles = StyleSheet.create({
     height:        OUTER_RING_SIZE,
     borderRadius:  OUTER_RING_SIZE / 2,
     borderWidth:   1.0,
+    top:           -18,
     shadowOpacity: 0.35,
     shadowRadius:  8,
     shadowOffset:  { width: 0, height: 0 },
-    elevation:     2,
   },
 
-  // 4. Luminous Inner Neon Halo Ring (172px Centered on Face)
+  // 4. Luminous Inner Neon Halo Ring (172px Centered on Face & Hair)
   innerHaloRing: {
     position:      'absolute',
     width:         INNER_RING_SIZE,
     height:        INNER_RING_SIZE,
     borderRadius:  INNER_RING_SIZE / 2,
     borderWidth:   1.2,
+    top:           6,
     shadowOpacity: 0.45,
     shadowRadius:  10,
     shadowOffset:  { width: 0, height: 0 },
-    elevation:     4,
   },
 
   // 5. Ambient Stars & Sparkles
@@ -535,15 +549,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
 
-  // 7. Stationary Smooth Chest-Line Fade into Dark Background (Anchored to stage, zero movement gap)
+  // 7. Stationary & Moving Smooth Chest-Line Fade into Dark Background
   softTorsoDissolve: {
     position:     'absolute',
     width:        '100%',
-    height:       68,
+    height:       76,
     bottom:       0,
     alignSelf:    'center',
     zIndex:       15,
-    elevation:    10,
   },
 
   // 8. Glassmorphic Status Pill
