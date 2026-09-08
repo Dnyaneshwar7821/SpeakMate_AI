@@ -20,8 +20,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 1.05,
     type: 'live2d',
     modelPath: '/models/avatar/haru/haru_greeter_t03.model3.json',
-    scaleMultiplier: 3.35,
-    yOffsetRatio: 0.05,
+    scaleMultiplier: 3.1,
+    yOffsetRatio: -0.13,
     themeColor: '#EC4899', // Pink / Fuchsia
     glowColor: 'rgba(236, 72, 153, 0.45)',
     ringColor: '#F472B6',
@@ -40,8 +40,8 @@ export const AVATAR_CATALOG = {
     defaultPitch: 0.98,
     type: 'live2d',
     modelPath: '/models/avatar/chitose/chitose.model.json',
-    scaleMultiplier: 3.35,
-    yOffsetRatio: 0.05,
+    scaleMultiplier: 3.1,
+    yOffsetRatio: -0.13,
     themeColor: '#3B82F6', // Blue
     glowColor: 'rgba(59, 130, 246, 0.45)',
     ringColor: '#60A5FA',

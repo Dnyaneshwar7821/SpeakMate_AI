@@ -80,12 +80,12 @@ export class ModelLoader {
         path.toLowerCase().includes('chitose') ||
         path.toLowerCase().includes('koharu')
       );
-      const scaleMultiplier = isWanko ? 1.35 : isShizuku ? 1.18 : (isFullBody ? 3.35 : 1.05);
+      const scaleMultiplier = isWanko ? 1.35 : isShizuku ? 1.18 : (isFullBody ? 3.1 : 1.05);
       const scale = (screenHeight * scaleMultiplier) / nativeHeight;
       model.scale.set(scale, scale);
 
       model.x = screenWidth / 2;
-      model.y = Math.max(isWanko ? 8 : isShizuku ? 4 : (isFullBody ? 8 : 16), screenHeight * (isWanko ? 0.08 : isShizuku ? 0.02 : (isFullBody ? 0.05 : 0.10)));
+      model.y = isFullBody ? Math.round(screenHeight * -0.13) : Math.max(isWanko ? 8 : isShizuku ? 4 : 16, screenHeight * (isWanko ? 0.08 : isShizuku ? 0.02 : 0.10));
 
       // Disable PixiJS interactive flag to avoid isInteractive error in Pixi 7
       if ('eventMode' in model) {

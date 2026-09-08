@@ -40,8 +40,8 @@ export function getLive2DAvatarHtml(initialModel = 'haru') {
       align-items: center;
       justify-content: center;
       overflow: hidden;
-      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 72%, transparent 95%);
-      mask-image: linear-gradient(to bottom, black 0%, black 72%, transparent 95%);
+      -webkit-mask-image: linear-gradient(to bottom, black 0%, black 80%, transparent 98%);
+      mask-image: linear-gradient(to bottom, black 0%, black 80%, transparent 98%);
     }
     canvas {
       display: block;
@@ -80,13 +80,13 @@ export function getLive2DAvatarHtml(initialModel = 'haru') {
       var MODEL_REGISTRY = {
         haru: {
           path: CDN_BASE + '/models/avatar/haru/haru_greeter_t03.model3.json',
-          scaleMultiplier: 3.35,
-          yOffsetRatio: 0.05,
+          scaleMultiplier: 3.1,
+          yOffsetRatio: -0.13,
         },
         chitose: {
           path: CDN_BASE + '/models/avatar/chitose/chitose.model.json',
-          scaleMultiplier: 3.35,
-          yOffsetRatio: 0.05,
+          scaleMultiplier: 3.1,
+          yOffsetRatio: -0.13,
         }
       };
 
@@ -146,7 +146,7 @@ export function getLive2DAvatarHtml(initialModel = 'haru') {
         var scale = (screenH * cfg.scaleMultiplier) / nativeH;
         model.scale.set(scale, scale);
         model.x = screenW / 2;
-        model.y = Math.max(8, screenH * cfg.yOffsetRatio);
+        model.y = Math.round(screenH * (cfg.yOffsetRatio || 0));
       }
 
       function setMouthOpen(val) {
