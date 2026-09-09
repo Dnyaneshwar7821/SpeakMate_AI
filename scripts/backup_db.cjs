@@ -1,9 +1,22 @@
 const fs = require('fs');
 const path = require('path');
 
-// Resolve pg from SpeakMate AI node_modules
-const pgPath = path.resolve(__dirname, '../SpeakMate AI/node_modules/pg');
-const { Client } = require(pgPath);
+// Resolve pg from SpeakMateAI-Frontend or Admin_Frontend node_modules
+function resolvePg() {
+  const candidates = [
+    path.resolve(__dirname, '../SpeakMateAI-Frontend/node_modules/pg'),
+    path.resolve(__dirname, '../Admin_Frontend/node_modules/pg'),
+    path.resolve(__dirname, '../SpeakMate AI/node_modules/pg'),
+    'pg'
+  ];
+  for (const candidate of candidates) {
+    try {
+      return require(candidate);
+    } catch (e) {}
+  }
+  throw new Error("Could not locate 'pg' module in any frontend node_modules folder.");
+}
+const { Client } = resolvePg();
 
 // Safely load .env if present without requiring external npm packages
 function loadEnv() {

@@ -1,0 +1,21 @@
+{
+  "users": 25,
+  "admins": 7,
+  "schools": 14,
+  "school_standards": 50,
+  "standard_divisions": 94,
+  "teacher_standard_divisions": 8,
+  "class_rooms": 26,
+  "class_students": 3,
+  "subscription_plans": 2,
+  "user_subscriptions": 1,
+  "payments": 0,
+  "invoices": 0,
+  "refunds": 0,
+  "speaking_sessions": 69,
+  "chat_sessions": 0,
+  "progress": 1,
+  "lesson_progress": 0,
+  "vocabulary": 1,
+  "notification": 588
+}
