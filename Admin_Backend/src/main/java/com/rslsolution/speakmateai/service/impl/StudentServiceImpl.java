@@ -40,6 +40,9 @@ public class StudentServiceImpl implements StudentService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.rslsolution.speakmateai.service.EntityCascadeDeletionService entityCascadeDeletionService;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.repository.TeacherRepository teacherRepository;
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         
@@ -121,16 +124,29 @@ public class StudentServiceImpl implements StudentService {
         String generatedStudentId = String.format("STU-2026-%04d", random.nextInt(10000));
 
         Student student = new Student();
-        student.setFirstName(request.getFirstName());
-        student.setLastName(request.getLastName());
-        student.setEmail(request.getEmail());
-        student.setPassword(passwordEncoder.encode("defaultPassword123!"));
+        student.setFirstName(request.getFirstName() != null ? request.getFirstName().trim() : "");
+        student.setLastName(request.getLastName() != null ? request.getLastName().trim() : "");
+        student.setEmail(request.getEmail() != null ? request.getEmail().trim() : "");
+        String rawPassword = (request.getPassword() != null && !request.getPassword().trim().isEmpty())
+                ? request.getPassword().trim()
+                : "defaultPassword123!";
+        student.setPassword(passwordEncoder.encode(rawPassword));
         student.setRole(Role.STUDENT);
         student.setUserType(UserType.SCHOOL);
         student.setSchoolId(schoolIdToUse);
         student.setStudentId(generatedStudentId);
-        student.setStatus(Status.ACTIVE);
-        student.setActive(true);
+
+        boolean isActive = request.getActive() != null ? request.getActive() : (request.getStatus() != null ? request.getStatus() == Status.ACTIVE : true);
+        student.setActive(isActive);
+        student.setStatus(request.getStatus() != null ? request.getStatus() : (isActive ? Status.ACTIVE : Status.INACTIVE));
+
+        if (request.getStandard() != null) student.setStandard(request.getStandard().trim());
+        if (request.getDivision() != null) student.setDivision(request.getDivision().trim().toUpperCase());
+        if (request.getRollNumber() != null) student.setRollNumber(request.getRollNumber().trim());
+        if (request.getParentName() != null) student.setParentName(request.getParentName().trim());
+        if (request.getParentPhone() != null) student.setParentPhone(request.getParentPhone().trim());
+        if (request.getPhone() != null) student.setPhone(request.getPhone().trim());
+        if (request.getTeacherId() != null) student.setTeacherId(request.getTeacherId());
 
         Student savedStudent = studentRepository.save(student);
 
@@ -158,29 +174,44 @@ public class StudentServiceImpl implements StudentService {
             if (request.getSchoolId() != null) {
                 student.setSchoolId(request.getSchoolId());
             }
-            
 
         } else if (currentUser.getRole() == Role.SCHOOL_ADMIN || currentUser.getRole() == Role.TEACHER) {
             student = studentRepository.findByIdAndSchoolId(id, currentUser.getSchoolId())
                     .orElseThrow(() -> new RuntimeException("Student not found or not in your school"));
             
             // Ignore schoolId in request, keeping the student in the current school
-            
+
         } else {
             throw new RuntimeException("Unauthorized to update students");
         }
 
-        if (!student.getEmail().equals(request.getEmail())) {
-            if (userRepository.existsByEmail(request.getEmail())) {
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty() && !student.getEmail().equalsIgnoreCase(request.getEmail().trim())) {
+            if (userRepository.existsByEmail(request.getEmail().trim())) {
                 throw new RuntimeException("Email already exists");
             }
+            student.setEmail(request.getEmail().trim());
         }
 
-        student.setFirstName(request.getFirstName());
-        student.setLastName(request.getLastName());
-        student.setEmail(request.getEmail());
+        if (request.getFirstName() != null) student.setFirstName(request.getFirstName().trim());
+        if (request.getLastName() != null) student.setLastName(request.getLastName().trim());
         student.setRole(Role.STUDENT);
         student.setUserType(UserType.SCHOOL);
+
+        if (request.getActive() != null) {
+            student.setActive(request.getActive());
+            student.setStatus(request.getActive() ? Status.ACTIVE : Status.INACTIVE);
+        } else if (request.getStatus() != null) {
+            student.setStatus(request.getStatus());
+            student.setActive(request.getStatus() == Status.ACTIVE);
+        }
+
+        if (request.getStandard() != null) student.setStandard(request.getStandard().trim());
+        if (request.getDivision() != null) student.setDivision(request.getDivision().trim().toUpperCase());
+        if (request.getRollNumber() != null) student.setRollNumber(request.getRollNumber().trim());
+        if (request.getParentName() != null) student.setParentName(request.getParentName().trim());
+        if (request.getParentPhone() != null) student.setParentPhone(request.getParentPhone().trim());
+        if (request.getPhone() != null) student.setPhone(request.getPhone().trim());
+        if (request.getTeacherId() != null) student.setTeacherId(request.getTeacherId());
 
         Student updatedStudent = studentRepository.save(student);
         return mapToResponse(updatedStudent);
@@ -321,6 +352,18 @@ public class StudentServiceImpl implements StudentService {
     }
 
     private StudentResponse mapToResponse(Student user) {
+        Status resolvedStatus = user.getStatus();
+        if (resolvedStatus == null) {
+            resolvedStatus = user.isActive() ? Status.ACTIVE : Status.INACTIVE;
+        }
+
+        String teacherName = null;
+        if (user.getTeacherId() != null && teacherRepository != null) {
+            teacherName = teacherRepository.findById(user.getTeacherId())
+                    .map(t -> (t.getFirstName() + " " + (t.getLastName() != null ? t.getLastName() : "")).trim())
+                    .orElse(null);
+        }
+
         return StudentResponse.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
@@ -334,8 +377,11 @@ public class StudentServiceImpl implements StudentService {
                 .rollNumber(user.getRollNumber())
                 .parentName(user.getParentName())
                 .parentPhone(user.getParentPhone())
+                .phone(user.getPhone())
                 .teacherId(user.getTeacherId())
-                .status(user.getStatus())
+                .teacherName(teacherName)
+                .active(user.isActive())
+                .status(resolvedStatus)
                 .createdAt(user.getCreatedAt())
                 .build();
     }

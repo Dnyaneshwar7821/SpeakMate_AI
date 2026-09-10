@@ -26,13 +26,10 @@ public class SchoolTeacherRequest {
 	@Email(message = "Invalid email format")
 	private String email;
 
-	@NotBlank(message = "Password is required")
-	@Size(min = 8, message = "Password must be at least 8 characters")
-	@Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$", message = "Password must contain at least one digit, one lowercase, one uppercase, and one special character")
+	@Pattern(regexp = "^$|^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).{8,}$", message = "Password must be at least 8 characters and contain at least one digit, one lowercase, one uppercase, and one special character")
 	private String password;
 
-	@NotBlank(message = "Phone number is required")
-	@Pattern(regexp = "^(?:\\+91)?[6-9]\\d{9}$", message = "Please enter a valid Indian mobile number")
+	@Pattern(regexp = "^$|^(?:\\+91)?[6-9]\\d{9}$", message = "Please enter a valid Indian mobile number")
 	private String phone;
 
 	@Builder.Default

@@ -504,4 +504,111 @@ public class SchoolTeacherServiceTest {
         // Verify that assignments are NOT persisted
         verify(teacherStandardDivisionRepository, never()).save(any());
     }
+
+    @Test
+    void testUpdateTeacher_SyncStandardDivisions_DiffExistingAndNew() {
+        User admin = User.builder().email("admin@school.com").role(Role.SCHOOL_ADMIN).schoolId(1L).build();
+        when(userRepository.findByEmail("admin@school.com")).thenReturn(Optional.of(admin));
+
+        Teacher existingTeacher = new Teacher();
+        existingTeacher.setId(10L);
+        existingTeacher.setRole(Role.TEACHER);
+        existingTeacher.setSchoolId(1L);
+
+        when(teacherRepository.findById(10L)).thenReturn(Optional.of(existingTeacher));
+        when(teacherRepository.save(any(Teacher.class))).thenReturn(existingTeacher);
+
+        SchoolStandard ss8 = SchoolStandard.builder().id(8L).standard("8th").build();
+        when(schoolStandardRepository.findBySchoolIdAndStandard(1L, "8th")).thenReturn(Optional.of(ss8));
+
+        StandardDivision sd8A = StandardDivision.builder().id(81L).division("A").build();
+        StandardDivision sd8B = StandardDivision.builder().id(82L).division("B").build();
+        when(standardDivisionRepository.findBySchoolStandardIdAndDivision(8L, "A")).thenReturn(Optional.of(sd8A));
+        when(standardDivisionRepository.findBySchoolStandardIdAndDivision(8L, "B")).thenReturn(Optional.of(sd8B));
+
+        // Existing assignment: 8th-A
+        TeacherStandardDivision existingTsdA = TeacherStandardDivision.builder()
+                .id(101L)
+                .teacher(existingTeacher)
+                .standardDivision(sd8A)
+                .build();
+        when(teacherStandardDivisionRepository.findByTeacherId(10L)).thenReturn(new java.util.ArrayList<>(Collections.singletonList(existingTsdA)));
+        when(teacherStandardDivisionRepository.findFirstByStandardDivisionIdAndTeacherIdNot(81L, 10L)).thenReturn(Optional.empty());
+        when(teacherStandardDivisionRepository.findFirstByStandardDivisionIdAndTeacherIdNot(82L, 10L)).thenReturn(Optional.empty());
+
+        when(classRoomRepository.findByTeacherId(10L)).thenReturn(new java.util.ArrayList<>());
+
+        // Request has 8th-A (kept) and 8th-B (new)
+        SchoolTeacherRequest request = SchoolTeacherRequest.builder()
+                .firstName("Jane")
+                .lastName("Doe")
+                .email("jane.doe@school.com")
+                .standardDivisions(Arrays.asList(
+                        StandardDivisionPair.builder().standard("8th").division("A").build(),
+                        StandardDivisionPair.builder().standard("8th").division("B").build()
+                ))
+                .build();
+
+        assertDoesNotThrow(() -> {
+            schoolTeacherService.updateTeacher(10L, request);
+        });
+
+        // 8th-B is saved (newly added), while 8th-A was kept and not re-saved
+        verify(teacherStandardDivisionRepository, times(1)).save(any(TeacherStandardDivision.class));
+        verify(teacherStandardDivisionRepository, never()).deleteAll(any());
+    }
+
+    @Test
+    void testUpdateTeacher_UnselectedClassRoomsAreUnassigned() {
+        User admin = User.builder().email("admin@school.com").role(Role.SCHOOL_ADMIN).schoolId(1L).build();
+        when(userRepository.findByEmail("admin@school.com")).thenReturn(Optional.of(admin));
+
+        Teacher existingTeacher = Teacher.builder()
+                .firstName("Digvijay")
+                .lastName("Patil")
+                .email("digvijay@school.com")
+                .schoolId(1L)
+                .role(Role.TEACHER)
+                .build();
+        existingTeacher.setId(20L);
+
+        when(teacherRepository.findById(20L)).thenReturn(Optional.of(existingTeacher));
+        when(teacherRepository.save(any(Teacher.class))).thenReturn(existingTeacher);
+
+        SchoolStandard ss8 = SchoolStandard.builder().id(8L).standard("8").build();
+        when(schoolStandardRepository.findBySchoolId(1L)).thenReturn(Collections.singletonList(ss8));
+        when(schoolStandardRepository.findBySchoolIdAndStandard(1L, "8")).thenReturn(Optional.of(ss8));
+
+        StandardDivision sd8D = StandardDivision.builder().id(84L).division("D").schoolStandard(ss8).build();
+        when(standardDivisionRepository.findBySchoolStandardIdAndDivision(8L, "D")).thenReturn(Optional.of(sd8D));
+        when(teacherStandardDivisionRepository.findFirstByStandardDivisionIdAndTeacherIdNot(84L, 20L)).thenReturn(Optional.empty());
+
+        // Teacher currently has 8-A, 8-B, 8-C, 8-D in class_rooms
+        com.rslsolution.speakmateai.entity.ClassRoom room8A = com.rslsolution.speakmateai.entity.ClassRoom.builder().id(1L).grade("8").division("A").teacherId(20L).schoolId(1L).build();
+        com.rslsolution.speakmateai.entity.ClassRoom room8B = com.rslsolution.speakmateai.entity.ClassRoom.builder().id(2L).grade("8").division("B").teacherId(20L).schoolId(1L).build();
+        com.rslsolution.speakmateai.entity.ClassRoom room8C = com.rslsolution.speakmateai.entity.ClassRoom.builder().id(3L).grade("8").division("C").teacherId(20L).schoolId(1L).build();
+        com.rslsolution.speakmateai.entity.ClassRoom room8D = com.rslsolution.speakmateai.entity.ClassRoom.builder().id(4L).grade("8").division("D").teacherId(20L).schoolId(1L).build();
+
+        when(classRoomRepository.findByTeacherId(20L)).thenReturn(new java.util.ArrayList<>(Arrays.asList(room8A, room8B, room8C, room8D)));
+
+        // Request only keeps 8-D (removes 8-A, 8-B, 8-C)
+        SchoolTeacherRequest request = SchoolTeacherRequest.builder()
+                .firstName("Digvijay")
+                .lastName("Patil")
+                .email("digvijay@school.com")
+                .standardDivisions(Collections.singletonList(
+                        StandardDivisionPair.builder().standard("8").division("D").build()
+                ))
+                .build();
+
+        assertDoesNotThrow(() -> {
+            schoolTeacherService.updateTeacher(20L, request);
+        });
+
+        // 8-A, 8-B, 8-C must be unassigned (teacherId set to null)
+        assertNull(room8A.getTeacherId());
+        assertNull(room8B.getTeacherId());
+        assertNull(room8C.getTeacherId());
+        assertEquals(20L, room8D.getTeacherId());
+    }
 }

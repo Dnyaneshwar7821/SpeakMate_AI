@@ -271,8 +271,8 @@ public class TeacherProfileServiceTest {
 
         assertNotNull(response);
         assertEquals("DY Patil University", response.getSchoolName());
-        assertEquals("6th - A", response.getAssignedStandard());
+        assertEquals("Grade 6 - A", response.getAssignedStandard());
         assertEquals("DY Patil University", response.getIdentity().getSchoolName());
-        assertEquals("6th - A", response.getIdentity().getStandard());
+        assertEquals("Grade 6 - A", response.getIdentity().getStandard());
     }
 }

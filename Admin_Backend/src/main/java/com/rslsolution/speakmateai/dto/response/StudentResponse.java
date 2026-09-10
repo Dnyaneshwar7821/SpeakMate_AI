@@ -25,7 +25,10 @@ public class StudentResponse {
     private String rollNumber;
     private String parentName;
     private String parentPhone;
+    private String phone;
     private Long teacherId;
+    private String teacherName;
+    private Boolean active;
     private Status status;
     private LocalDateTime createdAt;
 }

@@ -218,7 +218,26 @@ public class TeacherServiceImpl implements TeacherService {
 	}
 
 	private List<ClassRoom> getTeacherClasses(Long teacherId) {
-		return classRoomRepository.findByTeacherId(teacherId);
+		List<ClassRoom> rooms = classRoomRepository.findByTeacherId(teacherId);
+		if (teacherStandardDivisionRepository != null && teacherId != null) {
+			List<TeacherStandardDivision> tsds = teacherStandardDivisionRepository.findByTeacherId(teacherId);
+			if (tsds != null && !tsds.isEmpty()) {
+				java.util.Set<String> assignedKeys = tsds.stream()
+						.filter(tsd -> tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null)
+						.map(tsd -> normalizeStandard(tsd.getStandardDivision().getSchoolStandard().getStandard()) + "-"
+								+ (tsd.getStandardDivision().getDivision() != null ? tsd.getStandardDivision().getDivision().trim().toUpperCase() : ""))
+						.collect(Collectors.toSet());
+				Map<String, ClassRoom> deduped = new LinkedHashMap<>();
+				for (ClassRoom r : rooms) {
+					String key = normalizeStandard(r.getGrade()) + "-" + (r.getDivision() != null ? r.getDivision().trim().toUpperCase() : "");
+					if (assignedKeys.contains(key) && !deduped.containsKey(key)) {
+						deduped.put(key, r);
+					}
+				}
+				return new ArrayList<>(deduped.values());
+			}
+		}
+		return rooms;
 	}
 
 	private String normalizeStandard(String val) {
@@ -600,125 +619,21 @@ public class TeacherServiceImpl implements TeacherService {
 				.avatar(teacher.getAvatar()).englishLevel(teacher.getEnglishLevel()).learningGoal(teacher.getLearningGoal())
 				.build();
 
-		// Collect all assigned classes, standards, and divisions from both ClassRoom and TeacherStandardDivision
-		Map<String, AssignedClassResponse> assignedClassMap = new LinkedHashMap<>();
+		Map<String, AssignedClassResponse> assignedClassMap = buildTeacherAssignedClassMap(teacher, classes, students);
 		List<String> assignedStandards = new ArrayList<>();
 		List<String> assignedDivisions = new ArrayList<>();
 		List<String> formattedStandards = new ArrayList<>();
 
-		// 1. From ClassRoom entities
-		if (classes != null) {
-			for (ClassRoom c : classes) {
-				String std = c.getGrade();
-				String div = c.getDivision();
-				String formatted = (c.getName() != null && !c.getName().trim().isEmpty())
-						? c.getName().trim()
-						: formatStandardGradeAndDiv(std, div);
-				String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
-				if (key.equals("_") && c.getName() != null) {
-					key = c.getName().trim().toLowerCase();
-				}
-
-				List<ClassStudent> classStudents = classStudentRepository.findByClassId(c.getId());
-				int sCount = classStudents != null ? classStudents.size() : 0;
-				if (sCount == 0 && std != null && !std.trim().isEmpty()) {
-					String normStd = normalizeStandard(std);
-					String normDiv = div != null ? div.trim().toUpperCase() : "";
-					sCount = (int) students.stream().filter(s -> {
-						boolean stdMatch = normStd.equals(normalizeStandard(s.getStandard()));
-						boolean divMatch = normDiv.isEmpty() || normDiv.equalsIgnoreCase(s.getDivision() != null ? s.getDivision().trim() : "");
-						return stdMatch && divMatch;
-					}).count();
-				}
-
-				assignedClassMap.put(key, AssignedClassResponse.builder()
-						.id(c.getId())
-						.name(formatted)
-						.grade(std)
-						.standard(std)
-						.division(div != null ? div.trim().toUpperCase() : "")
-						.academicYear(c.getAcademicYear() != null ? c.getAcademicYear() : "2025-2026")
-						.status(c.getStatus() != null ? c.getStatus() : Status.ACTIVE)
-						.studentCount(sCount)
-						.build());
-
-				if (std != null && !std.trim().isEmpty() && !assignedStandards.contains(std.trim())) {
-					assignedStandards.add(std.trim());
-				}
-				if (div != null && !div.trim().isEmpty() && !assignedDivisions.contains(div.trim().toUpperCase())) {
-					assignedDivisions.add(div.trim().toUpperCase());
-				}
-				if (!formatted.isEmpty() && !formattedStandards.contains(formatted)) {
-					formattedStandards.add(formatted);
-				}
+		for (AssignedClassResponse ac : assignedClassMap.values()) {
+			if (ac.getStandard() != null && !ac.getStandard().trim().isEmpty() && !assignedStandards.contains(ac.getStandard().trim())) {
+				assignedStandards.add(ac.getStandard().trim());
 			}
-		}
-
-		// 2. From TeacherStandardDivision mappings
-		if (teacher != null && teacher.getId() != null && teacherStandardDivisionRepository != null) {
-			List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
-			if (teacherStdDivs != null) {
-				for (TeacherStandardDivision tsd : teacherStdDivs) {
-					if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
-						String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
-						String div = tsd.getStandardDivision().getDivision();
-						String formatted = formatStandardGradeAndDiv(std, div);
-						String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
-
-						if (!assignedClassMap.containsKey(key)) {
-							String normStd = normalizeStandard(std);
-							String normDiv = div != null ? div.trim().toUpperCase() : "";
-							int sCount = (int) students.stream().filter(s -> {
-								boolean stdMatch = normStd.equals(normalizeStandard(s.getStandard()));
-								boolean divMatch = normDiv.isEmpty() || normDiv.equalsIgnoreCase(s.getDivision() != null ? s.getDivision().trim() : "");
-								return stdMatch && divMatch;
-							}).count();
-
-							assignedClassMap.put(key, AssignedClassResponse.builder()
-									.id(tsd.getId())
-									.name(formatted)
-									.grade(std)
-									.standard(std)
-									.division(div != null ? div.trim().toUpperCase() : "")
-									.academicYear("2025-2026")
-									.status(Status.ACTIVE)
-									.studentCount(sCount)
-									.build());
-						}
-
-						if (std != null && !std.trim().isEmpty() && !assignedStandards.contains(std.trim())) {
-							assignedStandards.add(std.trim());
-						}
-						if (div != null && !div.trim().isEmpty() && !assignedDivisions.contains(div.trim().toUpperCase())) {
-							assignedDivisions.add(div.trim().toUpperCase());
-						}
-						if (!formatted.isEmpty() && !formattedStandards.contains(formatted)) {
-							formattedStandards.add(formatted);
-						}
-					}
-				}
+			if (ac.getDivision() != null && !ac.getDivision().trim().isEmpty() && !assignedDivisions.contains(ac.getDivision().trim().toUpperCase())) {
+				assignedDivisions.add(ac.getDivision().trim().toUpperCase());
 			}
-		}
-
-		// 3. Fallback to teacher's direct standard/division if map is empty
-		if (assignedClassMap.isEmpty() && teacher.getStandard() != null && !teacher.getStandard().trim().isEmpty()) {
-			String std = teacher.getStandard().trim();
-			String div = teacher.getDivision() != null ? teacher.getDivision().trim().toUpperCase() : "";
-			String formatted = formatStandardGradeAndDiv(std, div);
-			assignedClassMap.put("fallback", AssignedClassResponse.builder()
-					.id(teacher.getId())
-					.name(formatted)
-					.grade(std)
-					.standard(std)
-					.division(div)
-					.academicYear("2025-2026")
-					.status(Status.ACTIVE)
-					.studentCount(students.size())
-					.build());
-
-			if (!assignedStandards.contains(std)) assignedStandards.add(std);
-			if (!div.isEmpty() && !assignedDivisions.contains(div)) assignedDivisions.add(div);
-			if (!formatted.isEmpty() && !formattedStandards.contains(formatted)) formattedStandards.add(formatted);
+			if (ac.getName() != null && !ac.getName().trim().isEmpty() && !formattedStandards.contains(ac.getName().trim())) {
+				formattedStandards.add(ac.getName().trim());
+			}
 		}
 
 		Collections.sort(assignedStandards);
@@ -869,46 +784,17 @@ public class TeacherServiceImpl implements TeacherService {
 		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
 		List<User> students = getStudentsInClassesFiltered(classes, search, status, standard, division);
 
-		List<AssignedClassResponse> assignedClasses = classes.stream().map(c -> AssignedClassResponse.builder().id(c.getId())
-				.name(c.getName()).grade(c.getGrade()).academicYear(c.getAcademicYear()).status(c.getStatus()).build())
-				.collect(Collectors.toList());
-
+		Map<String, AssignedClassResponse> assignedClassMap = buildTeacherAssignedClassMap(teacher, classes, students);
+		List<AssignedClassResponse> assignedClasses = new ArrayList<>(assignedClassMap.values());
 		List<String> assignedStandards = new ArrayList<>();
 		List<String> assignedDivisions = new ArrayList<>();
 
-		if (classes != null) {
-			for (ClassRoom c : classes) {
-				if (c.getGrade() != null && !c.getGrade().trim().isEmpty() && !assignedStandards.contains(c.getGrade().trim())) {
-					assignedStandards.add(c.getGrade().trim());
-				}
-				if (c.getDivision() != null && !c.getDivision().trim().isEmpty() && !assignedDivisions.contains(c.getDivision().trim().toUpperCase())) {
-					assignedDivisions.add(c.getDivision().trim().toUpperCase());
-				}
+		for (AssignedClassResponse ac : assignedClassMap.values()) {
+			if (ac.getStandard() != null && !ac.getStandard().trim().isEmpty() && !assignedStandards.contains(ac.getStandard().trim())) {
+				assignedStandards.add(ac.getStandard().trim());
 			}
-		}
-		if (teacher != null && teacher.getId() != null) {
-			List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
-			for (TeacherStandardDivision tsd : teacherStdDivs) {
-				if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
-					String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
-					if (std != null && !std.trim().isEmpty() && !assignedStandards.contains(std.trim())) {
-						assignedStandards.add(std.trim());
-					}
-					String div = tsd.getStandardDivision().getDivision();
-					if (div != null && !div.trim().isEmpty() && !assignedDivisions.contains(div.trim().toUpperCase())) {
-						assignedDivisions.add(div.trim().toUpperCase());
-					}
-				}
-			}
-		}
-
-		List<User> allTeacherStudents = getTeacherStudents(teacher, classes);
-		for (User s : allTeacherStudents) {
-			if (s.getStandard() != null && !s.getStandard().trim().isEmpty() && !assignedStandards.contains(s.getStandard().trim())) {
-				assignedStandards.add(s.getStandard().trim());
-			}
-			if (s.getDivision() != null && !s.getDivision().trim().isEmpty() && !assignedDivisions.contains(s.getDivision().trim().toUpperCase())) {
-				assignedDivisions.add(s.getDivision().trim().toUpperCase());
+			if (ac.getDivision() != null && !ac.getDivision().trim().isEmpty() && !assignedDivisions.contains(ac.getDivision().trim().toUpperCase())) {
+				assignedDivisions.add(ac.getDivision().trim().toUpperCase());
 			}
 		}
 
@@ -1149,75 +1035,7 @@ public class TeacherServiceImpl implements TeacherService {
 		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
 
 		// 1. Gather all assigned classes for this teacher
-		Map<String, AssignedClassResponse> assignedClassMap = new LinkedHashMap<>();
-		if (classes != null) {
-			for (ClassRoom c : classes) {
-				String std = c.getGrade();
-				String div = c.getDivision();
-				String formatted = (c.getName() != null && !c.getName().trim().isEmpty())
-						? c.getName().trim()
-						: formatStandardGradeAndDiv(std, div);
-				String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
-				if (key.equals("_") && c.getName() != null) {
-					key = c.getName().trim().toLowerCase();
-				}
-				assignedClassMap.put(key, AssignedClassResponse.builder()
-						.id(c.getId())
-						.name(formatted)
-						.grade(std)
-						.standard(std)
-						.division(div != null ? div.trim().toUpperCase() : "")
-						.academicYear(c.getAcademicYear() != null ? c.getAcademicYear() : "2025-2026")
-						.status(c.getStatus() != null ? c.getStatus() : Status.ACTIVE)
-						.build());
-			}
-		}
-
-		if (teacher != null && teacher.getId() != null && teacherStandardDivisionRepository != null) {
-			try {
-				List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
-				if (teacherStdDivs != null) {
-					for (TeacherStandardDivision tsd : teacherStdDivs) {
-						if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
-							String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
-							String div = tsd.getStandardDivision().getDivision();
-							String formatted = formatStandardGradeAndDiv(std, div);
-							String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
-
-							if (!assignedClassMap.containsKey(key)) {
-								assignedClassMap.put(key, AssignedClassResponse.builder()
-										.id(tsd.getId())
-										.name(formatted)
-										.grade(std)
-										.standard(std)
-										.division(div != null ? div.trim().toUpperCase() : "")
-										.academicYear("2025-2026")
-										.status(Status.ACTIVE)
-										.build());
-							}
-						}
-					}
-				}
-			} catch (Exception e) {
-				// safe fallback
-			}
-		}
-
-		if (assignedClassMap.isEmpty() && teacher.getStandard() != null && !teacher.getStandard().trim().isEmpty()) {
-			String std = teacher.getStandard().trim();
-			String div = teacher.getDivision() != null ? teacher.getDivision().trim().toUpperCase() : "";
-			String formatted = formatStandardGradeAndDiv(std, div);
-			assignedClassMap.put("fallback", AssignedClassResponse.builder()
-					.id(teacher.getId())
-					.name(formatted)
-					.grade(std)
-					.standard(std)
-					.division(div)
-					.academicYear("2025-2026")
-					.status(Status.ACTIVE)
-					.build());
-		}
-
+		Map<String, AssignedClassResponse> assignedClassMap = buildTeacherAssignedClassMap(teacher, classes, null);
 		List<AssignedClassResponse> assignedClasses = new ArrayList<>(assignedClassMap.values());
 
 		if (assignedClasses.isEmpty()) {
@@ -1560,19 +1378,127 @@ public class TeacherServiceImpl implements TeacherService {
 
 	private String formatStandardGradeAndDiv(String std, String div) {
 		if (std == null || std.trim().isEmpty()) return "";
-		String trimmedStd = std.trim();
-		String formattedStd = trimmedStd;
-
-		if (trimmedStd.matches("^\\d+$")) {
-			formattedStd = "Grade " + trimmedStd;
-		} else if (!trimmedStd.toLowerCase().startsWith("grade") && !trimmedStd.toLowerCase().contains("standard")) {
-			formattedStd = "Grade " + trimmedStd;
-		}
+		String normStd = normalizeStandard(std);
+		if (normStd.isEmpty()) normStd = std.trim();
+		String formattedStd = "Grade " + normStd;
 
 		if (div != null && !div.trim().isEmpty()) {
 			return formattedStd + " - " + div.trim().toUpperCase();
 		}
 		return formattedStd;
+	}
+
+	private Map<String, AssignedClassResponse> buildTeacherAssignedClassMap(User teacher, List<ClassRoom> classes, List<User> students) {
+		Map<String, AssignedClassResponse> assignedClassMap = new LinkedHashMap<>();
+
+		// 1. Primary & canonical source: TeacherStandardDivision records
+		if (teacher != null && teacher.getId() != null && teacherStandardDivisionRepository != null) {
+			List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
+			if (teacherStdDivs != null && !teacherStdDivs.isEmpty()) {
+				for (TeacherStandardDivision tsd : teacherStdDivs) {
+					if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
+						String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
+						String div = tsd.getStandardDivision().getDivision();
+						String normStd = normalizeStandard(std);
+						String normDiv = div != null ? div.trim().toUpperCase() : "";
+						String key = normStd + "_" + normDiv;
+
+						if (!assignedClassMap.containsKey(key)) {
+							String formatted = formatStandardGradeAndDiv(normStd, normDiv);
+
+							ClassRoom matchingRoom = null;
+							if (classes != null) {
+								matchingRoom = classes.stream()
+										.filter(c -> normalizeStandard(c.getGrade()).equals(normStd)
+												&& ((c.getDivision() == null && normDiv.isEmpty())
+														|| (c.getDivision() != null && c.getDivision().trim().equalsIgnoreCase(normDiv))))
+										.findFirst().orElse(null);
+							}
+
+							int sCount = 0;
+							if (matchingRoom != null) {
+								List<ClassStudent> classStudents = classStudentRepository.findByClassId(matchingRoom.getId());
+								sCount = classStudents != null ? classStudents.size() : 0;
+							}
+							if (sCount == 0 && students != null) {
+								sCount = (int) students.stream().filter(s -> {
+									boolean stdMatch = normStd.equals(normalizeStandard(s.getStandard()));
+									boolean divMatch = normDiv.isEmpty() || normDiv.equalsIgnoreCase(s.getDivision() != null ? s.getDivision().trim() : "");
+									return stdMatch && divMatch;
+								}).count();
+							}
+
+							assignedClassMap.put(key, AssignedClassResponse.builder()
+									.id(matchingRoom != null ? matchingRoom.getId() : tsd.getId())
+									.name(formatted)
+									.grade(normStd)
+									.standard(normStd)
+									.division(normDiv)
+									.academicYear(matchingRoom != null && matchingRoom.getAcademicYear() != null ? matchingRoom.getAcademicYear() : "2025-2026")
+									.status(matchingRoom != null && matchingRoom.getStatus() != null ? matchingRoom.getStatus() : Status.ACTIVE)
+									.studentCount(sCount)
+									.build());
+						}
+					}
+				}
+				return assignedClassMap;
+			}
+		}
+
+		// 2. Fallback to ClassRoom entities ONLY if no TeacherStandardDivision records exist
+		if (classes != null) {
+			for (ClassRoom c : classes) {
+				String std = c.getGrade();
+				String div = c.getDivision();
+				String normStd = normalizeStandard(std);
+				String normDiv = div != null ? div.trim().toUpperCase() : "";
+				String key = normStd + "_" + normDiv;
+
+				if (!assignedClassMap.containsKey(key)) {
+					String formatted = formatStandardGradeAndDiv(normStd, normDiv);
+					List<ClassStudent> classStudents = classStudentRepository.findByClassId(c.getId());
+					int sCount = classStudents != null ? classStudents.size() : 0;
+					if (sCount == 0 && students != null) {
+						sCount = (int) students.stream().filter(s -> {
+							boolean stdMatch = normStd.equals(normalizeStandard(s.getStandard()));
+							boolean divMatch = normDiv.isEmpty() || normDiv.equalsIgnoreCase(s.getDivision() != null ? s.getDivision().trim() : "");
+							return stdMatch && divMatch;
+						}).count();
+					}
+
+					assignedClassMap.put(key, AssignedClassResponse.builder()
+							.id(c.getId())
+							.name(formatted)
+							.grade(normStd)
+							.standard(normStd)
+							.division(normDiv)
+							.academicYear(c.getAcademicYear() != null ? c.getAcademicYear() : "2025-2026")
+							.status(c.getStatus() != null ? c.getStatus() : Status.ACTIVE)
+							.studentCount(sCount)
+							.build());
+				}
+			}
+		}
+
+		// 3. Fallback to teacher's direct standard/division if still empty
+		if (assignedClassMap.isEmpty() && teacher != null && teacher.getStandard() != null && !teacher.getStandard().trim().isEmpty()) {
+			String std = teacher.getStandard().trim();
+			String div = teacher.getDivision() != null ? teacher.getDivision().trim().toUpperCase() : "";
+			String normStd = normalizeStandard(std);
+			String formatted = formatStandardGradeAndDiv(normStd, div);
+			assignedClassMap.put("fallback", AssignedClassResponse.builder()
+					.id(teacher.getId())
+					.name(formatted)
+					.grade(normStd)
+					.standard(normStd)
+					.division(div)
+					.academicYear("2025-2026")
+					.status(Status.ACTIVE)
+					.studentCount(students != null ? students.size() : 0)
+					.build());
+		}
+
+		return assignedClassMap;
 	}
 
 	@Override
@@ -1636,76 +1562,12 @@ public class TeacherServiceImpl implements TeacherService {
 		}
 
 		// Resolve Assigned Classes
-		Map<String, AssignedClassResponse> profileClassMap = new LinkedHashMap<>();
+		Map<String, AssignedClassResponse> profileClassMap = buildTeacherAssignedClassMap(teacher, classes, null);
 		List<String> formattedStandards = new ArrayList<>();
-		if (classes != null) {
-			for (ClassRoom c : classes) {
-				String label = formatStandardGradeAndDiv(c.getGrade(), c.getDivision());
-				if (label.isEmpty() && c.getName() != null) {
-					label = c.getName();
-				}
-				String key = (c.getGrade() != null ? c.getGrade().trim().toLowerCase() : "") + "_" + (c.getDivision() != null ? c.getDivision().trim().toUpperCase() : "");
-				if (key.equals("_") && c.getName() != null) {
-					key = c.getName().trim().toLowerCase();
-				}
-				List<ClassStudent> classStudents = classStudentRepository.findByClassId(c.getId());
-				profileClassMap.put(key, AssignedClassResponse.builder()
-						.id(c.getId())
-						.name(label)
-						.grade(c.getGrade())
-						.standard(c.getGrade())
-						.division(c.getDivision() != null ? c.getDivision().trim().toUpperCase() : "")
-						.academicYear(c.getAcademicYear() != null ? c.getAcademicYear() : "2025-2026")
-						.status(c.getStatus() != null ? c.getStatus() : Status.ACTIVE)
-						.studentCount(classStudents != null ? classStudents.size() : 0)
-						.build());
-				if (!label.isEmpty() && !formattedStandards.contains(label)) {
-					formattedStandards.add(label);
-				}
+		for (AssignedClassResponse ac : profileClassMap.values()) {
+			if (ac.getName() != null && !ac.getName().trim().isEmpty() && !formattedStandards.contains(ac.getName().trim())) {
+				formattedStandards.add(ac.getName().trim());
 			}
-		}
-
-		if (teacherStdDivs != null) {
-			for (TeacherStandardDivision tsd : teacherStdDivs) {
-				if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
-					String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
-					String div = tsd.getStandardDivision().getDivision();
-					String formatted = formatStandardGradeAndDiv(std, div);
-					String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
-					if (!profileClassMap.containsKey(key)) {
-						profileClassMap.put(key, AssignedClassResponse.builder()
-								.id(tsd.getId())
-								.name(formatted)
-								.grade(std)
-								.standard(std)
-								.division(div != null ? div.trim().toUpperCase() : "")
-								.academicYear("2025-2026")
-								.status(Status.ACTIVE)
-								.studentCount(0)
-								.build());
-					}
-					if (!formatted.isEmpty() && !formattedStandards.contains(formatted)) {
-						formattedStandards.add(formatted);
-					}
-				}
-			}
-		}
-
-		if (formattedStandards.isEmpty() && teacher.getStandard() != null && !teacher.getStandard().trim().isEmpty()) {
-			String std = teacher.getStandard().trim();
-			String div = teacher.getDivision() != null ? teacher.getDivision().trim().toUpperCase() : "";
-			String formatted = formatStandardGradeAndDiv(std, div);
-			profileClassMap.put("fallback", AssignedClassResponse.builder()
-					.id(teacher.getId())
-					.name(formatted)
-					.grade(std)
-					.standard(std)
-					.division(div)
-					.academicYear("2025-2026")
-					.status(Status.ACTIVE)
-					.studentCount(0)
-					.build());
-			formattedStandards.add(formatted);
 		}
 
 		formattedStandards.sort(Comparator.naturalOrder());
