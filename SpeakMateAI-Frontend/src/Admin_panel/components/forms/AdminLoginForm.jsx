@@ -111,15 +111,15 @@ export function AdminLoginForm({
         disabled={isLoading}
         required
       />
-      <div className="flex items-center justify-between text-sm">
-        <label htmlFor={`${role.toLowerCase()}-remember-me`} className="flex items-center gap-2 text-slate-600">
+      <div className="flex items-center justify-between text-xs">
+        <label htmlFor={`${role.toLowerCase()}-remember-me`} className="flex items-center gap-2 text-[var(--text-secondary)] font-medium cursor-pointer">
           <input
             id={`${role.toLowerCase()}-remember-me`}
             type="checkbox"
             checked={rememberMe}
             disabled={isLoading}
             onChange={(event) => setRememberMe(event.target.checked)}
-            className="h-4 w-4 rounded border-slate-300 text-indigo-600 transition focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-4 w-4 rounded border border-[var(--border-default)] bg-[var(--bg-elevated)] text-[#6C63FF] transition focus:ring-2 focus:ring-[#6C63FF]/20 disabled:cursor-not-allowed disabled:opacity-50"
           />
           Remember me
         </label>
@@ -134,7 +134,7 @@ export function AdminLoginForm({
               { state: { email: form.email } }
             )
           }
-          className="font-semibold text-indigo-600 transition hover:text-indigo-500 focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50"
+          className="font-bold text-[#6C63FF] transition hover:underline focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
         >
           Forgot password?
         </button>

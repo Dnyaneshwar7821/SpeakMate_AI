@@ -5,7 +5,10 @@ const ThemeContext = createContext(null);
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    return localStorage.getItem(STORAGE_KEYS.THEME) || "dark";
+    // Only use dark mode if explicitly chosen by the user in Settings; otherwise default to "light"
+    const explicit = localStorage.getItem("speakmate_theme_explicit") === "true";
+    if (!explicit) return "light";
+    return localStorage.getItem(STORAGE_KEYS.THEME) || "light";
   });
 
   useEffect(() => {
@@ -19,11 +22,17 @@ export function ThemeProvider({ children }) {
   }, [theme]);
 
   const toggleTheme = () => {
+    localStorage.setItem("speakmate_theme_explicit", "true");
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
+  const handleSetTheme = (newTheme) => {
+    localStorage.setItem("speakmate_theme_explicit", "true");
+    setTheme(newTheme);
+  };
+
   const isDark = theme === "dark";
-  const value = { theme, isDark, toggleTheme, setTheme };
+  const value = { theme, isDark, toggleTheme, setTheme: handleSetTheme };
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

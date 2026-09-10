@@ -74,7 +74,7 @@ export function AdminOtpForm({
       {error && <AdminAlert tone="error">{error}</AdminAlert>}
       {!error && resendMessage && <AdminAlert tone="success">{resendMessage}</AdminAlert>}
       <div>
-        <label className="mb-2 block text-sm font-medium text-slate-700">Enter the 6-digit OTP</label>
+        <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Enter the 6-digit OTP</label>
         <div className="flex items-center justify-between gap-2">
           {digits.map((digit, index) => (
             <input
@@ -91,20 +91,20 @@ export function AdminOtpForm({
               onPaste={handlePaste}
               aria-label={`OTP digit ${index + 1}`}
               aria-invalid={Boolean(fieldErrors.otp)}
-              className={`h-12 w-12 rounded-xl border bg-white text-center text-lg font-bold text-slate-900 shadow-sm outline-none transition-all duration-200 ease-out focus:shadow-md focus:ring-4 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 disabled:shadow-none ${fieldErrors.otp ? "border-rose-300 hover:border-rose-400 focus:border-rose-500 focus:ring-rose-100" : "border-slate-200 hover:border-slate-300 focus:border-indigo-500 focus:ring-indigo-100"}`}
+              className={`h-12 w-12 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-center text-lg font-black text-[var(--text-primary)] shadow-sm outline-none transition-all duration-200 ease-out focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 disabled:cursor-not-allowed disabled:opacity-50 ${fieldErrors.otp ? "!border-rose-500 focus:!ring-rose-500/20" : "hover:border-[#6C63FF]/40"}`}
             />
           ))}
         </div>
-        {fieldErrors.otp && <span className="mt-2 block text-sm text-rose-600">{fieldErrors.otp}</span>}
+        {fieldErrors.otp && <span className="mt-2 block text-xs font-semibold text-rose-500">{fieldErrors.otp}</span>}
       </div>
       <AdminButton type="submit" className="w-full" isLoading={isLoading} loadingText="Verifying...">
         {verifyButtonText}
       </AdminButton>
-      <div className="text-center text-sm text-slate-600">
+      <div className="text-center text-xs text-[var(--text-secondary)] font-medium">
         {cooldown > 0 ? (
           <span>Resend OTP in 0:{String(cooldown).padStart(2, "0")}</span>
         ) : (
-          <button type="button" disabled={isResending} onClick={handleResend} className="font-semibold text-indigo-600 transition hover:text-indigo-500 focus:outline-none focus:underline disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="button" disabled={isResending} onClick={handleResend} className="font-bold text-[#6C63FF] transition hover:underline focus:outline-none disabled:cursor-not-allowed disabled:opacity-50">
             {isResending ? "Resending..." : resendButtonText}
           </button>
         )}

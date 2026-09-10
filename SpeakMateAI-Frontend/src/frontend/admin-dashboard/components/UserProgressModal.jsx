@@ -22,15 +22,15 @@ function ProgressBar({ value, color = "bg-indigo-600" }) {
 
 function StatCard({ icon: Icon, label, value, suffix, color = "text-indigo-600 bg-indigo-50" }) {
     return (
-        <div className="flex items-center gap-3 rounded-xl border border-slate-200 p-4 transition hover:border-indigo-100 hover:shadow-sm bg-white">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 dark:border-slate-800 p-4 transition hover:border-indigo-100 hover:shadow-sm bg-white dark:bg-slate-900">
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${color}`}>
                 <Icon size={20} strokeWidth={1.5} />
             </div>
             <div className="min-w-0">
-                <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">{label}</p>
-                <p className="text-base font-bold text-slate-950 truncate">
+                <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">{label}</p>
+                <p className="text-base font-bold text-slate-950 dark:text-white truncate">
                     {value}
-                    {suffix && <span className="text-xs font-medium text-slate-500 ml-1">{suffix}</span>}
+                    {suffix && <span className="text-xs font-medium text-slate-500 dark:text-slate-400 ml-1">{suffix}</span>}
                 </p>
             </div>
         </div>
@@ -120,7 +120,7 @@ export function UserProgressModal({ user, onClose }) {
                     </>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-12 text-center">
-                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 mb-4">
+                        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
                             <TrendingUp size={24} className="text-slate-400" />
                         </div>
                         <p className="text-sm font-semibold text-[var(--text-primary)]">No progress data available</p>

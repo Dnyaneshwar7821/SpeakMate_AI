@@ -9,7 +9,7 @@ export function PasswordInput({ id, label, error, className = "", ...props }) {
   return (
     <div className="w-full">
       {label && (
-        <label htmlFor={id} className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+        <label htmlFor={id} className="mb-2 block text-xs font-black uppercase tracking-wider text-[var(--text-primary)]">
           {label}
         </label>
       )}
@@ -20,10 +20,10 @@ export function PasswordInput({ id, label, error, className = "", ...props }) {
           type={visible ? "text" : "password"}
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
-          className={`h-11 w-full rounded-xl border bg-white py-2 pl-3 pr-11 text-sm text-slate-900 shadow-sm outline-none transition-all duration-200 ease-out placeholder:text-slate-400 focus:shadow-md focus:ring-4 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 disabled:shadow-none dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500 ${
+          className={`h-11 w-full rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] py-2 pl-3.5 pr-11 text-sm font-bold text-[var(--text-primary)] shadow-sm outline-none transition-all duration-200 ease-out placeholder:text-[var(--text-muted)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 disabled:cursor-not-allowed disabled:opacity-60 ${
             error
-              ? "border-rose-300 hover:border-rose-400 focus:border-rose-500 focus:ring-rose-100 dark:border-rose-800"
-              : "border-slate-200 hover:border-slate-300 focus:border-indigo-500 focus:ring-indigo-100 dark:border-slate-800 dark:focus:ring-indigo-950/50"
+              ? "!border-rose-500 focus:!ring-rose-500/20"
+              : "hover:border-[#6C63FF]/40"
           } ${className}`}
           {...props}
         />
@@ -34,7 +34,7 @@ export function PasswordInput({ id, label, error, className = "", ...props }) {
           aria-pressed={visible}
           disabled={props.disabled}
           onClick={() => setVisible((value) => !value)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition-all duration-200 ease-out hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-slate-200 disabled:hover:bg-white disabled:hover:text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all focus:outline-none"
         >
           {visible ? (
             <svg

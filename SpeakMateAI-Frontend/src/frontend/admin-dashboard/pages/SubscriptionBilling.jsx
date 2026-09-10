@@ -507,8 +507,8 @@ export function SubscriptionBilling() {
                     <div className="grid gap-4 sm:grid-cols-2">
                         {/* User selection dropdown */}
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-slate-700">User</label>
-                            <select value={form.userId} onChange={setField("userId")} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">User</label>
+                            <select value={form.userId} onChange={setField("userId")} className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-950/50">
                                 <option value="">Select User</option>
                                 {users.map((u) => (
                                     <option key={u.id} value={u.id}>
@@ -521,8 +521,8 @@ export function SubscriptionBilling() {
 
                         {/* Plan selection dropdown */}
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-slate-700">Plan</label>
-                            <select value={form.planId} onChange={handlePlanChange} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Plan</label>
+                            <select value={form.planId} onChange={handlePlanChange} className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-950/50">
                                 <option value="">Select Plan</option>
                                 {plans.map((p) => (
                                     <option key={p.id} value={p.id}>
@@ -535,8 +535,8 @@ export function SubscriptionBilling() {
 
                         {/* Payment Method dropdown */}
                         <div>
-                            <label className="mb-2 block text-sm font-medium text-slate-700">Payment Method</label>
-                            <select value={form.paymentMethod} onChange={setField("paymentMethod")} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100">
+                            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">Payment Method</label>
+                            <select value={form.paymentMethod} onChange={setField("paymentMethod")} className="h-11 w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 text-sm text-slate-900 dark:text-slate-100 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 dark:focus:ring-indigo-950/50">
                                 <option value="CARD">Card</option>
                                 <option value="UPI">UPI</option>
                                 <option value="NET_BANKING">Net Banking</option>

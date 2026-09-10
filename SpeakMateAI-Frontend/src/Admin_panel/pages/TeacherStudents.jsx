@@ -202,16 +202,16 @@ function StudentsTable({ students, onViewProfile, query, sortConfig, onSort }) {
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {students.map((student) => (
-                            <tr key={student.id} className="transition-colors duration-200 hover:bg-indigo-50/30">
+                            <tr key={student.id} className="transition-colors duration-200 hover:bg-indigo-50/30 dark:hover:bg-slate-800/50">
                                 <td className="whitespace-nowrap px-4 py-4 pl-5">
                                     <div className="flex items-center gap-3">
-                                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-50 text-xs font-black text-indigo-700">
+                                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-indigo-50 text-xs font-black text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
                                             {getInitials(student.name)}
                                         </span>
                                         <div>
-                                            <span className="block text-sm font-bold text-slate-950">
+                                            <span className="block text-sm font-bold text-slate-950 dark:text-slate-100">
                                                 <HighlightedText text={student.name} query={query} />
                                             </span>
                                             <span className="mt-0.5 block text-[11px] font-semibold text-slate-400">
@@ -324,13 +324,13 @@ function StudentCards({ students, onViewProfile, query }) {
                                 {getInitials(student.name)}
                             </span>
                             <div className="min-w-0">
-                                <h2 className="truncate text-sm font-bold text-slate-950">
+                                <h2 className="truncate text-sm font-bold text-slate-950 dark:text-slate-100">
                                     <HighlightedText text={student.name} query={query} />
                                 </h2>
                                 <p className="mt-0.5 text-[11px] font-semibold text-slate-400">
                                     ID: {student.id} &bull; Class: {student.standard} {student.division ? `- ${student.division}` : ''}
                                 </p>
-                                <p className="mt-0.5 text-xs font-medium text-slate-500">
+                                <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">
                                     Roll no. <HighlightedText text={student.rollNumber} query={query} />
                                 </p>
                             </div>
@@ -340,8 +340,8 @@ function StudentCards({ students, onViewProfile, query }) {
 
                     <div className="mt-5">
                         <div className="mb-2 flex items-center justify-between gap-3">
-                            <span className="text-xs font-semibold text-slate-500">Overall Progress</span>
-                            <span className="text-sm font-black text-slate-950">{student.overallProgress}%</span>
+                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Overall Progress</span>
+                            <span className="text-sm font-black text-slate-950 dark:text-slate-100">{student.overallProgress}%</span>
                         </div>
                         <OverallProgress
                             value={student.overallProgress}
@@ -350,7 +350,7 @@ function StudentCards({ students, onViewProfile, query }) {
                         />
                     </div>
 
-                    <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-y border-slate-100 py-4">
+                    <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-y border-slate-100 dark:border-slate-800 py-4">
                         {skillColumns.map(([label, key]) => (
                             <div key={key} className="flex items-center justify-between gap-2">
                                 <dt className="text-xs font-medium text-slate-500">{label}</dt>

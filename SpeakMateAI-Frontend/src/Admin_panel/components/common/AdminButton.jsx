@@ -5,9 +5,9 @@ import LoadingSpinner from "./LoadingSpinner";
 // inventing a new "admin" palette.
 const VARIANTS = {
   primary:
-    "bg-gradient-to-r from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-600/25 hover:from-indigo-500 hover:to-violet-400 hover:shadow-xl hover:shadow-indigo-600/30",
-  secondary: "border border-slate-200 bg-white text-slate-900 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800",
-  ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100",
+    "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/25 hover:opacity-95 hover:shadow-xl hover:shadow-[#6C63FF]/30",
+  secondary: "border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-elevated)]",
+  ghost: "text-[var(--text-secondary)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]",
   danger: "bg-rose-600 text-white shadow-lg shadow-rose-600/25 hover:bg-rose-500 active:bg-rose-700 focus:ring-rose-100",
 };
 
@@ -26,7 +26,7 @@ export function AdminButton({
       type={type}
       disabled={disabled || isLoading}
       aria-busy={isLoading}
-      className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex h-11 items-center justify-center gap-2 rounded-2xl px-5 text-sm font-bold transition-all duration-200 ease-out hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-[#6C63FF]/30 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 ${VARIANTS[variant]} ${className}`}
       {...props}
     >
       {isLoading ? (

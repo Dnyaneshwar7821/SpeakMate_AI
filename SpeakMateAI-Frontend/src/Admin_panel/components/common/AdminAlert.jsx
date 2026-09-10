@@ -7,23 +7,23 @@
 const TONE_STYLES = {
   error: {
     role: "alert",
-    wrapper: "border border-red-100 bg-red-50 text-red-700",
-    icon: "text-red-500",
+    wrapper: "border border-red-100 bg-red-50 text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-300",
+    icon: "text-red-500 dark:text-red-400",
   },
   success: {
     role: "status",
-    wrapper: "border border-emerald-100 bg-emerald-50 text-emerald-700",
-    icon: "text-emerald-500",
+    wrapper: "border border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300",
+    icon: "text-emerald-500 dark:text-emerald-400",
   },
   info: {
     role: "status",
-    wrapper: "border border-indigo-100 bg-indigo-50 text-indigo-700",
-    icon: "text-indigo-500",
+    wrapper: "border border-indigo-100 bg-indigo-50 text-indigo-700 dark:border-indigo-900/50 dark:bg-indigo-950/40 dark:text-indigo-300",
+    icon: "text-indigo-500 dark:text-indigo-400",
   },
   warning: {
     role: "alert",
-    wrapper: "border border-amber-100 bg-amber-50 text-amber-700",
-    icon: "text-amber-500",
+    wrapper: "border border-amber-100 bg-amber-50 text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-300",
+    icon: "text-amber-500 dark:text-amber-400",
   },
 };
 

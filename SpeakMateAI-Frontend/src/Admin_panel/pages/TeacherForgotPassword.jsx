@@ -9,8 +9,8 @@ export function TeacherForgotPassword() {
 
     return (
         <AdminAuthShell>
-            <h1 className="text-2xl font-black text-slate-950">Forgot your password?</h1>
-            <p className="mt-2 text-sm text-slate-600">
+            <h1 className="text-2xl font-black text-slate-950 dark:text-white">Forgot your password?</h1>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                 Enter your registered email address and we will send you an OTP verification code.
             </p>
             <TeacherForgotPasswordForm
@@ -19,10 +19,10 @@ export function TeacherForgotPassword() {
                 otpRoute={config.otpRoute || ROUTES.TEACHER_VERIFY_OTP}
                 loginRoute={config.loginRoute || ROUTES.TEACHER_LOGIN}
             />
-            <p className="mt-6 text-center text-sm text-slate-600">
+            <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
                 <Link
                     to={config.loginRoute || ROUTES.TEACHER_LOGIN}
-                    className="font-semibold text-indigo-600 transition hover:text-indigo-500"
+                    className="font-semibold text-indigo-600 dark:text-indigo-400 transition hover:text-indigo-500 dark:hover:text-indigo-300"
                 >
                     ← Back to Login
                 </Link>

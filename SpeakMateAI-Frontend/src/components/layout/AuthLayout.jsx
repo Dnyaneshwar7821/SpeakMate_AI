@@ -3,7 +3,7 @@ import ROUTES from "../../constants/routes";
 import { useTheme } from "../../context/ThemeContext";
 
 export function AuthLayout() {
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
 
   return (
     <div className="min-h-screen bg-[var(--bg-base)] text-[var(--text-primary)] transition-colors duration-300 relative overflow-hidden flex flex-col justify-between p-4 sm:p-6">
@@ -22,14 +22,6 @@ export function AuthLayout() {
         </Link>
 
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="p-2.5 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-primary)] hover:border-[#6c63ff]/50 transition-all shadow-md flex items-center justify-center text-base"
-            title="Toggle Light / Dark Mode"
-          >
-            {theme === "dark" ? "☀️" : "🌙"}
-          </button>
           <Link
             to={ROUTES.HOME}
             className="px-4 py-2 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] text-xs font-black text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all shadow-md"

@@ -13,6 +13,9 @@ const ACCENT_COLOR_MAP = {
 
 export function ThemeProvider({ children }) {
   const [isDark, setIsDark] = useState(() => {
+    // Default to light mode (false) unless explicitly chosen from Settings
+    const explicit = localStorage.getItem("speakmate_admin_theme_explicit") === "true";
+    if (!explicit) return false;
     return localStorage.getItem("speakmate_admin_theme") === "dark";
   });
 
@@ -31,6 +34,18 @@ export function ThemeProvider({ children }) {
       root.setAttribute("data-theme", "light");
       localStorage.setItem("speakmate_admin_theme", "light");
     }
+
+    return () => {
+      // When unmounting admin portal scope, restore document root to learner preference
+      const isLearnerExplicit = localStorage.getItem("speakmate_theme_explicit") === "true";
+      const learnerTheme = isLearnerExplicit ? (localStorage.getItem("speakmate_theme") || "light") : "light";
+      root.setAttribute("data-theme", learnerTheme);
+      if (learnerTheme === "dark") {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    };
   }, [isDark]);
 
   useEffect(() => {
@@ -49,9 +64,15 @@ export function ThemeProvider({ children }) {
     localStorage.setItem("speakmate_admin_sidebar_density", sidebarDensity);
   }, [sidebarDensity]);
 
-  const toggleTheme = () => setIsDark((prev) => !prev);
+  const toggleTheme = () => {
+    localStorage.setItem("speakmate_admin_theme_explicit", "true");
+    setIsDark((prev) => !prev);
+  };
   const theme = isDark ? "dark" : "light";
-  const setTheme = (val) => setIsDark(val === "dark");
+  const setTheme = (val) => {
+    localStorage.setItem("speakmate_admin_theme_explicit", "true");
+    setIsDark(val === "dark");
+  };
 
   return (
     <ThemeContext.Provider value={{

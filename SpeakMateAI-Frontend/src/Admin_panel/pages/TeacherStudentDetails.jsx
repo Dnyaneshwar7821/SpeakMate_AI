@@ -68,8 +68,8 @@ function AchievementIcon({ type }) {
 function SectionHeader({ id, title, description }) {
     return (
         <div>
-            <h2 id={id} className="text-base font-black text-slate-950">{title}</h2>
-            {description && <p className="mt-1 text-sm text-slate-500">{description}</p>}
+            <h2 id={id} className="text-base font-black text-slate-950 dark:text-slate-100">{title}</h2>
+            {description && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{description}</p>}
         </div>
     );
 }
@@ -78,7 +78,7 @@ function ProgressBar({ value, tone = "bg-indigo-500" }) {
     const prefersReducedMotion = useReducedMotion();
 
     return (
-        <div className="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={value} aria-valuemin="0" aria-valuemax="100">
+        <div className="h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" role="progressbar" aria-valuenow={value} aria-valuemin="0" aria-valuemax="100">
             <motion.div
                 className={`h-full rounded-full ${tone}`}
                 initial={{ width: prefersReducedMotion ? `${value}%` : 0 }}
@@ -149,7 +149,7 @@ function PerformanceSummary({ student }) {
                 {metrics.map(([label, value, tone]) => (
                     <Card key={label} className="p-4">
                         <p className="min-h-10 text-xs font-bold uppercase tracking-wide text-slate-400">{label}</p>
-                        <p className="mt-2 text-2xl font-black text-slate-950">{value}%</p>
+                        <p className="mt-2 text-2xl font-black text-slate-950 dark:text-slate-100">{value}%</p>
                         <div className="mt-3"><ProgressBar value={value} tone={tone} /></div>
                     </Card>
                 ))}
@@ -173,8 +173,8 @@ function LearningProgress({ student }) {
                 {skills.map(([label, value, tone]) => (
                     <div key={label}>
                         <div className="mb-2 flex items-center justify-between gap-4">
-                            <span className="text-sm font-bold text-slate-700">{label}</span>
-                            <span className="text-sm font-black text-slate-950">{value}%</span>
+                            <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{label}</span>
+                            <span className="text-sm font-black text-slate-950 dark:text-slate-100">{value}%</span>
                         </div>
                         <ProgressBar value={value} tone={tone} />
                     </div>
@@ -223,11 +223,11 @@ function StrengthsAndImprovements({ strengths, improvementAreas }) {
                                 {group.tone === "emerald" ? <path d="m5 12 4 4L19 6" /> : <><path d="M12 9v4M12 17h.01" /><path d="M10.3 3.7 2.5 17.2A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.8L13.7 3.7a2 2 0 0 0-3.4 0Z" /></>}
                             </svg>
                         </span>
-                        <h2 className="text-base font-black text-slate-950">{group.title}</h2>
+                        <h2 className="text-base font-black text-slate-950 dark:text-slate-100">{group.title}</h2>
                     </div>
                     <ul className="mt-5 space-y-3">
                         {group.items.map((item) => (
-                            <li key={item} className="flex gap-3 text-sm leading-6 text-slate-600">
+                            <li key={item} className="flex gap-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
                                 <span className={`mt-2 h-1.5 w-1.5 shrink-0 rounded-full ${group.tone === "emerald" ? "bg-emerald-500" : "bg-amber-500"}`} />
                                 {item}
                             </li>
@@ -245,12 +245,12 @@ function Achievements({ achievements }) {
             <SectionHeader title="Achievements" description="Badges earned through learning and practice milestones." />
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 {achievements.map((achievement) => (
-                    <div key={achievement.id} className="rounded-xl border border-slate-200 p-4">
+                    <div key={achievement.id} className="rounded-xl border border-slate-200 dark:border-slate-800 p-4">
                         <span className={`grid h-11 w-11 place-items-center rounded-xl ring-1 ${achievementStyles[achievement.tone]}`}>
                             <AchievementIcon type={achievement.icon} />
                         </span>
-                        <h3 className="mt-4 text-sm font-black text-slate-950">{achievement.title}</h3>
-                        <p className="mt-1 text-xs leading-5 text-slate-500">{achievement.description}</p>
+                        <h3 className="mt-4 text-sm font-black text-slate-950 dark:text-slate-100">{achievement.title}</h3>
+                        <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{achievement.description}</p>
                         <p className="mt-3 text-[11px] font-bold uppercase tracking-wide text-slate-400">Earned {achievement.earnedOn}</p>
                     </div>
                 ))}

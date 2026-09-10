@@ -4,7 +4,7 @@
 // technique already used by AdminButton/Navbar) instead of a generic gray one.
 export function AdminCard({ children, className = "" }) {
   return (
-    <div className={`rounded-3xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-xl shadow-indigo-950/5 ${className}`}>
+    <div className={`rounded-3xl border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] shadow-2xl ${className}`}>
       {children}
     </div>
   );

@@ -43,20 +43,20 @@ export function VerifyEmail() {
     }, [token]);
 
     return (
-        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 px-4 py-12 sm:px-6">
+        <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 px-4 py-12 sm:px-6 transition-colors duration-300">
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.10),_transparent_60%)]" />
-                <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-indigo-200/30 blur-3xl" />
-                <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-violet-200/30 blur-3xl" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.10),_transparent_60%)] dark:bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.15),_transparent_70%)]" />
+                <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-indigo-200/30 blur-3xl dark:bg-indigo-900/20" />
+                <div className="absolute -bottom-32 -right-24 h-96 w-96 rounded-full bg-violet-200/30 blur-3xl dark:bg-violet-900/20" />
             </div>
             <div className="relative w-full max-w-[29rem]">
                 <LogoSection />
                 <AdminCard className="mt-6 p-7 sm:p-9">
                     {status === "verifying" && (
                         <div className="flex flex-col items-center justify-center py-6 text-center">
-                            <Loader2 className="h-10 w-10 animate-spin text-indigo-600" />
-                            <h2 className="mt-4 text-xl font-bold text-slate-900">Verifying Account</h2>
-                            <p className="mt-2 text-sm text-slate-600">
+                            <Loader2 className="h-10 w-10 animate-spin text-indigo-600 dark:text-indigo-400" />
+                            <h2 className="mt-4 text-xl font-bold text-slate-900 dark:text-white">Verifying Account</h2>
+                            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
                                 Please wait while we verify your email and activate your account...
                             </p>
                         </div>
@@ -65,11 +65,11 @@ export function VerifyEmail() {
                     {status === "success" && (
                         <div className="flex flex-col items-center justify-center py-4 text-center">
                             <CheckCircle2 className="h-12 w-12 text-emerald-500" />
-                            <h2 className="mt-4 text-xl font-bold text-slate-900">Verification Successful!</h2>
-                            <div className="mt-3 text-sm text-slate-600 space-y-2">
+                            <h2 className="mt-4 text-xl font-bold text-slate-900 dark:text-white">Verification Successful!</h2>
+                            <div className="mt-3 text-sm text-slate-600 dark:text-slate-300 space-y-2">
                                 <p>Your School Admin account is now verified and active.</p>
-                                <p className="bg-slate-50 border border-slate-100 rounded-lg p-2.5 text-xs text-slate-500 font-mono">
-                                    Temporary Password: <span className="font-semibold text-indigo-600">changeMe123!</span>
+                                <p className="bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-lg p-2.5 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                                    Temporary Password: <span className="font-semibold text-indigo-600 dark:text-indigo-400">changeMe123!</span>
                                 </p>
                             </div>
                             <Link
@@ -84,16 +84,16 @@ export function VerifyEmail() {
                     {status === "error" && (
                         <div className="flex flex-col items-center justify-center py-4 text-center">
                             <XCircle className="h-12 w-12 text-rose-500" />
-                            <h2 className="mt-4 text-xl font-bold text-slate-900">Verification Failed</h2>
-                            <p className="mt-2 text-sm text-rose-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-3 w-full">
+                            <h2 className="mt-4 text-xl font-bold text-slate-900 dark:text-white">Verification Failed</h2>
+                            <p className="mt-2 text-sm text-rose-600 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-900/50 rounded-xl px-4 py-3 w-full">
                                 {errorMessage}
                             </p>
-                            <p className="mt-4 text-xs text-slate-500">
+                            <p className="mt-4 text-xs text-slate-500 dark:text-slate-400">
                                 If you believe this is an error, please contact your school administrator or request a new invitation.
                             </p>
                             <Link
                                 to={ROUTES.SCHOOL_ADMIN_LOGIN}
-                                className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-900 hover:bg-slate-50 transition-all duration-200"
+                                className="mt-6 inline-flex h-11 w-full items-center justify-center rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-sm font-semibold text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-200"
                             >
                                 Back to Login
                             </Link>

@@ -5,6 +5,7 @@ import { useTheme } from "../../context/ThemeContext";
 import ROUTES from "../../constants/routes";
 import { getLiveProgressStats } from "../../utils/progressTracker";
 import { StreakModal } from "../dashboard/StreakModal";
+import { AdminLoginModal } from "../common/AdminLoginModal";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -15,6 +16,7 @@ export function Navbar() {
   const searchContainerRef = useRef(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [streakModalOpen, setStreakModalOpen] = useState(false);
+  const [adminLoginModalOpen, setAdminLoginModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -549,16 +551,24 @@ export function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3">
+              <button
+                type="button"
+                id="navbar-admin-login-btn"
+                onClick={() => setAdminLoginModalOpen(true)}
+                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all cursor-pointer"
+              >
+                Login as Admin
+              </button>
               <Link
                 to={ROUTES.LOGIN}
-                className="px-5 py-2.5 rounded-2xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all"
               >
                 Log In
               </Link>
               <Link
                 to={ROUTES.REGISTER}
-                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-md shadow-[#6C63FF]/25 hover:shadow-lg hover:shadow-[#6C63FF]/35 active:scale-95 transition-all"
+                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-md shadow-[#6C63FF]/25 hover:shadow-lg hover:shadow-[#6C63FF]/35 active:scale-95 transition-all"
               >
                 Get Started Free
               </Link>
@@ -572,6 +582,11 @@ export function Navbar() {
         onClose={() => setStreakModalOpen(false)}
         stats={liveStats}
         onRefresh={() => setLiveStats(getLiveProgressStats(user))}
+      />
+
+      <AdminLoginModal
+        isOpen={adminLoginModalOpen}
+        onClose={() => setAdminLoginModalOpen(false)}
       />
     </header>
   );
