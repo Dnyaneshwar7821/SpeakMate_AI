@@ -879,7 +879,16 @@ public class TeacherServiceImpl implements TeacherService {
 		int totalSpeakingSessions = (int) speakingSessionRepository.countByUserIdAndCreatedAtBetween(student.getId(),
 				LocalDateTime.now().minusYears(100), LocalDateTime.now());
 
-		PerformanceSummaryResponse performance = PerformanceSummaryResponse.builder().overallScore(speakingScore)
+		List<Double> validScores = new ArrayList<>();
+		if (speakingScore != null && speakingScore > 0) validScores.add(speakingScore);
+		if (grammarScore != null && grammarScore > 0) validScores.add(grammarScore);
+		if (listeningScore != null && listeningScore > 0) validScores.add(listeningScore);
+
+		Double overallScore = validScores.isEmpty()
+				? (speakingScore != null ? speakingScore : 0.0)
+				: Math.round(validScores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0) * 10.0) / 10.0;
+
+		PerformanceSummaryResponse performance = PerformanceSummaryResponse.builder().overallScore(overallScore)
 				.grammarScore(grammarScore).vocabularyScore(vocabularyScore).speakingScore(speakingScore)
 				.listeningScore(listeningScore).lessonsCompleted(lessonsCompleted)
 				.totalSpeakingSessions(totalSpeakingSessions).build();

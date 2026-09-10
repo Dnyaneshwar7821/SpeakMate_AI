@@ -55,7 +55,42 @@ public class GrammarServiceImpl implements GrammarService {
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
-		String originalText = request.getOriginalText();
+		String originalText = request.getOriginalText() != null ? request.getOriginalText().trim() : "";
+		if (originalText.isEmpty()) {
+			throw new IllegalArgumentException("Sentence cannot be empty");
+		}
+
+		// 1. Trivial check: single word inputs shouldn't pollute history or award sentence XP
+		String[] words = originalText.split("\\s+");
+		if (words.length < 2) {
+			return GrammarResponse.builder()
+					.originalText(originalText)
+					.correctedText(originalText)
+					.explanation("Please enter a complete sentence (at least 2 words) for a full grammar evaluation.")
+					.grammarScore(null)
+					.createdAt(java.time.LocalDateTime.now())
+					.build();
+		}
+
+		// 2. Deduplication check: if user already checked this sentence recently, return existing analysis
+		String normalizedInput = originalText.replaceAll("[\\p{Punct}\\s]+", " ").trim().toLowerCase();
+		List<GrammarHistory> recentHistory = grammarHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+		for (GrammarHistory h : recentHistory.stream().limit(10).toList()) {
+			if (h.getOriginalText() != null) {
+				String hNorm = h.getOriginalText().replaceAll("[\\p{Punct}\\s]+", " ").trim().toLowerCase();
+				if (hNorm.equalsIgnoreCase(normalizedInput)) {
+					return GrammarResponse.builder()
+							.id(h.getId())
+							.originalText(h.getOriginalText())
+							.correctedText(h.getCorrectedText())
+							.explanation(h.getExplanation())
+							.grammarScore(h.getGrammarScore())
+							.createdAt(h.getCreatedAt())
+							.build();
+				}
+			}
+		}
+
 		String correctedText = originalText;
 		String explanation = "Perfect grammar! No issues found.";
 		Double grammarScore = 100.0;
@@ -163,5 +198,14 @@ public class GrammarServiceImpl implements GrammarService {
 				.orElseThrow(() -> new GrammarNotFoundException("Grammar history not found"));
 
 		grammarHistoryRepository.delete(grammar);
+	}
+
+	@Override
+	@org.springframework.transaction.annotation.Transactional
+	public void clearAllGrammarHistory() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		User user = userRepository.findByEmail(authentication.getName())
+				.orElseThrow(() -> new UserNotFoundException("User not found"));
+		grammarHistoryRepository.deleteByUser(user);
 	}
 }

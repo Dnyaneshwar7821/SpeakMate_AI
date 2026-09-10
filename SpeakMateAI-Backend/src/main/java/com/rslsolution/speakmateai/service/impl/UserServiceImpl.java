@@ -696,6 +696,25 @@ public class UserServiceImpl implements UserService {
 		return mapToUserResponse(updatedUser);
 	}
 
+	public static String formatStandardToGrade(String standard) {
+		if (standard == null || standard.isBlank()) return null;
+		String std = standard.trim();
+		if (std.toLowerCase().contains("std") || std.toLowerCase().contains("grade")) {
+			return std;
+		}
+		if (std.matches("\\d+")) {
+			int n = Integer.parseInt(std);
+			if (n % 100 >= 11 && n % 100 <= 13) return n + "th Std";
+			return switch (n % 10) {
+				case 1 -> n + "st Std";
+				case 2 -> n + "nd Std";
+				case 3 -> n + "rd Std";
+				default -> n + "th Std";
+			};
+		}
+		return std + " Std";
+	}
+
 	private UserResponse mapToUserResponse(User user) {
 		String effectiveGrade = user.getSchoolGrade();
 		String effectiveAge = user.getAgeGroup();
@@ -703,6 +722,8 @@ public class UserServiceImpl implements UserService {
 		if (effectiveGrade == null || effectiveGrade.trim().isEmpty()) {
 			if (ob.isPresent() && ob.get().getSchoolGrade() != null && !ob.get().getSchoolGrade().trim().isEmpty()) {
 				effectiveGrade = ob.get().getSchoolGrade();
+			} else if (user.getStandard() != null && !user.getStandard().trim().isEmpty()) {
+				effectiveGrade = formatStandardToGrade(user.getStandard());
 			}
 		}
 		if (effectiveAge == null || effectiveAge.trim().isEmpty() || "Professional".equalsIgnoreCase(effectiveAge)) {
@@ -710,7 +731,10 @@ public class UserServiceImpl implements UserService {
 				effectiveAge = ob.get().getAgeGroup();
 			}
 		}
-		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : user.getEnglishLevel();
+		String effectiveLevel = user.getEnglishLevel();
+		if ((effectiveLevel == null || effectiveLevel.trim().isEmpty()) && ob.isPresent()) {
+			effectiveLevel = ob.get().getEnglishLevel();
+		}
 		boolean isCompleted = user.isOnboardingCompleted() || 
 				(ob.isPresent() && Boolean.TRUE.equals(ob.get().getOnboardingCompleted())) ||
 				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
@@ -749,7 +773,8 @@ public class UserServiceImpl implements UserService {
 				.authProvider(user.getAuthProvider()).nativeLanguage(user.getNativeLanguage())
 				.englishLevel(effectiveLevel).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
-				.preferredAccent(user.getPreferredAccent()).ageGroup(effectiveAge).schoolGrade(effectiveGrade).interests(user.getInterests())
+				.preferredAccent(user.getPreferredAccent()).ageGroup(effectiveAge).schoolGrade(effectiveGrade)
+				.standard(user.getStandard()).interests(user.getInterests())
 				.schoolId(user.getSchoolId()).isSchoolStudent(isStudent).build();
 	}
 

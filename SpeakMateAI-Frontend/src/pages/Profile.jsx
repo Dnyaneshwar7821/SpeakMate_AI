@@ -315,12 +315,12 @@ export function Profile() {
           nativeLanguage: form.nativeLanguage,
           avatar: selectedAvatar,
           ageGroup: isStudent ? undefined : ageGroup,
-          englishLevel: isStudent ? undefined : cefrLevel,
+          englishLevel: cefrLevel,
           schoolGrade: isStudent ? schoolGrade : undefined,
         }).catch(() => null),
         onboardingService.update({
           ageGroup: isStudent ? undefined : ageGroup,
-          englishLevel: isStudent ? undefined : cefrLevel,
+          englishLevel: cefrLevel,
           schoolGrade: isStudent ? schoolGrade : undefined,
           nativeLanguage: form.nativeLanguage,
         }).catch(() => null),
@@ -335,7 +335,7 @@ export function Profile() {
         avatar: selectedAvatar,
         schoolGrade: isStudent ? schoolGrade : null,
         ageGroup: isStudent ? null : ageGroup,
-        englishLevel: isStudent ? null : cefrLevel,
+        englishLevel: cefrLevel,
       });
 
       window.dispatchEvent(new CustomEvent("speakmate_settings_updated", {
@@ -343,7 +343,7 @@ export function Profile() {
           firstName: cleanFirstName,
           lastName: cleanLastName,
           ageGroup: isStudent ? null : ageGroup,
-          englishLevel: isStudent ? null : cefrLevel,
+          englishLevel: cefrLevel,
           schoolGrade: isStudent ? schoolGrade : null,
         }
       }));
@@ -517,8 +517,13 @@ export function Profile() {
                 {rank.icon} {rank.name}
               </span>
               <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 inline-flex items-center gap-1.5">
-                {isStudent ? `🎓 ${schoolGrade}` : `👤 ${cefrLevel}`}
+                {isStudent ? `🎓 ${schoolGrade || (user?.standard ? `${user.standard}th Standard` : "School Student")}` : `👤 ${cefrLevel}`}
               </span>
+              {isStudent && cefrLevel && (
+                <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 inline-flex items-center gap-1.5">
+                  🎯 {cefrLevel}
+                </span>
+              )}
               <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 text-amber-300 inline-flex items-center gap-1.5">
                 ⭐ {liveStats.xp || 0} XP
               </span>
@@ -582,97 +587,93 @@ export function Profile() {
       {/* TAB 1: GENERAL PROFILE DETAILS */}
       {activeTab === "general" && (
         <div className="space-y-6">
-          {/* ── SECTION 1: AI TUTOR ENGLISH LEVEL (OR SCHOOL GRADE FOR STUDENTS) ── */}
-          {isStudent ? (
+          {/* ── SECTION 1: SCHOOL STANDARD (LOCKED FOR STUDENTS) ── */}
+          {isStudent && (
             <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
                 <div>
                   <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
-                    <span>🏫</span> School Curriculum Grade
+                    <span>🏫</span> School Curriculum Standard
                   </h2>
                   <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
-                    Select your current school standard for personalized tests & syllabus
+                    Your syllabus, grammar tests, and practice material are aligned with your assigned grade.
                   </p>
                 </div>
-                <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
-                  Syllabus Sync Active 📚
+                <span className="text-[10px] font-black px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/30 self-start sm:self-auto flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Admin Managed 🎓
                 </span>
               </div>
 
-              <div className="flex flex-wrap gap-2 pt-1">
-                {SCHOOL_GRADES.map((grade) => {
-                  const active = (schoolGrade || "").toLowerCase() === grade.toLowerCase();
-                  return (
-                    <button
-                      key={grade}
-                      type="button"
-                      onClick={() => handleSelectSchoolGrade(grade)}
-                      className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all cursor-pointer border active:scale-95 ${
-                        active
-                          ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/25"
-                          : "bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
-                      }`}
-                    >
-                      🎓 {grade}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
-                    <span>👤</span> AI Tutor English Level
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
-                    Controls speaking & chat response complexity
+              <div className="flex items-center gap-4 p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                <div className="w-12 h-12 rounded-2xl bg-[#6C63FF]/15 text-[#6C63FF] flex items-center justify-center text-2xl font-black shrink-0">
+                  🎓
+                </div>
+                <div className="space-y-0.5">
+                  <div className="text-base sm:text-lg font-black text-[var(--text-primary)]">
+                    {schoolGrade || (user?.standard ? `${user.standard}th Standard` : "Assigned School Standard")}
+                  </div>
+                  <p className="text-xs text-[var(--text-muted)] font-medium">
+                    Assigned by your School / Super Admin. Contact your school administrator to change standard.
                   </p>
                 </div>
-                <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
-                  Live Speaking Adaptation 🎯
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
-                {[
-                  { level: "Beginner", icon: "🌱", desc: "Simple words & basic sentence structures" },
-                  { level: "Intermediate", icon: "🚀", desc: "Fluent conversations & daily situations" },
-                  { level: "Advanced", icon: "👑", desc: "Complex vocabulary & executive tone" },
-                ].map((item) => {
-                  const active = (cefrLevel || "").toLowerCase().includes(item.level.toLowerCase());
-                  return (
-                    <button
-                      key={item.level}
-                      type="button"
-                      onClick={() => handleSelectProficiencyLevel(item.level)}
-                      className={`p-5 rounded-3xl text-left border transition-all cursor-pointer active:scale-95 group overflow-hidden ${
-                        active
-                          ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30"
-                          : "bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl">{item.icon}</span>
-                        {active && (
-                          <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-white/20 text-white shadow-sm">
-                            Active
-                          </span>
-                        )}
-                      </div>
-                      <h4 className={`text-base font-black mt-3 ${active ? "text-white" : "text-[var(--text-primary)]"}`}>
-                        {item.level}
-                      </h4>
-                      <p className={`text-xs font-medium mt-1 leading-relaxed ${active ? "text-white/85" : "text-[var(--text-secondary)]"}`}>
-                        {item.desc}
-                      </p>
-                    </button>
-                  );
-                })}
               </div>
             </div>
           )}
+
+          {/* ── SECTION 2: AI TUTOR ENGLISH LEVEL (ALL USERS & STUDENTS) ── */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[var(--border-default)]">
+              <div>
+                <h2 className="text-lg sm:text-xl font-black text-[var(--text-primary)] flex items-center gap-2">
+                  <span>👤</span> AI Tutor English Level
+                </h2>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium mt-0.5">
+                  Controls speaking & chat response complexity for your AI tutor
+                </p>
+              </div>
+              <span className="text-[10px] font-black px-3 py-1 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30 self-start sm:self-auto">
+                Live Speaking Adaptation 🎯
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
+              {[
+                { level: "Beginner", icon: "🌱", desc: "Simple words & basic sentence structures" },
+                { level: "Intermediate", icon: "🚀", desc: "Fluent conversations & daily situations" },
+                { level: "Advanced", icon: "👑", desc: "Complex vocabulary & executive tone" },
+              ].map((item) => {
+                const active = (cefrLevel || "").toLowerCase().includes(item.level.toLowerCase());
+                return (
+                  <button
+                    key={item.level}
+                    type="button"
+                    onClick={() => handleSelectProficiencyLevel(item.level)}
+                    className={`p-5 rounded-3xl text-left border transition-all cursor-pointer active:scale-95 group overflow-hidden ${
+                      active
+                        ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30"
+                        : "bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">{item.icon}</span>
+                      {active && (
+                        <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-white/20 text-white shadow-sm">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <h4 className={`text-base font-black mt-3 ${active ? "text-white" : "text-[var(--text-primary)]"}`}>
+                      {item.level}
+                    </h4>
+                    <p className={`text-xs font-medium mt-1 leading-relaxed ${active ? "text-white/85" : "text-[var(--text-secondary)]"}`}>
+                      {item.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           {/* ── SECTION 2: ACTIVE AI SPEAKING TUTOR SUMMARY CARD WITH POPUP MODAL ── */}
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-5">

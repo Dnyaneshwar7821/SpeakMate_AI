@@ -140,7 +140,11 @@ public class StudentServiceImpl implements StudentService {
         student.setActive(isActive);
         student.setStatus(request.getStatus() != null ? request.getStatus() : (isActive ? Status.ACTIVE : Status.INACTIVE));
 
-        if (request.getStandard() != null) student.setStandard(request.getStandard().trim());
+        if (request.getStandard() != null) {
+            String std = request.getStandard().trim();
+            student.setStandard(std);
+            student.setSchoolGrade(UserServiceImpl.formatStandardToGrade(std));
+        }
         if (request.getDivision() != null) student.setDivision(request.getDivision().trim().toUpperCase());
         if (request.getRollNumber() != null) student.setRollNumber(request.getRollNumber().trim());
         if (request.getParentName() != null) student.setParentName(request.getParentName().trim());
@@ -205,7 +209,11 @@ public class StudentServiceImpl implements StudentService {
             student.setActive(request.getStatus() == Status.ACTIVE);
         }
 
-        if (request.getStandard() != null) student.setStandard(request.getStandard().trim());
+        if (request.getStandard() != null) {
+            String std = request.getStandard().trim();
+            student.setStandard(std);
+            student.setSchoolGrade(UserServiceImpl.formatStandardToGrade(std));
+        }
         if (request.getDivision() != null) student.setDivision(request.getDivision().trim().toUpperCase());
         if (request.getRollNumber() != null) student.setRollNumber(request.getRollNumber().trim());
         if (request.getParentName() != null) student.setParentName(request.getParentName().trim());

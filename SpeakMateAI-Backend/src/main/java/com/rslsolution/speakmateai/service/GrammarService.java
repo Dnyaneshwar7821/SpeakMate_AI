@@ -15,4 +15,6 @@ public interface GrammarService {
 
 	void deleteGrammarById(Long id);
 
+	void clearAllGrammarHistory();
+
 }

@@ -170,6 +170,25 @@ export function GrammarPractice() {
     setIsAiSpeaking(false);
   };
 
+  const handleClearHistory = async () => {
+    try {
+      await grammarService.clearAll();
+    } catch (e) {
+      console.warn("Failed to clear backend grammar history:", e);
+    }
+    setHistory([]);
+  };
+
+  const handleDeleteHistoryItem = async (id) => {
+    if (!id) return;
+    try {
+      await grammarService.remove(id);
+    } catch (e) {
+      console.warn("Failed to delete grammar item:", e);
+    }
+    setHistory((prev) => prev.filter((item) => item.id !== id));
+  };
+
   // Daily Quiz Handling
   const activeQuiz = dailyQuizzes[currentQuizIndex] || dailyQuizzes[0];
 
@@ -776,8 +795,8 @@ export function GrammarPractice() {
             </h3>
             {history.length > 0 && (
               <button
-                onClick={() => setHistory([])}
-                className="text-xs text-rose-500 font-semibold hover:underline"
+                onClick={handleClearHistory}
+                className="text-xs text-rose-500 font-semibold hover:underline cursor-pointer"
               >
                 Clear History
               </button>
@@ -791,7 +810,7 @@ export function GrammarPractice() {
           ) : (
             history.map((item, idx) => (
               <div
-                key={idx}
+                key={item.id || idx}
                 className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-3"
               >
                 <div className="flex items-center justify-between gap-2">
@@ -801,13 +820,24 @@ export function GrammarPractice() {
                     {item.isCorrect ? "100% Correct" : `Score: ${item.accuracyScore || 85}%`}
                   </span>
 
-                  <button
-                    onClick={() => speakFeedback(item)}
-                    className="p-1.5 rounded-lg bg-[var(--bg-base)] hover:bg-[var(--bg-elevated)] text-xs"
-                    title="Replay Audio"
-                  >
-                    🔊 Hear
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => speakFeedback(item)}
+                      className="p-1.5 rounded-lg bg-[var(--bg-base)] hover:bg-[var(--bg-elevated)] text-xs cursor-pointer"
+                      title="Replay Audio"
+                    >
+                      🔊 Hear
+                    </button>
+                    {item.id && (
+                      <button
+                        onClick={() => handleDeleteHistoryItem(item.id)}
+                        className="p-1.5 rounded-lg bg-[var(--bg-base)] hover:bg-rose-500/10 text-rose-500 text-xs cursor-pointer transition-colors"
+                        title="Delete Entry"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-1">

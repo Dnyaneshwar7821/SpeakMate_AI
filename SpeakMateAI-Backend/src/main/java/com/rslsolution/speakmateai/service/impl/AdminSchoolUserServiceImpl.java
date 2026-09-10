@@ -187,6 +187,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Student phone"));
         user.setSchoolName(request.getSchoolName());
         user.setStandard(request.getStandard());
+        user.setSchoolGrade(UserServiceImpl.formatStandardToGrade(request.getStandard()));
         user.setDivision(request.getDivision());
         user.setRollNumber(request.getRollNumber());
         user.setParentName(request.getParentName());
@@ -333,6 +334,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Student phone"));
         user.setSchoolName(request.getSchoolName());
         user.setStandard(request.getStandard());
+        user.setSchoolGrade(UserServiceImpl.formatStandardToGrade(request.getStandard()));
         user.setDivision(request.getDivision());
         user.setRollNumber(request.getRollNumber());
         user.setParentName(request.getParentName());

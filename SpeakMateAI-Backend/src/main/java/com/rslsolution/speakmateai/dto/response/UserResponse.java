@@ -65,6 +65,8 @@ public class UserResponse {
 
 	private String schoolGrade;
 
+	private String standard;
+
 	private String interests;
 
 	private Long schoolId;
@@ -127,6 +129,9 @@ public class UserResponse {
 
 	public String getSchoolGrade() { return schoolGrade; }
 	public void setSchoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; }
+
+	public String getStandard() { return standard; }
+	public void setStandard(String standard) { this.standard = standard; }
 
 	public String getInterests() { return interests; }
 	public void setInterests(String interests) { this.interests = interests; }
@@ -195,6 +200,7 @@ public class UserResponse {
 		public UserResponseBuilder preferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; return this; }
 		public UserResponseBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
 		public UserResponseBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
+		public UserResponseBuilder standard(String standard) { this.standard = standard; return this; }
 		public UserResponseBuilder interests(String interests) { this.interests = interests; return this; }
 		public UserResponseBuilder schoolId(Long schoolId) { this.schoolId = schoolId; return this; }
 		public UserResponseBuilder isSchoolStudent(Boolean isSchoolStudent) { this.isSchoolStudent = isSchoolStudent; return this; }
@@ -222,6 +228,7 @@ public class UserResponse {
             obj.setPreferredAccent(preferredAccent);
             obj.setAgeGroup(ageGroup);
             obj.setSchoolGrade(schoolGrade);
+            obj.setStandard(standard);
             obj.setInterests(interests);
             obj.setSchoolId(schoolId);
             obj.setIsSchoolStudent(isSchoolStudent);
