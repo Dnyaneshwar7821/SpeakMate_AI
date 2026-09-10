@@ -32,6 +32,7 @@ import { studentApi } from "@services/admin/studentApi";
 import { getIndianMobileError, normalizeIndianMobile, sanitizeMobileInput } from "@utils/phoneValidator";
 import { STANDARD_OPTIONS } from "@constants/standardOptions";
 import { TeacherStudentsModal } from "@school-admin/components/TeacherStudentsModal";
+import { StandardDivisionPicker, validateStandardDivisions } from "@school-admin/components/StandardDivisionPicker";
 
 const STATUS_STYLES = {
     Active: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20",
@@ -204,24 +205,9 @@ export function Teachers() {
         return map;
     }, [teachersList, schools, form.schoolName, editingTeacher]);
 
-    // Active assignment conflicts for current form selections
-    const assignmentConflicts = useMemo(() => {
-        const conflicts = [];
-        allSelectedAssignments.forEach((assignment) => {
-            const key = `${normalizeStd(assignment.standard)}-${String(assignment.division).trim().toUpperCase()}`;
-            const occupied = schoolOccupiedAssignments.get(key);
-            if (occupied) {
-                conflicts.push({
-                    standard: assignment.standard,
-                    division: assignment.division,
-                    teacherName: occupied.teacherName,
-                    teacherId: occupied.teacherId,
-                    message: `${assignment.standard}-${assignment.division} is already assigned to ${occupied.teacherName}`
-                });
-            }
-        });
-        return conflicts;
-    }, [allSelectedAssignments, schoolOccupiedAssignments]);
+    // Active assignment conflicts managed via StandardDivisionPicker
+    const [conflicts, setConflicts] = useState([]);
+    const assignmentConflicts = conflicts;
 
     const handleStandardChange = (index, newStandard) => {
         setAssignmentGroups((prev) => {
@@ -479,15 +465,9 @@ export function Teachers() {
             }
         }
 
-        if (allSelectedAssignments.length === 0) {
-            next.standardDivisions = "At least one Standard and Division assignment must be selected";
-        } else {
-            const incompleteGroup = assignmentGroups.find((g) => g.standard && (!g.divisions || g.divisions.length === 0));
-            if (incompleteGroup) {
-                next.standardDivisions = `Please select at least one division for ${incompleteGroup.standard} Standard`;
-            } else if (assignmentConflicts.length > 0) {
-                next.standardDivisions = `Assignment conflict: ${assignmentConflicts.map((c) => `${c.standard}-${c.division} is already assigned to ${c.teacherName}`).join(". ")}. Remove conflicting assignments to continue.`;
-            }
+        const assignmentError = validateStandardDivisions(assignmentGroups, conflicts);
+        if (assignmentError) {
+            next.standardDivisions = assignmentError;
         }
         setErrors(next);
         return Object.keys(next).length === 0;
@@ -1302,242 +1282,25 @@ export function Teachers() {
                                 placeholder="Select a school"
                             />
                         </div>
-                        <div className="sm:col-span-2 space-y-3">
-                            <div className="flex items-center justify-between">
-                                <span className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                    Assigned Standards & Divisions
-                                </span>
-                                <Button
-                                    type="button"
-                                    variant="secondary"
-                                    onClick={handleAddStandardGroup}
-                                    className="!h-8 px-2.5 text-xs"
-                                >
-                                    <Plus className="h-3.5 w-3.5 mr-1" />
-                                    Add Another Standard
-                                </Button>
-                            </div>
-
-                            <div className="space-y-3">
-                                {assignmentGroups.map((group, groupIndex) => {
-                                    const selectedStandardConfig = (activeConfig.length > 0 ? activeConfig : fallbackStandards).find(
-                                        (c) => c.standard === group.standard || normalizeStd(c.standard) === normalizeStd(group.standard)
-                                    );
-                                    const configuredDivisions = selectedStandardConfig?.divisions || [];
-                                    const availableDivisions = Array.from(new Set([...configuredDivisions, ...group.divisions])).sort();
-
-                                    return (
-                                        <div
-                                            key={groupIndex}
-                                            className="p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/40 space-y-3 transition-all"
-                                        >
-                                            <div className="flex items-end gap-3">
-                                                <div className="flex-1">
-                                                    <label className="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-                                                        Standard
-                                                    </label>
-                                                    <select
-                                                        value={group.standard}
-                                                        onChange={(e) => handleStandardChange(groupIndex, e.target.value)}
-                                                        className="form-control w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 focus:border-indigo-600 focus:outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                                                    >
-                                                        <option value="">Select Standard</option>
-                                                        {activeConfig.map((c) => (
-                                                            <option key={c.standard} value={c.standard}>
-                                                                {c.standard}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-
-                                                {group.standard && availableDivisions.length > 0 && (
-                                                    <div className="flex items-center gap-1.5 pb-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleSelectAllDivisions(groupIndex, availableDivisions)}
-                                                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors px-1 py-0.5"
-                                                        >
-                                                            Select All
-                                                        </button>
-                                                        <span className="text-slate-300 dark:text-slate-600 text-xs">|</span>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleClearAllDivisions(groupIndex)}
-                                                            className="text-xs font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors px-1 py-0.5"
-                                                        >
-                                                            Clear All
-                                                        </button>
-                                                    </div>
-                                                )}
-
-                                                {assignmentGroups.length > 1 && (
-                                                    <div className="pb-1">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleRemoveStandardGroup(groupIndex)}
-                                                            className="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-lg transition-colors"
-                                                            title="Remove standard"
-                                                        >
-                                                            <Trash2 className="h-4 w-4" />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {group.standard ? (
-                                                <div>
-                                                    <div className="flex items-center justify-between mb-1.5">
-                                                        <span className="block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                                                            Divisions:
-                                                        </span>
-                                                        <span className="text-[11px] text-slate-400">
-                                                            {group.divisions.length} of {availableDivisions.length} selected
-                                                        </span>
-                                                    </div>
-                                                    {availableDivisions.length === 0 ? (
-                                                        <p className="text-xs text-slate-400 italic">No divisions configured for this standard.</p>
-                                                    ) : (
-                                                        <div className="flex flex-wrap gap-2 pt-0.5">
-                                                            {availableDivisions.map((div) => {
-                                                                const isChecked = group.divisions.includes(div);
-                                                                const normKey = `${normalizeStd(group.standard)}-${String(div).trim().toUpperCase()}`;
-                                                                const conflictInfo = schoolOccupiedAssignments.get(normKey);
-                                                                const isOccupied = Boolean(conflictInfo);
-
-                                                                let containerStyle = "";
-                                                                if (isOccupied && isChecked) {
-                                                                    containerStyle = "border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:border-rose-500/80 dark:text-rose-300 shadow-sm ring-1 ring-rose-500/30";
-                                                                } else if (isOccupied) {
-                                                                    containerStyle = "border-amber-300/90 bg-amber-50/50 text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200 hover:bg-amber-100/50";
-                                                                } else if (isChecked) {
-                                                                    containerStyle = "border-indigo-600/50 bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:border-indigo-500/50 dark:text-indigo-300 shadow-sm";
-                                                                } else {
-                                                                    containerStyle = "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-750";
-                                                                }
-
-                                                                return (
-                                                                    <label
-                                                                        key={div}
-                                                                        className={`inline-flex flex-col items-start gap-0.5 px-3 py-1.5 rounded-lg border text-sm font-medium cursor-pointer select-none transition-all ${containerStyle}`}
-                                                                    >
-                                                                        <div className="flex items-center gap-2">
-                                                                            <input
-                                                                                type="checkbox"
-                                                                                checked={isChecked}
-                                                                                onChange={() => handleToggleDivision(groupIndex, div)}
-                                                                                className={`h-4 w-4 rounded ${
-                                                                                    isOccupied && isChecked
-                                                                                        ? "border-rose-400 text-rose-600 focus:ring-rose-500 dark:border-rose-500"
-                                                                                        : "border-slate-300 text-indigo-600 focus:ring-indigo-500 dark:border-slate-600 dark:bg-slate-700"
-                                                                                }`}
-                                                                            />
-                                                                            <span className="font-semibold">{div}</span>
-                                                                            {isOccupied && (
-                                                                                <AlertTriangle className={`h-3.5 w-3.5 shrink-0 ${isChecked ? "text-rose-500" : "text-amber-500"}`} />
-                                                                            )}
-                                                                        </div>
-                                                                        {isOccupied && (
-                                                                            <span className={`text-[10px] leading-tight ${isChecked ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-amber-700 dark:text-amber-400"}`}>
-                                                                                Assigned to {conflictInfo.teacherName}
-                                                                            </span>
-                                                                        )}
-                                                                    </label>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ) : null}
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            {/* Selected Assignments Summary Chips */}
-                            {allSelectedAssignments.length > 0 && (
-                                <div className="p-3 rounded-xl bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                            Selected Assignments ({allSelectedAssignments.length})
-                                        </span>
-                                        {assignmentConflicts.length > 0 && (
-                                            <span className="text-xs font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                                                <AlertTriangle className="h-3.5 w-3.5" />
-                                                {assignmentConflicts.length} conflict{assignmentConflicts.length > 1 ? "s" : ""}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {allSelectedAssignments.map((assignment, idx) => {
-                                            const key = `${normalizeStd(assignment.standard)}-${String(assignment.division).trim().toUpperCase()}`;
-                                            const conflict = schoolOccupiedAssignments.get(key);
-                                            return (
-                                                <span
-                                                    key={`${assignment.standard}-${assignment.division}-${idx}`}
-                                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border shadow-xs transition-all ${
-                                                        conflict
-                                                            ? "bg-rose-100/90 text-rose-900 dark:bg-rose-950/60 dark:text-rose-200 border-rose-300 dark:border-rose-800"
-                                                            : "bg-indigo-100/80 text-indigo-800 dark:bg-indigo-900/50 dark:text-indigo-300 border border-indigo-200/80 dark:border-indigo-800/80"
-                                                    }`}
-                                                >
-                                                    {conflict && <AlertTriangle className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />}
-                                                    <span>{assignment.standard}-{assignment.division}</span>
-                                                    {conflict && (
-                                                        <span className="text-[10px] text-rose-700 dark:text-rose-300 font-normal">
-                                                            (Assigned to {conflict.teacherName})
-                                                        </span>
-                                                    )}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleRemoveAssignment(assignment.standard, assignment.division)}
-                                                        className={`p-0.5 rounded transition-colors ${
-                                                            conflict
-                                                                ? "text-rose-600 hover:text-rose-900 dark:hover:text-rose-100"
-                                                                : "text-indigo-500 hover:text-indigo-800 dark:hover:text-indigo-100"
-                                                        }`}
-                                                        title={`Remove ${assignment.standard}-${assignment.division}`}
-                                                    >
-                                                        <X className="h-3 w-3" />
-                                                    </button>
-                                                </span>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Conflict Message Banner */}
-                            {assignmentConflicts.length > 0 && (
-                                <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200 text-xs space-y-1.5">
-                                    <div className="flex items-center gap-2 font-semibold">
-                                        <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400 shrink-0" />
-                                        <span>
-                                            {assignmentConflicts.length === 1
-                                                ? `Assignment conflict: ${assignmentConflicts[0].standard}-${assignmentConflicts[0].division} is already assigned to ${assignmentConflicts[0].teacherName}. Remove the conflicting assignment to continue.`
-                                                : "Assignment conflicts detected:"}
-                                        </span>
-                                    </div>
-                                    {assignmentConflicts.length > 1 && (
-                                        <ul className="list-disc list-inside pl-5 space-y-0.5 font-normal">
-                                            {assignmentConflicts.map((c, i) => (
-                                                <li key={i}>
-                                                    <strong className="font-semibold">{c.standard}-{c.division}</strong> is already assigned to <strong className="font-semibold">{c.teacherName}</strong>.
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                    <p className="text-[11px] text-rose-600 dark:text-rose-300">
-                                        Click ✕ on the conflicting assignment chip above or uncheck it to resolve the conflict.
-                                    </p>
-                                </div>
-                            )}
-
-                            {errors.standardDivisions && (
-                                <p role="alert" className="mt-1 text-sm font-medium text-rose-500">
-                                    {errors.standardDivisions}
-                                </p>
-                            )}
-                        </div>
+                        <StandardDivisionPicker
+                            assignmentGroups={assignmentGroups}
+                            onChange={(newGroups, newAssignments) => {
+                                setAssignmentGroups(newGroups);
+                                setForm((prev) => ({ ...prev, standardDivisions: newAssignments }));
+                                if (errors.standardDivisions) {
+                                    setErrors((prev) => ({ ...prev, standardDivisions: undefined }));
+                                }
+                            }}
+                            activeConfig={activeConfig}
+                            error={errors.standardDivisions}
+                            disabled={isSubmitting}
+                            teachers={teachersList}
+                            editingTeacherId={editingTeacher?.id}
+                            editingTeacherEmail={editingTeacher?.email}
+                            editingTeacherName={editingTeacher?.name}
+                            schoolId={schools.find((s) => s.name === form.schoolName)?.id || editingTeacher?.schoolId}
+                            onConflictsChange={setConflicts}
+                        />
                         <div>
                             <Input
                                 label={editingTeacher ? "New Password (Optional)" : "Password"}

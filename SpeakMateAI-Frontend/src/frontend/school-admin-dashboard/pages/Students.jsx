@@ -263,9 +263,14 @@ export function Students() {
 
     const handleToggleStatus = async (student) => {
         try {
-            const isActive = student.status === "active";
-            await updateStudent(student.id, { ...student, active: !isActive });
-            triggerToast(`Student ${isActive ? "deactivated" : "activated"} successfully.`, "success");
+            const currentActive = student.active !== undefined ? Boolean(student.active) : student.status === "active";
+            const nextActive = !currentActive;
+            await updateStudent(student.id, {
+                ...student,
+                active: nextActive,
+                status: nextActive ? "active" : "inactive"
+            });
+            triggerToast(`Student ${nextActive ? "activated" : "deactivated"} successfully.`, "success");
         } catch (error) {
             triggerToast(error.message || "Failed to update student status.", "error");
         }
