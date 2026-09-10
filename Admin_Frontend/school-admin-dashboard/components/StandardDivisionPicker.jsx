@@ -93,16 +93,53 @@ export const buildOccupiedAssignmentsMap = (
     editingTeacherId = null,
     currentSchoolId = null,
     editingTeacherEmail = null,
-    editingTeacherName = null
+    editingTeacherName = null,
+    currentSchoolName = null,
+    schoolsList = [],
+    isSuperAdmin = false
 ) => {
     const map = new Map();
-    (teachers || []).forEach((t) => {
+    if (!teachers || teachers.length === 0) {
+        return map;
+    }
+
+    // Determine target school ID and Name
+    let targetSchoolId = currentSchoolId != null ? String(currentSchoolId).trim() : null;
+    let targetSchoolName = currentSchoolName ? String(currentSchoolName).trim().toLowerCase() : null;
+
+    // Cross-resolve target school ID and Name if schoolsList is provided
+    if (Array.isArray(schoolsList) && schoolsList.length > 0) {
+        if (targetSchoolId && !targetSchoolName) {
+            const found = schoolsList.find(s => String(s.id).trim() === targetSchoolId);
+            if (found && found.name) {
+                targetSchoolName = found.name.trim().toLowerCase();
+            }
+        }
+        if (targetSchoolName && !targetSchoolId) {
+            const found = schoolsList.find(s => (s.name || "").trim().toLowerCase() === targetSchoolName);
+            if (found && found.id != null) {
+                targetSchoolId = String(found.id).trim();
+            }
+        }
+    }
+
+    // If targetSchoolId is actually a name string (non-numeric)
+    if (targetSchoolId && isNaN(Number(targetSchoolId)) && !targetSchoolName) {
+        targetSchoolName = targetSchoolId.toLowerCase();
+    }
+
+    // In Super Admin context: if no school has been selected yet, no divisions are occupied
+    if (isSuperAdmin && !targetSchoolId && !targetSchoolName) {
+        return map;
+    }
+
+    teachers.forEach((t) => {
         // Skip inactive/deactivated teachers - they do not occupy active classrooms
         if (t.active === false || t.status === "inactive") {
             return;
         }
 
-        // Self-exclusion: skip the teacher currently being edited
+        // Self-exclusion: skip the teacher currently being edited (by ID, email, or full name)
         const isSameId =
             editingTeacherId != null &&
             (String(t.id) === String(editingTeacherId) ||
@@ -125,20 +162,44 @@ export const buildOccupiedAssignmentsMap = (
             return;
         }
 
-        // School isolation: if currentSchoolId is specified, ensure teacher belongs to this school
-        if (currentSchoolId != null) {
-            const currentSchoolStr = String(currentSchoolId).trim().toLowerCase();
-            const teacherSchoolIdStr = t.schoolId != null ? String(t.schoolId).trim().toLowerCase() : null;
-            const teacherSchoolNameStr = t.schoolName ? String(t.schoolName).trim().toLowerCase() : null;
+        // School isolation: If target school is specified or in Super Admin mode,
+        // strictly only include teachers belonging to this exact school.
+        if (targetSchoolId != null || targetSchoolName != null) {
+            let matchesSchool = false;
 
-            if (teacherSchoolIdStr != null) {
-                if (teacherSchoolIdStr !== currentSchoolStr && teacherSchoolNameStr !== currentSchoolStr) {
-                    return;
+            // 1. Check numeric/string schoolId
+            if (targetSchoolId != null && t.schoolId != null) {
+                if (String(t.schoolId).trim() === targetSchoolId) {
+                    matchesSchool = true;
                 }
-            } else if (teacherSchoolNameStr != null) {
-                if (teacherSchoolNameStr !== currentSchoolStr) {
-                    return;
+            }
+
+            // 2. Check schoolName
+            if (!matchesSchool && targetSchoolName && t.schoolName) {
+                if (t.schoolName.trim().toLowerCase() === targetSchoolName) {
+                    matchesSchool = true;
                 }
+            }
+
+            // 3. Check via schoolsList lookup
+            if (!matchesSchool && Array.isArray(schoolsList) && schoolsList.length > 0) {
+                if (targetSchoolId != null && t.schoolName) {
+                    const foundSchool = schoolsList.find(s => String(s.id).trim() === targetSchoolId);
+                    if (foundSchool && foundSchool.name && foundSchool.name.trim().toLowerCase() === t.schoolName.trim().toLowerCase()) {
+                        matchesSchool = true;
+                    }
+                }
+                if (!matchesSchool && targetSchoolName && t.schoolId != null) {
+                    const foundSchool = schoolsList.find(s => (s.name || "").trim().toLowerCase() === targetSchoolName);
+                    if (foundSchool && String(foundSchool.id).trim() === String(t.schoolId).trim()) {
+                        matchesSchool = true;
+                    }
+                }
+            }
+
+            // If the teacher does not belong to the target school, ignore their assignments!
+            if (!matchesSchool) {
+                return;
             }
         }
 
@@ -251,6 +312,9 @@ export function StandardDivisionPicker({
     editingTeacherEmail = null,
     editingTeacherName = null,
     schoolId = null,
+    schoolName = null,
+    schools = [],
+    isSuperAdmin = false,
     onConflictsChange
 }) {
     const fallbackStandards = useMemo(() => {
@@ -292,9 +356,12 @@ export function StandardDivisionPicker({
             editingTeacherId,
             schoolId,
             editingTeacherEmail,
-            editingTeacherName
+            editingTeacherName,
+            schoolName,
+            schools,
+            isSuperAdmin
         );
-    }, [teachers, editingTeacherId, schoolId, editingTeacherEmail, editingTeacherName]);
+    }, [teachers, editingTeacherId, schoolId, schoolName, schools, isSuperAdmin, editingTeacherEmail, editingTeacherName]);
 
     // Active assignment conflicts for current selections
     const assignmentConflicts = useMemo(() => {

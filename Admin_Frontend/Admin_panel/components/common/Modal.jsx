@@ -44,10 +44,10 @@ export function Modal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ type: "spring", duration: 0.3 }}
-            className={`relative w-full ${maxWidth} max-h-[90vh] flex flex-col rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-6 shadow-xl z-10`}
+            className={`relative w-full ${maxWidth} max-h-[90vh] flex flex-col rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-6 shadow-xl z-10 overflow-hidden my-auto`}
           >
             {/* Header */}
-            <div className="flex items-start justify-between gap-4 shrink-0">
+            <div className="flex items-start justify-between gap-4 shrink-0 pb-3 border-b border-[var(--border-subtle)]">
               <div>
                 {title && (
                   <h3 className="text-lg font-bold text-[var(--text-primary)]">
@@ -63,14 +63,14 @@ export function Modal({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg p-1 text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition"
+                className="rounded-lg p-1 text-[var(--text-muted)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Content */}
-            <div className="mt-4 overflow-y-auto pr-1 select-none scrollbar-thin">{children}</div>
+            <div className="mt-4 overflow-y-auto min-h-0 flex-1 pr-1 scrollbar-thin">{children}</div>
           </motion.div>
         </div>
       )}

@@ -511,6 +511,28 @@ export function ConversationSession() {
 
       if (hasActivity && effectiveScore > 0) {
         recordSpeakingSession(Math.max(1, Math.ceil(timer / 60)), effectiveScore);
+        try {
+          await speakingService.create({
+            topic: scenario || "Speaking Practice",
+            scenario: scenario || "Speaking Practice",
+            duration: effectiveDuration || timer || 60,
+            score: effectiveScore,
+            overallScore: effectiveScore,
+            grammarScore: finalSummary.grammarScore,
+            vocabularyScore: finalSummary.vocabularyScore,
+            fluencyScore: finalSummary.fluencyScore,
+            pronunciationScore: finalSummary.pronunciationScore,
+            xpEarned: effectiveXP,
+            dialogueTurns: userMessages.length,
+            feedback: finalSummary.summary,
+            vocabularyLearned: finalSummary.vocabularyLearned,
+            grammarCorrections: finalSummary.grammarCorrections,
+            betterSentences: finalSummary.betterSentences,
+            motivationalMessage: finalSummary.motivationalMessage,
+          });
+        } catch (saveErr) {
+          console.warn("[ConversationSession] Direct session save notice:", saveErr);
+        }
       }
 
       navigate(ROUTES.SPEAKING_SUMMARY, { state: { summary: finalSummary } });

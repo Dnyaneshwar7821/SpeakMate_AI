@@ -107,11 +107,22 @@ export function Teachers() {
     
     const [schoolStandardsConfig, setSchoolStandardsConfig] = useState([]);
     
+    const selectedSchoolObj = useMemo(() => {
+        if (!form.schoolName) return null;
+        return (schools || []).find(
+            (s) => s.name === form.schoolName ||
+                   (s.name && s.name.trim().toLowerCase() === form.schoolName.trim().toLowerCase()) ||
+                   String(s.id) === String(form.schoolName)
+        ) || null;
+    }, [schools, form.schoolName]);
+
+    const currentSchoolId = selectedSchoolObj ? selectedSchoolObj.id : (editingTeacher?.schoolId || null);
+    const currentSchoolName = selectedSchoolObj ? selectedSchoolObj.name : (form.schoolName || editingTeacher?.schoolName || null);
+
     useEffect(() => {
-        const selectedSchool = schools.find((s) => s.name === form.schoolName);
-        if (selectedSchool) {
+        if (selectedSchoolObj && selectedSchoolObj.id) {
             let cancelled = false;
-            schoolApi.getSchoolStandards(selectedSchool.id)
+            schoolApi.getSchoolStandards(selectedSchoolObj.id)
                 .then((data) => {
                     if (!cancelled) setSchoolStandardsConfig(data || []);
                 })
@@ -123,7 +134,7 @@ export function Teachers() {
         } else {
             setSchoolStandardsConfig([]);
         }
-    }, [form.schoolName, schools]);
+    }, [selectedSchoolObj]);
 
     // Checkbox-based Standard Assignment State
     const [assignmentGroups, setAssignmentGroups] = useState([
@@ -152,9 +163,6 @@ export function Teachers() {
         if (!form.schoolName || !teachersList || teachersList.length === 0) {
             return new Map();
         }
-
-        const selectedSchoolObj = schools.find((s) => s.name === form.schoolName);
-        const currentSchoolId = selectedSchoolObj ? selectedSchoolObj.id : null;
 
         const map = new Map();
 
@@ -1204,10 +1212,11 @@ export function Teachers() {
                 onClose={() => setModalOpen(false)}
                 title={editingTeacher ? "Edit Teacher Settings" : "Add Teacher Account"}
                 description={editingTeacher ? "Update teacher's profile and credentials." : "Register a new teacher profile."}
+                maxWidth="max-w-3xl"
             >
                 <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="sm:col-span-2">
+                        <div>
                             <Input
                                 label="Teacher Name"
                                 placeholder="Enter Full Name"
@@ -1216,7 +1225,7 @@ export function Teachers() {
                                 error={errors.name}
                             />
                         </div>
-                        <div className="sm:col-span-2">
+                        <div>
                             <Input
                                 label="Teacher Email"
                                 type="email"
@@ -1226,7 +1235,7 @@ export function Teachers() {
                                 error={errors.email}
                             />
                         </div>
-                        <div className="sm:col-span-2">
+                        <div>
                             <Input
                                 label="Phone Number"
                                 placeholder="e.g. +91 98765 43210"
@@ -1298,7 +1307,10 @@ export function Teachers() {
                             editingTeacherId={editingTeacher?.id}
                             editingTeacherEmail={editingTeacher?.email}
                             editingTeacherName={editingTeacher?.name}
-                            schoolId={schools.find((s) => s.name === form.schoolName)?.id || editingTeacher?.schoolId}
+                            schoolId={currentSchoolId}
+                            schoolName={currentSchoolName}
+                            schools={schools}
+                            isSuperAdmin={true}
                             onConflictsChange={setConflicts}
                         />
                         <div>
@@ -1325,7 +1337,7 @@ export function Teachers() {
                         </div>
                     </div>
 
-                    <div className="mt-4 flex justify-end gap-3 border-t border-[var(--border-subtle)] pt-3">
+                    <div className="sticky bottom-0 z-10 bg-[var(--bg-surface)] mt-4 flex justify-end gap-3 border-t border-[var(--border-subtle)] pt-3 pb-1">
                         <Button type="button" variant="secondary" onClick={() => setModalOpen(false)}>
                             Cancel
                         </Button>

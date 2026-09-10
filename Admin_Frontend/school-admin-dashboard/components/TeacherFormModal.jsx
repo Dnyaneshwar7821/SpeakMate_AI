@@ -168,6 +168,7 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
                     ? "Update this teacher's details below."
                     : "Fill in the details to add a new teacher."
             }
+            maxWidth="max-w-3xl"
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -222,7 +223,7 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
                     </p>
                 )}
 
-                <div className="mt-2 flex justify-end gap-3">
+                <div className="sticky bottom-0 z-10 bg-[var(--bg-surface)] mt-4 flex justify-end gap-3 border-t border-[var(--border-subtle)] pt-3 pb-1">
                     <Button type="button" variant="secondary" onClick={onClose} disabled={isSubmitting}>
                         Cancel
                     </Button>

@@ -15,7 +15,7 @@ const getStorageKey = (userContext = null) => {
 const persistProgressToBackend = (stats) => {
   if (!stats) return;
   try {
-    const token = localStorage.getItem("speakmate_auth_token");
+    const token = localStorage.getItem("speakmate_token") || localStorage.getItem("speakmate_auth_token");
     if (!token) return;
     progressService.update({
       xp: stats.xp || 0,

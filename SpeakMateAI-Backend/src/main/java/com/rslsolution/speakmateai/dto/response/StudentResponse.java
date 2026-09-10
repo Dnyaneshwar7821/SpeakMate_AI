@@ -31,4 +31,9 @@ public class StudentResponse {
     private Boolean active;
     private Status status;
     private LocalDateTime createdAt;
+    private Integer xp;
+    private Integer level;
+    private Double averageScore;
+    private Integer speakingSessions;
+    private Integer practiceMinutes;
 }

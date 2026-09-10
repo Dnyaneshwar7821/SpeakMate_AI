@@ -184,6 +184,72 @@ function LearningProgress({ student }) {
     );
 }
 
+function LatestSpeakingSessionCard({ session }) {
+    if (!session) return null;
+    const fb = session.feedbackDetail;
+    const score = Math.round(session.overallScore || session.score || 0);
+    const duration = session.duration ? `${Math.floor(session.duration / 60)}m ${session.duration % 60}s` : "2m 29s";
+    return (
+        <Card className="overflow-hidden border-0 shadow-lg p-0">
+            <div className="p-6 rounded-2xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#6C63FF] text-white shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/20 blur-3xl pointer-events-none rounded-full" />
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="grid h-20 w-20 shrink-0 place-items-center rounded-full bg-white/10 border-4 border-[#6C63FF] shadow-xl">
+                            <div className="text-center">
+                                <span className="text-xl font-black">{score}%</span>
+                                <p className="text-[7px] font-bold uppercase opacity-80">Score</p>
+                            </div>
+                        </div>
+                        <div>
+                            <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 px-2.5 py-0.5 rounded-full border border-white/20">
+                                Latest Speaking Session & AI Evaluation
+                            </span>
+                            <h3 className="text-lg font-black mt-1 text-white">{session.scenario || "Speaking Practice"}</h3>
+                            <p className="text-xs text-indigo-200 mt-0.5 max-w-lg">
+                                {session.feedback || "Completed speaking session with active dialogue turns."}
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="bg-white/10 p-2.5 rounded-xl text-center border border-white/10">
+                            <p className="text-sm font-black text-amber-300">+{session.xpEarned || 20} XP</p>
+                            <p className="text-[8px] font-bold uppercase text-indigo-200">Earned</p>
+                        </div>
+                        <div className="bg-white/10 p-2.5 rounded-xl text-center border border-white/10">
+                            <p className="text-sm font-black text-cyan-300">{duration}</p>
+                            <p className="text-[8px] font-bold uppercase text-indigo-200">Time</p>
+                        </div>
+                    </div>
+                </div>
+
+                {fb && (
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-3 border-t border-white/15 text-xs">
+                        {fb.vocabularySuggestions && (
+                            <div className="bg-white/10 p-2.5 rounded-xl">
+                                <p className="text-[10px] font-bold text-violet-300 uppercase">Vocabulary Suggestions</p>
+                                <p className="mt-0.5 text-[11px] leading-tight text-white">{fb.vocabularySuggestions}</p>
+                            </div>
+                        )}
+                        {fb.grammarCorrections && (
+                            <div className="bg-white/10 p-2.5 rounded-xl">
+                                <p className="text-[10px] font-bold text-emerald-300 uppercase">Grammar Recommendations</p>
+                                <p className="mt-0.5 text-[11px] leading-tight text-white">{fb.grammarCorrections}</p>
+                            </div>
+                        )}
+                        {fb.betterSentences && (
+                            <div className="bg-white/10 p-2.5 rounded-xl">
+                                <p className="text-[10px] font-bold text-amber-300 uppercase">Native Phrasing</p>
+                                <p className="mt-0.5 text-[11px] leading-tight text-white">{fb.betterSentences}</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        </Card>
+    );
+}
+
 function LearningActivity({ activities }) {
     return (
         <Card className="p-5 sm:p-6">
@@ -341,6 +407,7 @@ export function TeacherStudentDetails() {
                         strengths: res.strengths || [],
                         improvementAreas: res.improvementAreas || [],
                         achievements: res.achievements || [],
+                        latestSpeakingSession: res.latestSpeakingSession || null,
                         practice: {
                             currentStreak: res.currentStreak || 5,
                             practiceMinutes: stats.totalPracticeMinutes || 120,
@@ -371,6 +438,9 @@ export function TeacherStudentDetails() {
 
             <motion.div variants={itemVariants} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] lg:items-start">
                 <div className="grid gap-6">
+                    {student.latestSpeakingSession && (
+                        <LatestSpeakingSessionCard session={student.latestSpeakingSession} />
+                    )}
                     <LearningProgress student={student} />
                     <LearningActivity activities={student.recentActivity} />
                     <StrengthsAndImprovements strengths={student.strengths} improvementAreas={student.improvementAreas} />

@@ -43,6 +43,15 @@ public class StudentServiceImpl implements StudentService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.rslsolution.speakmateai.repository.TeacherRepository teacherRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.repository.ProgressRepository progressRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.repository.SpeakingSessionRepository speakingSessionRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.service.AdminUserService adminUserService;
+
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         
@@ -351,6 +360,32 @@ public class StudentServiceImpl implements StudentService {
         studentRepository.save(student);
     }
 
+    @Override
+    public java.util.Map<String, Object> getStudentProgress(Long id) {
+        StudentResponse student = getStudentById(id);
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("student", student);
+
+        if (adminUserService != null) {
+            try {
+                result.put("progress", adminUserService.getUserProgress(id));
+            } catch (Exception ignored) {}
+            try {
+                result.put("speaking", adminUserService.getUserSpeakingDetails(id));
+            } catch (Exception ignored) {}
+            try {
+                result.put("details", adminUserService.getUserDetails(id));
+            } catch (Exception ignored) {}
+            try {
+                result.put("languageScores", adminUserService.getLanguageScores(id));
+            } catch (Exception ignored) {}
+            try {
+                result.put("activities", adminUserService.getUserActivities(id, 0, 10).getContent());
+            } catch (Exception ignored) {}
+        }
+        return result;
+    }
+
     private StudentResponse mapToResponse(Student user) {
         Status resolvedStatus = user.getStatus();
         if (resolvedStatus == null) {
@@ -362,6 +397,39 @@ public class StudentServiceImpl implements StudentService {
             teacherName = teacherRepository.findById(user.getTeacherId())
                     .map(t -> (t.getFirstName() + " " + (t.getLastName() != null ? t.getLastName() : "")).trim())
                     .orElse(null);
+        }
+
+        int xp = 0;
+        int level = 1;
+        int speakingSessions = 0;
+        int practiceMinutes = 0;
+        double averageScore = 0.0;
+
+        if (progressRepository != null) {
+            try {
+                com.rslsolution.speakmateai.entity.Progress p = progressRepository.findByUser(user).orElse(null);
+                if (p != null) {
+                    xp = p.getXp() != null ? p.getXp() : 0;
+                    level = p.getLevel() != null ? p.getLevel() : 1;
+                    speakingSessions = p.getTotalSpeakingSessions() != null ? p.getTotalSpeakingSessions() : 0;
+                    practiceMinutes = p.getTotalPracticeMinutes() != null ? p.getTotalPracticeMinutes() : 0;
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (speakingSessionRepository != null) {
+            try {
+                List<com.rslsolution.speakmateai.entity.SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
+                if (sessions != null && !sessions.isEmpty()) {
+                    if (speakingSessions == 0) speakingSessions = sessions.size();
+                    averageScore = sessions.stream().filter(s -> s.getScore() != null)
+                            .mapToDouble(com.rslsolution.speakmateai.entity.SpeakingSession::getScore).average().orElse(0.0);
+                    if (practiceMinutes == 0) {
+                        practiceMinutes = sessions.stream().filter(s -> s.getDuration() != null)
+                                .mapToInt(com.rslsolution.speakmateai.entity.SpeakingSession::getDuration).sum() / 60;
+                    }
+                }
+            } catch (Exception ignored) {}
         }
 
         return StudentResponse.builder()
@@ -383,6 +451,11 @@ public class StudentServiceImpl implements StudentService {
                 .active(user.isActive())
                 .status(resolvedStatus)
                 .createdAt(user.getCreatedAt())
+                .xp(xp)
+                .level(level)
+                .averageScore(Math.round(averageScore * 10.0) / 10.0)
+                .speakingSessions(speakingSessions)
+                .practiceMinutes(practiceMinutes)
                 .build();
     }
 }

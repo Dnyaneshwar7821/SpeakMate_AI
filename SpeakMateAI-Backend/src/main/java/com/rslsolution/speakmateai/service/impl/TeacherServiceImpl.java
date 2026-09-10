@@ -83,6 +83,9 @@ import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.TeacherRepository;
 import com.rslsolution.speakmateai.repository.TeacherStandardDivisionRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
+import com.rslsolution.speakmateai.dto.response.SpeakingSessionDetailResponse;
+import com.rslsolution.speakmateai.entity.ConversationFeedback;
+import com.rslsolution.speakmateai.repository.ConversationFeedbackRepository;
 import com.rslsolution.speakmateai.repository.VocabularyRepository;
 import com.rslsolution.speakmateai.service.TeacherService;
 import com.rslsolution.speakmateai.dto.request.ChangePasswordRequest;
@@ -110,6 +113,9 @@ public class TeacherServiceImpl implements TeacherService {
 	private final AchievementRepository achievementRepository;
 	private final SettingsRepository settingsRepository;
 	private final SchoolRepository schoolRepository;
+
+	@org.springframework.beans.factory.annotation.Autowired(required = false)
+	private ConversationFeedbackRepository conversationFeedbackRepository;
 
 	@org.springframework.beans.factory.annotation.Autowired
 	public TeacherServiceImpl(UserRepository userRepository, TeacherRepository teacherRepository,
@@ -966,9 +972,41 @@ public class TeacherServiceImpl implements TeacherService {
 		Integer currentStreak = progress != null ? progress.getCurrentStreak() : 0;
 
 		LocalDateTime lastPracticeDate = null;
+		SpeakingSessionDetailResponse latestSpeakingDetail = null;
 		List<SpeakingSession> allSessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(student);
 		if (!allSessions.isEmpty()) {
-			lastPracticeDate = allSessions.get(0).getCreatedAt();
+			SpeakingSession s = allSessions.get(0);
+			lastPracticeDate = s.getCreatedAt();
+			ConversationFeedback fb = null;
+			if (conversationFeedbackRepository != null) {
+				try {
+					fb = conversationFeedbackRepository.findBySession(s).orElse(null);
+				} catch (Exception ignored) {}
+			}
+			SpeakingSessionDetailResponse.FeedbackDto fbDto = null;
+			if (fb != null) {
+				fbDto = SpeakingSessionDetailResponse.FeedbackDto.builder()
+						.grammarCorrections(fb.getGrammarCorrections())
+						.betterSentences(fb.getBetterSentences())
+						.vocabularySuggestions(fb.getVocabularySuggestions())
+						.summary(fb.getSummary())
+						.build();
+			}
+			latestSpeakingDetail = SpeakingSessionDetailResponse.builder()
+					.id(s.getId())
+					.scenario(s.getScenario() != null ? s.getScenario() : s.getTopic())
+					.duration(s.getDuration())
+					.xpEarned(s.getXpEarned())
+					.score(s.getScore())
+					.overallScore(s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
+					.fluencyScore(s.getFluencyScore())
+					.grammarScore(s.getGrammarScore())
+					.vocabularyScore(s.getVocabularyScore())
+					.pronunciationScore(s.getPronunciationScore())
+					.feedback(s.getFeedback())
+					.createdAt(s.getCreatedAt())
+					.feedbackDetail(fbDto)
+					.build();
 		} else {
 			List<LessonProgress> lessonProgresses = lessonProgressRepository.findByUserOrderByLastOpenedAtDesc(student);
 			if (!lessonProgresses.isEmpty() && lessonProgresses.get(0).getLastOpenedAt() != null) {
@@ -1021,6 +1059,7 @@ public class TeacherServiceImpl implements TeacherService {
 				.rollNumber(student.getRollNumber() != null ? student.getRollNumber() : "")
 				.schoolName(schoolName != null ? schoolName : "")
 				.attendanceRate(attendanceRate)
+				.latestSpeakingSession(latestSpeakingDetail)
 				.build();
 	}
 

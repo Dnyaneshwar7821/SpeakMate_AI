@@ -24,4 +24,6 @@ public interface StudentService {
     byte[] exportStudents(String format);
 
     void resetPassword(Long id, String newPassword);
+
+    java.util.Map<String, Object> getStudentProgress(Long id);
 }

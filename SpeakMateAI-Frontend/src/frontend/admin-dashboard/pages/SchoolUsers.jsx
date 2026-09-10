@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { School, ChevronDown, Filter, BookOpen, Activity, Award, CheckCircle2, Clock, Plus, Trash2, UserCheck, UserX } from "lucide-react";
+import { School, ChevronDown, Filter, BookOpen, Activity, Award, CheckCircle2, Clock, Plus, Trash2, UserCheck, UserX, Mic, Zap, Sparkles, Quote, Lightbulb, Stethoscope } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 
 import Button from "@components/common/Button";
@@ -17,6 +17,7 @@ import { getInitials, formatDate } from "@utils/formatters";
 
 import { useStudentManagement } from "@admin/hooks/useStudentManagement";
 import { teacherApi } from "@services/admin/teacherApi";
+import apiClient from "@services/admin/apiClient";
 
 /**
  * Utility to get ordinal suffixes (1st, 2nd, 3rd, 4th, etc.)
@@ -182,11 +183,35 @@ function CustomUsersTable({ users, onRowClick, onEdit, onDelete, onToggleStatus 
 
 // Custom Modal to display Student Progress
 function StudentProgressModal({ isOpen, student, onClose }) {
+  const [liveData, setLiveData] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen || !student?.id) return;
+    apiClient.get(`/api/students/${student.id}/progress`)
+      .then((res) => {
+        if (res.data?.data) {
+          setLiveData(res.data.data);
+        }
+      })
+      .catch(() => {});
+  }, [isOpen, student?.id]);
+
   if (!student) return null;
+
+  const liveProg = liveData?.progress || {};
+  const speakingDetails = liveData?.speakingDetails || {};
+  const latestSession = speakingDetails?.latestSession;
+  const feedbackDetail = latestSession?.feedbackDetail;
+
+  const totalSpeaking = liveProg.totalSpeakingSessions ?? speakingDetails.totalSessions ?? student.speakingSessions ?? 0;
+  const practiceMins = liveProg.totalPracticeMinutes ?? student.practiceMinutes ?? 0;
+  const avgScore = Math.round(latestSession?.overallScore ?? speakingDetails.averageScore ?? student.averageScore ?? student.progress?.averageScore ?? 0);
+  const xp = liveProg.xp ?? student.xp ?? student.progress?.xp ?? 0;
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-3xl" title="Student Progress">
-      <div className="mt-6 flex flex-col gap-6">
-        <div className="flex items-center gap-4">
+    <Modal isOpen={isOpen} onClose={onClose} maxWidth="max-w-4xl" title="Student Progress & Evaluation Profile">
+      <div className="mt-4 flex flex-col gap-6 max-h-[80vh] overflow-y-auto pr-1 pb-4">
+        <div className="flex items-center gap-4 p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
           <InsigniaBadge
             name={student.name}
             email={student.email}
@@ -219,34 +244,110 @@ function StudentProgressModal({ isOpen, student, onClose }) {
         </div>
 
         {/* Progress Grid */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4">
-            <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Lessons Completed</p>
+        <div className="grid gap-3 sm:grid-cols-4">
+          <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3.5">
+            <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-1.5">
+              <Mic size={14} className="text-violet-500" />
+              Speaking Sessions
+            </p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-[var(--text-primary)]">
-                {student.progress?.completedLessons || 0}
-              </span>
-              <span className="text-sm text-[var(--text-muted)]">/ {student.progress?.totalLessons || 50}</span>
+              <span className="text-2xl font-bold text-[var(--text-primary)]">{totalSpeaking}</span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4">
-            <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Grammar Sessions</p>
+          <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3.5">
+            <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-1.5">
+              <Clock size={14} className="text-indigo-500" />
+              Practice Time
+            </p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-[var(--text-primary)]">{student.progress?.quizzes || 0}</span>
-              <span className="text-sm text-[var(--text-muted)]">sessions</span>
+              <span className="text-2xl font-bold text-[var(--text-primary)]">{practiceMins}</span>
+              <span className="text-xs text-[var(--text-muted)]">mins</span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4">
-            <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider">Avg Progress Score</p>
+          <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3.5">
+            <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-1.5">
+              <Award size={14} className="text-rose-500" />
+              Avg Score
+            </p>
             <div className="mt-2 flex items-baseline gap-2">
-              <span className="text-2xl font-bold text-[var(--text-primary)]">
-                {student.progress?.averageScore || 0}%
-              </span>
+              <span className="text-2xl font-bold text-[var(--text-primary)]">{avgScore}%</span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3.5">
+            <p className="text-xs font-medium text-[var(--text-muted)] uppercase tracking-wider flex items-center gap-1.5">
+              <Zap size={14} className="text-amber-500" />
+              Total XP
+            </p>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-2xl font-bold text-[var(--text-primary)]">+{xp.toLocaleString()}</span>
             </div>
           </div>
         </div>
+
+        {/* Latest Speaking Session & AI Evaluation Banner */}
+        {latestSession && (
+          <div className="space-y-4">
+            <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0F172A] via-[#1E1B4B] to-[#6C63FF] text-white shadow-xl flex flex-col items-center justify-center text-center space-y-4 border border-white/10 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/20 blur-3xl pointer-events-none rounded-full" />
+              <span className="text-[10px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20">
+                Latest Speaking Session & AI Evaluation
+              </span>
+              <div className="grid h-24 w-24 place-items-center rounded-full bg-white/10 border-4 border-[#6C63FF] shadow-xl">
+                <div>
+                  <span className="text-2xl font-black">{Math.round(latestSession.overallScore || latestSession.score || 0)}%</span>
+                  <p className="text-[7px] font-bold uppercase opacity-80 mt-0.5">Overall Score</p>
+                </div>
+              </div>
+              <div className="space-y-1 max-w-md">
+                <h4 className="text-lg font-black">{latestSession.scenario || "Speaking Practice"}</h4>
+                <p className="text-xs text-indigo-200 font-medium">
+                  {latestSession.feedback || "Completed speaking practice session."}
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-3 w-full max-w-md mt-1">
+                <div className="bg-white/10 backdrop-blur-md p-2.5 rounded-xl text-center border border-white/10">
+                  <p className="text-sm font-black text-amber-300">+{latestSession.xpEarned || 20} XP</p>
+                  <p className="text-[8px] font-bold uppercase text-indigo-200">Earned</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md p-2.5 rounded-xl text-center border border-white/10">
+                  <p className="text-sm font-black text-cyan-300">{latestSession.duration ? `${Math.floor(latestSession.duration / 60)}m ${latestSession.duration % 60}s` : "2m 29s"}</p>
+                  <p className="text-[8px] font-bold uppercase text-indigo-200">Duration</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur-md p-2.5 rounded-xl text-center border border-white/10">
+                  <p className="text-sm font-black text-emerald-300">{latestSession.dialogueTurns || 6}</p>
+                  <p className="text-[8px] font-bold uppercase text-indigo-200">Turns</p>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Feedback Detail Cards */}
+            {feedbackDetail && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {feedbackDetail.vocabularySuggestions && (
+                  <div className="p-3.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs">
+                    <p className="font-bold text-violet-500 uppercase tracking-wider text-[10px] mb-1">💡 Vocabulary Suggestions</p>
+                    <p className="text-[var(--text-primary)] font-medium">{feedbackDetail.vocabularySuggestions}</p>
+                  </div>
+                )}
+                {feedbackDetail.grammarCorrections && (
+                  <div className="p-3.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs">
+                    <p className="font-bold text-emerald-500 uppercase tracking-wider text-[10px] mb-1">🩺 Grammar Recommendations</p>
+                    <p className="text-[var(--text-primary)] font-medium">{feedbackDetail.grammarCorrections}</p>
+                  </div>
+                )}
+                {feedbackDetail.betterSentences && (
+                  <div className="p-3.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-xs md:col-span-2">
+                    <p className="font-bold text-amber-500 uppercase tracking-wider text-[10px] mb-1">✨ Native Phrasing Tips</p>
+                    <p className="text-[var(--text-primary)] font-medium">{feedbackDetail.betterSentences}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Progress Chart */}

@@ -39,6 +39,11 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudentById(id));
     }
 
+    @GetMapping("/{id}/progress")
+    public ResponseEntity<Map<String, Object>> getStudentProgress(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentProgress(id));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<StudentResponse> updateStudent(@PathVariable Long id, @RequestBody StudentRequest request) {
         return ResponseEntity.ok(studentService.updateStudent(id, request));

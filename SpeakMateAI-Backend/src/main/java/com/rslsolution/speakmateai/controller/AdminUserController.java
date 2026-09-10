@@ -144,7 +144,7 @@ public class AdminUserController {
         return ResponseEntity.ok(ApiResponse.success("Language scores retrieved successfully", adminUserService.getLanguageScores(userId)));
     }
 
-    @GetMapping("/{userId}/activities")
+    @GetMapping({"/{userId}/activities", "/{userId}/activity"})
     public ResponseEntity<ApiResponse<Page<UserActivityResponse>>> getUserActivities(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "0") int page,

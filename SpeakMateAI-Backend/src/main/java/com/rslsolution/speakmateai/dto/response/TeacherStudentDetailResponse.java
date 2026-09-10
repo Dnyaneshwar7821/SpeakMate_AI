@@ -28,4 +28,5 @@ public class TeacherStudentDetailResponse {
 	private String rollNumber;
 	private String schoolName;
 	private Double attendanceRate;
+	private SpeakingSessionDetailResponse latestSpeakingSession;
 }

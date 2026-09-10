@@ -90,8 +90,25 @@ export const adminUserApi = {
     return response.data;
   },
 
+  getUserDetails: async (userId) => {
+    const response = await apiClient.get(`/api/admin/users/${userId}/details`);
+    return response.data;
+  },
+
+  getUserLanguageScores: async (userId) => {
+    const response = await apiClient.get(`/api/admin/users/${userId}/language-scores`);
+    return response.data;
+  },
+
   getUserActivity: async (userId, page = 0, size = 10) => {
-    const response = await apiClient.get(`/api/admin/users/${userId}/activity`, {
+    const response = await apiClient.get(`/api/admin/users/${userId}/activities`, {
+      params: { page, size }
+    });
+    return response.data;
+  },
+
+  getUserActivities: async (userId, page = 0, size = 10) => {
+    const response = await apiClient.get(`/api/admin/users/${userId}/activities`, {
       params: { page, size }
     });
     return response.data;

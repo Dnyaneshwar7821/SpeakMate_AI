@@ -236,17 +236,77 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	@Override
 	public SpeakingSessionResponse createSession(SpeakingSessionRequest request) {
 		User user = currentUser();
+		double overallScore = request.getOverallScore() != null ? request.getOverallScore()
+				: (request.getScore() != null ? request.getScore() : 80.0);
+		double fluencyScore = request.getFluencyScore() != null ? request.getFluencyScore() : overallScore;
+		double grammarScore = request.getGrammarScore() != null ? request.getGrammarScore() : overallScore;
+		double vocabularyScore = request.getVocabularyScore() != null ? request.getVocabularyScore() : overallScore;
+		double pronunciationScore = request.getPronunciationScore() != null ? request.getPronunciationScore() : overallScore;
+		int xp = request.getXpEarned() != null ? request.getXpEarned() : 15;
+		int duration = request.getDuration() != null ? request.getDuration() : 60;
+		String scenario = request.getScenario() != null ? request.getScenario() : request.getTopic();
+
 		SpeakingSession session = SpeakingSession.builder()
 				.user(user)
 				.topic(request.getTopic())
-				.scenario(request.getTopic())
+				.scenario(scenario)
 				.transcript(request.getTranscript())
-				.duration(request.getDuration())
-				.xpEarned(10)
-				.score(80.0)
+				.duration(duration)
+				.xpEarned(xp)
+				.score(overallScore)
+				.overallScore(overallScore)
+				.fluencyScore(fluencyScore)
+				.grammarScore(grammarScore)
+				.vocabularyScore(vocabularyScore)
+				.pronunciationScore(pronunciationScore)
+				.feedback(request.getFeedback())
+				.completed(true)
 				.build();
 
 		SpeakingSession savedSession = safeSaveSession(session);
+
+		// Save conversation feedback if provided
+		if (request.getGrammarCorrections() != null || request.getBetterSentences() != null
+				|| request.getVocabularyLearned() != null || request.getFeedback() != null) {
+			try {
+				ConversationFeedback feedback = ConversationFeedback.builder()
+						.session(savedSession)
+						.grammarCorrections(request.getGrammarCorrections())
+						.betterSentences(request.getBetterSentences())
+						.vocabularySuggestions(request.getVocabularyLearned())
+						.summary(request.getFeedback())
+						.build();
+				feedbackRepository.save(feedback);
+			} catch (Exception ex) {
+				System.err.println("Could not save feedback for session: " + ex.getMessage());
+			}
+		}
+
+		// Update user progress
+		try {
+			Progress progress = progressRepository.findByUser(user)
+					.orElseGet(() -> Progress.builder()
+							.user(user)
+							.xp(0)
+							.level(1)
+							.currentStreak(0)
+							.longestStreak(0)
+							.totalPracticeMinutes(0)
+							.totalSpeakingSessions(0)
+							.totalGrammarChecks(0)
+							.totalVocabularyWords(0)
+							.build());
+			int sessionMinutes = (int) Math.max(1, Math.ceil(duration / 60.0));
+			progress.setTotalPracticeMinutes((progress.getTotalPracticeMinutes() == null ? 0 : progress.getTotalPracticeMinutes()) + sessionMinutes);
+			progress.setTotalSpeakingSessions((progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
+			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + xp;
+			progress.setXp(newXp);
+			progress.setLevel(Math.max(1, (newXp / 500) + 1));
+			progressRepository.save(progress);
+		} catch (Exception ex) {
+			System.err.println("Could not update progress for session: " + ex.getMessage());
+		}
+
 		return mapToResponse(savedSession);
 	}
 
