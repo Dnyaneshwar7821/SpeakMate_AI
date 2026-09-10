@@ -65,7 +65,8 @@ export function useStudents() {
           parentName: s.parentName || "Parent",
           parentPhone: s.parentPhone || "",
           phone: s.phone || "",
-          status: String(s.status).toLowerCase() === "active" ? "active" : "inactive",
+          active: s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true),
+          status: (s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true)) ? "active" : "inactive",
           joinedAt: s.createdAt ? s.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
           teacherId: s.teacherId || null,
           assignedTeacher: s.teacherName || "Unassigned",
@@ -118,6 +119,9 @@ export function useStudents() {
   const addStudent = async (data) => {
     const [firstName = "", ...lastNameParts] = (data.name || "").split(" ");
     const lastName = lastNameParts.join(" ") || "Student";
+    const isActive = data.active !== undefined
+      ? Boolean(data.active)
+      : (data.status ? String(data.status).toLowerCase() === "active" : true);
     const payload = {
       firstName,
       lastName,
@@ -129,7 +133,9 @@ export function useStudents() {
       parentName: data.parentName || "Parent",
       parentPhone: data.parentPhone ? normalizeIndianMobile(data.parentPhone) : "",
       phone: data.phone ? normalizeIndianMobile(data.phone) : "",
-      password: data.password
+      password: data.password,
+      active: isActive,
+      status: isActive ? "ACTIVE" : "INACTIVE"
     };
     console.log("[useSchoolData Debug] Creating student with payload:", payload);
     try {
@@ -145,6 +151,9 @@ export function useStudents() {
   const updateStudent = async (id, data) => {
     const [firstName = "", ...lastNameParts] = (data.name || "").split(" ");
     const lastName = lastNameParts.join(" ") || "Student";
+    const isActive = data.active !== undefined
+      ? Boolean(data.active)
+      : (data.status ? String(data.status).toLowerCase() === "active" : true);
     const payload = {
       firstName,
       lastName,
@@ -155,7 +164,9 @@ export function useStudents() {
       teacherId: data.teacherId ? Number(data.teacherId) : null,
       parentName: data.parentName || "Parent",
       parentPhone: data.parentPhone ? normalizeIndianMobile(data.parentPhone) : "",
-      phone: data.phone ? normalizeIndianMobile(data.phone) : ""
+      phone: data.phone ? normalizeIndianMobile(data.phone) : "",
+      active: isActive,
+      status: isActive ? "ACTIVE" : "INACTIVE"
     };
     console.log("[useSchoolData Debug] Updating student ID " + id + " with payload:", payload);
     try {
@@ -320,6 +331,8 @@ export function useTeachers() {
             ? t.standards.join(", ")
             : t.standard || "",
         standardDivisions: t.standardDivisions || [],
+        schoolId: t.schoolId,
+        schoolName: t.schoolName,
         active: Boolean(t.active),
         status: t.active ? "active" : "inactive"
       }));
@@ -338,7 +351,8 @@ export function useTeachers() {
         parentName: s.parentName || "Parent",
         parentPhone: s.parentPhone || "",
         phone: s.phone || "",
-        status: String(s.status).toLowerCase() === "active" ? "active" : "inactive",
+        active: s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true),
+        status: (s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true)) ? "active" : "inactive",
         joinedAt: s.createdAt ? s.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
         teacherId: s.teacherId || null,
         assignedTeacher: s.teacherName || "Unassigned",
@@ -386,7 +400,13 @@ export function useTeachers() {
       await loadTeachersData();
     } catch (err) {
       console.error("Failed to add teacher:", err);
-      throw new Error(err?.response?.data?.message || "Unable to add the teacher.");
+      const validationMap = err?.response?.data?.errors;
+      const detailedMsg = (validationMap && typeof validationMap === 'object')
+        ? Object.values(validationMap).join(", ")
+        : (err?.response?.data?.message || err?.message || "Unable to add the teacher.");
+      const errorObj = new Error(detailedMsg);
+      errorObj.response = err?.response;
+      throw errorObj;
     }
   };
 
@@ -409,7 +429,13 @@ export function useTeachers() {
       await loadTeachersData();
     } catch (err) {
       console.error("Failed to update teacher:", err);
-      throw new Error(err?.response?.data?.message || "Unable to update the teacher.");
+      const validationMap = err?.response?.data?.errors;
+      const detailedMsg = (validationMap && typeof validationMap === 'object')
+        ? Object.values(validationMap).join(", ")
+        : (err?.response?.data?.message || err?.message || "Unable to update the teacher.");
+      const errorObj = new Error(detailedMsg);
+      errorObj.response = err?.response;
+      throw errorObj;
     }
   };
 

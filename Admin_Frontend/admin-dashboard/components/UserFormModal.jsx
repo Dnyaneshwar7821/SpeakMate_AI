@@ -116,10 +116,13 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = []
     useEffect(() => {
         if (!isOpen) return;
         const initialStdRaw = String(initialData?.standard || "1").replace(/[^0-9]/g, "");
+        const initialActive = initialData?.active !== undefined
+            ? Boolean(initialData.active)
+            : (initialData?.status ? String(initialData.status).toLowerCase() === "active" : true);
         setForm({
             name: initialData?.name ?? "",
             email: initialData?.email ?? "",
-            status: (initialData?.status || "active").toLowerCase(),
+            status: initialActive ? "active" : "inactive",
             userType: initialData?.userType || (isStudentForm ? "school" : "general"),
             standard: initialStdRaw || "1",
             teacherId: initialData?.teacherId || (initialData?.assignedTeacher && teachers.length > 0 ? (teachers.find(t => t.name === initialData?.assignedTeacher)?.id || "") : ""),
@@ -291,6 +294,8 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = []
             schoolId: schoolObj?.id,
             phone: normalizeIndianMobile(form.phone),
             parentPhone: isStudentForm ? normalizeIndianMobile(form.parentPhone) : undefined,
+            active: form.status === "active",
+            status: form.status === "active" ? "ACTIVE" : "INACTIVE",
         };
         setLocalSubmitting(true);
         try {

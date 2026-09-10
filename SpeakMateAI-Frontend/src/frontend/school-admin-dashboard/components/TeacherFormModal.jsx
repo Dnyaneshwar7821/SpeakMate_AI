@@ -41,7 +41,10 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
     useEffect(() => {
         if (!isOpen) return;
         
-        const initialGroups = loadInitialAssignmentGroups(initialData);
+        const initialGroups = loadInitialAssignmentGroups(
+            initialData,
+            schoolStandardsConfig.length > 0 ? schoolStandardsConfig : STANDARD_OPTIONS
+        );
         setAssignmentGroups(initialGroups);
         const assignments = computeAllSelectedAssignments(initialGroups);
 
@@ -60,7 +63,7 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
         setErrors({});
         setSubmitError("");
         setIsSubmitting(false);
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, schoolStandardsConfig]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -192,7 +195,13 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
                         error={errors.standardDivisions}
                         disabled={isSubmitting}
                         teachers={teachers}
-                        editingTeacherId={initialData?.id}
+                        editingTeacherId={initialData?.id || initialData?.teacherId || initialData?.userId}
+                        editingTeacherEmail={initialData?.email || form.email}
+                        editingTeacherName={
+                            initialData?.name ||
+                            (initialData?.firstName ? `${initialData.firstName} ${initialData.lastName || ""}`.trim() : "") ||
+                            (form.firstName ? `${form.firstName} ${form.lastName || ""}`.trim() : "")
+                        }
                         onConflictsChange={setConflicts}
                     />
                     
