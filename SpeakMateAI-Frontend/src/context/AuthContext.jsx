@@ -34,10 +34,15 @@ export function AuthProvider({ children }) {
   const syncUserProfile = (userData) => {
     if (!userData) return;
     try {
-      if (userData.schoolGrade && userData.schoolGrade.includes("Std")) {
-        localStorage.setItem("speakmate_school_grade", userData.schoolGrade);
+      const effectiveGrade = userData.schoolGrade || (userData.standard ? (userData.standard.toLowerCase().includes("std") ? userData.standard : `${userData.standard}th Std`) : null);
+      if (effectiveGrade) {
+        localStorage.setItem("speakmate_school_grade", effectiveGrade);
       } else if (userData.accountType !== "STUDENT" && !userData.isSchoolStudent) {
         localStorage.removeItem("speakmate_school_grade");
+      }
+
+      if (userData.standard) {
+        localStorage.setItem("speakmate_standard", userData.standard);
       }
 
       const cleanAge = typeof userData.ageGroup === "string" ? userData.ageGroup : (userData.ageGroup?.ageGroup || null);

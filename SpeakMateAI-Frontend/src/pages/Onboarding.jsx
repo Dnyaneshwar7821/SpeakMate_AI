@@ -34,18 +34,6 @@ const GOALS = [
   { key: "Fun", label: "Self-Improvement & Fun", icon: "🌟", desc: "Enjoy learning new idioms, pop culture & casual fluency" },
 ];
 
-const SCHOOL_GRADES = [
-  { key: "1st Std", label: "1st Standard", desc: "Alphabet phonics, colors, animals & simple greetings", icon: "🎨" },
-  { key: "2nd Std", label: "2nd Standard", desc: "Classroom items, daily routines, food & hobbies", icon: "🍨" },
-  { key: "3rd Std", label: "3rd Standard", desc: "Action verbs, community helpers, time & past stories", icon: "🩺" },
-  { key: "4th Std", label: "4th Standard", desc: "Describing places, canteen lunch, healthy habits & directions", icon: "🪐" },
-  { key: "5th Std", label: "5th Standard", desc: "First day in 5th grade, science projects & story reviews", icon: "🏫" },
-  { key: "6th Std", label: "6th Standard", desc: "Asking teacher questions, school clubs & sports day", icon: "✍️" },
-  { key: "7th Std", label: "7th Standard", desc: "Group discussions, environmental care & movie reviews", icon: "💧" },
-  { key: "8th Std", label: "8th Standard", desc: "School debates, student council & tech innovations", icon: "💬" },
-  { key: "9th Std", label: "9th Standard", desc: "High school admission interviews & keynote speeches", icon: "🌐" },
-  { key: "10th Std", label: "10th Standard", desc: "10th Board oral exam prep & career roadmaps", icon: "📄" },
-];
 
 const LEVELS = [
   { key: "Beginner", label: "Beginner", desc: "No prior experience or basic vocabulary", rating: "A1" },
@@ -142,7 +130,7 @@ export function Onboarding() {
   const [aiVoice, setAiVoice] = useState("Friendly");
   const [playingVoice, setPlayingVoice] = useState(null);
   const [whyLearning, setWhyLearning] = useState(["Communication"]);
-  const [schoolGrade, setSchoolGrade] = useState(() => localStorage.getItem("speakmate_school_grade") || "1st Std");
+  const schoolGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || null;
   const [level, setLevel] = useState("Intermediate");
   const [ageGroup, setAgeGroup] = useState("Young Adult");
   const [interests, setInterests] = useState(["Technology", "Travel"]);
@@ -155,14 +143,14 @@ export function Onboarding() {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
 
-  // Construct steps sequence based on user type (School Students NEVER see age groups!)
+  // Construct steps sequence based on user type (Students get English Level, no standard selection)
   const steps = useMemo(() => {
     if (isStudent) {
       return [
         { id: "language", title: "Learning Language", subtitle: "Select the language you want to study." },
         { id: "voice", title: "Choose AI Voice", subtitle: "Choose your preferred tutor assistant voice with preview." },
         { id: "goals", title: "Why are you learning?", subtitle: "Select all reasons that apply to you." },
-        { id: "standards", title: "Select Your School Standard", subtitle: "Speaking drills, AI chat, and stories will adapt to your grade curriculum." },
+        { id: "level", title: "Select Your English Level", subtitle: "Choose your current proficiency level in English." },
         { id: "interests", title: "What interests you?", subtitle: "Select topics you enjoy for AI practice sessions." },
         { id: "sources", title: "Where did you hear about us?", subtitle: "Help us understand how you discovered SpeakMate AI." },
         { id: "daily_goal", title: "Choose Daily Goal", subtitle: "Consistency is key! Set a daily learning goal to build habits." },
@@ -246,8 +234,8 @@ export function Onboarding() {
   };
 
   const handleFinish = async () => {
-    const finalGrade = isStudent ? schoolGrade : null;
-    const finalLevel = isStudent ? null : level;
+    const finalGrade = isStudent ? (schoolGrade || user?.schoolGrade || null) : null;
+    const finalLevel = level || "Beginner";
 
     if (finalGrade) {
       localStorage.setItem("speakmate_school_grade", finalGrade);
@@ -257,8 +245,8 @@ export function Onboarding() {
 
     if (!isStudent) {
       localStorage.setItem("speakmate_age_group", ageGroup || "Professional");
-      localStorage.setItem("speakmate_english_level", finalLevel || "Beginner");
     }
+    localStorage.setItem("speakmate_english_level", finalLevel);
     localStorage.setItem("speakmate_onboarding_voice", aiVoice);
     localStorage.setItem("speakmate_voice_persona", aiVoice);
     localStorage.setItem("speakmate_ai_voice", "Default");
@@ -397,36 +385,7 @@ export function Onboarding() {
           </div>
         )}
 
-        {/* STEP: SCHOOL STANDARDS (ONLY FOR SCHOOL STUDENTS) */}
-        {currentStep.id === "standards" && (
-          <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-            {SCHOOL_GRADES.map((grd) => (
-              <button
-                key={grd.key}
-                onClick={() => {
-                  setSchoolGrade(grd.key);
-                  localStorage.setItem("speakmate_school_grade", grd.key);
-                }}
-                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${
-                  schoolGrade === grd.key
-                    ? "border-emerald-500 bg-emerald-500/15 ring-2 ring-emerald-500/40 shadow-md"
-                    : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)]">{grd.icon}</span>
-                  <div>
-                    <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{grd.label}</h3>
-                    <p className="text-xs text-[var(--text-secondary)] mt-0.5 font-medium">{grd.desc}</p>
-                  </div>
-                </div>
-                {schoolGrade === grd.key && <span className="text-emerald-500 font-black text-lg">✓</span>}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* STEP: ENGLISH PROFICIENCY LEVEL (FOR INDIVIDUAL USERS) */}
+        {/* STEP: ENGLISH PROFICIENCY LEVEL (FOR ALL USERS) */}
         {currentStep.id === "level" && (
           <div className="space-y-3">
             {LEVELS.map((lvl) => (

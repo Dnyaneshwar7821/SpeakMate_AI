@@ -69,6 +69,7 @@ export const grammarService = {
   analyze: (originalText) => api.post("/api/grammar/check-grammar", { originalText }).then((res) => res.data),
   history: () => api.get("/api/grammar/get-all-grammar").then((res) => res.data),
   remove: (id) => api.delete(`/api/grammar/delete-grammar/${id}`).then((res) => res.data),
+  clearAll: () => api.delete("/api/grammar/clear-history").then((res) => res.data),
 };
 
 export const aiService = {

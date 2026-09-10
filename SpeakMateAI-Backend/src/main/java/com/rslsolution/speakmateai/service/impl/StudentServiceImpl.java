@@ -44,6 +44,9 @@ public class StudentServiceImpl implements StudentService {
     private com.rslsolution.speakmateai.repository.TeacherRepository teacherRepository;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.repository.TeacherRepository teacherRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.rslsolution.speakmateai.repository.ProgressRepository progressRepository;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -54,7 +57,7 @@ public class StudentServiceImpl implements StudentService {
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        
+
         // 1. Try to find the user in the Tenant table
         User user = userRepository.findByEmail(email).orElse(null);
         if (user != null) {
@@ -111,7 +114,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public StudentResponse createStudent(StudentRequest request) {
         User currentUser = getCurrentUser();
-        
+
         Long schoolIdToUse;
         if (currentUser.getRole() == Role.SUPER_ADMIN) {
             if (request.getSchoolId() == null) {
@@ -125,7 +128,8 @@ public class StudentServiceImpl implements StudentService {
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new com.rslsolution.speakmateai.exception.DuplicateEmailException("An account with email '" + request.getEmail() + "' already exists. Please use a different email address.");
+            throw new com.rslsolution.speakmateai.exception.DuplicateEmailException("An account with email '"
+                    + request.getEmail() + "' already exists. Please use a different email address.");
         }
 
         // Auto-generate Student ID (e.g. STU-2026-1234)
@@ -145,26 +149,46 @@ public class StudentServiceImpl implements StudentService {
         student.setSchoolId(schoolIdToUse);
         student.setStudentId(generatedStudentId);
 
-        boolean isActive = request.getActive() != null ? request.getActive() : (request.getStatus() != null ? request.getStatus() == Status.ACTIVE : true);
+        boolean isActive = request.getActive() != null ? request.getActive()
+                : (request.getStatus() != null ? request.getStatus() == Status.ACTIVE : true);
         student.setActive(isActive);
-        student.setStatus(request.getStatus() != null ? request.getStatus() : (isActive ? Status.ACTIVE : Status.INACTIVE));
+        student.setStatus(
+                request.getStatus() != null ? request.getStatus() : (isActive ? Status.ACTIVE : Status.INACTIVE));
 
-        if (request.getStandard() != null) student.setStandard(request.getStandard().trim());
-        if (request.getDivision() != null) student.setDivision(request.getDivision().trim().toUpperCase());
-        if (request.getRollNumber() != null) student.setRollNumber(request.getRollNumber().trim());
-        if (request.getParentName() != null) student.setParentName(request.getParentName().trim());
-        if (request.getParentPhone() != null) student.setParentPhone(request.getParentPhone().trim());
-        if (request.getPhone() != null) student.setPhone(request.getPhone().trim());
-        if (request.getTeacherId() != null) student.setTeacherId(request.getTeacherId());
+        if (request.getStandard() != null) {
+            String std = request.getStandard().trim();
+            student.setStandard(std);
+            student.setSchoolGrade(UserServiceImpl.formatStandardToGrade(std));
+        }
+        if (request.getDivision() != null)
+            student.setDivision(request.getDivision().trim().toUpperCase());
+        if (request.getRollNumber() != null)
+            student.setRollNumber(request.getRollNumber().trim());
+        if (request.getParentName() != null)
+            student.setParentName(request.getParentName().trim());
+        if (request.getParentPhone() != null)
+            student.setParentPhone(request.getParentPhone().trim());
+        if (request.getPhone() != null)
+            student.setPhone(request.getPhone().trim());
+        if (request.getTeacherId() != null)
+            student.setTeacherId(request.getTeacherId());
 
         Student savedStudent = studentRepository.save(student);
 
         if (notificationService != null) {
             try {
-                String studentName = (savedStudent.getFirstName() + " " + (savedStudent.getLastName() != null ? savedStudent.getLastName() : "")).trim();
-                notificationService.notifyAdmins("New Student Enrolled", "Student " + studentName + " (" + savedStudent.getStudentId() + ") has been enrolled.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED, savedStudent.getId(), "STUDENT");
-                notificationService.sendNotification(savedStudent.getEmail(), "Welcome to SpeakMate AI", "Your student account has been created. Start your learning journey today!", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED, savedStudent.getId(), "STUDENT");
-            } catch (Exception ignored) {}
+                String studentName = (savedStudent.getFirstName() + " "
+                        + (savedStudent.getLastName() != null ? savedStudent.getLastName() : "")).trim();
+                notificationService.notifyAdmins("New Student Enrolled",
+                        "Student " + studentName + " (" + savedStudent.getStudentId() + ") has been enrolled.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED, savedStudent.getId(),
+                        "STUDENT");
+                notificationService.sendNotification(savedStudent.getEmail(), "Welcome to SpeakMate AI",
+                        "Your student account has been created. Start your learning journey today!",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED, savedStudent.getId(),
+                        "STUDENT");
+            } catch (Exception ignored) {
+            }
         }
 
         return mapToResponse(savedStudent);
@@ -178,7 +202,7 @@ public class StudentServiceImpl implements StudentService {
         if (currentUser.getRole() == Role.SUPER_ADMIN) {
             student = studentRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Student not found"));
-            
+
             // Allow Super Admin to change schoolId if provided in request
             if (request.getSchoolId() != null) {
                 student.setSchoolId(request.getSchoolId());
@@ -187,22 +211,29 @@ public class StudentServiceImpl implements StudentService {
         } else if (currentUser.getRole() == Role.SCHOOL_ADMIN || currentUser.getRole() == Role.TEACHER) {
             student = studentRepository.findByIdAndSchoolId(id, currentUser.getSchoolId())
                     .orElseThrow(() -> new RuntimeException("Student not found or not in your school"));
-            
+
             // Ignore schoolId in request, keeping the student in the current school
 
         } else {
             throw new RuntimeException("Unauthorized to update students");
         }
 
-        if (request.getEmail() != null && !request.getEmail().trim().isEmpty() && !student.getEmail().equalsIgnoreCase(request.getEmail().trim())) {
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()
+                && !student.getEmail().equalsIgnoreCase(request.getEmail().trim())) {
             if (userRepository.existsByEmail(request.getEmail().trim())) {
                 throw new RuntimeException("Email already exists");
             }
             student.setEmail(request.getEmail().trim());
         }
 
-        if (request.getFirstName() != null) student.setFirstName(request.getFirstName().trim());
-        if (request.getLastName() != null) student.setLastName(request.getLastName().trim());
+        if (request.getFirstName() != null)
+            student.setFirstName(request.getFirstName().trim());
+        if (request.getLastName() != null)
+            student.setLastName(request.getLastName().trim());
+        if (request.getFirstName() != null)
+            student.setFirstName(request.getFirstName().trim());
+        if (request.getLastName() != null)
+            student.setLastName(request.getLastName().trim());
         student.setRole(Role.STUDENT);
         student.setUserType(UserType.SCHOOL);
 
@@ -214,13 +245,46 @@ public class StudentServiceImpl implements StudentService {
             student.setActive(request.getStatus() == Status.ACTIVE);
         }
 
-        if (request.getStandard() != null) student.setStandard(request.getStandard().trim());
-        if (request.getDivision() != null) student.setDivision(request.getDivision().trim().toUpperCase());
-        if (request.getRollNumber() != null) student.setRollNumber(request.getRollNumber().trim());
-        if (request.getParentName() != null) student.setParentName(request.getParentName().trim());
-        if (request.getParentPhone() != null) student.setParentPhone(request.getParentPhone().trim());
-        if (request.getPhone() != null) student.setPhone(request.getPhone().trim());
-        if (request.getTeacherId() != null) student.setTeacherId(request.getTeacherId());
+        if (request.getStandard() != null) {
+            String std = request.getStandard().trim();
+            student.setStandard(std);
+            student.setSchoolGrade(UserServiceImpl.formatStandardToGrade(std));
+        }
+        if (request.getDivision() != null)
+            student.setDivision(request.getDivision().trim().toUpperCase());
+        if (request.getRollNumber() != null)
+            student.setRollNumber(request.getRollNumber().trim());
+        if (request.getParentName() != null)
+            student.setParentName(request.getParentName().trim());
+        if (request.getParentPhone() != null)
+            student.setParentPhone(request.getParentPhone().trim());
+        if (request.getPhone() != null)
+            student.setPhone(request.getPhone().trim());
+        if (request.getTeacherId() != null)
+            student.setTeacherId(request.getTeacherId());
+
+        if (request.getActive() != null) {
+            student.setActive(request.getActive());
+            student.setStatus(request.getActive() ? Status.ACTIVE : Status.INACTIVE);
+        } else if (request.getStatus() != null) {
+            student.setStatus(request.getStatus());
+            student.setActive(request.getStatus() == Status.ACTIVE);
+        }
+
+        if (request.getStandard() != null)
+            student.setStandard(request.getStandard().trim());
+        if (request.getDivision() != null)
+            student.setDivision(request.getDivision().trim().toUpperCase());
+        if (request.getRollNumber() != null)
+            student.setRollNumber(request.getRollNumber().trim());
+        if (request.getParentName() != null)
+            student.setParentName(request.getParentName().trim());
+        if (request.getParentPhone() != null)
+            student.setParentPhone(request.getParentPhone().trim());
+        if (request.getPhone() != null)
+            student.setPhone(request.getPhone().trim());
+        if (request.getTeacherId() != null)
+            student.setTeacherId(request.getTeacherId());
 
         Student updatedStudent = studentRepository.save(student);
         return mapToResponse(updatedStudent);
@@ -256,7 +320,8 @@ public class StudentServiceImpl implements StudentService {
         Long schoolIdToUse;
 
         if (currentUser.getRole() == Role.SUPER_ADMIN) {
-            throw new RuntimeException("Super Admin cannot perform bulk import without school context. Not fully implemented yet.");
+            throw new RuntimeException(
+                    "Super Admin cannot perform bulk import without school context. Not fully implemented yet.");
         } else if (currentUser.getRole() == Role.SCHOOL_ADMIN || currentUser.getRole() == Role.TEACHER) {
             schoolIdToUse = currentUser.getSchoolId();
         } else {
@@ -283,7 +348,7 @@ public class StudentServiceImpl implements StudentService {
                     failedCount++;
                     continue;
                 }
-                
+
                 String firstName = data[0].trim();
                 String lastName = data[1].trim();
                 String email = data[2].trim();
@@ -317,9 +382,10 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public byte[] exportStudents(String format) {
         List<StudentResponse> students = getAllStudents();
-        
+
         if ("csv".equalsIgnoreCase(format)) {
-            students.sort(Comparator.comparing(StudentResponse::getId, Comparator.nullsLast(Comparator.naturalOrder())));
+            students.sort(
+                    Comparator.comparing(StudentResponse::getId, Comparator.nullsLast(Comparator.naturalOrder())));
             StringBuilder csvBuilder = new StringBuilder();
             csvBuilder.append("ID,FirstName,LastName,Email,StudentId,SchoolId,Status,CreatedAt\n");
             for (StudentResponse student : students) {
@@ -335,7 +401,8 @@ public class StudentServiceImpl implements StudentService {
             return csvBuilder.toString().getBytes();
         } else if ("excel".equalsIgnoreCase(format)) {
             // Placeholder for Excel export
-            throw new RuntimeException("Excel export is supported conceptually but requires Apache POI implementation.");
+            throw new RuntimeException(
+                    "Excel export is supported conceptually but requires Apache POI implementation.");
         } else {
             throw new RuntimeException("Unsupported export format: " + format);
         }
@@ -369,24 +436,41 @@ public class StudentServiceImpl implements StudentService {
         if (adminUserService != null) {
             try {
                 result.put("progress", adminUserService.getUserProgress(id));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 result.put("speaking", adminUserService.getUserSpeakingDetails(id));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 result.put("details", adminUserService.getUserDetails(id));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 result.put("languageScores", adminUserService.getLanguageScores(id));
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             try {
                 result.put("activities", adminUserService.getUserActivities(id, 0, 10).getContent());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return result;
     }
 
     private StudentResponse mapToResponse(Student user) {
+        Status resolvedStatus = user.getStatus();
+        if (resolvedStatus == null) {
+            resolvedStatus = user.isActive() ? Status.ACTIVE : Status.INACTIVE;
+        }
+
+        String teacherName = null;
+        if (user.getTeacherId() != null && teacherRepository != null) {
+            teacherName = teacherRepository.findById(user.getTeacherId())
+                    .map(t -> (t.getFirstName() + " " + (t.getLastName() != null ? t.getLastName() : "")).trim())
+                    .orElse(null);
+        }
+
         Status resolvedStatus = user.getStatus();
         if (resolvedStatus == null) {
             resolvedStatus = user.isActive() ? Status.ACTIVE : Status.INACTIVE;
@@ -414,22 +498,27 @@ public class StudentServiceImpl implements StudentService {
                     speakingSessions = p.getTotalSpeakingSessions() != null ? p.getTotalSpeakingSessions() : 0;
                     practiceMinutes = p.getTotalPracticeMinutes() != null ? p.getTotalPracticeMinutes() : 0;
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         if (speakingSessionRepository != null) {
             try {
-                List<com.rslsolution.speakmateai.entity.SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
+                List<com.rslsolution.speakmateai.entity.SpeakingSession> sessions = speakingSessionRepository
+                        .findByUser(user);
                 if (sessions != null && !sessions.isEmpty()) {
-                    if (speakingSessions == 0) speakingSessions = sessions.size();
+                    if (speakingSessions == 0)
+                        speakingSessions = sessions.size();
                     averageScore = sessions.stream().filter(s -> s.getScore() != null)
-                            .mapToDouble(com.rslsolution.speakmateai.entity.SpeakingSession::getScore).average().orElse(0.0);
+                            .mapToDouble(com.rslsolution.speakmateai.entity.SpeakingSession::getScore).average()
+                            .orElse(0.0);
                     if (practiceMinutes == 0) {
                         practiceMinutes = sessions.stream().filter(s -> s.getDuration() != null)
                                 .mapToInt(com.rslsolution.speakmateai.entity.SpeakingSession::getDuration).sum() / 60;
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return StudentResponse.builder()

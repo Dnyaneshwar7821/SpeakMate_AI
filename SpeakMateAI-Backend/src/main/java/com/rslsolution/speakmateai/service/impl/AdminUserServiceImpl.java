@@ -63,6 +63,8 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final ProgressRepository progressRepository;
     private final SpeakingSessionRepository speakingSessionRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
+    private final com.rslsolution.speakmateai.repository.GrammarHistoryRepository grammarHistoryRepository;
+    private final com.rslsolution.speakmateai.repository.VocabularyRepository vocabularyRepository;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private ConversationFeedbackRepository conversationFeedbackRepository;
@@ -82,13 +84,17 @@ public class AdminUserServiceImpl implements AdminUserService {
     public AdminUserServiceImpl(UserRepository userRepository, AdminUserMapper adminUserMapper,
             PasswordEncoder passwordEncoder,
             ProgressRepository progressRepository, SpeakingSessionRepository speakingSessionRepository,
-            UserSubscriptionRepository userSubscriptionRepository) {
+            UserSubscriptionRepository userSubscriptionRepository,
+            com.rslsolution.speakmateai.repository.GrammarHistoryRepository grammarHistoryRepository,
+            com.rslsolution.speakmateai.repository.VocabularyRepository vocabularyRepository) {
         this.userRepository = userRepository;
         this.adminUserMapper = adminUserMapper;
         this.passwordEncoder = passwordEncoder;
         this.progressRepository = progressRepository;
         this.speakingSessionRepository = speakingSessionRepository;
         this.userSubscriptionRepository = userSubscriptionRepository;
+        this.grammarHistoryRepository = grammarHistoryRepository;
+        this.vocabularyRepository = vocabularyRepository;
     }
 
     @Override
@@ -129,16 +135,23 @@ public class AdminUserServiceImpl implements AdminUserService {
         user.setNativeLanguage(request.getNativeLanguage());
         user.setLearningGoal(request.getLearningGoal());
         user.setDailyGoalMinutes(request.getDailyGoalMinutes());
-        user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Phone number"));
+        user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(),
+                "Phone number"));
 
         User savedUser = userRepository.save(user);
 
         if (notificationService != null) {
             try {
-                String userName = (savedUser.getFirstName() + " " + (savedUser.getLastName() != null ? savedUser.getLastName() : "")).trim();
-                notificationService.notifyAdmins("New User Registered", "User " + userName + " (" + savedUser.getEmail() + ") has joined the platform.", com.rslsolution.speakmateai.enums.NotificationType.USER_CREATED, savedUser.getId(), "USER");
-                notificationService.sendNotification(savedUser.getEmail(), "Welcome to SpeakMate AI", "Your account has been created successfully. Welcome aboard!", com.rslsolution.speakmateai.enums.NotificationType.USER_CREATED, savedUser.getId(), "USER");
-            } catch (Exception ignored) {}
+                String userName = (savedUser.getFirstName() + " "
+                        + (savedUser.getLastName() != null ? savedUser.getLastName() : "")).trim();
+                notificationService.notifyAdmins("New User Registered",
+                        "User " + userName + " (" + savedUser.getEmail() + ") has joined the platform.",
+                        com.rslsolution.speakmateai.enums.NotificationType.USER_CREATED, savedUser.getId(), "USER");
+                notificationService.sendNotification(savedUser.getEmail(), "Welcome to SpeakMate AI",
+                        "Your account has been created successfully. Welcome aboard!",
+                        com.rslsolution.speakmateai.enums.NotificationType.USER_CREATED, savedUser.getId(), "USER");
+            } catch (Exception ignored) {
+            }
         }
 
         if (emailService != null && savedUser.getEmail() != null && !savedUser.getEmail().isBlank()) {
@@ -156,15 +169,13 @@ public class AdminUserServiceImpl implements AdminUserService {
                             savedUser.getEmail(),
                             rawPassword,
                             savedUser.getEnglishLevel() != null ? savedUser.getEnglishLevel() : "N/A",
-                            savedUser.getLearningGoal() != null ? savedUser.getLearningGoal() : "N/A"
-                    );
+                            savedUser.getLearningGoal() != null ? savedUser.getLearningGoal() : "N/A");
                     String text = emailTemplateService.buildUserWelcomeEmailText(
                             userName,
                             savedUser.getEmail(),
                             rawPassword,
                             savedUser.getEnglishLevel() != null ? savedUser.getEnglishLevel() : "N/A",
-                            savedUser.getLearningGoal() != null ? savedUser.getLearningGoal() : "N/A"
-                    );
+                            savedUser.getLearningGoal() != null ? savedUser.getLearningGoal() : "N/A");
                     emailService.sendHtmlEmail(savedUser.getEmail(), subject, html, text);
                 } else {
                     String text = "Hello " + (userName.isEmpty() ? "User" : userName) + ",\n\n"
@@ -180,7 +191,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                     emailService.sendEmail(savedUser.getEmail(), subject, text);
                 }
             } catch (Exception e) {
-                System.err.println("Failed to dispatch user credentials email to " + savedUser.getEmail() + ": " + e.getMessage());
+                System.err.println(
+                        "Failed to dispatch user credentials email to " + savedUser.getEmail() + ": " + e.getMessage());
             }
         }
 
@@ -210,7 +222,8 @@ public class AdminUserServiceImpl implements AdminUserService {
         user.setLastName(request.getLastName());
         user.setEmail(request.getEmail());
         if (request.getPhone() != null) {
-            user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Phone number"));
+            user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(),
+                    "Phone number"));
         }
         user.setEnglishLevel(request.getEnglishLevel());
         user.setNativeLanguage(request.getNativeLanguage());
@@ -244,8 +257,7 @@ public class AdminUserServiceImpl implements AdminUserService {
                         "User " + userName + " (" + savedUser.getEmail() + ") has been activated by Super Admin.",
                         com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
                         savedUser.getId(),
-                        "USER"
-                );
+                        "USER");
             } catch (Exception e) {
                 System.err.println("Failed to dispatch admin notification on activate user: " + e.getMessage());
             }
@@ -258,10 +270,10 @@ public class AdminUserServiceImpl implements AdminUserService {
                             "User " + userName + " has been activated by Super Admin.",
                             com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
                             savedUser.getId(),
-                            "USER"
-                    );
+                            "USER");
                 } catch (Exception e) {
-                    System.err.println("Failed to dispatch school admin notification on activate user: " + e.getMessage());
+                    System.err.println(
+                            "Failed to dispatch school admin notification on activate user: " + e.getMessage());
                 }
             }
         }
@@ -286,8 +298,7 @@ public class AdminUserServiceImpl implements AdminUserService {
                         "User " + userName + " (" + savedUser.getEmail() + ") has been deactivated by Super Admin.",
                         com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
                         savedUser.getId(),
-                        "USER"
-                );
+                        "USER");
             } catch (Exception e) {
                 System.err.println("Failed to dispatch admin notification on deactivate user: " + e.getMessage());
             }
@@ -300,10 +311,10 @@ public class AdminUserServiceImpl implements AdminUserService {
                             "User " + userName + " has been deactivated by Super Admin.",
                             com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
                             savedUser.getId(),
-                            "USER"
-                    );
+                            "USER");
                 } catch (Exception e) {
-                    System.err.println("Failed to dispatch school admin notification on deactivate user: " + e.getMessage());
+                    System.err.println(
+                            "Failed to dispatch school admin notification on deactivate user: " + e.getMessage());
                 }
             }
         }
@@ -466,8 +477,9 @@ public class AdminUserServiceImpl implements AdminUserService {
         double avgPronunciation = 0;
         double avgVocabulary = 0.0;
 
-        if (user.getGrammarHistories() != null && !user.getGrammarHistories().isEmpty()) {
-            avgGrammar = user.getGrammarHistories().stream()
+        List<GrammarHistory> grammars = grammarHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+        if (grammars != null && !grammars.isEmpty()) {
+            avgGrammar = grammars.stream()
                     .filter(g -> g.getGrammarScore() != null)
                     .mapToDouble(GrammarHistory::getGrammarScore)
                     .average().orElse(0.0);
@@ -483,16 +495,12 @@ public class AdminUserServiceImpl implements AdminUserService {
                     .filter(s -> s.getPronunciationScore() != null)
                     .mapToDouble(SpeakingSession::getPronunciationScore)
                     .average().orElse(0.0);
-            if (avgGrammar == 0) {
-                avgGrammar = sessions.stream()
-                        .filter(s -> s.getGrammarScore() != null)
-                        .mapToDouble(SpeakingSession::getGrammarScore)
-                        .average().orElse(0.0);
-            }
-            avgVocabulary = sessions.stream()
-                    .filter(s -> s.getVocabularyScore() != null)
-                    .mapToDouble(SpeakingSession::getVocabularyScore)
-                    .average().orElse(0.0);
+        }
+
+        List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
+        if (vocabs != null && !vocabs.isEmpty()) {
+            long mastered = vocabs.stream().filter(v -> Boolean.TRUE.equals(v.getFavorite())).count();
+            avgVocabulary = ((double) mastered / vocabs.size()) * 100.0;
         }
 
         return LanguageScoreResponse.builder()
@@ -514,41 +522,30 @@ public class AdminUserServiceImpl implements AdminUserService {
             for (LessonProgress lp : user.getLessonProgresses()) {
                 allActivities.add(UserActivityResponse.builder()
                         .activityType("LESSON")
-                        .title(lp.getLesson() != null ? lp.getLesson().getTitle() : "Lesson Practice")
+                        .title(lp.getLesson() != null ? lp.getLesson().getTitle() : "Unknown Lesson")
                         .description("Lesson Practice")
                         .activityDate(lp.getUpdatedAt() != null ? lp.getUpdatedAt() : lp.getCreatedAt())
-                        .status(Boolean.TRUE.equals(lp.getCompleted()) ? "COMPLETED" : "IN_PROGRESS")
+                        .status(lp.getCompleted() != null && lp.getCompleted() ? "COMPLETED" : "IN_PROGRESS")
                         .build());
             }
         }
 
-        List<SpeakingSession> sessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
-        if (sessions != null) {
-            for (SpeakingSession ss : sessions) {
-                String desc = ss.getFeedback() != null && !ss.getFeedback().isEmpty() ? ss.getFeedback() : "Speaking Practice";
+        List<SpeakingSession> userSessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
+        if (userSessions != null) {
+            for (SpeakingSession ss : userSessions) {
                 allActivities.add(UserActivityResponse.builder()
                         .activityType("SPEAKING")
-                        .title(ss.getTopic() != null ? ss.getTopic() : (ss.getScenario() != null ? ss.getScenario() : "AI Speaking Session"))
-                        .description(desc)
-                        .activityDate(ss.getCreatedAt() != null ? ss.getCreatedAt() : LocalDateTime.now())
+                        .title(ss.getTopic() != null ? ss.getTopic() : "Speaking Session")
+                        .description("Speaking Practice")
+                        .activityDate(ss.getCreatedAt())
                         .status("COMPLETED")
                         .build());
             }
         }
 
-        if (user.getGrammarHistories() != null) {
-            for (GrammarHistory gh : user.getGrammarHistories()) {
-                allActivities.add(UserActivityResponse.builder()
-                        .activityType("GRAMMAR")
-                        .title("Grammar Check")
-                        .description("Accuracy: " + (gh.getGrammarScore() != null ? gh.getGrammarScore() : "N/A") + "%")
-                        .activityDate(gh.getCreatedAt() != null ? gh.getCreatedAt() : LocalDateTime.now())
-                        .status("COMPLETED")
-                        .build());
-            }
-        }
-
-        allActivities.sort(Comparator.comparing(UserActivityResponse::getActivityDate, Comparator.nullsLast(Comparator.naturalOrder())).reversed());
+        allActivities.sort(Comparator
+                .comparing(UserActivityResponse::getActivityDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                .reversed());
 
         int start = Math.min(page * size, allActivities.size());
         int end = Math.min((page + 1) * size, allActivities.size());
@@ -568,7 +565,7 @@ public class AdminUserServiceImpl implements AdminUserService {
 
         if (user.getLessonProgresses() != null && !user.getLessonProgresses().isEmpty()) {
             lessonsCompleted = (int) user.getLessonProgresses().stream()
-                    .filter(lp -> Boolean.TRUE.equals(lp.getCompleted())).count();
+                    .filter(lp -> lp.getCompleted() != null && lp.getCompleted()).count();
             completionPercent = user.getLessonProgresses().stream().filter(lp -> lp.getProgressPercent() != null)
                     .mapToDouble(LessonProgress::getProgressPercent).average().orElse(0.0);
         }
@@ -581,12 +578,6 @@ public class AdminUserServiceImpl implements AdminUserService {
         totalLearningHours = progress != null && progress.getTotalPracticeMinutes() != null
                 ? progress.getTotalPracticeMinutes() / 60
                 : 0;
-
-        List<SpeakingSession> sessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
-        testsCompleted = sessions != null ? sessions.size() : 0;
-        if (completionPercent == 0.0 && progress != null && progress.getXp() != null) {
-            completionPercent = Math.min(100.0, progress.getXp() / 10.0);
-        }
 
         return UserProgressResponse.builder()
                 .overallProgress((int) completionPercent)
@@ -610,9 +601,6 @@ public class AdminUserServiceImpl implements AdminUserService {
         double bestScore = 0.0;
 
         List<SpeakingSession> sessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
-        SpeakingSessionDetailResponse latestDetail = null;
-        List<SpeakingSessionDetailResponse> recentDetails = new ArrayList<>();
-
         if (sessions != null && !sessions.isEmpty()) {
             totalSessions = sessions.size();
             avgScore = sessions.stream().filter(s -> s.getScore() != null)
@@ -622,47 +610,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             totalMinutes = sessions.stream().filter(s -> s.getDuration() != null)
                     .mapToInt(SpeakingSession::getDuration).sum() / 60;
             lastDate = sessions.stream().map(SpeakingSession::getCreatedAt)
-                    .filter(Objects::nonNull)
                     .max(LocalDateTime::compareTo).orElse(null);
-
-            for (SpeakingSession s : sessions.stream().limit(10).toList()) {
-                ConversationFeedback fb = null;
-                if (conversationFeedbackRepository != null) {
-                    try {
-                        fb = conversationFeedbackRepository.findBySession(s).orElse(null);
-                    } catch (Exception ignored) {}
-                }
-                SpeakingSessionDetailResponse.FeedbackDto fbDto = null;
-                if (fb != null) {
-                    fbDto = SpeakingSessionDetailResponse.FeedbackDto.builder()
-                            .grammarCorrections(fb.getGrammarCorrections())
-                            .betterSentences(fb.getBetterSentences())
-                            .vocabularySuggestions(fb.getVocabularySuggestions())
-                            .summary(fb.getSummary())
-                            .build();
-                }
-
-                SpeakingSessionDetailResponse detail = SpeakingSessionDetailResponse.builder()
-                        .id(s.getId())
-                        .scenario(s.getScenario() != null ? s.getScenario() : s.getTopic())
-                        .duration(s.getDuration())
-                        .xpEarned(s.getXpEarned())
-                        .score(s.getScore())
-                        .overallScore(s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
-                        .fluencyScore(s.getFluencyScore())
-                        .grammarScore(s.getGrammarScore())
-                        .vocabularyScore(s.getVocabularyScore())
-                        .pronunciationScore(s.getPronunciationScore())
-                        .feedback(s.getFeedback())
-                        .createdAt(s.getCreatedAt())
-                        .feedbackDetail(fbDto)
-                        .build();
-
-                recentDetails.add(detail);
-                if (latestDetail == null) {
-                    latestDetail = detail;
-                }
-            }
         }
 
         return UserSpeakingResponse.builder()
@@ -686,11 +634,12 @@ public class AdminUserServiceImpl implements AdminUserService {
         int totalMistakes = 0;
         double improvementPercentage = 0.0;
 
-        if (user.getGrammarHistories() != null && !user.getGrammarHistories().isEmpty()) {
-            exercises = user.getGrammarHistories().size();
-            accuracy = user.getGrammarHistories().stream().filter(g -> g.getGrammarScore() != null)
+        List<GrammarHistory> histories = grammarHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+        if (histories != null && !histories.isEmpty()) {
+            exercises = histories.size();
+            accuracy = histories.stream().filter(g -> g.getGrammarScore() != null)
                     .mapToDouble(GrammarHistory::getGrammarScore).average().orElse(0.0);
-            totalMistakes = 0;
+            totalMistakes = 0; // Not stored as a raw column in DB
         }
 
         return UserGrammarResponse.builder()
@@ -711,17 +660,12 @@ public class AdminUserServiceImpl implements AdminUserService {
         int pending = 0;
         double score = 0.0;
 
-        if (user.getVocabularyList() != null && !user.getVocabularyList().isEmpty()) {
-            wordsLearned = user.getVocabularyList().size();
-            mastered = (int) user.getVocabularyList().stream().filter(v -> Boolean.TRUE.equals(v.getFavorite()))
-                    .count();
+        List<Vocabulary> vocabList = vocabularyRepository.findByUser(user);
+        if (vocabList != null && !vocabList.isEmpty()) {
+            wordsLearned = vocabList.size();
+            mastered = (int) vocabList.stream().filter(v -> Boolean.TRUE.equals(v.getFavorite())).count();
             pending = wordsLearned - mastered;
             score = 0.0;
-        }
-
-        Progress progress = progressRepository.findByUser(user).orElse(null);
-        if (wordsLearned == 0 && progress != null && progress.getTotalVocabularyWords() != null) {
-            wordsLearned = progress.getTotalVocabularyWords();
         }
 
         return UserVocabularyResponse.builder()
@@ -739,7 +683,8 @@ public class AdminUserServiceImpl implements AdminUserService {
 
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
-        user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Phone number"));
+        user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(),
+                "Phone number"));
         user.setEnglishLevel(request.getEnglishLevel());
         user.setActive(request.isActive());
 

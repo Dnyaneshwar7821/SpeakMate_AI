@@ -27,4 +27,9 @@ public interface GrammarHistoryRepository extends JpaRepository<GrammarHistory, 
 	List<GrammarHistory> findByUserIdAndCreatedAtBetween(@org.springframework.data.repository.query.Param("userId") Long userId,
 			@org.springframework.data.repository.query.Param("start") java.time.LocalDateTime start,
 			@org.springframework.data.repository.query.Param("end") java.time.LocalDateTime end);
+
+	@org.springframework.data.jpa.repository.Modifying
+	@org.springframework.transaction.annotation.Transactional
+	@org.springframework.data.jpa.repository.Query("DELETE FROM GrammarHistory g WHERE g.user = :user")
+	void deleteByUser(@org.springframework.data.repository.query.Param("user") User user);
 }
