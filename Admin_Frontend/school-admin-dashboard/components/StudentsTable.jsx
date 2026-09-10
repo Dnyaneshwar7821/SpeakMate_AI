@@ -37,7 +37,7 @@ export function StudentsTable({ students, isLoading, onRowClick, onEdit, onDelet
                 </thead>
                 <tbody>
                     {students.map((student) => {
-                        const isActive = student.status === "active";
+                        const isActive = student.active !== undefined ? Boolean(student.active) : student.status === "active";
                         return (
                         <tr
                             key={student.id}

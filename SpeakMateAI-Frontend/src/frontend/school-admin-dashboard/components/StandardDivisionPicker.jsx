@@ -39,14 +39,26 @@ export const computeAllSelectedAssignments = (assignmentGroups) => {
 
 /**
  * Parses initial teacher data into assignment groups for the checkbox UI:
- * [{ standard: "8th", divisions: ["A", "B"] }]
+ * [{ standard: "8th Standard", divisions: ["A", "B"] }]
  */
-export const loadInitialAssignmentGroups = (data) => {
+export const loadInitialAssignmentGroups = (data, config = []) => {
     let initialGroups = [];
+    const pool = [
+        ...(Array.isArray(config) ? config : []),
+        ...STANDARD_OPTIONS.map((s) => ({ standard: s }))
+    ];
+    const resolveCanonical = (rawStd) => {
+        if (!rawStd) return "";
+        const matched = pool.find(
+            (c) => c.standard === rawStd || normalizeStd(c.standard) === normalizeStd(rawStd)
+        );
+        return matched ? matched.standard : rawStd;
+    };
+
     if (data && Array.isArray(data.standardDivisions) && data.standardDivisions.length > 0) {
         const map = new Map();
         data.standardDivisions.forEach((sd) => {
-            const std = sd.standard || "";
+            const std = resolveCanonical(sd.standard || "");
             const div = sd.division || "";
             if (std) {
                 if (!map.has(std)) map.set(std, []);
@@ -59,8 +71,9 @@ export const loadInitialAssignmentGroups = (data) => {
             initialGroups.push({ standard: std, divisions: divs.sort() });
         });
     } else if (data && (data.standard || data.division)) {
+        const std = resolveCanonical(data.standard || "");
         initialGroups.push({
-            standard: data.standard || "",
+            standard: std,
             divisions: data.division ? [data.division] : []
         });
     }
@@ -72,20 +85,61 @@ export const loadInitialAssignmentGroups = (data) => {
 
 /**
  * Builds an in-memory map of occupied standard + division assignments for the school.
- * Excludes the teacher currently being edited (self-exclusion).
+ * Excludes the teacher currently being edited (self-exclusion by ID, email, or name).
  * Map key: `${normalizeStd(standard)}-${division.toUpperCase()}`
  */
-export const buildOccupiedAssignmentsMap = (teachers = [], editingTeacherId = null, currentSchoolId = null) => {
+export const buildOccupiedAssignmentsMap = (
+    teachers = [],
+    editingTeacherId = null,
+    currentSchoolId = null,
+    editingTeacherEmail = null,
+    editingTeacherName = null
+) => {
     const map = new Map();
     (teachers || []).forEach((t) => {
+        // Skip inactive/deactivated teachers - they do not occupy active classrooms
+        if (t.active === false || t.status === "inactive") {
+            return;
+        }
+
         // Self-exclusion: skip the teacher currently being edited
-        if (editingTeacherId != null && (String(t.id) === String(editingTeacherId) || String(t.dbId) === String(editingTeacherId))) {
+        const isSameId =
+            editingTeacherId != null &&
+            (String(t.id) === String(editingTeacherId) ||
+             String(t.teacherId) === String(editingTeacherId) ||
+             String(t.userId) === String(editingTeacherId) ||
+             String(t.dbId) === String(editingTeacherId));
+
+        const isSameEmail =
+            editingTeacherEmail &&
+            t.email &&
+            String(t.email).trim().toLowerCase() === String(editingTeacherEmail).trim().toLowerCase();
+
+        const teacherFullName = (t.name || `${t.firstName || ""} ${t.lastName || ""}`.trim()).toLowerCase();
+        const isSameName =
+            editingTeacherName &&
+            teacherFullName &&
+            teacherFullName === String(editingTeacherName).trim().toLowerCase();
+
+        if (isSameId || isSameEmail || isSameName) {
             return;
         }
 
         // School isolation: if currentSchoolId is specified, ensure teacher belongs to this school
-        if (currentSchoolId != null && t.schoolId != null && String(t.schoolId) !== String(currentSchoolId)) {
-            return;
+        if (currentSchoolId != null) {
+            const currentSchoolStr = String(currentSchoolId).trim().toLowerCase();
+            const teacherSchoolIdStr = t.schoolId != null ? String(t.schoolId).trim().toLowerCase() : null;
+            const teacherSchoolNameStr = t.schoolName ? String(t.schoolName).trim().toLowerCase() : null;
+
+            if (teacherSchoolIdStr != null) {
+                if (teacherSchoolIdStr !== currentSchoolStr && teacherSchoolNameStr !== currentSchoolStr) {
+                    return;
+                }
+            } else if (teacherSchoolNameStr != null) {
+                if (teacherSchoolNameStr !== currentSchoolStr) {
+                    return;
+                }
+            }
         }
 
         const teacherName = t.name || `${t.firstName || ""} ${t.lastName || ""}`.trim() || t.email || "Another Teacher";
@@ -97,17 +151,38 @@ export const buildOccupiedAssignmentsMap = (teachers = [], editingTeacherId = nu
                     pairs.push({ standard: sd.standard, division: sd.division });
                 }
             });
+        } else if (Array.isArray(t.standards) && t.standards.length > 0) {
+            t.standards.forEach((s) => {
+                if (typeof s === "string" && s.includes("-")) {
+                    const [std, div] = s.split("-");
+                    if (std && div) pairs.push({ standard: std, division: div });
+                } else if (t.division) {
+                    const divs = String(t.division).split(/[,/ ]+/).filter(Boolean);
+                    divs.forEach((d) => pairs.push({ standard: s, division: d }));
+                }
+            });
         } else if (t.standard && t.division) {
-            pairs.push({ standard: t.standard, division: t.division });
+            const stds = String(t.standard).split(/[,/ ]+/).filter(Boolean);
+            const divs = String(t.division).split(/[,/ ]+/).filter(Boolean);
+            stds.forEach((s) => {
+                divs.forEach((d) => pairs.push({ standard: s, division: d }));
+            });
+        } else if (Array.isArray(t.classRooms) && t.classRooms.length > 0) {
+            t.classRooms.forEach((cr) => {
+                if (cr?.standard && cr?.division) {
+                    pairs.push({ standard: cr.standard, division: cr.division });
+                }
+            });
         }
 
         pairs.forEach(({ standard, division }) => {
             const normStd = normalizeStd(standard);
             const normDiv = String(division).trim().toUpperCase();
+            if (!normStd || !normDiv) return;
             const key = `${normStd}-${normDiv}`;
             if (!map.has(key)) {
                 map.set(key, {
-                    teacherId: t.id,
+                    teacherId: t.id || t.teacherId,
                     teacherName,
                     standard,
                     division: normDiv
@@ -173,6 +248,8 @@ export function StandardDivisionPicker({
     disabled = false,
     teachers = [],
     editingTeacherId = null,
+    editingTeacherEmail = null,
+    editingTeacherName = null,
     schoolId = null,
     onConflictsChange
 }) {
@@ -189,10 +266,35 @@ export function StandardDivisionPicker({
         return computeAllSelectedAssignments(assignmentGroups);
     }, [assignmentGroups]);
 
+    // Keep assignment group standards synchronized with canonical names in effectiveConfig
+    useEffect(() => {
+        let hasChanges = false;
+        const nextGroups = assignmentGroups.map((g) => {
+            if (!g.standard) return g;
+            const matched = effectiveConfig.find(
+                (c) => c.standard !== g.standard && normalizeStd(c.standard) === normalizeStd(g.standard)
+            );
+            if (matched) {
+                hasChanges = true;
+                return { ...g, standard: matched.standard };
+            }
+            return g;
+        });
+        if (hasChanges) {
+            onChange?.(nextGroups, computeAllSelectedAssignments(nextGroups));
+        }
+    }, [effectiveConfig, assignmentGroups, onChange]);
+
     // In-memory conflict lookup for teacher assignments within the school
     const occupiedAssignmentsMap = useMemo(() => {
-        return buildOccupiedAssignmentsMap(teachers, editingTeacherId, schoolId);
-    }, [teachers, editingTeacherId, schoolId]);
+        return buildOccupiedAssignmentsMap(
+            teachers,
+            editingTeacherId,
+            schoolId,
+            editingTeacherEmail,
+            editingTeacherName
+        );
+    }, [teachers, editingTeacherId, schoolId, editingTeacherEmail, editingTeacherName]);
 
     // Active assignment conflicts for current selections
     const assignmentConflicts = useMemo(() => {
@@ -213,6 +315,14 @@ export function StandardDivisionPicker({
         const nextGroups = [...assignmentGroups];
         const group = nextGroups[groupIndex];
         const hasDiv = group.divisions.includes(division);
+        const normKey = `${normalizeStd(group.standard)}-${String(division).trim().toUpperCase()}`;
+        const isOccupied = occupiedAssignmentsMap.has(normKey);
+
+        // If division is occupied by another teacher and not currently selected, forbid selection
+        if (isOccupied && !hasDiv) {
+            return;
+        }
+
         const newDivs = hasDiv
             ? group.divisions.filter((d) => d !== division)
             : [...group.divisions, division].sort();
@@ -220,9 +330,14 @@ export function StandardDivisionPicker({
         onChange?.(nextGroups, computeAllSelectedAssignments(nextGroups));
     };
 
-    const handleSelectAllDivisions = (groupIndex, availableDivisions) => {
+    const handleSelectAllDivisions = (groupIndex, availableDivisions, groupStandard) => {
+        // Only ever select unassigned divisions so occupied divisions are never checked
+        const unassignedDivisions = availableDivisions.filter((div) => {
+            const normKey = `${normalizeStd(groupStandard)}-${String(div).trim().toUpperCase()}`;
+            return !occupiedAssignmentsMap.has(normKey);
+        });
         const nextGroups = [...assignmentGroups];
-        nextGroups[groupIndex] = { ...nextGroups[groupIndex], divisions: [...availableDivisions] };
+        nextGroups[groupIndex] = { ...nextGroups[groupIndex], divisions: [...unassignedDivisions] };
         onChange?.(nextGroups, computeAllSelectedAssignments(nextGroups));
     };
 
@@ -288,6 +403,17 @@ export function StandardDivisionPicker({
                             (c) => c.standard === group.standard || normalizeStd(c.standard) === normalizeStd(group.standard)
                         );
 
+                    const selectValue = selectedConfig ? selectedConfig.standard : (group.standard || "");
+
+                    const occupiedDivisions = availableDivisions
+                        .map((div) => {
+                            const normKey = `${normalizeStd(group.standard)}-${String(div).trim().toUpperCase()}`;
+                            const conflict = occupiedAssignmentsMap.get(normKey);
+                            return conflict ? { div, teacherName: conflict.teacherName } : null;
+                        })
+                        .filter(Boolean);
+                    const availableDivisionsCount = availableDivisions.length - occupiedDivisions.length;
+
                     return (
                         <div
                             key={groupIndex}
@@ -299,7 +425,7 @@ export function StandardDivisionPicker({
                                         Standard
                                     </label>
                                     <select
-                                        value={group.standard}
+                                        value={selectValue}
                                         onChange={(e) => handleStandardChange(groupIndex, e.target.value)}
                                         disabled={disabled}
                                         className="h-11 w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] outline-none transition focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary)]/20 disabled:cursor-not-allowed disabled:opacity-60"
@@ -320,11 +446,14 @@ export function StandardDivisionPicker({
                                     <div className="flex items-center gap-1.5 pb-2.5">
                                         <button
                                             type="button"
-                                            disabled={disabled}
-                                            onClick={() => handleSelectAllDivisions(groupIndex, availableDivisions)}
-                                            className="text-xs font-semibold text-[var(--color-primary)] hover:opacity-80 transition-opacity px-1 py-0.5 disabled:opacity-50"
+                                            disabled={disabled || availableDivisionsCount === 0}
+                                            onClick={() => handleSelectAllDivisions(groupIndex, availableDivisions, group.standard)}
+                                            className="text-xs font-semibold text-[var(--color-primary)] hover:opacity-80 transition-opacity px-1 py-0.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            title={occupiedDivisions.length > 0 ? "Select only available (unassigned) divisions" : "Select all divisions"}
                                         >
-                                            Select All
+                                            {occupiedDivisions.length > 0
+                                                ? `Select Available (${availableDivisionsCount})`
+                                                : "Select All"}
                                         </button>
                                         <span className="text-[var(--text-muted)] text-xs">|</span>
                                         <button
@@ -354,7 +483,39 @@ export function StandardDivisionPicker({
                             </div>
 
                             {group.standard ? (
-                                <div>
+                                <div className="space-y-2.5">
+                                    {/* Standard Assignment Overview Banner */}
+                                    {availableDivisions.length > 0 && (
+                                        occupiedDivisions.length > 0 ? (
+                                            <div className="rounded-xl border border-amber-300/80 bg-amber-50/80 dark:border-amber-700/60 dark:bg-amber-950/30 p-2.5 text-xs space-y-1.5 transition-all">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                                                        <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                                                        Assigned Divisions in {group.standard} (Non-clickable / Cannot be selected):
+                                                    </span>
+                                                    <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
+                                                        {availableDivisionsCount} available
+                                                    </span>
+                                                </div>
+                                                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                                                    {occupiedDivisions.map((od) => (
+                                                        <span
+                                                            key={od.div}
+                                                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100/90 text-amber-900 dark:bg-amber-900/40 dark:text-amber-200 border border-amber-200 dark:border-amber-800"
+                                                        >
+                                                            <strong>Div {od.div}:</strong> {od.teacherName} (Assigned)
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/60 dark:bg-emerald-950/20 px-3 py-1.5 text-xs flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-medium">
+                                                <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                                                <span>All divisions in {group.standard} are currently available.</span>
+                                            </div>
+                                        )
+                                    )}
+
                                     <div className="flex items-center justify-between mb-1.5">
                                         <span className="block text-xs font-semibold text-[var(--text-secondary)]">
                                             Divisions:
@@ -363,6 +524,7 @@ export function StandardDivisionPicker({
                                             {group.divisions.length} of {availableDivisions.length} selected
                                         </span>
                                     </div>
+
                                     {availableDivisions.length === 0 ? (
                                         <p className="text-xs text-[var(--text-muted)] italic">No divisions configured for this standard.</p>
                                     ) : (
@@ -372,43 +534,63 @@ export function StandardDivisionPicker({
                                                 const normKey = `${normalizeStd(group.standard)}-${String(div).trim().toUpperCase()}`;
                                                 const conflictInfo = occupiedAssignmentsMap.get(normKey);
                                                 const isOccupied = Boolean(conflictInfo);
+                                                const isNonClickable = disabled || (isOccupied && !isChecked);
 
                                                 let containerStyle = "";
                                                 if (isOccupied && isChecked) {
-                                                    containerStyle = "border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:border-rose-500/80 dark:text-rose-300 shadow-xs ring-1 ring-rose-500/30";
+                                                    containerStyle = "border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:border-rose-500/80 dark:text-rose-300 shadow-xs ring-1 ring-rose-500/30 cursor-pointer";
                                                 } else if (isOccupied) {
-                                                    containerStyle = "border-amber-300/90 bg-amber-50/50 text-amber-900 dark:border-amber-700/60 dark:bg-amber-950/30 dark:text-amber-200 hover:bg-amber-100/50";
+                                                    containerStyle = "border-slate-200 bg-slate-100/90 text-slate-400 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-500 cursor-not-allowed pointer-events-none opacity-60";
                                                 } else if (isChecked) {
-                                                    containerStyle = "border-[var(--color-primary)]/50 bg-[var(--color-primary)]/10 text-[var(--color-primary)] shadow-xs";
+                                                    containerStyle = "border-[var(--color-primary)]/50 bg-[var(--color-primary)]/10 text-[var(--color-primary)] shadow-xs cursor-pointer";
                                                 } else {
-                                                    containerStyle = "border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]";
+                                                    containerStyle = "border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)] hover:bg-[var(--bg-subtle)] cursor-pointer";
                                                 }
 
                                                 return (
                                                     <label
                                                         key={div}
-                                                        className={`inline-flex flex-col items-start gap-0.5 px-3 py-1.5 rounded-lg border text-sm font-medium cursor-pointer select-none transition-all ${containerStyle} ${disabled ? "cursor-not-allowed opacity-60" : ""}`}
+                                                        onClick={(e) => {
+                                                            if (isNonClickable) {
+                                                                e.preventDefault();
+                                                            }
+                                                        }}
+                                                        className={`inline-flex flex-col items-start gap-1 px-3 py-2 rounded-xl border text-sm font-medium select-none transition-all ${containerStyle} ${isNonClickable ? "cursor-not-allowed opacity-60 pointer-events-none" : ""}`}
+                                                        title={isOccupied && !isChecked ? `Already assigned to ${conflictInfo.teacherName} (Cannot be selected)` : undefined}
                                                     >
                                                         <div className="flex items-center gap-2">
                                                             <input
                                                                 type="checkbox"
                                                                 checked={isChecked}
-                                                                disabled={disabled}
+                                                                disabled={isNonClickable}
                                                                 onChange={() => handleToggleDivision(groupIndex, div)}
                                                                 className={`h-4 w-4 rounded ${
                                                                     isOccupied && isChecked
-                                                                        ? "border-rose-400 text-rose-600 focus:ring-rose-500 dark:border-rose-500 accent-rose-600"
-                                                                        : "border-[var(--border-default)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)]"
+                                                                        ? "border-rose-400 text-rose-600 focus:ring-rose-500 dark:border-rose-500 accent-rose-600 cursor-pointer"
+                                                                        : isOccupied
+                                                                        ? "border-slate-300 text-slate-400 cursor-not-allowed opacity-50"
+                                                                        : "border-[var(--border-default)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
                                                                 }`}
                                                             />
-                                                            <span className="font-semibold">{div}</span>
+                                                            <span className={`font-bold text-sm ${isOccupied && !isChecked ? "line-through text-slate-400 dark:text-slate-500" : ""}`}>{div}</span>
                                                             {isOccupied && (
-                                                                <AlertTriangle className={`h-3.5 w-3.5 shrink-0 ${isChecked ? "text-rose-500" : "text-amber-500"}`} />
+                                                                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold" title="Already assigned - locked">
+                                                                    🔒
+                                                                </span>
                                                             )}
                                                         </div>
-                                                        {isOccupied && (
-                                                            <span className={`text-[10px] leading-tight ${isChecked ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-amber-700 dark:text-amber-400"}`}>
-                                                                Assigned to {conflictInfo.teacherName}
+                                                        {isOccupied ? (
+                                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] leading-tight font-medium ${
+                                                                isChecked
+                                                                    ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold"
+                                                                    : "bg-amber-100/90 text-amber-900 dark:bg-amber-900/50 dark:text-amber-200 border border-amber-200 dark:border-amber-800"
+                                                            }`}>
+                                                                {isChecked ? `Assigned to ${conflictInfo.teacherName}` : `Assigned: ${conflictInfo.teacherName} (Unavailable)`}
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 text-[10px] leading-tight font-medium text-emerald-600 dark:text-emerald-400">
+                                                                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                                                Available
                                                             </span>
                                                         )}
                                                     </label>

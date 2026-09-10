@@ -165,7 +165,7 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 		}
 		Map<String, StandardDivisionPair> uniquePairs = new LinkedHashMap<>();
 
-		// 1. From teacher_standard_divisions
+		// 1. From TeacherStandardDivision (canonical source)
 		if (tsds != null) {
 			for (TeacherStandardDivision tsd : tsds) {
 				if (tsd != null && tsd.getStandardDivision() != null) {
@@ -186,8 +186,8 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 			}
 		}
 
-		// 2. From class_rooms
-		if (rooms != null) {
+		// 2. From class_rooms (fallback only if no TeacherStandardDivision records exist)
+		if (uniquePairs.isEmpty() && rooms != null) {
 			for (ClassRoom room : rooms) {
 				if (room != null && room.getGrade() != null && !room.getGrade().isBlank()) {
 					String normStd = normalizeStandard(room.getGrade());
@@ -438,7 +438,7 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 	}
 
 	private void syncClassRooms(Teacher teacher, List<StandardDivisionPair> pairs) {
-		if (classRoomRepository == null || pairs == null) {
+		if (classRoomRepository == null || teacher == null || teacher.getId() == null) {
 			return;
 		}
 
@@ -447,32 +447,89 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 			existingRooms = new ArrayList<>();
 		}
 
-		for (StandardDivisionPair pair : pairs) {
-			// Check if we can upgrade an existing legacy classroom with null division
-			Optional<ClassRoom> legacyRoom = existingRooms.stream()
-					.filter(r -> pair.getStandard().equals(r.getGrade()) && r.getDivision() == null)
-					.findFirst();
+		java.util.Set<String> targetKeys = new java.util.HashSet<>();
+		if (pairs != null) {
+			for (StandardDivisionPair pair : pairs) {
+				if (pair != null && pair.getStandard() != null) {
+					String normStd = normalizeStandard(pair.getStandard());
+					String normDiv = pair.getDivision() != null ? pair.getDivision().trim().toUpperCase() : "";
+					targetKeys.add(normStd + "-" + normDiv);
+				}
+			}
+		}
 
-			if (legacyRoom.isPresent()) {
-				ClassRoom room = legacyRoom.get();
-				room.setDivision(pair.getDivision());
+		// 1. Upgrade any legacy rooms with null division matching a target standard
+		if (pairs != null) {
+			for (StandardDivisionPair pair : pairs) {
+				if (pair == null || pair.getStandard() == null) continue;
+				String normStd = normalizeStandard(pair.getStandard());
+				Optional<ClassRoom> legacyRoom = existingRooms.stream()
+						.filter(r -> r.getDivision() == null && normalizeStandard(r.getGrade()).equalsIgnoreCase(normStd))
+						.findFirst();
+				if (legacyRoom.isPresent()) {
+					ClassRoom room = legacyRoom.get();
+					room.setDivision(pair.getDivision() != null ? pair.getDivision().trim().toUpperCase() : null);
+					classRoomRepository.save(room);
+				}
+			}
+		}
+
+		// 2. Unassign rooms that are no longer assigned to this teacher, or are duplicate classrooms for the same pair
+		java.util.Set<String> keptKeys = new java.util.HashSet<>();
+		for (ClassRoom room : existingRooms) {
+			String roomStd = normalizeStandard(room.getGrade());
+			String roomDiv = room.getDivision() != null ? room.getDivision().trim().toUpperCase() : "";
+			String roomKey = roomStd + "-" + roomDiv;
+			if (!targetKeys.contains(roomKey) || keptKeys.contains(roomKey)) {
+				room.setTeacherId(null);
 				classRoomRepository.save(room);
 			} else {
-				boolean alreadyExists = existingRooms.stream()
-						.anyMatch(r -> pair.getStandard().equals(r.getGrade()) && pair.getDivision() != null
-								&& pair.getDivision().equals(r.getDivision()));
+				keptKeys.add(roomKey);
+				if (!roomStd.equals(room.getGrade())) {
+					room.setGrade(roomStd);
+					room.setName("Grade " + roomStd + (!roomDiv.isEmpty() ? " - " + roomDiv : ""));
+					classRoomRepository.save(room);
+				}
+			}
+		}
 
-				if (!alreadyExists) {
-					ClassRoom newRoom = ClassRoom.builder()
-							.grade(pair.getStandard())
-							.division(pair.getDivision())
-							.schoolId(teacher.getSchoolId())
-							.teacherId(teacher.getId())
-							.academicYear("2026-2027")
-							.status(Status.ACTIVE)
-							.name("Grade " + pair.getStandard() + " - " + pair.getDivision())
-							.build();
-					classRoomRepository.save(newRoom);
+		// 3. Assign / create rooms for target pairs
+		if (pairs != null) {
+			for (StandardDivisionPair pair : pairs) {
+				if (pair == null || pair.getStandard() == null) continue;
+				String normStd = normalizeStandard(pair.getStandard());
+				String normDiv = pair.getDivision() != null ? pair.getDivision().trim().toUpperCase() : null;
+
+				boolean alreadyAssigned = existingRooms.stream()
+						.anyMatch(r -> normalizeStandard(r.getGrade()).equalsIgnoreCase(normStd)
+								&& ((normDiv == null && r.getDivision() == null)
+										|| (normDiv != null && normDiv.equalsIgnoreCase(r.getDivision()))));
+
+				if (!alreadyAssigned) {
+					List<ClassRoom> schoolRooms = classRoomRepository.findBySchoolId(teacher.getSchoolId());
+					ClassRoom matchingRoom = (schoolRooms != null) ? schoolRooms.stream()
+							.filter(r -> normalizeStandard(r.getGrade()).equalsIgnoreCase(normStd)
+									&& ((normDiv == null && r.getDivision() == null)
+											|| (normDiv != null && normDiv.equalsIgnoreCase(r.getDivision()))))
+							.findFirst().orElse(null) : null;
+
+					if (matchingRoom != null) {
+						matchingRoom.setTeacherId(teacher.getId());
+						matchingRoom.setGrade(normStd);
+						matchingRoom.setDivision(normDiv);
+						classRoomRepository.save(matchingRoom);
+					} else {
+						ClassRoom newRoom = ClassRoom.builder()
+								.grade(normStd)
+								.division(normDiv)
+								.schoolId(teacher.getSchoolId())
+								.teacherId(teacher.getId())
+								.academicYear("2026-2027")
+								.status(Status.ACTIVE)
+								.name("Grade " + normStd + (normDiv != null ? " - " + normDiv : ""))
+								.build();
+						classRoomRepository.save(newRoom);
+					}
 				}
 			}
 		}
@@ -483,40 +540,85 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 				|| standardDivisionRepository == null || pairs == null || teacher == null || teacher.getId() == null) {
 			return;
 		}
-		try {
-			teacherStandardDivisionRepository.deleteByTeacherId(teacher.getId());
 
-			for (StandardDivisionPair pair : pairs) {
-				if (pair.getStandard() == null)
-					continue;
-				String std = pair.getStandard();
-				SchoolStandard ss = schoolStandardRepository.findBySchoolIdAndStandard(teacher.getSchoolId(), std)
-						.orElse(null);
-				if (ss == null) {
-					List<SchoolStandard> standards = schoolStandardRepository.findBySchoolId(teacher.getSchoolId());
-					if (standards != null) {
-						for (SchoolStandard sCandidate : standards) {
-							if (normalizeStandard(sCandidate.getStandard()).equalsIgnoreCase(normalizeStandard(std))) {
-								ss = sCandidate;
+		// 1. Resolve all target StandardDivision entities from the pairs
+		Map<Long, StandardDivision> targetSdMap = new LinkedHashMap<>();
+		List<SchoolStandard> schoolStandards = schoolStandardRepository.findBySchoolId(teacher.getSchoolId());
+
+		for (StandardDivisionPair pair : pairs) {
+			if (pair == null || pair.getStandard() == null) {
+				continue;
+			}
+			String rawStd = pair.getStandard().trim();
+			String rawDiv = pair.getDivision() != null ? pair.getDivision().trim() : null;
+
+			SchoolStandard ss = schoolStandardRepository.findBySchoolIdAndStandard(teacher.getSchoolId(), rawStd)
+					.orElse(null);
+			if (ss == null && schoolStandards != null) {
+				for (SchoolStandard sCandidate : schoolStandards) {
+					if (normalizeStandard(sCandidate.getStandard()).equalsIgnoreCase(normalizeStandard(rawStd))) {
+						ss = sCandidate;
+						break;
+					}
+				}
+			}
+
+			if (ss != null && rawDiv != null) {
+				StandardDivision sd = standardDivisionRepository
+						.findBySchoolStandardIdAndDivision(ss.getId(), rawDiv).orElse(null);
+				if (sd == null) {
+					List<StandardDivision> divisions = standardDivisionRepository.findBySchoolStandardId(ss.getId());
+					if (divisions != null) {
+						for (StandardDivision dCandidate : divisions) {
+							if (dCandidate.getDivision() != null
+									&& dCandidate.getDivision().trim().equalsIgnoreCase(rawDiv)) {
+								sd = dCandidate;
 								break;
 							}
 						}
 					}
 				}
-				if (ss != null && pair.getDivision() != null) {
-					StandardDivision sd = standardDivisionRepository
-							.findBySchoolStandardIdAndDivision(ss.getId(), pair.getDivision()).orElse(null);
-					if (sd != null) {
-						TeacherStandardDivision tsd = TeacherStandardDivision.builder()
-								.teacher(teacher)
-								.standardDivision(sd)
-								.build();
-						teacherStandardDivisionRepository.save(tsd);
-					}
+				if (sd != null && sd.getId() != null) {
+					targetSdMap.put(sd.getId(), sd);
 				}
 			}
-		} catch (Exception e) {
-			System.err.println("Could not sync teacher standard divisions: " + e.getMessage());
+		}
+
+		// 2. Fetch existing assignments for this teacher
+		List<TeacherStandardDivision> existingTsds = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
+		List<TeacherStandardDivision> toDelete = new ArrayList<>();
+		java.util.Set<Long> existingSdIds = new java.util.HashSet<>();
+
+		if (existingTsds != null) {
+			for (TeacherStandardDivision existing : existingTsds) {
+				if (existing.getStandardDivision() != null && existing.getStandardDivision().getId() != null) {
+					Long sdId = existing.getStandardDivision().getId();
+					if (targetSdMap.containsKey(sdId)) {
+						existingSdIds.add(sdId);
+					} else {
+						toDelete.add(existing);
+					}
+				} else {
+					toDelete.add(existing);
+				}
+			}
+		}
+
+		// 3. Delete unselected assignments and flush immediately so DB unique constraint is clean
+		if (!toDelete.isEmpty()) {
+			teacherStandardDivisionRepository.deleteAll(toDelete);
+			teacherStandardDivisionRepository.flush();
+		}
+
+		// 4. Save ONLY the new assignments that aren't already existing
+		for (Map.Entry<Long, StandardDivision> entry : targetSdMap.entrySet()) {
+			if (!existingSdIds.contains(entry.getKey())) {
+				TeacherStandardDivision tsd = TeacherStandardDivision.builder()
+						.teacher(teacher)
+						.standardDivision(entry.getValue())
+						.build();
+				teacherStandardDivisionRepository.save(tsd);
+			}
 		}
 	}
 
@@ -780,10 +882,19 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 		}
 
 		List<StandardDivisionPair> pairs = resolvePairs(request);
-		if (!pairs.isEmpty()) {
-			validateStandardsAndDivisions(teacher.getSchoolId(), pairs, teacher.getId());
+		if (request.getStandardDivisions() != null || request.getStandard() != null || request.getDivision() != null) {
+			if (!pairs.isEmpty()) {
+				validateStandardsAndDivisions(teacher.getSchoolId(), pairs, teacher.getId());
+			}
 			syncClassRooms(teacher, pairs);
 			syncTeacherStandardDivisions(teacher, pairs);
+			if (!pairs.isEmpty()) {
+				teacher.setStandard(pairs.get(0).getStandard());
+				teacher.setDivision(pairs.get(0).getDivision());
+			} else {
+				teacher.setStandard(null);
+				teacher.setDivision(null);
+			}
 		}
 
 		if (request.getFirstName() != null)
