@@ -1,0 +1,780 @@
+2026-09-02T12:56:53.918+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T12:56:53.919+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T12:56:54.296+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T12:56:54.402+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 105 ms. Found 33 JPA repository interfaces.
+2026-09-02T12:56:54.508+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T12:56:54.508+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T12:56:54.508+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T12:56:54.523+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-02T12:56:54.523+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 604 ms
+2026-09-02T12:56:54.539+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-6 - Starting...
+2026-09-02T12:56:58.656+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-6 - Added connection org.postgresql.jdbc.PgConnection@3853ce2d
+2026-09-02T12:56:58.657+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-6 - Start completed.
+2026-09-02T12:56:58.657+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T12:56:58.702+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T12:56:58.703+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T12:56:58.714+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T12:56:59.471+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T12:57:00.811+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T12:57:00.812+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T12:57:01.638+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-09-02T12:57:01.815+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-09-02T12:57:01.828+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9091 (http) with context path '/'
+2026-09-02T12:57:01.833+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Started SpeakMateAiApplication in 7.971 seconds (process running for 8858.514)
+2026-09-02T12:57:07.229+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-09-02T12:57:22.562+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-02T12:57:22.562+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-02T12:57:22.564+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-09-02T12:57:22.575+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-8] c.r.s.security.RequestLoggingFilter      : [REQUEST LOG] Incoming request: GET /api/notification/stream
+2026-09-02T12:57:22.575+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-6] c.r.s.security.RequestLoggingFilter      : [REQUEST LOG] Incoming request: GET /api/v1/teacher/students
+2026-09-02T12:57:22.575+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-5] c.r.s.security.RequestLoggingFilter      : [REQUEST LOG] Incoming request: GET /api/notification/get-all-notifications
+2026-09-02T12:57:22.712+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-7] c.r.s.security.RequestLoggingFilter      : [REQUEST LOG] Incoming request: GET /api/notification/stream
+2026-09-02T12:57:22.817+05:30  WARN 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-8] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.context.request.async.AsyncRequestNotUsableException: ServletOutputStream failed to flush: java.io.IOException: An established connection was aborted by the software in your host machine]
+2026-09-02T12:57:22.819+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-8] o.a.catalina.connector.CoyoteAdapter     : Encountered a non-recycled request and recycled it forcedly.
+
+org.apache.catalina.connector.CoyoteAdapter$RecycleRequiredException: null
+	at org.apache.catalina.connector.CoyoteAdapter.checkRecycled(CoyoteAdapter.java:522) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at org.apache.coyote.http11.Http11Processor.recycle(Http11Processor.java:1423) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.release(AbstractProtocol.java:1094) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:1031) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.31.jar:10.1.31]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+
+2026-09-02T12:57:23.834+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-9] c.r.s.security.RequestLoggingFilter      : [REQUEST LOG] Incoming request: GET /api/notification/get-all-notifications
+2026-09-02T12:57:25.106+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-10] c.r.s.security.RequestLoggingFilter      : [REQUEST LOG] Incoming request: GET /api/notification/get-all-notifications
+2026-09-02T12:57:32.743+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-2] c.r.s.security.RequestLoggingFilter      : [REQUEST LOG] Incoming request: GET /api/v1/teacher/students
+2026-09-02T12:59:22.354+05:30  INFO 28092 --- [SpeakMateAI] [File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 1 class path change (0 additions, 0 deletions, 1 modification)
+2026-09-02T12:59:22.357+05:30  WARN 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-8] .m.m.a.ExceptionHandlerExceptionResolver : Resolved [org.springframework.web.context.request.async.AsyncRequestTimeoutException]
+2026-09-02T12:59:22.374+05:30  INFO 28092 --- [SpeakMateAI] [Thread-23] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T12:59:22.375+05:30  INFO 28092 --- [SpeakMateAI] [Thread-23] com.zaxxer.hikari.HikariDataSource       : HikariPool-6 - Shutdown initiated...
+2026-09-02T12:59:23.010+05:30  INFO 28092 --- [SpeakMateAI] [Thread-23] com.zaxxer.hikari.HikariDataSource       : HikariPool-6 - Shutdown completed.
+2026-09-02T12:59:25.135+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T12:59:25.135+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T12:59:25.539+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T12:59:25.645+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 105 ms. Found 33 JPA repository interfaces.
+2026-09-02T12:59:25.787+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T12:59:25.788+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T12:59:25.788+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T12:59:25.803+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-02T12:59:25.803+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 666 ms
+2026-09-02T12:59:25.820+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Starting...
+2026-09-02T12:59:26.940+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-7 - Added connection org.postgresql.jdbc.PgConnection@42d9964c
+2026-09-02T12:59:26.941+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Start completed.
+2026-09-02T12:59:26.941+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T12:59:26.978+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T12:59:26.980+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T12:59:26.987+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T12:59:27.061+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T12:59:27.767+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T12:59:27.767+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T12:59:28.589+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-09-02T12:59:28.833+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-09-02T12:59:28.848+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9091 (http) with context path '/'
+2026-09-02T12:59:28.855+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Started SpeakMateAiApplication in 3.74 seconds (process running for 9005.535)
+2026-09-02T12:59:32.797+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-02T12:59:32.797+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-02T12:59:32.799+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-09-02T12:59:32.800+05:30  INFO 28092 --- [SpeakMateAI] [http-nio-0.0.0.0-9091-exec-1] c.r.s.security.RequestLoggingFilter      : [REQUEST LOG] Incoming request: GET /api/v1/teacher/students
+2026-09-02T12:59:36.673+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-09-02T13:01:40.272+05:30  INFO 28092 --- [SpeakMateAI] [File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 1 class path change (0 additions, 0 deletions, 1 modification)
+2026-09-02T13:01:40.297+05:30  INFO 28092 --- [SpeakMateAI] [Thread-27] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:01:40.298+05:30  INFO 28092 --- [SpeakMateAI] [Thread-27] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Shutdown initiated...
+2026-09-02T13:01:41.600+05:30  INFO 28092 --- [SpeakMateAI] [Thread-27] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Shutdown completed.
+2026-09-02T13:01:41.669+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T13:01:41.669+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T13:01:42.075+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T13:01:42.211+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 134 ms. Found 33 JPA repository interfaces.
+2026-09-02T13:01:42.319+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T13:01:42.320+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T13:01:42.320+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T13:01:42.335+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-02T13:01:42.335+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 665 ms
+2026-09-02T13:01:42.350+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-8 - Starting...
+2026-09-02T13:01:43.013+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-8 - Added connection org.postgresql.jdbc.PgConnection@2f54c00e
+2026-09-02T13:01:43.013+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-8 - Start completed.
+2026-09-02T13:01:43.013+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T13:01:43.050+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T13:01:43.051+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T13:01:43.060+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T13:01:43.140+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T13:01:43.819+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T13:01:43.820+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:01:44.659+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-09-02T13:01:44.848+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-09-02T13:01:44.861+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9091 (http) with context path '/'
+2026-09-02T13:01:44.863+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Started SpeakMateAiApplication in 3.214 seconds (process running for 9141.544)
+2026-09-02T13:01:50.354+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2026-09-02T13:01:52.780+05:30  INFO 28092 --- [SpeakMateAI] [File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 1 class path change (0 additions, 0 deletions, 1 modification)
+2026-09-02T13:01:52.802+05:30  INFO 28092 --- [SpeakMateAI] [Thread-31] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:01:52.803+05:30  INFO 28092 --- [SpeakMateAI] [Thread-31] com.zaxxer.hikari.HikariDataSource       : HikariPool-8 - Shutdown initiated...
+2026-09-02T13:01:53.573+05:30  INFO 28092 --- [SpeakMateAI] [Thread-31] com.zaxxer.hikari.HikariDataSource       : HikariPool-8 - Shutdown completed.
+2026-09-02T13:01:53.642+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T13:01:53.642+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T13:01:54.123+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T13:01:54.245+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 122 ms. Found 33 JPA repository interfaces.
+2026-09-02T13:01:54.362+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T13:01:54.363+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T13:01:54.363+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T13:01:54.378+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-02T13:01:54.378+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 734 ms
+2026-09-02T13:01:54.390+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-9 - Starting...
+2026-09-02T13:01:55.037+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-9 - Added connection org.postgresql.jdbc.PgConnection@14e91b2e
+2026-09-02T13:01:55.037+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-9 - Start completed.
+2026-09-02T13:01:55.037+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T13:01:55.071+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T13:01:55.073+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T13:01:55.078+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T13:01:55.175+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T13:01:55.821+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T13:01:55.822+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:01:56.623+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'teacherController' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\controller\TeacherController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+2026-09-02T13:01:56.625+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:01:56.626+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-9 - Shutdown initiated...
+2026-09-02T13:01:57.163+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-9 - Shutdown completed.
+2026-09-02T13:01:57.164+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-02T13:01:57.178+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-02T13:01:57.193+05:30 ERROR 28092 --- [SpeakMateAI] [restartedMain] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'teacherController' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\controller\TeacherController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:795) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:971) ~[spring-context-6.1.14.jar:6.1.14]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.14.jar:6.1.14]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1363) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1352) ~[spring-boot-3.3.5.jar:3.3.5]
+	at com.rslsolution.speakmateai.SpeakMateAiApplication.main(SpeakMateAiApplication.java:12) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) ~[spring-boot-devtools-3.3.5.jar:3.3.5]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:318) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:306) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 22 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:117) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:315) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 36 common frames omitted
+Caused by: java.lang.Error: Unresolved compilation problems: 
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getTeacherUnreadNotificationCount()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.markAllTeacherNotificationsAsRead()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.markTeacherNotificationAsRead(Long)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.changeTeacherPassword(ChangePasswordRequest)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.downloadTeacherProfile()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.updateTeacherProfile(ProfileRequest)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getTeacherNotifications()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getStudents(String, String, String)
+	The method findAverageGrammarScoreByUserId(Long) is undefined for the type GrammarHistoryRepository
+	The method findAverageOverallScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAveragePronunciationScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageFluencyScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageGrammarScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageVocabularyScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCompletedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type LessonProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCompletedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type LessonProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type VocabularyRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method getStudents(String, Status) of type TeacherServiceImpl must override or implement a supertype method
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type VocabularyRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUserIdAndUnlockedTrueOrderByUnlockedAtDesc(Long) is undefined for the type AchievementRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByLastOpenedAtDesc(User) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUser(User) is undefined for the type VocabularyRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type LessonProgressRepository
+
+	at com.rslsolution.speakmateai.service.impl.TeacherServiceImpl.<init>(TeacherServiceImpl.java:78) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:208) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 38 common frames omitted
+
+2026-09-02T13:03:01.174+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T13:03:01.174+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T13:03:01.674+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T13:03:01.802+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 127 ms. Found 33 JPA repository interfaces.
+2026-09-02T13:03:01.909+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T13:03:01.911+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T13:03:01.911+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T13:03:01.926+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat-1].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-02T13:03:01.928+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 753 ms
+2026-09-02T13:03:01.941+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-10 - Starting...
+2026-09-02T13:03:02.508+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-10 - Added connection org.postgresql.jdbc.PgConnection@76932228
+2026-09-02T13:03:02.510+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-10 - Start completed.
+2026-09-02T13:03:02.510+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T13:03:02.548+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T13:03:02.548+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T13:03:02.555+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T13:03:02.629+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T13:03:03.118+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T13:03:03.118+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:03:03.772+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'teacherController' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\controller\TeacherController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+2026-09-02T13:03:03.775+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:03:03.775+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-10 - Shutdown initiated...
+2026-09-02T13:03:04.032+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-10 - Shutdown completed.
+2026-09-02T13:03:04.034+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-02T13:03:04.038+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-02T13:03:04.039+05:30 ERROR 28092 --- [SpeakMateAI] [restartedMain] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'teacherController' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\controller\TeacherController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:795) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:971) ~[spring-context-6.1.14.jar:6.1.14]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.14.jar:6.1.14]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1363) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1352) ~[spring-boot-3.3.5.jar:3.3.5]
+	at com.rslsolution.speakmateai.SpeakMateAiApplication.main(SpeakMateAiApplication.java:12) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) ~[spring-boot-devtools-3.3.5.jar:3.3.5]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:318) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:306) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 22 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:117) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:315) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 36 common frames omitted
+Caused by: java.lang.Error: Unresolved compilation problems: 
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getTeacherUnreadNotificationCount()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.markAllTeacherNotificationsAsRead()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.markTeacherNotificationAsRead(Long)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.changeTeacherPassword(ChangePasswordRequest)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.downloadTeacherProfile()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.updateTeacherProfile(ProfileRequest)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getTeacherNotifications()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getStudents(String, String, String)
+	The method findAverageGrammarScoreByUserId(Long) is undefined for the type GrammarHistoryRepository
+	The method findAverageOverallScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAveragePronunciationScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageFluencyScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageGrammarScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageVocabularyScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCompletedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type LessonProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCompletedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type LessonProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type VocabularyRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	students cannot be resolved to a variable
+	The method findByUser(User) is undefined for the type ProgressRepository
+	avgGrammar cannot be resolved to a variable
+	avgVocabulary cannot be resolved to a variable
+	avgSpeaking cannot be resolved to a variable
+	avgListening cannot be resolved to a variable
+	avgGrammar cannot be resolved to a variable
+	avgVocabulary cannot be resolved to a variable
+	avgSpeaking cannot be resolved to a variable
+	avgListening cannot be resolved to a variable
+	students cannot be resolved to a variable
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	students cannot be resolved to a variable
+	profile cannot be resolved to a variable
+	assignedClasses cannot be resolved to a variable
+	totalStudents cannot be resolved to a variable
+	avgProgress cannot be resolved to a variable
+	weeklyCompletion cannot be resolved to a variable
+	completedStudentsCount cannot be resolved to a variable
+	The method getStudents(String, Status) of type TeacherServiceImpl must override or implement a supertype method
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type VocabularyRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUserIdAndUnlockedTrueOrderByUnlockedAtDesc(Long) is undefined for the type AchievementRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByLastOpenedAtDesc(User) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUser(User) is undefined for the type VocabularyRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type LessonProgressRepository
+
+	at com.rslsolution.speakmateai.service.impl.TeacherServiceImpl.<init>(TeacherServiceImpl.java:78) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:208) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 38 common frames omitted
+
+2026-09-02T13:03:12.981+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T13:03:12.982+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T13:03:13.450+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T13:03:13.581+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 130 ms. Found 33 JPA repository interfaces.
+2026-09-02T13:03:13.678+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T13:03:13.679+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T13:03:13.679+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T13:03:13.697+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat-2].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-02T13:03:13.697+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 713 ms
+2026-09-02T13:03:13.711+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-11 - Starting...
+2026-09-02T13:03:14.247+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-11 - Added connection org.postgresql.jdbc.PgConnection@1063d6e3
+2026-09-02T13:03:14.248+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-11 - Start completed.
+2026-09-02T13:03:14.248+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T13:03:14.281+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T13:03:14.283+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T13:03:14.288+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T13:03:14.362+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T13:03:14.832+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T13:03:14.832+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:03:15.502+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'teacherController' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\controller\TeacherController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+2026-09-02T13:03:15.503+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:03:15.504+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-11 - Shutdown initiated...
+2026-09-02T13:03:16.215+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-11 - Shutdown completed.
+2026-09-02T13:03:16.216+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-02T13:03:16.218+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-02T13:03:16.219+05:30 ERROR 28092 --- [SpeakMateAI] [restartedMain] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'teacherController' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\controller\TeacherController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:795) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:971) ~[spring-context-6.1.14.jar:6.1.14]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.14.jar:6.1.14]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1363) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1352) ~[spring-boot-3.3.5.jar:3.3.5]
+	at com.rslsolution.speakmateai.SpeakMateAiApplication.main(SpeakMateAiApplication.java:12) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) ~[spring-boot-devtools-3.3.5.jar:3.3.5]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:318) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:306) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 22 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:117) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:315) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 36 common frames omitted
+Caused by: java.lang.Error: Unresolved compilation problems: 
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getTeacherUnreadNotificationCount()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.markAllTeacherNotificationsAsRead()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.markTeacherNotificationAsRead(Long)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.changeTeacherPassword(ChangePasswordRequest)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.downloadTeacherProfile()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.updateTeacherProfile(ProfileRequest)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getTeacherNotifications()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getStudents(String, String, String)
+	The method findAverageGrammarScoreByUserId(Long) is undefined for the type GrammarHistoryRepository
+	The method findAverageOverallScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAveragePronunciationScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageFluencyScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageGrammarScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageVocabularyScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCompletedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type LessonProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCompletedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type LessonProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type VocabularyRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method getStudents(String, Status) of type TeacherServiceImpl must override or implement a supertype method
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type VocabularyRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUserIdAndUnlockedTrueOrderByUnlockedAtDesc(Long) is undefined for the type AchievementRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByLastOpenedAtDesc(User) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUser(User) is undefined for the type VocabularyRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type LessonProgressRepository
+
+	at com.rslsolution.speakmateai.service.impl.TeacherServiceImpl.<init>(TeacherServiceImpl.java:78) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:208) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 38 common frames omitted
+
+2026-09-02T13:05:08.993+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T13:05:08.994+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T13:05:09.397+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T13:05:09.524+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 126 ms. Found 33 JPA repository interfaces.
+2026-09-02T13:05:09.648+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T13:05:09.650+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T13:05:09.650+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T13:05:09.676+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat-3].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-02T13:05:09.676+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 681 ms
+2026-09-02T13:05:09.689+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-12 - Starting...
+2026-09-02T13:05:10.202+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-12 - Added connection org.postgresql.jdbc.PgConnection@56c1ee24
+2026-09-02T13:05:10.202+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-12 - Start completed.
+2026-09-02T13:05:10.202+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T13:05:10.233+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T13:05:10.234+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T13:05:10.239+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T13:05:10.304+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T13:05:10.788+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T13:05:10.789+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:05:11.573+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'teacherController' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\controller\TeacherController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+2026-09-02T13:05:11.575+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:05:11.577+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-12 - Shutdown initiated...
+2026-09-02T13:05:11.843+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-12 - Shutdown completed.
+2026-09-02T13:05:11.844+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-02T13:05:11.847+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-02T13:05:11.848+05:30 ERROR 28092 --- [SpeakMateAI] [restartedMain] o.s.boot.SpringApplication               : Application run failed
+
+org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'teacherController' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\controller\TeacherController.class]: Unsatisfied dependency expressed through constructor parameter 0: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:795) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:971) ~[spring-context-6.1.14.jar:6.1.14]
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:625) ~[spring-context-6.1.14.jar:6.1.14]
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:335) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1363) ~[spring-boot-3.3.5.jar:3.3.5]
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1352) ~[spring-boot-3.3.5.jar:3.3.5]
+	at com.rslsolution.speakmateai.SpeakMateAiApplication.main(SpeakMateAiApplication.java:12) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103) ~[na:na]
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580) ~[na:na]
+	at org.springframework.boot.devtools.restart.RestartLauncher.run(RestartLauncher.java:50) ~[spring-boot-devtools-3.3.5.jar:3.3.5]
+Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'teacherServiceImpl' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\service\impl\TeacherServiceImpl.class]: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:318) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:306) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1375) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1212) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:337) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:335) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 22 common frames omitted
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.rslsolution.speakmateai.service.impl.TeacherServiceImpl]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:117) ~[spring-beans-6.1.14.jar:6.1.14]
+	at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:315) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 36 common frames omitted
+Caused by: java.lang.Error: Unresolved compilation problems: 
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getTeacherUnreadNotificationCount()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.markAllTeacherNotificationsAsRead()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.markTeacherNotificationAsRead(Long)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.changeTeacherPassword(ChangePasswordRequest)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.downloadTeacherProfile()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.updateTeacherProfile(ProfileRequest)
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getTeacherNotifications()
+	The type TeacherServiceImpl must implement the inherited abstract method TeacherService.getStudents(String, String, String)
+	The method findAverageGrammarScoreByUserId(Long) is undefined for the type GrammarHistoryRepository
+	The method findAverageOverallScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAveragePronunciationScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageFluencyScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageGrammarScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findAverageVocabularyScoreByUserId(Long) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCompletedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type LessonProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCompletedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type LessonProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type VocabularyRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method getStudents(String, Status) of type TeacherServiceImpl must override or implement a supertype method
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type VocabularyRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUserIdAndUnlockedTrueOrderByUnlockedAtDesc(Long) is undefined for the type AchievementRepository
+	The method findByUserOrderByCreatedAtDesc(User) is undefined for the type SpeakingSessionRepository
+	The method findByUserOrderByLastOpenedAtDesc(User) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCompletedTrue(Long) is undefined for the type LessonProgressRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type SpeakingSessionRepository
+	The method findByUser(User) is undefined for the type VocabularyRepository
+	The method countByUserIdAndCreatedAtBetween(Long, LocalDateTime, LocalDateTime) is undefined for the type GrammarHistoryRepository
+	The method findByUser(User) is undefined for the type ProgressRepository
+	The method findByUser(User) is undefined for the type LessonProgressRepository
+
+	at com.rslsolution.speakmateai.service.impl.TeacherServiceImpl.<init>(TeacherServiceImpl.java:78) ~[classes/:na]
+	at java.base/jdk.internal.reflect.DirectConstructorHandleAccessor.newInstance(DirectConstructorHandleAccessor.java:62) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:502) ~[na:na]
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:486) ~[na:na]
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:208) ~[spring-beans-6.1.14.jar:6.1.14]
+	... 38 common frames omitted
+
+2026-09-02T13:07:06.410+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T13:07:06.411+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T13:07:06.538+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T13:07:06.539+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 0 ms. Found 0 JPA repository interfaces.
+2026-09-02T13:07:06.615+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T13:07:06.617+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T13:07:06.617+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T13:07:06.634+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat-4].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-02T13:07:06.634+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 221 ms
+2026-09-02T13:07:06.647+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-13 - Starting...
+2026-09-02T13:07:07.742+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-13 - Added connection org.postgresql.jdbc.PgConnection@40c6aadf
+2026-09-02T13:07:07.743+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-13 - Start completed.
+2026-09-02T13:07:07.743+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T13:07:07.766+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T13:07:07.769+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T13:07:07.774+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T13:07:07.850+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T13:07:08.484+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T13:07:08.486+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:07:08.597+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: 6891e210-1bc8-4a2f-afbf-00f627bc32f9
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-09-02T13:07:08.615+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-09-02T13:07:08.677+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2026-09-02T13:07:08.691+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 9091 (http) with context path '/'
+2026-09-02T13:07:08.696+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Started SpeakMateAiApplication in 2.305 seconds (process running for 9465.376)
+2026-09-02T13:07:08.701+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation delta:
+
+
+==========================
+CONDITION EVALUATION DELTA
+==========================
+
+
+Positive matches:
+-----------------
+
+   SpringBootWebSecurityConfiguration.SecurityFilterChainConfiguration matched:
+      - AllNestedConditions 2 matched 0 did not; NestedCondition on DefaultWebSecurityCondition.Beans @ConditionalOnMissingBean (types: org.springframework.security.web.SecurityFilterChain; SearchStrategy: all) did not find any beans; NestedCondition on DefaultWebSecurityCondition.Classes @ConditionalOnClass found required classes 'org.springframework.security.web.SecurityFilterChain', 'org.springframework.security.config.annotation.web.builders.HttpSecurity' (DefaultWebSecurityCondition)
+
+   UserDetailsServiceAutoConfiguration matched:
+      - @ConditionalOnClass found required class 'org.springframework.security.authentication.AuthenticationManager' (OnClassCondition)
+      - AnyNestedCondition 1 matched 2 did not; NestedCondition on UserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.PasswordConfigured @ConditionalOnProperty (spring.security.user.password) did not find property 'password'; NestedCondition on UserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.NameConfigured @ConditionalOnProperty (spring.security.user.name) did not find property 'name'; NestedCondition on UserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured.MissingAlternative @ConditionalOnMissingClass did not find unwanted classes 'org.springframework.security.oauth2.client.registration.ClientRegistrationRepository', 'org.springframework.security.oauth2.server.resource.introspection.OpaqueTokenIntrospector', 'org.springframework.security.saml2.provider.service.registration.RelyingPartyRegistrationRepository' (UserDetailsServiceAutoConfiguration.MissingAlternativeOrUserPropertiesConfigured)
+      - @ConditionalOnBean (types: org.springframework.security.config.annotation.ObjectPostProcessor; SearchStrategy: all) found bean 'objectPostProcessor'; @ConditionalOnMissingBean (types: org.springframework.security.authentication.AuthenticationManager,org.springframework.security.authentication.AuthenticationProvider,org.springframework.security.core.userdetails.UserDetailsService,org.springframework.security.authentication.AuthenticationManagerResolver,org.springframework.security.oauth2.jwt.JwtDecoder; SearchStrategy: all) did not find any beans (OnBeanCondition)
+
+
+Negative matches:
+-----------------
+
+    None
+
+
+Exclusions:
+-----------
+
+    None
+
+
+Unconditional classes:
+----------------------
+
+    None
+
+
+
+2026-09-02T13:07:13.535+05:30  INFO 28092 --- [SpeakMateAI] [File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 453 class path changes (453 additions, 0 deletions, 0 modifications)
+2026-09-02T13:07:13.552+05:30  INFO 28092 --- [SpeakMateAI] [Thread-35] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:07:13.553+05:30  INFO 28092 --- [SpeakMateAI] [Thread-35] com.zaxxer.hikari.HikariDataSource       : HikariPool-13 - Shutdown initiated...
+2026-09-02T13:07:14.234+05:30  INFO 28092 --- [SpeakMateAI] [Thread-35] com.zaxxer.hikari.HikariDataSource       : HikariPool-13 - Shutdown completed.
+2026-09-02T13:07:14.293+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : Starting SpeakMateAiApplication using Java 21.0.10 with PID 28092 (D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes started by hp in D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026)
+2026-09-02T13:07:14.293+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] c.r.speakmateai.SpeakMateAiApplication   : No active profile set, falling back to 1 default profile: "default"
+2026-09-02T13:07:14.539+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-02T13:07:14.621+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 81 ms. Found 27 JPA repository interfaces.
+2026-09-02T13:07:14.700+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 9091 (http)
+2026-09-02T13:07:14.700+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-02T13:07:14.700+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2026-09-02T13:07:14.714+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.a.c.c.C.[Tomcat-4].[localhost].[/]     : Initializing Spring embedded WebApplicationContext
+2026-09-02T13:07:14.714+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 420 ms
+2026-09-02T13:07:14.730+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-14 - Starting...
+2026-09-02T13:07:15.325+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.pool.HikariPool        : HikariPool-14 - Added connection org.postgresql.jdbc.PgConnection@72e64c8
+2026-09-02T13:07:15.325+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-14 - Start completed.
+2026-09-02T13:07:15.325+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:postgresql://ep-aged-resonance-azrulowm.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require'
+2026-09-02T13:07:15.357+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-02T13:07:15.358+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-02T13:07:15.362+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-02T13:07:15.428+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-02T13:07:16.079+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-02T13:07:16.080+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:07:16.133+05:30 ERROR 28092 --- [SpeakMateAI] [restartedMain] o.s.b.web.embedded.tomcat.TomcatStarter  : Error starting Tomcat context. Exception: org.springframework.beans.factory.UnsatisfiedDependencyException. Message: Error creating bean with name 'jwtAuthenticationFilter' defined in file [D:\IntegrationOfSpeakMate\Backend-SpeakMate_Team_2026\target\classes\com\rslsolution\speakmateai\security\JwtAuthenticationFilter.class]: Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'org.springframework.security.core.userdetails.UserDetailsService' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-09-02T13:07:16.134+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-09-02T13:07:16.135+05:30  WARN 28092 --- [SpeakMateAI] [restartedMain] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.context.ApplicationContextException: Unable to start web server
+2026-09-02T13:07:16.136+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-09-02T13:07:16.137+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-14 - Shutdown initiated...
+2026-09-02T13:07:16.490+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-14 - Shutdown completed.
+2026-09-02T13:07:16.491+05:30  INFO 28092 --- [SpeakMateAI] [restartedMain] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-09-02T13:07:16.506+05:30 ERROR 28092 --- [SpeakMateAI] [restartedMain] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.rslsolution.speakmateai.security.JwtAuthenticationFilter required a bean of type 'org.springframework.security.core.userdetails.UserDetailsService' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'org.springframework.security.core.userdetails.UserDetailsService' in your configuration.
+

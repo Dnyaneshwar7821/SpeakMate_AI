@@ -1,0 +1,1836 @@
+package com.rslsolution.speakmateai.service.impl;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.rslsolution.speakmateai.dto.response.AchievementResponse;
+import com.rslsolution.speakmateai.dto.response.AiLearningInsightResponse;
+import com.rslsolution.speakmateai.dto.response.AssignedClassResponse;
+import com.rslsolution.speakmateai.dto.response.ClassPerformanceResponse;
+import com.rslsolution.speakmateai.dto.response.ClassRoomResponse;
+import com.rslsolution.speakmateai.dto.response.PerformanceSummaryResponse;
+import com.rslsolution.speakmateai.dto.response.PerformanceTrendResponse;
+import com.rslsolution.speakmateai.dto.response.PracticeStatisticsResponse;
+import com.rslsolution.speakmateai.dto.response.ProfileResponse;
+import com.rslsolution.speakmateai.dto.response.ProgressResponse;
+import com.rslsolution.speakmateai.dto.response.RecentActivityResponse;
+import com.rslsolution.speakmateai.dto.response.ReportCategoryResponse;
+import com.rslsolution.speakmateai.dto.response.RecentReportResponse;
+import com.rslsolution.speakmateai.dto.response.ReportStatusResponse;
+import com.rslsolution.speakmateai.dto.response.SkillPerformanceSummaryResponse;
+import com.rslsolution.speakmateai.dto.response.StrengthImprovementResponse;
+import com.rslsolution.speakmateai.dto.response.StudentAttentionItemResponse;
+import com.rslsolution.speakmateai.dto.response.StudentAnalyticsSummaryResponse;
+import com.rslsolution.speakmateai.dto.response.TeacherAnalyticsResponse;
+import com.rslsolution.speakmateai.dto.response.TeacherDashboardResponse;
+import com.rslsolution.speakmateai.dto.response.TeacherProfileResponse;
+import com.rslsolution.speakmateai.dto.response.TeacherReportsResponse;
+import com.rslsolution.speakmateai.dto.response.TeacherStudentDetailResponse;
+import com.rslsolution.speakmateai.dto.response.TeacherStudentSummaryResponse;
+import com.rslsolution.speakmateai.dto.response.TeacherStudentsListResponse;
+import com.rslsolution.speakmateai.dto.response.TopPerformerResponse;
+import com.rslsolution.speakmateai.dto.response.UpcomingReportResponse;
+import com.rslsolution.speakmateai.dto.response.WeeklyProgressResponse;
+import com.rslsolution.speakmateai.dto.response.StatisticsResponse;
+import com.rslsolution.speakmateai.dto.response.AcademicSessionResponse;
+import com.rslsolution.speakmateai.dto.response.IdentityResponse;
+import com.rslsolution.speakmateai.dto.response.ProfessionalInfoResponse;
+import com.rslsolution.speakmateai.dto.response.TeachingOverviewResponse;
+import com.rslsolution.speakmateai.dto.response.ContactInfoResponse;
+import com.rslsolution.speakmateai.dto.response.AccountInfoResponse;
+import com.rslsolution.speakmateai.dto.response.UserPreferencesResponse;
+import com.rslsolution.speakmateai.entity.Achievement;
+import com.rslsolution.speakmateai.entity.Admin;
+import com.rslsolution.speakmateai.entity.ClassRoom;
+import com.rslsolution.speakmateai.entity.ClassStudent;
+import com.rslsolution.speakmateai.entity.GrammarHistory;
+import com.rslsolution.speakmateai.entity.LessonProgress;
+import com.rslsolution.speakmateai.entity.Progress;
+import com.rslsolution.speakmateai.entity.SpeakingSession;
+import com.rslsolution.speakmateai.entity.Student;
+import com.rslsolution.speakmateai.entity.TeacherStandardDivision;
+import com.rslsolution.speakmateai.entity.User;
+import com.rslsolution.speakmateai.entity.School;
+import com.rslsolution.speakmateai.entity.Vocabulary;
+import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.enums.Status;
+import com.rslsolution.speakmateai.exception.AccessDeniedException;
+import com.rslsolution.speakmateai.exception.ResourceNotFoundException;
+import com.rslsolution.speakmateai.exception.UserNotFoundException;
+import com.rslsolution.speakmateai.repository.AchievementRepository;
+import com.rslsolution.speakmateai.repository.AdminRepository;
+import com.rslsolution.speakmateai.repository.ClassRoomRepository;
+import com.rslsolution.speakmateai.repository.ClassStudentRepository;
+import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
+import com.rslsolution.speakmateai.repository.LessonProgressRepository;
+import com.rslsolution.speakmateai.repository.ProgressRepository;
+import com.rslsolution.speakmateai.repository.SchoolRepository;
+import com.rslsolution.speakmateai.repository.SettingsRepository;
+import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
+import com.rslsolution.speakmateai.repository.StudentRepository;
+import com.rslsolution.speakmateai.repository.TeacherRepository;
+import com.rslsolution.speakmateai.repository.TeacherStandardDivisionRepository;
+import com.rslsolution.speakmateai.repository.UserRepository;
+import com.rslsolution.speakmateai.repository.VocabularyRepository;
+import com.rslsolution.speakmateai.service.TeacherService;
+import com.rslsolution.speakmateai.dto.request.ChangePasswordRequest;
+import com.rslsolution.speakmateai.dto.request.TeacherProfileUpdateRequest;
+import com.rslsolution.speakmateai.entity.Teacher;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+@Service
+@Transactional
+public class TeacherServiceImpl implements TeacherService {
+
+	private final UserRepository userRepository;
+	private final TeacherRepository teacherRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final StudentRepository studentRepository;
+	private final AdminRepository adminRepository;
+	private final ClassRoomRepository classRoomRepository;
+	private final ClassStudentRepository classStudentRepository;
+	private final TeacherStandardDivisionRepository teacherStandardDivisionRepository;
+	private final ProgressRepository progressRepository;
+	private final SpeakingSessionRepository speakingSessionRepository;
+	private final GrammarHistoryRepository grammarHistoryRepository;
+	private final VocabularyRepository vocabularyRepository;
+	private final LessonProgressRepository lessonProgressRepository;
+	private final AchievementRepository achievementRepository;
+	private final SettingsRepository settingsRepository;
+	private final SchoolRepository schoolRepository;
+
+	@org.springframework.beans.factory.annotation.Autowired
+	public TeacherServiceImpl(UserRepository userRepository, TeacherRepository teacherRepository,
+			PasswordEncoder passwordEncoder, StudentRepository studentRepository,
+			AdminRepository adminRepository, ClassRoomRepository classRoomRepository,
+			ClassStudentRepository classStudentRepository,
+			TeacherStandardDivisionRepository teacherStandardDivisionRepository,
+			ProgressRepository progressRepository, SpeakingSessionRepository speakingSessionRepository,
+			GrammarHistoryRepository grammarHistoryRepository, VocabularyRepository vocabularyRepository,
+			LessonProgressRepository lessonProgressRepository, AchievementRepository achievementRepository,
+			SettingsRepository settingsRepository,
+			SchoolRepository schoolRepository) {
+		this.userRepository = userRepository;
+		this.teacherRepository = teacherRepository;
+		this.passwordEncoder = passwordEncoder;
+		this.studentRepository = studentRepository;
+		this.adminRepository = adminRepository;
+		this.classRoomRepository = classRoomRepository;
+		this.classStudentRepository = classStudentRepository;
+		this.teacherStandardDivisionRepository = teacherStandardDivisionRepository;
+		this.progressRepository = progressRepository;
+		this.speakingSessionRepository = speakingSessionRepository;
+		this.grammarHistoryRepository = grammarHistoryRepository;
+		this.vocabularyRepository = vocabularyRepository;
+		this.lessonProgressRepository = lessonProgressRepository;
+		this.achievementRepository = achievementRepository;
+		this.settingsRepository = settingsRepository;
+		this.schoolRepository = schoolRepository;
+	}
+
+	private Teacher getAuthenticatedTeacher() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null) {
+			throw new UserNotFoundException("Authentication required");
+		}
+		String email = authentication.getName();
+
+		Teacher teacher = teacherRepository.findByEmail(email).orElse(null);
+		if (teacher != null) {
+			return teacher;
+		}
+
+		User user = userRepository.findByEmail(email).orElse(null);
+		if (user != null) {
+			if (user instanceof Teacher) {
+				return (Teacher) user;
+			}
+			if (user.getSchoolId() != null) {
+				List<Teacher> schoolTeachers = teacherRepository.findBySchoolId(user.getSchoolId());
+				if (!schoolTeachers.isEmpty()) {
+					return schoolTeachers.get(0);
+				}
+			}
+		}
+
+		Admin admin = adminRepository.findByEmail(email).orElse(null);
+		if (admin != null) {
+			java.util.Optional<Teacher> anyTeacher = teacherRepository.findAll().stream().findFirst();
+			if (anyTeacher.isPresent()) {
+				return anyTeacher.get();
+			}
+		}
+
+		java.util.Optional<Teacher> anyTeacher = teacherRepository.findAll().stream().findFirst();
+		if (anyTeacher.isPresent()) {
+			return anyTeacher.get();
+		}
+
+		throw new UserNotFoundException("Teacher not found");
+	}
+
+	private User getCurrentTeacher() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null) {
+			throw new UserNotFoundException("Authentication required");
+		}
+		String email = authentication.getName();
+
+		User user = userRepository.findByEmail(email).orElse(null);
+		if (user != null) {
+			if (user.getRole() == Role.TEACHER) {
+				return user;
+			}
+			if (user.getSchoolId() != null) {
+				List<Teacher> schoolTeachers = teacherRepository.findBySchoolId(user.getSchoolId());
+				if (!schoolTeachers.isEmpty()) {
+					return schoolTeachers.get(0);
+				}
+			}
+			java.util.Optional<Teacher> anyTeacher = teacherRepository.findAll().stream().findFirst();
+			if (anyTeacher.isPresent()) {
+				return anyTeacher.get();
+			}
+			return user;
+		}
+
+		Admin admin = adminRepository.findByEmail(email).orElse(null);
+		if (admin != null) {
+			java.util.Optional<Teacher> anyTeacher = teacherRepository.findAll().stream().findFirst();
+			if (anyTeacher.isPresent()) {
+				return anyTeacher.get();
+			}
+		}
+
+		throw new UserNotFoundException("Teacher not found");
+	}
+
+	private List<ClassRoom> getTeacherClasses(Long teacherId) {
+		return classRoomRepository.findByTeacherId(teacherId);
+	}
+
+	private String normalizeStandard(String val) {
+		if (val == null) return "";
+		String trimmed = val.trim();
+		java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(trimmed);
+		if (m.find()) {
+			return m.group();
+		}
+		return trimmed.toLowerCase();
+	}
+
+	private List<User> getTeacherStudents(User teacher, List<ClassRoom> classes) {
+		java.util.Map<Long, User> studentMap = new java.util.LinkedHashMap<>();
+
+		// 1. Students directly assigned via Student.teacherId
+		if (teacher != null && teacher.getId() != null) {
+			List<Student> directAssigned = studentRepository.findByTeacherId(teacher.getId());
+			for (Student s : directAssigned) {
+				if (s != null && s.getId() != null && s.getRole() == Role.STUDENT) {
+					studentMap.putIfAbsent(s.getId(), s);
+				}
+			}
+		}
+
+		// 2. Students assigned via ClassStudent explicit roster
+		if (classes != null && !classes.isEmpty()) {
+			List<Long> classIds = classes.stream().map(ClassRoom::getId).collect(Collectors.toList());
+			List<ClassStudent> classStudents = classStudentRepository.findByClassIdIn(classIds);
+			List<Long> studentIds = classStudents.stream().map(ClassStudent::getStudentId).distinct()
+					.collect(Collectors.toList());
+			if (!studentIds.isEmpty()) {
+				List<User> rosterStudents = userRepository.findAllById(studentIds);
+				for (User s : rosterStudents) {
+					if (s != null && s.getId() != null && s.getRole() == Role.STUDENT) {
+						studentMap.putIfAbsent(s.getId(), s);
+					}
+				}
+			}
+		}
+
+		// 3. Students assigned via ClassRoom standard/division (school-scoped)
+		if (classes != null && !classes.isEmpty()) {
+			for (ClassRoom cr : classes) {
+				if (cr.getSchoolId() != null) {
+					List<Student> schoolStudents = studentRepository.findBySchoolId(cr.getSchoolId());
+					String classNormStd = normalizeStandard(cr.getGrade());
+					String classDiv = cr.getDivision() != null ? cr.getDivision().trim().toUpperCase() : "";
+
+					for (Student s : schoolStudents) {
+						if (s == null || s.getId() == null || s.getRole() != Role.STUDENT) {
+							continue;
+						}
+						String studentNormStd = normalizeStandard(s.getStandard());
+						if (!classNormStd.isEmpty() && classNormStd.equals(studentNormStd)) {
+							String studentDiv = s.getDivision() != null ? s.getDivision().trim().toUpperCase() : "";
+							if (classDiv.isEmpty() || classDiv.equals(studentDiv)) {
+								studentMap.putIfAbsent(s.getId(), s);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// 4. Students assigned via teacher_standard_divisions (school-scoped)
+		if (teacher != null && teacher.getId() != null) {
+			try {
+				List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
+				for (TeacherStandardDivision tsd : teacherStdDivs) {
+					if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
+						Long schoolId = teacher.getSchoolId();
+						if (schoolId == null && tsd.getStandardDivision().getSchoolStandard().getSchool() != null) {
+							schoolId = tsd.getStandardDivision().getSchoolStandard().getSchool().getId();
+						}
+						if (schoolId != null) {
+							String assignedStd = tsd.getStandardDivision().getSchoolStandard().getStandard();
+							String assignedDiv = tsd.getStandardDivision().getDivision();
+							String normAssignedStd = normalizeStandard(assignedStd);
+							String normAssignedDiv = assignedDiv != null ? assignedDiv.trim().toUpperCase() : "";
+
+							List<Student> schoolStudents = studentRepository.findBySchoolId(schoolId);
+							for (Student s : schoolStudents) {
+								if (s == null || s.getId() == null || s.getRole() != Role.STUDENT) {
+									continue;
+								}
+								String sNormStd = normalizeStandard(s.getStandard());
+								if (!normAssignedStd.isEmpty() && normAssignedStd.equals(sNormStd)) {
+									String sDiv = s.getDivision() != null ? s.getDivision().trim().toUpperCase() : "";
+									if (normAssignedDiv.isEmpty() || normAssignedDiv.equals(sDiv)) {
+										studentMap.putIfAbsent(s.getId(), s);
+									}
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				// Defensive fallback
+			}
+		}
+
+		// 5. Students assigned via teacher's direct schoolId, standard, and division (if set)
+		if (teacher != null && teacher.getSchoolId() != null && teacher.getStandard() != null && !teacher.getStandard().trim().isEmpty()) {
+			Long schoolId = teacher.getSchoolId();
+			String normTeacherStd = normalizeStandard(teacher.getStandard());
+			String normTeacherDiv = teacher.getDivision() != null ? teacher.getDivision().trim().toUpperCase() : "";
+			List<Student> schoolStudents = studentRepository.findBySchoolId(schoolId);
+			for (Student s : schoolStudents) {
+				if (s == null || s.getId() == null || s.getRole() != Role.STUDENT) {
+					continue;
+				}
+				String sNormStd = normalizeStandard(s.getStandard());
+				if (!normTeacherStd.isEmpty() && normTeacherStd.equals(sNormStd)) {
+					String sDiv = s.getDivision() != null ? s.getDivision().trim().toUpperCase() : "";
+					if (normTeacherDiv.isEmpty() || normTeacherDiv.equals(sDiv)) {
+						studentMap.putIfAbsent(s.getId(), s);
+					}
+				}
+			}
+		}
+
+		return new ArrayList<>(studentMap.values());
+	}
+
+	private List<User> getStudentsInClasses(List<ClassRoom> classes) {
+		User teacher = getCurrentTeacher();
+		return getTeacherStudents(teacher, classes);
+	}
+
+	private List<User> getStudentsInClassesFiltered(List<ClassRoom> classes, String search, Status status, String standard, String division) {
+		List<User> students = getStudentsInClasses(classes);
+
+		if (standard != null && !standard.trim().isEmpty() && !standard.equalsIgnoreCase("All Standards") && !standard.equalsIgnoreCase("All")) {
+			String normStd = normalizeStandard(standard);
+			students = students.stream().filter(s -> {
+				String sNorm = normalizeStandard(s.getStandard());
+				return normStd.equals(sNorm);
+			}).collect(Collectors.toList());
+		}
+
+		if (division != null && !division.trim().isEmpty() && !division.equalsIgnoreCase("All Divisions") && !division.equalsIgnoreCase("All")) {
+			String normDiv = division.trim().toUpperCase();
+			students = students.stream().filter(s -> {
+				String sDiv = s.getDivision() != null ? s.getDivision().trim().toUpperCase() : "";
+				return normDiv.equals(sDiv);
+			}).collect(Collectors.toList());
+		}
+
+		if (status != null) {
+			students = students.stream().filter(s -> s.getStatus() == status).collect(Collectors.toList());
+		}
+
+		if (search != null && !search.trim().isEmpty()) {
+			String lowerSearch = search.toLowerCase().trim();
+			students = students.stream()
+					.filter(s -> (s.getFirstName() != null && s.getFirstName().toLowerCase().contains(lowerSearch))
+							|| (s.getLastName() != null && s.getLastName().toLowerCase().contains(lowerSearch))
+							|| (s.getEmail() != null && s.getEmail().toLowerCase().contains(lowerSearch))
+							|| (s.getRollNumber() != null && s.getRollNumber().toLowerCase().contains(lowerSearch))
+							|| (s.getId() != null && String.valueOf(s.getId()).contains(lowerSearch)))
+					.collect(Collectors.toList());
+		}
+
+		return students;
+	}
+
+	private List<User> getStudentsInClassesFiltered(List<ClassRoom> classes, String search, Status status, String standard) {
+		return getStudentsInClassesFiltered(classes, search, status, standard, null);
+	}
+
+	private List<User> getStudentsInClassesFiltered(List<ClassRoom> classes, String search, Status status) {
+		return getStudentsInClassesFiltered(classes, search, status, null, null);
+	}
+
+	private ProfileResponse buildProfileResponse(User user, Progress progress) {
+		int xp = (progress != null && progress.getXp() != null) ? progress.getXp() : 0;
+		return ProfileResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
+				.email(user.getEmail()).role(user.getRole().name()).avatar(user.getAvatar())
+				.englishLevel(user.getEnglishLevel()).learningGoal(user.getLearningGoal()).xp(xp)
+				.level((xp / 500) + 1)
+				.currentStreak(progress != null ? progress.getCurrentStreak() : 0)
+				.longestStreak(progress != null ? progress.getLongestStreak() : 0)
+				.totalPracticeMinutes(progress != null ? progress.getTotalPracticeMinutes() : 0)
+				.totalSpeakingSessions(progress != null ? progress.getTotalSpeakingSessions() : 0)
+				.totalGrammarChecks(progress != null ? progress.getTotalGrammarChecks() : 0)
+				.totalVocabularyWords(progress != null ? progress.getTotalVocabularyWords() : 0).build();
+	}
+
+	private Double getAverageGrammarScore(User user) {
+		return grammarHistoryRepository.findAverageGrammarScoreByUserId(user.getId());
+	}
+
+	private Double getAverageSpeakingScore(User user) {
+		return speakingSessionRepository.findAverageOverallScoreByUserId(user.getId());
+	}
+
+	private Double getAverageListeningScore(User user) {
+		Double pronunciation = speakingSessionRepository.findAveragePronunciationScoreByUserId(user.getId());
+		Double fluency = speakingSessionRepository.findAverageFluencyScoreByUserId(user.getId());
+		Double grammar = speakingSessionRepository.findAverageGrammarScoreByUserId(user.getId());
+		Double vocabulary = speakingSessionRepository.findAverageVocabularyScoreByUserId(user.getId());
+		double sum = 0;
+		int count = 0;
+		if (pronunciation != null) {
+			sum += pronunciation;
+			count++;
+		}
+		if (fluency != null) {
+			sum += fluency;
+			count++;
+		}
+		if (grammar != null) {
+			sum += grammar;
+			count++;
+		}
+		if (vocabulary != null) {
+			sum += vocabulary;
+			count++;
+		}
+		return count > 0 ? sum / count : null;
+	}
+
+	private List<WeeklyProgressResponse> getWeeklyProgressForUser(User user) {
+		String[] dayNames = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+		List<WeeklyProgressResponse> weeklyProgress = new ArrayList<>();
+		for (String dayName : dayNames) {
+			weeklyProgress.add(WeeklyProgressResponse.builder().day(dayName).studyMinutes(0).lessonsCompleted(0)
+					.speakingSessions(0).build());
+		}
+
+		LocalDate today = LocalDate.now();
+		LocalDateTime weekStart = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+				.atStartOfDay();
+		LocalDateTime weekEnd = weekStart.plusDays(7);
+
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(user.getId(), weekStart,
+				weekEnd);
+		int[] studySeconds = new int[7];
+		int[] speakingSessions = new int[7];
+		int[] lessonsCompleted = new int[7];
+
+		for (SpeakingSession s : sessions) {
+			if (s.getCreatedAt() != null) {
+				LocalDate date = s.getCreatedAt().toLocalDate();
+			if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
+					int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
+					studySeconds[dayOfWeekIndex] += s.getDuration() != null ? s.getDuration() : 0;
+					speakingSessions[dayOfWeekIndex]++;
+					lessonsCompleted[dayOfWeekIndex] = 1;
+				}
+			}
+		}
+
+		List<LessonProgress> completedLessons = lessonProgressRepository.findByUserIdAndCompletedAtBetween(user.getId(),
+				weekStart, weekEnd);
+		for (LessonProgress lp : completedLessons) {
+			if (lp.getCompletedAt() != null) {
+				LocalDate date = lp.getCompletedAt().toLocalDate();
+				if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
+					int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
+					lessonsCompleted[dayOfWeekIndex]++;
+				}
+			}
+		}
+
+		for (int i = 0; i < 7; i++) {
+			WeeklyProgressResponse dayRes = weeklyProgress.get(i);
+			dayRes.setStudyMinutes((int) Math.ceil(studySeconds[i] / 60.0));
+			dayRes.setSpeakingSessions(speakingSessions[i]);
+			dayRes.setLessonsCompleted(lessonsCompleted[i]);
+		}
+
+		return weeklyProgress;
+	}
+
+	private List<WeeklyProgressResponse> getAggregatedWeeklyProgress(List<User> students) {
+		String[] dayNames = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+		List<WeeklyProgressResponse> weeklyProgress = new ArrayList<>();
+		for (String dayName : dayNames) {
+			weeklyProgress.add(WeeklyProgressResponse.builder().day(dayName).studyMinutes(0).lessonsCompleted(0)
+					.speakingSessions(0).build());
+		}
+
+		LocalDate today = LocalDate.now();
+		LocalDateTime weekStart = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
+				.atStartOfDay();
+		LocalDateTime weekEnd = weekStart.plusDays(7);
+
+		int[] studySeconds = new int[7];
+		int[] speakingSessions = new int[7];
+		int[] lessonsCompleted = new int[7];
+
+		for (User student : students) {
+			List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(student.getId(),
+					weekStart, weekEnd);
+			for (SpeakingSession s : sessions) {
+				if (s.getCreatedAt() != null) {
+					LocalDate date = s.getCreatedAt().toLocalDate();
+					if (!date.isBefore(weekStart.toLocalDate()) && !date.isBefore(today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))) && !date
+							.isAfter(weekStart.toLocalDate().plusDays(6))) {
+						int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
+						studySeconds[dayOfWeekIndex] += s.getDuration() != null ? s.getDuration() : 0;
+						speakingSessions[dayOfWeekIndex]++;
+						lessonsCompleted[dayOfWeekIndex] = 1;
+					}
+				}
+			}
+
+			List<LessonProgress> completedLessons = lessonProgressRepository.findByUserIdAndCompletedAtBetween(student.getId(),
+					weekStart, weekEnd);
+			for (LessonProgress lp : completedLessons) {
+				if (lp.getCompletedAt() != null) {
+					LocalDate date = lp.getCompletedAt().toLocalDate();
+					if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
+						int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
+						lessonsCompleted[dayOfWeekIndex]++;
+					}
+				}
+			}
+		}
+
+		for (int i = 0; i < 7; i++) {
+			WeeklyProgressResponse dayRes = weeklyProgress.get(i);
+			dayRes.setStudyMinutes((int) Math.ceil(studySeconds[i] / 60.0));
+			dayRes.setSpeakingSessions(speakingSessions[i]);
+			dayRes.setLessonsCompleted(lessonsCompleted[i]);
+		}
+
+		return weeklyProgress;
+	}
+
+	private List<RecentActivityResponse> getRecentActivityForStudents(List<User> students) {
+		List<RecentActivityResponse> activities = new ArrayList<>();
+		LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+
+		for (User student : students) {
+			List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(student.getId(),
+					oneWeekAgo, LocalDateTime.now());
+			for (SpeakingSession s : sessions) {
+				activities.add(RecentActivityResponse.builder().id("speaking-" + s.getId()).type("speaking").icon("mic")
+						.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
+						.time(s.getCreatedAt()).xp(15).build());
+			}
+
+			List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(student);
+			for (Vocabulary v : vocabs) {
+				if (v.getCreatedAt() != null && !v.getCreatedAt().isBefore(oneWeekAgo)) {
+					activities.add(RecentActivityResponse.builder().id("vocabulary-" + v.getId()).type("vocabulary")
+							.icon("library")
+							.title(v.getWord() != null ? "Vocabulary Practice: " + v.getWord() : "Vocabulary Practice")
+							.time(v.getCreatedAt()).xp(8).build());
+				}
+			}
+
+			List<GrammarHistory> grammars = grammarHistoryRepository.findByUserIdAndCreatedAtBetween(student.getId(),
+					oneWeekAgo, LocalDateTime.now());
+			for (GrammarHistory g : grammars) {
+				activities.add(RecentActivityResponse.builder().id("grammar-" + g.getId()).type("grammar").icon("text")
+						.title("Grammar Practice").time(g.getCreatedAt()).xp(10).build());
+			}
+		}
+
+		activities.sort((a, b) -> b.getTime().compareTo(a.getTime()));
+		if (activities.size() > 10) {
+			return activities.subList(0, 10);
+		}
+		return activities;
+	}
+
+	@Override
+	public TeacherDashboardResponse getTeacherDashboard() {
+		User teacher = getCurrentTeacher();
+		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
+		List<User> students = getStudentsInClasses(classes);
+
+		ProfileResponse profile = ProfileResponse.builder().id(teacher.getId()).firstName(teacher.getFirstName())
+				.lastName(teacher.getLastName()).email(teacher.getEmail()).role(teacher.getRole().name())
+				.avatar(teacher.getAvatar()).englishLevel(teacher.getEnglishLevel()).learningGoal(teacher.getLearningGoal())
+				.build();
+
+		// Collect all assigned classes, standards, and divisions from both ClassRoom and TeacherStandardDivision
+		Map<String, AssignedClassResponse> assignedClassMap = new LinkedHashMap<>();
+		List<String> assignedStandards = new ArrayList<>();
+		List<String> assignedDivisions = new ArrayList<>();
+		List<String> formattedStandards = new ArrayList<>();
+
+		// 1. From ClassRoom entities
+		if (classes != null) {
+			for (ClassRoom c : classes) {
+				String std = c.getGrade();
+				String div = c.getDivision();
+				String formatted = (c.getName() != null && !c.getName().trim().isEmpty())
+						? c.getName().trim()
+						: formatStandardGradeAndDiv(std, div);
+				String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
+				if (key.equals("_") && c.getName() != null) {
+					key = c.getName().trim().toLowerCase();
+				}
+
+				List<ClassStudent> classStudents = classStudentRepository.findByClassId(c.getId());
+				int sCount = classStudents != null ? classStudents.size() : 0;
+				if (sCount == 0 && std != null && !std.trim().isEmpty()) {
+					String normStd = normalizeStandard(std);
+					String normDiv = div != null ? div.trim().toUpperCase() : "";
+					sCount = (int) students.stream().filter(s -> {
+						boolean stdMatch = normStd.equals(normalizeStandard(s.getStandard()));
+						boolean divMatch = normDiv.isEmpty() || normDiv.equalsIgnoreCase(s.getDivision() != null ? s.getDivision().trim() : "");
+						return stdMatch && divMatch;
+					}).count();
+				}
+
+				assignedClassMap.put(key, AssignedClassResponse.builder()
+						.id(c.getId())
+						.name(formatted)
+						.grade(std)
+						.standard(std)
+						.division(div != null ? div.trim().toUpperCase() : "")
+						.academicYear(c.getAcademicYear() != null ? c.getAcademicYear() : "2025-2026")
+						.status(c.getStatus() != null ? c.getStatus() : Status.ACTIVE)
+						.studentCount(sCount)
+						.build());
+
+				if (std != null && !std.trim().isEmpty() && !assignedStandards.contains(std.trim())) {
+					assignedStandards.add(std.trim());
+				}
+				if (div != null && !div.trim().isEmpty() && !assignedDivisions.contains(div.trim().toUpperCase())) {
+					assignedDivisions.add(div.trim().toUpperCase());
+				}
+				if (!formatted.isEmpty() && !formattedStandards.contains(formatted)) {
+					formattedStandards.add(formatted);
+				}
+			}
+		}
+
+		// 2. From TeacherStandardDivision mappings
+		if (teacher != null && teacher.getId() != null && teacherStandardDivisionRepository != null) {
+			List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
+			if (teacherStdDivs != null) {
+				for (TeacherStandardDivision tsd : teacherStdDivs) {
+					if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
+						String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
+						String div = tsd.getStandardDivision().getDivision();
+						String formatted = formatStandardGradeAndDiv(std, div);
+						String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
+
+						if (!assignedClassMap.containsKey(key)) {
+							String normStd = normalizeStandard(std);
+							String normDiv = div != null ? div.trim().toUpperCase() : "";
+							int sCount = (int) students.stream().filter(s -> {
+								boolean stdMatch = normStd.equals(normalizeStandard(s.getStandard()));
+								boolean divMatch = normDiv.isEmpty() || normDiv.equalsIgnoreCase(s.getDivision() != null ? s.getDivision().trim() : "");
+								return stdMatch && divMatch;
+							}).count();
+
+							assignedClassMap.put(key, AssignedClassResponse.builder()
+									.id(tsd.getId())
+									.name(formatted)
+									.grade(std)
+									.standard(std)
+									.division(div != null ? div.trim().toUpperCase() : "")
+									.academicYear("2025-2026")
+									.status(Status.ACTIVE)
+									.studentCount(sCount)
+									.build());
+						}
+
+						if (std != null && !std.trim().isEmpty() && !assignedStandards.contains(std.trim())) {
+							assignedStandards.add(std.trim());
+						}
+						if (div != null && !div.trim().isEmpty() && !assignedDivisions.contains(div.trim().toUpperCase())) {
+							assignedDivisions.add(div.trim().toUpperCase());
+						}
+						if (!formatted.isEmpty() && !formattedStandards.contains(formatted)) {
+							formattedStandards.add(formatted);
+						}
+					}
+				}
+			}
+		}
+
+		// 3. Fallback to teacher's direct standard/division if map is empty
+		if (assignedClassMap.isEmpty() && teacher.getStandard() != null && !teacher.getStandard().trim().isEmpty()) {
+			String std = teacher.getStandard().trim();
+			String div = teacher.getDivision() != null ? teacher.getDivision().trim().toUpperCase() : "";
+			String formatted = formatStandardGradeAndDiv(std, div);
+			assignedClassMap.put("fallback", AssignedClassResponse.builder()
+					.id(teacher.getId())
+					.name(formatted)
+					.grade(std)
+					.standard(std)
+					.division(div)
+					.academicYear("2025-2026")
+					.status(Status.ACTIVE)
+					.studentCount(students.size())
+					.build());
+
+			if (!assignedStandards.contains(std)) assignedStandards.add(std);
+			if (!div.isEmpty() && !assignedDivisions.contains(div)) assignedDivisions.add(div);
+			if (!formatted.isEmpty() && !formattedStandards.contains(formatted)) formattedStandards.add(formatted);
+		}
+
+		Collections.sort(assignedStandards);
+		Collections.sort(assignedDivisions);
+		formattedStandards.sort(Comparator.naturalOrder());
+		String assignedStandardString = formattedStandards.isEmpty() ? null : String.join(", ", formattedStandards);
+		List<AssignedClassResponse> assignedClasses = new ArrayList<>(assignedClassMap.values());
+
+		int totalStudents = students.size();
+
+		double avgProgress = 0;
+		if (!students.isEmpty()) {
+			double totalXp = students.stream().mapToDouble(s -> {
+				Progress p = progressRepository.findByUser(s).orElse(null);
+				return p != null && p.getXp() != null ? p.getXp() : 0;
+			}).sum();
+			avgProgress = totalXp / students.size();
+		}
+
+		List<WeeklyProgressResponse> weeklyCompletion = getAggregatedWeeklyProgress(students);
+
+		long completedStudentsCount = students.stream()
+				.filter(s -> lessonProgressRepository.countByUserIdAndCompletedTrue(s.getId()) > 0).count();
+
+		double avgGrammar = 0;
+		double avgVocabulary = 0;
+		double avgSpeaking = 0;
+		double avgListening = 0;
+		int skillCount = 0;
+
+		List<Double> grammarScores = new ArrayList<>();
+		List<Double> vocabularyScores = new ArrayList<>();
+		List<Double> speakingScores = new ArrayList<>();
+		List<Double> listeningScores = new ArrayList<>();
+
+		for (User student : students) {
+			Double g = getAverageGrammarScore(student);
+			if (g != null)
+				grammarScores.add(g);
+			Double v = (double) (progressRepository.findByUser(student).map(Progress::getTotalVocabularyWords).orElse(0));
+			if (v > 0)
+				vocabularyScores.add(v);
+			Double sp = getAverageSpeakingScore(student);
+			if (sp != null)
+				speakingScores.add(sp);
+			Double l = getAverageListeningScore(student);
+			if (l != null)
+				listeningScores.add(l);
+		}
+
+		if (!grammarScores.isEmpty()) {
+			avgGrammar = grammarScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+			skillCount++;
+		}
+		if (!vocabularyScores.isEmpty()) {
+			avgVocabulary = vocabularyScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+			skillCount++;
+		}
+		if (!speakingScores.isEmpty()) {
+			avgSpeaking = speakingScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+			skillCount++;
+		}
+		if (!listeningScores.isEmpty()) {
+			avgListening = listeningScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+			skillCount++;
+		}
+
+		SkillPerformanceSummaryResponse skillPerformance = SkillPerformanceSummaryResponse.builder()
+				.grammar(avgGrammar).vocabulary(avgVocabulary).speaking(avgSpeaking).listening(avgListening).build();
+
+		List<StudentAttentionItemResponse> attentionStudents = new ArrayList<>();
+		for (User student : students) {
+			List<String> reasons = new ArrayList<>();
+			String severity = "low";
+
+			Progress p = progressRepository.findByUser(student).orElse(null);
+			int xp = p != null && p.getXp() != null ? p.getXp() : 0;
+
+			if (xp < 50) {
+				reasons.add("Very low progress");
+				severity = "high";
+			}
+
+			Double speakingScore = getAverageSpeakingScore(student);
+			if (speakingScore != null && speakingScore < 30) {
+				reasons.add("Low speaking performance");
+				if ("high".equals(severity))
+					severity = "high";
+				else
+					severity = "medium";
+			}
+
+			List<SpeakingSession> recentSessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(student.getId(),
+					LocalDateTime.now().minusDays(7), LocalDateTime.now());
+			if (recentSessions.isEmpty() && student.getStatus() == Status.ACTIVE) {
+				reasons.add("No practice this week");
+				if ("low".equals(severity))
+					severity = "medium";
+			}
+
+			if (student.getStatus() == Status.INACTIVE) {
+				reasons.add("Account inactive");
+				severity = "high";
+			}
+
+			if (!reasons.isEmpty()) {
+				attentionStudents.add(StudentAttentionItemResponse.builder().studentId(student.getId())
+						.studentName(student.getFirstName() + " " + student.getLastName()).reason(String.join(", ", reasons))
+						.severity(severity).build());
+			}
+		}
+		attentionStudents.sort((a, b) -> {
+			int order = getSeverityOrder(b.getSeverity()) - getSeverityOrder(a.getSeverity());
+			return Integer.compare(order, 0);
+		});
+
+		List<RecentActivityResponse> recentActivity = getRecentActivityForStudents(students);
+
+		return TeacherDashboardResponse.builder().teacherInfo(profile).assignedClasses(assignedClasses)
+				.assignedStandards(assignedStandards).assignedDivisions(assignedDivisions)
+				.assignedStandardString(assignedStandardString)
+				.totalStudents(totalStudents).averageProgress(avgProgress).weeklyCompletion(weeklyCompletion)
+				.completedStudents((int) completedStudentsCount).skillPerformance(skillPerformance)
+				.studentsRequiringAttention(attentionStudents).recentActivity(recentActivity).build();
+	}
+
+	private int getSeverityOrder(String severity) {
+		if ("high".equals(severity))
+			return 3;
+		if ("medium".equals(severity))
+			return 2;
+		return 1;
+	}
+
+	@Override
+	public TeacherStudentsListResponse getStudents(String search, Status status) {
+		return getStudents(search, status, null, null);
+	}
+
+	@Override
+	public TeacherStudentsListResponse getStudents(String search, Status status, String standard) {
+		return getStudents(search, status, standard, null);
+	}
+
+	@Override
+	public TeacherStudentsListResponse getStudents(String search, Status status, String standard, String division) {
+		User teacher = getCurrentTeacher();
+		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
+		List<User> students = getStudentsInClassesFiltered(classes, search, status, standard, division);
+
+		List<AssignedClassResponse> assignedClasses = classes.stream().map(c -> AssignedClassResponse.builder().id(c.getId())
+				.name(c.getName()).grade(c.getGrade()).academicYear(c.getAcademicYear()).status(c.getStatus()).build())
+				.collect(Collectors.toList());
+
+		List<String> assignedStandards = new ArrayList<>();
+		List<String> assignedDivisions = new ArrayList<>();
+
+		if (classes != null) {
+			for (ClassRoom c : classes) {
+				if (c.getGrade() != null && !c.getGrade().trim().isEmpty() && !assignedStandards.contains(c.getGrade().trim())) {
+					assignedStandards.add(c.getGrade().trim());
+				}
+				if (c.getDivision() != null && !c.getDivision().trim().isEmpty() && !assignedDivisions.contains(c.getDivision().trim().toUpperCase())) {
+					assignedDivisions.add(c.getDivision().trim().toUpperCase());
+				}
+			}
+		}
+		if (teacher != null && teacher.getId() != null) {
+			List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
+			for (TeacherStandardDivision tsd : teacherStdDivs) {
+				if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
+					String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
+					if (std != null && !std.trim().isEmpty() && !assignedStandards.contains(std.trim())) {
+						assignedStandards.add(std.trim());
+					}
+					String div = tsd.getStandardDivision().getDivision();
+					if (div != null && !div.trim().isEmpty() && !assignedDivisions.contains(div.trim().toUpperCase())) {
+						assignedDivisions.add(div.trim().toUpperCase());
+					}
+				}
+			}
+		}
+
+		List<User> allTeacherStudents = getTeacherStudents(teacher, classes);
+		for (User s : allTeacherStudents) {
+			if (s.getStandard() != null && !s.getStandard().trim().isEmpty() && !assignedStandards.contains(s.getStandard().trim())) {
+				assignedStandards.add(s.getStandard().trim());
+			}
+			if (s.getDivision() != null && !s.getDivision().trim().isEmpty() && !assignedDivisions.contains(s.getDivision().trim().toUpperCase())) {
+				assignedDivisions.add(s.getDivision().trim().toUpperCase());
+			}
+		}
+
+		Collections.sort(assignedStandards);
+		Collections.sort(assignedDivisions);
+
+		List<TeacherStudentSummaryResponse> studentSummaries = students.stream()
+				.map(s -> mapToStudentSummary(s, classes))
+				.collect(Collectors.toList());
+
+		return TeacherStudentsListResponse.builder()
+				.assignedClasses(assignedClasses)
+				.assignedStandards(assignedStandards)
+				.assignedDivisions(assignedDivisions)
+				.totalStudents(studentSummaries.size())
+				.students(studentSummaries)
+				.build();
+	}
+
+	private TeacherStudentSummaryResponse mapToStudentSummary(User student, List<ClassRoom> teacherClasses) {
+		Progress progress = progressRepository.findByUser(student).orElse(null);
+		double overallProgress = progress != null && progress.getXp() != null ? progress.getXp() : 0;
+
+		Double grammarScore = getAverageGrammarScore(student);
+		Double vocabularyScore = progress != null && progress.getTotalVocabularyWords() != null
+				? progress.getTotalVocabularyWords().doubleValue()
+				: 0.0;
+		Double speakingScore = getAverageSpeakingScore(student);
+		Double listeningScore = getAverageListeningScore(student);
+
+		String std = student.getStandard();
+		String div = student.getDivision();
+
+		if ((std == null || std.trim().isEmpty() || div == null || div.trim().isEmpty()) && teacherClasses != null) {
+			for (ClassRoom cr : teacherClasses) {
+				if ((std == null || std.trim().isEmpty()) && cr.getGrade() != null) {
+					std = cr.getGrade();
+				}
+				if ((div == null || div.trim().isEmpty()) && cr.getDivision() != null) {
+					div = cr.getDivision();
+				}
+			}
+		}
+
+		return TeacherStudentSummaryResponse.builder().id(student.getId()).firstName(student.getFirstName())
+				.lastName(student.getLastName()).email(student.getEmail()).rollNumber(student.getRollNumber())
+				.overallProgress(overallProgress).grammarScore(grammarScore).vocabularyScore(vocabularyScore)
+				.speakingScore(speakingScore).listeningScore(listeningScore).lastActive(student.getUpdatedAt())
+				.status(student.getStatus()).standard(std != null ? std : "").division(div != null ? div : "")
+				.build();
+	}
+
+	private TeacherStudentSummaryResponse mapToStudentSummary(User student) {
+		return mapToStudentSummary(student, null);
+	}
+
+	@Override
+	public TeacherStudentDetailResponse getStudentDetail(Long studentId) {
+		User teacher = getCurrentTeacher();
+		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
+		List<User> students = getTeacherStudents(teacher, classes);
+		boolean belongsToTeacher = students.stream().anyMatch(s -> s.getId().equals(studentId));
+		if (!belongsToTeacher) {
+			throw new AccessDeniedException("Access denied: Student is not assigned to your classes");
+		}
+
+		User student = userRepository.findById(studentId).orElseThrow(() -> new ResourceNotFoundException("Student not found"));
+		if (student.getRole() != Role.STUDENT) {
+			throw new RuntimeException("User is not a student");
+		}
+
+		Progress progress = progressRepository.findByUser(student).orElse(null);
+		ProfileResponse profile = buildProfileResponse(student, progress);
+
+		Double grammarScore = getAverageGrammarScore(student);
+		Double vocabularyScore = progress != null && progress.getTotalVocabularyWords() != null
+				? progress.getTotalVocabularyWords().doubleValue()
+				: 0.0;
+		Double speakingScore = getAverageSpeakingScore(student);
+		Double listeningScore = getAverageListeningScore(student);
+		int lessonsCompleted = (int) lessonProgressRepository.countByUserIdAndCompletedTrue(student.getId());
+		int totalSpeakingSessions = (int) speakingSessionRepository.countByUserIdAndCreatedAtBetween(student.getId(),
+				LocalDateTime.now().minusYears(100), LocalDateTime.now());
+
+		PerformanceSummaryResponse performance = PerformanceSummaryResponse.builder().overallScore(speakingScore)
+				.grammarScore(grammarScore).vocabularyScore(vocabularyScore).speakingScore(speakingScore)
+				.listeningScore(listeningScore).lessonsCompleted(lessonsCompleted)
+				.totalSpeakingSessions(totalSpeakingSessions).build();
+
+		List<RecentActivityResponse> recentActivity = new ArrayList<>();
+		LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
+
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(student.getId(), oneWeekAgo,
+				LocalDateTime.now());
+		for (SpeakingSession s : sessions) {
+			recentActivity.add(RecentActivityResponse.builder().id("speaking-" + s.getId()).type("speaking").icon("mic")
+					.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
+					.time(s.getCreatedAt()).xp(15).build());
+		}
+
+		List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(student);
+		for (Vocabulary v : vocabs) {
+			if (v.getCreatedAt() != null && !v.getCreatedAt().isBefore(oneWeekAgo)) {
+				recentActivity.add(RecentActivityResponse.builder().id("vocabulary-" + v.getId()).type("vocabulary")
+						.icon("library")
+						.title(v.getWord() != null ? "Vocabulary Practice: " + v.getWord() : "Vocabulary Practice")
+						.time(v.getCreatedAt()).xp(8).build());
+			}
+		}
+
+		List<GrammarHistory> grammars = grammarHistoryRepository.findByUserIdAndCreatedAtBetween(student.getId(), oneWeekAgo,
+				LocalDateTime.now());
+		for (GrammarHistory g : grammars) {
+			recentActivity.add(RecentActivityResponse.builder().id("grammar-" + g.getId()).type("grammar").icon("text")
+					.title("Grammar Practice").time(g.getCreatedAt()).xp(10).build());
+		}
+
+		recentActivity.sort((a, b) -> b.getTime().compareTo(a.getTime()));
+		if (recentActivity.size() > 10) {
+			recentActivity = recentActivity.subList(0, 10);
+		}
+
+		List<StrengthImprovementResponse> strengths = new ArrayList<>();
+		List<StrengthImprovementResponse> improvements = new ArrayList<>();
+
+		if (grammarScore != null && grammarScore >= 70) {
+			strengths.add(StrengthImprovementResponse.builder().skill("Grammar").score(grammarScore).label("Strong").build());
+		} else if (grammarScore != null && grammarScore < 50) {
+			improvements.add(StrengthImprovementResponse.builder().skill("Grammar").score(grammarScore).label("Needs Improvement").build());
+		}
+
+		if (vocabularyScore >= 70) {
+			strengths.add(StrengthImprovementResponse.builder().skill("Vocabulary").score(vocabularyScore).label("Strong").build());
+		} else if (vocabularyScore < 50) {
+			improvements.add(StrengthImprovementResponse.builder().skill("Vocabulary").score(vocabularyScore).label("Needs Improvement").build());
+		}
+
+		if (speakingScore != null && speakingScore >= 70) {
+			strengths.add(StrengthImprovementResponse.builder().skill("Speaking").score(speakingScore).label("Strong").build());
+		} else if (speakingScore != null && speakingScore < 50) {
+			improvements.add(StrengthImprovementResponse.builder().skill("Speaking").score(speakingScore).label("Needs Improvement").build());
+		}
+
+		if (listeningScore != null && listeningScore >= 70) {
+			strengths.add(StrengthImprovementResponse.builder().skill("Listening").score(listeningScore).label("Strong").build());
+		} else if (listeningScore != null && listeningScore < 50) {
+			improvements.add(StrengthImprovementResponse.builder().skill("Listening").score(listeningScore).label("Needs Improvement").build());
+		}
+
+		List<Achievement> unlockedAchievements = achievementRepository.findByUserIdAndUnlockedTrueOrderByUnlockedAtDesc(student.getId());
+		List<AchievementResponse> achievements = unlockedAchievements.stream()
+				.map(a -> AchievementResponse.builder().id(a.getId()).title(a.getTitle()).description(a.getDescription())
+						.xpReward(a.getXpReward()).tier(a.getTier() != null ? a.getTier() : 1).unlocked(a.getUnlocked())
+						.unlockedAt(a.getUnlockedAt()).createdAt(a.getCreatedAt()).build())
+				.collect(Collectors.toList());
+
+		int totalPracticeMinutes = progress != null && progress.getTotalPracticeMinutes() != null ? progress.getTotalPracticeMinutes() : 0;
+		int totalGrammarChecks = progress != null && progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : 0;
+		int totalVocabularyWords = progress != null && progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : 0;
+		double averageSessionScore = speakingScore != null ? speakingScore : 0;
+
+		PracticeStatisticsResponse practiceStatistics = PracticeStatisticsResponse.builder()
+				.totalSpeakingSessions(totalSpeakingSessions).totalPracticeMinutes(totalPracticeMinutes)
+				.totalGrammarChecks(totalGrammarChecks).totalVocabularyWords(totalVocabularyWords)
+				.totalLessonsCompleted(lessonsCompleted).averageSessionScore(averageSessionScore).build();
+
+		List<WeeklyProgressResponse> weeklyCompletion = getWeeklyProgressForUser(student);
+
+		Integer currentStreak = progress != null ? progress.getCurrentStreak() : 0;
+
+		LocalDateTime lastPracticeDate = null;
+		List<SpeakingSession> allSessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(student);
+		if (!allSessions.isEmpty()) {
+			lastPracticeDate = allSessions.get(0).getCreatedAt();
+		} else {
+			List<LessonProgress> lessonProgresses = lessonProgressRepository.findByUserOrderByLastOpenedAtDesc(student);
+			if (!lessonProgresses.isEmpty() && lessonProgresses.get(0).getLastOpenedAt() != null) {
+				lastPracticeDate = lessonProgresses.get(0).getLastOpenedAt();
+			}
+		}
+
+		String std = student.getStandard();
+		String div = student.getDivision();
+
+		if ((std == null || std.trim().isEmpty() || div == null || div.trim().isEmpty()) && classes != null) {
+			for (ClassRoom cr : classes) {
+				if ((std == null || std.trim().isEmpty()) && cr.getGrade() != null) {
+					std = cr.getGrade();
+				}
+				if ((div == null || div.trim().isEmpty()) && cr.getDivision() != null) {
+					div = cr.getDivision();
+				}
+			}
+		}
+
+		String schoolName = student.getSchoolName();
+		if ((schoolName == null || schoolName.trim().isEmpty()) && student.getSchoolId() != null) {
+			schoolName = schoolRepository.findById(student.getSchoolId()).map(School::getName).orElse("");
+		}
+		if ((schoolName == null || schoolName.trim().isEmpty()) && teacher.getSchoolId() != null) {
+			schoolName = schoolRepository.findById(teacher.getSchoolId()).map(School::getName).orElse("");
+		}
+
+		double attendanceRate = 0.0;
+		if (weeklyCompletion != null && !weeklyCompletion.isEmpty()) {
+			long activeDays = weeklyCompletion.stream().filter(w -> (w.getStudyMinutes() != null && w.getStudyMinutes() > 0)
+					|| (w.getSpeakingSessions() != null && w.getSpeakingSessions() > 0)
+					|| (w.getLessonsCompleted() != null && w.getLessonsCompleted() > 0)).count();
+			if (activeDays > 0) {
+				attendanceRate = Math.round((activeDays / 7.0) * 100.0);
+			} else if (student.getStatus() == Status.ACTIVE) {
+				attendanceRate = totalSpeakingSessions > 0 || lessonsCompleted > 0 ? 85.0 : 75.0;
+			}
+		} else if (student.getStatus() == Status.ACTIVE) {
+			attendanceRate = 80.0;
+		}
+
+		return TeacherStudentDetailResponse.builder().profile(profile).performance(performance).recentActivity(recentActivity)
+				.strengths(strengths).improvementAreas(improvements).achievements(achievements)
+				.practiceStatistics(practiceStatistics).weeklyCompletion(weeklyCompletion).currentStreak(currentStreak)
+				.lastPracticeDate(lastPracticeDate)
+				.standard(std != null ? std : "")
+				.division(div != null ? div : "")
+				.rollNumber(student.getRollNumber() != null ? student.getRollNumber() : "")
+				.schoolName(schoolName != null ? schoolName : "")
+				.attendanceRate(attendanceRate)
+				.build();
+	}
+
+	@Override
+	public TeacherAnalyticsResponse getAnalytics() {
+		return getAnalytics(null, null, null);
+	}
+
+	@Override
+	public TeacherAnalyticsResponse getAnalytics(Long classId, String standard, String division) {
+		User teacher = getCurrentTeacher();
+		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
+
+		// 1. Gather all assigned classes for this teacher
+		Map<String, AssignedClassResponse> assignedClassMap = new LinkedHashMap<>();
+		if (classes != null) {
+			for (ClassRoom c : classes) {
+				String std = c.getGrade();
+				String div = c.getDivision();
+				String formatted = (c.getName() != null && !c.getName().trim().isEmpty())
+						? c.getName().trim()
+						: formatStandardGradeAndDiv(std, div);
+				String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
+				if (key.equals("_") && c.getName() != null) {
+					key = c.getName().trim().toLowerCase();
+				}
+				assignedClassMap.put(key, AssignedClassResponse.builder()
+						.id(c.getId())
+						.name(formatted)
+						.grade(std)
+						.standard(std)
+						.division(div != null ? div.trim().toUpperCase() : "")
+						.academicYear(c.getAcademicYear() != null ? c.getAcademicYear() : "2025-2026")
+						.status(c.getStatus() != null ? c.getStatus() : Status.ACTIVE)
+						.build());
+			}
+		}
+
+		if (teacher != null && teacher.getId() != null && teacherStandardDivisionRepository != null) {
+			try {
+				List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
+				if (teacherStdDivs != null) {
+					for (TeacherStandardDivision tsd : teacherStdDivs) {
+						if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
+							String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
+							String div = tsd.getStandardDivision().getDivision();
+							String formatted = formatStandardGradeAndDiv(std, div);
+							String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
+
+							if (!assignedClassMap.containsKey(key)) {
+								assignedClassMap.put(key, AssignedClassResponse.builder()
+										.id(tsd.getId())
+										.name(formatted)
+										.grade(std)
+										.standard(std)
+										.division(div != null ? div.trim().toUpperCase() : "")
+										.academicYear("2025-2026")
+										.status(Status.ACTIVE)
+										.build());
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				// safe fallback
+			}
+		}
+
+		if (assignedClassMap.isEmpty() && teacher.getStandard() != null && !teacher.getStandard().trim().isEmpty()) {
+			String std = teacher.getStandard().trim();
+			String div = teacher.getDivision() != null ? teacher.getDivision().trim().toUpperCase() : "";
+			String formatted = formatStandardGradeAndDiv(std, div);
+			assignedClassMap.put("fallback", AssignedClassResponse.builder()
+					.id(teacher.getId())
+					.name(formatted)
+					.grade(std)
+					.standard(std)
+					.division(div)
+					.academicYear("2025-2026")
+					.status(Status.ACTIVE)
+					.build());
+		}
+
+		List<AssignedClassResponse> assignedClasses = new ArrayList<>(assignedClassMap.values());
+
+		if (assignedClasses.isEmpty()) {
+			return TeacherAnalyticsResponse.builder()
+					.assignedClasses(Collections.emptyList())
+					.classPerformance(Collections.emptyList())
+					.studentProgress(Collections.emptyList())
+					.performanceTrends(Collections.emptyList())
+					.topPerformers(Collections.emptyList())
+					.studentsRequiringAttention(Collections.emptyList())
+					.build();
+		}
+
+		// 2. Validate and resolve selected class
+		AssignedClassResponse selectedClass = null;
+		if (classId != null) {
+			selectedClass = assignedClasses.stream()
+					.filter(c -> c.getId() != null && c.getId().equals(classId))
+					.findFirst()
+					.orElseThrow(() -> new AccessDeniedException("Access denied: Selected class is not assigned to your schedule"));
+		} else if (standard != null && !standard.trim().isEmpty()) {
+			String normRequestedStd = normalizeStandard(standard);
+			String normRequestedDiv = division != null ? division.trim().toUpperCase() : "";
+			selectedClass = assignedClasses.stream()
+					.filter(c -> {
+						String cStd = normalizeStandard(c.getStandard() != null ? c.getStandard() : c.getGrade());
+						String cDiv = c.getDivision() != null ? c.getDivision().trim().toUpperCase() : "";
+						boolean stdMatches = cStd.equals(normRequestedStd);
+						boolean divMatches = normRequestedDiv.isEmpty() || normRequestedDiv.equalsIgnoreCase(cDiv);
+						return stdMatches && divMatches;
+					})
+					.findFirst()
+					.orElseThrow(() -> new AccessDeniedException("Access denied: Standard/division is not assigned to your schedule"));
+		} else {
+			// Default to first assigned class
+			selectedClass = assignedClasses.get(0);
+		}
+
+		Long selectedClassId = selectedClass.getId();
+		String selectedStd = selectedClass.getStandard() != null ? selectedClass.getStandard() : selectedClass.getGrade();
+		String selectedDiv = selectedClass.getDivision() != null ? selectedClass.getDivision().trim().toUpperCase() : "";
+		String selectedClassName = selectedClass.getName() != null ? selectedClass.getName() : formatStandardGradeAndDiv(selectedStd, selectedDiv);
+
+		// 3. Filter teacher students strictly for this selected class (Never combine standards/divisions)
+		List<User> students = getStudentsInClassesFiltered(classes, null, null, selectedStd, selectedDiv);
+
+		// 4. Calculate individual student analytics and class aggregates
+		List<StudentAnalyticsSummaryResponse> studentProgressList = new ArrayList<>();
+		double totalSpeakingScores = 0;
+		int speakingScoreCount = 0;
+		double totalGrammarScores = 0;
+		int grammarScoreCount = 0;
+		double totalVocabularyWords = 0;
+		int vocabularyCount = 0;
+		double totalListeningScores = 0;
+		int listeningScoreCount = 0;
+
+		double totalStudentScores = 0;
+		double totalStudentProgress = 0;
+		double totalStudentPracticeCompletion = 0;
+		double totalStudentAttendance = 0;
+
+		long activeStudentsCount = 0;
+		long practicingStudentsCount = 0;
+
+		LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+
+		for (User student : students) {
+			Progress p = progressRepository.findByUser(student).orElse(null);
+			Double sp = getAverageSpeakingScore(student);
+			Double gr = getAverageGrammarScore(student);
+			Double ls = getAverageListeningScore(student);
+			Double voc = p != null && p.getTotalVocabularyWords() != null ? p.getTotalVocabularyWords().doubleValue() : 0.0;
+
+			if (sp != null) {
+				totalSpeakingScores += sp;
+				speakingScoreCount++;
+			}
+			if (gr != null) {
+				totalGrammarScores += gr;
+				grammarScoreCount++;
+			}
+			if (ls != null) {
+				totalListeningScores += ls;
+				listeningScoreCount++;
+			}
+			if (voc > 0) {
+				totalVocabularyWords += voc;
+				vocabularyCount++;
+			}
+
+			// Individual student score: average of available skill scores
+			List<Double> validScores = new ArrayList<>();
+			if (sp != null) validScores.add(sp);
+			if (gr != null) validScores.add(gr);
+			if (ls != null) validScores.add(ls);
+
+			double avgStudentScore = validScores.isEmpty()
+					? (p != null && p.getXp() != null ? Math.min(100.0, p.getXp().doubleValue()) : 0.0)
+					: validScores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+
+			int completedLessons = (int) lessonProgressRepository.countByUserIdAndCompletedTrue(student.getId());
+			double practiceCompletion = Math.min(100.0, completedLessons > 0 ? completedLessons * 10.0 : (p != null && p.getXp() != null ? Math.min(100.0, p.getXp() * 0.8) : 0.0));
+			double overallProgress = p != null && p.getXp() != null ? Math.min(100.0, p.getXp().doubleValue()) : practiceCompletion;
+
+			// Attendance rate for student
+			boolean isActive = student.getStatus() == Status.ACTIVE;
+			if (isActive) activeStudentsCount++;
+
+			int weeklySessions = (int) speakingSessionRepository.countByUserIdAndCreatedAtBetween(student.getId(), sevenDaysAgo, LocalDateTime.now());
+			int weeklyGrammar = (int) grammarHistoryRepository.countByUserIdAndCreatedAtBetween(student.getId(), sevenDaysAgo, LocalDateTime.now());
+			boolean practicedThisWeek = (weeklySessions > 0 || weeklyGrammar > 0);
+			if (practicedThisWeek) practicingStudentsCount++;
+
+			double studentAttendance = isActive ? (practicedThisWeek ? 100.0 : 75.0) : 0.0;
+
+			studentProgressList.add(StudentAnalyticsSummaryResponse.builder()
+					.studentId(student.getId())
+					.studentName(((student.getFirstName() != null ? student.getFirstName() : "") + " " + (student.getLastName() != null ? student.getLastName() : "")).trim())
+					.rollNumber(student.getRollNumber())
+					.standard(student.getStandard())
+					.division(student.getDivision())
+					.overallProgress(Math.round(overallProgress * 10.0) / 10.0)
+					.averageScore(Math.round(avgStudentScore * 10.0) / 10.0)
+					.practiceCompletion(Math.round(practiceCompletion * 10.0) / 10.0)
+					.attendance(Math.round(studentAttendance * 10.0) / 10.0)
+					.status(student.getStatus() != null ? student.getStatus().name() : "ACTIVE")
+					.build());
+
+			totalStudentScores += avgStudentScore;
+			totalStudentProgress += overallProgress;
+			totalStudentPracticeCompletion += practiceCompletion;
+			totalStudentAttendance += studentAttendance;
+		}
+
+		int totalStudents = students.size();
+		double classAvgScore = totalStudents > 0 ? (totalStudentScores / totalStudents) : 0.0;
+		double classAvgProgress = totalStudents > 0 ? (totalStudentProgress / totalStudents) : 0.0;
+		double classAvgPracticeCompletion = totalStudents > 0 ? (totalStudentPracticeCompletion / totalStudents) : 0.0;
+		double classAttendanceRate = totalStudents > 0 ? (practicingStudentsCount * 100.0 / totalStudents) : 0.0;
+		if (classAttendanceRate == 0 && activeStudentsCount > 0 && totalStudents > 0) {
+			classAttendanceRate = (activeStudentsCount * 100.0 / totalStudents);
+		}
+
+		// Update student count in assignedClasses for this selected class
+		final int currentClassStudentCount = totalStudents;
+		assignedClasses.forEach(c -> {
+			if (c.getId() != null && c.getId().equals(selectedClassId)) {
+				c.setStudentCount(currentClassStudentCount);
+			}
+		});
+
+		// 4 Cards data
+		List<ClassPerformanceResponse> classPerformance = List.of(
+				ClassPerformanceResponse.builder()
+						.classId(selectedClassId)
+						.className(selectedClassName)
+						.grade(selectedStd)
+						.totalStudents(totalStudents)
+						.averageScore(classAvgScore)
+						.averageProgress(classAvgPracticeCompletion)
+						.completedLessons((int) totalStudentPracticeCompletion)
+						.activeStudents((int) activeStudentsCount)
+						.build()
+		);
+
+		// Skill performance summary
+		double avgSpeaking = speakingScoreCount > 0 ? (totalSpeakingScores / speakingScoreCount) : (classAvgScore > 0 ? classAvgScore : 0.0);
+		double avgGrammar = grammarScoreCount > 0 ? (totalGrammarScores / grammarScoreCount) : (classAvgScore > 0 ? classAvgScore : 0.0);
+		double avgListening = listeningScoreCount > 0 ? (totalListeningScores / listeningScoreCount) : (classAvgScore > 0 ? classAvgScore : 0.0);
+		double avgVocabulary = vocabularyCount > 0 ? (totalVocabularyWords / vocabularyCount) : (classAvgScore > 0 ? classAvgScore : 0.0);
+
+		SkillPerformanceSummaryResponse skillPerformance = SkillPerformanceSummaryResponse.builder()
+				.speaking(avgSpeaking)
+				.grammar(avgGrammar)
+				.listening(avgListening)
+				.vocabulary(avgVocabulary)
+				.build();
+
+		// Trends
+		List<PerformanceTrendResponse> performanceTrends = new ArrayList<>();
+		String[] periods = { "Week 1", "Week 2", "Week 3", "Week 4" };
+		for (int i = 0; i < periods.length; i++) {
+			double trendScore = Math.max(0.0, Math.min(100.0, classAvgScore + (i * 2.5) - 3.0));
+			performanceTrends.add(PerformanceTrendResponse.builder()
+					.period(periods[i])
+					.averageScore(trendScore)
+					.sessionsCompleted(totalStudents > 0 ? Math.max(1, (totalStudents * (i + 1)) / 3) : 0)
+					.lessonsCompleted(totalStudents > 0 ? Math.max(1, (totalStudents * (i + 1)) / 2) : 0)
+					.build());
+		}
+
+		// Top performers
+		List<TopPerformerResponse> topPerformers = studentProgressList.stream()
+				.sorted((a, b) -> Double.compare(b.getAverageScore() != null ? b.getAverageScore() : 0.0, a.getAverageScore() != null ? a.getAverageScore() : 0.0))
+				.limit(5)
+				.map(sp -> TopPerformerResponse.builder()
+						.studentId(sp.getStudentId())
+						.studentName(sp.getStudentName())
+						.score(sp.getAverageScore())
+						.metric("Average Score")
+						.build())
+				.collect(Collectors.toList());
+
+		// Students requiring attention
+		List<StudentAttentionItemResponse> attentionStudents = new ArrayList<>();
+		for (StudentAnalyticsSummaryResponse sp : studentProgressList) {
+			List<String> reasons = new ArrayList<>();
+			String severity = "low";
+
+			if (sp.getAverageScore() != null && sp.getAverageScore() < 50) {
+				reasons.add("Low average score");
+				severity = "high";
+			}
+			if (sp.getPracticeCompletion() != null && sp.getPracticeCompletion() < 40) {
+				reasons.add("Low practice completion");
+				if (!"high".equals(severity)) severity = "medium";
+			}
+			if (sp.getAttendance() != null && sp.getAttendance() < 50) {
+				reasons.add("Inconsistent practice attendance");
+				severity = "high";
+			}
+			if ("INACTIVE".equalsIgnoreCase(sp.getStatus())) {
+				reasons.add("Account inactive");
+				severity = "high";
+			}
+
+			if (!reasons.isEmpty()) {
+				attentionStudents.add(StudentAttentionItemResponse.builder()
+						.studentId(sp.getStudentId())
+						.studentName(sp.getStudentName())
+						.reason(String.join(", ", reasons))
+						.severity(severity)
+						.build());
+			}
+		}
+
+		attentionStudents.sort((a, b) -> Integer.compare(getSeverityOrder(b.getSeverity()), getSeverityOrder(a.getSeverity())));
+
+		// AI Learning Insights
+		List<AiLearningInsightResponse> aiInsights = new ArrayList<>();
+		if (totalStudents > 0) {
+			aiInsights.add(AiLearningInsightResponse.builder()
+					.insight(String.format("%s performance average is at %.0f%% with %d active students.", selectedClassName, classAvgScore, activeStudentsCount))
+					.type("overview").recommendation("Focus on consistent weekly speaking drills.").build());
+			aiInsights.add(AiLearningInsightResponse.builder()
+					.insight(String.format("Speaking proficiency average is %.0f%% across current learners.", avgSpeaking))
+					.type("speaking").recommendation("Introduce interactive conversation topics.").build());
+		}
+
+		return TeacherAnalyticsResponse.builder()
+				.assignedClasses(assignedClasses)
+				.selectedClassId(selectedClassId)
+				.selectedStandard(selectedStd)
+				.selectedDivision(selectedDiv)
+				.selectedClassName(selectedClassName)
+				.classPerformance(classPerformance)
+				.studentProgress(studentProgressList)
+				.skillPerformance(skillPerformance)
+				.performanceTrends(performanceTrends)
+				.topPerformers(topPerformers)
+				.studentsRequiringAttention(attentionStudents)
+				.aiLearningInsights(aiInsights)
+				.build();
+	}
+
+	@Override
+	public TeacherStudentDetailResponse getStudentAnalytics(Long studentId) {
+		return getStudentDetail(studentId);
+	}
+
+	@Override
+	public TeacherReportsResponse getReports() {
+		User teacher = getCurrentTeacher();
+		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
+		List<User> students = getStudentsInClasses(classes);
+
+		List<ReportCategoryResponse> reportCategories = List.of(
+				ReportCategoryResponse.builder().id("class").name("Class Performance")
+						.description("Detailed performance analysis per class").icon("bar-chart").build(),
+				ReportCategoryResponse.builder().id("student").name("Student Progress")
+						.description("Individual student progress reports").icon("person").build(),
+				ReportCategoryResponse.builder().id("skill").name("Skill Analysis")
+						.description("Grammar, vocabulary, speaking and listening analytics").icon("trending-up")
+						.build(),
+				ReportCategoryResponse.builder().id("attendance").name("Attendance Report")
+						.description("Student attendance and participation tracking").icon("calendar").build());
+
+		List<RecentReportResponse> recentReports = List.of(
+				RecentReportResponse.builder().id("rpt-001").title("Class Performance - Grade 10A").type("class")
+						.status("completed").generatedAt(LocalDateTime.now().minusDays(1)).downloadUrl("/reports/rpt-001")
+						.build(),
+				RecentReportResponse.builder().id("rpt-002").title("Student Progress - Monthly").type("student")
+						.status("completed").generatedAt(LocalDateTime.now().minusDays(3)).downloadUrl("/reports/rpt-002")
+						.build(),
+				RecentReportResponse.builder().id("rpt-003").title("Skill Analysis - Q3").type("skill")
+						.status("processing").generatedAt(LocalDateTime.now().minusHours(5)).downloadUrl(null).build());
+
+		ReportStatusResponse reportStatus = ReportStatusResponse.builder().pending("1").completed("2").failed("0").build();
+
+		double avgProgress = 0;
+		if (!students.isEmpty()) {
+			double totalXp = students.stream().mapToDouble(s -> {
+				Progress p = progressRepository.findByUser(s).orElse(null);
+				return p != null && p.getXp() != null ? p.getXp() : 0;
+			}).sum();
+			avgProgress = totalXp / students.size();
+		}
+
+		StatisticsResponse performanceSummary = StatisticsResponse.builder()
+				.totalLessons((int) lessonProgressRepository.countByUserIdAndCompletedTrue(teacher.getId()))
+				.completedLessons((int) lessonProgressRepository.countByUserIdAndCompletedTrue(teacher.getId()))
+				.speakingSessions((int) speakingSessionRepository.countByUserIdAndCreatedAtBetween(teacher.getId(),
+						LocalDateTime.now().minusYears(100), LocalDateTime.now()))
+				.vocabularyLearned((int) vocabularyRepository.findByUser(teacher).stream().count())
+				.grammarExercises((int) grammarHistoryRepository.countByUserIdAndCreatedAtBetween(teacher.getId(),
+						LocalDateTime.now().minusYears(100), LocalDateTime.now()))
+				.totalStudyHours(0.0).currentStreak(0).longestStreak(0).averageScore((int) Math.round(avgProgress))
+				.build();
+
+		List<UpcomingReportResponse> upcomingReports = List.of(
+				UpcomingReportResponse.builder().id("rpt-upcoming-1").title("Monthly Progress Report").type("student")
+						.dueDate(LocalDate.now().plusDays(5)).status("scheduled").build(),
+				UpcomingReportResponse.builder().id("rpt-upcoming-2").title("Term End Assessment").type("class")
+						.dueDate(LocalDate.now().plusDays(20)).status("scheduled").build());
+
+		LocalDate today = LocalDate.now();
+		LocalDate sessionStart = LocalDate.of(today.getYear(), 6, 1);
+		LocalDate sessionEnd = LocalDate.of(today.getYear() + 1, 5, 31);
+		long weeksBetween = java.time.temporal.ChronoUnit.WEEKS.between(today, sessionEnd);
+		AcademicSessionResponse academicSession = AcademicSessionResponse.builder().name("2025-2026")
+				.startDate(sessionStart).endDate(sessionEnd).currentTerm("Term 1")
+				.totalWeeks(52)
+				.remainingWeeks((int) weeksBetween).build();
+
+		return TeacherReportsResponse.builder().reportCategories(reportCategories).recentReports(recentReports)
+				.reportStatus(reportStatus).performanceSummary(performanceSummary).upcomingReports(upcomingReports)
+				.academicSession(academicSession).build();
+	}
+
+	private String formatStandardGradeAndDiv(String std, String div) {
+		if (std == null || std.trim().isEmpty()) return "";
+		String trimmedStd = std.trim();
+		String formattedStd = trimmedStd;
+
+		if (trimmedStd.matches("^\\d+$")) {
+			formattedStd = "Grade " + trimmedStd;
+		} else if (!trimmedStd.toLowerCase().startsWith("grade") && !trimmedStd.toLowerCase().contains("standard")) {
+			formattedStd = "Grade " + trimmedStd;
+		}
+
+		if (div != null && !div.trim().isEmpty()) {
+			return formattedStd + " - " + div.trim().toUpperCase();
+		}
+		return formattedStd;
+	}
+
+	@Override
+	public TeacherProfileResponse getProfile() {
+		Teacher teacher = getAuthenticatedTeacher();
+		com.rslsolution.speakmateai.entity.Settings settings = settingsRepository.findByUser(teacher).orElse(null);
+
+		// Resolve School Name & School ID
+		String resolvedSchoolName = teacher.getSchoolName();
+		Long resolvedSchoolId = teacher.getSchoolId();
+
+		if ((resolvedSchoolName == null || resolvedSchoolName.trim().isEmpty()) && resolvedSchoolId != null && schoolRepository != null) {
+			resolvedSchoolName = schoolRepository.findById(resolvedSchoolId)
+					.map(s -> s.getName() != null && !s.getName().trim().isEmpty() ? s.getName() : s.getSchoolName())
+					.orElse(null);
+		}
+
+		List<TeacherStandardDivision> teacherStdDivs = teacherStandardDivisionRepository.findByTeacherId(teacher.getId());
+		if ((resolvedSchoolName == null || resolvedSchoolName.trim().isEmpty()) && teacherStdDivs != null) {
+			for (TeacherStandardDivision tsd : teacherStdDivs) {
+				if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null
+						&& tsd.getStandardDivision().getSchoolStandard().getSchool() != null) {
+					School sch = tsd.getStandardDivision().getSchoolStandard().getSchool();
+					if (resolvedSchoolName == null || resolvedSchoolName.trim().isEmpty()) {
+						resolvedSchoolName = sch.getName() != null && !sch.getName().trim().isEmpty() ? sch.getName() : sch.getSchoolName();
+					}
+					if (resolvedSchoolId == null) {
+						resolvedSchoolId = sch.getId();
+					}
+				}
+			}
+		}
+
+		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
+		if ((resolvedSchoolName == null || resolvedSchoolName.trim().isEmpty()) && classes != null && schoolRepository != null) {
+			for (ClassRoom cr : classes) {
+				if (cr.getSchoolId() != null) {
+					resolvedSchoolName = schoolRepository.findById(cr.getSchoolId())
+							.map(s -> s.getName() != null && !s.getName().trim().isEmpty() ? s.getName() : s.getSchoolName())
+							.orElse(null);
+					if (resolvedSchoolId == null) {
+						resolvedSchoolId = cr.getSchoolId();
+					}
+					if (resolvedSchoolName != null && !resolvedSchoolName.trim().isEmpty()) {
+						break;
+					}
+				}
+			}
+		}
+
+		// Backfill teacher school details if missing
+		if (resolvedSchoolName != null && (teacher.getSchoolName() == null || teacher.getSchoolName().trim().isEmpty())) {
+			teacher.setSchoolName(resolvedSchoolName);
+			if (resolvedSchoolId != null && teacher.getSchoolId() == null) {
+				teacher.setSchoolId(resolvedSchoolId);
+			}
+			try {
+				teacherRepository.save(teacher);
+			} catch (Exception ignored) {
+			}
+		}
+
+		// Resolve Assigned Classes
+		Map<String, AssignedClassResponse> profileClassMap = new LinkedHashMap<>();
+		List<String> formattedStandards = new ArrayList<>();
+		if (classes != null) {
+			for (ClassRoom c : classes) {
+				String label = formatStandardGradeAndDiv(c.getGrade(), c.getDivision());
+				if (label.isEmpty() && c.getName() != null) {
+					label = c.getName();
+				}
+				String key = (c.getGrade() != null ? c.getGrade().trim().toLowerCase() : "") + "_" + (c.getDivision() != null ? c.getDivision().trim().toUpperCase() : "");
+				if (key.equals("_") && c.getName() != null) {
+					key = c.getName().trim().toLowerCase();
+				}
+				List<ClassStudent> classStudents = classStudentRepository.findByClassId(c.getId());
+				profileClassMap.put(key, AssignedClassResponse.builder()
+						.id(c.getId())
+						.name(label)
+						.grade(c.getGrade())
+						.standard(c.getGrade())
+						.division(c.getDivision() != null ? c.getDivision().trim().toUpperCase() : "")
+						.academicYear(c.getAcademicYear() != null ? c.getAcademicYear() : "2025-2026")
+						.status(c.getStatus() != null ? c.getStatus() : Status.ACTIVE)
+						.studentCount(classStudents != null ? classStudents.size() : 0)
+						.build());
+				if (!label.isEmpty() && !formattedStandards.contains(label)) {
+					formattedStandards.add(label);
+				}
+			}
+		}
+
+		if (teacherStdDivs != null) {
+			for (TeacherStandardDivision tsd : teacherStdDivs) {
+				if (tsd.getStandardDivision() != null && tsd.getStandardDivision().getSchoolStandard() != null) {
+					String std = tsd.getStandardDivision().getSchoolStandard().getStandard();
+					String div = tsd.getStandardDivision().getDivision();
+					String formatted = formatStandardGradeAndDiv(std, div);
+					String key = (std != null ? std.trim().toLowerCase() : "") + "_" + (div != null ? div.trim().toUpperCase() : "");
+					if (!profileClassMap.containsKey(key)) {
+						profileClassMap.put(key, AssignedClassResponse.builder()
+								.id(tsd.getId())
+								.name(formatted)
+								.grade(std)
+								.standard(std)
+								.division(div != null ? div.trim().toUpperCase() : "")
+								.academicYear("2025-2026")
+								.status(Status.ACTIVE)
+								.studentCount(0)
+								.build());
+					}
+					if (!formatted.isEmpty() && !formattedStandards.contains(formatted)) {
+						formattedStandards.add(formatted);
+					}
+				}
+			}
+		}
+
+		if (formattedStandards.isEmpty() && teacher.getStandard() != null && !teacher.getStandard().trim().isEmpty()) {
+			String std = teacher.getStandard().trim();
+			String div = teacher.getDivision() != null ? teacher.getDivision().trim().toUpperCase() : "";
+			String formatted = formatStandardGradeAndDiv(std, div);
+			profileClassMap.put("fallback", AssignedClassResponse.builder()
+					.id(teacher.getId())
+					.name(formatted)
+					.grade(std)
+					.standard(std)
+					.division(div)
+					.academicYear("2025-2026")
+					.status(Status.ACTIVE)
+					.studentCount(0)
+					.build());
+			formattedStandards.add(formatted);
+		}
+
+		formattedStandards.sort(Comparator.naturalOrder());
+		String assignedStandardString = formattedStandards.isEmpty() ? null : String.join(", ", formattedStandards);
+		List<AssignedClassResponse> assignedClasses = new ArrayList<>(profileClassMap.values());
+
+		IdentityResponse identity = IdentityResponse.builder()
+				.id(teacher.getId())
+				.firstName(teacher.getFirstName())
+				.lastName(teacher.getLastName())
+				.email(teacher.getEmail())
+				.avatar(teacher.getAvatar())
+				.role(teacher.getRole().name())
+				.active(teacher.isActive())
+				.standard(assignedStandardString)
+				.schoolName(resolvedSchoolName)
+				.build();
+
+		ProfessionalInfoResponse professionalInfo = ProfessionalInfoResponse.builder()
+				.employeeId(teacher.getEmployeeId())
+				.department(teacher.getDepartment())
+				.designation(teacher.getDesignation())
+				.qualification(teacher.getQualification())
+				.experience(teacher.getExperience())
+				.joinedAt(teacher.getJoinedAt() != null ? teacher.getJoinedAt() : teacher.getCreatedAt())
+				.bio(teacher.getBio())
+				.build();
+
+		List<User> students = getTeacherStudents(teacher, classes);
+		int totalLessonsAssigned = 0;
+
+		TeachingOverviewResponse teachingOverview = TeachingOverviewResponse.builder()
+				.totalClasses(classes != null ? classes.size() : 0)
+				.totalStudents(students.size())
+				.totalLessonsAssigned(totalLessonsAssigned)
+				.averageClassPerformance(0.0)
+				.assignedClasses(assignedClasses)
+				.build();
+
+		ContactInfoResponse contactInfo = ContactInfoResponse.builder()
+				.phone(teacher.getPhone())
+				.alternatePhone(null)
+				.location(teacher.getLocation())
+				.address(teacher.getLocation() != null ? teacher.getLocation() : resolvedSchoolName)
+				.city(null).state(null).country(null).build();
+
+		AccountInfoResponse accountInfo = AccountInfoResponse.builder()
+				.active(teacher.isActive())
+				.emailVerified(teacher.isEmailVerified())
+				.createdAt(teacher.getCreatedAt())
+				.updatedAt(teacher.getUpdatedAt())
+				.lastLogin(null).build();
+
+		UserPreferencesResponse userPreferences = UserPreferencesResponse.builder()
+				.darkMode(settings != null ? settings.getDarkMode() : false)
+				.notificationsEnabled(settings != null ? settings.getNotificationsEnabled() : true)
+				.language(settings != null ? settings.getLanguage() : "English")
+				.aiVoice(settings != null ? settings.getAiVoice() : "Female")
+				.soundEffects(settings != null ? settings.getSoundEffects() : true)
+				.autoPlayAudio(settings != null ? settings.getAutoPlayAudio() : true)
+				.dailyReminder(settings != null ? settings.getDailyReminder() : true).build();
+
+		return TeacherProfileResponse.builder()
+				.identity(identity)
+				.professionalInfo(professionalInfo)
+				.teachingOverview(teachingOverview)
+				.contactInfo(contactInfo)
+				.accountInfo(accountInfo)
+				.userPreferences(userPreferences)
+				.bio(teacher.getBio())
+				.schoolId(resolvedSchoolId)
+				.schoolName(resolvedSchoolName)
+				.assignedStandard(assignedStandardString)
+				.build();
+	}
+
+	@Override
+	public TeacherProfileResponse updateProfile(TeacherProfileUpdateRequest request) {
+		Teacher teacher = getAuthenticatedTeacher();
+
+		teacher.setFirstName(request.getFirstName().trim());
+		teacher.setLastName(request.getLastName().trim());
+
+		if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+			teacher.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Phone number"));
+		} else {
+			teacher.setPhone(null);
+		}
+
+		teacher.setDepartment(request.getDepartment() != null ? request.getDepartment().trim() : null);
+		teacher.setDesignation(request.getDesignation() != null ? request.getDesignation().trim() : null);
+		teacher.setQualification(request.getQualification() != null ? request.getQualification().trim() : null);
+		teacher.setExperience(request.getExperience() != null ? request.getExperience().trim() : null);
+		teacher.setLocation(request.getLocation() != null ? request.getLocation().trim() : null);
+		teacher.setBio(request.getBio() != null ? request.getBio().trim() : null);
+
+		teacherRepository.save(teacher);
+		return getProfile();
+	}
+
+	@Override
+	public void changePassword(ChangePasswordRequest request) {
+		Teacher teacher = getAuthenticatedTeacher();
+
+		if (!passwordEncoder.matches(request.getCurrentPassword(), teacher.getPassword())) {
+			throw new IllegalArgumentException("Current password is incorrect");
+		}
+
+		if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+			throw new IllegalArgumentException("New password and confirm password do not match");
+		}
+
+		teacher.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		teacherRepository.save(teacher);
+	}
+
+	@Override
+	public byte[] downloadProfile() {
+		TeacherProfileResponse profile = getProfile();
+		try {
+			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+			mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+			return mapper.writerWithDefaultPrettyPrinter().writeValueAsBytes(profile);
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to generate profile download", e);
+		}
+	}
+}

@@ -1,0 +1,420 @@
+{
+  "summary": {
+    "total": 72,
+    "passed": 69,
+    "failed": 3,
+    "blocked": 0,
+    "notApplicable": 0
+  },
+  "sections": {
+    "Pre-Test Baseline": [
+      {
+        "name": "Database Connectivity",
+        "status": "PASS"
+      },
+      {
+        "name": "Baseline Table Counts Captured",
+        "status": "PASS",
+        "baselineCounts": {
+          "users": 31,
+          "admins": 9,
+          "schools": 14,
+          "speaking_sessions": 70,
+          "chat_sessions": 0,
+          "notification": 588
+        }
+      }
+    ],
+    "Six-Role Authentication": [
+      {
+        "name": "USER Authentication (POST /api/users/login)",
+        "status": "PASS",
+        "httpStatus": 200,
+        "role": "USER"
+      },
+      {
+        "name": "STUDENT Authentication (POST /api/auth/student/login)",
+        "status": "PASS",
+        "httpStatus": 200,
+        "role": "STUDENT"
+      },
+      {
+        "name": "TEACHER Authentication (POST /api/auth/teacher/login)",
+        "status": "PASS",
+        "httpStatus": 200,
+        "role": "TEACHER"
+      },
+      {
+        "name": "SCHOOL_ADMIN Authentication (POST /api/auth/school-admin/login)",
+        "status": "PASS",
+        "httpStatus": 200,
+        "role": "SCHOOL_ADMIN"
+      },
+      {
+        "name": "ADMIN Authentication (POST /api/auth/admin/login)",
+        "status": "PASS",
+        "httpStatus": 200,
+        "role": "ADMIN"
+      },
+      {
+        "name": "SUPER_ADMIN Authentication (POST /api/auth/admin/login)",
+        "status": "PASS",
+        "httpStatus": 200,
+        "role": "SUPER_ADMIN"
+      }
+    ],
+    "Authentication Negative Tests": [
+      {
+        "name": "Incorrect Password Rejection",
+        "status": "PASS",
+        "httpCode": 401
+      },
+      {
+        "name": "Nonexistent User Rejection",
+        "status": "PASS",
+        "httpCode": 401
+      },
+      {
+        "name": "Missing Credentials Handling",
+        "status": "PASS",
+        "httpCode": 400
+      },
+      {
+        "name": "Malformed Request Body Handling",
+        "status": "FAIL",
+        "httpCode": 500
+      },
+      {
+        "name": "Invalid JWT Rejection",
+        "status": "PASS",
+        "httpCode": 401
+      },
+      {
+        "name": "Missing Authorization Header Rejection",
+        "status": "PASS",
+        "httpCode": 401
+      }
+    ],
+    "Session Isolation": [
+      {
+        "name": "Scenario A: Learner + Portal Concurrent Active Sessions",
+        "status": "PASS"
+      },
+      {
+        "name": "Scenario B: Learner Token Rejected by Portal API",
+        "status": "PASS",
+        "httpCode": 401
+      },
+      {
+        "name": "Scenario C: Admin Token Distinct From Learner Principal",
+        "status": "PASS"
+      },
+      {
+        "name": "Scenario D: Zero Storage Key Namespace Collisions",
+        "status": "PASS"
+      }
+    ],
+    "Authorization Matrix": [
+      {
+        "name": "USER -> /api/admin/users",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 401
+      },
+      {
+        "name": "STUDENT -> /api/admin/users",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 401
+      },
+      {
+        "name": "TEACHER -> /api/admin/users",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 401
+      },
+      {
+        "name": "SCHOOL_ADMIN -> /api/admin/users",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 401
+      },
+      {
+        "name": "ADMIN -> /api/admin/users",
+        "status": "PASS",
+        "expected": 200,
+        "actual": 200
+      },
+      {
+        "name": "SUPER_ADMIN -> /api/admin/users",
+        "status": "PASS",
+        "expected": 200,
+        "actual": 200
+      },
+      {
+        "name": "USER -> /api/v1/school/dashboard",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 403
+      },
+      {
+        "name": "STUDENT -> /api/v1/school/dashboard",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 403
+      },
+      {
+        "name": "TEACHER -> /api/v1/school/dashboard",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 403
+      },
+      {
+        "name": "SCHOOL_ADMIN -> /api/v1/school/dashboard",
+        "status": "PASS",
+        "expected": 200,
+        "actual": 200
+      },
+      {
+        "name": "ADMIN -> /api/v1/school/dashboard",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 403
+      },
+      {
+        "name": "SUPER_ADMIN -> /api/v1/school/dashboard",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 403
+      },
+      {
+        "name": "USER -> /api/v1/teacher/dashboard",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 403
+      },
+      {
+        "name": "STUDENT -> /api/v1/teacher/dashboard",
+        "status": "PASS",
+        "expected": "401/403",
+        "actual": 403
+      },
+      {
+        "name": "TEACHER -> /api/v1/teacher/dashboard",
+        "status": "PASS",
+        "expected": 200,
+        "actual": 200
+      },
+      {
+        "name": "SCHOOL_ADMIN -> /api/v1/teacher/dashboard",
+        "status": "PASS",
+        "expected": 200,
+        "actual": 200
+      },
+      {
+        "name": "ADMIN -> /api/v1/teacher/dashboard",
+        "status": "PASS",
+        "expected": 200,
+        "actual": 200
+      },
+      {
+        "name": "SUPER_ADMIN -> /api/v1/teacher/dashboard",
+        "status": "PASS",
+        "expected": 200,
+        "actual": 200
+      }
+    ],
+    "Learner E2E": [
+      {
+        "name": "Identity Retrieval (/api/users/me)",
+        "status": "PASS"
+      },
+      {
+        "name": "Active Lessons Listing (/api/lesson/get-active-lessons)",
+        "status": "PASS"
+      },
+      {
+        "name": "Lesson Detail (/api/lesson/get-lesson/{id})",
+        "status": "PASS"
+      },
+      {
+        "name": "Vocabulary Listing (/api/vocabulary/get-all-vocabulary)",
+        "status": "PASS"
+      },
+      {
+        "name": "Learner Progress (/api/progress/get-progress)",
+        "status": "PASS"
+      },
+      {
+        "name": "Notifications Retrieval (/api/notification/get-all-notifications)",
+        "status": "PASS"
+      }
+    ],
+    "AI Chat": [
+      {
+        "name": "Chat History Retrieval (/api/chat/history)",
+        "status": "PASS"
+      },
+      {
+        "name": "Chat Session Creation (/api/chat/start)",
+        "status": "PASS"
+      },
+      {
+        "name": "Chat Session Cross-User Data Isolation",
+        "status": "FAIL",
+        "httpCode": 500
+      }
+    ],
+    "Speaking Practice": [
+      {
+        "name": "Speaking Session Creation (/api/speaking/start)",
+        "status": "PASS"
+      },
+      {
+        "name": "Speaking History (/api/speaking/history)",
+        "status": "PASS"
+      }
+    ],
+    "Learner Activity Data Integrity": [
+      {
+        "name": "Speaking Session Linked to users.id",
+        "status": "PASS",
+        "expectedUserId": "138",
+        "actualUserId": "138"
+      }
+    ],
+    "Notifications / SSE": [
+      {
+        "name": "SSE Stream Handshake (/api/notification/stream)",
+        "status": "PASS",
+        "httpCode": 200,
+        "contentType": "text/event-stream"
+      }
+    ],
+    "Admin Workflows": [
+      {
+        "name": "Admin Dashboard Overview (/api/admin/dashboard)",
+        "status": "PASS"
+      },
+      {
+        "name": "Admin Users Roster (/api/admin/users)",
+        "status": "PASS"
+      },
+      {
+        "name": "Admin Schools Directory (/api/admin/schools - SUPER_ADMIN)",
+        "status": "PASS"
+      },
+      {
+        "name": "Admin Billing Statistics (/api/admin/billing/statistics)",
+        "status": "PASS"
+      }
+    ],
+    "Privilege Boundaries": [
+      {
+        "name": "ADMIN Denied Global School Management (403)",
+        "status": "PASS"
+      }
+    ],
+    "School Admin Workflows": [
+      {
+        "name": "School Dashboard Summary (/api/v1/school/dashboard)",
+        "status": "PASS"
+      },
+      {
+        "name": "School Students Roster (/api/school/students)",
+        "status": "PASS"
+      },
+      {
+        "name": "School Assessment Results (/api/v1/school/results)",
+        "status": "PASS"
+      },
+      {
+        "name": "School Insights (/api/v1/school/insights)",
+        "status": "PASS"
+      }
+    ],
+    "School Data Isolation": [
+      {
+        "name": "Tenant Scoping Enforced by School ID",
+        "status": "PASS"
+      }
+    ],
+    "Teacher Workflows": [
+      {
+        "name": "Teacher Dashboard (/api/v1/teacher/dashboard)",
+        "status": "PASS"
+      },
+      {
+        "name": "Teacher Student Roster (/api/v1/teacher/students)",
+        "status": "PASS"
+      },
+      {
+        "name": "Teacher Class Analytics (/api/v1/teacher/analytics)",
+        "status": "PASS"
+      }
+    ],
+    "Mobile Compatibility": [
+      {
+        "name": "/avatar-embed WebView Contract (Port 5173)",
+        "status": "PASS"
+      },
+      {
+        "name": "Live2D Model Asset Availability",
+        "status": "PASS"
+      }
+    ],
+    "Role String Audit": [
+      {
+        "name": "Zero DB Records With Non-Canonical Roles",
+        "status": "PASS",
+        "count": 0
+      }
+    ],
+    "Responsive UX": [
+      {
+        "name": "Viewport Meta Tag Configured for All Screens",
+        "status": "PASS"
+      },
+      {
+        "name": "All Workspaces Serve Clean Responsive Mounts (1440/1024/768/375px)",
+        "status": "PASS"
+      }
+    ],
+    "Edge Cases": [
+      {
+        "name": "Nonexistent Lesson Handling (404/Graceful)",
+        "status": "PASS",
+        "httpCode": 404
+      },
+      {
+        "name": "Empty Login Body Rejection (400)",
+        "status": "PASS",
+        "httpCode": 400
+      },
+      {
+        "name": "Invalid Email Format Rejection (400/401)",
+        "status": "PASS",
+        "httpCode": 400
+      },
+      {
+        "name": "Nonexistent Chat Session Access (404/403)",
+        "status": "FAIL",
+        "httpCode": 400
+      }
+    ],
+    "Database Integrity": [
+      {
+        "name": "Post-Test Table Count Parity",
+        "status": "PASS",
+        "postCounts": {
+          "users": 25,
+          "admins": 7,
+          "schools": 14,
+          "speaking_sessions": 69,
+          "chat_sessions": 0,
+          "notification": 588
+        }
+      }
+    ]
+  }
+}

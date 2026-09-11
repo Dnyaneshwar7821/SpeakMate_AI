@@ -1,0 +1,243 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *, .dark, .dark *));
+
+:root,
+[data-theme="light"] {
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+
+  font-family: var(--font-body);
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --bg-base: #F8FAFC;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F1F5F9;
+  --border-default: rgba(15, 23, 42, 0.08);
+  --border-subtle: rgba(15, 23, 42, 0.04);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(108, 99, 255, 0.16);
+  --glass-hover-bg: rgba(255, 255, 255, 0.95);
+  --shadow-color: rgba(15, 23, 42, 0.06);
+
+  --primary-brand: #6C63FF;
+  --primary-brand-hover: #5B52F2;
+  --primary-glow: rgba(108, 99, 255, 0.25);
+  --accent-pink: #FF6584;
+  --accent-cyan: #06B6D4;
+  --accent-amber: #F59E0B;
+  --accent-emerald: #10B981;
+}
+
+[data-theme="dark"],
+html.dark {
+  --font-heading: 'Outfit', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+
+  font-family: var(--font-body);
+  color-scheme: dark;
+
+  --bg-base: #0B0F19;
+  --bg-surface: #131B2B;
+  --bg-elevated: #1C2638;
+  --border-default: rgba(255, 255, 255, 0.10);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  --glass-bg: rgba(19, 27, 43, 0.82);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --glass-hover-bg: rgba(28, 38, 56, 0.90);
+  --shadow-color: rgba(0, 0, 0, 0.45);
+
+  --primary-brand: #7C74FF;
+  --primary-brand-hover: #6C63FF;
+  --primary-glow: rgba(124, 116, 255, 0.35);
+  --accent-pink: #FF6584;
+  --accent-cyan: #22D3EE;
+  --accent-amber: #FBBF24;
+  --accent-emerald: #34D399;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* Ensure inputs and autofill inputs are crisp white */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Custom Smooth Web Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-elevated);
+  border-radius: 9999px;
+  border: 2px solid var(--bg-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-brand);
+}
+
+/* Modern Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.03); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shine {
+  to { background-position: 200% center; }
+}
+
+@keyframes soundwave {
+  0%, 100% { height: 6px; }
+  50% { height: 28px; }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-wave-bar {
+  animation: soundwave 1.2s ease-in-out infinite;
+}
+
+.animate-wave-bar-fast {
+  animation: soundwave 0.75s ease-in-out infinite;
+}
+
+/* Ultra-Premium Glassmorphism */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px -10px var(--shadow-color);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: rgba(108, 99, 255, 0.4);
+  box-shadow: 0 20px 40px -12px var(--primary-glow);
+  background: var(--glass-hover-bg);
+}
+
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-default);
+}
+
+/* Shimmer & Gradients */
+.gradient-text {
+  background: linear-gradient(135deg, #6C63FF 0%, #8B85FF 40%, #FF6584 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text-shimmer {
+  background: linear-gradient(135deg, #6C63FF 0%, #FF6584 50%, #8B5CF6 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shine 5s linear infinite;
+}
+
+.bg-mesh-glow {
+  background-image:
+    radial-gradient(at 10% 20%, rgba(108, 99, 255, 0.12) 0px, transparent 50%),
+    radial-gradient(at 90% 80%, rgba(255, 101, 132, 0.10) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+}
+
+.bg-hero-glow {
+  background-image:
+    radial-gradient(at 50% 0%, rgba(108, 99, 255, 0.18) 0px, transparent 65%),
+    radial-gradient(at 85% 30%, rgba(255, 101, 132, 0.12) 0px, transparent 55%);
+}
+
+/* Card Button Shine Hover */
+.btn-primary-glow {
+  background: linear-gradient(135deg, var(--primary-brand) 0%, #8B5CF6 100%);
+  color: #FFFFFF;
+  box-shadow: 0 8px 20px -4px var(--primary-glow);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary-glow:hover {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 14px 28px -6px var(--primary-glow);
+  filter: brightness(1.08);
+}
+
+.btn-primary-glow:active {
+  transform: scale(0.98);
+}

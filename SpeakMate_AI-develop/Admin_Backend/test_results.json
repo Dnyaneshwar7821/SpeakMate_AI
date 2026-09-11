@@ -1,0 +1,146 @@
+[
+  {
+    "test_name": "01_Create_Test_User",
+    "endpoint": "/api/users/register",
+    "method": "POST",
+    "expected": 201,
+    "actual": 200,
+    "result": "PASS",
+    "notes": "User created: testuser.1786527087.197109@speakmate.ai"
+  },
+  {
+    "test_name": "01b_User_Login",
+    "endpoint": "/api/users/login",
+    "method": "POST",
+    "expected": 200,
+    "actual": 200,
+    "result": "PASS",
+    "notes": "Token captured successfully"
+  },
+  {
+    "test_name": "01c_Super_Admin_Login",
+    "endpoint": "/api/v1/auth/admin/login",
+    "method": "POST",
+    "expected": 200,
+    "actual": 200,
+    "result": "PASS",
+    "notes": "Token captured successfully"
+  },
+  {
+    "test_name": "02_Create_Result",
+    "endpoint": "/api/v1/school/results",
+    "method": "POST",
+    "expected": 201,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404: {\"message\":\"User not found\",\"timestamp\":\"2026-08-12T15:01:29.0850703\",\"status\":404}"
+  },
+  {
+    "test_name": "03_Get_All_Results",
+    "endpoint": "/api/v1/school/results",
+    "method": "GET",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "04_Search_Results",
+    "endpoint": "/api/v1/school/results/search",
+    "method": "GET",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "06_Get_Results_By_Student",
+    "endpoint": "/api/v1/school/results/student/1",
+    "method": "GET",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "08_Create_Teacher",
+    "endpoint": "/api/v1/school/teachers",
+    "method": "POST",
+    "expected": 201,
+    "actual": 400,
+    "result": "FAIL",
+    "notes": "Status 400: {\"password\":\"Password must contain at least one digit, one lowercase, one uppercase, and one special"
+  },
+  {
+    "test_name": "09_Get_All_Teachers",
+    "endpoint": "/api/v1/school/teachers",
+    "method": "GET",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "10_Search_Teachers",
+    "endpoint": "/api/v1/school/teachers/search",
+    "method": "GET",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "13_Global_Search",
+    "endpoint": "/api/v1/search",
+    "method": "GET",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "14_School_Dashboard",
+    "endpoint": "/api/v1/school/dashboard",
+    "method": "GET",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "15_Change_Password",
+    "endpoint": "/api/settings/change-password",
+    "method": "POST",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "16_Two_Factor_Auth",
+    "endpoint": "/api/settings/two-factor",
+    "method": "POST",
+    "expected": 200,
+    "actual": 404,
+    "result": "FAIL",
+    "notes": "Status 404"
+  },
+  {
+    "test_name": "17_Unauthorized_Access",
+    "endpoint": "/api/v1/school/dashboard",
+    "method": "GET",
+    "expected": 401,
+    "actual": 401,
+    "result": "PASS",
+    "notes": "Status 401"
+  },
+  {
+    "test_name": "18_Invalid_Token",
+    "endpoint": "/api/v1/school/dashboard",
+    "method": "GET",
+    "expected": 401,
+    "actual": 401,
+    "result": "PASS",
+    "notes": "Status 401"
+  }
+]

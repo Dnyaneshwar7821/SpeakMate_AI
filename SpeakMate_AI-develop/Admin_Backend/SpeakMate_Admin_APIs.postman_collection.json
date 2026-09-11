@@ -1,0 +1,2213 @@
+{
+	"info": {
+		"name": "SpeakMate Admin APIs",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Admin Register",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"fullName\": \"Super Admin\",\n    \"email\": \"admin@speakmateai.com\",\n    \"password\": \"Admin@123\",\n    \"phone\": \"+1234567890\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:9091/api/admin/auth/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9091",
+					"path": [
+						"api",
+						"admin",
+						"auth",
+						"register"
+					]
+				}
+			}
+		},
+		{
+			"name": "1. Admin Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if(jsonData && jsonData.data && jsonData.data.jwtToken) {",
+							"    pm.collectionVariables.set(\"admin_token\", jsonData.data.jwtToken);",
+							"    console.log(\"Token automatically saved!\");",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"admin@speakmate.ai\",\n    \"password\": \"Admin@123\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:9091/api/admin/auth/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9091",
+					"path": [
+						"api",
+						"admin",
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. Admin Change Password",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"oldPassword\": \"Admin@123\",\n    \"newPassword\": \"NewAdmin@123\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:9091/api/admin/auth/change-password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9091",
+					"path": [
+						"api",
+						"admin",
+						"auth",
+						"change-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. Admin Forgot Password (Request OTP)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"admin@speakmate.ai\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:9091/api/admin/auth/forgot-password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9091",
+					"path": [
+						"api",
+						"admin",
+						"auth",
+						"forgot-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. Admin Verify OTP",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if(jsonData && jsonData.data && jsonData.data.token) {",
+							"    pm.collectionVariables.set(\"reset_token\", jsonData.data.token);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"admin@speakmate.ai\",\n    \"otp\": \"123456\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:9091/api/admin/auth/verify-otp",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9091",
+					"path": [
+						"api",
+						"admin",
+						"auth",
+						"verify-otp"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. Admin Reset Password",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"token\": \"{{reset_token}}\",\n    \"newPassword\": \"NewAdmin@123\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:9091/api/admin/auth/reset-password",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9091",
+					"path": [
+						"api",
+						"admin",
+						"auth",
+						"reset-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "6. Admin Refresh Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"if(jsonData && jsonData.data && jsonData.data.jwtToken) {",
+							"    pm.collectionVariables.set(\"admin_token\", jsonData.data.jwtToken);",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"refreshToken\": \"{{admin_token}}\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:9091/api/admin/auth/refresh-token",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9091",
+					"path": [
+						"api",
+						"admin",
+						"auth",
+						"refresh-token"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "7. Admin Logout",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{admin_token}}"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:9091/api/admin/auth/logout",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "9091",
+					"path": [
+						"api",
+						"admin",
+						"auth",
+						"logout"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Admin User Management",
+			"item": [
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"New\",\n    \"lastName\": \"Student\",\n    \"email\": \"student@example.com\",\n    \"password\": \"Password123!\",\n    \"englishLevel\": \"Beginner\",\n    \"nativeLanguage\": \"Spanish\",\n    \"learningGoal\": \"Travel\",\n    \"dailyGoalMinutes\": 30,\n    \"active\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/search?keyword=test",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "test"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/filter?status=true&englishLevel=Beginner",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "status",
+									"value": "true"
+								},
+								{
+									"key": "englishLevel",
+									"value": "Beginner"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Updated\",\n    \"lastName\": \"User\",\n    \"email\": \"updated@example.com\",\n    \"englishLevel\": \"Intermediate\",\n    \"active\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Activate User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/1/activate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"activate"
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/1/deactivate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"deactivate"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Export Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/export",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"export"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/users/statistics",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"statistics"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin School User Management",
+			"item": [
+				{
+					"name": "Create School User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"email\": \"john.doe.school@example.com\",\n    \"password\": \"School123!@#\",\n    \"phone\": \"+1234567890\",\n    \"schoolName\": \"Springfield High\",\n    \"standard\": \"10\",\n    \"division\": \"A\",\n    \"rollNumber\": \"45\",\n    \"parentName\": \"Jane Doe\",\n    \"parentPhone\": \"+0987654321\",\n    \"active\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All School Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get School User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update School User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"John Updated\",\n    \"lastName\": \"Doe\",\n    \"phone\": \"+1111111111\",\n    \"schoolName\": \"Springfield High Updated\",\n    \"standard\": \"11\",\n    \"division\": \"B\",\n    \"rollNumber\": \"46\",\n    \"parentName\": \"Jane Doe Updated\",\n    \"parentPhone\": \"+2222222222\",\n    \"active\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete School User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Search School Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users/search?keyword=John",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "John"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter School Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users/filter?standard=10&division=A",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "standard",
+									"value": "10"
+								},
+								{
+									"key": "division",
+									"value": "A"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get School Users by Standard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users/standard/10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"standard",
+								"10"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get School User Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users/statistics",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"statistics"
+							]
+						}
+					}
+				},
+				{
+					"name": "Export School Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/school-users/export",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"export"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Subscription & Billing Management",
+			"item": [
+				{
+					"name": "Create Subscription Plan",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"planName\": \"Premium Plan\",\n    \"description\": \"Full access to all features\",\n    \"durationMonths\": 12,\n    \"price\": 99.99,\n    \"currency\": \"USD\",\n    \"features\": \"Unlimited AI Practice, Unlimited Tests\",\n    \"maxLessons\": -1,\n    \"maxTests\": -1,\n    \"aiPracticeLimit\": -1,\n    \"grammarPracticeLimit\": -1,\n    \"speakingPracticeLimit\": -1,\n    \"vocabularyPracticeLimit\": -1,\n    \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Plans",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Plan by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Plan",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"planName\": \"Premium Plan Updated\",\n    \"description\": \"Updated full access\",\n    \"durationMonths\": 12,\n    \"price\": 149.99,\n    \"currency\": \"USD\",\n    \"features\": \"Unlimited Everything\",\n    \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Plan",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Activate Plan",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/1/activate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"1",
+								"activate"
+							]
+						}
+					}
+				},
+				{
+					"name": "Deactivate Plan",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/1/deactivate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"1",
+								"deactivate"
+							]
+						}
+					}
+				},
+				{
+					"name": "Search Plans",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/search?keyword=Premium",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"search"
+							],
+							"query": [
+								{
+									"key": "keyword",
+									"value": "Premium"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Assign Plan to User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/assign?userId=1&planId=1&paymentMethod=CARD&amountPaid=99.99&transactionId=TX123456",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"assign"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "1"
+								},
+								{
+									"key": "planId",
+									"value": "1"
+								},
+								{
+									"key": "paymentMethod",
+									"value": "CARD"
+								},
+								{
+									"key": "amountPaid",
+									"value": "99.99"
+								},
+								{
+									"key": "transactionId",
+									"value": "TX123456"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Renew Subscription",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/renew/1?paymentMethod=UPI&amountPaid=99.99&transactionId=TX654321",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"renew",
+								"1"
+							],
+							"query": [
+								{
+									"key": "paymentMethod",
+									"value": "UPI"
+								},
+								{
+									"key": "amountPaid",
+									"value": "99.99"
+								},
+								{
+									"key": "transactionId",
+									"value": "TX654321"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Cancel Subscription",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/cancel/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"cancel",
+								"1"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Subscriptions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/users?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"users"
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Subscriptions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/filter?paymentStatus=PAID&subscriptionStatus=ACTIVE",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"filter"
+							],
+							"query": [
+								{
+									"key": "paymentStatus",
+									"value": "PAID"
+								},
+								{
+									"key": "subscriptionStatus",
+									"value": "ACTIVE"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/statistics",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"statistics"
+							]
+						}
+					}
+				},
+				{
+					"name": "Export Subscriptions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/subscriptions/export",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"subscriptions",
+								"export"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Billing Management",
+			"item": [
+				{
+					"name": "Get All Payments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/billing/payments?page=0&size=10",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"billing",
+								"payments"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Revenue Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:9091/api/admin/billing/revenue",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "9091",
+							"path": [
+								"api",
+								"admin",
+								"billing",
+								"revenue"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Profile",
+			"item": [
+				{
+					"name": "Get Own Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"profile"
+							],
+							"query": []
+						}
+					}
+				},
+				{
+					"name": "Update Own Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"profile"
+							],
+							"query": []
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Super\",\n  \"lastName\": \"Admin\",\n  \"phone\": \"+19876543210\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Settings",
+			"item": [
+				{
+					"name": "Get Settings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/settings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"settings"
+							],
+							"query": []
+						}
+					}
+				},
+				{
+					"name": "Update Appearance",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/settings/appearance",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"settings",
+								"appearance"
+							],
+							"query": []
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"theme\": \"DARK\",\n  \"fontSize\": \"MEDIUM\",\n  \"reducedMotion\": true\n}"
+						}
+					}
+				},
+				{
+					"name": "Update Language",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/settings/language",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"settings",
+								"language"
+							],
+							"query": []
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"language\": \"en\",\n  \"timezone\": \"UTC\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "User Details & Learning Analytics",
+			"item": [
+				{
+					"name": "Get User Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/details",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"details"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Learning Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/statistics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"statistics"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Language Scores",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/language-scores",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"language-scores"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Activities",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/activities?page=0&size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"activities"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Progress",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/progress",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"progress"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Speaking Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/speaking",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"speaking"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Grammar Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/grammar",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"grammar"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get User Vocabulary Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/vocabulary",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"vocabulary"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update User Details",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Updated\",\n    \"lastName\": \"User\",\n    \"phone\": \"+1234567890\",\n    \"englishLevel\": \"ADVANCED\",\n    \"active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1/details",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1",
+								"details"
+							]
+						}
+					}
+				},
+				{
+					"name": "Soft Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"1"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin Authentication",
+			"item": [
+				{
+					"name": "Admin Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"auth",
+								"login"
+							],
+							"query": []
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"SecurePassword123!\"\n}"
+						}
+					}
+				},
+				{
+					"name": "Admin Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"auth",
+								"logout"
+							],
+							"query": []
+						}
+					}
+				},
+				{
+					"name": "Admin Change Password",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/auth/change-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"auth",
+								"change-password"
+							],
+							"query": []
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"oldPassword\": \"SecurePassword123!\",\n  \"newPassword\": \"NewPassword123!\"\n}"
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin School Users",
+			"item": [
+				{
+					"name": "Get All School Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/school-users?page=0&size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"school-users"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get School User Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/school-users/statistics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"statistics"
+							],
+							"query": []
+						}
+					}
+				},
+				{
+					"name": "Create School User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/school-users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"school-users"
+							],
+							"query": []
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Student\",\n  \"email\": \"alex.student@school.edu\",\n  \"password\": \"Password123!\",\n  \"schoolId\": 1,\n  \"standard\": \"10th\",\n  \"division\": \"A\",\n  \"rollNumber\": \"10A01\",\n  \"active\": true\n}"
+						}
+					}
+				},
+				{
+					"name": "Get School User By ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/school-users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"1"
+							],
+							"query": []
+						}
+					}
+				},
+				{
+					"name": "Update School User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/school-users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"1"
+							],
+							"query": []
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"firstName\": \"Alex Updated\",\n  \"lastName\": \"Student\",\n  \"active\": true\n}"
+						}
+					}
+				},
+				{
+					"name": "Delete School User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{admin_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/school-users/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"school-users",
+								"1"
+							],
+							"query": []
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "admin_token",
+			"value": ""
+		},
+		{
+			"key": "reset_token",
+			"value": ""
+		}
+	]
+}

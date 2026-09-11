@@ -1,0 +1,905 @@
+import React, { useContext, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { AuthContext } from '../../context/AuthContext';
+import {
+  AuthCard,
+  AuthInput,
+  BackButton,
+  ErrorMessage,
+  LinkText,
+  PasswordInput,
+  PasswordStrength,
+  PrimaryButton,
+} from '../../components/auth';
+import { authService } from '../../services/authService';
+
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function RegisterScreen({ navigation }) {
+  const { register } = useContext(AuthContext);
+
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [otp, setOtp] = useState('');
+
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+
+  // OTP state: 'IDLE' | 'SENDING' | 'SENT' | 'VERIFIED'
+  const [otpState, setOtpState] = useState('IDLE');
+  const [otpError, setOtpError] = useState('');
+  const [verifyingOtp, setVerifyingOtp] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const clearError = () => setError('');
+
+  const lastNameRef = useRef(null);
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const confirmRef = useRef(null);
+  const otpRef = useRef(null);
+
+  const [registered, setRegistered] = useState(false);
+  const successScale = useRef(new Animated.Value(0.7)).current;
+  const successOpacity = useRef(new Animated.Value(0)).current;
+
+  const animateSuccess = () => {
+    Animated.parallel([
+      Animated.spring(successScale, {
+        toValue: 1,
+        tension: 50,
+        friction: 6,
+        useNativeDriver: true,
+      }),
+      Animated.timing(successOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const validateEmailOnly = () => {
+    if (!email.trim()) return 'Please enter an email address first.';
+    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    return null;
+  };
+
+  const handleSendOtp = async () => {
+    Keyboard.dismiss();
+    const emailErr = validateEmailOnly();
+    if (emailErr) {
+      setError(emailErr);
+      return;
+    }
+    setError('');
+    setOtpError('');
+    setOtpState('SENDING');
+
+    try {
+      const emailLower = email.trim().toLowerCase();
+      await authService.sendRegistrationOtp({ email: emailLower });
+      setOtpState('SENT');
+    } catch (err) {
+      setOtpState('IDLE');
+      const serverMsg = err.response?.data?.message || err.userMessage || 'Failed to send OTP. Please check email.';
+      setError(serverMsg);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    Keyboard.dismiss();
+    const emailErr = validateEmailOnly();
+    if (emailErr) {
+      setError(emailErr);
+      return;
+    }
+    if (!otp.trim() || otp.trim().length < 6) {
+      setOtpError('Please enter the 6-digit OTP code sent to your email.');
+      return;
+    }
+
+    setVerifyingOtp(true);
+    setOtpError('');
+    setError('');
+
+    try {
+      const emailLower = email.trim().toLowerCase();
+      await authService.verifyRegistrationOtp({
+        email: emailLower,
+        otp: otp.trim(),
+      });
+      setOtpState('VERIFIED');
+    } catch (err) {
+      const serverMsg =
+        err.response?.data?.message ||
+        err.userMessage ||
+        'Invalid OTP verification code. Please check your email and try again.';
+      setOtpError(serverMsg);
+    } finally {
+      setVerifyingOtp(false);
+    }
+  };
+
+  const getFirstNameError = () => {
+    if (!firstName.trim()) return 'First name is required.';
+    return null;
+  };
+
+  const getLastNameError = () => {
+    if (!lastName.trim()) return 'Last name is required.';
+    return null;
+  };
+
+  const getEmailError = () => {
+    if (!email.trim()) return 'Email address is required.';
+    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    return null;
+  };
+
+  const getPasswordError = () => {
+    if (!password) return 'Password is required.';
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+      return 'Password needs uppercase, lowercase, number, and special character.';
+    }
+    return null;
+  };
+
+  const getConfirmPasswordError = () => {
+    if (!confirmPassword) return 'Please confirm your password.';
+    if (password !== confirmPassword) return 'Passwords do not match.';
+    return null;
+  };
+
+  const validateFullForm = () => {
+    const fnErr = getFirstNameError();
+    if (fnErr) return fnErr;
+    const lnErr = getLastNameError();
+    if (lnErr) return lnErr;
+    const emErr = getEmailError();
+    if (emErr) return emErr;
+    if (otpState !== 'VERIFIED') {
+      if (otpState === 'IDLE') return 'Please tap "Send OTP" next to email and verify your code.';
+      if (!otp.trim()) return 'Please enter the 6-digit OTP code sent to your email.';
+      if (otp.trim().length < 6) return 'OTP code must be 6 digits.';
+      return 'Please tap "Verify OTP" to verify your code before continuing.';
+    }
+    const passErr = getPasswordError();
+    if (passErr) return passErr;
+    const confErr = getConfirmPasswordError();
+    if (confErr) return confErr;
+    return null;
+  };
+
+  const handleRegister = async () => {
+    Keyboard.dismiss();
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
+    const emailLower = email.trim().toLowerCase();
+
+    // If user entered 6 digits but hasn't pressed Verify OTP yet, auto-verify first
+    if (otpState !== 'VERIFIED' && otp.trim().length === 6) {
+      setLoading(true);
+      setError('');
+      setOtpError('');
+      try {
+        await authService.verifyRegistrationOtp({
+          email: emailLower,
+          otp: otp.trim(),
+        });
+        setOtpState('VERIFIED');
+      } catch (err) {
+        setLoading(false);
+        const serverMsg =
+          err.response?.data?.message ||
+          err.userMessage ||
+          'Invalid OTP verification code. Please check your email.';
+        setOtpError(serverMsg);
+        return;
+      }
+    }
+
+    const validationError = validateFullForm();
+    if (validationError) {
+      setError(validationError);
+      setLoading(false);
+      return;
+    }
+
+    setError('');
+    setLoading(true);
+
+    try {
+      await AsyncStorage.setItem('speakmate_account_type', 'INDIVIDUAL_USER');
+      await register({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: emailLower,
+        password,
+        confirmPassword,
+        otp: otp.trim(),
+        accountType: 'INDIVIDUAL_USER',
+      });
+      setOtpState('VERIFIED');
+      setRegistered(true);
+      animateSuccess();
+    } catch (err) {
+      const serverMsg = err.response?.data?.message || err.userMessage || 'Registration failed. Please verify your details and try again.';
+      setError(serverMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  return (
+    <View style={styles.root}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Gradient Header Zone */}
+      <LinearGradient
+        colors={['#0F172A', '#1E1B4B', '#3730A3']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
+        <View style={styles.ring1} />
+        <View style={styles.ring2} />
+
+        <SafeAreaView edges={['top']} style={styles.headerContent}>
+          <View style={styles.navigationRow}>
+            <BackButton onPress={() => navigation.goBack()} light />
+          </View>
+          <View style={styles.headerText}>
+            <Text style={styles.headerTitle}>Create Account</Text>
+            <Text style={styles.headerSubtitle}>Start your English journey today</Text>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+
+      {/* Keyboard Avoiding Container */}
+      <KeyboardAvoidingView
+        style={styles.body}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Pressable onPress={Keyboard.dismiss} style={styles.pressableContainer}>
+            {registered ? (
+              /* ── Success State ── */
+              <Animated.View
+                style={[
+                  styles.successCard,
+                  {
+                    opacity: successOpacity,
+                    transform: [{ scale: successScale }],
+                  },
+                ]}
+              >
+                <LinearGradient
+                  colors={['#ECFDF5', '#D1FAE5']}
+                  style={styles.successIconBg}
+                >
+                  <Ionicons name="checkmark-circle" size={56} color="#10B981" />
+                </LinearGradient>
+                <Text style={styles.successTitle}>Account Created!</Text>
+                <Text style={styles.successMsg}>
+                  Your email has been verified and your account was created successfully.
+                </Text>
+
+                <View style={styles.backBtnRow}>
+                  <PrimaryButton
+                    title="Continue to Login"
+                    onPress={() => navigation.replace('Login')}
+                    style={styles.backToLogin}
+                  />
+                </View>
+              </Animated.View>
+            ) : (
+              /* ── Registration Form ── */
+              <AuthCard style={styles.card}>
+                <ErrorMessage message={error} />
+
+                {/* Account Type Role Selection */}
+                {/* School Student Direct Login Notice Banner */}
+                <View style={styles.studentNoticeBanner}>
+                  <View style={styles.studentNoticeLeft}>
+                    <Text style={styles.studentNoticeEmoji}>🎓</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.studentNoticeTitle}>School Student?</Text>
+                      <Text style={styles.studentNoticeSubtitle}>Your school has created your account.</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => navigation.navigate('Login')}
+                    style={styles.studentLoginBtn}
+                  >
+                    <Text style={styles.studentLoginBtnText}>Log In ➔</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* First Name & Last Name row */}
+                <View style={styles.nameRow}>
+                  <View style={styles.nameField}>
+                    <AuthInput
+                      label="First Name"
+                      value={firstName}
+                      onChangeText={(t) => { setFirstName(t); clearError(); }}
+                      onBlur={() => setTouched((p) => ({ ...p, firstName: true }))}
+                      touched={touched.firstName}
+                      error={getFirstNameError()}
+                      placeholder="Jane"
+                      autoCapitalize="words"
+                      returnKeyType="next"
+                      onSubmitEditing={() => lastNameRef.current?.focus()}
+                    />
+                  </View>
+                  <View style={styles.nameField}>
+                    <AuthInput
+                      label="Last Name"
+                      value={lastName}
+                      onChangeText={(t) => { setLastName(t); clearError(); }}
+                      onBlur={() => setTouched((p) => ({ ...p, lastName: true }))}
+                      touched={touched.lastName}
+                      error={getLastNameError()}
+                      placeholder="Doe"
+                      autoCapitalize="words"
+                      returnKeyType="next"
+                      inputRef={lastNameRef}
+                      onSubmitEditing={() => emailRef.current?.focus()}
+                    />
+                  </View>
+                </View>
+
+                {/* Email Address with Green "Send OTP" action text button */}
+                <AuthInput
+                  label="Email Address"
+                  value={email}
+                  onChangeText={(t) => {
+                    setEmail(t);
+                    clearError();
+                    if (otpState !== 'IDLE') {
+                      setOtpState('IDLE');
+                      setOtp('');
+                      setOtpError('');
+                    }
+                  }}
+                  onBlur={() => setTouched((p) => ({ ...p, email: true }))}
+                  touched={touched.email}
+                  error={getEmailError()}
+                  placeholder="jane.doe@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  returnKeyType="next"
+                  inputRef={emailRef}
+                  editable={otpState !== 'VERIFIED'}
+                  onSubmitEditing={handleSendOtp}
+                  rightElement={
+                    <TouchableOpacity
+                      onPress={handleSendOtp}
+                      disabled={otpState === 'SENDING' || otpState === 'VERIFIED'}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      style={styles.verifyActionBtn}
+                    >
+                      {otpState === 'SENDING' ? (
+                        <ActivityIndicator size="small" color="#10B981" />
+                      ) : otpState === 'SENT' ? (
+                        <View style={styles.badgeRow}>
+                          <Ionicons name="refresh-outline" size={14} color="#059669" />
+                          <Text style={styles.resendGreenText}>Resend OTP</Text>
+                        </View>
+                      ) : otpState === 'VERIFIED' ? (
+                        <View style={styles.badgeRow}>
+                          <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                          <Text style={styles.verifiedGreenText}>Verified</Text>
+                        </View>
+                      ) : (
+                        <View style={styles.badgeRow}>
+                          <Ionicons name="paper-plane-outline" size={14} color="#10B981" />
+                          <Text style={styles.verifyGreenText}>Send OTP</Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  }
+                />
+
+                {/* OTP Section (opens directly below Email when OTP is sent) */}
+                {otpState === 'SENT' && (
+                  <View style={styles.otpSectionContainer}>
+                    <View style={styles.otpSectionHeader}>
+                      <Ionicons name="mail-unread-outline" size={16} color="#059669" />
+                      <Text style={styles.otpSectionTitle}>
+                        Enter 6-digit code sent to <Text style={styles.emailTextBold}>{email}</Text>
+                      </Text>
+                    </View>
+
+                    <View style={styles.otpInputAndBtnRow}>
+                      <View style={{ flex: 1 }}>
+                        <AuthInput
+                          label="6-Digit OTP Code"
+                          value={otp}
+                          onChangeText={(t) => {
+                            setOtp(t);
+                            if (otpError) setOtpError('');
+                            clearError();
+                          }}
+                          placeholder="123456"
+                          keyboardType="number-pad"
+                          maxLength={6}
+                          returnKeyType="done"
+                          inputRef={otpRef}
+                          inputStyle={styles.otpInputInline}
+                          onSubmitEditing={handleVerifyOtp}
+                        />
+                      </View>
+                      <TouchableOpacity
+                        onPress={handleVerifyOtp}
+                        disabled={verifyingOtp || otp.trim().length < 6}
+                        style={[
+                          styles.verifyOtpActionBtn,
+                          (verifyingOtp || otp.trim().length < 6) && styles.verifyOtpActionBtnDisabled,
+                        ]}
+                      >
+                        {verifyingOtp ? (
+                          <ActivityIndicator size="small" color="#FFFFFF" />
+                        ) : (
+                          <Text style={styles.verifyOtpActionBtnText}>Verify OTP</Text>
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                    {otpError ? (
+                      <View style={styles.otpErrorRow}>
+                        <Ionicons name="alert-circle" size={14} color="#EF4444" />
+                        <Text style={styles.otpErrorText}>{otpError}</Text>
+                      </View>
+                    ) : null}
+                  </View>
+                )}
+
+                {/* Confirmed Verified Banner */}
+                {otpState === 'VERIFIED' && (
+                  <View style={styles.verifiedSuccessBanner}>
+                    <Ionicons name="checkmark-circle" size={20} color="#059669" />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.verifiedSuccessTitle}>Email Verified ✓</Text>
+                      <Text style={styles.verifiedSuccessSubtitle}>Code verified for {email}</Text>
+                    </View>
+                  </View>
+                )}
+
+                {/* Password Fields */}
+                <PasswordInput
+                  label="Password"
+                  value={password}
+                  onChangeText={(t) => { setPassword(t); clearError(); }}
+                  onBlur={() => setTouched((p) => ({ ...p, password: true }))}
+                  touched={touched.password}
+                  error={getPasswordError()}
+                  placeholder="Create strong password"
+                  returnKeyType="next"
+                  inputRef={passwordRef}
+                  onSubmitEditing={() => confirmRef.current?.focus()}
+                />
+                <PasswordStrength password={password} />
+
+                <PasswordInput
+                  label="Confirm Password"
+                  value={confirmPassword}
+                  onChangeText={(t) => { setConfirmPassword(t); clearError(); }}
+                  onBlur={() => setTouched((p) => ({ ...p, confirmPassword: true }))}
+                  touched={touched.confirmPassword}
+                  error={getConfirmPasswordError()}
+                  placeholder="Confirm your password"
+                  returnKeyType="done"
+                  inputRef={confirmRef}
+                  onSubmitEditing={handleRegister}
+                />
+
+                <PrimaryButton
+                  title="Create Account"
+                  onPress={handleRegister}
+                  loading={loading}
+                  disabled={loading}
+                  style={styles.registerBtn}
+                />
+
+                <LinkText
+                  prefix="Already have an account?"
+                  label="Sign in"
+                  onPress={() => navigation.navigate('Login')}
+                />
+              </AuthCard>
+            )}
+
+            <Text style={styles.footer}>
+              By creating an account you agree to our Terms of Service and Privacy Policy.
+            </Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  header: {
+    paddingBottom: 40,
+    overflow: 'hidden',
+  },
+  ring1: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+    top: -70,
+    right: -50,
+  },
+  ring2: {
+    position: 'absolute',
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    bottom: -10,
+    left: -30,
+  },
+  headerContent: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+  },
+  navigationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  headerText: {
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    color: 'rgba(255, 255, 255, 0.75)',
+    fontSize: 16,
+    fontWeight: '500',
+    marginTop: 6,
+  },
+  body: {
+    flex: 1,
+    marginTop: -24,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 40,
+  },
+  pressableContainer: {
+    flex: 1,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    padding: 24,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  accountTypeContainer: {
+    marginBottom: 16,
+  },
+  accountTypeLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#475569',
+    marginBottom: 8,
+  },
+  accountTypeToggleRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  accountTypeBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  accountTypeBtnActive: {
+    borderColor: '#4F46E5',
+    backgroundColor: '#EEF2FF',
+  },
+  accountTypeBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748B',
+  },
+  accountTypeBtnTextActive: {
+    color: '#4F46E5',
+    fontWeight: '800',
+  },
+  nameRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  nameField: {
+    flex: 1,
+  },
+  verifyActionBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  verifyGreenText: {
+    color: '#10B981',
+    fontWeight: '800',
+    fontSize: 14,
+    letterSpacing: 0.2,
+  },
+  resendGreenText: {
+    color: '#059669',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  verifiedGreenText: {
+    color: '#059669',
+    fontWeight: '800',
+    fontSize: 13,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  otpSectionContainer: {
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1.5,
+    borderColor: '#A7F3D0',
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 18,
+    marginTop: -6,
+  },
+  otpSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  otpSectionTitle: {
+    color: '#065F46',
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
+  },
+  emailTextBold: {
+    fontWeight: '800',
+    color: '#047857',
+  },
+  otpInputAndBtnRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  otpInputInline: {
+    fontSize: 20,
+    letterSpacing: 4,
+    fontWeight: '800',
+    color: '#065F46',
+  },
+  verifyOtpActionBtn: {
+    backgroundColor: '#059669',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 26,
+    shadowColor: '#059669',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  verifyOtpActionBtnDisabled: {
+    backgroundColor: '#9CA3AF',
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  verifyOtpActionBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 13,
+    letterSpacing: 0.3,
+  },
+  otpErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  otpErrorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
+  verifiedSuccessBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 16,
+    marginTop: -4,
+  },
+  verifiedSuccessTitle: {
+    color: '#065F46',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  verifiedSuccessSubtitle: {
+    color: '#047857',
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  registerBtn: {
+    marginTop: 6,
+  },
+  studentNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#EEF2FF',
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+    borderRadius: 16,
+    padding: 12,
+    marginBottom: 16,
+    gap: 8,
+  },
+  studentNoticeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flex: 1,
+  },
+  studentNoticeEmoji: {
+    fontSize: 20,
+  },
+  studentNoticeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#312E81',
+  },
+  studentNoticeSubtitle: {
+    fontSize: 11,
+    color: '#4F46E5',
+    fontWeight: '500',
+  },
+  studentLoginBtn: {
+    backgroundColor: '#4F46E5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+  },
+  studentLoginBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  footer: {
+    textAlign: 'center',
+    color: '#94A3B8',
+    fontSize: 13,
+    lineHeight: 20,
+    marginTop: 24,
+    paddingHorizontal: 16,
+    fontWeight: '500',
+  },
+  successCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 32,
+    padding: 28,
+    alignItems: 'center',
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  successIconBg: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  successTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#0F172A',
+    marginBottom: 12,
+  },
+  successMsg: {
+    fontSize: 15,
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 24,
+  },
+  backBtnRow: {
+    width: '100%',
+    marginTop: 20,
+  },
+  backToLogin: {
+    width: '100%',
+  },
+});
