@@ -40,6 +40,9 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 	@Autowired
 	private EmailService emailService;
 
+	@Autowired(required = false)
+	private com.rslsolution.speakmateai.repository.UserRepository userRepository;
+
 	public AdminAuthServiceImpl(AdminRepository adminRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
 		this.adminRepository = adminRepository;
 		this.passwordEncoder = passwordEncoder;
@@ -117,6 +120,13 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
 		admin.setPassword(passwordEncoder.encode(newPassword));
 		adminRepository.save(admin);
+
+		if (userRepository != null) {
+			userRepository.findByEmail(admin.getEmail()).ifPresent(u -> {
+				u.setPassword(admin.getPassword());
+				userRepository.save(u);
+			});
+		}
 	}
 
 	@Override
@@ -221,6 +231,13 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 		admin.setResetPasswordToken(null);
 		admin.setResetPasswordTokenExpiry(null);
 		adminRepository.save(admin);
+
+		if (userRepository != null) {
+			userRepository.findByEmail(admin.getEmail()).ifPresent(u -> {
+				u.setPassword(admin.getPassword());
+				userRepository.save(u);
+			});
+		}
 	}
 
 	@Override

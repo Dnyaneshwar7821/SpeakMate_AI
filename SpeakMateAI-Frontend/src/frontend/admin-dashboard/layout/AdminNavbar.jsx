@@ -433,7 +433,7 @@ export function AdminNavbar() {
                             <InsigniaBadge
                                 name={user?.name || "Super Admin"}
                                 role="SUPER_ADMIN"
-                                email={user?.email || "admin@speakmate.ai"}
+                                email={user?.email || "info@rslsolution.com"}
                                 size="sm"
                             />
                             <span className="hidden max-w-[7rem] truncate text-sm font-semibold text-[var(--text-primary)] sm:inline">
@@ -457,7 +457,7 @@ export function AdminNavbar() {
                                         <InsigniaBadge
                                             name={user?.name || "Super Admin"}
                                             role="SUPER_ADMIN"
-                                            email={user?.email || "admin@speakmate.ai"}
+                                            email={user?.email || "info@rslsolution.com"}
                                             size="md"
                                         />
                                         <div className="min-w-0">
@@ -465,7 +465,7 @@ export function AdminNavbar() {
                                                 {user?.name || "Super Admin"}
                                             </p>
                                             <p className="truncate text-xs text-[var(--text-secondary)]">
-                                                {user?.email || "admin@speakmate.ai"}
+                                                {user?.email || "info@rslsolution.com"}
                                             </p>
                                         </div>
                                     </div>

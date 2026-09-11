@@ -6,7 +6,7 @@ const AuthContext = createContext();
 const MOCK_USER_PROFILES = {
   SUPER_ADMIN: {
     name: "Super Admin",
-    email: "admin@speakmate.ai",
+    email: "info@rslsolution.com",
     role: "SUPER_ADMIN",
   },
   SCHOOL_ADMIN: {

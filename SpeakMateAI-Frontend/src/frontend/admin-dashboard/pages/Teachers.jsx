@@ -33,7 +33,6 @@ import { getIndianMobileError, normalizeIndianMobile, sanitizeMobileInput } from
 import { STANDARD_OPTIONS } from "@constants/standardOptions";
 import { TeacherStudentsModal } from "@school-admin/components/TeacherStudentsModal";
 import { StandardDivisionPicker, validateStandardDivisions } from "@school-admin/components/StandardDivisionPicker";
-import { StandardDivisionPicker, validateStandardDivisions } from "@school-admin/components/StandardDivisionPicker";
 
 const STATUS_STYLES = {
     Active: "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20",

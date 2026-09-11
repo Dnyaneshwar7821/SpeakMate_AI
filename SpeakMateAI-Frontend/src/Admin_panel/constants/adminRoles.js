@@ -12,7 +12,7 @@ export const ADMIN_ROLE_CONFIG = Object.freeze({
         displayName: "Super Admin",
         heading: "Welcome back, Super Admin",
         subtitle: "Sign in to access the SpeakMate AI Super Admin workspace.",
-        emailPlaceholder: "admin@speakmate.ai",
+        emailPlaceholder: "info@rslsolution.com",
         loginButton: "Sign in to Super Admin Panel",
         forgotPasswordHeading: "Reset your Super Admin account password",
         otpHeading: "Verify Super Admin OTP",

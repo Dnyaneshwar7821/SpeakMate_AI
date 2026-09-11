@@ -556,7 +556,7 @@ export function Profile() {
                                                 href={`mailto:${form.email}`}
                                                 className="mt-1 block text-sm font-semibold text-[var(--text-primary)] hover:text-[var(--color-primary)] transition"
                                             >
-                                                {form.email || "admin@speakmate.ai"}
+                                                {form.email || "info@rslsolution.com"}
                                             </a>
                                         </div>
 

@@ -581,7 +581,7 @@ export function Settings() {
                 <h3>Bill To</h3>
                 <p><strong>SpeakMate Admin Panel Customer</strong><br>
                 Primary Enterprise Workspace Owner<br>
-                admin@speakmate.ai</p>
+                info@rslsolution.com</p>
             </div>
         </div>
 
@@ -899,7 +899,7 @@ export function Settings() {
                                             </div>
                                             <div className="text-center sm:text-left space-y-1">
                                                 <h4 className="text-base font-bold text-[var(--text-primary)]">Super Admin</h4>
-                                                <p className="text-xs text-[var(--text-secondary)]">admin@speakmate.ai</p>
+                                                <p className="text-xs text-[var(--text-secondary)]">info@rslsolution.com</p>
                                                 <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
                                                     <Check className="h-3 w-3" />
                                                     Super Admin Authorization
