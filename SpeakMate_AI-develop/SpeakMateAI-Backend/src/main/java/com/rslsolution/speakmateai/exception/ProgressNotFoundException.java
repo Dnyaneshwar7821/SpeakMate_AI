@@ -1,8 +1,0 @@
-package com.rslsolution.speakmateai.exception;
-
-public class ProgressNotFoundException extends RuntimeException {
-
-	public ProgressNotFoundException(String message) {
-		super(message);
-	}
-}
