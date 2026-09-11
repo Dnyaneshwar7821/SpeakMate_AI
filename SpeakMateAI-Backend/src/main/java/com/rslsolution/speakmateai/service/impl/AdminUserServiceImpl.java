@@ -601,6 +601,9 @@ public class AdminUserServiceImpl implements AdminUserService {
         double bestScore = 0.0;
 
         List<SpeakingSession> sessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
+        SpeakingSessionDetailResponse latestDetail = null;
+        List<SpeakingSessionDetailResponse> recentDetails = new ArrayList<>();
+
         if (sessions != null && !sessions.isEmpty()) {
             totalSessions = sessions.size();
             avgScore = sessions.stream().filter(s -> s.getScore() != null)
@@ -610,7 +613,47 @@ public class AdminUserServiceImpl implements AdminUserService {
             totalMinutes = sessions.stream().filter(s -> s.getDuration() != null)
                     .mapToInt(SpeakingSession::getDuration).sum() / 60;
             lastDate = sessions.stream().map(SpeakingSession::getCreatedAt)
+                    .filter(Objects::nonNull)
                     .max(LocalDateTime::compareTo).orElse(null);
+
+            for (SpeakingSession s : sessions.stream().limit(10).toList()) {
+                ConversationFeedback fb = null;
+                if (conversationFeedbackRepository != null) {
+                    try {
+                        fb = conversationFeedbackRepository.findBySession(s).orElse(null);
+                    } catch (Exception ignored) {}
+                }
+                SpeakingSessionDetailResponse.FeedbackDto fbDto = null;
+                if (fb != null) {
+                    fbDto = SpeakingSessionDetailResponse.FeedbackDto.builder()
+                            .grammarCorrections(fb.getGrammarCorrections())
+                            .betterSentences(fb.getBetterSentences())
+                            .vocabularySuggestions(fb.getVocabularySuggestions())
+                            .summary(fb.getSummary())
+                            .build();
+                }
+
+                SpeakingSessionDetailResponse detail = SpeakingSessionDetailResponse.builder()
+                        .id(s.getId())
+                        .scenario(s.getScenario() != null ? s.getScenario() : s.getTopic())
+                        .duration(s.getDuration())
+                        .xpEarned(s.getXpEarned())
+                        .score(s.getScore())
+                        .overallScore(s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
+                        .fluencyScore(s.getFluencyScore())
+                        .grammarScore(s.getGrammarScore())
+                        .vocabularyScore(s.getVocabularyScore())
+                        .pronunciationScore(s.getPronunciationScore())
+                        .feedback(s.getFeedback())
+                        .createdAt(s.getCreatedAt())
+                        .feedbackDetail(fbDto)
+                        .build();
+
+                recentDetails.add(detail);
+                if (latestDetail == null) {
+                    latestDetail = detail;
+                }
+            }
         }
 
         return UserSpeakingResponse.builder()

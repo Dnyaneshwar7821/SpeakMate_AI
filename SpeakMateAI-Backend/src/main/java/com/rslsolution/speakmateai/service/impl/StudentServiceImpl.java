@@ -44,9 +44,6 @@ public class StudentServiceImpl implements StudentService {
     private com.rslsolution.speakmateai.repository.TeacherRepository teacherRepository;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
-    private com.rslsolution.speakmateai.repository.TeacherRepository teacherRepository;
-
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.rslsolution.speakmateai.repository.ProgressRepository progressRepository;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -471,17 +468,6 @@ public class StudentServiceImpl implements StudentService {
                     .orElse(null);
         }
 
-        Status resolvedStatus = user.getStatus();
-        if (resolvedStatus == null) {
-            resolvedStatus = user.isActive() ? Status.ACTIVE : Status.INACTIVE;
-        }
-
-        String teacherName = null;
-        if (user.getTeacherId() != null && teacherRepository != null) {
-            teacherName = teacherRepository.findById(user.getTeacherId())
-                    .map(t -> (t.getFirstName() + " " + (t.getLastName() != null ? t.getLastName() : "")).trim())
-                    .orElse(null);
-        }
 
         int xp = 0;
         int level = 1;

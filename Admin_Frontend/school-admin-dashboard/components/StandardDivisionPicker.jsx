@@ -89,48 +89,22 @@ export const loadInitialAssignmentGroups = (data, config = []) => {
  * Map key: `${normalizeStd(standard)}-${division.toUpperCase()}`
  */
 export const buildOccupiedAssignmentsMap = (
-    
     teachers = [],
-   
     editingTeacherId = null,
-   
     currentSchoolId = null,
-    editingTeacherEmail = null,
-    editingTeacherName = null
-,
     editingTeacherEmail = null,
     editingTeacherName = null,
     currentSchoolName = null,
     schoolsList = [],
     isSuperAdmin = false
 ) => {
+    const targetSchoolId = currentSchoolId != null && currentSchoolId !== "" ? String(currentSchoolId).trim() : null;
+    const targetSchoolName = currentSchoolName ? String(currentSchoolName).trim().toLowerCase() : null;
     const map = new Map();
+
     (teachers || []).forEach((t) => {
         // Skip inactive/deactivated teachers - they do not occupy active classrooms
         if (t.active === false || t.status === "inactive") {
-            return;
-        }
-
-        // Self-exclusion: skip the teacher currently being edited
-        const isSameId =
-            editingTeacherId != null &&
-            (String(t.id) === String(editingTeacherId) ||
-             String(t.teacherId) === String(editingTeacherId) ||
-             String(t.userId) === String(editingTeacherId) ||
-             String(t.dbId) === String(editingTeacherId));
-
-        const isSameEmail =
-            editingTeacherEmail &&
-            t.email &&
-            String(t.email).trim().toLowerCase() === String(editingTeacherEmail).trim().toLowerCase();
-
-        const teacherFullName = (t.name || `${t.firstName || ""} ${t.lastName || ""}`.trim()).toLowerCase();
-        const isSameName =
-            editingTeacherName &&
-            teacherFullName &&
-            teacherFullName === String(editingTeacherName).trim().toLowerCase();
-
-        if (isSameId || isSameEmail || isSameName) {
             return;
         }
 
@@ -347,22 +321,16 @@ export function StandardDivisionPicker({
     // In-memory conflict lookup for teacher assignments within the school
     const occupiedAssignmentsMap = useMemo(() => {
         return buildOccupiedAssignmentsMap(
-            
             teachers,
-           
             editingTeacherId,
-           
             schoolId,
-            editingTeacherEmail,
-            editingTeacherName
-        ,
             editingTeacherEmail,
             editingTeacherName,
             schoolName,
             schools,
             isSuperAdmin
         );
-    }, [teachers, editingTeacherId, schoolId, editingTeacherEmail, editingTeacherName, schoolName, schools, isSuperAdmin, editingTeacherEmail, editingTeacherName]);
+    }, [teachers, editingTeacherId, schoolId, schoolName, schools, isSuperAdmin, editingTeacherEmail, editingTeacherName]);
 
     // Active assignment conflicts for current selections
     const assignmentConflicts = useMemo(() => {
