@@ -6,8 +6,6 @@ import {
   Dimensions,
   Easing,
   Image,
-  Modal,
-  PanResponder,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -91,12 +89,24 @@ const ITEM_ACCENT = {
   About:        '#8B5CF6',
 };
 
+const ROUTE_TO_DRAWER_KEY = {
+  SpeakingHome: 'Speaking',
+  Conversation: 'Speaking',
+  SpeakingSummary: 'Speaking',
+  SpeakingHistoryDetail: 'Speaking',
+  AIChatHome: 'AIChat',
+  ConversationChat: 'AIChat',
+  LessonsList: 'Lessons',
+  LessonDetail: 'Lessons',
+};
+
 function getActiveScreenName(state) {
   if (!state) return 'Dashboard';
   const route = state.routes?.[state.index ?? 0];
   if (!route) return 'Dashboard';
   if (route.state) return getActiveScreenName(route.state);
-  return route.name || 'Dashboard';
+  const name = route.name || 'Dashboard';
+  return ROUTE_TO_DRAWER_KEY[name] || name;
 }
 
 // ─── Single drawer item ───────────────────────────────────────────────────────
