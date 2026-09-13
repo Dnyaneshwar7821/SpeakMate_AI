@@ -213,7 +213,7 @@ public class AIChatServiceImpl implements AIChatService {
 				.message(request.getMessage())
 				.voiceEnabled(request.isVoiceEnabled())
 				.build();
-		ChatMessage savedUserMsg = chatMessageRepository.save(userMsg);
+		chatMessageRepository.save(userMsg);
 
 		// Credit +5 XP for active conversation turn
 		try {
