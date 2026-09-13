@@ -254,10 +254,6 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 		}
 	}
 
-	private AiResponse callGroq(String prompt) {
-		return callGroq(chatModel, prompt, 0.7);
-	}
-
 	private AiResponse callGroq(String targetModel, String prompt, double temperature) {
 		try {
 			return executeGroqCall(targetModel, List.of(new GroqRequest.Message("user", prompt)), temperature);

@@ -5,8 +5,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
@@ -495,7 +493,7 @@ public class DashboardServiceImpl implements DashboardService {
 				: 15;
 
 		double minutesScore = dailyGoalMinutes > 0 ? (double) speakingMinutesToday / dailyGoalMinutes : 0;
-		double vocabScore = 5.0 > 0 ? (double) vocabularyCompleted / 5.0 : 0;
+		double vocabScore = (double) vocabularyCompleted / 5.0;
 		double lessonScore = lessonsCompletedToday > 0 ? 1.0 : 0.0;
 		double percentage = Math.max(0.0, Math.min(100.0, ((minutesScore + vocabScore + lessonScore) / 3.0) * 100.0));
 

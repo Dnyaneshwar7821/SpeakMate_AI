@@ -66,10 +66,13 @@ public class CsvExportSortingTest {
         ProgressRepository progressRepository = mock(ProgressRepository.class);
         SpeakingSessionRepository speakingSessionRepository = mock(SpeakingSessionRepository.class);
         UserSubscriptionRepository userSubscriptionRepository = mock(UserSubscriptionRepository.class);
+        GrammarHistoryRepository grammarHistoryRepository = mock(GrammarHistoryRepository.class);
+        VocabularyRepository vocabularyRepository = mock(VocabularyRepository.class);
 
         AdminUserServiceImpl service = new AdminUserServiceImpl(
                 userRepository, adminUserMapper, passwordEncoder,
-                progressRepository, speakingSessionRepository, userSubscriptionRepository
+                progressRepository, speakingSessionRepository, userSubscriptionRepository,
+                grammarHistoryRepository, vocabularyRepository
         );
 
         List<Long> inputIds = Arrays.asList(20L, 2L, 10L, 1L, 11L, 3L);

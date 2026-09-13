@@ -1,24 +1,20 @@
 package com.rslsolution.speakmateai.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.rslsolution.speakmateai.dto.request.DeleteAccountRequest;
 import com.rslsolution.speakmateai.dto.request.ForgotPasswordRequest;
 import com.rslsolution.speakmateai.dto.request.LoginRequest;
 import com.rslsolution.speakmateai.dto.request.RegisterRequest;
 import com.rslsolution.speakmateai.dto.request.ResetPasswordRequest;
-import com.rslsolution.speakmateai.dto.request.SendDeleteAccountOtpRequest;
 import com.rslsolution.speakmateai.dto.request.SendRegistrationOtpRequest;
 import com.rslsolution.speakmateai.dto.request.VerifyOtpRequest;
 import com.rslsolution.speakmateai.dto.response.AuthResponse;
@@ -36,13 +32,6 @@ import com.rslsolution.speakmateai.repository.OnboardingRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.SettingsRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
-import com.rslsolution.speakmateai.repository.VocabularyRepository;
-import com.rslsolution.speakmateai.repository.ChatSessionRepository;
-import com.rslsolution.speakmateai.repository.ChatMessageRepository;
-import com.rslsolution.speakmateai.repository.LessonProgressRepository;
-import com.rslsolution.speakmateai.repository.NotificationRepository;
-import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
-import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
 import com.rslsolution.speakmateai.service.UserService;
 import com.rslsolution.speakmateai.util.JwtUtil;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -70,27 +59,6 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private OnboardingRepository onboardingRepository;
-
-	@Autowired(required = false)
-	private VocabularyRepository vocabularyRepository;
-
-	@Autowired(required = false)
-	private ChatSessionRepository chatSessionRepository;
-
-	@Autowired(required = false)
-	private ChatMessageRepository chatMessageRepository;
-
-	@Autowired(required = false)
-	private LessonProgressRepository lessonProgressRepository;
-
-	@Autowired(required = false)
-	private NotificationRepository notificationRepository;
-
-	@Autowired(required = false)
-	private SpeakingSessionRepository speakingSessionRepository;
-
-	@Autowired(required = false)
-	private GrammarHistoryRepository grammarHistoryRepository;
 
 	@Autowired(required = false)
 	private com.rslsolution.speakmateai.repository.UserSubscriptionRepository userSubscriptionRepository;
@@ -858,8 +826,9 @@ public class UserServiceImpl implements UserService {
 	@Override
 	@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
 	public void deleteUser(Long id) {
-		User user = userRepository.findById(id)
-				.orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+		if (!userRepository.existsById(id)) {
+			throw new UserNotFoundException("User not found with id: " + id);
+		}
 
 		java.util.Set<String> existingTables = new java.util.HashSet<>();
 		java.util.Map<String, java.util.Set<String>> tableColumns = new java.util.HashMap<>();
