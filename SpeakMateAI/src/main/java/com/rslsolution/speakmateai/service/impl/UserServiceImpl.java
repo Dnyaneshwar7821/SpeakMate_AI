@@ -661,6 +661,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
 	public void deleteAccountWithOtp(com.rslsolution.speakmateai.dto.request.DeleteAccountRequest request) {
 		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
@@ -680,62 +681,181 @@ public class UserServiceImpl implements UserService {
 			throw new InvalidCredentialsException("The 6-digit OTP code is incorrect. Please check your email.");
 		}
 
-		deleteAccountOtpMap.remove(email);
-
 		User user = userRepository.findByEmailIgnoreCase(email)
 				.orElseThrow(() -> new UserNotFoundException("No account found with email: " + email));
 
 		deleteUser(user.getId());
+		deleteAccountOtpMap.remove(email);
 	}
 
 	@Override
-	@org.springframework.transaction.annotation.Transactional
+	@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
 	public void deleteUser(Long id) {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
 
-		String[] deleteQueries = new String[] {
-			"DELETE FROM user_subscriptions WHERE user_id = " + id,
-			"DELETE FROM payments WHERE user_id = " + id,
-			"DELETE FROM results WHERE student_id = " + id,
-			"DELETE FROM certificates WHERE user_id = " + id,
-			"DELETE FROM school_admins WHERE user_id = " + id,
-			"DELETE FROM teachers WHERE id = " + id,
-			"DELETE FROM students WHERE id = " + id,
-			"DELETE FROM audit_logs WHERE user_id = " + id,
-			"DELETE FROM ai_usage_logs WHERE user_id = " + id,
-			"DELETE FROM assignments WHERE teacher_id = " + id,
-			"DELETE FROM vocabulary WHERE user_id = " + id,
-			"DELETE FROM chat_bookmarks WHERE user_id = " + id,
-			"DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE user_id = " + id + ")",
-			"DELETE FROM chat_sessions WHERE user_id = " + id,
-			"DELETE FROM chat_history WHERE user_id = " + id,
-			"DELETE FROM conversation_feedbacks WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = " + id + ")",
-			"DELETE FROM conversation_messages WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = " + id + ")",
-			"DELETE FROM speaking_sessions WHERE user_id = " + id,
-			"DELETE FROM grammar_history WHERE user_id = " + id + " OR student_id = " + id,
-			"DELETE FROM lesson_progress WHERE user_id = " + id,
-			"DELETE FROM notification WHERE user_id = " + id + " OR student_id = " + id,
-			"DELETE FROM achievement WHERE user_id = " + id,
-			"DELETE FROM progress WHERE user_id = " + id,
-			"DELETE FROM settings WHERE user_id = " + id,
-			"DELETE FROM onboarding WHERE user_id = " + id,
-			"DELETE FROM users WHERE id = " + id
-		};
+		java.util.Set<String> existingTables = new java.util.HashSet<>();
+		java.util.Map<String, java.util.Set<String>> tableColumns = new java.util.HashMap<>();
 
-		for (String sql : deleteQueries) {
+		if (jdbcTemplate != null) {
 			try {
-				if (jdbcTemplate != null) {
-					jdbcTemplate.execute(sql);
-				} else {
-					entityManager.createNativeQuery(sql).executeUpdate();
-				}
+				jdbcTemplate.query("SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = 'public'", rs -> {
+					String tbl = rs.getString("table_name").toLowerCase();
+					String col = rs.getString("column_name").toLowerCase();
+					existingTables.add(tbl);
+					tableColumns.computeIfAbsent(tbl, k -> new java.util.HashSet<>()).add(col);
+				});
 			} catch (Exception e) {
-				System.err.println("[Delete User SQL Warning] " + sql + " -> " + e.getMessage());
+				System.err.println("[Delete User] Notice: Could not read information_schema: " + e.getMessage());
 			}
 		}
 
+		// 1. Delete grandchildren first (sessions' message and feedback records)
+		executeDeleteIfParentExists(existingTables, tableColumns, "conversation_feedbacks", "session_id", "speaking_sessions", "user_id", id);
+		executeDeleteIfParentExists(existingTables, tableColumns, "conversation_messages", "session_id", "speaking_sessions", "user_id", id);
+		executeDeleteIfParentExists(existingTables, tableColumns, "chat_messages", "session_id", "chat_sessions", "user_id", id);
+
+		// 2. Delete direct session tables
+		executeDeleteIfColumnExists(existingTables, tableColumns, "speaking_sessions", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "chat_sessions", "user_id", id);
+
+		// 3. Delete user direct learning and profile records
+		executeDeleteIfColumnExists(existingTables, tableColumns, "chat_history", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "chat_bookmarks", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "vocabulary", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "lesson_progress", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "achievement", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "progress", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "settings", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "onboarding", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "user_subscriptions", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "grammar_history", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "notification", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "ai_usage_logs", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "audit_logs", "user_id", id);
+
+		// 4. Delete school / role records if applicable
+		executeDeleteIfColumnExists(existingTables, tableColumns, "assignment_progress", "student_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "class_students", "student_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "assignments", "teacher_id", id);
+		executeNullifyIfColumnExists(existingTables, tableColumns, "class_rooms", "teacher_id", id);
+
+		// 5. Optional / legacy tables (only if they exist in schema)
+		executeDeleteIfColumnExists(existingTables, tableColumns, "payments", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "results", "student_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "certificates", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "school_admins", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "teachers", "id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "students", "id", id);
+
+		// 6. Delete the user record itself and ensure exactly 1 row was affected
+		int deletedRows = 0;
+		if (jdbcTemplate != null) {
+			deletedRows = jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
+		} else {
+			deletedRows = entityManager.createNativeQuery("DELETE FROM users WHERE id = :id")
+					.setParameter("id", id)
+					.executeUpdate();
+		}
+
+		if (deletedRows == 0) {
+			throw new IllegalStateException("Failed to delete user with ID " + id + ": No record found in users table.");
+		}
+
+		if (entityManager != null) {
+			entityManager.flush();
+			entityManager.clear();
+		}
+
 		System.out.println("[User Deleted] Permanently removed user ID: " + id + " and all associated records.");
+	}
+
+	private void executeDeleteIfColumnExists(
+			java.util.Set<String> existingTables,
+			java.util.Map<String, java.util.Set<String>> tableColumns,
+			String tableName,
+			String columnName,
+			Long id) {
+		String tblLower = tableName.toLowerCase();
+		String colLower = columnName.toLowerCase();
+
+		if (!existingTables.isEmpty()) {
+			if (!existingTables.contains(tblLower)) return;
+			java.util.Set<String> cols = tableColumns.get(tblLower);
+			if (cols == null || !cols.contains(colLower)) return;
+		}
+
+		String sql = "DELETE FROM " + tableName + " WHERE " + columnName + " = " + id;
+		try {
+			if (jdbcTemplate != null) {
+				jdbcTemplate.execute(sql);
+			} else {
+				entityManager.createNativeQuery(sql).executeUpdate();
+			}
+		} catch (Exception e) {
+			System.err.println("[Delete User SQL Error] " + sql + " -> " + e.getMessage());
+			throw new RuntimeException("Failed to delete user records from " + tableName + ": " + e.getMessage(), e);
+		}
+	}
+
+	private void executeDeleteIfParentExists(
+			java.util.Set<String> existingTables,
+			java.util.Map<String, java.util.Set<String>> tableColumns,
+			String childTable,
+			String childCol,
+			String parentTable,
+			String parentCol,
+			Long id) {
+		String childLower = childTable.toLowerCase();
+		String parentLower = parentTable.toLowerCase();
+
+		if (!existingTables.isEmpty()) {
+			if (!existingTables.contains(childLower) || !existingTables.contains(parentLower)) return;
+			java.util.Set<String> childCols = tableColumns.get(childLower);
+			if (childCols == null || !childCols.contains(childCol.toLowerCase())) return;
+			java.util.Set<String> parentCols = tableColumns.get(parentLower);
+			if (parentCols == null || !parentCols.contains(parentCol.toLowerCase())) return;
+		}
+
+		String sql = "DELETE FROM " + childTable + " WHERE " + childCol + " IN (SELECT id FROM " + parentTable + " WHERE " + parentCol + " = " + id + ")";
+		try {
+			if (jdbcTemplate != null) {
+				jdbcTemplate.execute(sql);
+			} else {
+				entityManager.createNativeQuery(sql).executeUpdate();
+			}
+		} catch (Exception e) {
+			System.err.println("[Delete User SQL Error] " + sql + " -> " + e.getMessage());
+			throw new RuntimeException("Failed to delete records from " + childTable + ": " + e.getMessage(), e);
+		}
+	}
+
+	private void executeNullifyIfColumnExists(
+			java.util.Set<String> existingTables,
+			java.util.Map<String, java.util.Set<String>> tableColumns,
+			String tableName,
+			String columnName,
+			Long id) {
+		String tblLower = tableName.toLowerCase();
+		String colLower = columnName.toLowerCase();
+
+		if (!existingTables.isEmpty()) {
+			if (!existingTables.contains(tblLower)) return;
+			java.util.Set<String> cols = tableColumns.get(tblLower);
+			if (cols == null || !cols.contains(colLower)) return;
+		}
+
+		String sql = "UPDATE " + tableName + " SET " + columnName + " = NULL WHERE " + columnName + " = " + id;
+		try {
+			if (jdbcTemplate != null) {
+				jdbcTemplate.execute(sql);
+			} else {
+				entityManager.createNativeQuery(sql).executeUpdate();
+			}
+		} catch (Exception e) {
+			System.err.println("[Nullify User Reference SQL Error] " + sql + " -> " + e.getMessage());
+			throw new RuntimeException("Failed to nullify reference in " + tableName + ": " + e.getMessage(), e);
+		}
 	}
 
 	private void sendAsyncEmail(String toEmail, String subject, String htmlContent, String otp) {
