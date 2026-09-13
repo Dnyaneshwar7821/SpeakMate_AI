@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
 			throw new IllegalArgumentException("Email is required.");
 		}
 
-		if (userRepository.existsByEmail(cleanEmail)) {
+		if (userRepository.existsByEmail(cleanEmail) || userRepository.existsByEmailIgnoreCase(cleanEmail)) {
 			throw new DuplicateEmailException("Email is already registered. Please sign in instead.");
 		}
 
@@ -185,7 +185,7 @@ public class UserServiceImpl implements UserService {
 	public UserResponse register(RegisterRequest request) {
 		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 
-		if (userRepository.existsByEmail(cleanEmail)) {
+		if (userRepository.existsByEmail(cleanEmail) || userRepository.existsByEmailIgnoreCase(cleanEmail)) {
 			throw new DuplicateEmailException("Email already exists.");
 		}
 
@@ -214,7 +214,7 @@ public class UserServiceImpl implements UserService {
 		User user = User.builder()
 				.firstName(request.getFirstName())
 				.lastName(request.getLastName())
-				.email(request.getEmail())
+				.email(cleanEmail)
 				.password(passwordEncoder.encode(request.getPassword()))
 				.role(isStudent ? Role.STUDENT : Role.USER)
 				.active(true)
@@ -228,7 +228,7 @@ public class UserServiceImpl implements UserService {
 		User savedUser = userRepository.save(user);
 
 		// Remove OTP after successful registration
-		registrationOtpMap.remove(request.getEmail().toLowerCase());
+		registrationOtpMap.remove(cleanEmail);
 
 		// ── Auto-provision all default user-related records so that dashboard APIs
 		// ── always return valid data for a brand-new user (never 404).
@@ -298,9 +298,11 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public AuthResponse login(LoginRequest request) {
+		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 
-		User user = userRepository.findByEmail(request.getEmail())
-				.orElseThrow(() -> new InvalidCredentialsException("Invalid email"));
+		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+				.orElseGet(() -> userRepository.findByEmail(request.getEmail())
+						.orElseThrow(() -> new InvalidCredentialsException("Invalid email")));
 
 		if (!user.isActive()) {
 			throw new InvalidCredentialsException("Inactive account");
