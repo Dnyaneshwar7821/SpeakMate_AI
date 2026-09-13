@@ -167,6 +167,10 @@ export default function ProfileScreen({ navigation }) {
                   },
                 ]
               );
+              // Fallback ensure logout triggers even if modal is dismissed externally
+              setTimeout(() => {
+                if (logout) logout();
+              }, 1200);
             } catch (err) {
               Alert.alert('Deletion Failed', err.response?.data?.message || err.userMessage || 'Invalid or expired OTP code.');
             } finally {
@@ -941,7 +945,7 @@ export default function ProfileScreen({ navigation }) {
                     placeholder="Enter email address"
                     keyboardType="email-address"
                     autoCapitalize="none"
-                    style={{ flex: 1, marginBottom: 0, borderWidth: 0, backgroundColor: 'transparent' }}
+                    style={{ flex: 1, minWidth: 0, marginBottom: 0, borderWidth: 0, backgroundColor: 'transparent' }}
                   />
                   <TouchableOpacity
                     onPress={handleSendDeleteOtp}
@@ -977,9 +981,17 @@ export default function ProfileScreen({ navigation }) {
                       letterSpacing: 8,
                       backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
                       color: isDark ? '#F8FAFC' : '#0F172A',
-                      borderColor: '#10B981',
+                      borderColor: deleteOtp.length === 6 ? '#10B981' : isDark ? '#334155' : '#CBD5E1',
                     }}
                   />
+                  {deleteOtp.length === 6 && (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8, justifyContent: 'center' }}>
+                      <Ionicons name="checkmark-circle" size={16} color="#10B981" style={{ marginRight: 4 }} />
+                      <Text style={{ color: '#10B981', fontSize: 12, fontWeight: '700' }}>
+                        6-digit code verified locally
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
 
@@ -1414,6 +1426,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 10,
+    flexShrink: 0,
   },
   sendOtpInlineText: {
     color: '#FFFFFF',
