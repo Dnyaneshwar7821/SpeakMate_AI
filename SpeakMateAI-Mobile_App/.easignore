@@ -1,0 +1,16 @@
+﻿node_modules/
+.expo/
+dist/
+web-build/
+.codex-auth-export-check/
+*.log
+eas_decompressed.txt
+eas_build_full.txt
+eas_clean.log
+eas_latest.log
+scratch_read_log.cjs
+test.bundle
+test_assets/
+.idea/
+.claude/
+.expo-check/

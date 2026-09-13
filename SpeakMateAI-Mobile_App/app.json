@@ -12,6 +12,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.rslsolution.speakmateai"
     },
+    "androidStatusBar": {
+      "barStyle": "dark-content",
+      "backgroundColor": "#00000000",
+      "translucent": true
+    },
     "android": {
       "package": "com.rslsolution.speakmateai",
       "softwareKeyboardLayoutMode": "resize",

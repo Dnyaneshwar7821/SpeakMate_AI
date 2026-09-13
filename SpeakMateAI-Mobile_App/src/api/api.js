@@ -17,6 +17,10 @@ const api = axios.create({
   },
 });
 
+if (__DEV__) {
+  console.log('[API Client baseURL]:', BASE_URL);
+}
+
 api.interceptors.request.use(
   async (config) => {
     try {
