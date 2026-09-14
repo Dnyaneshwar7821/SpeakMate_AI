@@ -503,7 +503,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void resetPassword(ResetPasswordRequest request) {
 
-		User user = userRepository.findByResetPasswordToken(request.getToken())
+		if (request.getToken() == null || request.getToken().trim().isEmpty()) {
+			throw new IllegalArgumentException("Invalid or expired reset token.");
+		}
+
+		User user = userRepository.findByResetPasswordToken(request.getToken().trim())
 				.orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset token."));
 
 		if (user.getResetPasswordTokenExpiry() == null || user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
@@ -511,6 +515,14 @@ public class UserServiceImpl implements UserService {
 		}
 
 		validatePasswordStrength(request.getNewPassword());
+
+		if (request.getConfirmPassword() != null && !request.getConfirmPassword().equals(request.getNewPassword())) {
+			throw new IllegalArgumentException("Passwords do not match.");
+		}
+
+		if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+			throw new IllegalArgumentException("New password cannot be the same as your old password.");
+		}
 
 		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		user.setResetPasswordToken(null);
@@ -622,8 +634,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private void validatePasswordStrength(String password) {
-		if (password == null || password.length() < 8) {
+		if (password == null || password.isEmpty() || password.trim().isEmpty()) {
+			throw new IllegalArgumentException("Password cannot be empty or whitespace only");
+		}
+		if (password.length() < 8) {
 			throw new IllegalArgumentException("Password must be at least 8 characters");
+		}
+		if (password.length() > 128) {
+			throw new IllegalArgumentException("Password must not exceed 128 characters");
 		}
 		boolean hasUpper = false;
 		boolean hasLower = false;
