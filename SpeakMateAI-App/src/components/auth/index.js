@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -45,14 +46,13 @@ export function Logo({ size = 72, animate = false, animValue }) {
           : null,
       ]}
     >
-      <LinearGradient
-        colors={['#4F46E5', '#6366F1']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.logoGradient, { borderRadius: size * 0.28 }]}
-      >
-        <Text style={[styles.logoText, { fontSize: size * 0.38 }]}>SM</Text>
-      </LinearGradient>
+      <View style={[styles.logoCard, { borderRadius: size * 0.28 }]}>
+        <Image
+          source={require('../../../assets/logo.png')}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="contain"
+        />
+      </View>
     </Animated.View>
   );
 }
@@ -372,6 +372,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 8,
+  },
+  logoCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    padding: 6,
   },
   logoGradient: {
     flex: 1,
