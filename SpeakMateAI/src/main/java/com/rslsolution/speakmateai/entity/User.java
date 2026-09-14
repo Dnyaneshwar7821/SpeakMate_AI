@@ -234,6 +234,12 @@ public class User {
 	public String getExpoPushToken() { return expoPushToken; }
 	public void setExpoPushToken(String expoPushToken) { this.expoPushToken = expoPushToken; }
 
+	public Long getSchoolId() { return schoolId; }
+	public void setSchoolId(Long schoolId) { this.schoolId = schoolId; }
+
+	public String getSchoolName() { return schoolName; }
+	public void setSchoolName(String schoolName) { this.schoolName = schoolName; }
+
 	public static UserBuilder builder() {
 		return new UserBuilder();
 	}
@@ -264,6 +270,8 @@ public class User {
 		private String preferredAccent;
 		private String ageGroup;
 		private String schoolGrade;
+		private Long schoolId;
+		private String schoolName;
 		private String interests;
 		private String expoPushToken;
 
@@ -292,6 +300,8 @@ public class User {
 		public UserBuilder preferredAccent(String preferredAccent) { this.preferredAccent = preferredAccent; return this; }
 		public UserBuilder ageGroup(String ageGroup) { this.ageGroup = ageGroup; return this; }
 		public UserBuilder schoolGrade(String schoolGrade) { this.schoolGrade = schoolGrade; return this; }
+		public UserBuilder schoolId(Long schoolId) { this.schoolId = schoolId; return this; }
+		public UserBuilder schoolName(String schoolName) { this.schoolName = schoolName; return this; }
 		public UserBuilder interests(String interests) { this.interests = interests; return this; }
 		public UserBuilder expoPushToken(String expoPushToken) { this.expoPushToken = expoPushToken; return this; }
 
@@ -322,6 +332,8 @@ public class User {
 			user.setPreferredAccent(preferredAccent);
 			user.setAgeGroup(ageGroup);
 			user.setSchoolGrade(schoolGrade);
+			user.setSchoolId(schoolId);
+			user.setSchoolName(schoolName);
 			user.setInterests(interests);
 			user.setExpoPushToken(expoPushToken);
 			return user;

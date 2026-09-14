@@ -63,6 +63,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired(required = false)
 	private com.rslsolution.speakmateai.repository.UserSubscriptionRepository userSubscriptionRepository;
 
+	@Autowired(required = false)
+	private com.rslsolution.speakmateai.repository.SchoolRepository schoolRepository;
+
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
@@ -287,6 +290,15 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public AuthResponse login(LoginRequest request) {
 		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String cleanSchoolCode = request.getSchoolCode() != null ? request.getSchoolCode().trim() : "";
+		String portalType = request.getPortalType() != null ? request.getPortalType().trim() : "";
+		String loginType = request.getLoginType() != null ? request.getLoginType().trim() : "";
+
+		boolean isStudentLogin = !cleanSchoolCode.isEmpty()
+				|| "STUDENT".equalsIgnoreCase(portalType)
+				|| "SCHOOL".equalsIgnoreCase(portalType)
+				|| "STUDENT".equalsIgnoreCase(loginType)
+				|| "SCHOOL".equalsIgnoreCase(loginType);
 
 		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
 				.orElseGet(() -> userRepository.findByEmail(request.getEmail())
@@ -296,8 +308,57 @@ public class UserServiceImpl implements UserService {
 			throw new InvalidCredentialsException("Inactive account");
 		}
 
+		boolean isUserStudent = (user.getRole() == Role.STUDENT)
+				|| (user.getSchoolId() != null)
+				|| (user.getRole() != null && user.getRole().name().contains("STUDENT"));
+
+		// 1. Personal / Individual user attempting Student Login mode -> MUST FAIL
+		if (isStudentLogin && !isUserStudent) {
+			throw new InvalidCredentialsException("This account is registered as an Individual Learner. Please use the Standard Login tab.");
+		}
+
+		// 2. Student user attempting Standard Login mode -> MUST FAIL
+		if (!isStudentLogin && isUserStudent) {
+			throw new InvalidCredentialsException("This account is registered as a School Student. Please use the Student Login tab with your School Code.");
+		}
+
+		// 3. Password verification
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 			throw new InvalidCredentialsException("Incorrect password");
+		}
+
+		// 4. Student Login school code validation: MUST match the student's actual associated school
+		if (isStudentLogin) {
+			if (cleanSchoolCode.isEmpty()) {
+				throw new InvalidCredentialsException("Invalid student login details or school code.");
+			}
+
+			boolean schoolMatched = false;
+			if (schoolRepository != null) {
+				java.util.Optional<com.rslsolution.speakmateai.entity.School> schoolOpt = 
+						schoolRepository.findBySchoolCodeIgnoreCase(cleanSchoolCode);
+				if (schoolOpt.isPresent()) {
+					com.rslsolution.speakmateai.entity.School school = schoolOpt.get();
+					if (user.getSchoolId() != null && user.getSchoolId().equals(school.getId())) {
+						schoolMatched = true;
+					} else if (user.getSchoolName() != null && (
+							user.getSchoolName().equalsIgnoreCase(school.getName()) ||
+							user.getSchoolName().equalsIgnoreCase(school.getSchoolCode()))) {
+						schoolMatched = true;
+					}
+				}
+			}
+
+			// Direct fallback: if student's schoolName directly matches the school code
+			if (!schoolMatched && user.getSchoolName() != null && !user.getSchoolName().trim().isEmpty()) {
+				if (user.getSchoolName().trim().equalsIgnoreCase(cleanSchoolCode)) {
+					schoolMatched = true;
+				}
+			}
+
+			if (!schoolMatched) {
+				throw new InvalidCredentialsException("Invalid student login details or school code.");
+			}
 		}
 
 		String token = jwtUtil.generateToken(user.getEmail());
@@ -555,7 +616,9 @@ public class UserServiceImpl implements UserService {
 				.englishLevel(effectiveLevel).learningGoal(user.getLearningGoal())
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
 				.preferredAccent(user.getPreferredAccent()).ageGroup(effectiveAge).schoolGrade(effectiveGrade).interests(user.getInterests())
-				.schoolId(user.getSchoolId()).isSchoolStudent(isStudent).build();
+				.schoolId(user.getSchoolId()).isSchoolStudent(isStudent)
+				.accountType(isStudent ? "STUDENT" : "INDIVIDUAL")
+				.build();
 	}
 
 	private void validatePasswordStrength(String password) {
