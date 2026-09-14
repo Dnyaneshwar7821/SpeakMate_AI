@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Dimensions,
+  Image,
   StyleSheet,
   Text,
   View,
@@ -146,12 +147,13 @@ export default function SplashScreen() {
           end={{ x: 1, y: 1 }}
           style={styles.logoGlass}
         >
-          <LinearGradient
-            colors={['#4F46E5', '#6366F1']}
-            style={styles.logoInner}
-          >
-            <Text style={styles.logoText}>SM</Text>
-          </LinearGradient>
+          <View style={styles.logoInner}>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
         </LinearGradient>
       </Animated.View>
 
@@ -278,18 +280,19 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 22,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+    padding: 6,
     shadowColor: '#4F46E5',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
   },
-  logoText: {
-    color: '#FFFFFF',
-    fontSize: 40,
-    fontWeight: '900',
-    letterSpacing: -1.5,
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   logoGlow: {
     position: 'absolute',

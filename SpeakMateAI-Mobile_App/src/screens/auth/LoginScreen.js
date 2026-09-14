@@ -10,6 +10,7 @@ import {
   Keyboard,
   View,
   StatusBar,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -142,12 +143,13 @@ export default function LoginScreen({ navigation }) {
         <SafeAreaView edges={['top']} style={styles.headerContent}>
           {/* Logo Container */}
           <View style={styles.logoWrapper}>
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0.08)']}
-              style={styles.logoGlass}
-            >
-              <Text style={styles.logoText}>SM</Text>
-            </LinearGradient>
+            <View style={styles.logoCard}>
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </View>
           </View>
           <Text style={styles.headerTitle}>Welcome Back</Text>
           <Text style={styles.headerSubtitle}>Sign in to continue learning</Text>
@@ -341,20 +343,21 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  logoGlass: {
+  logoCard: {
     width: 80,
     height: 80,
     borderRadius: 24,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    padding: 6,
   },
-  logoText: {
-    color: '#FFFFFF',
-    fontSize: 32,
-    fontWeight: '900',
-    letterSpacing: -1,
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   headerTitle: {
     color: '#FFFFFF',
