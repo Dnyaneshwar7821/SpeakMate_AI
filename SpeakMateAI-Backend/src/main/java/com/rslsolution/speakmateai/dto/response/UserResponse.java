@@ -73,6 +73,8 @@ public class UserResponse {
 
 	private Boolean isSchoolStudent;
 
+	private String accountType;
+
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 
@@ -142,6 +144,9 @@ public class UserResponse {
 	public Boolean getIsSchoolStudent() { return isSchoolStudent; }
 	public void setIsSchoolStudent(Boolean isSchoolStudent) { this.isSchoolStudent = isSchoolStudent; }
 
+	public String getAccountType() { return accountType; }
+	public void setAccountType(String accountType) { this.accountType = accountType; }
+
 	public boolean isPro() { return isPro; }
 	public void setPro(boolean isPro) { this.isPro = isPro; }
 
@@ -174,9 +179,11 @@ public class UserResponse {
 		private String preferredAccent;
 		private String ageGroup;
 		private String schoolGrade;
+		private String standard;
 		private String interests;
 		private Long schoolId;
 		private Boolean isSchoolStudent;
+		private String accountType;
 
 		public UserResponseBuilder id(Long id) { this.id = id; return this; }
 		public UserResponseBuilder firstName(String firstName) { this.firstName = firstName; return this; }
@@ -204,6 +211,7 @@ public class UserResponse {
 		public UserResponseBuilder interests(String interests) { this.interests = interests; return this; }
 		public UserResponseBuilder schoolId(Long schoolId) { this.schoolId = schoolId; return this; }
 		public UserResponseBuilder isSchoolStudent(Boolean isSchoolStudent) { this.isSchoolStudent = isSchoolStudent; return this; }
+		public UserResponseBuilder accountType(String accountType) { this.accountType = accountType; return this; }
 
 		public UserResponse build() {
             UserResponse obj = new UserResponse();
@@ -232,6 +240,7 @@ public class UserResponse {
             obj.setInterests(interests);
             obj.setSchoolId(schoolId);
             obj.setIsSchoolStudent(isSchoolStudent);
+            obj.setAccountType(accountType);
             return obj;
         }
 	}

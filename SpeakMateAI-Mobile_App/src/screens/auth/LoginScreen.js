@@ -87,15 +87,35 @@ export default function LoginScreen({ navigation }) {
     setError('');
     setLoading(true);
     try {
-      if (loginType === 'SCHOOL') {
-        await AsyncStorage.setItem('speakmate_account_type', 'STUDENT');
-        await AsyncStorage.setItem('speakmate_school_code', schoolCode.trim().toUpperCase());
-      }
-      await login({
+      const isSchoolMode = loginType === 'SCHOOL';
+      const cleanSchoolCode = schoolCode.trim().toUpperCase();
+
+      const authResult = await login({
         email: email.trim().toLowerCase(),
         password,
-        schoolCode: loginType === 'SCHOOL' ? schoolCode.trim().toUpperCase() : undefined,
+        schoolCode: isSchoolMode ? cleanSchoolCode : undefined,
+        portalType: isSchoolMode ? 'STUDENT' : 'STANDARD',
+        loginType: isSchoolMode ? 'STUDENT' : 'STANDARD',
       });
+
+      // Backend is authoritative: inspect authenticated user's actual verified account type
+      const authenticatedUser = authResult?.user;
+      const isVerifiedStudent = Boolean(
+        authenticatedUser?.accountType === 'STUDENT' ||
+        authenticatedUser?.isSchoolStudent ||
+        authenticatedUser?.role === 'STUDENT' ||
+        authenticatedUser?.schoolId
+      );
+
+      if (isVerifiedStudent) {
+        await AsyncStorage.setItem('speakmate_account_type', 'STUDENT');
+        if (cleanSchoolCode) {
+          await AsyncStorage.setItem('speakmate_school_code', cleanSchoolCode);
+        }
+      } else {
+        await AsyncStorage.setItem('speakmate_account_type', 'INDIVIDUAL');
+        await AsyncStorage.removeItem('speakmate_school_code');
+      }
     } catch (err) {
       const serverMsg = err.response?.data?.message || err.userMessage || 'Invalid login details. Please check your credentials and try again.';
       setError(serverMsg);
