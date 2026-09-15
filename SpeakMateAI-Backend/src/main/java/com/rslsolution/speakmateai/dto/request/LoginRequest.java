@@ -21,22 +21,24 @@ public class LoginRequest {
 	private String password;
 
 	private String schoolCode;
-	private String portalType;
-	private String loginType;
+
+	private String portalType; // e.g. "STUDENT", "STANDARD", "SCHOOL"
+
+	private String loginType; // e.g. "STUDENT", "STANDARD", "SCHOOL"
 
 	public LoginRequest(String email, String password) {
-		this.email = email;
+		this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email);
 		this.password = password;
 	}
 
 	public LoginRequest(String email, String password, String schoolCode) {
-		this.email = email;
+		this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email);
 		this.password = password;
 		this.schoolCode = schoolCode;
 	}
 
 	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
+	public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
 
 	public String getPassword() { return password; }
 	public void setPassword(String password) { this.password = password; }

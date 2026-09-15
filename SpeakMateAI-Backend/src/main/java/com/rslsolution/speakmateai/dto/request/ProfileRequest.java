@@ -39,7 +39,7 @@ public class ProfileRequest {
 	public void setLastName(String lastName) { this.lastName = lastName != null ? lastName.trim() : null; }
 
 	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
+	public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
 
 	public String getEnglishLevel() { return englishLevel; }
 	public void setEnglishLevel(String englishLevel) { this.englishLevel = englishLevel; }

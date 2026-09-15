@@ -18,7 +18,7 @@ public class SendDeleteAccountOtpRequest {
 	private String email;
 
 	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
+	public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
 
 	public static SendDeleteAccountOtpRequestBuilder builder() {
 		return new SendDeleteAccountOtpRequestBuilder();

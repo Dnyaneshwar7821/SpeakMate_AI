@@ -106,8 +106,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void sendRegistrationOtp(SendRegistrationOtpRequest request) {
-		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
-		if (cleanEmail.isEmpty()) {
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		if (cleanEmail == null || cleanEmail.isEmpty()) {
 			throw new IllegalArgumentException("Email is required.");
 		}
 
@@ -156,10 +156,10 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public VerifyOtpResponse verifyRegistrationOtp(VerifyOtpRequest request) {
-		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String email = ValidationUtils.normalizeEmail(request.getEmail());
 		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
 
-		if (email.isEmpty()) {
+		if (email == null || email.isEmpty()) {
 			throw new IllegalArgumentException("Email is required.");
 		}
 		if (otp.isEmpty()) {
@@ -187,7 +187,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponse register(RegisterRequest request) {
-		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
 
 		if (userRepository.existsByEmail(cleanEmail) || userRepository.existsByEmailIgnoreCase(cleanEmail)) {
 			throw new DuplicateEmailException("Email already exists.");
@@ -305,7 +305,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public AuthResponse login(LoginRequest request) {
-		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
 		String cleanSchoolCode = request.getSchoolCode() != null ? request.getSchoolCode().trim() : "";
 		String portalType = request.getPortalType() != null ? request.getPortalType().trim() : "";
 		String loginType = request.getLoginType() != null ? request.getLoginType().trim() : "";
@@ -316,8 +316,9 @@ public class UserServiceImpl implements UserService {
 				|| "STUDENT".equalsIgnoreCase(loginType)
 				|| "SCHOOL".equalsIgnoreCase(loginType);
 
-		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
-				.orElseGet(() -> userRepository.findByEmail(request.getEmail())
+		String lookupEmail = cleanEmail != null ? cleanEmail : "";
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseGet(() -> userRepository.findByEmail(lookupEmail)
 						.orElseThrow(() -> new InvalidCredentialsException("Invalid email")));
 
 		if (!user.isActive()) {
@@ -559,10 +560,11 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void forgotPassword(ForgotPasswordRequest request) {
-		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		String lookupEmail = cleanEmail != null ? cleanEmail : "";
 
-		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
-				.orElseThrow(() -> new IllegalArgumentException("No registered account found with email: " + cleanEmail));
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseThrow(() -> new IllegalArgumentException("No registered account found with email: " + lookupEmail));
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 		user.setResetOtp(otp);
@@ -648,8 +650,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
 
-		User user = userRepository.findByEmail(request.getEmail())
-				.orElseThrow(() -> new IllegalArgumentException("Invalid email or user not found."));
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		String lookupEmail = cleanEmail != null ? cleanEmail : "";
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseGet(() -> userRepository.findByEmail(lookupEmail)
+						.orElseThrow(() -> new IllegalArgumentException("Invalid email or user not found.")));
 
 		String inputOtp = request.getOtp() != null ? request.getOtp().trim() : "";
 		if (user.getResetOtp() == null || !user.getResetOtp().equals(inputOtp)) {
@@ -836,14 +841,15 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void sendDeleteAccountOtp(com.rslsolution.speakmateai.dto.request.SendDeleteAccountOtpRequest request) {
-		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
-		User user = userRepository.findByEmailIgnoreCase(email)
-				.orElseThrow(() -> new UserNotFoundException("No account found registered with email: " + email));
+		String email = ValidationUtils.normalizeEmail(request.getEmail());
+		String lookupEmail = email != null ? email : "";
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseThrow(() -> new UserNotFoundException("No account found registered with email: " + lookupEmail));
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 		deleteAccountOtpMap.put(user.getEmail().trim().toLowerCase(), new RegistrationOtpDetails(otp, LocalDateTime.now().plusMinutes(10)));
 
-		System.out.println("[Delete Account OTP Generated] OTP for " + email + " is: " + otp);
+		System.out.println("[Delete Account OTP Generated] OTP for " + lookupEmail + " is: " + otp);
 
 		String htmlContent = String.format(
 			"<!DOCTYPE html>\n" +
@@ -880,22 +886,59 @@ public class UserServiceImpl implements UserService {
 			otp
 		);
 
-		sendAsyncEmail(email, "Confirm Account Deletion - SpeakMateAI", htmlContent, otp);
+		sendAsyncEmail(lookupEmail, "Confirm Account Deletion - SpeakMateAI", htmlContent, otp);
+	}
+
+	@Override
+	public VerifyOtpResponse verifyDeleteAccountOtp(VerifyOtpRequest request) {
+		String email = ValidationUtils.normalizeEmail(request.getEmail());
+		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
+
+		if (email == null || email.isEmpty()) {
+			throw new IllegalArgumentException("Email is required.");
+		}
+		if (otp.isEmpty()) {
+			throw new IllegalArgumentException("OTP code is required.");
+		}
+
+		String lookupEmail = email;
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseGet(() -> userRepository.findByEmail(lookupEmail)
+						.orElseThrow(() -> new IllegalArgumentException("No account found registered with email: " + lookupEmail)));
+
+		RegistrationOtpDetails otpDetails = deleteAccountOtpMap.get(user.getEmail().trim().toLowerCase());
+		if (otpDetails == null) {
+			throw new IllegalArgumentException("No active OTP code found for this email. Please tap 'Send Code' to receive a code.");
+		}
+
+		if (LocalDateTime.now().isAfter(otpDetails.getExpiry())) {
+			deleteAccountOtpMap.remove(user.getEmail().trim().toLowerCase());
+			throw new IllegalArgumentException("The OTP verification code has expired. Please tap 'Resend Code' to get a new code.");
+		}
+
+		if (!otpDetails.getOtp().trim().equals(otp)) {
+			throw new IllegalArgumentException("The 6-digit OTP code is incorrect. Please check your email.");
+		}
+
+		return VerifyOtpResponse.builder()
+				.message("Code verified successfully.")
+				.build();
 	}
 
 	@Override
 	public void deleteAccountWithOtp(com.rslsolution.speakmateai.dto.request.DeleteAccountRequest request) {
-		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String email = ValidationUtils.normalizeEmail(request.getEmail());
+		String lookupEmail = email != null ? email : "";
 		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
 
-		RegistrationOtpDetails otpDetails = deleteAccountOtpMap.get(email);
+		RegistrationOtpDetails otpDetails = deleteAccountOtpMap.get(lookupEmail);
 
 		if (otpDetails == null) {
 			throw new InvalidCredentialsException("No active OTP code found for this email. Please tap 'Send OTP' to receive a code.");
 		}
 
 		if (LocalDateTime.now().isAfter(otpDetails.getExpiry())) {
-			deleteAccountOtpMap.remove(email);
+			deleteAccountOtpMap.remove(lookupEmail);
 			throw new InvalidCredentialsException("The OTP verification code has expired. Please tap 'Send OTP' to get a new code.");
 		}
 
@@ -903,11 +946,11 @@ public class UserServiceImpl implements UserService {
 			throw new InvalidCredentialsException("The 6-digit OTP code is incorrect. Please check your email.");
 		}
 
-		User user = userRepository.findByEmailIgnoreCase(email)
-				.orElseThrow(() -> new UserNotFoundException("No account found with email: " + email));
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseThrow(() -> new UserNotFoundException("No account found with email: " + lookupEmail));
 
 		deleteUser(user.getId());
-		deleteAccountOtpMap.remove(email);
+		deleteAccountOtpMap.remove(lookupEmail);
 	}
 
 	@Override

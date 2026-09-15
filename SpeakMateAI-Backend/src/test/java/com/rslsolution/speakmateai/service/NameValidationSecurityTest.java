@@ -92,8 +92,8 @@ public class NameValidationSecurityTest {
         "User###",
         "John@",
         "John_123",
-        "\uD83D\uDE00John", // 😀John
-        "John\uD83D\uDE00", // John😀
+        "\uD83D\uDE00John", // ≡ƒÿÇJohn
+        "John\uD83D\uDE00", // John≡ƒÿÇ
         "!!!",
         "",
         "   ",
@@ -254,9 +254,6 @@ public class NameValidationSecurityTest {
     @Test
     @DisplayName("UserServiceImpl.register: Rejects invalid firstName authoritatively")
     public void testUserServiceRegisterRejectsInvalidFirstName() {
-        when(userRepository.existsByEmail(any())).thenReturn(false);
-        when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
-
         RegisterRequest request = RegisterRequest.builder()
                 .firstName("John123")
                 .lastName("Doe")
@@ -275,9 +272,6 @@ public class NameValidationSecurityTest {
     @Test
     @DisplayName("UserServiceImpl.register: Rejects invalid lastName authoritatively")
     public void testUserServiceRegisterRejectsInvalidLastName() {
-        when(userRepository.existsByEmail(any())).thenReturn(false);
-        when(userRepository.existsByEmailIgnoreCase(any())).thenReturn(false);
-
         RegisterRequest request = RegisterRequest.builder()
                 .firstName("John")
                 .lastName("Doe###")
@@ -302,7 +296,6 @@ public class NameValidationSecurityTest {
                 .firstName("OriginalFirst")
                 .lastName("OriginalLast")
                 .email(userEmail)
-                .role(com.rslsolution.speakmateai.enums.Role.USER)
                 .build();
 
         Authentication auth = mock(Authentication.class);
@@ -335,7 +328,6 @@ public class NameValidationSecurityTest {
                 .firstName("OriginalFirst")
                 .lastName("OriginalLast")
                 .email(userEmail)
-                .role(com.rslsolution.speakmateai.enums.Role.USER)
                 .build();
 
         Authentication auth = mock(Authentication.class);

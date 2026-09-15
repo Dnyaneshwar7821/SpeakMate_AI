@@ -196,7 +196,15 @@ public class User {
 	public void setLastName(String lastName) { this.lastName = lastName; }
 
 	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
+	public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
+
+	@PrePersist
+	@PreUpdate
+	public void normalizeEmailBeforeSave() {
+		if (this.email != null) {
+			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(this.email);
+		}
+	}
 
 	public String getPassword() { return password; }
 	public void setPassword(String password) { this.password = password; }
@@ -332,5 +340,12 @@ public class User {
 
 	public Progress getProgress() {
 		return (progressList != null && !progressList.isEmpty()) ? progressList.get(0) : null;
+	}
+
+	public static abstract class UserBuilder<C extends User, B extends UserBuilder<C, B>> {
+		public B email(String email) {
+			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email);
+			return self();
+		}
 	}
 }

@@ -90,11 +90,12 @@ public class ProfileServiceImpl implements ProfileService {
 		}
 
 		// Check if email is changing and if new email already exists
-		if (request.getEmail() != null && !request.getEmail().trim().isEmpty() && !user.getEmail().equalsIgnoreCase(request.getEmail().trim())) {
-			if (userRepository.findByEmail(request.getEmail().toLowerCase().trim()).isPresent()) {
+		String newEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		if (newEmail != null && !newEmail.isEmpty() && !user.getEmail().equalsIgnoreCase(newEmail)) {
+			if (userRepository.existsByEmail(newEmail) || userRepository.existsByEmailIgnoreCase(newEmail)) {
 				throw new DuplicateEmailException("Email address is already in use by another account.");
 			}
-			user.setEmail(request.getEmail().toLowerCase().trim());
+			user.setEmail(newEmail);
 		}
 
 		if (request.getFirstName() != null) {

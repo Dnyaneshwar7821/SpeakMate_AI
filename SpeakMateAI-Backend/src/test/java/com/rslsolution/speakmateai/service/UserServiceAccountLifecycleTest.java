@@ -27,8 +27,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.rslsolution.speakmateai.dto.request.LoginRequest;
 import com.rslsolution.speakmateai.dto.request.RegisterRequest;
 import com.rslsolution.speakmateai.dto.request.SendRegistrationOtpRequest;
+import com.rslsolution.speakmateai.dto.request.VerifyOtpRequest;
 import com.rslsolution.speakmateai.dto.response.AuthResponse;
 import com.rslsolution.speakmateai.dto.response.UserResponse;
+import com.rslsolution.speakmateai.dto.response.VerifyOtpResponse;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.exception.DuplicateEmailException;
@@ -236,5 +238,45 @@ public class UserServiceAccountLifecycleTest {
 		regRequest.setConfirmPassword(newPassword);
 
 		assertThrows(DuplicateEmailException.class, () -> userService.register(regRequest));
+	}
+
+	@Test
+	@DisplayName("Scenario F: Delete account OTP verification and deletion lifecycle")
+	void scenarioF_deleteAccountOtpVerificationLifecycle() throws Exception {
+		when(userRepository.findByEmailIgnoreCase(testEmail)).thenReturn(Optional.of(activeUser));
+
+		// 1. Inject an active deletion OTP into deleteAccountOtpMap
+		Field deleteMapField = UserServiceImpl.class.getDeclaredField("deleteAccountOtpMap");
+		deleteMapField.setAccessible(true);
+		@SuppressWarnings("unchecked")
+		Map<String, Object> deleteMap = (Map<String, Object>) deleteMapField.get(null);
+
+		Class<?> detailsClass = Class.forName("com.rslsolution.speakmateai.service.impl.UserServiceImpl$RegistrationOtpDetails");
+		var constructor = detailsClass.getDeclaredConstructor(String.class, LocalDateTime.class);
+		constructor.setAccessible(true);
+
+		// Store active OTP "654321" valid for 10 minutes
+		deleteMap.put(testEmail, constructor.newInstance("654321", LocalDateTime.now().plusMinutes(10)));
+
+		// 2. Verification with wrong OTP throws IllegalArgumentException
+		VerifyOtpRequest wrongOtpReq = new VerifyOtpRequest(testEmail, "000000");
+		IllegalArgumentException wrongEx = assertThrows(IllegalArgumentException.class, () -> userService.verifyDeleteAccountOtp(wrongOtpReq));
+		assertEquals("The 6-digit OTP code is incorrect. Please check your email.", wrongEx.getMessage());
+
+		// 3. Verification with valid OTP succeeds
+		VerifyOtpRequest validOtpReq = new VerifyOtpRequest(testEmail, "654321");
+		VerifyOtpResponse verifyResp = userService.verifyDeleteAccountOtp(validOtpReq);
+		assertNotNull(verifyResp);
+		assertEquals("Code verified successfully.", verifyResp.getMessage());
+
+		// 4. Verification with expired OTP throws IllegalArgumentException
+		deleteMap.put(testEmail, constructor.newInstance("654321", LocalDateTime.now().minusMinutes(1)));
+		IllegalArgumentException expiredEx = assertThrows(IllegalArgumentException.class, () -> userService.verifyDeleteAccountOtp(validOtpReq));
+		assertEquals("The OTP verification code has expired. Please tap 'Resend Code' to get a new code.", expiredEx.getMessage());
+
+		// 5. Verification when no OTP exists throws IllegalArgumentException
+		deleteMap.remove(testEmail);
+		IllegalArgumentException noneEx = assertThrows(IllegalArgumentException.class, () -> userService.verifyDeleteAccountOtp(validOtpReq));
+		assertEquals("No active OTP code found for this email. Please tap 'Send Code' to receive a code.", noneEx.getMessage());
 	}
 }

@@ -32,4 +32,26 @@ public final class ValidationUtils {
                 && NAME_PATTERN.matcher(trimmed).matches()
                 && trimmed.matches(".*[a-zA-Z].*");
     }
+
+    public static final String EMAIL_REGEX = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+    public static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
+
+    public static String normalizeEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        return email.trim().toLowerCase();
+    }
+
+    public static boolean isValidEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+        String normalized = normalizeEmail(email);
+        if (normalized.isEmpty()) {
+            return false;
+        }
+        return EMAIL_PATTERN.matcher(normalized).matches();
+    }
 }
+
