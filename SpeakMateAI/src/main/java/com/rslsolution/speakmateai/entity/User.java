@@ -75,11 +75,17 @@ public class User {
 	public void onCreate() {
 		createdAt = LocalDateTime.now();
 		updatedAt = LocalDateTime.now();
+		if (this.email != null) {
+			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(this.email);
+		}
 	}
 
 	@PreUpdate
 	public void onUpdate() {
 		updatedAt = LocalDateTime.now();
+		if (this.email != null) {
+			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(this.email);
+		}
 	}
 
 	private boolean welcomeCompleted;
@@ -167,14 +173,6 @@ public class User {
 
 	public String getEmail() { return email; }
 	public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
-
-	@PrePersist
-	@PreUpdate
-	public void normalizeEmailBeforeSave() {
-		if (this.email != null) {
-			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(this.email);
-		}
-	}
 
 	public String getPassword() { return password; }
 	public void setPassword(String password) { this.password = password; }
