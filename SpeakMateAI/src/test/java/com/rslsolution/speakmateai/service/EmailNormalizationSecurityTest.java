@@ -38,7 +38,6 @@ import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.SchoolRepository;
 import com.rslsolution.speakmateai.repository.SettingsRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
-import com.rslsolution.speakmateai.service.impl.ProfileServiceImpl;
 import com.rslsolution.speakmateai.service.impl.UserServiceImpl;
 import com.rslsolution.speakmateai.util.JwtUtil;
 import com.rslsolution.speakmateai.util.ValidationUtils;
@@ -59,7 +58,6 @@ public class EmailNormalizationSecurityTest {
     private PasswordEncoder passwordEncoder;
     private JwtUtil jwtUtil;
     private UserServiceImpl userService;
-    private ProfileServiceImpl profileService;
 
     @BeforeEach
     public void setup() {
@@ -82,8 +80,6 @@ public class EmailNormalizationSecurityTest {
         ReflectionTestUtils.setField(userService, "schoolRepository", schoolRepository);
         ReflectionTestUtils.setField(userService, "passwordEncoder", passwordEncoder);
         ReflectionTestUtils.setField(userService, "jwtUtil", jwtUtil);
-
-        profileService = new ProfileServiceImpl(userRepository, progressRepository);
     }
 
     // =========================================================================

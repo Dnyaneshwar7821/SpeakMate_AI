@@ -28,7 +28,6 @@ import com.rslsolution.speakmateai.dto.request.LoginRequest;
 import com.rslsolution.speakmateai.dto.request.RegisterRequest;
 import com.rslsolution.speakmateai.dto.request.SendRegistrationOtpRequest;
 import com.rslsolution.speakmateai.dto.request.VerifyOtpRequest;
-import com.rslsolution.speakmateai.dto.request.DeleteAccountRequest;
 import com.rslsolution.speakmateai.dto.response.AuthResponse;
 import com.rslsolution.speakmateai.dto.response.UserResponse;
 import com.rslsolution.speakmateai.dto.response.VerifyOtpResponse;
