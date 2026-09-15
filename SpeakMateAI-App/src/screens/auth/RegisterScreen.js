@@ -29,6 +29,7 @@ import {
   PrimaryButton,
 } from '../../components/auth';
 import { authService } from '../../services/authService';
+import { validateName, NAME_VALIDATION_ERROR } from '../../utils/validation';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -148,12 +149,12 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const getFirstNameError = () => {
-    if (!firstName.trim()) return 'First name is required.';
+    if (!validateName(firstName)) return NAME_VALIDATION_ERROR;
     return null;
   };
 
   const getLastNameError = () => {
-    if (!lastName.trim()) return 'Last name is required.';
+    if (!validateName(lastName)) return NAME_VALIDATION_ERROR;
     return null;
   };
 
@@ -255,7 +256,11 @@ export default function RegisterScreen({ navigation }) {
       setRegistered(true);
       animateSuccess();
     } catch (err) {
-      const serverMsg = err.response?.data?.message || err.userMessage || 'Registration failed. Please verify your details and try again.';
+      const data = err.response?.data;
+      const fieldMsg = data && typeof data === 'object' && !data.message
+        ? Object.values(data)[0]
+        : null;
+      const serverMsg = fieldMsg || data?.message || err.userMessage || 'Registration failed. Please verify your details and try again.';
       setError(serverMsg);
     } finally {
       setLoading(false);
@@ -366,6 +371,7 @@ export default function RegisterScreen({ navigation }) {
                       error={getFirstNameError()}
                       placeholder="Jane"
                       autoCapitalize="words"
+                      maxLength={40}
                       returnKeyType="next"
                       onSubmitEditing={() => lastNameRef.current?.focus()}
                     />
@@ -380,6 +386,7 @@ export default function RegisterScreen({ navigation }) {
                       error={getLastNameError()}
                       placeholder="Doe"
                       autoCapitalize="words"
+                      maxLength={40}
                       returnKeyType="next"
                       inputRef={lastNameRef}
                       onSubmitEditing={() => emailRef.current?.focus()}

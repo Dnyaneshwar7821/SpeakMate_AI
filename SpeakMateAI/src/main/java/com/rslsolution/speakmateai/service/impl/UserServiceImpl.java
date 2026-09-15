@@ -34,6 +34,7 @@ import com.rslsolution.speakmateai.repository.SettingsRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.service.UserService;
 import com.rslsolution.speakmateai.util.JwtUtil;
+import com.rslsolution.speakmateai.util.ValidationUtils;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import jakarta.mail.internet.MimeMessage;
@@ -180,6 +181,9 @@ public class UserServiceImpl implements UserService {
 			throw new DuplicateEmailException("Email already exists.");
 		}
 
+		ValidationUtils.validateName(request.getFirstName());
+		ValidationUtils.validateName(request.getLastName());
+
 		if (request.getConfirmPassword() == null || !request.getConfirmPassword().equals(request.getPassword())) {
 			throw new IllegalArgumentException("Passwords do not match.");
 		}
@@ -203,8 +207,8 @@ public class UserServiceImpl implements UserService {
 				|| (request.getSchoolGrade() != null && !request.getSchoolGrade().trim().isEmpty());
 
 		User user = User.builder()
-				.firstName(request.getFirstName())
-				.lastName(request.getLastName())
+				.firstName(request.getFirstName() != null ? request.getFirstName().trim() : null)
+				.lastName(request.getLastName() != null ? request.getLastName().trim() : null)
 				.email(cleanEmail)
 				.password(passwordEncoder.encode(request.getPassword()))
 				.role(isStudent ? Role.STUDENT : Role.USER)
@@ -561,8 +565,11 @@ public class UserServiceImpl implements UserService {
 			throw new DuplicateEmailException("Email already exists.");
 		}
 
-		user.setFirstName(request.getFirstName());
-		user.setLastName(request.getLastName());
+		ValidationUtils.validateName(request.getFirstName());
+		ValidationUtils.validateName(request.getLastName());
+
+		user.setFirstName(request.getFirstName().trim());
+		user.setLastName(request.getLastName().trim());
 		user.setEmail(request.getEmail());
 
 		if (request.getPassword() != null && !request.getPassword().isBlank()) {

@@ -23,6 +23,7 @@ import { useToast } from '../../context/ToastContext';
 import { profileService } from '../../services/appServices';
 import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
+import { validateName, NAME_VALIDATION_ERROR } from '../../utils/validation';
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
 import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
@@ -302,12 +303,12 @@ export default function ProfileScreen({ navigation }) {
     const cleanLastName = form.lastName.trim();
     const cleanEmail = form.email.trim().toLowerCase();
 
-    if (!cleanFirstName) {
-      Alert.alert('Validation Error', 'First name cannot be empty.');
+    if (!validateName(cleanFirstName)) {
+      Alert.alert('Validation Error', NAME_VALIDATION_ERROR);
       return;
     }
-    if (!cleanLastName) {
-      Alert.alert('Validation Error', 'Last name cannot be empty.');
+    if (!validateName(cleanLastName)) {
+      Alert.alert('Validation Error', NAME_VALIDATION_ERROR);
       return;
     }
     if (!cleanEmail) {
@@ -336,7 +337,9 @@ export default function ProfileScreen({ navigation }) {
         if (updateUser) updateUser(profile);
         showToast('Profile Updated ✓', 'success', 'Your personal details were saved successfully');
       } catch (error) {
-        showToast('Profile Update Failed', 'error', error.userMessage || 'Unable to update profile.');
+        const data = error.response?.data;
+        const fieldMsg = data && typeof data === 'object' && !data.message ? Object.values(data)[0] : null;
+        showToast('Profile Update Failed', 'error', fieldMsg || data?.message || error.userMessage || 'Unable to update profile.');
       } finally {
         setSaving(false);
       }
@@ -785,6 +788,7 @@ export default function ProfileScreen({ navigation }) {
                 label="First name"
                 value={form.firstName}
                 onChangeText={(value) => setForm((current) => ({ ...current, firstName: value }))}
+                maxLength={40}
               />
             </View>
             <View style={{ flex: 1, marginLeft: 8 }}>
@@ -792,6 +796,7 @@ export default function ProfileScreen({ navigation }) {
                 label="Last name"
                 value={form.lastName}
                 onChangeText={(value) => setForm((current) => ({ ...current, lastName: value }))}
+                maxLength={40}
               />
             </View>
           </View>

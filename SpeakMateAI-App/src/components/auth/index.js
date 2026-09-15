@@ -163,6 +163,8 @@ export function AuthInput({
   touched,
   onFocus,
   onBlur,
+  maxLength,
+  ...rest
 }) {
   const [focused, setFocused] = useState(false);
   const showError = Boolean(touched && error);
@@ -193,6 +195,8 @@ export function AuthInput({
           }
           returnKeyType={returnKeyType || 'next'}
           onSubmitEditing={onSubmitEditing}
+          maxLength={maxLength}
+          {...rest}
           onFocus={(e) => {
             setFocused(true);
             if (onFocus) onFocus(e);

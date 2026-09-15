@@ -89,7 +89,7 @@ export function AppButton({ title, onPress, loading, variant = 'primary', disabl
   );
 }
 
-export function AppInput({ label, value, onChangeText, multiline, secureTextEntry, placeholder, keyboardType }) {
+export function AppInput({ label, value, onChangeText, multiline, secureTextEntry, placeholder, keyboardType, maxLength, ...rest }) {
   const { isDark } = useTheme();
 
   const labelColor = isDark ? '#E2E8F0' : COLORS.black;
@@ -108,6 +108,8 @@ export function AppInput({ label, value, onChangeText, multiline, secureTextEntr
         multiline={multiline}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
+        maxLength={maxLength}
+        {...rest}
         autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
         style={[
           styles.input, 
