@@ -169,8 +169,12 @@ export function Navbar() {
   };
 
   useEffect(() => {
-    const updateStats = () => {
-      setLiveStats(getLiveProgressStats(user));
+    const updateStats = (e) => {
+      if (e?.detail) {
+        setLiveStats(e.detail);
+      } else {
+        setLiveStats(getLiveProgressStats(user));
+      }
     };
     updateStats();
     window.addEventListener("focus", updateStats);

@@ -3,10 +3,18 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { useToast } from "../context/ToastContext";
 import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
-import { getLiveProgressStats, recordSpeakingSession, buyStreakFreeze, syncBackendProgress } from "../utils/progressTracker";
+import {
+  getLiveProgressStats,
+  recordSpeakingSession,
+  buyStreakFreeze,
+  syncBackendProgress,
+  claimDailyQuoteXP,
+  getLocalDateStr,
+} from "../utils/progressTracker";
 import { StreakModal } from "../components/dashboard/StreakModal";
 
 const getRankTier = (xp = 0) => {
@@ -50,6 +58,7 @@ export function Dashboard() {
   const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const { isDark } = useTheme();
+  const toast = useToast();
 
   const [accountType, setAccountType] = useState(
     () => safeString(user?.accountType || localStorage.getItem("speakmate_account_type"), "INDIVIDUAL_USER")
@@ -80,7 +89,10 @@ export function Dashboard() {
   const [timeLeft, setTimeLeft] = useState(300);
   const [timerCompleted, setTimerCompleted] = useState(false);
   const [quoteIndex, setQuoteIndex] = useState(0);
-  const [challengeClaimed, setChallengeClaimed] = useState(false);
+  const [challengeClaimed, setChallengeClaimed] = useState(() => {
+    const st = getLiveProgressStats(user);
+    return st.lastQuoteClaimDate === getLocalDateStr();
+  });
 
   const calculatedRank = getRankTier(stats.xp || user?.xp || 0);
   const currentRankName = stats.rank || user?.rank || calculatedRank.name;
@@ -95,12 +107,13 @@ export function Dashboard() {
     : "👑";
 
   const refreshStats = useCallback(() => {
-    const liveStats = getLiveProgressStats();
+    const liveStats = getLiveProgressStats(user);
     setStats((prev) => ({
       ...prev,
       ...liveStats,
-      streak: Number(liveStats.streak ?? 0),
-      xp: Number(liveStats.xp ?? 0),
+      streak: Number(liveStats.streak ?? prev.streak ?? 0),
+      xp: Number(liveStats.xp ?? prev.xp ?? 0),
+      streakFreezes: Number(liveStats.streakFreezes ?? prev.streakFreezes ?? 0),
       todayMins: liveStats.todayMins ?? prev.todayMins ?? 0,
       completedMins: liveStats.todayMins ?? prev.todayMins ?? 0,
       dailyGoalMins: parseInt(localStorage.getItem("speakmate_daily_goal") || "15", 10),
@@ -116,20 +129,21 @@ export function Dashboard() {
             if (data.profile.englishLevel) setActiveEnglishLevel(safeString(data.profile.englishLevel, "Beginner"));
             if (data.profile.role) setAccountType(safeString(data.profile.role, "INDIVIDUAL_USER"));
           }
-          const synced = syncBackendProgress(data);
+          const synced = syncBackendProgress(data, user);
           setStats((prev) => ({
             ...prev,
             ...data,
             ...synced,
-            streak: Number(data.streak ?? data.progress?.streak ?? synced.streak ?? 0),
-            xp: Number(data.xp ?? data.progress?.xp ?? synced.xp ?? 0),
+            streak: Number(synced.streak ?? data.streak ?? data.progress?.streak ?? 0),
+            xp: Number(synced.xp ?? data.progress?.xp ?? data.xp ?? 0),
+            streakFreezes: Number(synced.streakFreezes ?? prev.streakFreezes ?? 0),
             todayMins: synced.todayMins ?? prev.todayMins ?? 0,
             completedMins: synced.todayMins ?? prev.todayMins ?? 0,
           }));
         }
       })
       .catch(() => {});
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     refreshStats();
@@ -151,20 +165,37 @@ export function Dashboard() {
       if (e.key === "speakmate_account_type" && e.newValue) setAccountType(safeString(e.newValue, "INDIVIDUAL_USER"));
     };
 
+    const handleProgressEvent = (e) => {
+      const updated = e?.detail || getLiveProgressStats(user);
+      const today = getLocalDateStr();
+      if (updated?.lastQuoteClaimDate === today) {
+        setChallengeClaimed(true);
+      }
+      setStats((prev) => ({
+        ...prev,
+        ...updated,
+        streak: Number(updated.streak ?? prev.streak ?? 0),
+        xp: Number(updated.xp ?? prev.xp ?? 0),
+        streakFreezes: Number(updated.streakFreezes ?? prev.streakFreezes ?? 0),
+        todayMins: updated.todayMins ?? prev.todayMins ?? 0,
+        completedMins: updated.todayMins ?? prev.todayMins ?? 0,
+      }));
+    };
+
     window.addEventListener("focus", refreshStats);
-    window.addEventListener("speakmate_progress_updated", refreshStats);
+    window.addEventListener("speakmate_progress_updated", handleProgressEvent);
     window.addEventListener("speakmate_settings_updated", handleSettingsEvent);
     window.addEventListener("speakmate_age_group_changed", handleAgeEvent);
     window.addEventListener("storage", handleStorage);
 
     return () => {
       window.removeEventListener("focus", refreshStats);
-      window.removeEventListener("speakmate_progress_updated", refreshStats);
+      window.removeEventListener("speakmate_progress_updated", handleProgressEvent);
       window.removeEventListener("speakmate_settings_updated", handleSettingsEvent);
       window.removeEventListener("speakmate_age_group_changed", handleAgeEvent);
       window.removeEventListener("storage", handleStorage);
     };
-  }, [refreshStats]);
+  }, [refreshStats, user]);
 
   useEffect(() => {
     let interval = null;
@@ -192,14 +223,34 @@ export function Dashboard() {
   };
 
   const handleAcceptChallenge = () => {
-    setChallengeClaimed(true);
-    setStats((prev) => ({ ...prev, xp: prev.xp + 50 }));
+    const res = claimDailyQuoteXP(50, user);
+    if (res.success) {
+      setChallengeClaimed(true);
+      setStats((prev) => ({
+        ...prev,
+        ...res.stats,
+        xp: Number(res.stats.xp ?? prev.xp ?? 0),
+        streakFreezes: Number(res.stats.streakFreezes ?? prev.streakFreezes ?? 0),
+      }));
+      toast.success(res.message);
+    } else {
+      setChallengeClaimed(true);
+      toast.info(res.message);
+    }
   };
 
   const handleBuyFreeze = () => {
     const res = buyStreakFreeze(100, user);
     if (res.success) {
-      refreshStats();
+      setStats((prev) => ({
+        ...prev,
+        ...res.stats,
+        xp: Number(res.stats.xp ?? prev.xp ?? 0),
+        streakFreezes: Number(res.stats.streakFreezes ?? prev.streakFreezes ?? 0),
+      }));
+      toast.success(res.message);
+    } else {
+      toast.error(res.message);
     }
   };
 
