@@ -15,6 +15,7 @@ import com.rslsolution.speakmateai.exception.UserNotFoundException;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.service.ProfileService;
+import com.rslsolution.speakmateai.util.ValidationUtils;
 
 @Service
 @Transactional
@@ -96,10 +97,12 @@ public class ProfileServiceImpl implements ProfileService {
 			user.setEmail(request.getEmail().toLowerCase().trim());
 		}
 
-		if (request.getFirstName() != null && !request.getFirstName().trim().isEmpty()) {
+		if (request.getFirstName() != null) {
+			ValidationUtils.validateName(request.getFirstName());
 			user.setFirstName(request.getFirstName().trim());
 		}
-		if (request.getLastName() != null && !request.getLastName().trim().isEmpty()) {
+		if (request.getLastName() != null) {
+			ValidationUtils.validateName(request.getLastName());
 			user.setLastName(request.getLastName().trim());
 		}
 

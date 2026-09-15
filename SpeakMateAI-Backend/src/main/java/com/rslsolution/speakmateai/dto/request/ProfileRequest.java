@@ -1,6 +1,7 @@
 package com.rslsolution.speakmateai.dto.request;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,8 +13,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProfileRequest {
 
+	@Pattern(regexp = "^[a-zA-Z\\s'-]{2,40}$", message = "Names can only contain letters and must be at least 2 characters.")
 	private String firstName;
 
+	@Pattern(regexp = "^[a-zA-Z\\s'-]{2,40}$", message = "Names can only contain letters and must be at least 2 characters.")
 	private String lastName;
 
 	@Email(message = "Invalid email format")
@@ -30,10 +33,10 @@ public class ProfileRequest {
 	private String avatar;
 
 	public String getFirstName() { return firstName; }
-	public void setFirstName(String firstName) { this.firstName = firstName; }
+	public void setFirstName(String firstName) { this.firstName = firstName != null ? firstName.trim() : null; }
 
 	public String getLastName() { return lastName; }
-	public void setLastName(String lastName) { this.lastName = lastName; }
+	public void setLastName(String lastName) { this.lastName = lastName != null ? lastName.trim() : null; }
 
 	public String getEmail() { return email; }
 	public void setEmail(String email) { this.email = email; }
