@@ -25,6 +25,7 @@ import {
   PasswordInput,
   PrimaryButton,
 } from '../../components/auth';
+import { normalizeEmail, isValidEmail } from '../../utils/validation';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
@@ -52,10 +53,11 @@ export default function LoginScreen({ navigation }) {
   };
 
   const getEmailError = () => {
-    if (!email.trim()) {
+    const normalized = normalizeEmail(email);
+    if (!normalized) {
       return loginType === 'SCHOOL' ? 'Please enter your Student ID or Email.' : 'Please enter your email address.';
     }
-    if (loginType === 'STANDARD' && !/\S+@\S+\.\S+/.test(email.trim())) {
+    if (loginType === 'STANDARD' && !isValidEmail(email)) {
       return 'Please enter a valid email address.';
     }
     return null;
@@ -90,9 +92,10 @@ export default function LoginScreen({ navigation }) {
     try {
       const isSchoolMode = loginType === 'SCHOOL';
       const cleanSchoolCode = schoolCode.trim().toUpperCase();
+      const normalizedEmail = normalizeEmail(email);
 
       const authResult = await login({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         password,
         schoolCode: isSchoolMode ? cleanSchoolCode : undefined,
         portalType: isSchoolMode ? 'STUDENT' : 'STANDARD',

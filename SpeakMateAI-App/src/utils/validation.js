@@ -9,3 +9,21 @@ export const validateName = (name) => {
   if (!/[a-zA-Z]/.test(trimmed)) return false;
   return true;
 };
+
+export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const EMAIL_VALIDATION_ERROR = 'Please enter a valid email address.';
+
+export const normalizeEmail = (email) => {
+  if (!email || typeof email !== 'string') return '';
+  return email.trim().toLowerCase();
+};
+
+export const isValidEmail = (email) => {
+  if (!email || typeof email !== 'string') return false;
+  const normalized = normalizeEmail(email);
+  if (!normalized) return false;
+  return EMAIL_REGEX.test(normalized);
+};
+
+export const validateEmail = isValidEmail;
+

@@ -24,7 +24,7 @@ import { useToast } from '../../context/ToastContext';
 import { profileService } from '../../services/appServices';
 import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
-import { validateName, NAME_VALIDATION_ERROR } from '../../utils/validation';
+import { validateName, NAME_VALIDATION_ERROR, normalizeEmail, isValidEmail } from '../../utils/validation';
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
 import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
@@ -156,13 +156,12 @@ export default function ProfileScreen({ navigation }) {
 
   const handleSendDeleteOtp = async () => {
     if (sendingOtp || resendCooldown > 0) return;
-    const cleanEmail = deleteEmail.trim().toLowerCase();
+    const cleanEmail = normalizeEmail(deleteEmail);
     if (!cleanEmail) {
       Alert.alert('Validation Error', 'Please enter your registered email address.');
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
+    if (!isValidEmail(deleteEmail)) {
       Alert.alert('Validation Error', 'Please enter a valid email address.');
       return;
     }
@@ -207,7 +206,7 @@ export default function ProfileScreen({ navigation }) {
     if (isVerifyingRef.current) return;
     if (lastVerifiedOtpRef.current === codeToVerify && otpVerificationStatus === 'VERIFIED') return;
 
-    const cleanEmail = deleteEmail.trim().toLowerCase();
+    const cleanEmail = normalizeEmail(deleteEmail);
     if (!cleanEmail || codeToVerify.length !== 6) return;
 
     isVerifyingRef.current = true;
@@ -259,7 +258,7 @@ export default function ProfileScreen({ navigation }) {
       return;
     }
 
-    const cleanEmail = deleteEmail.trim().toLowerCase();
+    const cleanEmail = normalizeEmail(deleteEmail);
     const cleanOtp = deleteOtp.trim();
 
     if (!cleanEmail) {
@@ -433,7 +432,7 @@ export default function ProfileScreen({ navigation }) {
   const save = async () => {
     const cleanFirstName = form.firstName.trim();
     const cleanLastName = form.lastName.trim();
-    const cleanEmail = form.email.trim().toLowerCase();
+    const cleanEmail = normalizeEmail(form.email);
 
     if (!validateName(cleanFirstName)) {
       Alert.alert('Validation Error', NAME_VALIDATION_ERROR);
@@ -447,9 +446,7 @@ export default function ProfileScreen({ navigation }) {
       Alert.alert('Validation Error', 'Email cannot be empty.');
       return;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
+    if (!isValidEmail(form.email)) {
       Alert.alert('Validation Error', 'Please enter a valid email address.');
       return;
     }

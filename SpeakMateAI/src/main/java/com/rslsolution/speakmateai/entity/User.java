@@ -166,7 +166,15 @@ public class User {
 	public void setLastName(String lastName) { this.lastName = lastName; }
 
 	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
+	public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
+
+	@PrePersist
+	@PreUpdate
+	public void normalizeEmailBeforeSave() {
+		if (this.email != null) {
+			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(this.email);
+		}
+	}
 
 	public String getPassword() { return password; }
 	public void setPassword(String password) { this.password = password; }
@@ -278,7 +286,7 @@ public class User {
 		public UserBuilder id(Long id) { this.id = id; return this; }
 		public UserBuilder firstName(String firstName) { this.firstName = firstName; return this; }
 		public UserBuilder lastName(String lastName) { this.lastName = lastName; return this; }
-		public UserBuilder email(String email) { this.email = email; return this; }
+		public UserBuilder email(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); return this; }
 		public UserBuilder password(String password) { this.password = password; return this; }
 		public UserBuilder role(Role role) { this.role = role; return this; }
 		public UserBuilder avatar(String avatar) { this.avatar = avatar; return this; }

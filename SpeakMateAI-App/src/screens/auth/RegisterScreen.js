@@ -29,7 +29,7 @@ import {
   PrimaryButton,
 } from '../../components/auth';
 import { authService } from '../../services/authService';
-import { validateName, NAME_VALIDATION_ERROR } from '../../utils/validation';
+import { validateName, NAME_VALIDATION_ERROR, normalizeEmail, isValidEmail } from '../../utils/validation';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -87,8 +87,9 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const validateEmailOnly = () => {
-    if (!email.trim()) return 'Please enter an email address first.';
-    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    const normalized = normalizeEmail(email);
+    if (!normalized) return 'Please enter an email address first.';
+    if (!isValidEmail(email)) return 'Please enter a valid email address.';
     return null;
   };
 
@@ -104,8 +105,8 @@ export default function RegisterScreen({ navigation }) {
     setOtpState('SENDING');
 
     try {
-      const emailLower = email.trim().toLowerCase();
-      await authService.sendRegistrationOtp({ email: emailLower });
+      const normalizedEmail = normalizeEmail(email);
+      await authService.sendRegistrationOtp({ email: normalizedEmail });
       setOtpState('SENT');
     } catch (err) {
       setOtpState('IDLE');
@@ -131,9 +132,9 @@ export default function RegisterScreen({ navigation }) {
     setError('');
 
     try {
-      const emailLower = email.trim().toLowerCase();
+      const normalizedEmail = normalizeEmail(email);
       await authService.verifyRegistrationOtp({
-        email: emailLower,
+        email: normalizedEmail,
         otp: otp.trim(),
       });
       setOtpState('VERIFIED');
@@ -165,8 +166,9 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const getEmailError = () => {
-    if (!email.trim()) return touched.email ? 'Email address is required.' : null;
-    if (touched.email && !/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    const normalized = normalizeEmail(email);
+    if (!normalized) return touched.email ? 'Email address is required.' : null;
+    if (touched.email && !isValidEmail(email)) return 'Please enter a valid email address.';
     return null;
   };
 
@@ -189,8 +191,9 @@ export default function RegisterScreen({ navigation }) {
     if (!validateName(firstName)) return NAME_VALIDATION_ERROR;
     if (!lastName.trim()) return 'Last name is required.';
     if (!validateName(lastName)) return NAME_VALIDATION_ERROR;
-    if (!email.trim()) return 'Email address is required.';
-    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    const normalized = normalizeEmail(email);
+    if (!normalized) return 'Email address is required.';
+    if (!isValidEmail(email)) return 'Please enter a valid email address.';
     if (otpState !== 'VERIFIED') {
       if (otpState === 'IDLE') return 'Please tap "Send OTP" next to email and verify your code.';
       if (!otp.trim()) return 'Please enter the 6-digit OTP code sent to your email.';
@@ -213,7 +216,7 @@ export default function RegisterScreen({ navigation }) {
       password: true,
       confirmPassword: true,
     });
-    const emailLower = email.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(email);
 
     // If user entered 6 digits but hasn't pressed Verify OTP yet, auto-verify first
     if (otpState !== 'VERIFIED' && otp.trim().length === 6) {
@@ -222,7 +225,7 @@ export default function RegisterScreen({ navigation }) {
       setOtpError('');
       try {
         await authService.verifyRegistrationOtp({
-          email: emailLower,
+          email: normalizedEmail,
           otp: otp.trim(),
         });
         setOtpState('VERIFIED');
@@ -252,7 +255,7 @@ export default function RegisterScreen({ navigation }) {
       await register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: emailLower,
+        email: normalizedEmail,
         password,
         confirmPassword,
         otp: otp.trim(),
