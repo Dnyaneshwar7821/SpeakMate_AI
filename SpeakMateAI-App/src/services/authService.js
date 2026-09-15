@@ -51,6 +51,11 @@ export const authService = {
     return response.data;
   },
 
+  verifyDeleteAccountOtp: async (payload) => {
+    const response = await api.post("/api/users/verify-delete-account-otp", payload);
+    return response.data;
+  },
+
   deleteAccount: async (payload) => {
     const response = await api.post("/api/users/delete-account", payload);
     return response.data;

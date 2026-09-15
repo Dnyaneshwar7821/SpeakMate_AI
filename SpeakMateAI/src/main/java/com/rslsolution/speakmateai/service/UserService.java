@@ -22,6 +22,8 @@ public interface UserService {
 
 	void sendDeleteAccountOtp(SendDeleteAccountOtpRequest request);
 
+	VerifyOtpResponse verifyDeleteAccountOtp(VerifyOtpRequest request);
+
 	void deleteAccountWithOtp(DeleteAccountRequest request);
 
 	UserResponse register(RegisterRequest request);

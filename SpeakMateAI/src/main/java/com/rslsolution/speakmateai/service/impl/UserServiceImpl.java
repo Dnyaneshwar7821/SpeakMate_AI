@@ -721,6 +721,37 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
+	public VerifyOtpResponse verifyDeleteAccountOtp(VerifyOtpRequest request) {
+		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
+
+		if (email.isEmpty()) {
+			throw new IllegalArgumentException("Email is required.");
+		}
+		if (otp.isEmpty()) {
+			throw new IllegalArgumentException("OTP verification code is required.");
+		}
+
+		RegistrationOtpDetails otpDetails = deleteAccountOtpMap.get(email);
+		if (otpDetails == null) {
+			throw new IllegalArgumentException("No active OTP code found for this email. Please tap 'Send Code' to receive a code.");
+		}
+
+		if (otpDetails.getExpiry().isBefore(LocalDateTime.now())) {
+			deleteAccountOtpMap.remove(email);
+			throw new IllegalArgumentException("The OTP verification code has expired. Please tap 'Resend Code' to get a new code.");
+		}
+
+		if (!otpDetails.getOtp().trim().equals(otp)) {
+			throw new IllegalArgumentException("The 6-digit OTP code is incorrect. Please check your email.");
+		}
+
+		return VerifyOtpResponse.builder()
+				.message("Code verified successfully.")
+				.build();
+	}
+
+	@Override
 	@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
 	public void deleteAccountWithOtp(com.rslsolution.speakmateai.dto.request.DeleteAccountRequest request) {
 		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
