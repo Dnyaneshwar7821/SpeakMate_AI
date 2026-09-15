@@ -15,17 +15,20 @@ const getStorageKey = (userContext = null) => {
 export const persistProgressToBackend = async (stats) => {
   if (!stats) return;
   try {
-    const token = localStorage.getItem("speakmate_auth_token");
+    const token =
+      localStorage.getItem("speakmate_token") ||
+      localStorage.getItem("speakmate_auth_token") ||
+      localStorage.getItem("token");
     if (!token) return;
     return await progressService.update({
-      xp: stats.xp || 0,
-      level: Math.max(1, Math.floor((stats.xp || 0) / 500) + 1),
-      currentStreak: stats.streak || 0,
-      longestStreak: stats.longestStreak || stats.streak || 0,
-      totalPracticeMinutes: stats.speakingMins || 0,
-      totalSpeakingSessions: stats.speakingSessions || 0,
-      totalGrammarChecks: stats.grammarChecks || 0,
-      totalVocabularyWords: stats.wordsLearned || 0,
+      xp: Number(stats.xp || 0),
+      level: Math.max(1, Math.floor(Number(stats.xp || 0) / 500) + 1),
+      currentStreak: Number(stats.streak || 0),
+      longestStreak: Number(stats.longestStreak || stats.streak || 0),
+      totalPracticeMinutes: Number(stats.speakingMins || 0),
+      totalSpeakingSessions: Number(stats.speakingSessions || 0),
+      totalGrammarChecks: Number(stats.grammarChecks || 0),
+      totalVocabularyWords: Number(stats.wordsLearned || 0),
     });
   } catch (e) {
     console.warn("Backend progress sync failed:", e);
@@ -222,19 +225,32 @@ export const syncBackendProgress = (backendData, userContext = null) => {
   const rawBackendStreak = backendData.streak ?? backendData.progress?.currentStreak ?? backendData.progress?.streak;
   const rawBackendMins = backendData.progress?.totalPracticeMinutes ?? backendData.totalPracticeMinutes;
 
-  // Protect recent local modifications (within 30s) from being overwritten by stale backend summary responses
-  const isRecentlyUpdatedLocally = Boolean(current.lastUpdatedTime && (Date.now() - current.lastUpdatedTime < 30000));
+  let finalXp = Number(current.xp || 0);
+  let shouldPushToBackend = false;
 
-  let finalXp = current.xp ?? 0;
   if (rawBackendXp !== undefined && rawBackendXp !== null) {
     const backendXp = Number(rawBackendXp);
-    if (!isRecentlyUpdatedLocally) {
-      finalXp = backendXp;
-    } else {
+    const didSpendRecently = Boolean(current.lastSpentAt && (Date.now() - current.lastSpentAt < 120000));
+
+    if (current.xp > backendXp) {
+      // Local progress has earned more XP than the backend DB has recorded yet.
+      // Keep local XP and push the higher score to backend DB!
       finalXp = current.xp;
+      shouldPushToBackend = true;
+    } else if (current.xp < backendXp) {
+      if (didSpendRecently) {
+        // User recently spent XP on a freeze or streak repair locally. Preserve deduction!
+        finalXp = current.xp;
+        shouldPushToBackend = true;
+      } else {
+        // Server has higher progress from another session or device. Adopt it.
+        finalXp = backendXp;
+      }
+    } else {
+      finalXp = backendXp;
     }
-  } else if (userContext?.xp !== undefined && userContext?.xp !== null && !isRecentlyUpdatedLocally) {
-    finalXp = Number(userContext.xp);
+  } else if (userContext?.xp !== undefined && userContext?.xp !== null) {
+    finalXp = Math.max(Number(current.xp || 0), Number(userContext.xp));
   }
 
   const finalStreak = rawBackendStreak !== undefined && rawBackendStreak !== null
@@ -254,6 +270,11 @@ export const syncBackendProgress = (backendData, userContext = null) => {
   };
 
   saveProgressStats(synced, userContext, false);
+
+  if (shouldPushToBackend) {
+    persistProgressToBackend(synced);
+  }
+
   return synced;
 };
 
@@ -385,6 +406,7 @@ export const buyStreakFreeze = (costXP = 100, userContext = null) => {
     stats.xp -= costXP;
     stats.streakFreezes = (stats.streakFreezes || 0) + 1;
     stats.lastUpdatedTime = Date.now();
+    stats.lastSpentAt = Date.now();
     saveProgressStats(stats, userContext);
     return { success: true, stats, message: "Streak Freeze ❄️ added to your reserve!" };
   }
@@ -407,6 +429,7 @@ export const repairBrokenStreak = (costXP = 150, userContext = null) => {
   stats.longestStreak = Math.max(stats.longestStreak || 1, stats.streak);
   stats.brokenStreakSnapshot = null;
   stats.lastUpdatedTime = Date.now();
+  stats.lastSpentAt = Date.now();
   saveProgressStats(stats, userContext);
   return { success: true, stats, message: `Streak Repaired! Restored to ${stats.streak}-Day Streak 🔥` };
 };
