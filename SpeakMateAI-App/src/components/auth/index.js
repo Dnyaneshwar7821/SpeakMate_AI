@@ -167,7 +167,7 @@ export function AuthInput({
   ...rest
 }) {
   const [focused, setFocused] = useState(false);
-  const showError = Boolean(touched && error);
+  const showError = Boolean((touched || (value && value.length > 0)) && error);
 
   return (
     <View style={[styles.inputGroup, style]}>
@@ -209,7 +209,12 @@ export function AuthInput({
         />
         {rightElement}
       </View>
-      {showError && <Text style={styles.inlineErrorText}>{error}</Text>}
+      {showError && (
+        <View style={styles.inlineErrorRow}>
+          <Ionicons name="alert-circle" size={14} color="#EF4444" style={{ marginTop: 1, marginRight: 5 }} />
+          <Text style={styles.inlineErrorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -274,7 +279,12 @@ export function PasswordInput({
           />
         </TouchableOpacity>
       </View>
-      {showError && <Text style={styles.inlineErrorText}>{error}</Text>}
+      {showError && (
+        <View style={styles.inlineErrorRow}>
+          <Ionicons name="alert-circle" size={14} color="#EF4444" style={{ marginTop: 1, marginRight: 5 }} />
+          <Text style={styles.inlineErrorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -514,12 +524,19 @@ const styles = StyleSheet.create({
     borderColor: '#EF4444',
     backgroundColor: '#FEF2F2',
   },
+  inlineErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 6,
+    marginLeft: 2,
+    paddingRight: 4,
+  },
   inlineErrorText: {
+    flex: 1,
     color: '#EF4444',
     fontSize: 12,
+    lineHeight: 16,
     fontWeight: '600',
-    marginTop: 4,
-    marginLeft: 4,
   },
 
   // PasswordInput

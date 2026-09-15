@@ -149,18 +149,24 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const getFirstNameError = () => {
+    if (!firstName.trim()) {
+      return touched.firstName ? 'First name is required.' : null;
+    }
     if (!validateName(firstName)) return NAME_VALIDATION_ERROR;
     return null;
   };
 
   const getLastNameError = () => {
+    if (!lastName.trim()) {
+      return touched.lastName ? 'Last name is required.' : null;
+    }
     if (!validateName(lastName)) return NAME_VALIDATION_ERROR;
     return null;
   };
 
   const getEmailError = () => {
-    if (!email.trim()) return 'Email address is required.';
-    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    if (!email.trim()) return touched.email ? 'Email address is required.' : null;
+    if (touched.email && !/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
     return null;
   };
 
@@ -179,12 +185,12 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const validateFullForm = () => {
-    const fnErr = getFirstNameError();
-    if (fnErr) return fnErr;
-    const lnErr = getLastNameError();
-    if (lnErr) return lnErr;
-    const emErr = getEmailError();
-    if (emErr) return emErr;
+    if (!firstName.trim()) return 'First name is required.';
+    if (!validateName(firstName)) return NAME_VALIDATION_ERROR;
+    if (!lastName.trim()) return 'Last name is required.';
+    if (!validateName(lastName)) return NAME_VALIDATION_ERROR;
+    if (!email.trim()) return 'Email address is required.';
+    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
     if (otpState !== 'VERIFIED') {
       if (otpState === 'IDLE') return 'Please tap "Send OTP" next to email and verify your code.';
       if (!otp.trim()) return 'Please enter the 6-digit OTP code sent to your email.';
@@ -257,11 +263,24 @@ export default function RegisterScreen({ navigation }) {
       animateSuccess();
     } catch (err) {
       const data = err.response?.data;
-      const fieldMsg = data && typeof data === 'object' && !data.message
-        ? Object.values(data)[0]
-        : null;
-      const serverMsg = fieldMsg || data?.message || err.userMessage || 'Registration failed. Please verify your details and try again.';
-      setError(serverMsg);
+      let serverMsg = null;
+      if (typeof data === 'string' && data.length > 0) {
+        serverMsg = data;
+      } else if (data && typeof data === 'object') {
+        if (data.message) {
+          serverMsg = data.message;
+        } else if (data.firstName) {
+          serverMsg = data.firstName;
+        } else if (data.lastName) {
+          serverMsg = data.lastName;
+        } else {
+          const values = Object.values(data);
+          if (values.length > 0 && typeof values[0] === 'string') {
+            serverMsg = values[0];
+          }
+        }
+      }
+      setError(serverMsg || err.userMessage || 'Registration failed. Please verify your details and try again.');
     } finally {
       setLoading(false);
     }
@@ -359,40 +378,44 @@ export default function RegisterScreen({ navigation }) {
                   </TouchableOpacity>
                 </View>
 
-                {/* First Name & Last Name row */}
-                <View style={styles.nameRow}>
-                  <View style={styles.nameField}>
-                    <AuthInput
-                      label="First Name"
-                      value={firstName}
-                      onChangeText={(t) => { setFirstName(t); clearError(); }}
-                      onBlur={() => setTouched((p) => ({ ...p, firstName: true }))}
-                      touched={touched.firstName}
-                      error={getFirstNameError()}
-                      placeholder="Jane"
-                      autoCapitalize="words"
-                      maxLength={40}
-                      returnKeyType="next"
-                      onSubmitEditing={() => lastNameRef.current?.focus()}
-                    />
-                  </View>
-                  <View style={styles.nameField}>
-                    <AuthInput
-                      label="Last Name"
-                      value={lastName}
-                      onChangeText={(t) => { setLastName(t); clearError(); }}
-                      onBlur={() => setTouched((p) => ({ ...p, lastName: true }))}
-                      touched={touched.lastName}
-                      error={getLastNameError()}
-                      placeholder="Doe"
-                      autoCapitalize="words"
-                      maxLength={40}
-                      returnKeyType="next"
-                      inputRef={lastNameRef}
-                      onSubmitEditing={() => emailRef.current?.focus()}
-                    />
-                  </View>
-                </View>
+                {/* First Name */}
+                <AuthInput
+                  label="First Name"
+                  value={firstName}
+                  onChangeText={(t) => {
+                    setFirstName(t);
+                    if (!touched.firstName) setTouched((p) => ({ ...p, firstName: true }));
+                    clearError();
+                  }}
+                  onBlur={() => setTouched((p) => ({ ...p, firstName: true }))}
+                  touched={touched.firstName}
+                  error={getFirstNameError()}
+                  placeholder="Jane"
+                  autoCapitalize="words"
+                  maxLength={40}
+                  returnKeyType="next"
+                  onSubmitEditing={() => lastNameRef.current?.focus()}
+                />
+
+                {/* Last Name */}
+                <AuthInput
+                  label="Last Name"
+                  value={lastName}
+                  onChangeText={(t) => {
+                    setLastName(t);
+                    if (!touched.lastName) setTouched((p) => ({ ...p, lastName: true }));
+                    clearError();
+                  }}
+                  onBlur={() => setTouched((p) => ({ ...p, lastName: true }))}
+                  touched={touched.lastName}
+                  error={getLastNameError()}
+                  placeholder="Doe"
+                  autoCapitalize="words"
+                  maxLength={40}
+                  returnKeyType="next"
+                  inputRef={lastNameRef}
+                  onSubmitEditing={() => emailRef.current?.focus()}
+                />
 
                 {/* Email Address with Green "Send OTP" action text button */}
                 <AuthInput

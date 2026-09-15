@@ -338,7 +338,9 @@ export default function ProfileScreen({ navigation }) {
         showToast('Profile Updated ✓', 'success', 'Your personal details were saved successfully');
       } catch (error) {
         const data = error.response?.data;
-        const fieldMsg = data && typeof data === 'object' && !data.message ? Object.values(data)[0] : null;
+        const fieldMsg = data && typeof data === 'object' && !data.message
+          ? (data.firstName || data.lastName || Object.values(data)[0])
+          : null;
         showToast('Profile Update Failed', 'error', fieldMsg || data?.message || error.userMessage || 'Unable to update profile.');
       } finally {
         setSaving(false);
@@ -782,24 +784,21 @@ export default function ProfileScreen({ navigation }) {
         <Card style={{ backgroundColor: cardBg }}>
           <Text style={[styles.cardHeaderTitle, { color: labelColor }]}>Personal Information</Text>
           
-          <View style={styles.nameRow}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <AppInput
-                label="First name"
-                value={form.firstName}
-                onChangeText={(value) => setForm((current) => ({ ...current, firstName: value }))}
-                maxLength={40}
-              />
-            </View>
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <AppInput
-                label="Last name"
-                value={form.lastName}
-                onChangeText={(value) => setForm((current) => ({ ...current, lastName: value }))}
-                maxLength={40}
-              />
-            </View>
-          </View>
+          <AppInput
+            label="First Name"
+            value={form.firstName}
+            onChangeText={(value) => setForm((current) => ({ ...current, firstName: value }))}
+            maxLength={40}
+            error={form.firstName && !validateName(form.firstName) ? NAME_VALIDATION_ERROR : null}
+          />
+
+          <AppInput
+            label="Last Name"
+            value={form.lastName}
+            onChangeText={(value) => setForm((current) => ({ ...current, lastName: value }))}
+            maxLength={40}
+            error={form.lastName && !validateName(form.lastName) ? NAME_VALIDATION_ERROR : null}
+          />
 
           <AppInput
             label="Email Address"
