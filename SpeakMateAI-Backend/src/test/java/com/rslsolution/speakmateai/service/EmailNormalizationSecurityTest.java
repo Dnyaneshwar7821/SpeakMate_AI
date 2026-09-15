@@ -231,8 +231,12 @@ public class EmailNormalizationSecurityTest {
         assertEquals("builder@example.com", fromBuilder.getEmail());
 
         user.setEmail(" LIFECYCLE@HOOKS.COM ");
-        user.normalizeEmailBeforeSave();
+        user.onCreate();
         assertEquals("lifecycle@hooks.com", user.getEmail());
+
+        user.setEmail(" UPDATE@HOOKS.COM ");
+        user.onUpdate();
+        assertEquals("update@hooks.com", user.getEmail());
     }
 
     // =========================================================================
