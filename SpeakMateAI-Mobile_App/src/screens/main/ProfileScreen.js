@@ -504,7 +504,8 @@ export default function ProfileScreen({ navigation }) {
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.8,
+        quality: 0.2,
+        base64: true,
       });
 
       if (result.canceled || !result.assets || result.assets.length === 0) return;
@@ -526,10 +527,10 @@ export default function ProfileScreen({ navigation }) {
 
       setUploadingPhoto(true);
 
-      // Downsample to 256x256, compress to 0.5 JPEG, handle EXIF orientation, validate <= 64 KB
+      // Downsample to 256x256 @ 0.5 JPEG if manipulator available, or use native compressed base64
       let processed;
       try {
-        processed = await prepareAvatarAsync(asset.uri);
+        processed = await prepareAvatarAsync(asset.uri, asset.base64);
       } catch (procErr) {
         showToast('Compression Failed', 'error', procErr.message || 'Could not process image.');
         setUploadingPhoto(false);

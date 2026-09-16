@@ -500,7 +500,8 @@ export default function OnboardingScreen({ navigation }) {
       mediaTypes: 'images',
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.2,
+      base64: true,
     });
     if (!result.canceled && result.assets?.length > 0) {
       const asset = result.assets[0];
@@ -516,7 +517,7 @@ export default function OnboardingScreen({ navigation }) {
       }
 
       try {
-        const processed = await prepareAvatarAsync(asset.uri);
+        const processed = await prepareAvatarAsync(asset.uri, asset.base64);
         setCustomPhoto(processed.dataUri);
         setSelectedAvatar(processed.dataUri);
       } catch (err) {
