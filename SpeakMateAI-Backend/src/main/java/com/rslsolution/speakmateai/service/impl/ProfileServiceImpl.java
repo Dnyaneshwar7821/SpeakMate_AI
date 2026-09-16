@@ -108,9 +108,7 @@ public class ProfileServiceImpl implements ProfileService {
 		}
 
 		if (request.getAvatar() != null && !request.getAvatar().trim().isEmpty()) {
-			if (request.getAvatar().length() > 65536) {
-				throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (64 KB).");
-			}
+			validateAvatarPayload(request.getAvatar());
 			user.setAvatar(request.getAvatar().trim());
 		}
 		if (request.getEnglishLevel() != null && !request.getEnglishLevel().trim().isEmpty()) {
@@ -139,14 +137,43 @@ public class ProfileServiceImpl implements ProfileService {
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
-		if (request.getAvatar() != null && request.getAvatar().length() > 65536) {
-			throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (64 KB). Please upload a smaller image.");
-		}
+		validateAvatarPayload(request.getAvatar());
 
-		user.setAvatar(request.getAvatar());
+		user.setAvatar(request.getAvatar() != null ? request.getAvatar().trim() : null);
 
 		User updatedUser = userRepository.save(user);
 
 		return mapToProfileResponse(updatedUser);
+	}
+
+	public static final int MAX_AVATAR_LENGTH = 65536; // 64 KB limit
+
+	private void validateAvatarPayload(String avatar) {
+		if (avatar == null || avatar.trim().isEmpty()) {
+			return;
+		}
+		String trimmed = avatar.trim();
+		if (trimmed.length() > MAX_AVATAR_LENGTH) {
+			throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (64 KB). Please upload a compressed image.");
+		}
+		if (trimmed.startsWith("data:")) {
+			int commaIdx = trimmed.indexOf(',');
+			if (commaIdx == -1) {
+				throw new IllegalArgumentException("Malformed image data URI. Missing base64 data separator.");
+			}
+			String header = trimmed.substring(0, commaIdx).toLowerCase();
+			if (!header.startsWith("data:image/jpeg;base64") &&
+				!header.startsWith("data:image/jpg;base64") &&
+				!header.startsWith("data:image/png;base64") &&
+				!header.startsWith("data:image/webp;base64")) {
+				throw new IllegalArgumentException("Invalid avatar image format. Only JPEG, PNG, or WebP base64 images are supported.");
+			}
+			String base64Part = trimmed.substring(commaIdx + 1);
+			try {
+				java.util.Base64.getDecoder().decode(base64Part);
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("Invalid base64 encoding in avatar image data.");
+			}
+		}
 	}
 }

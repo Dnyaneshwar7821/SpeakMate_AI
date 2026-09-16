@@ -28,6 +28,7 @@ import { validateName, NAME_VALIDATION_ERROR, normalizeEmail, isValidEmail } fro
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
 import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
+import { prepareAvatarAsync } from '../../utils/imageUtils';
 
 const PRESET_AVATARS = ['≡ƒÄô', '≡ƒªü', '≡ƒÜÇ', '≡ƒªë', '≡ƒææ', 'ΓÜí', '≡ƒªè', '≡ƒÄ»', '≡ƒÆÄ', '≡ƒîƒ', '≡ƒöÑ', '≡ƒÅå'];
 
@@ -490,7 +491,7 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  // ΓöÇΓöÇ Gallery Image Upload ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
+  // ── Gallery Image Upload ─────────────────────────────────────────────
   const handlePickImage = async () => {
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -503,17 +504,12 @@ export default function ProfileScreen({ navigation }) {
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.6,
-        base64: true,
+        quality: 0.8,
       });
 
       if (result.canceled || !result.assets || result.assets.length === 0) return;
 
       const asset = result.assets[0];
-      if (!asset.base64) {
-        showToast('Image Error', 'error', 'Could not read image data. Please try again.');
-        return;
-      }
 
       const mimeType = (asset.mimeType || 'image/jpeg').toLowerCase();
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -522,20 +518,29 @@ export default function ProfileScreen({ navigation }) {
         return;
       }
 
-      // Enforce 5 MB upper limit
-      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-        showToast('File Too Large', 'error', 'Profile image must be 5 MB or less.');
+      // Initial client-side file size check (max 10 MB for uncompressed selection)
+      if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
+        showToast('File Too Large', 'error', 'Selected image must be 10 MB or less.');
         return;
       }
 
-      const dataUri = `data:${mimeType};base64,${asset.base64}`;
-
       setUploadingPhoto(true);
+
+      // Downsample to 256x256, compress to 0.5 JPEG, handle EXIF orientation, validate <= 64 KB
+      let processed;
       try {
-        const updated = await profileService.updateAvatar(dataUri);
+        processed = await prepareAvatarAsync(asset.uri);
+      } catch (procErr) {
+        showToast('Compression Failed', 'error', procErr.message || 'Could not process image.');
+        setUploadingPhoto(false);
+        return;
+      }
+
+      try {
+        const updated = await profileService.updateAvatar(processed.dataUri);
         setState((curr) => ({ ...curr, profile: updated }));
         if (updateUser) updateUser(updated);
-        showToast('Photo Updated ≡ƒô╕', 'success', 'Your new profile avatar is live!');
+        showToast('Photo Updated 📸', 'success', `Avatar updated successfully (${processed.approxKb} KB)!`);
       } catch (uploadError) {
         showToast('Upload Failed', 'error', uploadError.userMessage || 'Unable to update profile photo.');
       } finally {
@@ -543,6 +548,7 @@ export default function ProfileScreen({ navigation }) {
       }
     } catch (e) {
       showToast('Gallery Error', 'error', 'Failed to open the image gallery.');
+      setUploadingPhoto(false);
     }
   };
 
