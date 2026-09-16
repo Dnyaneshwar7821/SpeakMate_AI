@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { useToast } from "../../context/ToastContext";
 import {
@@ -9,10 +10,26 @@ import {
   claimStreakMilestoneReward,
 } from "../../utils/progressTracker";
 
-export function StreakModal({ isOpen, onClose, userContext }) {
+export function StreakModal({ isOpen, onClose, userContext, stats: propStats, onRefresh }) {
+  const { user } = useAuth();
+  const effectiveUser = userContext || user;
   const { isDark } = useTheme();
   const toast = useToast();
-  const stats = getLiveProgressStats(userContext);
+  const [stats, setStats] = useState(() => propStats || getLiveProgressStats(effectiveUser));
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const updateStats = (e) => {
+      if (e?.detail) {
+        setStats(e.detail);
+      } else {
+        setStats(getLiveProgressStats(effectiveUser));
+      }
+    };
+    updateStats();
+    window.addEventListener("speakmate_progress_updated", updateStats);
+    return () => window.removeEventListener("speakmate_progress_updated", updateStats);
+  }, [isOpen, effectiveUser]);
 
   if (!isOpen) return null;
 
@@ -25,8 +42,10 @@ export function StreakModal({ isOpen, onClose, userContext }) {
   const currentXp = stats.xp || 0;
 
   const handleBuyFreeze = () => {
-    const res = buyStreakFreeze(100, userContext);
+    const res = buyStreakFreeze(100, effectiveUser);
     if (res.success) {
+      setStats(res.stats);
+      onRefresh?.();
       toast.success(res.message);
     } else {
       toast.error(res.message);
@@ -34,8 +53,10 @@ export function StreakModal({ isOpen, onClose, userContext }) {
   };
 
   const handleRepairStreak = () => {
-    const res = repairBrokenStreak(150, userContext);
+    const res = repairBrokenStreak(150, effectiveUser);
     if (res.success) {
+      setStats(res.stats);
+      onRefresh?.();
       toast.success(res.message);
     } else {
       toast.error(res.message);
@@ -43,8 +64,10 @@ export function StreakModal({ isOpen, onClose, userContext }) {
   };
 
   const handleClaimMilestone = (days) => {
-    const res = claimStreakMilestoneReward(days, userContext);
+    const res = claimStreakMilestoneReward(days, effectiveUser);
     if (res.success) {
+      setStats(res.stats);
+      onRefresh?.();
       toast.success(res.message);
     } else {
       toast.error(res.message);

@@ -42,7 +42,9 @@ export default function ResetPasswordScreen({ navigation, route }) {
 
   const getPasswordError = () => {
     if (!password) return 'Please enter your new password.';
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(password)) {
+    if (password.length < 8) return 'Password must be at least 8 characters.';
+    if (password.length > 128) return 'Password must not exceed 128 characters.';
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])/.test(password)) {
       return 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.';
     }
     return null;
@@ -74,14 +76,24 @@ export default function ResetPasswordScreen({ navigation, route }) {
     setLoading(true);
     setError('');
     try {
-      await authService.resetPassword({ token, newPassword: password });
+      await authService.resetPassword({
+        token,
+        newPassword: password,
+        confirmPassword,
+      });
       Alert.alert(
         'Password Reset',
         'Your password has been reset successfully. Please sign in with your new credentials.',
         [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
       );
     } catch (err) {
-      setError(err.userMessage || 'Unable to reset password. The link may have expired or already been used.');
+      const serverMsg =
+        err.response?.data?.message ||
+        (err.response?.data && typeof err.response.data === 'object' && Object.values(err.response.data)[0]) ||
+        (typeof err.response?.data === 'string' ? err.response?.data : null) ||
+        err.userMessage ||
+        'Unable to reset password. The link may have expired or already been used.';
+      setError(serverMsg);
     } finally {
       setLoading(false);
     }

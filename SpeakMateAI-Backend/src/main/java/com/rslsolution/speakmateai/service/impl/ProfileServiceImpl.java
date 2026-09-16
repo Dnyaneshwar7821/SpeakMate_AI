@@ -15,6 +15,7 @@ import com.rslsolution.speakmateai.exception.UserNotFoundException;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.service.ProfileService;
+import com.rslsolution.speakmateai.util.ValidationUtils;
 
 @Service
 @Transactional
@@ -89,24 +90,25 @@ public class ProfileServiceImpl implements ProfileService {
 		}
 
 		// Check if email is changing and if new email already exists
-		if (request.getEmail() != null && !request.getEmail().trim().isEmpty() && !user.getEmail().equalsIgnoreCase(request.getEmail().trim())) {
-			if (userRepository.findByEmail(request.getEmail().toLowerCase().trim()).isPresent()) {
+		String newEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		if (newEmail != null && !newEmail.isEmpty() && !user.getEmail().equalsIgnoreCase(newEmail)) {
+			if (userRepository.existsByEmail(newEmail) || userRepository.existsByEmailIgnoreCase(newEmail)) {
 				throw new DuplicateEmailException("Email address is already in use by another account.");
 			}
-			user.setEmail(request.getEmail().toLowerCase().trim());
+			user.setEmail(newEmail);
 		}
 
-		if (request.getFirstName() != null && !request.getFirstName().trim().isEmpty()) {
+		if (request.getFirstName() != null) {
+			ValidationUtils.validateName(request.getFirstName());
 			user.setFirstName(request.getFirstName().trim());
 		}
-		if (request.getLastName() != null && !request.getLastName().trim().isEmpty()) {
+		if (request.getLastName() != null) {
+			ValidationUtils.validateName(request.getLastName());
 			user.setLastName(request.getLastName().trim());
 		}
 
 		if (request.getAvatar() != null && !request.getAvatar().trim().isEmpty()) {
-			if (request.getAvatar().length() > 65536) {
-				throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (64 KB).");
-			}
+			validateAvatarPayload(request.getAvatar());
 			user.setAvatar(request.getAvatar().trim());
 		}
 		if (request.getEnglishLevel() != null && !request.getEnglishLevel().trim().isEmpty()) {
@@ -135,14 +137,43 @@ public class ProfileServiceImpl implements ProfileService {
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
-		if (request.getAvatar() != null && request.getAvatar().length() > 65536) {
-			throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (64 KB). Please upload a smaller image.");
-		}
+		validateAvatarPayload(request.getAvatar());
 
-		user.setAvatar(request.getAvatar());
+		user.setAvatar(request.getAvatar() != null ? request.getAvatar().trim() : null);
 
 		User updatedUser = userRepository.save(user);
 
 		return mapToProfileResponse(updatedUser);
+	}
+
+	public static final int MAX_AVATAR_LENGTH = 65536; // 64 KB limit
+
+	private void validateAvatarPayload(String avatar) {
+		if (avatar == null || avatar.trim().isEmpty()) {
+			return;
+		}
+		String trimmed = avatar.trim();
+		if (trimmed.length() > MAX_AVATAR_LENGTH) {
+			throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (64 KB). Please upload a compressed image.");
+		}
+		if (trimmed.startsWith("data:")) {
+			int commaIdx = trimmed.indexOf(',');
+			if (commaIdx == -1) {
+				throw new IllegalArgumentException("Malformed image data URI. Missing base64 data separator.");
+			}
+			String header = trimmed.substring(0, commaIdx).toLowerCase();
+			if (!header.startsWith("data:image/jpeg;base64") &&
+				!header.startsWith("data:image/jpg;base64") &&
+				!header.startsWith("data:image/png;base64") &&
+				!header.startsWith("data:image/webp;base64")) {
+				throw new IllegalArgumentException("Invalid avatar image format. Only JPEG, PNG, or WebP base64 images are supported.");
+			}
+			String base64Part = trimmed.substring(commaIdx + 1);
+			try {
+				java.util.Base64.getDecoder().decode(base64Part);
+			} catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("Invalid base64 encoding in avatar image data.");
+			}
+		}
 	}
 }

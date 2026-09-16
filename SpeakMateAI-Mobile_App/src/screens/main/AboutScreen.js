@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Linking, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Linking, Alert, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
@@ -41,14 +41,13 @@ export default function AboutScreen({ navigation }) {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
         {/* App Hero Branding */}
         <View style={styles.logoContainer}>
-          <LinearGradient
-            colors={['#4F46E5', '#7C3AED']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.logoInner}
-          >
-            <Text style={styles.logoText}>SM</Text>
-          </LinearGradient>
+          <View style={styles.logoCard}>
+            <Image
+              source={require('../../../assets/logo.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={[styles.appName, { color: titleColor }]}>SpeakMateAI</Text>
           <Text style={[styles.appTagline, { color: COLORS.primary }]}>AI English Speaking & Conversation Tutor</Text>
           <View style={[styles.versionBadge, { backgroundColor: isDark ? '#312E81' : '#EEF2FF' }]}>
@@ -179,24 +178,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginVertical: 16,
   },
-  logoInner: {
-    width: 68,
-    height: 68,
-    borderRadius: 20,
+  logoCard: {
+    width: 80,
+    height: 80,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+    padding: 6,
     shadowColor: '#4F46E5',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
+    shadowOpacity: 0.25,
     shadowRadius: 12,
-    elevation: 8,
-    marginBottom: 10,
+    elevation: 6,
+    marginBottom: 12,
   },
-  logoText: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '900',
-    letterSpacing: -1,
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   appName: {
     fontSize: 22,
