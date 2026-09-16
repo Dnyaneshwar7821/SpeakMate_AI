@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -12,7 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 
-// ─── Design Tokens ────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ Design Tokens ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export const AUTH_COLORS = {
   gradientStart: '#1E1B4B',
   gradientMid: '#4F46E5',
@@ -33,7 +34,7 @@ export const AUTH_COLORS = {
   placeholder: '#94A3B8',
 };
 
-// ─── Logo ─────────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ Logo ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function Logo({ size = 72, animate = false, animValue }) {
   return (
     <Animated.View
@@ -45,19 +46,18 @@ export function Logo({ size = 72, animate = false, animValue }) {
           : null,
       ]}
     >
-      <LinearGradient
-        colors={['#4F46E5', '#6366F1']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.logoGradient, { borderRadius: size * 0.28 }]}
-      >
-        <Text style={[styles.logoText, { fontSize: size * 0.38 }]}>SM</Text>
-      </LinearGradient>
+      <View style={[styles.logoCard, { borderRadius: size * 0.28 }]}>
+        <Image
+          source={require('../../../assets/logo.png')}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="contain"
+        />
+      </View>
     </Animated.View>
   );
 }
 
-// ─── AuthHeader ───────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ AuthHeader ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function AuthHeader({ title, subtitle, light = false }) {
   return (
     <View style={styles.authHeader}>
@@ -73,12 +73,12 @@ export function AuthHeader({ title, subtitle, light = false }) {
   );
 }
 
-// ─── AuthCard ─────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ AuthCard ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function AuthCard({ children, style }) {
   return <View style={[styles.authCard, style]}>{children}</View>;
 }
 
-// ─── PrimaryButton ────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ PrimaryButton ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function PrimaryButton({ title, onPress, loading, disabled, style }) {
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -118,7 +118,7 @@ export function PrimaryButton({ title, onPress, loading, disabled, style }) {
   );
 }
 
-// ─── SecondaryButton ──────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ SecondaryButton ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function SecondaryButton({ title, onPress, disabled, style }) {
   const scale = useRef(new Animated.Value(1)).current;
 
@@ -145,7 +145,7 @@ export function SecondaryButton({ title, onPress, disabled, style }) {
   );
 }
 
-// ─── AuthInput ────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ AuthInput ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function AuthInput({
   label,
   value,
@@ -163,9 +163,11 @@ export function AuthInput({
   touched,
   onFocus,
   onBlur,
+  maxLength,
+  ...rest
 }) {
   const [focused, setFocused] = useState(false);
-  const showError = Boolean(touched && error);
+  const showError = Boolean((touched || (value && value.length > 0)) && error);
 
   return (
     <View style={[styles.inputGroup, style]}>
@@ -193,6 +195,8 @@ export function AuthInput({
           }
           returnKeyType={returnKeyType || 'next'}
           onSubmitEditing={onSubmitEditing}
+          maxLength={maxLength}
+          {...rest}
           onFocus={(e) => {
             setFocused(true);
             if (onFocus) onFocus(e);
@@ -205,12 +209,17 @@ export function AuthInput({
         />
         {rightElement}
       </View>
-      {showError && <Text style={styles.inlineErrorText}>{error}</Text>}
+      {showError && (
+        <View style={styles.inlineErrorRow}>
+          <Ionicons name="alert-circle" size={14} color="#EF4444" style={{ marginTop: 1, marginRight: 5 }} />
+          <Text style={styles.inlineErrorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
 }
 
-// ─── PasswordInput ────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ PasswordInput ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function PasswordInput({
   label,
   value,
@@ -270,12 +279,17 @@ export function PasswordInput({
           />
         </TouchableOpacity>
       </View>
-      {showError && <Text style={styles.inlineErrorText}>{error}</Text>}
+      {showError && (
+        <View style={styles.inlineErrorRow}>
+          <Ionicons name="alert-circle" size={14} color="#EF4444" style={{ marginTop: 1, marginRight: 5 }} />
+          <Text style={styles.inlineErrorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
 }
 
-// ─── PasswordStrength ─────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ PasswordStrength ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function PasswordStrength({ password }) {
   const getStrength = () => {
     if (!password) return { level: 0, label: '', color: 'transparent' };
@@ -311,7 +325,7 @@ export function PasswordStrength({ password }) {
   );
 }
 
-// ─── ErrorMessage ─────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ ErrorMessage ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function ErrorMessage({ message }) {
   if (!message) return null;
   return (
@@ -322,7 +336,7 @@ export function ErrorMessage({ message }) {
   );
 }
 
-// ─── LinkText ─────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ LinkText ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function LinkText({ prefix, label, onPress }) {
   return (
     <View style={styles.linkRow}>
@@ -334,7 +348,7 @@ export function LinkText({ prefix, label, onPress }) {
   );
 }
 
-// ─── BackButton ───────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ BackButton ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function BackButton({ onPress, light = false }) {
   return (
     <TouchableOpacity
@@ -351,7 +365,7 @@ export function BackButton({ onPress, light = false }) {
   );
 }
 
-// ─── Divider ──────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ Divider ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function Divider({ label = 'or' }) {
   return (
     <View style={styles.divider}>
@@ -362,7 +376,7 @@ export function Divider({ label = 'or' }) {
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ Styles ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 const styles = StyleSheet.create({
   // Logo
   logoContainer: {
@@ -372,6 +386,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 16,
     elevation: 8,
+  },
+  logoCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    padding: 6,
   },
   logoGradient: {
     flex: 1,
@@ -502,12 +524,19 @@ const styles = StyleSheet.create({
     borderColor: '#EF4444',
     backgroundColor: '#FEF2F2',
   },
+  inlineErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 6,
+    marginLeft: 2,
+    paddingRight: 4,
+  },
   inlineErrorText: {
+    flex: 1,
     color: '#EF4444',
     fontSize: 12,
+    lineHeight: 16,
     fontWeight: '600',
-    marginTop: 4,
-    marginLeft: 4,
   },
 
   // PasswordInput

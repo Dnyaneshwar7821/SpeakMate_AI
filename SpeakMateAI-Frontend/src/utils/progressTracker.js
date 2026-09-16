@@ -12,7 +12,7 @@ const getStorageKey = (userContext = null) => {
   return `speakmate_user_progress_stats_${identifier}`;
 };
 
-const persistProgressToBackend = (stats) => {
+export const persistProgressToBackend = async (stats) => {
   if (!stats) return;
   try {
     const token = localStorage.getItem("speakmate_token") || localStorage.getItem("speakmate_auth_token");
@@ -30,7 +30,7 @@ const persistProgressToBackend = (stats) => {
   } catch (e) { }
 };
 
-const getLocalDateStr = (d = new Date()) => {
+export const getLocalDateStr = (d = new Date()) => {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -216,40 +216,60 @@ export const syncBackendProgress = (backendData, userContext = null) => {
   if (!backendData) return getLiveProgressStats(userContext);
   const current = getLiveProgressStats(userContext);
 
-  const backendXp = Number(
-    backendData.xp ??
-    backendData.progress?.xp ??
-    backendData.profile?.xp ??
-    userContext?.xp ??
-    current.xp ??
-    0
-  );
+  const rawBackendXp = backendData.xp ?? backendData.progress?.xp ?? backendData.profile?.xp;
+  const rawBackendStreak = backendData.streak ?? backendData.progress?.currentStreak ?? backendData.progress?.streak;
+  const rawBackendMins = backendData.progress?.totalPracticeMinutes ?? backendData.totalPracticeMinutes;
 
-  const backendStreak = Number(
-    backendData.streak ??
-    backendData.progress?.currentStreak ??
-    backendData.progress?.streak ??
-    userContext?.streak ??
-    current.streak ??
-    0
-  );
+  let finalXp = Number(current.xp || 0);
+  let shouldPushToBackend = false;
 
-  const backendMins = Number(
-    backendData.progress?.totalPracticeMinutes ??
-    backendData.totalPracticeMinutes ??
-    current.speakingMins ??
-    0
-  );
+  if (rawBackendXp !== undefined && rawBackendXp !== null) {
+    const backendXp = Number(rawBackendXp);
+    const didSpendRecently = Boolean(current.lastSpentAt && (Date.now() - current.lastSpentAt < 120000));
+
+    if (current.xp > backendXp) {
+      // Local progress has earned more XP than the backend DB has recorded yet.
+      // Keep local XP and push the higher score to backend DB!
+      finalXp = current.xp;
+      shouldPushToBackend = true;
+    } else if (current.xp < backendXp) {
+      if (didSpendRecently) {
+        // User recently spent XP on a freeze or streak repair locally. Preserve deduction!
+        finalXp = current.xp;
+        shouldPushToBackend = true;
+      } else {
+        // Server has higher progress from another session or device. Adopt it.
+        finalXp = backendXp;
+      }
+    } else {
+      finalXp = backendXp;
+    }
+  } else if (userContext?.xp !== undefined && userContext?.xp !== null) {
+    finalXp = Math.max(Number(current.xp || 0), Number(userContext.xp));
+  }
+
+  const finalStreak = rawBackendStreak !== undefined && rawBackendStreak !== null
+    ? Math.max(Number(current.streak || 0), Number(rawBackendStreak))
+    : Number(current.streak || 0);
+
+  const finalMins = rawBackendMins !== undefined && rawBackendMins !== null
+    ? Math.max(Number(current.speakingMins || 0), Number(rawBackendMins))
+    : Number(current.speakingMins || 0);
 
   const synced = {
     ...current,
-    xp: backendXp,
-    streak: backendStreak,
-    speakingMins: Math.max(current.speakingMins, backendMins),
-    longestStreak: Math.max(current.longestStreak || 0, backendStreak),
+    xp: finalXp,
+    streak: finalStreak,
+    speakingMins: finalMins,
+    longestStreak: Math.max(current.longestStreak || 0, finalStreak),
   };
 
   saveProgressStats(synced, userContext, false);
+
+  if (shouldPushToBackend) {
+    persistProgressToBackend(synced);
+  }
+
   return synced;
 };
 
@@ -380,6 +400,8 @@ export const buyStreakFreeze = (costXP = 100, userContext = null) => {
   if (stats.xp >= costXP) {
     stats.xp -= costXP;
     stats.streakFreezes = (stats.streakFreezes || 0) + 1;
+    stats.lastUpdatedTime = Date.now();
+    stats.lastSpentAt = Date.now();
     saveProgressStats(stats, userContext);
     return { success: true, stats, message: "Streak Freeze ❄️ added to your reserve!" };
   }
@@ -401,6 +423,8 @@ export const repairBrokenStreak = (costXP = 150, userContext = null) => {
   stats.streak = stats.brokenStreakSnapshot.streak + 1;
   stats.longestStreak = Math.max(stats.longestStreak || 1, stats.streak);
   stats.brokenStreakSnapshot = null;
+  stats.lastUpdatedTime = Date.now();
+  stats.lastSpentAt = Date.now();
   saveProgressStats(stats, userContext);
   return { success: true, stats, message: `Streak Repaired! Restored to ${stats.streak}-Day Streak 🔥` };
 };
@@ -422,6 +446,25 @@ export const claimStreakMilestoneReward = (days = 3, userContext = null) => {
   stats.xp += milestone.xp;
   if (!stats.claimedMilestones) stats.claimedMilestones = [];
   stats.claimedMilestones.push(days);
+  stats.lastUpdatedTime = Date.now();
   saveProgressStats(stats, userContext);
   return { success: true, stats, message: `🎉 Claimed +${milestone.xp} Bonus XP for ${milestone.title}!` };
+};
+
+// 11. Claim Daily Inspiration Quote XP (+50 XP)
+export const claimDailyQuoteXP = (amount = 50, userContext = null) => {
+  const today = getLocalDateStr();
+  const stats = getLiveProgressStats(userContext);
+
+  if (stats.lastQuoteClaimDate === today) {
+    return { success: false, stats, message: "You have already accepted today's quote goal!" };
+  }
+
+  stats.xp = (stats.xp || 0) + amount;
+  stats.lastQuoteClaimDate = today;
+  stats.lastUpdatedTime = Date.now();
+
+  checkAndUpdateDailyGoal(stats, userContext);
+  saveProgressStats(stats, userContext);
+  return { success: true, stats, message: `🎉 +${amount} XP earned! Today's goal accepted!` };
 };

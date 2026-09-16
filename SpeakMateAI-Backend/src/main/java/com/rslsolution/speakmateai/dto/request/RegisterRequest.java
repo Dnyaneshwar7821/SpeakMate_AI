@@ -2,6 +2,7 @@ package com.rslsolution.speakmateai.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,10 +15,12 @@ import lombok.NoArgsConstructor;
 @Builder
 public class RegisterRequest {
 
-    @NotBlank(message = "First name is required")
+    @NotBlank(message = "Names can only contain letters and must be at least 2 characters.")
+    @Pattern(regexp = "^[a-zA-Z\\s'-]{2,40}$", message = "Names can only contain letters and must be at least 2 characters.")
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
+    @NotBlank(message = "Names can only contain letters and must be at least 2 characters.")
+    @Pattern(regexp = "^[a-zA-Z\\s'-]{2,40}$", message = "Names can only contain letters and must be at least 2 characters.")
     private String lastName;
 
     @NotBlank(message = "Email is required")
@@ -26,6 +29,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters")
+    @Size(max = 128, message = "Password must not exceed 128 characters")
     private String password;
 
     @NotBlank(message = "Password confirmation is required")
@@ -40,13 +44,13 @@ public class RegisterRequest {
     private String schoolGrade;
 
     public String getFirstName() { return firstName; }
-    public void setFirstName(String firstName) { this.firstName = firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName != null ? firstName.trim() : null; }
 
     public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName != null ? lastName.trim() : null; }
 
     public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }

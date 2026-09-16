@@ -19,7 +19,6 @@ import com.rslsolution.speakmateai.dto.response.LessonProgressResponse;
 import com.rslsolution.speakmateai.dto.response.LessonResponse;
 import com.rslsolution.speakmateai.entity.Lesson;
 import com.rslsolution.speakmateai.entity.LessonProgress;
-import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.exception.LessonNotFoundException;
 import com.rslsolution.speakmateai.exception.UserNotFoundException;

@@ -54,6 +54,11 @@ public class UserController {
 		return "Account deletion OTP verification code has been sent to your email address.";
 	}
 
+	@PostMapping("/verify-delete-account-otp")
+	public VerifyOtpResponse verifyDeleteAccountOtp(@Valid @RequestBody VerifyOtpRequest request) {
+		return userService.verifyDeleteAccountOtp(request);
+	}
+
 	@PostMapping("/delete-account")
 	public String deleteAccount(@Valid @RequestBody DeleteAccountRequest request) {
 		userService.deleteAccountWithOtp(request);

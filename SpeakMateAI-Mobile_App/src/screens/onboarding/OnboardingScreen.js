@@ -26,6 +26,7 @@ import {
 } from '../../services/appServices';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { PrimaryButton, ErrorMessage } from '../../components/auth';
+import { prepareAvatarAsync } from '../../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -499,7 +500,8 @@ export default function OnboardingScreen({ navigation }) {
       mediaTypes: 'images',
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.6,
+      quality: 0.2,
+      base64: true,
     });
     if (!result.canceled && result.assets?.length > 0) {
       const asset = result.assets[0];
@@ -509,12 +511,18 @@ export default function OnboardingScreen({ navigation }) {
         Alert.alert('Invalid Format', 'Please choose a JPG, PNG, or WebP image.');
         return;
       }
-      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-        Alert.alert('File Too Large', 'Profile image must be 5 MB or less.');
+      if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
+        Alert.alert('File Too Large', 'Profile image must be 10 MB or less.');
         return;
       }
-      setCustomPhoto(asset.uri);
-      setSelectedAvatar(asset.uri);
+
+      try {
+        const processed = await prepareAvatarAsync(asset.uri, asset.base64);
+        setCustomPhoto(processed.dataUri);
+        setSelectedAvatar(processed.dataUri);
+      } catch (err) {
+        Alert.alert('Compression Error', err.message || 'Could not process selected image.');
+      }
     }
   };
 

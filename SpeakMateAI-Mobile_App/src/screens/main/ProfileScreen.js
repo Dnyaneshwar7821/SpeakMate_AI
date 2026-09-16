@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useState, useEffect } from 'react';
+import React, { useCallback, useContext, useState, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -23,24 +24,26 @@ import { useToast } from '../../context/ToastContext';
 import { profileService } from '../../services/appServices';
 import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
+import { validateName, NAME_VALIDATION_ERROR, normalizeEmail, isValidEmail } from '../../utils/validation';
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
 import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
+import { prepareAvatarAsync } from '../../utils/imageUtils';
 
-const PRESET_AVATARS = ['🎓', '🦁', '🚀', '🦉', '👑', '⚡', '🦊', '🎯', '💎', '🌟', '🔥', '🏆'];
+const PRESET_AVATARS = ['≡ƒÄô', '≡ƒªü', '≡ƒÜÇ', '≡ƒªë', '≡ƒææ', 'ΓÜí', '≡ƒªè', '≡ƒÄ»', '≡ƒÆÄ', '≡ƒîƒ', '≡ƒöÑ', '≡ƒÅå'];
 
 const getRankTier = (xp = 0) => {
-  if (xp < 100) return { name: 'Bronze III', icon: '🥉', colors: ['#CD7F32', '#A0522D'] };
-  if (xp < 300) return { name: 'Bronze II', icon: '🥉', colors: ['#D2691E', '#8B4513'] };
-  if (xp < 600) return { name: 'Bronze I', icon: '🥉', colors: ['#CD7F32', '#B8860B'] };
-  if (xp < 1000) return { name: 'Silver III', icon: '🥈', colors: ['#94A3B8', '#64748B'] };
-  if (xp < 1500) return { name: 'Silver II', icon: '🥈', colors: ['#94A3B8', '#64748B'] };
-  if (xp < 2200) return { name: 'Silver I', icon: '🥈', colors: ['#CBD5E1', '#475569'] };
-  if (xp < 3000) return { name: 'Gold III', icon: '🥇', colors: ['#F59E0B', '#D97706'] };
-  if (xp < 4000) return { name: 'Gold II', icon: '🥇', colors: ['#F59E0B', '#D97706'] };
-  if (xp < 5000) return { name: 'Gold I', icon: '🥇', colors: ['#F59E0B', '#D97706'] };
-  if (xp < 7000) return { name: 'Platinum Master', icon: '💎', colors: ['#06B6D4', '#0284C7'] };
-  return { name: 'Diamond Orator', icon: '👑', colors: ['#8B5CF6', '#6D28D9'] };
+  if (xp < 100) return { name: 'Bronze III', icon: '≡ƒÑë', colors: ['#CD7F32', '#A0522D'] };
+  if (xp < 300) return { name: 'Bronze II', icon: '≡ƒÑë', colors: ['#D2691E', '#8B4513'] };
+  if (xp < 600) return { name: 'Bronze I', icon: '≡ƒÑë', colors: ['#CD7F32', '#B8860B'] };
+  if (xp < 1000) return { name: 'Silver III', icon: '≡ƒÑê', colors: ['#94A3B8', '#64748B'] };
+  if (xp < 1500) return { name: 'Silver II', icon: '≡ƒÑê', colors: ['#94A3B8', '#64748B'] };
+  if (xp < 2200) return { name: 'Silver I', icon: '≡ƒÑê', colors: ['#CBD5E1', '#475569'] };
+  if (xp < 3000) return { name: 'Gold III', icon: '≡ƒÑç', colors: ['#F59E0B', '#D97706'] };
+  if (xp < 4000) return { name: 'Gold II', icon: '≡ƒÑç', colors: ['#F59E0B', '#D97706'] };
+  if (xp < 5000) return { name: 'Gold I', icon: '≡ƒÑç', colors: ['#F59E0B', '#D97706'] };
+  if (xp < 7000) return { name: 'Platinum Master', icon: '≡ƒÆÄ', colors: ['#06B6D4', '#0284C7'] };
+  return { name: 'Diamond Orator', icon: '≡ƒææ', colors: ['#8B5CF6', '#6D28D9'] };
 };
 
 export default function ProfileScreen({ navigation }) {
@@ -94,42 +97,169 @@ export default function ProfileScreen({ navigation }) {
   const [sendingOtp, setSendingOtp] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
 
+  // Explicit OTP Verification State: 'IDLE' | 'OTP_REQUESTED' | 'VERIFYING' | 'VERIFIED' | 'INVALID' | 'EXPIRED'
+  const [otpVerificationStatus, setOtpVerificationStatus] = useState('IDLE');
+  const [otpVerificationError, setOtpVerificationError] = useState('');
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  // Guards against duplicate / concurrent verification calls
+  const isVerifyingRef = useRef(false);
+  const lastVerifiedOtpRef = useRef('');
+  const resendTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    };
+  }, []);
+
   const handleOpenDeleteModal = () => {
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
     setDeleteEmail(user?.email || state.profile?.email || form.email || '');
     setDeleteOtp('');
     setOtpSent(false);
+    setSendingOtp(false);
+    setDeletingAccount(false);
+    setOtpVerificationStatus('IDLE');
+    setOtpVerificationError('');
+    setResendCooldown(0);
+    lastVerifiedOtpRef.current = '';
+    isVerifyingRef.current = false;
     setShowDeleteModal(true);
   };
 
+  const handleCloseDeleteModal = () => {
+    if (deletingAccount) return;
+    if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+    setShowDeleteModal(false);
+    setDeleteOtp('');
+    setOtpSent(false);
+    setOtpVerificationStatus('IDLE');
+    setOtpVerificationError('');
+    setResendCooldown(0);
+    lastVerifiedOtpRef.current = '';
+    isVerifyingRef.current = false;
+  };
+
+  const handleEmailChange = (newEmail) => {
+    setDeleteEmail(newEmail);
+    if (otpSent || otpVerificationStatus !== 'IDLE') {
+      setOtpSent(false);
+      setDeleteOtp('');
+      setOtpVerificationStatus('IDLE');
+      setOtpVerificationError('');
+      lastVerifiedOtpRef.current = '';
+      isVerifyingRef.current = false;
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+      setResendCooldown(0);
+    }
+  };
+
   const handleSendDeleteOtp = async () => {
-    const cleanEmail = deleteEmail.trim().toLowerCase();
+    if (sendingOtp || resendCooldown > 0) return;
+    const cleanEmail = normalizeEmail(deleteEmail);
     if (!cleanEmail) {
       Alert.alert('Validation Error', 'Please enter your registered email address.');
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
+    if (!isValidEmail(deleteEmail)) {
       Alert.alert('Validation Error', 'Please enter a valid email address.');
       return;
     }
 
     setSendingOtp(true);
+    setOtpVerificationError('');
     try {
       await authService.sendDeleteAccountOtp({ email: cleanEmail });
       setOtpSent(true);
+      setDeleteOtp('');
+      setOtpVerificationStatus('OTP_REQUESTED');
+      lastVerifiedOtpRef.current = '';
+      isVerifyingRef.current = false;
+
+      // Start 60-second cooldown timer
+      setResendCooldown(60);
+      if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+      resendTimerRef.current = setInterval(() => {
+        setResendCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(resendTimerRef.current);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
       Alert.alert(
-        'Verification Code Sent 📧',
+        'Verification Code Sent ≡ƒôº',
         `A 6-digit OTP verification code has been sent to ${cleanEmail}. Please check your inbox or spam folder.`
       );
     } catch (err) {
-      Alert.alert('Send Failed', err.response?.data?.message || err.userMessage || 'Failed to send deletion OTP. Ensure email is registered.');
+      const serverMsg = err.response?.data?.message || err.userMessage || 'Failed to send deletion OTP. Ensure email is registered.';
+      Alert.alert('Send Failed', serverMsg);
     } finally {
       setSendingOtp(false);
     }
   };
 
+  const verifySixDigitOtp = async (codeToVerify) => {
+    // Prevent duplicate or concurrent requests
+    if (isVerifyingRef.current) return;
+    if (lastVerifiedOtpRef.current === codeToVerify && otpVerificationStatus === 'VERIFIED') return;
+
+    const cleanEmail = normalizeEmail(deleteEmail);
+    if (!cleanEmail || codeToVerify.length !== 6) return;
+
+    isVerifyingRef.current = true;
+    setOtpVerificationStatus('VERIFYING');
+    setOtpVerificationError('');
+
+    try {
+      await authService.verifyDeleteAccountOtp({ email: cleanEmail, otp: codeToVerify });
+      lastVerifiedOtpRef.current = codeToVerify;
+      setOtpVerificationStatus('VERIFIED');
+      setOtpVerificationError('');
+    } catch (err) {
+      lastVerifiedOtpRef.current = '';
+      const msg = err.response?.data?.message || err.userMessage || 'Invalid verification code. Please try again.';
+      if (msg.toLowerCase().includes('expired')) {
+        setOtpVerificationStatus('EXPIRED');
+      } else {
+        setOtpVerificationStatus('INVALID');
+      }
+      setOtpVerificationError(msg);
+    } finally {
+      isVerifyingRef.current = false;
+    }
+  };
+
+  const handleOtpChange = (text) => {
+    // Rule 6: Digits only, max 6 digits, no letters, no symbols, no emojis
+    const cleanDigits = text.replace(/[^0-9]/g, '').slice(0, 6);
+    setDeleteOtp(cleanDigits);
+
+    // If user modifies away from 6 digits, reset verified state
+    if (cleanDigits.length < 6) {
+      if (otpVerificationStatus !== 'OTP_REQUESTED' && otpVerificationStatus !== 'IDLE') {
+        setOtpVerificationStatus('OTP_REQUESTED');
+      }
+      setOtpVerificationError('');
+      lastVerifiedOtpRef.current = '';
+      return;
+    }
+
+    if (cleanDigits.length === 6) {
+      verifySixDigitOtp(cleanDigits);
+    }
+  };
+
   const handleConfirmDeleteAccount = async () => {
-    const cleanEmail = deleteEmail.trim().toLowerCase();
+    if (otpVerificationStatus !== 'VERIFIED') {
+      Alert.alert('Verification Required', 'Please enter and verify the 6-digit OTP code sent to your email before deleting your account.');
+      return;
+    }
+
+    const cleanEmail = normalizeEmail(deleteEmail);
     const cleanOtp = deleteOtp.trim();
 
     if (!cleanEmail) {
@@ -142,7 +272,7 @@ export default function ProfileScreen({ navigation }) {
     }
 
     Alert.alert(
-      'Final Confirmation ⚠️',
+      'Final Confirmation ΓÜá∩╕Å',
       'Are you completely sure you want to delete your SpeakMateAI account? This action is permanent and cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -154,6 +284,7 @@ export default function ProfileScreen({ navigation }) {
             try {
               await authService.deleteAccount({ email: cleanEmail, otp: cleanOtp });
               await AsyncStorage.removeItem(`speakmate_onboarding_${cleanEmail}`);
+              if (resendTimerRef.current) clearInterval(resendTimerRef.current);
               setShowDeleteModal(false);
               Alert.alert(
                 'Account Deleted',
@@ -167,8 +298,14 @@ export default function ProfileScreen({ navigation }) {
                   },
                 ]
               );
+              setTimeout(() => {
+                if (logout) logout();
+              }, 1200);
             } catch (err) {
-              Alert.alert('Deletion Failed', err.response?.data?.message || err.userMessage || 'Invalid or expired OTP code.');
+              const serverMsg = err.response?.data?.message || err.userMessage || 'Invalid or expired OTP code.';
+              Alert.alert('Deletion Failed', serverMsg);
+              setOtpVerificationStatus('INVALID');
+              setOtpVerificationError(serverMsg);
             } finally {
               setDeletingAccount(false);
             }
@@ -283,7 +420,7 @@ export default function ProfileScreen({ navigation }) {
       await AsyncStorage.setItem('speakmate_voice_code', voiceCode);
       await AsyncStorage.setItem('speakmate_voice_pitch', String(pitch));
 
-      showToast('Tutor Updated ✓', 'success', `${entry.emoji} ${entry.name} (${entry.badge}) is active!`);
+      showToast('Tutor Updated Γ£ô', 'success', `${entry.emoji} ${entry.name} (${entry.badge}) is active!`);
     } catch (e) {}
   };
 
@@ -296,23 +433,21 @@ export default function ProfileScreen({ navigation }) {
   const save = async () => {
     const cleanFirstName = form.firstName.trim();
     const cleanLastName = form.lastName.trim();
-    const cleanEmail = form.email.trim().toLowerCase();
+    const cleanEmail = normalizeEmail(form.email);
 
-    if (!cleanFirstName) {
-      Alert.alert('Validation Error', 'First name cannot be empty.');
+    if (!validateName(cleanFirstName)) {
+      Alert.alert('Validation Error', NAME_VALIDATION_ERROR);
       return;
     }
-    if (!cleanLastName) {
-      Alert.alert('Validation Error', 'Last name cannot be empty.');
+    if (!validateName(cleanLastName)) {
+      Alert.alert('Validation Error', NAME_VALIDATION_ERROR);
       return;
     }
     if (!cleanEmail) {
       Alert.alert('Validation Error', 'Email cannot be empty.');
       return;
     }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(cleanEmail)) {
+    if (!isValidEmail(form.email)) {
       Alert.alert('Validation Error', 'Please enter a valid email address.');
       return;
     }
@@ -330,9 +465,13 @@ export default function ProfileScreen({ navigation }) {
         });
         setState({ loading: false, error: '', profile });
         if (updateUser) updateUser(profile);
-        showToast('Profile Updated ✓', 'success', 'Your personal details were saved successfully');
+        showToast('Profile Updated Γ£ô', 'success', 'Your personal details were saved successfully');
       } catch (error) {
-        showToast('Profile Update Failed', 'error', error.userMessage || 'Unable to update profile.');
+        const data = error.response?.data;
+        const fieldMsg = data && typeof data === 'object' && !data.message
+          ? (data.firstName || data.lastName || Object.values(data)[0])
+          : null;
+        showToast('Profile Update Failed', 'error', fieldMsg || data?.message || error.userMessage || 'Unable to update profile.');
       } finally {
         setSaving(false);
       }
@@ -340,7 +479,7 @@ export default function ProfileScreen({ navigation }) {
 
     if (emailChanged) {
       Alert.alert(
-        'Change Email Address? 📧',
+        'Change Email Address? ≡ƒôº',
         'Changing your email address updates your login username ID. You will need to use this new email to log in next time.',
         [
           { text: 'Cancel', style: 'cancel' },
@@ -365,17 +504,13 @@ export default function ProfileScreen({ navigation }) {
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.6,
+        quality: 0.2,
         base64: true,
       });
 
       if (result.canceled || !result.assets || result.assets.length === 0) return;
 
       const asset = result.assets[0];
-      if (!asset.base64) {
-        showToast('Image Error', 'error', 'Could not read image data. Please try again.');
-        return;
-      }
 
       const mimeType = (asset.mimeType || 'image/jpeg').toLowerCase();
       const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -384,20 +519,29 @@ export default function ProfileScreen({ navigation }) {
         return;
       }
 
-      // Enforce 5 MB upper limit
-      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-        showToast('File Too Large', 'error', 'Profile image must be 5 MB or less.');
+      // Initial client-side file size check (max 10 MB for uncompressed selection)
+      if (asset.fileSize && asset.fileSize > 10 * 1024 * 1024) {
+        showToast('File Too Large', 'error', 'Selected image must be 10 MB or less.');
         return;
       }
 
-      const dataUri = `data:${mimeType};base64,${asset.base64}`;
-
       setUploadingPhoto(true);
+
+      // Downsample to 256x256 @ 0.5 JPEG if manipulator available, or use native compressed base64
+      let processed;
       try {
-        const updated = await profileService.updateAvatar(dataUri);
+        processed = await prepareAvatarAsync(asset.uri, asset.base64);
+      } catch (procErr) {
+        showToast('Compression Failed', 'error', procErr.message || 'Could not process image.');
+        setUploadingPhoto(false);
+        return;
+      }
+
+      try {
+        const updated = await profileService.updateAvatar(processed.dataUri);
         setState((curr) => ({ ...curr, profile: updated }));
         if (updateUser) updateUser(updated);
-        showToast('Photo Updated 📸', 'success', 'Your new profile avatar is live!');
+        showToast('Photo Updated 📸', 'success', `Avatar updated successfully (${processed.approxKb} KB)!`);
       } catch (uploadError) {
         showToast('Upload Failed', 'error', uploadError.userMessage || 'Unable to update profile photo.');
       } finally {
@@ -405,6 +549,7 @@ export default function ProfileScreen({ navigation }) {
       }
     } catch (e) {
       showToast('Gallery Error', 'error', 'Failed to open the image gallery.');
+      setUploadingPhoto(false);
     }
   };
 
@@ -415,7 +560,7 @@ export default function ProfileScreen({ navigation }) {
       const updated = await profileService.updateAvatar(emoji);
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
-      showToast('Avatar Changed 🎉', 'success', `Avatar set to ${emoji}`);
+      showToast('Avatar Changed ≡ƒÄë', 'success', `Avatar set to ${emoji}`);
     } catch (uploadError) {
       showToast('Avatar Update Failed', 'error', uploadError.userMessage || 'Unable to update avatar.');
     } finally {
@@ -436,7 +581,7 @@ export default function ProfileScreen({ navigation }) {
       DashboardCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
-      showToast('Grade Updated 🎓', 'success', `School curriculum set to ${newGrade}`);
+      showToast('Grade Updated ≡ƒÄô', 'success', `School curriculum set to ${newGrade}`);
     } catch (err) {
       showToast('Update Failed', 'error', 'Could not update School Grade.');
     } finally {
@@ -456,7 +601,7 @@ export default function ProfileScreen({ navigation }) {
       DashboardCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
-      showToast('Proficiency Updated 🎯', 'success', `AI Tutor level set to ${newLevel}`);
+      showToast('Proficiency Updated ≡ƒÄ»', 'success', `AI Tutor level set to ${newLevel}`);
     } catch (err) {
       showToast('Update Failed', 'error', 'Could not update English proficiency level.');
     } finally {
@@ -492,7 +637,7 @@ export default function ProfileScreen({ navigation }) {
           ageGroup: newAge,
         });
       }
-      showToast('Age Group Updated 👥', 'success', `Target audience set to ${newAge}`);
+      showToast('Age Group Updated ≡ƒæÑ', 'success', `Target audience set to ${newAge}`);
     } catch (err) {
       showToast('Update Failed', 'error', 'Could not update Age Group.');
     } finally {
@@ -511,7 +656,7 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
-  const avatarValue = state.profile?.avatar || '🎓';
+  const avatarValue = state.profile?.avatar || '≡ƒÄô';
   const isPhotoUri = avatarValue.startsWith('data:') || avatarValue.startsWith('http') || avatarValue.startsWith('file:');
 
   // Math for Level Progress Bar (500 XP per Level)
@@ -616,7 +761,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <View>
                 <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  🏫 School Curriculum Grade
+                  ≡ƒÅ½ School Curriculum Grade
                 </Text>
                 <Text style={{ fontSize: 12, color: sublabelColor }}>
                   Select your current school standard for personalized tests & syllabus
@@ -663,7 +808,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <View>
                 <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  👤 AI Tutor English Level
+                  ≡ƒæñ AI Tutor English Level
                 </Text>
                 <Text style={{ fontSize: 12, color: sublabelColor }}>
                   Controls speaking & chat response complexity
@@ -711,7 +856,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={{ marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View style={{ flex: 1, marginRight: 8 }}>
                   <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                    🎭 Active AI Speaking Tutor
+                    ≡ƒÄ¡ Active AI Speaking Tutor
                   </Text>
                   <Text style={{ fontSize: 12, color: sublabelColor }}>
                     Your personalized AI speaking partner
@@ -740,7 +885,7 @@ export default function ProfileScreen({ navigation }) {
                       {activeTutor.subtitle}
                     </Text>
                     <Text style={[styles.activeTutorVoiceText, { color: COLORS.primary }]} numberOfLines={1}>
-                      🎙️ {activeTutor.voiceLabel}
+                      ≡ƒÄÖ∩╕Å {activeTutor.voiceLabel}
                     </Text>
                   </View>
                 </View>
@@ -775,22 +920,21 @@ export default function ProfileScreen({ navigation }) {
         <Card style={{ backgroundColor: cardBg }}>
           <Text style={[styles.cardHeaderTitle, { color: labelColor }]}>Personal Information</Text>
           
-          <View style={styles.nameRow}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <AppInput
-                label="First name"
-                value={form.firstName}
-                onChangeText={(value) => setForm((current) => ({ ...current, firstName: value }))}
-              />
-            </View>
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <AppInput
-                label="Last name"
-                value={form.lastName}
-                onChangeText={(value) => setForm((current) => ({ ...current, lastName: value }))}
-              />
-            </View>
-          </View>
+          <AppInput
+            label="First Name"
+            value={form.firstName}
+            onChangeText={(value) => setForm((current) => ({ ...current, firstName: value }))}
+            maxLength={40}
+            error={form.firstName && !validateName(form.firstName) ? NAME_VALIDATION_ERROR : null}
+          />
+
+          <AppInput
+            label="Last Name"
+            value={form.lastName}
+            onChangeText={(value) => setForm((current) => ({ ...current, lastName: value }))}
+            maxLength={40}
+            error={form.lastName && !validateName(form.lastName) ? NAME_VALIDATION_ERROR : null}
+          />
 
           <AppInput
             label="Email Address"
@@ -821,7 +965,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.optionTextContainer}>
               <Text style={[styles.optionTitle, { color: labelColor }]}>Upload Profile Photo</Text>
               <Text style={[styles.optionSubtitle, { color: sublabelColor }]}>
-                {uploadingPhoto ? 'Uploading your photo…' : 'Choose a photo from your gallery'}
+                {uploadingPhoto ? 'Uploading your photoΓÇª' : 'Choose a photo from your gallery'}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
@@ -839,7 +983,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View style={styles.optionTextContainer}>
                 <Text style={[styles.optionTitle, { color: isDark ? '#FFFFFF' : '#312E81', fontWeight: '800' }]}>
-                  {(!isStudent && (user?.isPro || user?.pro)) ? '⭐ SpeakMate Pro Member' : '⭐ Upgrade to Pro'}
+                  {(!isStudent && (user?.isPro || user?.pro)) ? 'Γ¡É SpeakMate Pro Member' : 'Γ¡É Upgrade to Pro'}
                 </Text>
                 <Text style={[styles.optionSubtitle, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
                   {(!isStudent && (user?.isPro || user?.pro)) ? 'Manage your active subscription' : 'Unlimited AI Speaking & Accent Coach'}
@@ -897,12 +1041,12 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </StateView>
 
-      {/* ── DELETE ACCOUNT MODAL ────────────────────────────────────── */}
+      {/* ΓöÇΓöÇ DELETE ACCOUNT MODAL ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       <Modal
         visible={showDeleteModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowDeleteModal(false)}
+        onRequestClose={handleCloseDeleteModal}
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContainer, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF' }]}>
@@ -917,7 +1061,7 @@ export default function ProfileScreen({ navigation }) {
                   Verification code required to delete account
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setShowDeleteModal(false)} style={styles.modalCloseBtn}>
+              <TouchableOpacity onPress={handleCloseDeleteModal} style={styles.modalCloseBtn}>
                 <Ionicons name="close" size={20} color={isDark ? '#94A3B8' : '#64748B'} />
               </TouchableOpacity>
             </View>
@@ -930,69 +1074,243 @@ export default function ProfileScreen({ navigation }) {
                 </Text>
               </View>
 
-              {/* Email Section */}
+              {/* Email Section - Full width input */}
               <View style={{ marginTop: 12 }}>
-                <Text style={[styles.inputLabel, { color: isDark ? '#CBD5E1' : '#475569' }]}>Registered Email Address</Text>
-                <View style={[styles.emailRow, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
-                  <Ionicons name="mail" size={18} color={COLORS.primary} style={{ marginRight: 8 }} />
-                  <AppInput
+                <Text style={[styles.inputLabel, { color: isDark ? '#CBD5E1' : '#475569' }]}>
+                  Registered Email Address
+                </Text>
+                <View
+                  style={[
+                    styles.emailInputWrapper,
+                    {
+                      backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+                      borderColor: isDark ? '#334155' : '#E2E8F0',
+                    },
+                  ]}
+                >
+                  <Ionicons name="mail" size={18} color={COLORS.primary} style={{ marginLeft: 14, marginRight: 8 }} />
+                  <TextInput
                     value={deleteEmail}
-                    onChangeText={setDeleteEmail}
+                    onChangeText={handleEmailChange}
                     placeholder="Enter email address"
+                    placeholderTextColor="#94A3B8"
                     keyboardType="email-address"
                     autoCapitalize="none"
-                    style={{ flex: 1, marginBottom: 0, borderWidth: 0, backgroundColor: 'transparent' }}
+                    editable={!otpSent}
+                    style={[
+                      styles.emailTextInput,
+                      { color: isDark ? '#F8FAFC' : '#0F172A' },
+                      otpSent && { opacity: 0.8 },
+                    ]}
                   />
+                  {otpSent && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        setOtpSent(false);
+                        setDeleteOtp('');
+                        setOtpVerificationStatus('IDLE');
+                        setOtpVerificationError('');
+                        lastVerifiedOtpRef.current = '';
+                        if (resendTimerRef.current) clearInterval(resendTimerRef.current);
+                        setResendCooldown(0);
+                      }}
+                      style={styles.changeEmailSmallBtn}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Text style={styles.changeEmailSmallText}>Change</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Send / Resend Code Action Row (Placed cleanly below Email - never squishes input!) */}
+                <View style={styles.emailActionRow}>
+                  <Text style={[styles.emailHelperText, { color: isDark ? '#94A3B8' : '#64748B' }]}>
+                    {otpSent
+                      ? 'Verification code sent to email'
+                      : 'We will send a 6-digit code'}
+                  </Text>
                   <TouchableOpacity
                     onPress={handleSendDeleteOtp}
-                    disabled={sendingOtp}
-                    style={[styles.sendOtpInlineBtn, { backgroundColor: otpSent ? '#10B981' : COLORS.primary }]}
+                    disabled={sendingOtp || resendCooldown > 0}
+                    style={[
+                      styles.sendOtpActionBtn,
+                      {
+                        backgroundColor:
+                          resendCooldown > 0
+                            ? (isDark ? '#334155' : '#E2E8F0')
+                            : otpSent
+                            ? '#059669'
+                            : COLORS.primary,
+                      },
+                    ]}
+                    activeOpacity={0.8}
                   >
-                    <Text style={styles.sendOtpInlineText}>
-                      {sendingOtp ? 'Sending...' : otpSent ? 'Resend OTP' : 'Send OTP'}
-                    </Text>
+                    {sendingOtp ? (
+                      <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                      <Text
+                        style={[
+                          styles.sendOtpActionText,
+                          resendCooldown > 0 && { color: isDark ? '#94A3B8' : '#64748B' },
+                        ]}
+                      >
+                        {resendCooldown > 0
+                          ? `Resend in ${resendCooldown}s`
+                          : otpSent
+                          ? 'Resend Code'
+                          : 'Send Code'}
+                      </Text>
+                    )}
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* OTP Section (Expands when sent) */}
               {otpSent && (
-                <View style={[styles.otpExpandCard, { backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: isDark ? '#059669' : '#A7F3D0' }]}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                    <Ionicons name="shield-checkmark" size={18} color="#10B981" style={{ marginRight: 6 }} />
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: isDark ? '#D1FAE5' : '#065F46' }}>
+                <View
+                  style={[
+                    styles.otpExpandCard,
+                    {
+                      backgroundColor:
+                        otpVerificationStatus === 'VERIFIED'
+                          ? (isDark ? '#064E3B' : '#ECFDF5')
+                          : otpVerificationStatus === 'INVALID' || otpVerificationStatus === 'EXPIRED'
+                          ? (isDark ? '#451A1A' : '#FEF2F2')
+                          : (isDark ? '#1E293B' : '#F8FAFC'),
+                      borderColor:
+                        otpVerificationStatus === 'VERIFIED'
+                          ? '#10B981'
+                          : otpVerificationStatus === 'INVALID' || otpVerificationStatus === 'EXPIRED'
+                          ? '#EF4444'
+                          : (isDark ? '#334155' : '#E2E8F0'),
+                    },
+                  ]}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                    <Ionicons
+                      name={
+                        otpVerificationStatus === 'VERIFIED'
+                          ? 'shield-checkmark'
+                          : otpVerificationStatus === 'INVALID' || otpVerificationStatus === 'EXPIRED'
+                          ? 'alert-circle'
+                          : 'key-outline'
+                      }
+                      size={18}
+                      color={
+                        otpVerificationStatus === 'VERIFIED'
+                          ? '#10B981'
+                          : otpVerificationStatus === 'INVALID' || otpVerificationStatus === 'EXPIRED'
+                          ? '#EF4444'
+                          : COLORS.primary
+                      }
+                      style={{ marginRight: 6 }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        fontWeight: '700',
+                        color:
+                          otpVerificationStatus === 'VERIFIED'
+                            ? (isDark ? '#D1FAE5' : '#065F46')
+                            : otpVerificationStatus === 'INVALID' || otpVerificationStatus === 'EXPIRED'
+                            ? '#DC2626'
+                            : (isDark ? '#F8FAFC' : '#0F172A'),
+                      }}
+                    >
                       Enter 6-digit OTP Code
                     </Text>
                   </View>
-                  <AppInput
+
+                  <TextInput
                     value={deleteOtp}
-                    onChangeText={setDeleteOtp}
-                    placeholder="123456"
+                    onChangeText={handleOtpChange}
+                    placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó"
+                    placeholderTextColor="#94A3B8"
                     keyboardType="number-pad"
                     maxLength={6}
-                    style={{
-                      textAlign: 'center',
-                      fontSize: 22,
-                      fontWeight: '800',
-                      letterSpacing: 8,
-                      backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
-                      color: isDark ? '#F8FAFC' : '#0F172A',
-                      borderColor: '#10B981',
-                    }}
+                    editable={!deletingAccount}
+                    style={[
+                      styles.otpTextInput,
+                      {
+                        backgroundColor: isDark ? '#0F172A' : '#FFFFFF',
+                        color: isDark ? '#F8FAFC' : '#0F172A',
+                        borderColor:
+                          otpVerificationStatus === 'VERIFIED'
+                            ? '#10B981'
+                            : otpVerificationStatus === 'INVALID' || otpVerificationStatus === 'EXPIRED'
+                            ? '#EF4444'
+                            : (isDark ? '#334155' : '#CBD5E1'),
+                      },
+                    ]}
                   />
+
+                  {/* Verification Status Feedback */}
+                  {otpVerificationStatus === 'VERIFYING' && (
+                    <View style={styles.otpStatusRow}>
+                      <ActivityIndicator size="small" color={COLORS.primary} style={{ marginRight: 6 }} />
+                      <Text style={[styles.otpStatusText, { color: COLORS.primary }]}>
+                        Verifying code with server...
+                      </Text>
+                    </View>
+                  )}
+
+                  {otpVerificationStatus === 'VERIFIED' && (
+                    <View style={styles.otpStatusRow}>
+                      <Ionicons name="checkmark-circle" size={16} color="#10B981" style={{ marginRight: 5 }} />
+                      <Text style={[styles.otpStatusText, { color: '#059669', fontWeight: '800' }]}>
+                        Code verified Γ£ô
+                      </Text>
+                    </View>
+                  )}
+
+                  {(otpVerificationStatus === 'INVALID' || otpVerificationStatus === 'EXPIRED') && (
+                    <View style={styles.otpStatusRow}>
+                      <Ionicons name="close-circle" size={16} color="#EF4444" style={{ marginRight: 5 }} />
+                      <Text style={[styles.otpStatusText, { color: '#DC2626' }]}>
+                        {otpVerificationError || 'Invalid verification code. Please try again.'}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
 
-              {/* Confirm Deletion Button */}
+              {/* Confirm Deletion Button - Enabled ONLY when explicitly VERIFIED */}
               {otpSent && (
                 <TouchableOpacity
                   onPress={handleConfirmDeleteAccount}
-                  disabled={deletingAccount}
+                  disabled={deletingAccount || otpVerificationStatus !== 'VERIFIED'}
                   activeOpacity={0.8}
-                  style={[styles.deleteConfirmBtn, { opacity: deletingAccount ? 0.7 : 1 }]}
+                  style={[
+                    styles.deleteConfirmBtn,
+                    {
+                      backgroundColor:
+                        otpVerificationStatus === 'VERIFIED'
+                          ? '#DC2626'
+                          : isDark
+                          ? '#334155'
+                          : '#CBD5E1',
+                      opacity: deletingAccount ? 0.7 : 1,
+                    },
+                  ]}
                 >
-                  <Ionicons name="trash" size={18} color="#FFF" style={{ marginRight: 8 }} />
-                  <Text style={styles.deleteConfirmBtnText}>
+                  {deletingAccount ? (
+                    <ActivityIndicator size="small" color="#FFF" style={{ marginRight: 8 }} />
+                  ) : (
+                    <Ionicons
+                      name="trash"
+                      size={18}
+                      color={otpVerificationStatus === 'VERIFIED' ? '#FFF' : '#94A3B8'}
+                      style={{ marginRight: 8 }}
+                    />
+                  )}
+                  <Text
+                    style={[
+                      styles.deleteConfirmBtnText,
+                      otpVerificationStatus !== 'VERIFIED' && {
+                        color: isDark ? '#94A3B8' : '#64748B',
+                      },
+                    ]}
+                  >
                     {deletingAccount ? 'Deleting Account...' : 'Permanently Delete Account'}
                   </Text>
                 </TouchableOpacity>
@@ -1002,7 +1320,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* ── AVATAR PICKER MODAL ────────────────────────────────────── */}
+      {/* ΓöÇΓöÇ AVATAR PICKER MODAL ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
       <Modal
         visible={showAvatarModal}
         transparent
@@ -1062,7 +1380,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* ── 10 AI AVATAR TUTORS SELECTION POPUP MODAL ── */}
+      {/* ΓöÇΓöÇ 10 AI AVATAR TUTORS SELECTION POPUP MODAL ΓöÇΓöÇ */}
       <Modal
         visible={showTutorModal}
         transparent={true}
@@ -1074,10 +1392,10 @@ export default function ProfileScreen({ navigation }) {
             <View style={[styles.modalHeader, { justifyContent: 'space-between' }]}>
               <View style={{ flex: 1, marginRight: 8 }}>
                 <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  Choose AI Speaking Tutor 🎭
+                  Choose AI Speaking Tutor ≡ƒÄ¡
                 </Text>
                 <Text style={{ fontSize: 12, color: sublabelColor }}>
-                  Select your tutor — tap <Text style={{ fontWeight: '800', color: labelColor }}>Test Voice</Text> to preview audio!
+                  Select your tutor ΓÇö tap <Text style={{ fontWeight: '800', color: labelColor }}>Test Voice</Text> to preview audio!
                 </Text>
               </View>
               <TouchableOpacity
@@ -1136,7 +1454,7 @@ export default function ProfileScreen({ navigation }) {
 
                       <View style={styles.modalTutorBottomRow}>
                         <Text style={[styles.tutorVoiceLabel, { color: sublabelColor, flex: 1 }]} numberOfLines={1}>
-                          🎙️ {av.voiceLabel}
+                          ≡ƒÄÖ∩╕Å {av.voiceLabel}
                         </Text>
                         <TouchableOpacity
                           activeOpacity={0.7}
@@ -1144,7 +1462,7 @@ export default function ProfileScreen({ navigation }) {
                           style={[styles.modalTutorTestBtn, { borderColor: isDark ? '#475569' : '#CBD5E1', backgroundColor: isDark ? '#334155' : '#FFFFFF' }]}
                         >
                           <Text style={[styles.modalTutorTestText, { color: COLORS.primary }]}>
-                            {isSpeakingThis ? '🔊' : '▶ Test'}
+                            {isSpeakingThis ? '≡ƒöè' : 'Γû╢ Test'}
                           </Text>
                         </TouchableOpacity>
                       </View>
@@ -1400,25 +1718,78 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginBottom: 6,
   },
-  emailRow: {
+  emailInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 14,
     borderWidth: 1,
-    paddingLeft: 12,
-    paddingRight: 6,
-    paddingVertical: 2,
-    marginBottom: 14,
+    height: 50,
   },
-  sendOtpInlineBtn: {
+  emailTextInput: {
+    flex: 1,
+    height: '100%',
+    fontSize: 14,
+    paddingHorizontal: 8,
+  },
+  changeEmailSmallBtn: {
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 6,
+    marginRight: 6,
+    borderRadius: 8,
+    backgroundColor: '#EEF2FF',
   },
-  sendOtpInlineText: {
+  changeEmailSmallText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  emailActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: 16,
+    gap: 8,
+  },
+  emailHelperText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  sendOtpActionBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 96,
+  },
+  sendOtpActionText: {
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 12,
+  },
+  otpTextInput: {
+    textAlign: 'center',
+    fontSize: 24,
+    fontWeight: '800',
+    letterSpacing: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    paddingVertical: 10,
+    height: 54,
+  },
+  otpStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  otpStatusText: {
+    fontSize: 12,
+    fontWeight: '700',
+    textAlign: 'center',
   },
   otpExpandCard: {
     borderRadius: 16,

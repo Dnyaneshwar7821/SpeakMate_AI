@@ -25,6 +25,7 @@ import {
   PrimaryButton,
 } from '../../components/auth';
 import { authService } from '../../services/authService';
+import { normalizeEmail, isValidEmail } from '../../utils/validation';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [step, setStep] = useState('EMAIL'); // 'EMAIL' | 'OTP'
@@ -37,8 +38,9 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [touched, setTouched] = useState({ email: false, otp: false });
 
   const validateEmail = () => {
-    if (!email.trim()) return 'Please enter your registered email address.';
-    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    const normalized = normalizeEmail(email);
+    if (!normalized) return 'Please enter your registered email address.';
+    if (!isValidEmail(email)) return 'Please enter a valid email address.';
     return null;
   };
 
@@ -61,11 +63,12 @@ export default function ForgotPasswordScreen({ navigation }) {
     setLoading(true);
 
     try {
+      const normalizedEmail = normalizeEmail(email);
       await authService.forgotPassword({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
       });
       setStep('OTP');
-      setInfoMessage(`A 6-digit OTP has been sent to ${email.trim().toLowerCase()}`);
+      setInfoMessage(`A 6-digit OTP has been sent to ${normalizedEmail}`);
     } catch (err) {
       setError(err.userMessage || err.response?.data?.message || 'Unable to send OTP. Please try again.');
     } finally {
@@ -79,11 +82,12 @@ export default function ForgotPasswordScreen({ navigation }) {
     setResending(true);
 
     try {
+      const normalizedEmail = normalizeEmail(email);
       await authService.forgotPassword({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
       });
-      setInfoMessage(`A new OTP has been sent to ${email.trim().toLowerCase()}`);
-      Alert.alert('OTP Resent', `A fresh 6-digit OTP code has been sent to ${email}`);
+      setInfoMessage(`A new OTP has been sent to ${normalizedEmail}`);
+      Alert.alert('OTP Resent', `A fresh 6-digit OTP code has been sent to ${normalizedEmail}`);
     } catch (err) {
       setError(err.userMessage || err.response?.data?.message || 'Failed to resend OTP.');
     } finally {
@@ -103,15 +107,16 @@ export default function ForgotPasswordScreen({ navigation }) {
     setLoading(true);
 
     try {
+      const normalizedEmail = normalizeEmail(email);
       const response = await authService.verifyOtp({
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         otp: otp.trim(),
       });
 
       if (response && response.token) {
         navigation.navigate('ResetPassword', {
           token: response.token,
-          email: email.trim().toLowerCase(),
+          email: normalizedEmail,
         });
       } else {
         setError('Invalid response from server.');
@@ -197,7 +202,7 @@ export default function ForgotPasswordScreen({ navigation }) {
               ) : null}
 
               {step === 'EMAIL' ? (
-                /* ── STEP 1: Enter Registered Email ── */
+                /* ΓöÇΓöÇ STEP 1: Enter Registered Email ΓöÇΓöÇ */
                 <>
                   <Text style={styles.formHint}>
                     We will send a 6-digit Verification OTP code to your registered Gmail address.
@@ -240,7 +245,7 @@ export default function ForgotPasswordScreen({ navigation }) {
                   />
                 </>
               ) : (
-                /* ── STEP 2: Enter 6-Digit OTP Code ── */
+                /* ΓöÇΓöÇ STEP 2: Enter 6-Digit OTP Code ΓöÇΓöÇ */
                 <>
                   <Text style={styles.formHint}>
                     Please check your Gmail inbox for the 6-digit verification code.
@@ -282,7 +287,7 @@ export default function ForgotPasswordScreen({ navigation }) {
                       </Text>
                     </TouchableOpacity>
 
-                    <Text style={styles.bulletDot}>•</Text>
+                    <Text style={styles.bulletDot}>ΓÇó</Text>
 
                     <TouchableOpacity
                       onPress={() => {

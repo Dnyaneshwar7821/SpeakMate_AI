@@ -1336,6 +1336,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	}
 
 	// Helper inner class for Jackson deserialization
+	@SuppressWarnings("unused")
 	private static class FinalEvaluation {
 		private Double score;
 		private Double overallScore;

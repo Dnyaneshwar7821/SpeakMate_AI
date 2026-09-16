@@ -10,6 +10,7 @@ import {
   Keyboard,
   View,
   StatusBar,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,6 +25,7 @@ import {
   PasswordInput,
   PrimaryButton,
 } from '../../components/auth';
+import { normalizeEmail, isValidEmail } from '../../utils/validation';
 
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
@@ -51,10 +53,11 @@ export default function LoginScreen({ navigation }) {
   };
 
   const getEmailError = () => {
-    if (!email.trim()) {
+    const normalized = normalizeEmail(email);
+    if (!normalized) {
       return loginType === 'SCHOOL' ? 'Please enter your Student ID or Email.' : 'Please enter your email address.';
     }
-    if (loginType === 'STANDARD' && !/\S+@\S+\.\S+/.test(email.trim())) {
+    if (loginType === 'STANDARD' && !isValidEmail(email)) {
       return 'Please enter a valid email address.';
     }
     return null;
@@ -87,15 +90,36 @@ export default function LoginScreen({ navigation }) {
     setError('');
     setLoading(true);
     try {
-      if (loginType === 'SCHOOL') {
-        await AsyncStorage.setItem('speakmate_account_type', 'STUDENT');
-        await AsyncStorage.setItem('speakmate_school_code', schoolCode.trim().toUpperCase());
-      }
-      await login({
-        email: email.trim().toLowerCase(),
+      const isSchoolMode = loginType === 'SCHOOL';
+      const cleanSchoolCode = schoolCode.trim().toUpperCase();
+      const normalizedEmail = normalizeEmail(email);
+
+      const authResult = await login({
+        email: normalizedEmail,
         password,
-        schoolCode: loginType === 'SCHOOL' ? schoolCode.trim().toUpperCase() : undefined,
+        schoolCode: isSchoolMode ? cleanSchoolCode : undefined,
+        portalType: isSchoolMode ? 'STUDENT' : 'STANDARD',
+        loginType: isSchoolMode ? 'STUDENT' : 'STANDARD',
       });
+
+      // Backend is authoritative: inspect authenticated user's actual verified account type
+      const authenticatedUser = authResult?.user;
+      const isVerifiedStudent = Boolean(
+        authenticatedUser?.accountType === 'STUDENT' ||
+        authenticatedUser?.isSchoolStudent ||
+        authenticatedUser?.role === 'STUDENT' ||
+        authenticatedUser?.schoolId
+      );
+
+      if (isVerifiedStudent) {
+        await AsyncStorage.setItem('speakmate_account_type', 'STUDENT');
+        if (cleanSchoolCode) {
+          await AsyncStorage.setItem('speakmate_school_code', cleanSchoolCode);
+        }
+      } else {
+        await AsyncStorage.setItem('speakmate_account_type', 'INDIVIDUAL');
+        await AsyncStorage.removeItem('speakmate_school_code');
+      }
     } catch (err) {
       const serverMsg = err.response?.data?.message || err.userMessage || 'Invalid login details. Please check your credentials and try again.';
       setError(serverMsg);
@@ -122,12 +146,13 @@ export default function LoginScreen({ navigation }) {
         <SafeAreaView edges={['top']} style={styles.headerContent}>
           {/* Logo Container */}
           <View style={styles.logoWrapper}>
-            <LinearGradient
-              colors={['rgba(255, 255, 255, 0.25)', 'rgba(255, 255, 255, 0.08)']}
-              style={styles.logoGlass}
-            >
-              <Text style={styles.logoText}>SM</Text>
-            </LinearGradient>
+            <View style={styles.logoCard}>
+              <Image
+                source={require('../../../assets/logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </View>
           </View>
           <Text style={styles.headerTitle}>Welcome Back</Text>
           <Text style={styles.headerSubtitle}>Sign in to continue learning</Text>
@@ -177,7 +202,7 @@ export default function LoginScreen({ navigation }) {
                     color={loginType === 'SCHOOL' ? '#4F46E5' : '#64748B'}
                   />
                   <Text style={[styles.tabBtnText, loginType === 'SCHOOL' && styles.activeTabBtnText]}>
-                    Student 🎓
+                    Student ≡ƒÄô
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -256,7 +281,7 @@ export default function LoginScreen({ navigation }) {
 
               {/* Action Buttons */}
               <PrimaryButton
-                title={loginType === 'SCHOOL' ? 'Sign In as Student 🎓' : 'Sign In'}
+                title={loginType === 'SCHOOL' ? 'Sign In as Student ≡ƒÄô' : 'Sign In'}
                 onPress={handleLogin}
                 loading={loading}
                 disabled={loading}
@@ -321,20 +346,21 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 8,
   },
-  logoGlass: {
+  logoCard: {
     width: 80,
     height: 80,
     borderRadius: 24,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.25)',
+    overflow: 'hidden',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+    padding: 6,
   },
-  logoText: {
-    color: '#FFFFFF',
-    fontSize: 32,
-    fontWeight: '900',
-    letterSpacing: -1,
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   headerTitle: {
     color: '#FFFFFF',

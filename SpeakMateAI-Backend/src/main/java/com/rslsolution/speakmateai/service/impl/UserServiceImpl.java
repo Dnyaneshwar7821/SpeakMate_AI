@@ -1,24 +1,20 @@
 package com.rslsolution.speakmateai.service.impl;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.rslsolution.speakmateai.dto.request.DeleteAccountRequest;
 import com.rslsolution.speakmateai.dto.request.ForgotPasswordRequest;
 import com.rslsolution.speakmateai.dto.request.LoginRequest;
 import com.rslsolution.speakmateai.dto.request.RegisterRequest;
 import com.rslsolution.speakmateai.dto.request.ResetPasswordRequest;
-import com.rslsolution.speakmateai.dto.request.SendDeleteAccountOtpRequest;
 import com.rslsolution.speakmateai.dto.request.SendRegistrationOtpRequest;
 import com.rslsolution.speakmateai.dto.request.VerifyOtpRequest;
 import com.rslsolution.speakmateai.dto.response.AuthResponse;
@@ -36,15 +32,9 @@ import com.rslsolution.speakmateai.repository.OnboardingRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.SettingsRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
-import com.rslsolution.speakmateai.repository.VocabularyRepository;
-import com.rslsolution.speakmateai.repository.ChatSessionRepository;
-import com.rslsolution.speakmateai.repository.ChatMessageRepository;
-import com.rslsolution.speakmateai.repository.LessonProgressRepository;
-import com.rslsolution.speakmateai.repository.NotificationRepository;
-import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
-import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
 import com.rslsolution.speakmateai.service.UserService;
 import com.rslsolution.speakmateai.util.JwtUtil;
+import com.rslsolution.speakmateai.util.ValidationUtils;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import jakarta.mail.internet.MimeMessage;
@@ -72,28 +62,10 @@ public class UserServiceImpl implements UserService {
 	private OnboardingRepository onboardingRepository;
 
 	@Autowired(required = false)
-	private VocabularyRepository vocabularyRepository;
-
-	@Autowired(required = false)
-	private ChatSessionRepository chatSessionRepository;
-
-	@Autowired(required = false)
-	private ChatMessageRepository chatMessageRepository;
-
-	@Autowired(required = false)
-	private LessonProgressRepository lessonProgressRepository;
-
-	@Autowired(required = false)
-	private NotificationRepository notificationRepository;
-
-	@Autowired(required = false)
-	private SpeakingSessionRepository speakingSessionRepository;
-
-	@Autowired(required = false)
-	private GrammarHistoryRepository grammarHistoryRepository;
-
-	@Autowired(required = false)
 	private com.rslsolution.speakmateai.repository.UserSubscriptionRepository userSubscriptionRepository;
+
+	@Autowired(required = false)
+	private com.rslsolution.speakmateai.repository.SchoolRepository schoolRepository;
 
 	@Autowired(required = false)
 	private com.rslsolution.speakmateai.repository.SchoolAdminRepository schoolAdminRepository;
@@ -137,12 +109,12 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void sendRegistrationOtp(SendRegistrationOtpRequest request) {
-		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
-		if (cleanEmail.isEmpty()) {
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		if (cleanEmail == null || cleanEmail.isEmpty()) {
 			throw new IllegalArgumentException("Email is required.");
 		}
 
-		if (userRepository.existsByEmail(cleanEmail)) {
+		if (userRepository.existsByEmail(cleanEmail) || userRepository.existsByEmailIgnoreCase(cleanEmail)) {
 			throw new DuplicateEmailException("Email is already registered. Please sign in instead.");
 		}
 
@@ -187,10 +159,10 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public VerifyOtpResponse verifyRegistrationOtp(VerifyOtpRequest request) {
-		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String email = ValidationUtils.normalizeEmail(request.getEmail());
 		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
 
-		if (email.isEmpty()) {
+		if (email == null || email.isEmpty()) {
 			throw new IllegalArgumentException("Email is required.");
 		}
 		if (otp.isEmpty()) {
@@ -218,11 +190,14 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public UserResponse register(RegisterRequest request) {
-		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
 
-		if (userRepository.existsByEmail(cleanEmail)) {
+		if (userRepository.existsByEmail(cleanEmail) || userRepository.existsByEmailIgnoreCase(cleanEmail)) {
 			throw new DuplicateEmailException("Email already exists.");
 		}
+
+		ValidationUtils.validateName(request.getFirstName());
+		ValidationUtils.validateName(request.getLastName());
 
 		if (request.getConfirmPassword() == null || !request.getConfirmPassword().equals(request.getPassword())) {
 			throw new IllegalArgumentException("Passwords do not match.");
@@ -247,9 +222,9 @@ public class UserServiceImpl implements UserService {
 				|| (request.getSchoolGrade() != null && !request.getSchoolGrade().trim().isEmpty());
 
 		User user = User.builder()
-				.firstName(request.getFirstName())
-				.lastName(request.getLastName())
-				.email(request.getEmail())
+				.firstName(request.getFirstName() != null ? request.getFirstName().trim() : null)
+				.lastName(request.getLastName() != null ? request.getLastName().trim() : null)
+				.email(cleanEmail)
 				.password(passwordEncoder.encode(request.getPassword()))
 				.role(isStudent ? Role.STUDENT : Role.USER)
 				.active(true)
@@ -263,7 +238,7 @@ public class UserServiceImpl implements UserService {
 		User savedUser = userRepository.save(user);
 
 		// Remove OTP after successful registration
-		registrationOtpMap.remove(request.getEmail().toLowerCase());
+		registrationOtpMap.remove(cleanEmail);
 
 		// ── Auto-provision all default user-related records so that dashboard APIs
 		// ── always return valid data for a brand-new user (never 404).
@@ -333,16 +308,77 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public AuthResponse login(LoginRequest request) {
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		String cleanSchoolCode = request.getSchoolCode() != null ? request.getSchoolCode().trim() : "";
+		String portalType = request.getPortalType() != null ? request.getPortalType().trim() : "";
+		String loginType = request.getLoginType() != null ? request.getLoginType().trim() : "";
 
-		User user = userRepository.findByEmail(request.getEmail())
-				.orElseThrow(() -> new InvalidCredentialsException("Invalid email"));
+		boolean isStudentLogin = !cleanSchoolCode.isEmpty()
+				|| "STUDENT".equalsIgnoreCase(portalType)
+				|| "SCHOOL".equalsIgnoreCase(portalType)
+				|| "STUDENT".equalsIgnoreCase(loginType)
+				|| "SCHOOL".equalsIgnoreCase(loginType);
+
+		String lookupEmail = cleanEmail != null ? cleanEmail : "";
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseGet(() -> userRepository.findByEmail(lookupEmail)
+						.orElseThrow(() -> new InvalidCredentialsException("Invalid email")));
 
 		if (!user.isActive()) {
 			throw new InvalidCredentialsException("Inactive account");
 		}
 
+		boolean isUserStudent = (user.getRole() == Role.STUDENT)
+				|| (user.getSchoolId() != null)
+				|| (user.getRole() != null && user.getRole().name().contains("STUDENT"));
+
+		// 1. Personal / Individual user attempting Student Login mode -> MUST FAIL
+		if (isStudentLogin && !isUserStudent) {
+			throw new InvalidCredentialsException("This account is registered as an Individual Learner. Please use the Standard Login tab.");
+		}
+
+		// 2. Student user attempting Standard Login mode -> MUST FAIL
+		if (!isStudentLogin && isUserStudent) {
+			throw new InvalidCredentialsException("This account is registered as a School Student. Please use the Student Login tab with your School Code.");
+		}
+
+		// 3. Password verification
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 			throw new InvalidCredentialsException("Incorrect password");
+		}
+
+		// 4. Student Login school code validation: MUST match the student's actual associated school
+		if (isStudentLogin) {
+			if (cleanSchoolCode.isEmpty()) {
+				throw new InvalidCredentialsException("Invalid student login details or school code.");
+			}
+
+			boolean schoolMatched = false;
+			if (schoolRepository != null) {
+				java.util.Optional<com.rslsolution.speakmateai.entity.School> schoolOpt = 
+						schoolRepository.findBySchoolCodeIgnoreCase(cleanSchoolCode);
+				if (schoolOpt.isPresent()) {
+					com.rslsolution.speakmateai.entity.School school = schoolOpt.get();
+					if (user.getSchoolId() != null && user.getSchoolId().equals(school.getId())) {
+						schoolMatched = true;
+					} else if (user.getSchoolName() != null && (
+							user.getSchoolName().equalsIgnoreCase(school.getName()) ||
+							user.getSchoolName().equalsIgnoreCase(school.getSchoolCode()))) {
+						schoolMatched = true;
+					}
+				}
+			}
+
+			// Direct fallback: if student's schoolName directly matches the school code
+			if (!schoolMatched && user.getSchoolName() != null && !user.getSchoolName().trim().isEmpty()) {
+				if (user.getSchoolName().trim().equalsIgnoreCase(cleanSchoolCode)) {
+					schoolMatched = true;
+				}
+			}
+
+			if (!schoolMatched) {
+				throw new InvalidCredentialsException("Invalid student login details or school code.");
+			}
 		}
 
 		String token = jwtUtil.generateToken(user.getEmail());
@@ -498,8 +534,14 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private void validatePasswordStrength(String password) {
-		if (password == null || password.length() < 8) {
+		if (password == null || password.isEmpty() || password.trim().isEmpty()) {
+			throw new IllegalArgumentException("Password cannot be empty or whitespace only");
+		}
+		if (password.length() < 8) {
 			throw new IllegalArgumentException("Password must be at least 8 characters");
+		}
+		if (password.length() > 128) {
+			throw new IllegalArgumentException("Password must not exceed 128 characters");
 		}
 		boolean hasUpper = false;
 		boolean hasLower = false;
@@ -538,10 +580,11 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void forgotPassword(ForgotPasswordRequest request) {
-		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		String lookupEmail = cleanEmail != null ? cleanEmail : "";
 
-		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
-				.orElseThrow(() -> new IllegalArgumentException("No registered account found with email: " + cleanEmail));
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseThrow(() -> new IllegalArgumentException("No registered account found with email: " + lookupEmail));
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 		user.setResetOtp(otp);
@@ -627,8 +670,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public VerifyOtpResponse verifyOtp(VerifyOtpRequest request) {
 
-		User user = userRepository.findByEmail(request.getEmail())
-				.orElseThrow(() -> new IllegalArgumentException("Invalid email or user not found."));
+		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
+		String lookupEmail = cleanEmail != null ? cleanEmail : "";
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseGet(() -> userRepository.findByEmail(lookupEmail)
+						.orElseThrow(() -> new IllegalArgumentException("Invalid email or user not found.")));
 
 		String inputOtp = request.getOtp() != null ? request.getOtp().trim() : "";
 		if (user.getResetOtp() == null || !user.getResetOtp().equals(inputOtp)) {
@@ -657,7 +703,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void resetPassword(ResetPasswordRequest request) {
 
-		User user = userRepository.findByResetPasswordToken(request.getToken())
+		if (request.getToken() == null || request.getToken().trim().isEmpty()) {
+			throw new IllegalArgumentException("Invalid or expired reset token.");
+		}
+
+		User user = userRepository.findByResetPasswordToken(request.getToken().trim())
 				.orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset token."));
 
 		if (user.getResetPasswordTokenExpiry() == null || user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
@@ -665,6 +715,14 @@ public class UserServiceImpl implements UserService {
 		}
 
 		validatePasswordStrength(request.getNewPassword());
+
+		if (request.getConfirmPassword() != null && !request.getConfirmPassword().equals(request.getNewPassword())) {
+			throw new IllegalArgumentException("Passwords do not match.");
+		}
+
+		if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+			throw new IllegalArgumentException("New password cannot be the same as your old password.");
+		}
 
 		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
 		user.setResetPasswordToken(null);
@@ -777,20 +835,23 @@ public class UserServiceImpl implements UserService {
 				.dailyGoalMinutes(user.getDailyGoalMinutes()).preferredVoice(user.getPreferredVoice())
 				.preferredAccent(user.getPreferredAccent()).ageGroup(effectiveAge).schoolGrade(effectiveGrade)
 				.standard(user.getStandard()).interests(user.getInterests())
-				.schoolId(user.getSchoolId()).isSchoolStudent(isStudent).build();
+				.schoolId(user.getSchoolId()).isSchoolStudent(isStudent)
+				.accountType(isStudent ? "STUDENT" : "INDIVIDUAL")
+				.build();
 	}
 
 
 	@Override
 	public void sendDeleteAccountOtp(com.rslsolution.speakmateai.dto.request.SendDeleteAccountOtpRequest request) {
-		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
-		User user = userRepository.findByEmailIgnoreCase(email)
-				.orElseThrow(() -> new UserNotFoundException("No account found registered with email: " + email));
+		String email = ValidationUtils.normalizeEmail(request.getEmail());
+		String lookupEmail = email != null ? email : "";
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseThrow(() -> new UserNotFoundException("No account found registered with email: " + lookupEmail));
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 		deleteAccountOtpMap.put(user.getEmail().trim().toLowerCase(), new RegistrationOtpDetails(otp, LocalDateTime.now().plusMinutes(10)));
 
-		System.out.println("[Delete Account OTP Generated] OTP for " + email + " is: " + otp);
+		System.out.println("[Delete Account OTP Generated] OTP for " + lookupEmail + " is: " + otp);
 
 		String htmlContent = String.format(
 			"<!DOCTYPE html>\n" +
@@ -827,22 +888,59 @@ public class UserServiceImpl implements UserService {
 			otp
 		);
 
-		sendAsyncEmail(email, "Confirm Account Deletion - SpeakMateAI", htmlContent, otp);
+		sendAsyncEmail(lookupEmail, "Confirm Account Deletion - SpeakMateAI", htmlContent, otp);
+	}
+
+	@Override
+	public VerifyOtpResponse verifyDeleteAccountOtp(VerifyOtpRequest request) {
+		String email = ValidationUtils.normalizeEmail(request.getEmail());
+		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
+
+		if (email == null || email.isEmpty()) {
+			throw new IllegalArgumentException("Email is required.");
+		}
+		if (otp.isEmpty()) {
+			throw new IllegalArgumentException("OTP code is required.");
+		}
+
+		String lookupEmail = email;
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseGet(() -> userRepository.findByEmail(lookupEmail)
+						.orElseThrow(() -> new IllegalArgumentException("No account found registered with email: " + lookupEmail)));
+
+		RegistrationOtpDetails otpDetails = deleteAccountOtpMap.get(user.getEmail().trim().toLowerCase());
+		if (otpDetails == null) {
+			throw new IllegalArgumentException("No active OTP code found for this email. Please tap 'Send Code' to receive a code.");
+		}
+
+		if (LocalDateTime.now().isAfter(otpDetails.getExpiry())) {
+			deleteAccountOtpMap.remove(user.getEmail().trim().toLowerCase());
+			throw new IllegalArgumentException("The OTP verification code has expired. Please tap 'Resend Code' to get a new code.");
+		}
+
+		if (!otpDetails.getOtp().trim().equals(otp)) {
+			throw new IllegalArgumentException("The 6-digit OTP code is incorrect. Please check your email.");
+		}
+
+		return VerifyOtpResponse.builder()
+				.message("Code verified successfully.")
+				.build();
 	}
 
 	@Override
 	public void deleteAccountWithOtp(com.rslsolution.speakmateai.dto.request.DeleteAccountRequest request) {
-		String email = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+		String email = ValidationUtils.normalizeEmail(request.getEmail());
+		String lookupEmail = email != null ? email : "";
 		String otp = request.getOtp() != null ? request.getOtp().trim() : "";
 
-		RegistrationOtpDetails otpDetails = deleteAccountOtpMap.get(email);
+		RegistrationOtpDetails otpDetails = deleteAccountOtpMap.get(lookupEmail);
 
 		if (otpDetails == null) {
 			throw new InvalidCredentialsException("No active OTP code found for this email. Please tap 'Send OTP' to receive a code.");
 		}
 
 		if (LocalDateTime.now().isAfter(otpDetails.getExpiry())) {
-			deleteAccountOtpMap.remove(email);
+			deleteAccountOtpMap.remove(lookupEmail);
 			throw new InvalidCredentialsException("The OTP verification code has expired. Please tap 'Send OTP' to get a new code.");
 		}
 
@@ -850,62 +948,182 @@ public class UserServiceImpl implements UserService {
 			throw new InvalidCredentialsException("The 6-digit OTP code is incorrect. Please check your email.");
 		}
 
-		deleteAccountOtpMap.remove(email);
-
-		User user = userRepository.findByEmailIgnoreCase(email)
-				.orElseThrow(() -> new UserNotFoundException("No account found with email: " + email));
+		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
+				.orElseThrow(() -> new UserNotFoundException("No account found with email: " + lookupEmail));
 
 		deleteUser(user.getId());
+		deleteAccountOtpMap.remove(lookupEmail);
 	}
 
 	@Override
-	@org.springframework.transaction.annotation.Transactional
+	@org.springframework.transaction.annotation.Transactional(rollbackFor = Exception.class)
 	public void deleteUser(Long id) {
-		User user = userRepository.findById(id)
-				.orElseThrow(() -> new UserNotFoundException("User not found with id: " + id));
+		if (!userRepository.existsById(id)) {
+			throw new UserNotFoundException("User not found with id: " + id);
+		}
 
-		String[] deleteQueries = new String[] {
-			"DELETE FROM user_subscriptions WHERE user_id = " + id,
-			"DELETE FROM payments WHERE user_id = " + id,
-			"DELETE FROM results WHERE student_id = " + id,
-			"DELETE FROM certificates WHERE user_id = " + id,
-			"DELETE FROM school_admins WHERE user_id = " + id,
-			"DELETE FROM teachers WHERE id = " + id,
-			"DELETE FROM students WHERE id = " + id,
-			"DELETE FROM audit_logs WHERE user_id = " + id,
-			"DELETE FROM ai_usage_logs WHERE user_id = " + id,
-			"DELETE FROM assignments WHERE teacher_id = " + id,
-			"DELETE FROM vocabulary WHERE user_id = " + id,
-			"DELETE FROM chat_bookmarks WHERE user_id = " + id,
-			"DELETE FROM chat_messages WHERE session_id IN (SELECT id FROM chat_sessions WHERE user_id = " + id + ")",
-			"DELETE FROM chat_sessions WHERE user_id = " + id,
-			"DELETE FROM chat_history WHERE user_id = " + id,
-			"DELETE FROM conversation_feedbacks WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = " + id + ")",
-			"DELETE FROM conversation_messages WHERE session_id IN (SELECT id FROM speaking_sessions WHERE user_id = " + id + ")",
-			"DELETE FROM speaking_sessions WHERE user_id = " + id,
-			"DELETE FROM grammar_history WHERE user_id = " + id + " OR student_id = " + id,
-			"DELETE FROM lesson_progress WHERE user_id = " + id,
-			"DELETE FROM notification WHERE user_id = " + id + " OR student_id = " + id,
-			"DELETE FROM achievement WHERE user_id = " + id,
-			"DELETE FROM progress WHERE user_id = " + id,
-			"DELETE FROM settings WHERE user_id = " + id,
-			"DELETE FROM onboarding WHERE user_id = " + id,
-			"DELETE FROM users WHERE id = " + id
-		};
+		java.util.Set<String> existingTables = new java.util.HashSet<>();
+		java.util.Map<String, java.util.Set<String>> tableColumns = new java.util.HashMap<>();
 
-		for (String sql : deleteQueries) {
+		if (jdbcTemplate != null) {
 			try {
-				if (jdbcTemplate != null) {
-					jdbcTemplate.execute(sql);
-				} else {
-					entityManager.createNativeQuery(sql).executeUpdate();
-				}
+				jdbcTemplate.query("SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = 'public'", rs -> {
+					String tbl = rs.getString("table_name").toLowerCase();
+					String col = rs.getString("column_name").toLowerCase();
+					existingTables.add(tbl);
+					tableColumns.computeIfAbsent(tbl, k -> new java.util.HashSet<>()).add(col);
+				});
 			} catch (Exception e) {
-				System.err.println("[Delete User SQL Warning] " + sql + " -> " + e.getMessage());
+				System.err.println("[Delete User] Notice: Could not read information_schema: " + e.getMessage());
 			}
 		}
 
+		// 1. Delete grandchildren first (sessions' message and feedback records)
+		executeDeleteIfParentExists(existingTables, tableColumns, "conversation_feedbacks", "session_id", "speaking_sessions", "user_id", id);
+		executeDeleteIfParentExists(existingTables, tableColumns, "conversation_messages", "session_id", "speaking_sessions", "user_id", id);
+		executeDeleteIfParentExists(existingTables, tableColumns, "chat_messages", "session_id", "chat_sessions", "user_id", id);
+
+		// 2. Delete direct session tables
+		executeDeleteIfColumnExists(existingTables, tableColumns, "speaking_sessions", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "chat_sessions", "user_id", id);
+
+		// 3. Delete user direct learning and profile records
+		executeDeleteIfColumnExists(existingTables, tableColumns, "chat_history", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "chat_bookmarks", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "vocabulary", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "lesson_progress", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "achievement", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "progress", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "settings", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "onboarding", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "user_subscriptions", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "grammar_history", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "notification", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "ai_usage_logs", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "audit_logs", "user_id", id);
+
+		// 4. Delete school / role records if applicable
+		executeDeleteIfColumnExists(existingTables, tableColumns, "assignment_progress", "student_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "class_students", "student_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "assignments", "teacher_id", id);
+		executeNullifyIfColumnExists(existingTables, tableColumns, "class_rooms", "teacher_id", id);
+
+		// 5. Optional / legacy tables (only if they exist in schema)
+		executeDeleteIfColumnExists(existingTables, tableColumns, "payments", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "results", "student_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "certificates", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "school_admins", "user_id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "teachers", "id", id);
+		executeDeleteIfColumnExists(existingTables, tableColumns, "students", "id", id);
+
+		// 6. Delete the user record itself and ensure exactly 1 row was affected
+		int deletedRows = 0;
+		if (jdbcTemplate != null) {
+			deletedRows = jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
+		} else {
+			deletedRows = entityManager.createNativeQuery("DELETE FROM users WHERE id = :id")
+					.setParameter("id", id)
+					.executeUpdate();
+		}
+
+		if (deletedRows == 0) {
+			throw new IllegalStateException("Failed to delete user with ID " + id + ": No record found in users table.");
+		}
+
+		if (entityManager != null) {
+			entityManager.flush();
+			entityManager.clear();
+		}
+
 		System.out.println("[User Deleted] Permanently removed user ID: " + id + " and all associated records.");
+	}
+
+	private void executeDeleteIfColumnExists(
+			java.util.Set<String> existingTables,
+			java.util.Map<String, java.util.Set<String>> tableColumns,
+			String tableName,
+			String columnName,
+			Long id) {
+		String tblLower = tableName.toLowerCase();
+		String colLower = columnName.toLowerCase();
+
+		if (!existingTables.isEmpty()) {
+			if (!existingTables.contains(tblLower)) return;
+			java.util.Set<String> cols = tableColumns.get(tblLower);
+			if (cols == null || !cols.contains(colLower)) return;
+		}
+
+		String sql = "DELETE FROM " + tableName + " WHERE " + columnName + " = " + id;
+		try {
+			if (jdbcTemplate != null) {
+				jdbcTemplate.execute(sql);
+			} else {
+				entityManager.createNativeQuery(sql).executeUpdate();
+			}
+		} catch (Exception e) {
+			System.err.println("[Delete User SQL Error] " + sql + " -> " + e.getMessage());
+			throw new RuntimeException("Failed to delete user records from " + tableName + ": " + e.getMessage(), e);
+		}
+	}
+
+	private void executeDeleteIfParentExists(
+			java.util.Set<String> existingTables,
+			java.util.Map<String, java.util.Set<String>> tableColumns,
+			String childTable,
+			String childCol,
+			String parentTable,
+			String parentCol,
+			Long id) {
+		String childLower = childTable.toLowerCase();
+		String parentLower = parentTable.toLowerCase();
+
+		if (!existingTables.isEmpty()) {
+			if (!existingTables.contains(childLower) || !existingTables.contains(parentLower)) return;
+			java.util.Set<String> childCols = tableColumns.get(childLower);
+			if (childCols == null || !childCols.contains(childCol.toLowerCase())) return;
+			java.util.Set<String> parentCols = tableColumns.get(parentLower);
+			if (parentCols == null || !parentCols.contains(parentCol.toLowerCase())) return;
+		}
+
+		String sql = "DELETE FROM " + childTable + " WHERE " + childCol + " IN (SELECT id FROM " + parentTable + " WHERE " + parentCol + " = " + id + ")";
+		try {
+			if (jdbcTemplate != null) {
+				jdbcTemplate.execute(sql);
+			} else {
+				entityManager.createNativeQuery(sql).executeUpdate();
+			}
+		} catch (Exception e) {
+			System.err.println("[Delete User SQL Error] " + sql + " -> " + e.getMessage());
+			throw new RuntimeException("Failed to delete records from " + childTable + ": " + e.getMessage(), e);
+		}
+	}
+
+	private void executeNullifyIfColumnExists(
+			java.util.Set<String> existingTables,
+			java.util.Map<String, java.util.Set<String>> tableColumns,
+			String tableName,
+			String columnName,
+			Long id) {
+		String tblLower = tableName.toLowerCase();
+		String colLower = columnName.toLowerCase();
+
+		if (!existingTables.isEmpty()) {
+			if (!existingTables.contains(tblLower)) return;
+			java.util.Set<String> cols = tableColumns.get(tblLower);
+			if (cols == null || !cols.contains(colLower)) return;
+		}
+
+		String sql = "UPDATE " + tableName + " SET " + columnName + " = NULL WHERE " + columnName + " = " + id;
+		try {
+			if (jdbcTemplate != null) {
+				jdbcTemplate.execute(sql);
+			} else {
+				entityManager.createNativeQuery(sql).executeUpdate();
+			}
+		} catch (Exception e) {
+			System.err.println("[Nullify User Reference SQL Error] " + sql + " -> " + e.getMessage());
+			throw new RuntimeException("Failed to nullify reference in " + tableName + ": " + e.getMessage(), e);
+		}
 	}
 
 	private void sendAsyncEmail(String toEmail, String subject, String htmlContent, String otp) {

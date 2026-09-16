@@ -29,6 +29,7 @@ import {
   PrimaryButton,
 } from '../../components/auth';
 import { authService } from '../../services/authService';
+import { validateName, NAME_VALIDATION_ERROR, normalizeEmail, isValidEmail } from '../../utils/validation';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -86,8 +87,9 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const validateEmailOnly = () => {
-    if (!email.trim()) return 'Please enter an email address first.';
-    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    const normalized = normalizeEmail(email);
+    if (!normalized) return 'Please enter an email address first.';
+    if (!isValidEmail(email)) return 'Please enter a valid email address.';
     return null;
   };
 
@@ -103,8 +105,8 @@ export default function RegisterScreen({ navigation }) {
     setOtpState('SENDING');
 
     try {
-      const emailLower = email.trim().toLowerCase();
-      await authService.sendRegistrationOtp({ email: emailLower });
+      const normalizedEmail = normalizeEmail(email);
+      await authService.sendRegistrationOtp({ email: normalizedEmail });
       setOtpState('SENT');
     } catch (err) {
       setOtpState('IDLE');
@@ -130,9 +132,9 @@ export default function RegisterScreen({ navigation }) {
     setError('');
 
     try {
-      const emailLower = email.trim().toLowerCase();
+      const normalizedEmail = normalizeEmail(email);
       await authService.verifyRegistrationOtp({
-        email: emailLower,
+        email: normalizedEmail,
         otp: otp.trim(),
       });
       setOtpState('VERIFIED');
@@ -148,18 +150,25 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const getFirstNameError = () => {
-    if (!firstName.trim()) return 'First name is required.';
+    if (!firstName.trim()) {
+      return touched.firstName ? 'First name is required.' : null;
+    }
+    if (!validateName(firstName)) return NAME_VALIDATION_ERROR;
     return null;
   };
 
   const getLastNameError = () => {
-    if (!lastName.trim()) return 'Last name is required.';
+    if (!lastName.trim()) {
+      return touched.lastName ? 'Last name is required.' : null;
+    }
+    if (!validateName(lastName)) return NAME_VALIDATION_ERROR;
     return null;
   };
 
   const getEmailError = () => {
-    if (!email.trim()) return 'Email address is required.';
-    if (!/\S+@\S+\.\S+/.test(email.trim())) return 'Please enter a valid email address.';
+    const normalized = normalizeEmail(email);
+    if (!normalized) return touched.email ? 'Email address is required.' : null;
+    if (touched.email && !isValidEmail(email)) return 'Please enter a valid email address.';
     return null;
   };
 
@@ -178,12 +187,13 @@ export default function RegisterScreen({ navigation }) {
   };
 
   const validateFullForm = () => {
-    const fnErr = getFirstNameError();
-    if (fnErr) return fnErr;
-    const lnErr = getLastNameError();
-    if (lnErr) return lnErr;
-    const emErr = getEmailError();
-    if (emErr) return emErr;
+    if (!firstName.trim()) return 'First name is required.';
+    if (!validateName(firstName)) return NAME_VALIDATION_ERROR;
+    if (!lastName.trim()) return 'Last name is required.';
+    if (!validateName(lastName)) return NAME_VALIDATION_ERROR;
+    const normalized = normalizeEmail(email);
+    if (!normalized) return 'Email address is required.';
+    if (!isValidEmail(email)) return 'Please enter a valid email address.';
     if (otpState !== 'VERIFIED') {
       if (otpState === 'IDLE') return 'Please tap "Send OTP" next to email and verify your code.';
       if (!otp.trim()) return 'Please enter the 6-digit OTP code sent to your email.';
@@ -206,7 +216,7 @@ export default function RegisterScreen({ navigation }) {
       password: true,
       confirmPassword: true,
     });
-    const emailLower = email.trim().toLowerCase();
+    const normalizedEmail = normalizeEmail(email);
 
     // If user entered 6 digits but hasn't pressed Verify OTP yet, auto-verify first
     if (otpState !== 'VERIFIED' && otp.trim().length === 6) {
@@ -215,7 +225,7 @@ export default function RegisterScreen({ navigation }) {
       setOtpError('');
       try {
         await authService.verifyRegistrationOtp({
-          email: emailLower,
+          email: normalizedEmail,
           otp: otp.trim(),
         });
         setOtpState('VERIFIED');
@@ -245,7 +255,7 @@ export default function RegisterScreen({ navigation }) {
       await register({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: emailLower,
+        email: normalizedEmail,
         password,
         confirmPassword,
         otp: otp.trim(),
@@ -255,8 +265,25 @@ export default function RegisterScreen({ navigation }) {
       setRegistered(true);
       animateSuccess();
     } catch (err) {
-      const serverMsg = err.response?.data?.message || err.userMessage || 'Registration failed. Please verify your details and try again.';
-      setError(serverMsg);
+      const data = err.response?.data;
+      let serverMsg = null;
+      if (typeof data === 'string' && data.length > 0) {
+        serverMsg = data;
+      } else if (data && typeof data === 'object') {
+        if (data.message) {
+          serverMsg = data.message;
+        } else if (data.firstName) {
+          serverMsg = data.firstName;
+        } else if (data.lastName) {
+          serverMsg = data.lastName;
+        } else {
+          const values = Object.values(data);
+          if (values.length > 0 && typeof values[0] === 'string') {
+            serverMsg = values[0];
+          }
+        }
+      }
+      setError(serverMsg || err.userMessage || 'Registration failed. Please verify your details and try again.');
     } finally {
       setLoading(false);
     }
@@ -302,7 +329,7 @@ export default function RegisterScreen({ navigation }) {
         >
           <Pressable onPress={Keyboard.dismiss} style={styles.pressableContainer}>
             {registered ? (
-              /* ── Success State ── */
+              /* ΓöÇΓöÇ Success State ΓöÇΓöÇ */
               <Animated.View
                 style={[
                   styles.successCard,
@@ -332,7 +359,7 @@ export default function RegisterScreen({ navigation }) {
                 </View>
               </Animated.View>
             ) : (
-              /* ── Registration Form ── */
+              /* ΓöÇΓöÇ Registration Form ΓöÇΓöÇ */
               <AuthCard style={styles.card}>
                 <ErrorMessage message={error} />
 
@@ -340,7 +367,7 @@ export default function RegisterScreen({ navigation }) {
                 {/* School Student Direct Login Notice Banner */}
                 <View style={styles.studentNoticeBanner}>
                   <View style={styles.studentNoticeLeft}>
-                    <Text style={styles.studentNoticeEmoji}>🎓</Text>
+                    <Text style={styles.studentNoticeEmoji}>≡ƒÄô</Text>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.studentNoticeTitle}>School Student?</Text>
                       <Text style={styles.studentNoticeSubtitle}>Your school has created your account.</Text>
@@ -350,42 +377,48 @@ export default function RegisterScreen({ navigation }) {
                     onPress={() => navigation.navigate('Login')}
                     style={styles.studentLoginBtn}
                   >
-                    <Text style={styles.studentLoginBtnText}>Log In ➔</Text>
+                    <Text style={styles.studentLoginBtnText}>Log In Γ₧ö</Text>
                   </TouchableOpacity>
                 </View>
 
-                {/* First Name & Last Name row */}
-                <View style={styles.nameRow}>
-                  <View style={styles.nameField}>
-                    <AuthInput
-                      label="First Name"
-                      value={firstName}
-                      onChangeText={(t) => { setFirstName(t); clearError(); }}
-                      onBlur={() => setTouched((p) => ({ ...p, firstName: true }))}
-                      touched={touched.firstName}
-                      error={getFirstNameError()}
-                      placeholder="Jane"
-                      autoCapitalize="words"
-                      returnKeyType="next"
-                      onSubmitEditing={() => lastNameRef.current?.focus()}
-                    />
-                  </View>
-                  <View style={styles.nameField}>
-                    <AuthInput
-                      label="Last Name"
-                      value={lastName}
-                      onChangeText={(t) => { setLastName(t); clearError(); }}
-                      onBlur={() => setTouched((p) => ({ ...p, lastName: true }))}
-                      touched={touched.lastName}
-                      error={getLastNameError()}
-                      placeholder="Doe"
-                      autoCapitalize="words"
-                      returnKeyType="next"
-                      inputRef={lastNameRef}
-                      onSubmitEditing={() => emailRef.current?.focus()}
-                    />
-                  </View>
-                </View>
+                {/* First Name */}
+                <AuthInput
+                  label="First Name"
+                  value={firstName}
+                  onChangeText={(t) => {
+                    setFirstName(t);
+                    if (!touched.firstName) setTouched((p) => ({ ...p, firstName: true }));
+                    clearError();
+                  }}
+                  onBlur={() => setTouched((p) => ({ ...p, firstName: true }))}
+                  touched={touched.firstName}
+                  error={getFirstNameError()}
+                  placeholder="Jane"
+                  autoCapitalize="words"
+                  maxLength={40}
+                  returnKeyType="next"
+                  onSubmitEditing={() => lastNameRef.current?.focus()}
+                />
+
+                {/* Last Name */}
+                <AuthInput
+                  label="Last Name"
+                  value={lastName}
+                  onChangeText={(t) => {
+                    setLastName(t);
+                    if (!touched.lastName) setTouched((p) => ({ ...p, lastName: true }));
+                    clearError();
+                  }}
+                  onBlur={() => setTouched((p) => ({ ...p, lastName: true }))}
+                  touched={touched.lastName}
+                  error={getLastNameError()}
+                  placeholder="Doe"
+                  autoCapitalize="words"
+                  maxLength={40}
+                  returnKeyType="next"
+                  inputRef={lastNameRef}
+                  onSubmitEditing={() => emailRef.current?.focus()}
+                />
 
                 {/* Email Address with Green "Send OTP" action text button */}
                 <AuthInput
@@ -497,7 +530,7 @@ export default function RegisterScreen({ navigation }) {
                   <View style={styles.verifiedSuccessBanner}>
                     <Ionicons name="checkmark-circle" size={20} color="#059669" />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.verifiedSuccessTitle}>Email Verified ✓</Text>
+                      <Text style={styles.verifiedSuccessTitle}>Email Verified Γ£ô</Text>
                       <Text style={styles.verifiedSuccessSubtitle}>Code verified for {email}</Text>
                     </View>
                   </View>

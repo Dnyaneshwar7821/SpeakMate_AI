@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { COLORS } from '../constants/colors';
 
@@ -89,16 +90,29 @@ export function AppButton({ title, onPress, loading, variant = 'primary', disabl
   );
 }
 
-export function AppInput({ label, value, onChangeText, multiline, secureTextEntry, placeholder, keyboardType }) {
+export function AppInput({
+  label,
+  value,
+  onChangeText,
+  multiline,
+  secureTextEntry,
+  placeholder,
+  keyboardType,
+  maxLength,
+  error,
+  style,
+  inputStyle,
+  ...rest
+}) {
   const { isDark } = useTheme();
 
   const labelColor = isDark ? '#E2E8F0' : COLORS.black;
   const inputBg = isDark ? '#334155' : COLORS.white;
   const inputColor = isDark ? '#FFF' : COLORS.black;
-  const inputBorder = isDark ? '#475569' : COLORS.border;
+  const inputBorder = error ? '#EF4444' : (isDark ? '#475569' : COLORS.border);
 
   return (
-    <View style={styles.inputGroup}>
+    <View style={[styles.inputGroup, style]}>
       {!!label && <Text style={[styles.label, { color: labelColor }]}>{label}</Text>}
       <TextInput
         value={value}
@@ -108,13 +122,22 @@ export function AppInput({ label, value, onChangeText, multiline, secureTextEntr
         multiline={multiline}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
+        maxLength={maxLength}
+        {...rest}
         autoCapitalize={keyboardType === 'email-address' ? 'none' : 'sentences'}
         style={[
           styles.input, 
           { backgroundColor: inputBg, color: inputColor, borderColor: inputBorder },
-          multiline && styles.textarea
+          multiline && styles.textarea,
+          inputStyle,
         ]}
       />
+      {!!error && (
+        <View style={styles.inlineErrorRow}>
+          <Ionicons name="alert-circle" size={14} color="#EF4444" style={{ marginTop: 1, marginRight: 5 }} />
+          <Text style={styles.inlineErrorText}>{error}</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -259,6 +282,20 @@ export const styles = StyleSheet.create({
     minHeight: 112,
     paddingTop: 12,
     textAlignVertical: 'top',
+  },
+  inlineErrorRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 5,
+    marginLeft: 2,
+    paddingRight: 4,
+  },
+  inlineErrorText: {
+    flex: 1,
+    color: '#EF4444',
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '600',
   },
   stateBox: {
     minHeight: 170,

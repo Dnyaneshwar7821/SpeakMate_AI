@@ -21,7 +21,7 @@ public class VerifyOtpRequest {
 	private String otp;
 
 	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
+	public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
 
 	public String getOtp() { return otp; }
 	public void setOtp(String otp) { this.otp = otp; }
