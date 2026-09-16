@@ -27,6 +27,9 @@ export default defineConfig({
       "@admin-context": path.resolve(__dirname, "./src/Admin_panel/context"),
     },
   },
+  optimizeDeps: {
+    include: ["jspdf"],
+  },
   server: {
     port: 5173,
     host: true,

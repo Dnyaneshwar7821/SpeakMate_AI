@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.util.ValidationUtils;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -82,7 +83,7 @@ public class User {
 		createdAt = LocalDateTime.now();
 		updatedAt = LocalDateTime.now();
 		if (this.email != null) {
-			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(this.email);
+			this.email = ValidationUtils.normalizeEmail(this.email);
 		}
 	}
 
@@ -90,7 +91,7 @@ public class User {
 	public void onUpdate() {
 		updatedAt = LocalDateTime.now();
 		if (this.email != null) {
-			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(this.email);
+			this.email = ValidationUtils.normalizeEmail(this.email);
 		}
 	}
 
@@ -202,7 +203,7 @@ public class User {
 	public void setLastName(String lastName) { this.lastName = lastName; }
 
 	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email); }
+	public void setEmail(String email) { this.email = ValidationUtils.normalizeEmail(email); }
 
 	public String getPassword() { return password; }
 	public void setPassword(String password) { this.password = password; }
@@ -342,7 +343,7 @@ public class User {
 
 	public static abstract class UserBuilder<C extends User, B extends UserBuilder<C, B>> {
 		public B email(String email) {
-			this.email = com.rslsolution.speakmateai.util.ValidationUtils.normalizeEmail(email);
+			this.email = ValidationUtils.normalizeEmail(email);
 			return self();
 		}
 	}
