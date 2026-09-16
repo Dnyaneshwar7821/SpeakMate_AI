@@ -29,4 +29,7 @@ public interface VocabularyRepository extends JpaRepository<Vocabulary, Long> {
 	default List<Vocabulary> findByStudentAndFavoriteTrue(Student student) {
 		return findByUserAndFavoriteTrue(student);
 	}
+
+	@org.springframework.data.jpa.repository.Query("SELECT v FROM Vocabulary v WHERE v.user.id IN :userIds AND v.createdAt >= :since ORDER BY v.createdAt DESC")
+	List<Vocabulary> findByUserIdsAndCreatedAtAfter(@org.springframework.data.repository.query.Param("userIds") java.util.Collection<Long> userIds, @org.springframework.data.repository.query.Param("since") java.time.LocalDateTime since);
 }

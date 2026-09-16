@@ -91,7 +91,7 @@ export function AuthProvider({ children }) {
             parsedUser = JSON.parse(storedUser);
             setUser(parsedUser);
             syncUserProfile(parsedUser);
-          } catch (e) {}
+          } catch (e) { }
         }
 
         const me = await authService.me().catch(() => null);
@@ -183,7 +183,7 @@ export function AuthProvider({ children }) {
           return prev;
         });
       }
-    } catch {}
+    } catch { }
   }, []);
 
   useEffect(() => {
@@ -216,7 +216,7 @@ export function AuthProvider({ children }) {
         }
       }
       keysToRemove.forEach((k) => localStorage.removeItem(k));
-    } catch (e) {}
+    } catch (e) { }
 
     setToken(null);
     setUser(null);

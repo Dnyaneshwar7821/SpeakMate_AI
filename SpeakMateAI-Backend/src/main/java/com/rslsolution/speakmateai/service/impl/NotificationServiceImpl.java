@@ -243,6 +243,16 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Override
 	public NotificationResponse sendNotification(String recipientEmail, String title, String message, NotificationType type, Long entityId, String entityType) {
+		if (recipientEmail == null || recipientEmail.isBlank()) {
+			return null;
+		}
+
+		// Deduplication guard: Check if identical notification was sent to recipient in the last 10 seconds
+		java.time.LocalDateTime tenSecondsAgo = java.time.LocalDateTime.now().minusSeconds(10);
+		if (notificationRepository.existsRecentDuplicate(recipientEmail, title, tenSecondsAgo)) {
+			logger.info("Skipping duplicate notification for email: {}, title: {}", recipientEmail, title);
+			return null;
+		}
 		User user = userRepository.findByEmail(recipientEmail).orElse(null);
 
 		Notification notification = Notification.builder()
@@ -269,16 +279,24 @@ public class NotificationServiceImpl implements NotificationService {
 
 	@Override
 	public void notifyAdmins(String title, String message, NotificationType type, Long entityId, String entityType) {
+		java.util.Set<String> recipientEmails = new java.util.HashSet<>();
+
 		List<Admin> admins = adminRepository.findAll();
 		for (Admin admin : admins) {
-			sendNotification(admin.getEmail(), title, message, type, entityId, entityType);
+			if (admin.getEmail() != null && !admin.getEmail().isBlank()) {
+				recipientEmails.add(admin.getEmail().trim());
+			}
 		}
 
 		List<User> userAdmins = userRepository.findByRole(Role.SUPER_ADMIN);
 		for (User adminUser : userAdmins) {
-			if (adminUser.getEmail() != null) {
-				sendNotification(adminUser.getEmail(), title, message, type, entityId, entityType);
+			if (adminUser.getEmail() != null && !adminUser.getEmail().isBlank()) {
+				recipientEmails.add(adminUser.getEmail().trim());
 			}
+		}
+
+		for (String email : recipientEmails) {
+			sendNotification(email, title, message, type, entityId, entityType);
 		}
 	}
 
@@ -287,10 +305,14 @@ public class NotificationServiceImpl implements NotificationService {
 		if (schoolId == null) return;
 		List<User> schoolAdmins = userRepository.findBySchoolIdAndRole(schoolId, Role.SCHOOL_ADMIN);
 		if (schoolAdmins != null) {
+			java.util.Set<String> recipientEmails = new java.util.HashSet<>();
 			for (User admin : schoolAdmins) {
 				if (admin.getEmail() != null && !admin.getEmail().isBlank()) {
-					sendNotification(admin.getEmail(), title, message, type, entityId, entityType);
+					recipientEmails.add(admin.getEmail().trim());
 				}
+			}
+			for (String email : recipientEmails) {
+				sendNotification(email, title, message, type, entityId, entityType);
 			}
 		}
 	}

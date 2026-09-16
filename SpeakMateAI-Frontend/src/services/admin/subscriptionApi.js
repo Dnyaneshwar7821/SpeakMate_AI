@@ -61,6 +61,42 @@ export const subscriptionApi = {
   getStatistics: async () => {
     const response = await apiClient.get("/api/admin/subscriptions/statistics");
     return response.data;
+  },
+
+  // Get single plan by ID
+  getPlanById: async (id) => {
+    const response = await apiClient.get(`/api/admin/subscriptions/${id}`);
+    return response.data;
+  },
+
+  // Create custom plan
+  createPlan: async (planData) => {
+    const response = await apiClient.post("/api/admin/subscriptions", planData);
+    return response.data;
+  },
+
+  // Update plan
+  updatePlan: async (id, planData) => {
+    const response = await apiClient.put(`/api/admin/subscriptions/${id}`, planData);
+    return response.data;
+  },
+
+  // Activate plan
+  activatePlan: async (id) => {
+    const response = await apiClient.patch(`/api/admin/subscriptions/${id}/activate`);
+    return response.data;
+  },
+
+  // Deactivate plan
+  deactivatePlan: async (id) => {
+    const response = await apiClient.patch(`/api/admin/subscriptions/${id}/deactivate`);
+    return response.data;
+  },
+
+  // Delete plan (soft delete/deactivate)
+  deletePlan: async (id) => {
+    const response = await apiClient.delete(`/api/admin/subscriptions/${id}`);
+    return response.data;
   }
 };
 

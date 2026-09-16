@@ -73,31 +73,38 @@ public class GrammarServiceImpl implements GrammarService {
 				correctedText = (String) data.get("correctedSentence");
 			}
 			
-			Boolean isCorrect = (Boolean) data.get("isCorrect");
+			Boolean isCorrect = Boolean.TRUE.equals(data.get("isCorrect"));
 			List<?> errorsList = (List<?>) data.get("errors");
 			
+			String cleanOrig = originalText.trim().replaceAll("[\\p{Punct}]+", "").toLowerCase();
+			String cleanCorr = correctedText.trim().replaceAll("[\\p{Punct}]+", "").toLowerCase();
+			boolean textChanged = !cleanOrig.equals(cleanCorr);
+
 			if (errorsList != null && !errorsList.isEmpty()) {
 				StringBuilder sb = new StringBuilder();
 				for (int i = 0; i < errorsList.size(); i++) {
 					java.util.Map<?, ?> err = (java.util.Map<?, ?>) errorsList.get(i);
 					sb.append(i + 1).append(". [")
-					  .append(err.get("type")).append("] ")
-					  .append(err.get("issue"))
-					  .append(" (Suggested: \"").append(err.get("correction")).append("\")");
+					  .append(err.get("type") != null ? err.get("type") : "Grammar").append("] ")
+					  .append(err.get("issue") != null ? err.get("issue") : "Grammatical mistake detected.")
+					  .append(" (Suggested: \"").append(err.get("correction") != null ? err.get("correction") : correctedText).append("\")");
 					if (i < errorsList.size() - 1) {
 						sb.append("\n");
 					}
 				}
 				explanation = sb.toString();
 				grammarScore = Math.max(40.0, 100.0 - (errorsList.size() * 15.0));
+			} else if (!isCorrect || textChanged) {
+				explanation = "1. [Sentence Structure] Incorrect word order or syntax. (Suggested: \"" + correctedText + "\")";
+				grammarScore = 70.0;
 			} else {
 				explanation = "Great job! Your sentence is 100% grammatically correct with no errors.";
 				grammarScore = 100.0;
 			}
 		} catch (Exception e) {
 			correctedText = originalText;
-			explanation = "Grammar check succeeded, but could not parse feedback details.";
-			grammarScore = 90.0;
+			explanation = "1. [Grammar Analysis] Unable to parse response, please try again.";
+			grammarScore = 75.0;
 		}
 
 		GrammarHistory grammarHistory = GrammarHistory.builder().student(user).originalText(originalText)
@@ -110,9 +117,9 @@ public class GrammarServiceImpl implements GrammarService {
 			com.rslsolution.speakmateai.entity.Progress progress = progressRepository.findByStudent(user)
 					.orElseGet(() -> com.rslsolution.speakmateai.entity.Progress.builder().student(user).xp(0).level(1).currentStreak(0).longestStreak(0).totalPracticeMinutes(0).totalSpeakingSessions(0).totalGrammarChecks(0).totalVocabularyWords(0).build());
 			progress.setTotalGrammarChecks((progress.getTotalGrammarChecks() == null ? 0 : progress.getTotalGrammarChecks()) + 1);
-			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 15;
+			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + 8;
 			progress.setXp(newXp);
-			progress.setLevel((newXp / 500) + 1);
+			progress.setLevel(Math.max(1, (newXp / 500) + 1));
 			progressRepository.save(progress);
 		} catch (Exception ex) {
 			// Ignore progress update errors

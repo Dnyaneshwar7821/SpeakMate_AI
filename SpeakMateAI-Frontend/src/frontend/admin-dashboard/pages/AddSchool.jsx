@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Building2, Plus, Search, Edit, Trash2, AlertTriangle, X, CheckCircle2, Mail, ShieldCheck, UserX, UserCheck, User } from "lucide-react";
+import { ArrowLeft, Building2, Plus, Search, Edit, Trash2, AlertTriangle, X, CheckCircle2, Mail, ShieldCheck, UserX, UserCheck, User, CreditCard, Check, Sparkles, Zap, Users, Clock, Shield } from "lucide-react";
 
 import Button from "@components/common/Button";
 import Input from "@components/common/Input";
@@ -11,7 +11,10 @@ import AcademicStructureBuilder from "@admin/components/AcademicStructureBuilder
 import InsigniaBadge from "@components/common/InsigniaBadge";
 import { schoolApi } from "@services/admin/schoolApi";
 import { adminUserApi } from "@services/admin/adminUserApi";
+import { subscriptionApi } from "@services/admin/subscriptionApi";
+import { openRazorpayCheckout } from "@utils/razorpayUtils";
 import { getIndianMobileError, normalizeIndianMobile, sanitizeMobileInput } from "@utils/phoneValidator";
+import PaymentSuccessModal from "@admin/components/PaymentSuccessModal";
 
 const EMPTY_FORM = {
     schoolName: "",
@@ -46,6 +49,15 @@ export function AddSchool() {
     const [otpError, setOtpError] = useState("");
     const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
     const [verificationError, setVerificationError] = useState("");
+
+    // Subscription Plan & Multi-Step Creation state
+    const [formStep, setFormStep] = useState(1); // 1 = Details & Email Verification, 2 = Plan Selection & Payment
+    const [availablePlans, setAvailablePlans] = useState([]);
+    const [isLoadingPlans, setIsLoadingPlans] = useState(false);
+    const [selectedPlanId, setSelectedPlanId] = useState(null);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [paymentSuccessModalOpen, setPaymentSuccessModalOpen] = useState(false);
+    const [paymentSuccessData, setPaymentSuccessData] = useState(null);
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [toasts, setToasts] = useState([]);
@@ -163,13 +175,107 @@ export function AddSchool() {
         loadSchools(Boolean(schoolsCache));
     }, []);
 
+    const parseFeatures = (features) => {
+        if (!features) return [];
+        if (Array.isArray(features)) return features;
+        try {
+            const parsed = JSON.parse(features);
+            if (Array.isArray(parsed)) return parsed;
+        } catch (_) {}
+        return String(features).split(/[,\n]/).map(f => f.trim()).filter(Boolean);
+    };
+
+    const loadAvailablePlans = async () => {
+        setIsLoadingPlans(true);
+        try {
+            const res = await subscriptionApi.getAllPlans(0, 100);
+            const list = res?.data?.content || res?.content || (Array.isArray(res) ? res : []);
+            const activePlans = list.filter(p => p.isActive !== false);
+
+            if (activePlans.length > 0) {
+                setAvailablePlans(activePlans);
+                if (!selectedPlanId) {
+                    setSelectedPlanId(activePlans[0].id);
+                }
+            } else {
+                const fallbackPlans = [
+                    {
+                        id: 1,
+                        planName: "Annual Institution Standard",
+                        price: 1499,
+                        currency: "INR",
+                        billingCycle: "YEARLY",
+                        durationMonths: 12,
+                        studentLimit: 500,
+                        aiMinutesLimit: 300,
+                        features: "Up to 500 Students, AI Speaking Practice, Teacher & Division Management, Analytics Dashboard, Email Support"
+                    },
+                    {
+                        id: 2,
+                        planName: "Annual Institution Pro",
+                        price: 1999,
+                        currency: "INR",
+                        billingCycle: "YEARLY",
+                        durationMonths: 12,
+                        studentLimit: 1500,
+                        aiMinutesLimit: 1000,
+                        features: "Up to 1500 Students, Unlimited AI Speaking, Advanced Speaking Analytics, Priority Support, Custom Assessments"
+                    }
+                ];
+                setAvailablePlans(fallbackPlans);
+                if (!selectedPlanId) {
+                    setSelectedPlanId(fallbackPlans[0].id);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to load subscription plans:", err);
+            const fallbackPlans = [
+                {
+                    id: 1,
+                    planName: "Annual Institution Standard",
+                    price: 1499,
+                    currency: "INR",
+                    billingCycle: "YEARLY",
+                    durationMonths: 12,
+                    studentLimit: 500,
+                    aiMinutesLimit: 300,
+                    features: "Up to 500 Students, AI Speaking Practice, Teacher & Division Management, Analytics Dashboard, Email Support"
+                },
+                {
+                    id: 2,
+                    planName: "Annual Institution Pro",
+                    price: 1999,
+                    currency: "INR",
+                    billingCycle: "YEARLY",
+                    durationMonths: 12,
+                    studentLimit: 1500,
+                    aiMinutesLimit: 1000,
+                    features: "Up to 1500 Students, Unlimited AI Speaking, Advanced Speaking Analytics, Priority Support, Custom Assessments"
+                }
+            ];
+            setAvailablePlans(fallbackPlans);
+            if (!selectedPlanId) {
+                setSelectedPlanId(fallbackPlans[0].id);
+            }
+        } finally {
+            setIsLoadingPlans(false);
+        }
+    };
+
+    const selectedPlan = useMemo(() => {
+        if (!availablePlans || availablePlans.length === 0) return null;
+        return availablePlans.find(p => p.id === selectedPlanId) || availablePlans[0];
+    }, [availablePlans, selectedPlanId]);
+
     const openCreateForm = () => {
         handleReset();
         setPageMode("form");
+        setFormStep(1);
+        loadAvailablePlans();
     };
 
     const handleBackToSchools = () => {
-        if (isSubmitting) return;
+        if (isSubmitting || isProcessingPayment) return;
         handleReset();
         setPageMode("list");
     };
@@ -311,8 +417,8 @@ export function AddSchool() {
         }
     };
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+    const handleProceedToSubscription = (event) => {
+        if (event) event.preventDefault();
         if (!validate()) return;
 
         if (!emailVerified || !verificationToken) {
@@ -329,14 +435,152 @@ export function AddSchool() {
             return;
         }
 
+        if (!availablePlans || availablePlans.length === 0) {
+            loadAvailablePlans();
+        }
+        setFormStep(2);
+    };
+
+    const handleProceedToPayment = async () => {
+        if (!selectedPlan) {
+            triggerToast("Please select a subscription plan.");
+            return;
+        }
+
+        setIsProcessingPayment(true);
+        try {
+            // 1. Create Razorpay Payment Order via backend
+            const orderRes = await schoolApi.createSchoolPaymentOrder({
+                planId: selectedPlan.id,
+                schoolName: form.schoolName.trim(),
+                adminEmail: form.adminEmail.trim(),
+                verificationToken: verificationToken
+            });
+
+            // 2. Open Razorpay Checkout modal
+            await openRazorpayCheckout({
+                orderData: orderRes,
+                onSuccess: async (paymentData) => {
+                    setIsSubmitting(true);
+                    try {
+                        // Split Admin Name into First and Last names
+                        const nameParts = form.adminName.trim().split(/\s+/);
+                        const adminFirstName = nameParts[0] || "";
+                        const adminLastName = nameParts.slice(1).join(" ") || "Admin";
+
+                        // Combine school address with city, state, pincode for backend TEXT address
+                        const addressParts = [
+                            form.schoolAddress.trim(),
+                            form.city.trim(),
+                            form.state.trim(),
+                            form.pincode.trim()
+                        ].filter(Boolean);
+                        const combinedAddress = addressParts.join(", ");
+
+                        // Calculate legacy divisionCount based on max configured divisions
+                        const maxDivisions = academicStructure.reduce((max, std) => 
+                            std.divisions.length > max ? std.divisions.length : max
+                        , 1);
+
+                        const payload = {
+                            schoolName: form.schoolName.trim(),
+                            address: combinedAddress,
+                            contactPhone: normalizeIndianMobile(form.adminPhone),
+                            divisionCount: maxDivisions,
+                            adminFirstName: adminFirstName,
+                            adminLastName: adminLastName,
+                            adminEmail: form.adminEmail.trim(),
+                            verificationToken: verificationToken,
+                            subscriptionPlanId: selectedPlan.id,
+                            razorpayOrderId: paymentData.razorpay_order_id,
+                            razorpayPaymentId: paymentData.razorpay_payment_id,
+                            razorpaySignature: paymentData.razorpay_signature
+                        };
+
+                        // 1. Create School with Subscription details and trigger email
+                        const newSchool = await schoolApi.createSchool(payload);
+                        try {
+                            localStorage.removeItem(`pwd_set_${payload.adminEmail.toLowerCase().trim()}`);
+                        } catch (_) {}
+                        
+                        try {
+                            // 2. Configure Academic Structure
+                            await schoolApi.configureSchoolStandards(newSchool.id, academicStructure);
+                        } catch (configErr) {
+                            console.error("Failed to configure academic structure:", configErr);
+                        }
+
+                        const successData = {
+                            schoolName: form.schoolName.trim(),
+                            schoolCode: newSchool?.schoolCode || ("SCH-" + (newSchool?.id || "ACTIVE")),
+                            adminName: form.adminName.trim(),
+                            adminEmail: payload.adminEmail,
+                            adminPhone: payload.contactPhone,
+                            schoolAddress: combinedAddress,
+                            planName: selectedPlan.planName,
+                            planPrice: selectedPlan.price,
+                            durationMonths: selectedPlan.durationMonths,
+                            studentLimit: selectedPlan.studentLimit,
+                            paymentId: paymentData?.razorpay_payment_id || "PAY-VERIFIED",
+                            orderId: paymentData?.razorpay_order_id || "ORD-COMPLETED",
+                            paymentDate: new Date().toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" }),
+                            isFree: false
+                        };
+                        setPaymentSuccessData(successData);
+                        setPaymentSuccessModalOpen(true);
+                        triggerToast(`Transaction successful! Institutional license for "${form.schoolName}" is active.`);
+                        loadSchools();
+
+                    } catch (err) {
+                        console.error("Failed to create school after payment:", err);
+                        const errMsg = err.response?.data?.message || err.message || "An error occurred while finalizing school creation.";
+                        triggerToast(errMsg);
+                        
+                        if (err.response?.status === 400 || err.response?.status === 403) {
+                            const lower = errMsg.toLowerCase();
+                            if (lower.includes("verification") || lower.includes("token") || lower.includes("expired") || lower.includes("consumed")) {
+                                setEmailVerified(false);
+                                setVerificationToken(null);
+                                setVerifiedAdminEmail(null);
+                                setFormStep(1);
+                            }
+                        }
+                    } finally {
+                        setIsSubmitting(false);
+                        setIsProcessingPayment(false);
+                    }
+                },
+                onFailure: (paymentErr) => {
+                    console.error("Payment failed or cancelled:", paymentErr);
+                    const msg = paymentErr?.description || paymentErr?.message || "Payment transaction could not be completed. Please try again.";
+                    triggerToast(msg);
+                    setIsProcessingPayment(false);
+                },
+                onDismiss: () => {
+                    setIsProcessingPayment(false);
+                }
+            });
+
+        } catch (err) {
+            console.error("Failed to create payment order:", err);
+            const errMsg = err.response?.data?.message || err.message || "Unable to initiate payment order.";
+            triggerToast(errMsg);
+            setIsProcessingPayment(false);
+        }
+    };
+
+    const handleCreateFreeSchool = async () => {
+        if (!selectedPlan) {
+            triggerToast("Please select a subscription plan.");
+            return;
+        }
+
         setIsSubmitting(true);
         try {
-            // Split Admin Name into First and Last names
             const nameParts = form.adminName.trim().split(/\s+/);
             const adminFirstName = nameParts[0] || "";
             const adminLastName = nameParts.slice(1).join(" ") || "Admin";
 
-            // Combine school address with city, state, pincode for backend TEXT address
             const addressParts = [
                 form.schoolAddress.trim(),
                 form.city.trim(),
@@ -345,7 +589,6 @@ export function AddSchool() {
             ].filter(Boolean);
             const combinedAddress = addressParts.join(", ");
 
-            // Calculate legacy divisionCount based on max configured divisions
             const maxDivisions = academicStructure.reduce((max, std) => 
                 std.divisions.length > max ? std.divisions.length : max
             , 1);
@@ -358,31 +601,48 @@ export function AddSchool() {
                 adminFirstName: adminFirstName,
                 adminLastName: adminLastName,
                 adminEmail: form.adminEmail.trim(),
-                verificationToken: verificationToken
+                verificationToken: verificationToken,
+                subscriptionPlanId: selectedPlan.id,
+                razorpayOrderId: null,
+                razorpayPaymentId: null,
+                razorpaySignature: null
             };
 
-            // 1. Create School
             const newSchool = await schoolApi.createSchool(payload);
-            
             try {
-                // 2. Configure Academic Structure
+                localStorage.removeItem(`pwd_set_${payload.adminEmail.toLowerCase().trim()}`);
+            } catch (_) {}
+
+            try {
                 await schoolApi.configureSchoolStandards(newSchool.id, academicStructure);
-                
-                triggerToast(`School created successfully! Complete institutional details and credentials emailed to ${payload.adminEmail}`);
-                handleReset();
-                setPageMode("list");
-                await loadSchools();
             } catch (configErr) {
                 console.error("Failed to configure academic structure:", configErr);
-                triggerToast(`School created and credentials emailed to ${payload.adminEmail}, but academic structure configuration could not be saved.`);
-                handleReset();
-                setPageMode("list");
-                await loadSchools();
             }
 
+            const successData = {
+                schoolName: form.schoolName.trim(),
+                schoolCode: newSchool?.schoolCode || ("SCH-" + (newSchool?.id || "ACTIVE")),
+                adminName: form.adminName.trim(),
+                adminEmail: payload.adminEmail,
+                adminPhone: payload.contactPhone,
+                schoolAddress: combinedAddress,
+                planName: selectedPlan.planName,
+                planPrice: 0,
+                durationMonths: selectedPlan.durationMonths,
+                studentLimit: selectedPlan.studentLimit,
+                paymentId: "FREE_INSTITUTIONAL_GRANT",
+                orderId: "INSTITUTIONAL_SETUP",
+                paymentDate: new Date().toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" }),
+                isFree: true
+            };
+            setPaymentSuccessData(successData);
+            setPaymentSuccessModalOpen(true);
+            triggerToast(`School "${form.schoolName}" created successfully with Free Plan!`);
+            loadSchools();
+
         } catch (err) {
-            console.error("Failed to create school:", err);
-            const errMsg = err.response?.data?.message || err.message || "An error occurred while creating the school.";
+            console.error("Failed to create free school:", err);
+            const errMsg = err.response?.data?.message || err.message || "An error occurred while finalizing school creation.";
             triggerToast(errMsg);
             
             if (err.response?.status === 400 || err.response?.status === 403) {
@@ -391,20 +651,23 @@ export function AddSchool() {
                     setEmailVerified(false);
                     setVerificationToken(null);
                     setVerifiedAdminEmail(null);
+                    setFormStep(1);
                 }
-            }
-
-            const validationErrors = err.response?.data?.errors;
-            if (validationErrors && typeof validationErrors === "object" && validationErrors.contactPhone) {
-                setErrors((prev) => ({ ...prev, adminPhone: validationErrors.contactPhone }));
             }
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    const handleCloseSuccessModal = () => {
+        setPaymentSuccessModalOpen(false);
+        setPaymentSuccessData(null);
+        handleReset();
+        setPageMode("list");
+    };
+
     const handleReset = () => {
-        if (isSubmitting) return;
+        if (isSubmitting || isProcessingPayment) return;
         setForm(EMPTY_FORM);
         setAcademicStructure([]);
         setErrors({});
@@ -415,6 +678,7 @@ export function AddSchool() {
         setOtpError("");
         setOtpModalOpen(false);
         setVerificationError("");
+        setFormStep(1);
     };
 
     const confirmDeleteSchool = (school) => {
@@ -427,9 +691,9 @@ export function AddSchool() {
         const schoolName = schoolToDelete.name || "School";
         setIsDeleting(true);
         try {
+            await schoolApi.deleteSchool(targetId);
             setSchools((prev) => prev.filter((s) => s.id !== targetId));
             setSchoolToDelete(null);
-            await schoolApi.deleteSchool(targetId);
             window.dispatchEvent(new CustomEvent("school_data_updated", { detail: { type: "school", action: "delete", id: targetId } }));
             triggerToast(`School "${schoolName}" deleted successfully`);
             await loadSchools();
@@ -635,6 +899,7 @@ export function AddSchool() {
                                             <th className="px-4 py-3.5 font-semibold">Address</th>
                                             <th className="px-4 py-3.5 font-semibold">Contact Phone</th>
                                             <th className="px-4 py-3.5 font-semibold">Academic Structure</th>
+                                            <th className="px-4 py-3.5 font-semibold">Subscription Plan</th>
                                             <th className="px-4 py-3.5 font-semibold">Status</th>
                                             <th className="px-4 py-3.5 font-semibold sm:px-5">Created Date</th>
                                             <th className="px-4 py-3.5 font-semibold text-right sm:pr-5">Actions</th>
@@ -699,6 +964,23 @@ export function AddSchool() {
                                                             </div>
                                                         )}
                                                     </div>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    {school.subscriptionPlanName ? (
+                                                        <div className="flex flex-col items-start gap-1">
+                                                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                                                                <Sparkles className="h-3 w-3" />
+                                                                {school.subscriptionPlanName}
+                                                            </span>
+                                                            <span className="text-[11px] font-medium text-[var(--text-muted)]">
+                                                                ₹{school.subscriptionPrice != null ? Number(school.subscriptionPrice).toLocaleString("en-IN") : "0"} {school.subscriptionBillingCycle ? `(${school.subscriptionBillingCycle.toLowerCase()})` : ""}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="inline-flex items-center text-xs text-[var(--text-muted)] italic">
+                                                            Standard Plan
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3">
                                                     <button
@@ -792,196 +1074,425 @@ export function AddSchool() {
                         </div>
                     </motion.div>
 
-                    <SectionCard
-                        title="School Details"
-                        subtitle="Basic information about the school"
-                        delay={0.05}
-                    >
-                        <form onSubmit={handleSubmit}>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="sm:col-span-2">
-                                    <Input
-                                        label="School Name"
-                                        placeholder="Enter School Name"
-                                        value={form.schoolName}
-                                        onChange={update("schoolName")}
-                                        error={errors.schoolName}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-                                <div className="sm:col-span-2">
-                                    <Input
-                                        label="School Address"
-                                        placeholder="Enter School Address"
-                                        value={form.schoolAddress}
-                                        onChange={update("schoolAddress")}
-                                        error={errors.schoolAddress}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-                                <div>
-                                    <Input
-                                        label="School Email"
-                                        type="email"
-                                        placeholder="Enter School Email"
-                                        value={form.schoolEmail}
-                                        onChange={update("schoolEmail")}
-                                        error={errors.schoolEmail}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-                                <div>
-                                    <Input
-                                        label="City"
-                                        placeholder="Enter City"
-                                        value={form.city}
-                                        onChange={update("city")}
-                                        error={errors.city}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-                                <div>
-                                    <Input
-                                        label="State"
-                                        placeholder="Enter State"
-                                        value={form.state}
-                                        onChange={update("state")}
-                                        error={errors.state}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-                                <div>
-                                    <Input
-                                        label="Pincode"
-                                        placeholder="Enter Pincode"
-                                        value={form.pincode}
-                                        onChange={update("pincode")}
-                                        error={errors.pincode}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
+                    {/* Step Wizard Indicator */}
+                    <div className="mb-6 flex items-center justify-between rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4 sm:p-5 shadow-xs">
+                        <div className="flex items-center gap-3">
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold transition-colors ${
+                                formStep === 1 
+                                    ? 'bg-indigo-600 text-white shadow-xs' 
+                                    : 'bg-emerald-600 text-white'
+                            }`}>
+                                {formStep > 1 ? <Check className="h-4 w-4" /> : "1"}
                             </div>
-                        </form>
-                    </SectionCard>
+                            <div>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Step 1</p>
+                                <p className="text-sm font-bold text-[var(--text-primary)]">School & Admin Details</p>
+                            </div>
+                        </div>
+                        <div className="hidden sm:block h-0.5 flex-1 max-w-[100px] md:max-w-[160px] bg-slate-200 dark:bg-slate-800 mx-4" />
+                        <div className="flex items-center gap-3">
+                            <div className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold transition-colors ${
+                                formStep === 2 
+                                    ? 'bg-indigo-600 text-white shadow-xs' 
+                                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                            }`}>
+                                2
+                            </div>
+                            <div>
+                                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Step 2</p>
+                                <p className="text-sm font-bold text-[var(--text-primary)]">Subscription Plan & Payment</p>
+                            </div>
+                        </div>
+                    </div>
 
-                    <SectionCard
-                        title="Academic Structure"
-                        subtitle="Configure the standards and divisions offered by this school"
-                        delay={0.08}
-                    >
-                        <AcademicStructureBuilder
-                            value={academicStructure}
-                            onChange={(newStructure) => {
-                                setAcademicStructure(newStructure);
-                                if (errors.academicStructure) {
-                                    setErrors(prev => {
-                                        const next = { ...prev };
-                                        delete next.academicStructure;
-                                        return next;
-                                    });
-                                }
-                            }}
-                            disabled={isSubmitting}
-                        />
-                        {errors.academicStructure && (
-                            <p className="mt-2 text-sm text-rose-500 font-medium">
-                                {errors.academicStructure}
-                            </p>
-                        )}
-                    </SectionCard>
-
-                    <SectionCard
-                        title="School Admin Details"
-                        subtitle="Invite the school administrator to set up their account"
-                        delay={0.1}
-                    >
-                        <form onSubmit={handleSubmit} autoComplete="off">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="sm:col-span-2">
-                                    <Input
-                                        label="School Admin Name"
-                                        placeholder="Enter School Admin Name"
-                                        value={form.adminName}
-                                        onChange={update("adminName")}
-                                        error={errors.adminName}
-                                        disabled={isSubmitting}
-                                    />
+                    {formStep === 1 ? (
+                        <>
+                            <SectionCard
+                                title="School Details"
+                                subtitle="Basic information about the school"
+                                delay={0.05}
+                            >
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="sm:col-span-2">
+                                        <Input
+                                            label="School Name"
+                                            placeholder="Enter School Name"
+                                            value={form.schoolName}
+                                            onChange={update("schoolName")}
+                                            error={errors.schoolName}
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <Input
+                                            label="School Email"
+                                            type="email"
+                                            placeholder="Enter School Email"
+                                            value={form.schoolEmail}
+                                            onChange={update("schoolEmail")}
+                                            error={errors.schoolEmail}
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <Input
+                                            label="School Address"
+                                            placeholder="Enter School Address"
+                                            value={form.schoolAddress}
+                                            onChange={update("schoolAddress")}
+                                            error={errors.schoolAddress}
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Input
+                                            label="City"
+                                            placeholder="Enter City"
+                                            value={form.city}
+                                            onChange={update("city")}
+                                            error={errors.city}
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Input
+                                            label="State"
+                                            placeholder="Enter State"
+                                            value={form.state}
+                                            onChange={update("state")}
+                                            error={errors.state}
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Input
+                                            label="Pincode"
+                                            placeholder="Enter Pincode"
+                                            value={form.pincode}
+                                            onChange={update("pincode")}
+                                            error={errors.pincode}
+                                            disabled={isSubmitting}
+                                        />
+                                    </div>
                                 </div>
-                                <div className="sm:col-span-2">
-                                    <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
-                                        School Admin Email
-                                    </label>
-                                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                                        <div className="flex-1">
+                            </SectionCard>
+
+                            <SectionCard
+                                title="Academic Structure"
+                                subtitle="Configure the standards and divisions offered by this school"
+                                delay={0.08}
+                            >
+                                <AcademicStructureBuilder
+                                    value={academicStructure}
+                                    onChange={(newStructure) => {
+                                        setAcademicStructure(newStructure);
+                                        if (errors.academicStructure) {
+                                            setErrors(prev => {
+                                                const next = { ...prev };
+                                                delete next.academicStructure;
+                                                return next;
+                                            });
+                                        }
+                                    }}
+                                    disabled={isSubmitting}
+                                />
+                                {errors.academicStructure && (
+                                    <p className="mt-2 text-sm text-rose-500 font-medium">
+                                        {errors.academicStructure}
+                                    </p>
+                                )}
+                            </SectionCard>
+
+                            <SectionCard
+                                title="School Admin Details"
+                                subtitle="Invite the school administrator to set up their account"
+                                delay={0.1}
+                            >
+                                <form onSubmit={handleProceedToSubscription} autoComplete="off">
+                                    <div className="grid gap-4 sm:grid-cols-2">
+                                        <div className="sm:col-span-2">
                                             <Input
-                                                placeholder="Enter School Admin Email"
-                                                type="email"
-                                                value={form.adminEmail}
-                                                onChange={update("adminEmail")}
-                                                error={errors.adminEmail}
-                                                disabled={isSubmitting || isSendingOtp}
-                                                autoComplete="off"
+                                                label="School Admin Name"
+                                                placeholder="Enter School Admin Name"
+                                                value={form.adminName}
+                                                onChange={update("adminName")}
+                                                error={errors.adminName}
+                                                disabled={isSubmitting}
                                             />
                                         </div>
-                                        {emailVerified ? (
-                                            <div className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-400">
-                                                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                                <span>Email Verified</span>
+                                        <div className="sm:col-span-2">
+                                            <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                                School Admin Email
+                                            </label>
+                                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                                                <div className="flex-1">
+                                                    <Input
+                                                        placeholder="Enter School Admin Email"
+                                                        type="email"
+                                                        value={form.adminEmail}
+                                                        onChange={update("adminEmail")}
+                                                        error={errors.adminEmail}
+                                                        disabled={isSubmitting || isSendingOtp}
+                                                        autoComplete="off"
+                                                    />
+                                                </div>
+                                                {emailVerified ? (
+                                                    <div className="inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-xs font-semibold text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-400">
+                                                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                                        <span>Email Verified</span>
+                                                    </div>
+                                                ) : (
+                                                    <Button
+                                                        type="button"
+                                                        variant="secondary"
+                                                        onClick={handleSendOtp}
+                                                        disabled={!form.adminEmail.trim() || isSendingOtp || isSubmitting}
+                                                        isLoading={isSendingOtp}
+                                                        loadingText="Sending OTP..."
+                                                        className="!h-11 shrink-0 px-5"
+                                                    >
+                                                        Verify
+                                                    </Button>
+                                                )}
                                             </div>
-                                        ) : (
-                                            <Button
-                                                type="button"
-                                                variant="secondary"
-                                                onClick={handleSendOtp}
-                                                disabled={!form.adminEmail.trim() || isSendingOtp || isSubmitting}
-                                                isLoading={isSendingOtp}
-                                                loadingText="Sending OTP..."
-                                                className="!h-11 shrink-0 px-5"
-                                            >
-                                                Verify
-                                            </Button>
-                                        )}
-                                    </div>
-                                    {verificationError && (
-                                        <p className="mt-1.5 text-xs font-medium text-rose-500">{verificationError}</p>
-                                    )}
+                                            {verificationError && (
+                                                <p className="mt-1.5 text-xs font-medium text-rose-500">{verificationError}</p>
+                                            )}
 
-                                    {/* Helper note upon successful OTP verification */}
-                                    {emailVerified && (
-                                        <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3.5 py-2 text-xs font-medium text-emerald-800 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-300">
-                                            <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                                            <span>Email verified. Login credentials and institutional details will be automatically emailed to this address upon school creation.</span>
+                                            {/* Helper note upon successful OTP verification */}
+                                            {emailVerified && (
+                                                <div className="mt-2.5 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3.5 py-2 text-xs font-medium text-emerald-800 dark:border-emerald-800/40 dark:bg-emerald-950/30 dark:text-emerald-300">
+                                                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                                    <span>Email verified! You can now choose a dynamic subscription plan for this school.</span>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
-                                <div>
-                                    <Input
-                                        label="School Admin Phone"
-                                        placeholder="Enter School Admin Phone"
-                                        value={form.adminPhone}
-                                        onChange={update("adminPhone")}
-                                        error={errors.adminPhone}
-                                        disabled={isSubmitting}
-                                    />
-                                </div>
-                            </div>
+                                        <div>
+                                            <Input
+                                                label="School Admin Phone"
+                                                placeholder="Enter School Admin Phone"
+                                                value={form.adminPhone}
+                                                onChange={update("adminPhone")}
+                                                error={errors.adminPhone}
+                                                disabled={isSubmitting}
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className="mt-6 flex flex-col-reverse items-center justify-end gap-3 sm:flex-row">
-                                <Button type="button" variant="secondary" onClick={handleReset} className="w-full sm:w-auto" disabled={isSubmitting}>
-                                    Reset
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    className="w-full sm:w-auto"
-                                    disabled={!emailVerified || !verificationToken || isSubmitting}
-                                    isLoading={isSubmitting}
-                                    loadingText="Creating School..."
+                                    <div className="mt-6 flex flex-col-reverse items-center justify-end gap-3 sm:flex-row">
+                                        <Button type="button" variant="secondary" onClick={handleReset} className="w-full sm:w-auto" disabled={isSubmitting}>
+                                            Reset
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            className="w-full sm:w-auto font-bold"
+                                            disabled={!emailVerified || !verificationToken || isSubmitting}
+                                        >
+                                            <span>Continue to Subscription Plan</span>
+                                            <ArrowLeft className="ml-1.5 h-4 w-4 rotate-180" />
+                                        </Button>
+                                    </div>
+                                </form>
+                            </SectionCard>
+                        </>
+                    ) : (
+                        <div className="space-y-6">
+                            <SectionCard
+                                title="Choose Institutional Subscription Plan"
+                                subtitle="Select the subscription plan tailored for this school. All enrolled students and teachers inherit the limits of this plan."
+                                delay={0.05}
+                            >
+                                {isLoadingPlans ? (
+                                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                                        <div className="h-9 w-9 animate-spin rounded-full border-3 border-indigo-200 border-t-indigo-600 dark:border-indigo-950 dark:border-t-indigo-500 shadow-sm" />
+                                        <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">Loading subscription plans...</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                                        {availablePlans.map((plan) => {
+                                            const isSelected = selectedPlanId === plan.id;
+                                            const featuresList = parseFeatures(plan.features);
+                                            const priceDisplay = plan.price != null ? Number(plan.price).toLocaleString("en-IN") : "0";
+                                            const cycleDisplay = plan.billingCycle || (plan.durationMonths ? `${plan.durationMonths} Mo` : "Year");
+
+                                            return (
+                                                <div
+                                                    key={plan.id}
+                                                    onClick={() => setSelectedPlanId(plan.id)}
+                                                    className={`relative flex flex-col justify-between rounded-2xl border-2 p-6 transition-all duration-200 cursor-pointer ${
+                                                        isSelected
+                                                            ? "border-indigo-600 bg-indigo-50/40 dark:bg-indigo-950/20 dark:border-indigo-500 shadow-md ring-2 ring-indigo-500/20"
+                                                            : "border-[var(--border-subtle)] bg-[var(--bg-surface)] hover:border-indigo-300 dark:hover:border-indigo-700/60 shadow-xs"
+                                                    }`}
+                                                >
+                                                    {isSelected && (
+                                                        <div className="absolute -top-3 right-4 inline-flex items-center gap-1 rounded-full bg-indigo-600 px-3 py-0.5 text-xs font-bold text-white shadow-xs">
+                                                            <Check className="h-3.5 w-3.5" />
+                                                            Selected
+                                                        </div>
+                                                    )}
+
+                                                    <div>
+                                                        <div className="flex items-center justify-between">
+                                                            <h4 className="text-lg font-bold text-[var(--text-primary)]">{plan.planName}</h4>
+                                                            <span className="inline-flex items-center rounded-md bg-indigo-100 dark:bg-indigo-900/40 px-2 py-0.5 text-[11px] font-bold text-indigo-700 dark:text-indigo-300">
+                                                                {plan.durationMonths ? `${plan.durationMonths} Months` : "Annual"}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="mt-4 flex items-baseline gap-1">
+                                                            <span className="text-3xl font-extrabold text-[var(--text-primary)]">
+                                                                ₹{priceDisplay}
+                                                            </span>
+                                                            <span className="text-xs font-semibold text-[var(--text-muted)]">
+                                                                / {cycleDisplay.toLowerCase()}
+                                                            </span>
+                                                        </div>
+
+                                                        <div className="mt-4 flex flex-wrap gap-2">
+                                                            <div className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                                                                <Users className="h-3.5 w-3.5" />
+                                                                <span>Up to {plan.studentLimit || 500} Students</span>
+                                                            </div>
+                                                            {plan.aiMinutesLimit && (
+                                                                <div className="inline-flex items-center gap-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/30 px-2.5 py-1 text-xs font-semibold text-purple-700 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">
+                                                                    <Zap className="h-3.5 w-3.5" />
+                                                                    <span>{plan.aiMinutesLimit} AI Mins / Student</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="mt-5 space-y-2 border-t border-[var(--border-subtle)] pt-4">
+                                                            <p className="text-xs font-bold uppercase tracking-wider text-[var(--text-muted)]">Included Features</p>
+                                                            {featuresList.length > 0 ? (
+                                                                <ul className="space-y-2">
+                                                                    {featuresList.slice(0, 5).map((feat, idx) => (
+                                                                        <li key={idx} className="flex items-start gap-2 text-xs text-[var(--text-secondary)]">
+                                                                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                                                                            <span>{feat}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            ) : (
+                                                                <p className="text-xs text-[var(--text-secondary)]">Full institutional speaking curriculum, admin control, and student performance tracking.</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="mt-6 pt-4 border-t border-[var(--border-subtle)]">
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setSelectedPlanId(plan.id);
+                                                            }}
+                                                            className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all ${
+                                                                isSelected
+                                                                    ? "bg-indigo-600 text-white shadow-xs hover:bg-indigo-700"
+                                                                    : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                                            }`}
+                                                        >
+                                                            {isSelected ? "Selected" : "Select This Plan"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </SectionCard>
+
+                            {/* Selected Plan Payment Summary Card */}
+                            {selectedPlan && (
+                                <SectionCard
+                                    title="Institutional Subscription & Payment Summary"
+                                    subtitle="Review your selection and proceed to secure Razorpay checkout"
+                                    delay={0.1}
                                 >
-                                    Create School
-                                </Button>
-                            </div>
-                        </form>
-                    </SectionCard>
+                                    <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-subtle)] p-5">
+                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="inline-flex items-center gap-1 rounded-md bg-indigo-100 dark:bg-indigo-900/40 px-2 py-0.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                                                        <Sparkles className="h-3.5 w-3.5" />
+                                                        {selectedPlan.planName}
+                                                    </span>
+                                                    <span className="text-xs font-medium text-[var(--text-muted)]">
+                                                        • {selectedPlan.durationMonths ? `${selectedPlan.durationMonths} Months` : "Annual"}
+                                                    </span>
+                                                </div>
+                                                <h4 className="mt-1 text-base font-bold text-[var(--text-primary)]">
+                                                    {form.schoolName || "Institutional Subscription"}
+                                                </h4>
+                                                <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                                                    Administrator: <span className="font-semibold text-[var(--text-primary)]">{form.adminName}</span> &bull; {form.adminEmail}
+                                                </p>
+                                            </div>
+                                            <div className="text-left md:text-right">
+                                                <p className="text-xs font-medium text-[var(--text-muted)]">Total Amount</p>
+                                                <p className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
+                                                    ₹{selectedPlan.price != null ? Number(selectedPlan.price).toLocaleString("en-IN") : "0"}
+                                                </p>
+                                                <p className="text-[11px] text-[var(--text-muted)]">Includes all taxes & student seat licenses</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border-subtle)] pt-4">
+                                            <div className="flex items-center gap-2 text-xs font-medium">
+                                                {Number(selectedPlan.price || 0) === 0 ? (
+                                                    <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-400">
+                                                        <Sparkles className="h-4 w-4 text-indigo-600" />
+                                                        <span>Free Institutional Tier • Direct Workspace Activation (No Payment Needed)</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+                                                        <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                                                        <span>100% Secure Transaction via Razorpay (Supports UPI, Cards & Net Banking)</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-3 w-full sm:w-auto">
+                                                <Button
+                                                    type="button"
+                                                    variant="secondary"
+                                                    onClick={() => setFormStep(1)}
+                                                    disabled={isProcessingPayment || isSubmitting}
+                                                    className="w-full sm:w-auto"
+                                                >
+                                                    &larr; Back to Details
+                                                </Button>
+                                                {Number(selectedPlan.price || 0) === 0 ? (
+                                                    <Button
+                                                        type="button"
+                                                        onClick={handleCreateFreeSchool}
+                                                        disabled={isSubmitting}
+                                                        isLoading={isSubmitting}
+                                                        loadingText="Creating School..."
+                                                        className="w-full sm:w-auto !bg-indigo-600 hover:!bg-indigo-700 text-white font-bold"
+                                                    >
+                                                        <Building2 className="mr-2 h-4 w-4" />
+                                                        Create School (Free Plan)
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        type="button"
+                                                        onClick={handleProceedToPayment}
+                                                        disabled={isProcessingPayment || isSubmitting}
+                                                        isLoading={isProcessingPayment || isSubmitting}
+                                                        loadingText="Opening Payment Gateway..."
+                                                        className="w-full sm:w-auto !bg-emerald-600 hover:!bg-emerald-700 text-white font-bold"
+                                                    >
+                                                        <CreditCard className="mr-2 h-4 w-4" />
+                                                        Proceed to Payment (₹{selectedPlan.price != null ? Number(selectedPlan.price).toLocaleString("en-IN") : "0"})
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </SectionCard>
+                            )}
+                        </div>
+                    )}
 
                 </>
             )}
@@ -1067,7 +1578,7 @@ export function AddSchool() {
                         <div className="flex w-full flex-col gap-3 sm:flex-row">
                             <Button
                                 variant="secondary"
-                                onClick={() => setSchoolToDelete(null)}
+                                onClick={() => !isDeleting && setSchoolToDelete(null)}
                                 disabled={isDeleting}
                                 className="w-full"
                             >
@@ -1075,6 +1586,7 @@ export function AddSchool() {
                             </Button>
                             <Button
                                 onClick={handleDeleteSchool}
+                                disabled={isDeleting}
                                 isLoading={isDeleting}
                                 loadingText="Deleting..."
                                 className="w-full !bg-rose-500 hover:!bg-rose-600 focus:!ring-rose-500/20"
@@ -1163,6 +1675,13 @@ export function AddSchool() {
                     </div>
                 </form>
             </Modal>
+
+            {/* Blurred Transaction Success & PDF Receipt Modal */}
+            <PaymentSuccessModal
+                isOpen={paymentSuccessModalOpen}
+                onClose={handleCloseSuccessModal}
+                data={paymentSuccessData}
+            />
 
             {/* Floating Toasts Notification Overlay */}
             <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 pointer-events-none">

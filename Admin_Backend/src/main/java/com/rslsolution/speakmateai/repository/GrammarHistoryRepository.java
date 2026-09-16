@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import com.rslsolution.speakmateai.entity.GrammarHistory;
 import com.rslsolution.speakmateai.entity.Student;
+import com.rslsolution.speakmateai.entity.User;
 
 @Repository
 public interface GrammarHistoryRepository extends JpaRepository<GrammarHistory, Long> {
@@ -17,6 +18,12 @@ public interface GrammarHistoryRepository extends JpaRepository<GrammarHistory, 
 	List<GrammarHistory> findByStudent(Student student);
 
 	List<GrammarHistory> findByStudentOrderByCreatedAtDesc(Student student);
+
+	@Query("SELECT g FROM GrammarHistory g WHERE g.student.id = :#{#user.id}")
+	List<GrammarHistory> findByUser(@Param("user") User user);
+
+	@Query("SELECT g FROM GrammarHistory g WHERE g.student.id = :#{#user.id} ORDER BY g.createdAt DESC")
+	List<GrammarHistory> findByUserOrderByCreatedAtDesc(@Param("user") User user);
 
 	@Query("SELECT AVG(g.grammarScore) FROM GrammarHistory g WHERE g.student.id = :userId AND g.grammarScore IS NOT NULL")
 	Double findAverageGrammarScoreByUserId(@Param("userId") Long userId);

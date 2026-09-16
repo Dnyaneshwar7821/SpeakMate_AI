@@ -27,8 +27,13 @@ public class SubscriptionPlanResponse {
     private Integer grammarPracticeLimit;
     private Integer speakingPracticeLimit;
     private Integer vocabularyPracticeLimit;
+    private Integer aiMinutesLimit;
 
     private Boolean isActive;
+    private Long subscriberCount;
+    private Long activeSubscriberCount;
+    private String billingCycle;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

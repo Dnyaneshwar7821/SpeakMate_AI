@@ -19,6 +19,7 @@ export function ThemeProvider({ children }) {
       document.documentElement.classList.remove("dark");
     }
     localStorage.setItem(STORAGE_KEYS.THEME, theme);
+    localStorage.setItem("speakmate_admin_theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {

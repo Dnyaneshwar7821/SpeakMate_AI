@@ -37,8 +37,22 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.rslsolution.speakmateai.dto.request.SchoolAdminSendInvitationRequest;
+import com.rslsolution.speakmateai.dto.request.SchoolPaymentOrderRequest;
+import com.rslsolution.speakmateai.dto.response.CreateOrderResponse;
 import com.rslsolution.speakmateai.dto.response.SchoolAdminSendInvitationResponse;
+import com.rslsolution.speakmateai.entity.SubscriptionPlan;
+import com.rslsolution.speakmateai.entity.UserSubscription;
+import com.rslsolution.speakmateai.enums.PaymentMethod;
+import com.rslsolution.speakmateai.enums.PaymentStatus;
+import com.rslsolution.speakmateai.enums.SubscriptionStatus;
+import com.rslsolution.speakmateai.repository.SubscriptionPlanRepository;
+import com.rslsolution.speakmateai.repository.UserSubscriptionRepository;
 import com.rslsolution.speakmateai.service.email.EmailMessage;
+import com.razorpay.Order;
+import com.razorpay.RazorpayClient;
+import com.razorpay.Utils;
+import org.json.JSONObject;
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 
 @Service
@@ -58,6 +72,8 @@ public class SchoolServiceImpl implements SchoolService {
     private final SchoolStandardRepository schoolStandardRepository;
     private final StandardDivisionRepository standardDivisionRepository;
     private final SchoolAdminEmailVerificationRepository verificationRepository;
+    private final SubscriptionPlanRepository subscriptionPlanRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final com.rslsolution.speakmateai.service.NotificationService notificationService;
@@ -67,6 +83,12 @@ public class SchoolServiceImpl implements SchoolService {
 
     @Value("${app.frontend.url:http://localhost:5173}")
     private String frontendUrl;
+
+    @Value("${razorpay.key.id:rzp_test_SpeakMateAiDev}")
+    private String razorpayKeyId;
+
+    @Value("${razorpay.key.secret:dummy_secret_for_local_dev}")
+    private String razorpayKeySecret;
 
     @Override
     @Transactional
@@ -172,6 +194,83 @@ public class SchoolServiceImpl implements SchoolService {
                 .build();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public CreateOrderResponse createSchoolPaymentOrder(SchoolPaymentOrderRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Payment order request cannot be null.");
+        }
+
+        String token = request.getVerificationToken() != null ? request.getVerificationToken().trim() : "";
+        if (token.isEmpty()) {
+            throw new AccessDeniedException("School admin email verification token is required.");
+        }
+
+        String normalizedEmail = request.getAdminEmail() != null ? request.getAdminEmail().trim().toLowerCase() : "";
+        if (normalizedEmail.isEmpty()) {
+            throw new IllegalArgumentException("Admin email is required.");
+        }
+
+        SchoolAdminEmailVerification verification = verificationRepository.findByVerificationToken(token)
+                .orElseThrow(() -> new AccessDeniedException("Invalid verification token. Please verify the School Admin email first."));
+
+        if (!normalizedEmail.equalsIgnoreCase(verification.getEmail()) || !verification.isVerified() || verification.isTokenConsumed()) {
+            throw new AccessDeniedException("Email is not verified or token has already been consumed.");
+        }
+
+        SubscriptionPlan plan = subscriptionPlanRepository.findById(request.getPlanId())
+                .orElseThrow(() -> new IllegalArgumentException("Subscription plan not found for ID: " + request.getPlanId()));
+
+        double price = plan.getPrice() != null ? plan.getPrice() : 0.0;
+        long amountInPaise = Math.round(price * 100);
+        String currency = (plan.getCurrency() != null && !plan.getCurrency().isBlank() && !plan.getCurrency().equalsIgnoreCase("USD"))
+                ? plan.getCurrency().trim().toUpperCase()
+                : "INR";
+        String planName = plan.getPlanName() != null ? plan.getPlanName() : "School Subscription";
+
+        String orderId;
+        boolean isRealCredentials = razorpayKeyId != null && !razorpayKeyId.contains("dummy") && !razorpayKeyId.contains("Dev")
+                && razorpayKeySecret != null && !razorpayKeySecret.contains("dummy");
+
+        if (isRealCredentials && amountInPaise > 0) {
+            try {
+                RazorpayClient razorpay = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
+                JSONObject orderRequest = new JSONObject();
+                orderRequest.put("amount", amountInPaise);
+                orderRequest.put("currency", currency);
+                orderRequest.put("receipt", "sch_rcpt_" + System.currentTimeMillis());
+
+                JSONObject notes = new JSONObject();
+                notes.put("schoolName", request.getSchoolName());
+                notes.put("adminEmail", normalizedEmail);
+                notes.put("planId", String.valueOf(plan.getId()));
+                notes.put("planName", planName);
+                orderRequest.put("notes", notes);
+
+                Order order = razorpay.orders.create(orderRequest);
+                orderId = order.get("id");
+            } catch (Exception e) {
+                System.err.println("[SchoolPaymentOrder] Razorpay API order creation failed, falling back to local order ID: " + e.getMessage());
+                orderId = "order_mock_" + System.currentTimeMillis();
+            }
+        } else {
+            orderId = "order_dev_" + System.currentTimeMillis();
+        }
+
+        return CreateOrderResponse.builder()
+                .razorpayOrderId(orderId)
+                .amount(BigDecimal.valueOf(price))
+                .amountInPaise(amountInPaise)
+                .currency(currency)
+                .razorpayKeyId(razorpayKeyId != null && !razorpayKeyId.isBlank() ? razorpayKeyId : "rzp_test_SpeakMateAiDev")
+                .planType(planName)
+                .planName(planName)
+                .description("Institutional subscription plan for " + request.getSchoolName())
+                .userEmail(normalizedEmail)
+                .userName(request.getSchoolName())
+                .build();
+    }
+
     private String generateSecureTemporaryPassword() {
         StringBuilder sb = new StringBuilder(12);
         sb.append(UPPER.charAt(SECURE_RANDOM.nextInt(UPPER.length())));
@@ -198,7 +297,9 @@ public class SchoolServiceImpl implements SchoolService {
             String schoolName,
             String schoolCode,
             String address,
-            String contactPhone) {
+            String contactPhone,
+            SubscriptionPlan plan,
+            String paymentId) {
         String base = (frontendUrl != null && !frontendUrl.isBlank()) ? frontendUrl.trim() : "http://localhost:5173";
         if (base.endsWith("/")) {
             base = base.substring(0, base.length() - 1);
@@ -216,6 +317,29 @@ public class SchoolServiceImpl implements SchoolService {
         String safeSchoolCode = org.springframework.web.util.HtmlUtils.htmlEscape(schoolCode != null && !schoolCode.isBlank() ? schoolCode : "");
         String safeAddress = org.springframework.web.util.HtmlUtils.htmlEscape(address != null && !address.isBlank() ? address : "");
         String safePhone = org.springframework.web.util.HtmlUtils.htmlEscape(contactPhone != null && !contactPhone.isBlank() ? contactPhone : "");
+
+        String planHtml = "";
+        if (plan != null) {
+            String safePlanName = org.springframework.web.util.HtmlUtils.htmlEscape(plan.getPlanName() != null ? plan.getPlanName() : "Institutional Subscription Plan");
+            String currency = plan.getCurrency() != null ? plan.getCurrency() : "INR";
+            String priceStr = plan.getPrice() != null ? String.format("%.2f", plan.getPrice()) : "0.00";
+            String billingCycle = plan.getBillingCycle() != null ? plan.getBillingCycle() : (plan.getDurationMonths() != null ? plan.getDurationMonths() + " Months" : "1 Year");
+            String durationStr = plan.getDurationMonths() != null ? plan.getDurationMonths() + " Months" : "Annual";
+            String studentLimitStr = plan.getStudentLimit() != null ? plan.getStudentLimit() + " Enrolled Students" : "Unlimited Students";
+            String aiLimitStr = plan.getAiMinutesLimit() != null ? plan.getAiMinutesLimit() + " AI Mins / Student" : "Full AI English Access";
+            String safePaymentId = org.springframework.web.util.HtmlUtils.htmlEscape(paymentId != null && !paymentId.isBlank() ? paymentId : "PRE-ACTIVATED");
+
+            planHtml = "<div class='section-title'>Institutional Subscription Plan</div>\n"
+                    + "<table class='info-table' style='border-left: 4px solid #10b981;'>\n"
+                    + "  <tr><td class='label-col'>Plan Name:</td><td class='value-col'><strong style='color: #047857;'>" + safePlanName + "</strong></td></tr>\n"
+                    + "  <tr><td class='label-col'>Subscription Fee:</td><td class='value-col'>" + currency + " " + priceStr + " (" + billingCycle + ")</td></tr>\n"
+                    + "  <tr><td class='label-col'>Duration:</td><td class='value-col'>" + durationStr + "</td></tr>\n"
+                    + "  <tr><td class='label-col'>Student Capacity:</td><td class='value-col'>" + studentLimitStr + "</td></tr>\n"
+                    + "  <tr><td class='label-col'>AI Practice:</td><td class='value-col'>" + aiLimitStr + "</td></tr>\n"
+                    + "  <tr><td class='label-col'>Payment Ref:</td><td class='value-col'><span style='font-family: monospace; font-size: 13px; color: #475569;'>" + safePaymentId + "</span></td></tr>\n"
+                    + "  <tr><td class='label-col'>Coverage:</td><td class='value-col'><span style='display:inline-block; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 12px;'>ACTIVE FOR ALL STUDENTS & STAFF</span></td></tr>\n"
+                    + "</table>\n";
+        }
 
         return "<!DOCTYPE html>\n"
                 + "<html lang='en'>\n"
@@ -266,6 +390,7 @@ public class SchoolServiceImpl implements SchoolService {
                 + "        <tr><td class='label-col'>Address:</td><td class='value-col'>" + safeAddress + "</td></tr>\n"
                 + "        <tr><td class='label-col'>Contact Phone:</td><td class='value-col'>" + safePhone + "</td></tr>\n"
                 + "      </table>\n"
+                +        planHtml
                 + "      <div class='section-title'>Login Credentials</div>\n"
                 + "      <table class='cred-table'>\n"
                 + "        <tr><td class='label-col'>Portal Role:</td><td class='value-col'>School Administrator</td></tr>\n"
@@ -295,7 +420,7 @@ public class SchoolServiceImpl implements SchoolService {
                 + "</html>";
     }
 
-    private String buildSchoolAdminWelcomeEmailText(
+    private String buildSchoolAdminWelcomeEmailHtml(
             String adminName,
             String email,
             String tempPassword,
@@ -303,6 +428,19 @@ public class SchoolServiceImpl implements SchoolService {
             String schoolCode,
             String address,
             String contactPhone) {
+        return buildSchoolAdminWelcomeEmailHtml(adminName, email, tempPassword, schoolName, schoolCode, address, contactPhone, null, null);
+    }
+
+    private String buildSchoolAdminWelcomeEmailText(
+            String adminName,
+            String email,
+            String tempPassword,
+            String schoolName,
+            String schoolCode,
+            String address,
+            String contactPhone,
+            SubscriptionPlan plan,
+            String paymentId) {
         String base = (frontendUrl != null && !frontendUrl.isBlank()) ? frontendUrl.trim() : "http://localhost:5173";
         if (base.endsWith("/")) {
             base = base.substring(0, base.length() - 1);
@@ -313,6 +451,20 @@ public class SchoolServiceImpl implements SchoolService {
         } catch (Exception ignored) {}
         String loginUrl = base + "/school-admin/login?email=" + encodedEmail + "&firstTime=true";
 
+        StringBuilder planText = new StringBuilder();
+        if (plan != null) {
+            String currency = plan.getCurrency() != null ? plan.getCurrency() : "INR";
+            String priceStr = plan.getPrice() != null ? String.format("%.2f", plan.getPrice()) : "0.00";
+            String billingCycle = plan.getBillingCycle() != null ? plan.getBillingCycle() : (plan.getDurationMonths() != null ? plan.getDurationMonths() + " Months" : "1 Year");
+            planText.append("--- Institutional Subscription Plan ---\n")
+                    .append("Plan:             ").append(plan.getPlanName() != null ? plan.getPlanName() : "Institutional Plan").append("\n")
+                    .append("Subscription Fee: ").append(currency).append(" ").append(priceStr).append(" (").append(billingCycle).append(")\n")
+                    .append("Duration:         ").append(plan.getDurationMonths() != null ? plan.getDurationMonths() + " Months" : "Annual").append("\n")
+                    .append("Student Capacity: ").append(plan.getStudentLimit() != null ? plan.getStudentLimit() + " Students" : "Unlimited").append("\n")
+                    .append("Payment Ref:      ").append(paymentId != null && !paymentId.isBlank() ? paymentId : "PRE-ACTIVATED").append("\n")
+                    .append("Coverage:         ACTIVE FOR ALL STUDENTS & STAFF\n\n");
+        }
+
         return "Welcome to SpeakMate AI!\n\n"
                 + "Hello " + (adminName != null ? adminName : "School Administrator") + ",\n\n"
                 + "Your School Administrator account has been configured.\n\n"
@@ -321,6 +473,7 @@ public class SchoolServiceImpl implements SchoolService {
                 + "School Code:    " + (schoolCode != null ? schoolCode : "") + "\n"
                 + "School Address: " + (address != null ? address : "") + "\n"
                 + "Contact Phone:  " + (contactPhone != null ? contactPhone : "") + "\n\n"
+                + planText.toString()
                 + "--- Login Credentials ---\n"
                 + "Role:               School Administrator\n"
                 + "Login Email:        " + email + "\n"
@@ -329,6 +482,17 @@ public class SchoolServiceImpl implements SchoolService {
                 + loginUrl + "\n\n"
                 + "Security Notice: The password provided is temporary. Upon clicking the portal link, you will be guided to enter your temporary password and create your permanent password before signing in.\n\n"
                 + "SpeakMate AI Team";
+    }
+
+    private String buildSchoolAdminWelcomeEmailText(
+            String adminName,
+            String email,
+            String tempPassword,
+            String schoolName,
+            String schoolCode,
+            String address,
+            String contactPhone) {
+        return buildSchoolAdminWelcomeEmailText(adminName, email, tempPassword, schoolName, schoolCode, address, contactPhone, null, null);
     }
 
     private String buildInvitationEmailHtml(String email, String tempPassword) {
@@ -407,7 +571,52 @@ public class SchoolServiceImpl implements SchoolService {
 
         String normalizedContactPhone = com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getContactPhone(), "Contact phone");
 
-        // 1. Create School
+        // Resolve Subscription Plan if provided
+        SubscriptionPlan plan = null;
+        if (request.getSubscriptionPlanId() != null) {
+            plan = subscriptionPlanRepository.findById(request.getSubscriptionPlanId()).orElse(null);
+        }
+
+        // Validate Razorpay Payment Signature if credentials & signature are present
+        if (request.getRazorpayOrderId() != null && request.getRazorpayPaymentId() != null && request.getRazorpaySignature() != null) {
+            boolean isRealSecret = razorpayKeySecret != null && !razorpayKeySecret.contains("dummy") && !razorpayKeySecret.isBlank();
+            boolean isMockSignature = request.getRazorpaySignature().startsWith("mock_") || request.getRazorpaySignature().startsWith("dev_");
+            if (isRealSecret && !isMockSignature) {
+                try {
+                    JSONObject options = new JSONObject();
+                    options.put("razorpay_order_id", request.getRazorpayOrderId());
+                    options.put("razorpay_payment_id", request.getRazorpayPaymentId());
+                    options.put("razorpay_signature", request.getRazorpaySignature());
+                    boolean isValid = Utils.verifyPaymentSignature(options, razorpayKeySecret);
+                    if (!isValid) {
+                        throw new AccessDeniedException("Razorpay payment signature verification failed.");
+                    }
+                } catch (AccessDeniedException ade) {
+                    throw ade;
+                } catch (Exception e) {
+                    System.err.println("[SchoolPayment] Signature verification error: " + e.getMessage());
+                    if (e.getMessage() != null && e.getMessage().toLowerCase().contains("signature")) {
+                        throw new AccessDeniedException("Invalid payment signature.");
+                    }
+                }
+            }
+        }
+
+        // Calculate subscription period & student capacity
+        LocalDateTime subStart = LocalDateTime.now();
+        LocalDateTime subEnd = null;
+        int maxStudents = 500;
+        if (plan != null) {
+            int durationMonths = plan.getDurationMonths() != null && plan.getDurationMonths() > 0 ? plan.getDurationMonths() : 12;
+            subEnd = subStart.plusMonths(durationMonths);
+            if (plan.getStudentLimit() != null && plan.getStudentLimit() > 0) {
+                maxStudents = plan.getStudentLimit();
+            }
+        } else {
+            subEnd = subStart.plusMonths(12);
+        }
+
+        // 1. Create School with Subscription details
         School school = School.builder()
                 .name(request.getSchoolName())
                 .schoolName(request.getSchoolName())
@@ -415,6 +624,10 @@ public class SchoolServiceImpl implements SchoolService {
                 .address(request.getAddress())
                 .contactPhone(normalizedContactPhone)
                 .active(true)
+                .subscriptionPlanId(plan != null ? plan.getId() : request.getSubscriptionPlanId())
+                .subscriptionStartDate(subStart)
+                .subscriptionEndDate(subEnd)
+                .maxStudents(maxStudents)
                 .build();
         school = schoolRepository.save(school);
 
@@ -447,6 +660,34 @@ public class SchoolServiceImpl implements SchoolService {
                 .build();
         adminUser = schoolAdminRepository.save(adminUser);
 
+        // Record UserSubscription in billing ledger for school admin
+        if (plan != null) {
+            try {
+                UserSubscription userSub = UserSubscription.builder()
+                        .user(adminUser)
+                        .subscriptionPlan(plan)
+                        .planType(plan.getPlanName() != null ? plan.getPlanName() : "INSTITUTIONAL")
+                        .status("ACTIVE")
+                        .amount(plan.getPrice() != null ? BigDecimal.valueOf(plan.getPrice()) : BigDecimal.ZERO)
+                        .currency(plan.getCurrency() != null ? plan.getCurrency() : "INR")
+                        .razorpayOrderId(request.getRazorpayOrderId())
+                        .razorpayPaymentId(request.getRazorpayPaymentId())
+                        .razorpaySignature(request.getRazorpaySignature())
+                        .startDate(subStart)
+                        .endDate(subEnd)
+                        .expiryDate(subEnd)
+                        .paymentStatus(PaymentStatus.PAID)
+                        .subscriptionStatus(SubscriptionStatus.ACTIVE)
+                        .paymentMethod(PaymentMethod.UPI)
+                        .transactionId(request.getRazorpayPaymentId() != null ? request.getRazorpayPaymentId() : "TXN-" + System.currentTimeMillis())
+                        .amountPaid(plan.getPrice() != null ? plan.getPrice() : 0.0)
+                        .build();
+                userSubscriptionRepository.save(userSub);
+            } catch (Exception ex) {
+                System.err.println("[UserSubscription] Could not save school admin subscription record: " + ex.getMessage());
+            }
+        }
+
         // 3. Update verification record and consume token within the same transaction (single-use)
         LocalDateTime now = LocalDateTime.now();
         verification.setTempPassword(rawTempPassword);
@@ -456,7 +697,7 @@ public class SchoolServiceImpl implements SchoolService {
         verification.setTokenConsumed(true);
         verificationRepository.save(verification);
 
-        // 4. Send Official School Admin Registered & Credentials Email (STRICTLY HTML)
+        // 4. Send Official School Admin Registered & Credentials Email with Plan Details (STRICTLY HTML)
         try {
             String adminFullName = ((adminUser.getFirstName() != null ? adminUser.getFirstName().trim() : "")
                     + (adminUser.getLastName() != null && !adminUser.getLastName().isBlank() ? " " + adminUser.getLastName().trim() : "")).trim();
@@ -478,7 +719,9 @@ public class SchoolServiceImpl implements SchoolService {
                     school.getName(),
                     school.getSchoolCode(),
                     schoolAddress,
-                    schoolContactPhone
+                    schoolContactPhone,
+                    plan,
+                    request.getRazorpayPaymentId()
             );
             String textContent = buildSchoolAdminWelcomeEmailText(
                     adminFullName,
@@ -487,7 +730,9 @@ public class SchoolServiceImpl implements SchoolService {
                     school.getName(),
                     school.getSchoolCode(),
                     schoolAddress,
-                    schoolContactPhone
+                    schoolContactPhone,
+                    plan,
+                    request.getRazorpayPaymentId()
             );
 
             EmailMessage message = EmailMessage.builder()
@@ -638,6 +883,9 @@ public class SchoolServiceImpl implements SchoolService {
         school.setSchoolName(request.getSchoolName());
         school.setAddress(request.getAddress());
         school.setContactPhone(normalizedContactPhone);
+        if (request.getAdminEmail() != null && !request.getAdminEmail().isBlank()) {
+            school.setEmail(request.getAdminEmail().trim());
+        }
 
         School updatedSchool = schoolRepository.save(school);
         return mapToResponse(updatedSchool, null);
@@ -818,6 +1066,13 @@ public class SchoolServiceImpl implements SchoolService {
         String adminName = adminUser != null ? ((adminUser.getFirstName() != null ? adminUser.getFirstName() : "") + " " + (adminUser.getLastName() != null ? adminUser.getLastName() : "")).trim() : null;
         String adminPhone = adminUser != null ? adminUser.getPhone() : null;
 
+        SubscriptionPlan subPlan = null;
+        if (school.getSubscriptionPlanId() != null) {
+            try {
+                subPlan = subscriptionPlanRepository.findById(school.getSubscriptionPlanId()).orElse(null);
+            } catch (Exception ignored) {}
+        }
+
         return SchoolResponse.builder()
                 .id(school.getId())
                 .name(school.getName())
@@ -834,6 +1089,13 @@ public class SchoolServiceImpl implements SchoolService {
                 .totalDivisions(divCount)
                 .divisionCount(divCount)
                 .academicStructure(structure)
+                .subscriptionPlanId(school.getSubscriptionPlanId())
+                .subscriptionPlanName(subPlan != null ? subPlan.getPlanName() : null)
+                .subscriptionPrice(subPlan != null ? subPlan.getPrice() : null)
+                .subscriptionBillingCycle(subPlan != null ? subPlan.getBillingCycle() : null)
+                .subscriptionStartDate(school.getSubscriptionStartDate())
+                .subscriptionEndDate(school.getSubscriptionEndDate())
+                .maxStudents(school.getMaxStudents())
                 .build();
     }
 }

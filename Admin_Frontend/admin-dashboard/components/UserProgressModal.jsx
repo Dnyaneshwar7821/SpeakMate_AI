@@ -161,7 +161,7 @@ export function UserProgressModal({ user, onClose }) {
   return (
     <Modal isOpen={Boolean(user)} onClose={onClose} maxWidth="max-w-4xl" title="User Progress & Evaluation Profile">
       <div className="mt-2 flex flex-col gap-6 max-h-[80vh] overflow-y-auto pr-1 pb-4">
-        
+
         {/* User Identity Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)]">
           <div className="flex items-center gap-4">
@@ -181,11 +181,10 @@ export function UserProgressModal({ user, onClose }) {
               </div>
               <p className="text-xs text-[var(--text-secondary)] mt-0.5">{user.email}</p>
               <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${
-                  user.status === "ACTIVE" || user.status === "active"
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold ${user.status === "ACTIVE" || user.status === "active"
                     ? "bg-emerald-500/10 text-emerald-500"
                     : "bg-slate-500/10 text-slate-500"
-                }`}>
+                  }`}>
                   <span className="w-1.5 h-1.5 rounded-full bg-current" />
                   {user.status || "ACTIVE"}
                 </span>

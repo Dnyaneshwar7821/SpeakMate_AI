@@ -1,8 +1,13 @@
+import { Loader2 } from "lucide-react";
+
 export function Button({
   children,
   className = "",
   variant = "primary",
   type = "button",
+  isLoading = false,
+  loadingText,
+  disabled = false,
   ...props
 }) {
   const variants = {
@@ -19,10 +24,19 @@ export function Button({
   return (
     <button
       type={type}
-      className={`inline-flex h-11 items-center justify-center rounded-xl px-5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant] || variants.primary} ${className}`}
+      disabled={disabled || isLoading}
+      aria-busy={isLoading}
+      className={`inline-flex h-11 items-center justify-center gap-2 rounded-xl px-5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 ${variants[variant] || variants.primary} ${className}`}
       {...props}
     >
-      {children}
+      {isLoading ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin shrink-0" />
+          <span>{loadingText || children}</span>
+        </>
+      ) : (
+        children
+      )}
     </button>
   );
 }

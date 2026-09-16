@@ -6,6 +6,8 @@ import com.rslsolution.speakmateai.enums.PaymentMethod;
 import com.rslsolution.speakmateai.enums.PaymentStatus;
 import com.rslsolution.speakmateai.enums.SubscriptionStatus;
 
+import com.rslsolution.speakmateai.enums.Role;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +26,8 @@ public class UserSubscriptionResponse {
     private String userFirstName;
     private String userLastName;
     private String userEmail;
+    private Role userRole;
+    private String accountType;
 
     // Subscription Plan details snippet
     private Long planId;

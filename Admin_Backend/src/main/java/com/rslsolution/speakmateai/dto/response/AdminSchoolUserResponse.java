@@ -28,6 +28,7 @@ public class AdminSchoolUserResponse {
     
     private Long teacherId;
     private String assignedTeacher;
+    private String teacherName;
     
     private boolean active;
     private LocalDateTime createdAt;
@@ -37,4 +38,27 @@ public class AdminSchoolUserResponse {
     private long totalSpeakingSessions;
     private long totalGrammarSessions;
     private long totalVocabularySaved;
+    private Boolean emailSent;
+
+    public String getAssignedTeacher() {
+        return assignedTeacher != null && !assignedTeacher.isBlank() ? assignedTeacher : teacherName;
+    }
+
+    public void setAssignedTeacher(String assignedTeacher) {
+        this.assignedTeacher = assignedTeacher;
+        if (this.teacherName == null || this.teacherName.isBlank()) {
+            this.teacherName = assignedTeacher;
+        }
+    }
+
+    public String getTeacherName() {
+        return teacherName != null && !teacherName.isBlank() ? teacherName : assignedTeacher;
+    }
+
+    public void setTeacherName(String teacherName) {
+        this.teacherName = teacherName;
+        if (this.assignedTeacher == null || this.assignedTeacher.isBlank()) {
+            this.assignedTeacher = teacherName;
+        }
+    }
 }

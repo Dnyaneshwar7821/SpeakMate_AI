@@ -42,8 +42,15 @@ public interface SpeakingSessionRepository extends JpaRepository<SpeakingSession
 	@Query("SELECT AVG(s.vocabularyScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.vocabularyScore IS NOT NULL")
 	Double findAverageVocabularyScoreByUserId(@Param("userId") Long userId);
 
+	@Query("SELECT s.user.id, AVG(s.overallScore), AVG(s.pronunciationScore), AVG(s.fluencyScore), AVG(s.grammarScore), AVG(s.vocabularyScore) " +
+	       "FROM SpeakingSession s WHERE s.user.id IN :userIds GROUP BY s.user.id")
+	List<Object[]> findAverageScoresByUserIds(@Param("userIds") java.util.Collection<Long> userIds);
+
 	@Query("SELECT s FROM SpeakingSession s WHERE s.user.id = :userId AND s.createdAt BETWEEN :start AND :end ORDER BY s.createdAt DESC")
 	List<SpeakingSession> findByUserIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+	@Query("SELECT s FROM SpeakingSession s WHERE s.user.id IN :userIds AND s.createdAt BETWEEN :start AND :end ORDER BY s.createdAt DESC")
+	List<SpeakingSession> findByUserIdsAndCreatedAtBetween(@Param("userIds") java.util.Collection<Long> userIds, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
 	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.user.id = :userId AND s.createdAt BETWEEN :start AND :end")
 	long countByUserIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);

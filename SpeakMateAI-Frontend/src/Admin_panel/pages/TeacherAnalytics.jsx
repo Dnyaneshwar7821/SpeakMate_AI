@@ -464,13 +464,12 @@ function StudentProgressSection({ students = [], onViewDetails, selectedClassNam
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4">
-                                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${
-                                                    avgScore >= 80
+                                                <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ring-1 ring-inset ${avgScore >= 80
                                                         ? "bg-emerald-50 text-emerald-700 ring-emerald-600/20 dark:bg-emerald-950/60 dark:text-emerald-300"
                                                         : avgScore >= 60
-                                                        ? "bg-indigo-50 text-indigo-700 ring-indigo-600/20 dark:bg-indigo-950/60 dark:text-indigo-300"
-                                                        : "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-950/60 dark:text-amber-300"
-                                                }`}>
+                                                            ? "bg-indigo-50 text-indigo-700 ring-indigo-600/20 dark:bg-indigo-950/60 dark:text-indigo-300"
+                                                            : "bg-amber-50 text-amber-700 ring-amber-600/20 dark:bg-amber-950/60 dark:text-amber-300"
+                                                    }`}>
                                                     {avgScore}%
                                                 </span>
                                             </td>

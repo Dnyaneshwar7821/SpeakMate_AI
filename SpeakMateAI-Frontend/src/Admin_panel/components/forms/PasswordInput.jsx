@@ -20,11 +20,10 @@ export function PasswordInput({ id, label, error, className = "", ...props }) {
           type={visible ? "text" : "password"}
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
-          className={`h-11 w-full rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] py-2 pl-3.5 pr-11 text-sm font-bold text-[var(--text-primary)] shadow-sm outline-none transition-all duration-200 ease-out placeholder:text-[var(--text-muted)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 disabled:cursor-not-allowed disabled:opacity-60 ${
-            error
+          className={`h-11 w-full rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] py-2 pl-3.5 pr-11 text-sm font-bold text-[var(--text-primary)] shadow-sm outline-none transition-all duration-200 ease-out placeholder:text-[var(--text-muted)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 disabled:cursor-not-allowed disabled:opacity-60 ${error
               ? "!border-rose-500 focus:!ring-rose-500/20"
               : "hover:border-[#6C63FF]/40"
-          } ${className}`}
+            } ${className}`}
           {...props}
         />
 

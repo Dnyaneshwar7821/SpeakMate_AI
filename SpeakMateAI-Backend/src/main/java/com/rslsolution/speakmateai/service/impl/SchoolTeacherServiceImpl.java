@@ -540,7 +540,6 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 				|| standardDivisionRepository == null || pairs == null || teacher == null || teacher.getId() == null) {
 			return;
 		}
-
 		// 1. Resolve all target StandardDivision entities from the pairs
 		Map<Long, StandardDivision> targetSdMap = new LinkedHashMap<>();
 		List<SchoolStandard> schoolStandards = schoolStandardRepository.findBySchoolId(teacher.getSchoolId());

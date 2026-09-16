@@ -172,6 +172,37 @@ public class DatabaseSchemaRepairRunner implements CommandLineRunner {
                 }
             }
 
+            // 5. Ensure standard subscription plans exist (MONTHLY_PRO, YEARLY_PRO) and backfill unlinked user subscriptions
+            String[] subscriptionPlanMigrations = {
+                "INSERT INTO subscription_plans (plan_name, name, description, duration_months, price, currency, features, max_lessons, max_tests, ai_practice_limit, grammar_practice_limit, speaking_practice_limit, vocabulary_practice_limit, is_active, active, billing_cycle, created_at, updated_at) " +
+                "SELECT 'FREE_STARTER', 'FREE_STARTER', 'Default Free Starter tier for all registered learners', 0, 0.00, 'INR', '15 mins Daily AI Speaking Practice, 15 Daily Grammar Doctor Checks, Core Vocabulary & Speech Tests', 5, 2, 15, 15, 15, 15, true, true, 'LIFETIME', NOW(), NOW() " +
+                "WHERE NOT EXISTS (SELECT 1 FROM subscription_plans WHERE UPPER(plan_name) IN ('FREE_STARTER', 'FREE'))",
+
+                "INSERT INTO subscription_plans (plan_name, name, description, duration_months, price, currency, features, max_lessons, max_tests, ai_practice_limit, grammar_practice_limit, speaking_practice_limit, vocabulary_practice_limit, is_active, active, billing_cycle, created_at, updated_at) " +
+                "SELECT 'MONTHLY_PRO', 'MONTHLY_PRO', 'SpeakMate Pro 1 Month Pass', 1, 149.00, 'INR', 'Unlimited 24/7 AI Speaking, Unlimited Grammar Doctor, All 100+ Scenarios, All Neural Voices', 9999, 9999, 9999, 9999, 9999, 9999, true, true, 'MONTHLY', NOW(), NOW() " +
+                "WHERE NOT EXISTS (SELECT 1 FROM subscription_plans WHERE UPPER(plan_name) = 'MONTHLY_PRO')",
+
+                "INSERT INTO subscription_plans (plan_name, name, description, duration_months, price, currency, features, max_lessons, max_tests, ai_practice_limit, grammar_practice_limit, speaking_practice_limit, vocabulary_practice_limit, is_active, active, billing_cycle, created_at, updated_at) " +
+                "SELECT 'YEARLY_PRO', 'YEARLY_PRO', 'SpeakMate Pro 1 Year Annual Pass', 12, 1199.00, 'INR', 'Unlimited 24/7 AI Speaking, Unlimited Grammar Doctor, All 100+ Scenarios, All Neural Voices, Official CEFR Certificate', 9999, 9999, 9999, 9999, 9999, 9999, true, true, 'YEARLY', NOW(), NOW() " +
+                "WHERE NOT EXISTS (SELECT 1 FROM subscription_plans WHERE UPPER(plan_name) = 'YEARLY_PRO')",
+
+                "UPDATE user_subscriptions " +
+                "SET subscription_plan_id = (SELECT id FROM subscription_plans WHERE UPPER(plan_name) = 'MONTHLY_PRO' LIMIT 1) " +
+                "WHERE subscription_plan_id IS NULL AND (UPPER(plan_type) = 'MONTHLY_PRO' OR UPPER(plan_type) = 'MONTHLY')",
+
+                "UPDATE user_subscriptions " +
+                "SET subscription_plan_id = (SELECT id FROM subscription_plans WHERE UPPER(plan_name) = 'YEARLY_PRO' LIMIT 1) " +
+                "WHERE subscription_plan_id IS NULL AND (UPPER(plan_type) = 'YEARLY_PRO' OR UPPER(plan_type) = 'YEARLY')"
+            };
+
+            for (String sql : subscriptionPlanMigrations) {
+                try {
+                    jdbcTemplate.execute(sql);
+                } catch (Exception ex) {
+                    logger.debug("[Schema Repair] Subscription plan migration notice: {} - {}", sql, ex.getMessage());
+                }
+            }
+
             logger.info("[Schema Repair] Database schema foreign key and subscription repair completed successfully!");
         } catch (Exception e) {
             logger.error("[Schema Repair] Unexpected error during schema repair: {}", e.getMessage(), e);

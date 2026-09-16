@@ -125,6 +125,16 @@ export const adminAuthService = {
       res = await schoolAdminAuthApi.resetPasswordWithTemporary(email, temporaryPassword, newPassword, role);
     }
     return { data: { message: typeof res === "string" ? res : (res?.message || "Password updated successfully."), role } };
+  },
+
+  checkFirstTimeStatus: async (email) => {
+    try {
+      const res = await schoolAdminAuthApi.checkFirstTimeStatus(email);
+      return res?.needsPasswordSetup;
+    } catch (e) {
+      console.error("Failed to check first-time status:", e);
+      return null;
+    }
   }
 };
 

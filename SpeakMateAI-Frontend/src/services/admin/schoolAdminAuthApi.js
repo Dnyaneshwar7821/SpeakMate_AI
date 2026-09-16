@@ -29,6 +29,13 @@ export const schoolAdminAuthApi = {
       role,
     });
     return response.data;
+  },
+
+  checkFirstTimeStatus: async (email) => {
+    const response = await apiClient.get("/api/auth/first-time-status", {
+      params: { email: email?.trim() }
+    });
+    return response.data;
   }
 };
 export default schoolAdminAuthApi;

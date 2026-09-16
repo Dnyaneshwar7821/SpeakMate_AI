@@ -62,8 +62,27 @@ const baseKpiTemplates = [
  *   - Each card features integrated active vs. inactive micro-filter pills
  *   - User Management section (Add / Update / Delete) kept on the same page.
  */
-// Module-level in-memory cache for instant dashboard KPI rendering
+const SUPER_ADMIN_DASHBOARD_CACHE_KEY = "speakmate_super_admin_dashboard_cache";
 let dashboardStatsCache = null;
+
+function getAdminDashboardCache() {
+    if (dashboardStatsCache) return dashboardStatsCache;
+    try {
+        const stored = sessionStorage.getItem(SUPER_ADMIN_DASHBOARD_CACHE_KEY);
+        if (stored) {
+            dashboardStatsCache = JSON.parse(stored);
+            return dashboardStatsCache;
+        }
+    } catch {}
+    return null;
+}
+
+function setAdminDashboardCache(data) {
+    dashboardStatsCache = data;
+    try {
+        sessionStorage.setItem(SUPER_ADMIN_DASHBOARD_CACHE_KEY, JSON.stringify(data));
+    } catch {}
+}
 
 export function AdminDashboard() {
     const navigate = useNavigate();
@@ -79,8 +98,9 @@ export function AdminDashboard() {
     const openEditModal = (u) => setFormModal({ isOpen: true, mode: "edit", user: u });
     const closeFormModal = () => setFormModal((prev) => ({ ...prev, isOpen: false }));
 
-    const [stats, setStats] = useState(() => dashboardStatsCache);
-    const [statsLoading, setStatsLoading] = useState(() => !dashboardStatsCache);
+    const cachedStats = getAdminDashboardCache();
+    const [stats, setStats] = useState(() => cachedStats);
+    const [statsLoading, setStatsLoading] = useState(() => !cachedStats);
     const [statsError, setStatsError] = useState("");
     const [showSlowLoader, setShowSlowLoader] = useState(false);
 
@@ -95,17 +115,18 @@ export function AdminDashboard() {
     }, [statsLoading, stats]);
 
     const loadStats = async (isBackground = false) => {
-        if (!isBackground && !dashboardStatsCache && !stats) {
+        const hasCached = Boolean(getAdminDashboardCache());
+        if (!isBackground && !hasCached && !stats) {
             setStatsLoading(true);
         }
         setStatsError("");
         try {
             const res = await adminDashboardApi.getDetailedDashboardStats();
-            dashboardStatsCache = res;
+            setAdminDashboardCache(res);
             setStats(res);
         } catch (err) {
             console.error("Failed to load dashboard stats:", err);
-            if (!dashboardStatsCache && !stats) {
+            if (!hasCached && !stats) {
                 setStatsError("Failed to load statistics");
             }
         } finally {
@@ -114,7 +135,7 @@ export function AdminDashboard() {
     };
 
     useEffect(() => {
-        const isCached = Boolean(dashboardStatsCache);
+        const isCached = Boolean(getAdminDashboardCache());
         loadStats(isCached);
     }, []);
 
@@ -141,6 +162,20 @@ export function AdminDashboard() {
     };
 
     const handleConfirmDelete = async (u) => {
+        if (!u?.id) return;
+        const role = (u.raw?.role || u.role || "").toString().toUpperCase();
+        if (
+            role.includes("SUPER_ADMIN") ||
+            role.includes("SUPER ADMIN") ||
+            role.includes("SCHOOL_ADMIN") ||
+            role.includes("SCHOOL ADMIN") ||
+            role.includes("TEACHER") ||
+            role.includes("ADMIN")
+        ) {
+            alert("Administrative accounts cannot be deleted.");
+            setDeleteTarget(null);
+            return;
+        }
         setIsDeleting(true);
         try {
             await deleteUser(u.id);

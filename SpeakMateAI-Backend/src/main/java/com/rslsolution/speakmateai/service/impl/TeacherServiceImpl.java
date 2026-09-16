@@ -1,13 +1,19 @@
 package com.rslsolution.speakmateai.service.impl;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
@@ -117,6 +123,18 @@ public class TeacherServiceImpl implements TeacherService {
 	@org.springframework.beans.factory.annotation.Autowired(required = false)
 	private ConversationFeedbackRepository conversationFeedbackRepository;
 
+	private static class CachedDashboard {
+		final long timestamp;
+		final TeacherDashboardResponse data;
+
+		CachedDashboard(long timestamp, TeacherDashboardResponse data) {
+			this.timestamp = timestamp;
+			this.data = data;
+		}
+	}
+
+	private final Map<Long, CachedDashboard> teacherDashboardCache = new ConcurrentHashMap<>();
+
 	@org.springframework.beans.factory.annotation.Autowired
 	public TeacherServiceImpl(UserRepository userRepository, TeacherRepository teacherRepository,
 			PasswordEncoder passwordEncoder, StudentRepository studentRepository,
@@ -162,6 +180,32 @@ public class TeacherServiceImpl implements TeacherService {
 		if (user != null) {
 			if (user instanceof Teacher) {
 				return (Teacher) user;
+			}
+			if (user.getId() != null) {
+				Teacher t = teacherRepository.findById(user.getId()).orElse(null);
+				if (t != null) {
+					return t;
+				}
+			}
+			if (user.getRole() == Role.TEACHER) {
+				Teacher t = Teacher.builder()
+						.id(user.getId())
+						.email(user.getEmail())
+						.firstName(user.getFirstName())
+						.lastName(user.getLastName())
+						.password(user.getPassword())
+						.role(user.getRole())
+						.schoolId(user.getSchoolId())
+						.phone(user.getPhone())
+						.active(user.isActive())
+						.userType(user.getUserType())
+						.status(user.getStatus())
+						.standard(user.getStandard())
+						.division(user.getDivision())
+						.createdAt(user.getCreatedAt())
+						.updatedAt(user.getUpdatedAt())
+						.build();
+				return teacherRepository.save(t);
 			}
 			if (user.getSchoolId() != null) {
 				List<Teacher> schoolTeachers = teacherRepository.findBySchoolId(user.getSchoolId());
@@ -430,7 +474,10 @@ public class TeacherServiceImpl implements TeacherService {
 				.totalPracticeMinutes(progress != null ? progress.getTotalPracticeMinutes() : 0)
 				.totalSpeakingSessions(progress != null ? progress.getTotalSpeakingSessions() : 0)
 				.totalGrammarChecks(progress != null ? progress.getTotalGrammarChecks() : 0)
-				.totalVocabularyWords(progress != null ? progress.getTotalVocabularyWords() : 0).build();
+				.totalVocabularyWords(progress != null ? progress.getTotalVocabularyWords() : 0)
+				.status(user.getStatus())
+				.active(user.isActive())
+				.build();
 	}
 
 	private Double getAverageGrammarScore(User user) {
@@ -520,48 +567,44 @@ public class TeacherServiceImpl implements TeacherService {
 		return weeklyProgress;
 	}
 
-	private List<WeeklyProgressResponse> getAggregatedWeeklyProgress(List<User> students) {
+	private List<WeeklyProgressResponse> getEmptyWeeklyProgress() {
 		String[] dayNames = { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
 		List<WeeklyProgressResponse> weeklyProgress = new ArrayList<>();
 		for (String dayName : dayNames) {
 			weeklyProgress.add(WeeklyProgressResponse.builder().day(dayName).studyMinutes(0).lessonsCompleted(0)
 					.speakingSessions(0).build());
 		}
+		return weeklyProgress;
+	}
 
-		LocalDate today = LocalDate.now();
-		LocalDateTime weekStart = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))
-				.atStartOfDay();
-		LocalDateTime weekEnd = weekStart.plusDays(7);
+	private List<WeeklyProgressResponse> buildAggregatedWeeklyProgressFromLists(
+			List<SpeakingSession> sessions, List<LessonProgress> completedLessons,
+			LocalDateTime weekStart, LocalDate today) {
+		List<WeeklyProgressResponse> weeklyProgress = getEmptyWeeklyProgress();
 
 		int[] studySeconds = new int[7];
 		int[] speakingSessions = new int[7];
 		int[] lessonsCompleted = new int[7];
 
-		for (User student : students) {
-			List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(student.getId(),
-					weekStart, weekEnd);
-			for (SpeakingSession s : sessions) {
-				if (s.getCreatedAt() != null) {
-					LocalDate date = s.getCreatedAt().toLocalDate();
-					if (!date.isBefore(weekStart.toLocalDate()) && !date.isBefore(today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY))) && !date
-							.isAfter(weekStart.toLocalDate().plusDays(6))) {
-						int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
-						studySeconds[dayOfWeekIndex] += s.getDuration() != null ? s.getDuration() : 0;
-						speakingSessions[dayOfWeekIndex]++;
-						lessonsCompleted[dayOfWeekIndex] = 1;
-					}
+		for (SpeakingSession s : sessions) {
+			if (s.getCreatedAt() != null) {
+				LocalDate date = s.getCreatedAt().toLocalDate();
+				if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
+					int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
+					studySeconds[dayOfWeekIndex] += s.getDuration() != null ? s.getDuration() : 0;
+					speakingSessions[dayOfWeekIndex]++;
+					lessonsCompleted[dayOfWeekIndex] = 1;
 				}
 			}
+		}
 
-			List<LessonProgress> completedLessons = lessonProgressRepository.findByUserIdAndCompletedAtBetween(student.getId(),
-					weekStart, weekEnd);
-			for (LessonProgress lp : completedLessons) {
-				if (lp.getCompletedAt() != null) {
-					LocalDate date = lp.getCompletedAt().toLocalDate();
-					if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
-						int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
-						lessonsCompleted[dayOfWeekIndex]++;
-					}
+		for (LessonProgress lp : completedLessons) {
+			LocalDateTime dt = lp.getCompletedAt() != null ? lp.getCompletedAt() : lp.getUpdatedAt();
+			if (dt != null) {
+				LocalDate date = dt.toLocalDate();
+				if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
+					int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
+					lessonsCompleted[dayOfWeekIndex]++;
 				}
 			}
 		}
@@ -576,47 +619,78 @@ public class TeacherServiceImpl implements TeacherService {
 		return weeklyProgress;
 	}
 
-	private List<RecentActivityResponse> getRecentActivityForStudents(List<User> students) {
+	private List<WeeklyProgressResponse> getAggregatedWeeklyProgress(List<User> students) {
+		if (students == null || students.isEmpty()) {
+			return getEmptyWeeklyProgress();
+		}
+		List<Long> studentIds = students.stream().map(User::getId).collect(Collectors.toList());
+		LocalDate today = LocalDate.now();
+		LocalDateTime weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+		LocalDateTime weekEnd = weekStart.plusDays(7);
+
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdsAndCreatedAtBetween(studentIds, weekStart, weekEnd);
+		List<LessonProgress> completedLessons = lessonProgressRepository.findByUserIdsAndCompletedAtBetween(studentIds, weekStart, weekEnd);
+
+		return buildAggregatedWeeklyProgressFromLists(sessions, completedLessons, weekStart, today);
+	}
+
+	private List<RecentActivityResponse> buildRecentActivityFromLists(
+			List<SpeakingSession> sessions, List<Vocabulary> vocabs, List<GrammarHistory> grammars) {
 		List<RecentActivityResponse> activities = new ArrayList<>();
-		LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
 
-		for (User student : students) {
-			List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(student.getId(),
-					oneWeekAgo, LocalDateTime.now());
-			for (SpeakingSession s : sessions) {
-				activities.add(RecentActivityResponse.builder().id("speaking-" + s.getId()).type("speaking").icon("mic")
-						.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
-						.time(s.getCreatedAt()).xp(15).build());
-			}
-
-			List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(student);
-			for (Vocabulary v : vocabs) {
-				if (v.getCreatedAt() != null && !v.getCreatedAt().isBefore(oneWeekAgo)) {
-					activities.add(RecentActivityResponse.builder().id("vocabulary-" + v.getId()).type("vocabulary")
-							.icon("library")
-							.title(v.getWord() != null ? "Vocabulary Practice: " + v.getWord() : "Vocabulary Practice")
-							.time(v.getCreatedAt()).xp(8).build());
-				}
-			}
-
-			List<GrammarHistory> grammars = grammarHistoryRepository.findByUserIdAndCreatedAtBetween(student.getId(),
-					oneWeekAgo, LocalDateTime.now());
-			for (GrammarHistory g : grammars) {
-				activities.add(RecentActivityResponse.builder().id("grammar-" + g.getId()).type("grammar").icon("text")
-						.title("Grammar Practice").time(g.getCreatedAt()).xp(10).build());
-			}
+		for (SpeakingSession s : sessions) {
+			activities.add(RecentActivityResponse.builder().id("speaking-" + s.getId()).type("speaking").icon("mic")
+					.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
+					.time(s.getCreatedAt()).xp(15).build());
 		}
 
-		activities.sort((a, b) -> b.getTime().compareTo(a.getTime()));
+		for (Vocabulary v : vocabs) {
+			activities.add(RecentActivityResponse.builder().id("vocabulary-" + v.getId()).type("vocabulary")
+					.icon("library")
+					.title(v.getWord() != null ? "Vocabulary Practice: " + v.getWord() : "Vocabulary Practice")
+					.time(v.getCreatedAt()).xp(8).build());
+		}
+
+		for (GrammarHistory g : grammars) {
+			activities.add(RecentActivityResponse.builder().id("grammar-" + g.getId()).type("grammar").icon("text")
+					.title("Grammar Practice").time(g.getCreatedAt()).xp(10).build());
+		}
+
+		activities.sort((a, b) -> {
+			if (a.getTime() == null && b.getTime() == null) return 0;
+			if (a.getTime() == null) return 1;
+			if (b.getTime() == null) return -1;
+			return b.getTime().compareTo(a.getTime());
+		});
 		if (activities.size() > 10) {
 			return activities.subList(0, 10);
 		}
 		return activities;
 	}
 
+	private List<RecentActivityResponse> getRecentActivityForStudents(List<User> students) {
+		if (students == null || students.isEmpty()) {
+			return new ArrayList<>();
+		}
+		List<Long> studentIds = students.stream().map(User::getId).collect(Collectors.toList());
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime oneWeekAgo = now.minusDays(7);
+
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdsAndCreatedAtBetween(studentIds, oneWeekAgo, now);
+		List<Vocabulary> vocabs = vocabularyRepository.findByUserIdsAndCreatedAtAfter(studentIds, oneWeekAgo);
+		List<GrammarHistory> grammars = grammarHistoryRepository.findByUserIdsAndCreatedAtBetween(studentIds, oneWeekAgo, now);
+
+		return buildRecentActivityFromLists(sessions, vocabs, grammars);
+	}
+
 	@Override
 	public TeacherDashboardResponse getTeacherDashboard() {
 		User teacher = getCurrentTeacher();
+		CachedDashboard cached = teacherDashboardCache.get(teacher.getId());
+		if (cached != null && (System.currentTimeMillis() - cached.timestamp < 60_000)) {
+			return cached.data;
+		}
+
 		List<ClassRoom> classes = getTeacherClasses(teacher.getId());
 		List<User> students = getStudentsInClasses(classes);
 
@@ -647,75 +721,135 @@ public class TeacherServiceImpl implements TeacherService {
 		formattedStandards.sort(Comparator.naturalOrder());
 		String assignedStandardString = formattedStandards.isEmpty() ? null : String.join(", ", formattedStandards);
 		List<AssignedClassResponse> assignedClasses = new ArrayList<>(assignedClassMap.values());
+		assignedClasses.sort((c1, c2) -> {
+			int g1 = extractGradeNumber(c1.getName() != null ? c1.getName() : c1.getStandard());
+			int g2 = extractGradeNumber(c2.getName() != null ? c2.getName() : c2.getStandard());
+			if (g1 != g2) return Integer.compare(g1, g2);
+			String d1 = c1.getDivision() != null ? c1.getDivision() : "";
+			String d2 = c2.getDivision() != null ? c2.getDivision() : "";
+			return d1.compareToIgnoreCase(d2);
+		});
 
 		int totalStudents = students.size();
-
-		double avgProgress = 0;
-		if (!students.isEmpty()) {
-			double totalXp = students.stream().mapToDouble(s -> {
-				Progress p = progressRepository.findByUser(s).orElse(null);
-				return p != null && p.getXp() != null ? p.getXp() : 0;
-			}).sum();
-			avgProgress = totalXp / students.size();
+		if (students.isEmpty()) {
+			SkillPerformanceSummaryResponse skillPerformance = SkillPerformanceSummaryResponse.builder()
+					.grammar(0.0).vocabulary(0.0).speaking(0.0).listening(0.0).build();
+			TeacherDashboardResponse response = TeacherDashboardResponse.builder().teacherInfo(profile).assignedClasses(assignedClasses)
+					.assignedStandards(assignedStandards).assignedDivisions(assignedDivisions)
+					.assignedStandardString(assignedStandardString)
+					.totalStudents(0).averageProgress(0.0).weeklyCompletion(getEmptyWeeklyProgress())
+					.completedStudents(0).skillPerformance(skillPerformance)
+					.studentsRequiringAttention(new ArrayList<>()).recentActivity(new ArrayList<>()).build();
+			teacherDashboardCache.put(teacher.getId(), new CachedDashboard(System.currentTimeMillis(), response));
+			return response;
 		}
 
-		List<WeeklyProgressResponse> weeklyCompletion = getAggregatedWeeklyProgress(students);
+		List<Long> studentIds = students.stream().map(User::getId).collect(Collectors.toList());
 
-		long completedStudentsCount = students.stream()
-				.filter(s -> lessonProgressRepository.countByUserIdAndCompletedTrue(s.getId()) > 0).count();
+		// 1. Bulk fetch progress
+		List<Progress> progressList = progressRepository.findByUserIn(students);
+		Map<Long, Progress> progressMap = progressList.stream()
+				.filter(p -> p.getUser() != null)
+				.collect(Collectors.toMap(p -> p.getUser().getId(), p -> p, (p1, p2) -> p1));
 
-		double avgGrammar = 0;
-		double avgVocabulary = 0;
-		double avgSpeaking = 0;
-		double avgListening = 0;
-		int skillCount = 0;
+		// 2. Bulk fetch speaking scores (overall, pronunciation, fluency, grammar, vocabulary)
+		List<Object[]> speakingAggregates = speakingSessionRepository.findAverageScoresByUserIds(studentIds);
+		Map<Long, Double> speakingScoreMap = new HashMap<>();
+		Map<Long, Double> listeningScoreMap = new HashMap<>();
+		for (Object[] row : speakingAggregates) {
+			if (row[0] != null) {
+				Long uid = (Long) row[0];
+				Double overall = (Double) row[1];
+				Double pronunciation = (Double) row[2];
+				Double fluency = (Double) row[3];
+				Double spGrammar = (Double) row[4];
+				Double spVocabulary = (Double) row[5];
 
+				if (overall != null) {
+					speakingScoreMap.put(uid, overall);
+				}
+
+				double sum = 0;
+				int count = 0;
+				if (pronunciation != null) { sum += pronunciation; count++; }
+				if (fluency != null) { sum += fluency; count++; }
+				if (spGrammar != null) { sum += spGrammar; count++; }
+				if (spVocabulary != null) { sum += spVocabulary; count++; }
+				if (count > 0) {
+					listeningScoreMap.put(uid, sum / count);
+				}
+			}
+		}
+
+		// 3. Bulk fetch grammar scores
+		List<Object[]> grammarAggregates = grammarHistoryRepository.findAverageGrammarScoreByUserIds(studentIds);
+		Map<Long, Double> grammarScoreMap = new HashMap<>();
+		for (Object[] row : grammarAggregates) {
+			if (row[0] != null && row[1] != null) {
+				grammarScoreMap.put((Long) row[0], (Double) row[1]);
+			}
+		}
+
+		// 4. Calculate overall average progress
+		double totalStudentPercentages = 0;
+		for (User s : students) {
+			double sGrammar = grammarScoreMap.getOrDefault(s.getId(), 0.0);
+			double sSpeaking = speakingScoreMap.getOrDefault(s.getId(), 0.0);
+			double sListening = listeningScoreMap.getOrDefault(s.getId(), 0.0);
+			Progress p = progressMap.get(s.getId());
+			double sVocabXp = (p != null && p.getXp() != null) ? Math.min(100.0, (p.getXp() / 500.0) * 100.0) : 0;
+
+			double sAvg = (sGrammar + sSpeaking + sListening + sVocabXp) / 4.0;
+			totalStudentPercentages += sAvg;
+		}
+		double avgProgress = totalStudentPercentages / students.size();
+
+		// 5. Bulk fetch completed students count
+		long completedStudentsCount = lessonProgressRepository.countDistinctCompletedUsersIn(studentIds);
+
+		// 6. Calculate skill performance averages
 		List<Double> grammarScores = new ArrayList<>();
 		List<Double> vocabularyScores = new ArrayList<>();
 		List<Double> speakingScores = new ArrayList<>();
 		List<Double> listeningScores = new ArrayList<>();
 
 		for (User student : students) {
-			Double g = getAverageGrammarScore(student);
-			if (g != null)
-				grammarScores.add(g);
-			Double v = (double) (progressRepository.findByUser(student).map(Progress::getTotalVocabularyWords).orElse(0));
-			if (v > 0)
-				vocabularyScores.add(v);
-			Double sp = getAverageSpeakingScore(student);
-			if (sp != null)
-				speakingScores.add(sp);
-			Double l = getAverageListeningScore(student);
-			if (l != null)
-				listeningScores.add(l);
+			Double g = grammarScoreMap.get(student.getId());
+			if (g != null) grammarScores.add(g);
+
+			Progress p = progressMap.get(student.getId());
+			double v = (p != null && p.getTotalVocabularyWords() != null) ? (double) p.getTotalVocabularyWords() : 0.0;
+			if (v > 0) vocabularyScores.add(v);
+
+			Double sp = speakingScoreMap.get(student.getId());
+			if (sp != null) speakingScores.add(sp);
+
+			Double l = listeningScoreMap.get(student.getId());
+			if (l != null) listeningScores.add(l);
 		}
 
-		if (!grammarScores.isEmpty()) {
-			avgGrammar = grammarScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-			skillCount++;
-		}
-		if (!vocabularyScores.isEmpty()) {
-			avgVocabulary = vocabularyScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-			skillCount++;
-		}
-		if (!speakingScores.isEmpty()) {
-			avgSpeaking = speakingScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-			skillCount++;
-		}
-		if (!listeningScores.isEmpty()) {
-			avgListening = listeningScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-			skillCount++;
-		}
+		double avgGrammar = grammarScores.isEmpty() ? 0 : grammarScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+		double avgVocabulary = vocabularyScores.isEmpty() ? 0 : vocabularyScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+		double avgSpeaking = speakingScores.isEmpty() ? 0 : speakingScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
+		double avgListening = listeningScores.isEmpty() ? 0 : listeningScores.stream().mapToDouble(Double::doubleValue).average().orElse(0);
 
 		SkillPerformanceSummaryResponse skillPerformance = SkillPerformanceSummaryResponse.builder()
 				.grammar(avgGrammar).vocabulary(avgVocabulary).speaking(avgSpeaking).listening(avgListening).build();
+
+		// 7. Recent sessions in the last 7 days for students requiring attention
+		LocalDateTime now = LocalDateTime.now();
+		LocalDateTime sevenDaysAgo = now.minusDays(7);
+		List<SpeakingSession> recentSevenDaySessions = speakingSessionRepository.findByUserIdsAndCreatedAtBetween(studentIds, sevenDaysAgo, now);
+		Set<Long> studentsWithRecentPractice = recentSevenDaySessions.stream()
+				.map(s -> s.getUser().getId())
+				.collect(Collectors.toSet());
 
 		List<StudentAttentionItemResponse> attentionStudents = new ArrayList<>();
 		for (User student : students) {
 			List<String> reasons = new ArrayList<>();
 			String severity = "low";
 
-			Progress p = progressRepository.findByUser(student).orElse(null);
+			Progress p = progressMap.get(student.getId());
 			int xp = p != null && p.getXp() != null ? p.getXp() : 0;
 
 			if (xp < 50) {
@@ -723,7 +857,7 @@ public class TeacherServiceImpl implements TeacherService {
 				severity = "high";
 			}
 
-			Double speakingScore = getAverageSpeakingScore(student);
+			Double speakingScore = speakingScoreMap.get(student.getId());
 			if (speakingScore != null && speakingScore < 30) {
 				reasons.add("Low speaking performance");
 				if ("high".equals(severity))
@@ -732,9 +866,7 @@ public class TeacherServiceImpl implements TeacherService {
 					severity = "medium";
 			}
 
-			List<SpeakingSession> recentSessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(student.getId(),
-					LocalDateTime.now().minusDays(7), LocalDateTime.now());
-			if (recentSessions.isEmpty() && student.getStatus() == Status.ACTIVE) {
+			if (!studentsWithRecentPractice.contains(student.getId()) && student.getStatus() == Status.ACTIVE) {
 				reasons.add("No practice this week");
 				if ("low".equals(severity))
 					severity = "medium";
@@ -745,10 +877,27 @@ public class TeacherServiceImpl implements TeacherService {
 				severity = "high";
 			}
 
+			Double grScore = grammarScoreMap.get(student.getId());
+			Double lsScore = listeningScoreMap.get(student.getId());
+			List<Double> validScores = new ArrayList<>();
+			if (speakingScore != null) validScores.add(speakingScore);
+			if (grScore != null) validScores.add(grScore);
+			if (lsScore != null) validScores.add(lsScore);
+
+			double realScore = validScores.isEmpty()
+					? (xp > 0 ? Math.min(100.0, xp) : 0.0)
+					: validScores.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+			int studentProg = (int) Math.round(realScore);
+
 			if (!reasons.isEmpty()) {
-				attentionStudents.add(StudentAttentionItemResponse.builder().studentId(student.getId())
-						.studentName(student.getFirstName() + " " + student.getLastName()).reason(String.join(", ", reasons))
-						.severity(severity).build());
+				attentionStudents.add(StudentAttentionItemResponse.builder()
+						.studentId(student.getId())
+						.studentName((student.getFirstName() + " " + (student.getLastName() != null ? student.getLastName() : "")).trim())
+						.reason(String.join(", ", reasons))
+						.severity(severity)
+						.progress(studentProg)
+						.score(realScore)
+						.build());
 			}
 		}
 		attentionStudents.sort((a, b) -> {
@@ -756,15 +905,30 @@ public class TeacherServiceImpl implements TeacherService {
 			return Integer.compare(order, 0);
 		});
 
-		List<RecentActivityResponse> recentActivity = getRecentActivityForStudents(students);
+		// 8. Weekly progress calculation in bulk
+		LocalDate today = LocalDate.now();
+		LocalDateTime weekStart = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY)).atStartOfDay();
+		LocalDateTime weekEnd = weekStart.plusDays(7);
+		List<SpeakingSession> weeklySessions = speakingSessionRepository.findByUserIdsAndCreatedAtBetween(studentIds, weekStart, weekEnd);
+		List<LessonProgress> weeklyLessons = lessonProgressRepository.findByUserIdsAndCompletedAtBetween(studentIds, weekStart, weekEnd);
+		List<WeeklyProgressResponse> weeklyCompletion = buildAggregatedWeeklyProgressFromLists(weeklySessions, weeklyLessons, weekStart, today);
 
-		return TeacherDashboardResponse.builder().teacherInfo(profile).assignedClasses(assignedClasses)
+		// 9. Recent activity in bulk
+		List<Vocabulary> recentVocab = vocabularyRepository.findByUserIdsAndCreatedAtAfter(studentIds, sevenDaysAgo);
+		List<GrammarHistory> recentGrammar = grammarHistoryRepository.findByUserIdsAndCreatedAtBetween(studentIds, sevenDaysAgo, now);
+		List<RecentActivityResponse> recentActivity = buildRecentActivityFromLists(recentSevenDaySessions, recentVocab, recentGrammar);
+
+		TeacherDashboardResponse response = TeacherDashboardResponse.builder().teacherInfo(profile).assignedClasses(assignedClasses)
 				.assignedStandards(assignedStandards).assignedDivisions(assignedDivisions)
 				.assignedStandardString(assignedStandardString)
 				.totalStudents(totalStudents).averageProgress(avgProgress).weeklyCompletion(weeklyCompletion)
 				.completedStudents((int) completedStudentsCount).skillPerformance(skillPerformance)
 				.studentsRequiringAttention(attentionStudents).recentActivity(recentActivity).build();
+
+		teacherDashboardCache.put(teacher.getId(), new CachedDashboard(System.currentTimeMillis(), response));
+		return response;
 	}
+
 
 	private int getSeverityOrder(String severity) {
 		if ("high".equals(severity))
@@ -1276,8 +1440,9 @@ public class TeacherServiceImpl implements TeacherService {
 					.build());
 		}
 
-		// Top performers
+		// Top performers (require minimum score threshold >= 60.0% so students requiring attention are excluded)
 		List<TopPerformerResponse> topPerformers = studentProgressList.stream()
+				.filter(sp -> sp.getAverageScore() != null && sp.getAverageScore() >= 60.0)
 				.sorted((a, b) -> Double.compare(b.getAverageScore() != null ? b.getAverageScore() : 0.0, a.getAverageScore() != null ? a.getAverageScore() : 0.0))
 				.limit(5)
 				.map(sp -> TopPerformerResponse.builder()
@@ -1312,11 +1477,16 @@ public class TeacherServiceImpl implements TeacherService {
 			}
 
 			if (!reasons.isEmpty()) {
+				int realProg = (sp.getAverageScore() != null && sp.getAverageScore() > 0)
+						? (int) Math.round(sp.getAverageScore())
+						: (sp.getOverallProgress() != null ? (int) Math.round(sp.getOverallProgress()) : 0);
 				attentionStudents.add(StudentAttentionItemResponse.builder()
 						.studentId(sp.getStudentId())
 						.studentName(sp.getStudentName())
 						.reason(String.join(", ", reasons))
 						.severity(severity)
+						.progress(realProg)
+						.score(sp.getAverageScore())
 						.build());
 			}
 		}
@@ -1713,6 +1883,8 @@ public class TeacherServiceImpl implements TeacherService {
 		teacher.setBio(request.getBio() != null ? request.getBio().trim() : null);
 
 		teacherRepository.save(teacher);
+		teacherRepository.flush();
+		userRepository.flush();
 		return getProfile();
 	}
 
@@ -1742,5 +1914,16 @@ public class TeacherServiceImpl implements TeacherService {
 		} catch (Exception e) {
 			throw new RuntimeException("Failed to generate profile download", e);
 		}
+	}
+
+	private int extractGradeNumber(String str) {
+		if (str == null) return 0;
+		java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(str);
+		if (m.find()) {
+			try {
+				return Integer.parseInt(m.group());
+			} catch (Exception e) {}
+		}
+		return 0;
 	}
 }

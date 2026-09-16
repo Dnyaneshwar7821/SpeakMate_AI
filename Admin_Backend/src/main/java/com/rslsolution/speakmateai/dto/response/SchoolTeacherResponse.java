@@ -25,4 +25,11 @@ public class SchoolTeacherResponse {
 	private String qualification;
 	private java.util.List<com.rslsolution.speakmateai.dto.request.StandardDivisionPair> standardDivisions;
 	private Boolean emailSent;
+
+	public String getName() {
+		String f = firstName != null ? firstName.trim() : "";
+		String l = lastName != null ? lastName.trim() : "";
+		String full = (f + " " + l).trim();
+		return !full.isEmpty() ? full : (email != null ? email : "");
+	}
 }

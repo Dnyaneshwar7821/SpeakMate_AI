@@ -24,6 +24,7 @@ import com.rslsolution.speakmateai.repository.SchoolUserSpecification;
 import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.service.AdminSchoolUserService;
+import com.rslsolution.speakmateai.util.StandardDivisionUtil;
 
 @Service
 @Transactional
@@ -91,13 +92,22 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
             }
         }
 
+        String schoolName = user.getSchoolName();
+        if ((schoolName == null || schoolName.isBlank()) && user.getSchoolId() != null && schoolRepository != null) {
+            schoolName = schoolRepository.findById(user.getSchoolId())
+                    .map(com.rslsolution.speakmateai.entity.School::getName)
+                    .orElse(schoolName);
+        }
+
+        Double avgScore = userRepository.findAverageScoreByUserId(user.getId());
+
         return AdminSchoolUserResponse.builder()
                 .id(user.getId())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
-                .schoolName(user.getSchoolName())
+                .schoolName(schoolName)
                 .standard(user.getStandard())
                 .division(user.getDivision())
                 .rollNumber(user.getRollNumber())
@@ -105,8 +115,14 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                 .parentPhone(user.getParentPhone())
                 .teacherId(teacherId)
                 .assignedTeacher(assignedTeacher)
+                .teacherName(assignedTeacher)
                 .active(user.isActive())
                 .createdAt(user.getCreatedAt())
+                .totalLessonsCompleted(userRepository.countLessonProgressByUserId(user.getId()))
+                .totalSpeakingSessions(userRepository.countSpeakingSessionsByUserId(user.getId()))
+                .totalGrammarSessions(userRepository.countGrammarHistoriesByUserId(user.getId()))
+                .totalVocabularySaved(userRepository.countVocabularyByUserId(user.getId()))
+                .averageScore(avgScore)
                 .build();
     }
 
@@ -121,12 +137,21 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         response.setTotalSpeakingSessions(userRepository.countSpeakingSessionsByUserId(user.getId()));
         response.setTotalGrammarSessions(userRepository.countGrammarHistoriesByUserId(user.getId()));
         response.setTotalVocabularySaved(userRepository.countVocabularyByUserId(user.getId()));
+        response.setAverageScore(userRepository.findAverageScoreByUserId(user.getId()));
 
         return response;
     }
 
     private AdminSchoolUserResponse mapToResponse(Student user) {
         return mapToDetailResponse(user);
+    }
+
+    private AdminSchoolUserResponse mapToResponse(Student user, Boolean emailSent) {
+        AdminSchoolUserResponse response = mapToDetailResponse(user);
+        if (response != null) {
+            response.setEmailSent(emailSent);
+        }
+        return response;
     }
 
     @Override
@@ -187,7 +212,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Student phone"));
         user.setSchoolName(request.getSchoolName());
         user.setStandard(request.getStandard());
-        user.setSchoolGrade(UserServiceImpl.formatStandardToGrade(request.getStandard()));
+        user.setSchoolGrade(StandardDivisionUtil.formatStandardToGrade(request.getStandard()));
         user.setDivision(request.getDivision());
         user.setRollNumber(request.getRollNumber());
         user.setParentName(request.getParentName());
@@ -214,6 +239,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
             } catch (Exception ignored) {}
         }
 
+        Boolean emailSent = false;
         if (emailService != null && savedUser.getEmail() != null && !savedUser.getEmail().isBlank()) {
             try {
                 String rawPassword = (request.getPassword() != null && !request.getPassword().isBlank())
@@ -308,12 +334,15 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                             + "Best regards,\nSpeakMate AI Team";
                     emailService.sendEmail(savedUser.getEmail(), subject, text);
                 }
+                emailSent = true;
+                System.out.println("Super Admin: Student credentials email sent successfully to " + savedUser.getEmail());
             } catch (Exception e) {
                 System.err.println("Failed to dispatch student credentials email to " + savedUser.getEmail() + ": " + e.getMessage());
+                emailSent = false;
             }
         }
 
-        return mapToResponse(savedUser);
+        return mapToResponse(savedUser, emailSent);
     }
 
     @Override
@@ -334,7 +363,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         user.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Student phone"));
         user.setSchoolName(request.getSchoolName());
         user.setStandard(request.getStandard());
-        user.setSchoolGrade(UserServiceImpl.formatStandardToGrade(request.getStandard()));
+        user.setSchoolGrade(StandardDivisionUtil.formatStandardToGrade(request.getStandard()));
         user.setDivision(request.getDivision());
         user.setRollNumber(request.getRollNumber());
         user.setParentName(request.getParentName());
@@ -377,17 +406,19 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         Long schoolId = user.getSchoolId();
         String studentName = (user.getFirstName() + " " + (user.getLastName() != null ? user.getLastName() : "")).trim();
         
+        if (notificationService != null) {
+            try {
+                notificationService.notifyAdmins("Student Removed", "Student " + studentName + " has been removed by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
+                if (schoolId != null) {
+                    notificationService.notifySchoolAdmins(schoolId, "Student Removed", "Student " + studentName + " has been removed by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
+                }
+            } catch (Exception ignored) {}
+        }
         if (entityCascadeDeletionService != null) {
             entityCascadeDeletionService.deleteStudentCascade(id);
         } else {
             studentRepository.delete(user);
             userRepository.deleteById(id);
-        }
-
-        if (notificationService != null && schoolId != null) {
-            try {
-                notificationService.notifySchoolAdmins(schoolId, "Student Removed", "Student " + studentName + " has been removed by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
-            } catch (Exception ignored) {}
         }
     }
 
@@ -402,6 +433,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         }
 
         user.setActive(true);
+        user.setStatus(com.rslsolution.speakmateai.enums.Status.ACTIVE);
         Student savedUser = studentRepository.save(user);
 
         // Resolve schoolId if null
@@ -461,6 +493,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         }
 
         user.setActive(false);
+        user.setStatus(com.rslsolution.speakmateai.enums.Status.INACTIVE);
         Student savedUser = studentRepository.save(user);
 
         // Resolve schoolId if null

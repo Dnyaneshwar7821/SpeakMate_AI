@@ -28,6 +28,7 @@ public class AdminSchoolUserResponse {
     
     private Long teacherId;
     private String assignedTeacher;
+    private String teacherName;
     
     private boolean active;
     private LocalDateTime createdAt;
@@ -37,6 +38,14 @@ public class AdminSchoolUserResponse {
     private long totalSpeakingSessions;
     private long totalGrammarSessions;
     private long totalVocabularySaved;
+    private Double averageScore;
+    private Boolean emailSent;
+
+    public Boolean getEmailSent() { return emailSent; }
+    public void setEmailSent(Boolean emailSent) { this.emailSent = emailSent; }
+
+    public Double getAverageScore() { return averageScore; }
+    public void setAverageScore(Double averageScore) { this.averageScore = averageScore; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -74,8 +83,25 @@ public class AdminSchoolUserResponse {
     public Long getTeacherId() { return teacherId; }
     public void setTeacherId(Long teacherId) { this.teacherId = teacherId; }
 
-    public String getAssignedTeacher() { return assignedTeacher; }
-    public void setAssignedTeacher(String assignedTeacher) { this.assignedTeacher = assignedTeacher; }
+    public String getAssignedTeacher() {
+        return assignedTeacher != null && !assignedTeacher.isBlank() ? assignedTeacher : teacherName;
+    }
+    public void setAssignedTeacher(String assignedTeacher) {
+        this.assignedTeacher = assignedTeacher;
+        if (this.teacherName == null || this.teacherName.isBlank()) {
+            this.teacherName = assignedTeacher;
+        }
+    }
+
+    public String getTeacherName() {
+        return teacherName != null && !teacherName.isBlank() ? teacherName : assignedTeacher;
+    }
+    public void setTeacherName(String teacherName) {
+        this.teacherName = teacherName;
+        if (this.assignedTeacher == null || this.assignedTeacher.isBlank()) {
+            this.assignedTeacher = teacherName;
+        }
+    }
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
@@ -113,12 +139,15 @@ public class AdminSchoolUserResponse {
         private String parentPhone;
         private Long teacherId;
         private String assignedTeacher;
+        private String teacherName;
         private boolean active;
         private LocalDateTime createdAt;
         private long totalLessonsCompleted;
         private long totalSpeakingSessions;
         private long totalGrammarSessions;
         private long totalVocabularySaved;
+        private Double averageScore;
+        private Boolean emailSent;
 
         public AdminSchoolUserResponseBuilder id(Long id) { this.id = id; return this; }
         public AdminSchoolUserResponseBuilder firstName(String firstName) { this.firstName = firstName; return this; }
@@ -133,12 +162,15 @@ public class AdminSchoolUserResponse {
         public AdminSchoolUserResponseBuilder parentPhone(String parentPhone) { this.parentPhone = parentPhone; return this; }
         public AdminSchoolUserResponseBuilder teacherId(Long teacherId) { this.teacherId = teacherId; return this; }
         public AdminSchoolUserResponseBuilder assignedTeacher(String assignedTeacher) { this.assignedTeacher = assignedTeacher; return this; }
+        public AdminSchoolUserResponseBuilder teacherName(String teacherName) { this.teacherName = teacherName; return this; }
         public AdminSchoolUserResponseBuilder active(boolean active) { this.active = active; return this; }
         public AdminSchoolUserResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public AdminSchoolUserResponseBuilder totalLessonsCompleted(long totalLessonsCompleted) { this.totalLessonsCompleted = totalLessonsCompleted; return this; }
         public AdminSchoolUserResponseBuilder totalSpeakingSessions(long totalSpeakingSessions) { this.totalSpeakingSessions = totalSpeakingSessions; return this; }
         public AdminSchoolUserResponseBuilder totalGrammarSessions(long totalGrammarSessions) { this.totalGrammarSessions = totalGrammarSessions; return this; }
         public AdminSchoolUserResponseBuilder totalVocabularySaved(long totalVocabularySaved) { this.totalVocabularySaved = totalVocabularySaved; return this; }
+        public AdminSchoolUserResponseBuilder averageScore(Double averageScore) { this.averageScore = averageScore; return this; }
+        public AdminSchoolUserResponseBuilder emailSent(Boolean emailSent) { this.emailSent = emailSent; return this; }
 
         public AdminSchoolUserResponse build() {
             AdminSchoolUserResponse r = new AdminSchoolUserResponse();
@@ -154,13 +186,17 @@ public class AdminSchoolUserResponse {
             r.parentName = parentName;
             r.parentPhone = parentPhone;
             r.teacherId = teacherId;
-            r.assignedTeacher = assignedTeacher;
+            String resolvedTeacher = assignedTeacher != null && !assignedTeacher.isBlank() ? assignedTeacher : teacherName;
+            r.assignedTeacher = resolvedTeacher;
+            r.teacherName = resolvedTeacher;
             r.active = active;
             r.createdAt = createdAt;
             r.totalLessonsCompleted = totalLessonsCompleted;
             r.totalSpeakingSessions = totalSpeakingSessions;
             r.totalGrammarSessions = totalGrammarSessions;
             r.totalVocabularySaved = totalVocabularySaved;
+            r.averageScore = averageScore;
+            r.emailSent = emailSent;
             return r;
         }
     }

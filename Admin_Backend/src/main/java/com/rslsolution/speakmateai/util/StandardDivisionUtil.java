@@ -47,4 +47,30 @@ public final class StandardDivisionUtil {
 		}
 		return Collections.unmodifiableList(divisions);
 	}
+
+	/**
+	 * Formats a raw standard string (e.g. "5", "5th", "5th Std", "Grade 5") into a canonical
+	 * display grade representation (e.g. "5th Std").
+	 *
+	 * @param standard the standard input string
+	 * @return canonical grade representation, or null if input is null/blank
+	 */
+	public static String formatStandardToGrade(String standard) {
+		if (standard == null || standard.isBlank()) return null;
+		String std = standard.trim();
+		if (std.toLowerCase().contains("std") || std.toLowerCase().contains("grade")) {
+			return std;
+		}
+		if (std.matches("\\d+")) {
+			int n = Integer.parseInt(std);
+			if (n % 100 >= 11 && n % 100 <= 13) return n + "th Std";
+			return switch (n % 10) {
+				case 1 -> n + "st Std";
+				case 2 -> n + "nd Std";
+				case 3 -> n + "rd Std";
+				default -> n + "th Std";
+			};
+		}
+		return std + " Std";
+	}
 }

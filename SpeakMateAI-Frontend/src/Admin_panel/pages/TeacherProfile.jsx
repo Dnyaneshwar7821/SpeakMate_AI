@@ -33,6 +33,8 @@ import InsigniaBadge from "@components/common/InsigniaBadge";
 import InsigniaStudioModal from "@components/common/InsigniaStudioModal";
 import { teacherDataApi } from "@services/admin/teacherDataApi";
 import { getIndianMobileError, normalizeIndianMobile, sanitizeMobileInput } from "@utils/phoneValidator";
+import { updateAdminSessionUser } from "../services/adminSession";
+import { invalidateStudentCache } from "@admin/hooks/useStudentManagement";
 
 /**
  * Admin_panel/pages/TeacherProfile.jsx
@@ -295,6 +297,33 @@ export function TeacherProfile() {
                 setInitialForm(updatedData);
                 setPhoneError("");
                 setIsEditing(false);
+
+                // Update localStorage admin session so AuthContext and navbar reflect the new name immediately
+                updateAdminSessionUser({
+                    name: updatedData.name,
+                    firstName: updatedData.firstName,
+                    lastName: updatedData.lastName,
+                    phone: updatedData.phone,
+                    department: updatedData.department,
+                    designation: updatedData.designation,
+                });
+
+                // Clear cached student management data to guarantee fresh fetch
+                invalidateStudentCache();
+
+                // Dispatch global events for real-time reactivity across panels
+                window.dispatchEvent(new CustomEvent("teacher_profile_updated", {
+                    detail: {
+                        teacherId: updatedRes.identity?.id || updatedRes.id,
+                        name: updatedData.name,
+                        firstName: updatedData.firstName,
+                        lastName: updatedData.lastName,
+                    }
+                }));
+                window.dispatchEvent(new CustomEvent("school_data_updated", {
+                    detail: { type: "teacher", action: "update" }
+                }));
+
                 triggerToast("Profile updated successfully");
             }
         } catch (err) {

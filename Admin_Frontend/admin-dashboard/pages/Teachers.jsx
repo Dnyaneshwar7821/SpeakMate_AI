@@ -105,15 +105,15 @@ export function Teachers() {
     });
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
+
     const [schoolStandardsConfig, setSchoolStandardsConfig] = useState([]);
-    
+
     const selectedSchoolObj = useMemo(() => {
         if (!form.schoolName) return null;
         return (schools || []).find(
             (s) => s.name === form.schoolName ||
-                   (s.name && s.name.trim().toLowerCase() === form.schoolName.trim().toLowerCase()) ||
-                   String(s.id) === String(form.schoolName)
+                (s.name && s.name.trim().toLowerCase() === form.schoolName.trim().toLowerCase()) ||
+                String(s.id) === String(form.schoolName)
         ) || null;
     }, [schools, form.schoolName]);
 
@@ -421,7 +421,7 @@ export function Teachers() {
                     const loaded = res?.data?.content || [];
                     teachersCache.students = loaded;
                     setStudents(loaded);
-                }).catch(() => {});
+                }).catch(() => { });
             }
         };
         window.addEventListener("school_data_updated", handleSchoolDataUpdated);
@@ -626,7 +626,7 @@ export function Teachers() {
 
     const handleEditClick = (teacher) => {
         setEditingTeacher(teacher);
-        
+
         let initialGroups = [];
         if (Array.isArray(teacher.standardDivisions) && teacher.standardDivisions.length > 0) {
             const map = new Map();
@@ -855,11 +855,11 @@ export function Teachers() {
             t.email.toLowerCase().includes(q) ||
             teacherSchool.toLowerCase().includes(q) ||
             (t.department && t.department.toLowerCase().includes(q));
-            
+
         const matchesSchool = filters.school === "All" || teacherSchool === filters.school;
         const matchesDept = filters.department === "All" || t.department === filters.department;
         const matchesStatus = filters.status === "All" || t.status === filters.status;
-        
+
         let matchesAssignment = filters.assignment === "All";
         if (!matchesAssignment) {
             if (Array.isArray(t.standardDivisions)) {
@@ -868,7 +868,7 @@ export function Teachers() {
                 matchesAssignment = `${t.standard}-${t.division}` === filters.assignment;
             }
         }
-        
+
         return matchesSearch && matchesSchool && matchesDept && matchesStatus && matchesAssignment;
     });
 
@@ -885,15 +885,15 @@ export function Teachers() {
             const numB = b?.id !== null && b?.id !== undefined && b?.id !== "" && !isNaN(Number(b.id)) ? Number(b.id) : Infinity;
             return numA - numB;
         });
-        
+
         const headers = ["Name", "Email", "Phone", "Department", "Assignment", "Status", "School"];
         const csvRows = [headers.join(",")];
-        
+
         sortedData.forEach(t => {
-            const assignments = (t.standardDivisions && t.standardDivisions.length > 0) 
+            const assignments = (t.standardDivisions && t.standardDivisions.length > 0)
                 ? t.standardDivisions.map(sd => `${sd.standard}-${sd.division}`).join("; ")
                 : (t.standard && t.division) ? `${t.standard}-${t.division}` : "";
-            
+
             const row = [
                 `"${t.name}"`,
                 `"${t.email}"`,
@@ -905,7 +905,7 @@ export function Teachers() {
             ];
             csvRows.push(row.join(","));
         });
-        
+
         const csvContent = "data:text/csv;charset=utf-8," + csvRows.join("\n");
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
@@ -1021,7 +1021,7 @@ export function Teachers() {
                                 </th>
                                 <th className="px-5 py-3 text-right">
                                     {activeFilterCount > 0 && (
-                                        <button 
+                                        <button
                                             onClick={() => setFilters({ school: "All", department: "All", assignment: "All", status: "All", students: "Any" })}
                                             className="text-[12px] font-semibold text-slate-500 hover:text-indigo-600 transition-colors"
                                         >
@@ -1065,8 +1065,8 @@ export function Teachers() {
                                                 {teachersList.length === 0 ? "No teachers registered" : "No matches found"}
                                             </h3>
                                             <p className="text-sm text-[var(--text-secondary)]">
-                                                {teachersList.length === 0 
-                                                    ? "Add your first teacher to get started managing their assignments and schedules." 
+                                                {teachersList.length === 0
+                                                    ? "Add your first teacher to get started managing their assignments and schedules."
                                                     : "Try adjusting your search term to find what you're looking for."}
                                             </p>
                                         </div>
@@ -1117,11 +1117,11 @@ export function Teachers() {
                                                 } else if (t.standard || t.division) {
                                                     stds = [{ standard: t.standard, division: t.division }];
                                                 }
-                                                
+
                                                 if (stds.length === 0) {
                                                     return <span className="text-[var(--text-muted)] font-medium">—</span>;
                                                 }
-                                                
+
                                                 return stds.map((sd, idx) => (
                                                     <span
                                                         key={`${sd.standard}-${sd.division || ""}-${idx}`}
@@ -1414,11 +1414,10 @@ export function Teachers() {
                             initial={{ opacity: 0, y: 20, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, transition: { duration: 0.2 } }}
-                            className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-xl ${
-                                t.type === "error"
+                            className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-xl ${t.type === "error"
                                     ? "border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-800 dark:bg-rose-950/90 dark:text-rose-200"
                                     : "border-slate-200 bg-white text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                            }`}
+                                }`}
                         >
                             {t.type === "error" ? (
                                 <AlertCircle size={18} className="text-rose-500 shrink-0 mt-0.5" />

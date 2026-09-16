@@ -142,7 +142,7 @@ export function AdminNavbar() {
 
                 // 2. Dynamic API search for Students and Platform Users
                 const apiMatches = [];
-                
+
                 // Search Students
                 try {
                     const studentRes = await studentApi.searchStudents(query);
@@ -299,9 +299,8 @@ export function AdminNavbar() {
 
                             {/* Micro Live SSE status indicator dot */}
                             <span
-                                className={`absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full ring-2 ring-[var(--bg-surface)] ${
-                                    isConnected ? "bg-emerald-500" : "bg-amber-500 animate-pulse"
-                                }`}
+                                className={`absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full ring-2 ring-[var(--bg-surface)] ${isConnected ? "bg-emerald-500" : "bg-amber-500 animate-pulse"
+                                    }`}
                                 title={isConnected ? "Real-time Live Stream Active" : "Reconnecting to live stream..."}
                             />
                         </button>
@@ -397,7 +396,7 @@ export function AdminNavbar() {
                                         )}
                                     </div>
                                     <div className="flex items-center justify-between border-t border-[var(--border-default)] bg-[var(--bg-subtle)]/50 px-4 py-2.5">
-                                        <button 
+                                        <button
                                             onClick={markAllAsRead}
                                             className="flex items-center gap-1.5 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:text-[var(--color-primary)]"
                                         >

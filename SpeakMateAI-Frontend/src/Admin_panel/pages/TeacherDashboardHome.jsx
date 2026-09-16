@@ -320,18 +320,46 @@ const defaultMetrics = [
     { id: "completion", label: "Weekly Practice Completion", value: "0%", helper: "0 students completed goals", tone: "amber" },
 ];
 
+const TEACHER_DASHBOARD_CACHE_KEY = "speakmate_teacher_dashboard_cache";
+let inMemoryTeacherDashboardCache = null;
+
+function getTeacherCachedData() {
+    if (inMemoryTeacherDashboardCache) return inMemoryTeacherDashboardCache;
+    try {
+        const stored = sessionStorage.getItem(TEACHER_DASHBOARD_CACHE_KEY);
+        if (stored) {
+            inMemoryTeacherDashboardCache = JSON.parse(stored);
+            return inMemoryTeacherDashboardCache;
+        }
+    } catch (e) {
+        console.warn("Failed to read teacher dashboard cache", e);
+    }
+    return null;
+}
+
+function setTeacherCachedData(data) {
+    inMemoryTeacherDashboardCache = data;
+    try {
+        sessionStorage.setItem(TEACHER_DASHBOARD_CACHE_KEY, JSON.stringify(data));
+    } catch (e) {
+        console.warn("Failed to write teacher dashboard cache", e);
+    }
+}
+
 export function TeacherDashboardHome() {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const [overviewMetrics, setOverviewMetrics] = useState(defaultMetrics);
-    const [performanceSkills, setPerformanceSkills] = useState([]);
-    const [attentionItems, setAttentionItems] = useState([]);
-    const [recentActivities, setRecentActivities] = useState([]);
-    const [assignedClasses, setAssignedClasses] = useState([]);
-    const [assignedStandards, setAssignedStandards] = useState([]);
-    const [assignedDivisions, setAssignedDivisions] = useState([]);
-    const [assignedClassTitle, setAssignedClassTitle] = useState(null);
+    const cachedData = getTeacherCachedData();
+
+    const [overviewMetrics, setOverviewMetrics] = useState(() => cachedData?.overviewMetrics || defaultMetrics);
+    const [performanceSkills, setPerformanceSkills] = useState(() => cachedData?.performanceSkills || []);
+    const [attentionItems, setAttentionItems] = useState(() => cachedData?.attentionItems || []);
+    const [recentActivities, setRecentActivities] = useState(() => cachedData?.recentActivities || []);
+    const [assignedClasses, setAssignedClasses] = useState(() => cachedData?.assignedClasses || []);
+    const [assignedStandards, setAssignedStandards] = useState(() => cachedData?.assignedStandards || []);
+    const [assignedDivisions, setAssignedDivisions] = useState(() => cachedData?.assignedDivisions || []);
+    const [assignedClassTitle, setAssignedClassTitle] = useState(() => cachedData?.assignedClassTitle || null);
 
     const teacherName = user?.name || (user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null) || user?.email || "Teacher";
     const teacherTitle = assignedClassTitle || (user?.designation || user?.department ? `${user?.designation || 'Teacher'}${user?.department ? ` • ${user.department}` : ''}` : (user?.schoolName ? `${user?.schoolName} Teacher` : "Teacher"));
@@ -356,13 +384,15 @@ export function TeacherDashboardHome() {
                             ? rawClasses.map(c => c.name || (c.grade ? `${c.grade} Standard` : null)).filter(Boolean).join(", ")
                             : null);
 
+                    let computedTitle = null;
                     if (formattedTitle) {
-                        setAssignedClassTitle(rawClasses.length === 1 ? `${formattedTitle} Teacher` : `${formattedTitle} • Teacher`);
+                        computedTitle = rawClasses.length === 1 ? `${formattedTitle} Teacher` : `${formattedTitle} • Teacher`;
                     } else if (rawClasses.length > 0) {
                         const firstClass = rawClasses[0];
                         const cName = firstClass.name || (firstClass.grade ? `${firstClass.grade} Standard` : null);
-                        if (cName) setAssignedClassTitle(`${cName} Teacher`);
+                        if (cName) computedTitle = `${cName} Teacher`;
                     }
+                    setAssignedClassTitle(computedTitle);
 
                     const totalStus = stats.totalStudents ?? (stats.students ? stats.students.length : 0);
                     const avgProg = stats.averageProgress !== undefined && stats.averageProgress !== null
@@ -372,7 +402,7 @@ export function TeacherDashboardHome() {
                     const compCount = stats.completedStudents !== undefined ? stats.completedStudents : 0;
                     const compRate = totalStus > 0 ? Math.round((compCount / totalStus) * 100) : 0;
 
-                    setOverviewMetrics([
+                    const computedMetrics = [
                         {
                             id: "students",
                             label: "Total Students",
@@ -401,11 +431,13 @@ export function TeacherDashboardHome() {
                             helper: `${compCount} students completed goals`,
                             tone: "amber",
                         },
-                    ]);
+                    ];
+                    setOverviewMetrics(computedMetrics);
 
+                    let computedSkills = [];
                     if (stats.skillPerformance) {
                         const sp = stats.skillPerformance;
-                        setPerformanceSkills([
+                        computedSkills = [
                             {
                                 id: "speaking",
                                 label: "Speaking Confidence",
@@ -430,24 +462,39 @@ export function TeacherDashboardHome() {
                                 summary: `Average Score: ${Math.round(sp.listening || 0)}%`,
                                 tone: "amber",
                             },
-                        ]);
+                        ];
+                        setPerformanceSkills(computedSkills);
                     }
 
                     const rawAttention = stats.studentsRequiringAttention || stats.attentionStudents || [];
-                    setAttentionItems(rawAttention.map((s, idx) => ({
+                    const computedAttention = rawAttention.map((s, idx) => ({
                         id: s.studentId || s.id || `att-${idx}`,
                         name: s.studentName || s.name || `${s.firstName || 'Student'} ${s.lastName || ''}`.trim(),
                         reason: s.reason || "Requires additional practice",
                         progress: s.progress || s.percentage || 45,
-                    })));
+                    }));
+                    setAttentionItems(computedAttention);
 
                     const rawActivity = stats.recentActivity || [];
-                    setRecentActivities(rawActivity.map((a, idx) => ({
+                    const computedActivities = rawActivity.map((a, idx) => ({
                         student: a.studentName || a.title || "Student",
                         action: a.action || a.title || "completed a practice session",
                         time: a.time ? new Date(a.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently",
                         tone: ["indigo", "emerald", "violet", "amber"][idx % 4],
-                    })));
+                    }));
+                    setRecentActivities(computedActivities);
+
+                    // Cache the computed dashboard dataset for instant 0ms subsequent loads
+                    setTeacherCachedData({
+                        overviewMetrics: computedMetrics,
+                        performanceSkills: computedSkills,
+                        attentionItems: computedAttention,
+                        recentActivities: computedActivities,
+                        assignedClasses: rawClasses,
+                        assignedStandards: stds,
+                        assignedDivisions: divs,
+                        assignedClassTitle: computedTitle,
+                    });
                 }
             } catch (err) {
                 console.error("Failed to load teacher dashboard data:", err);

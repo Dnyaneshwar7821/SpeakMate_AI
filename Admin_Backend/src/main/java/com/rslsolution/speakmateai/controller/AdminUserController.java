@@ -1,6 +1,7 @@
 package com.rslsolution.speakmateai.controller;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -21,9 +22,12 @@ import com.rslsolution.speakmateai.dto.response.UserGrammarResponse;
 import com.rslsolution.speakmateai.dto.response.UserLearningStatisticsResponse;
 import com.rslsolution.speakmateai.dto.response.UserProgressResponse;
 import com.rslsolution.speakmateai.dto.response.UserSpeakingResponse;
-import com.rslsolution.speakmateai.dto.response.UserVocabularyResponse;
 import com.rslsolution.speakmateai.dto.response.UserStatisticsResponse;
+import com.rslsolution.speakmateai.dto.response.UserVocabularyResponse;
+import com.rslsolution.speakmateai.dto.response.analytics.LessonDetailProgressDto;
+import com.rslsolution.speakmateai.dto.response.analytics.StudentProgressProfileResponse;
 import com.rslsolution.speakmateai.service.AdminUserService;
+import com.rslsolution.speakmateai.service.StudentProgressAnalyticsService;
 
 import jakarta.validation.Valid;
 
@@ -32,9 +36,11 @@ import jakarta.validation.Valid;
 public class AdminUserController {
 
     private final AdminUserService adminUserService;
+    private final StudentProgressAnalyticsService studentProgressAnalyticsService;
 
-    public AdminUserController(AdminUserService adminUserService) {
+    public AdminUserController(AdminUserService adminUserService, StudentProgressAnalyticsService studentProgressAnalyticsService) {
         this.adminUserService = adminUserService;
+        this.studentProgressAnalyticsService = studentProgressAnalyticsService;
     }
 
     @GetMapping
@@ -175,5 +181,15 @@ public class AdminUserController {
     @PutMapping("/{userId}/details")
     public ResponseEntity<ApiResponse<UserDetailsResponse>> updateUserDetails(@PathVariable Long userId, @Valid @RequestBody AdminUserDetailsUpdateRequest request) {
         return ResponseEntity.ok(ApiResponse.success("User details updated successfully", adminUserService.updateUserDetails(userId, request)));
+    }
+
+    @GetMapping("/{userId}/progress-profile")
+    public ResponseEntity<ApiResponse<StudentProgressProfileResponse>> getUserProgressProfile(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponse.success("User progress profile retrieved successfully", studentProgressAnalyticsService.getStudentProgressProfile(userId)));
+    }
+
+    @GetMapping("/{userId}/lessons-detail")
+    public ResponseEntity<ApiResponse<List<LessonDetailProgressDto>>> getUserLessonsDetail(@PathVariable Long userId) {
+        return ResponseEntity.ok(ApiResponse.success("User lessons detail retrieved successfully", studentProgressAnalyticsService.getStudentLessonsDetail(userId)));
     }
 }

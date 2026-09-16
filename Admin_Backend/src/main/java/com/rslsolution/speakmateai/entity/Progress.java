@@ -58,4 +58,16 @@ public class Progress {
 	public void onUpdate() {
 		updatedAt = LocalDateTime.now();
 	}
+
+	public User getUser() { return student; }
+	public void setUser(User user) { if (user instanceof Student s) this.student = s; }
+
+	public static class ProgressBuilder {
+		public ProgressBuilder user(User user) {
+			if (user instanceof Student s) {
+				this.student = s;
+			}
+			return this;
+		}
+	}
 }

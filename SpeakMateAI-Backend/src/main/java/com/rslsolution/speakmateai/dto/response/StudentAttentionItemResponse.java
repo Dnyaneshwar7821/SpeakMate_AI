@@ -14,4 +14,6 @@ public class StudentAttentionItemResponse {
 	private String studentName;
 	private String reason;
 	private String severity;
+	private Integer progress;
+	private Double score;
 }

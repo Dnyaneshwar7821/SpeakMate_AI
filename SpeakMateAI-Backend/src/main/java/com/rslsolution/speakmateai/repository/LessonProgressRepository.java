@@ -60,4 +60,11 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
 	@Query("SELECT l FROM LessonProgress l WHERE l.user.id = :userId AND l.completed = true AND l.updatedAt BETWEEN :start AND :end ORDER BY l.updatedAt DESC")
 	List<LessonProgress> findByUserIdAndCompletedAtBetween(@Param("userId") Long userId,
 			@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+	@Query("SELECT COUNT(DISTINCT l.user.id) FROM LessonProgress l WHERE l.user.id IN :userIds AND l.completed = true")
+	long countDistinctCompletedUsersIn(@Param("userIds") java.util.Collection<Long> userIds);
+
+	@Query("SELECT l FROM LessonProgress l WHERE l.user.id IN :userIds AND l.completed = true AND l.updatedAt BETWEEN :start AND :end ORDER BY l.updatedAt DESC")
+	List<LessonProgress> findByUserIdsAndCompletedAtBetween(@Param("userIds") java.util.Collection<Long> userIds,
+			@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

@@ -26,4 +26,8 @@ public interface StudentService {
     void resetPassword(Long id, String newPassword);
 
     java.util.Map<String, Object> getStudentProgress(Long id);
+
+    com.rslsolution.speakmateai.dto.response.analytics.StudentProgressProfileResponse getStudentProgressProfile(Long id);
+
+    List<com.rslsolution.speakmateai.dto.response.analytics.LessonDetailProgressDto> getStudentLessonsDetail(Long id);
 }

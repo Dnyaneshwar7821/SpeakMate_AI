@@ -43,6 +43,10 @@ public class AdminUserResponse {
     
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Boolean emailSent;
+
+    public Boolean getEmailSent() { return emailSent; }
+    public void setEmailSent(Boolean emailSent) { this.emailSent = emailSent; }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -160,6 +164,7 @@ public class AdminUserResponse {
         public AdminUserResponseBuilder totalAchievements(int totalAchievements) { this.totalAchievements = totalAchievements; return this; }
         public AdminUserResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public AdminUserResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+        public AdminUserResponseBuilder emailSent(Boolean emailSent) { this.emailSent = emailSent; return this; }
 
         public AdminUserResponse build() {
             AdminUserResponse r = new AdminUserResponse();
@@ -185,6 +190,7 @@ public class AdminUserResponse {
             r.totalAchievements = totalAchievements;
             r.createdAt = createdAt;
             r.updatedAt = updatedAt;
+            r.emailSent = emailSent;
             return r;
         }
     }

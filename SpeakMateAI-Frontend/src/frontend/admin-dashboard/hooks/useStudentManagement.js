@@ -53,6 +53,13 @@ let studentManagementCache = {
   totalElements: 0,
 };
 
+export function invalidateStudentCache() {
+  studentManagementCache.students = null;
+  studentManagementCache.schools = null;
+  studentManagementCache.totalPages = 0;
+  studentManagementCache.totalElements = 0;
+}
+
 export function useStudentManagement() {
   const [students, setStudents] = useState(() => studentManagementCache.students || []);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -179,6 +186,17 @@ export function useStudentManagement() {
     loadStudents();
   }, [loadStudents]);
 
+  useEffect(() => {
+    const handleTeacherUpdate = () => {
+      invalidateStudentCache();
+      loadStudents();
+    };
+    window.addEventListener("teacher_profile_updated", handleTeacherUpdate);
+    return () => {
+      window.removeEventListener("teacher_profile_updated", handleTeacherUpdate);
+    };
+  }, [loadStudents]);
+
   const viewStudent = useCallback(async (id) => {
     if (!id) {
       setSelectedStudent(null);
@@ -234,7 +252,7 @@ export function useStudentManagement() {
     };
     const res = await studentApi.createStudent(payload);
     studentManagementCache.students = null;
-    try { await adminDashboardApi.getDashboardStats(); } catch(e) {}
+    try { await adminDashboardApi.getDashboardStats(); } catch (e) { }
     window.dispatchEvent(new CustomEvent("school_data_updated", { detail: { type: "student", action: "create" } }));
     await loadStudents();
     return res;
@@ -258,7 +276,7 @@ export function useStudentManagement() {
     };
     await studentApi.updateStudent(id, payload);
     studentManagementCache.students = null;
-    try { await adminDashboardApi.getDashboardStats(); } catch(e) {}
+    try { await adminDashboardApi.getDashboardStats(); } catch (e) { }
     window.dispatchEvent(new CustomEvent("school_data_updated", { detail: { type: "student", action: "update", id } }));
     await loadStudents();
   };
@@ -268,7 +286,7 @@ export function useStudentManagement() {
     setStudents((prev) => prev.filter((s) => s.id !== id));
     setTotalElements((prev) => Math.max(0, prev - 1));
     await studentApi.deleteStudent(id);
-    try { await adminDashboardApi.getDashboardStats(); } catch(e) {}
+    try { await adminDashboardApi.getDashboardStats(); } catch (e) { }
     window.dispatchEvent(new CustomEvent("school_data_updated", { detail: { type: "student", action: "delete", id } }));
     await loadStudents();
   };
@@ -279,7 +297,7 @@ export function useStudentManagement() {
       prev.map((s) => (s.id === id ? { ...s, active: true, status: "active" } : s))
     );
     await studentApi.activateStudent(id);
-    try { await adminDashboardApi.getDashboardStats(); } catch(e) {}
+    try { await adminDashboardApi.getDashboardStats(); } catch (e) { }
     window.dispatchEvent(new CustomEvent("school_data_updated", { detail: { type: "student", action: "activate", id } }));
     await loadStudents();
   };
@@ -290,7 +308,7 @@ export function useStudentManagement() {
       prev.map((s) => (s.id === id ? { ...s, active: false, status: "inactive" } : s))
     );
     await studentApi.deactivateStudent(id);
-    try { await adminDashboardApi.getDashboardStats(); } catch(e) {}
+    try { await adminDashboardApi.getDashboardStats(); } catch (e) { }
     window.dispatchEvent(new CustomEvent("school_data_updated", { detail: { type: "student", action: "deactivate", id } }));
     await loadStudents();
   };

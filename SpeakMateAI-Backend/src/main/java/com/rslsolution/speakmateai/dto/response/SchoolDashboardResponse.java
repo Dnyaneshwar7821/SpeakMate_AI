@@ -31,4 +31,13 @@ public class SchoolDashboardResponse {
 	private String schoolAddress;
 	private String adminName;
 	private String adminEmail;
+
+	// Subscription Details
+	private Long subscriptionPlanId;
+	private String subscriptionPlanName;
+	private Double subscriptionPrice;
+	private java.time.LocalDateTime subscriptionStartDate;
+	private java.time.LocalDateTime subscriptionEndDate;
+	private String subscriptionStatus;
+	private Integer maxStudents;
 }

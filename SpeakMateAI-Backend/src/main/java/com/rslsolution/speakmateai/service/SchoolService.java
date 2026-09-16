@@ -5,10 +5,14 @@ import com.rslsolution.speakmateai.dto.request.SchoolRequest;
 import com.rslsolution.speakmateai.dto.response.SchoolAdminSendInvitationResponse;
 import com.rslsolution.speakmateai.dto.response.SchoolResponse;
 
+import com.rslsolution.speakmateai.dto.request.SchoolPaymentOrderRequest;
+import com.rslsolution.speakmateai.dto.response.CreateOrderResponse;
+
 import java.util.List;
 
 public interface SchoolService {
     SchoolAdminSendInvitationResponse sendInvitation(SchoolAdminSendInvitationRequest request);
+    CreateOrderResponse createSchoolPaymentOrder(SchoolPaymentOrderRequest request);
     SchoolResponse createSchool(SchoolRequest request);
     List<SchoolResponse> getAllSchools();
     SchoolResponse getSchoolById(Long id);

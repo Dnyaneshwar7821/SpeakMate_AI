@@ -28,7 +28,17 @@ public class StudentResponse {
     private String phone;
     private Long teacherId;
     private String teacherName;
+    private String assignedTeacher;
     private Boolean active;
     private Status status;
     private LocalDateTime createdAt;
+    private Boolean emailSent;
+
+    public String getAssignedTeacher() {
+        return assignedTeacher != null && !assignedTeacher.isBlank() ? assignedTeacher : teacherName;
+    }
+
+    public String getTeacherName() {
+        return teacherName != null && !teacherName.isBlank() ? teacherName : assignedTeacher;
+    }
 }

@@ -458,11 +458,10 @@ export function Students() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 20 }}
-                        className={`rounded-xl px-4 py-3 text-sm font-semibold shadow-xl pointer-events-auto border ${
-                            t.type === "error"
+                        className={`rounded-xl px-4 py-3 text-sm font-semibold shadow-xl pointer-events-auto border ${t.type === "error"
                                 ? "bg-rose-50 text-rose-900 border-rose-300 dark:bg-rose-950 dark:text-rose-200 dark:border-rose-800"
                                 : "bg-gray-900 text-white border-gray-800"
-                        }`}
+                            }`}
                     >
                         {t.message}
                     </motion.div>

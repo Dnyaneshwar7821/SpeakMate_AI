@@ -16,6 +16,7 @@
     "@react-three/fiber": "^9.6.1",
     "axios": "^1.18.1",
     "framer-motion": "^12.42.2",
+    "jspdf": "^4.2.1",
     "live2d-widget-model-chitose": "^1.0.5",
     "lucide-react": "^1.31.0",
     "pg": "^8.22.0",

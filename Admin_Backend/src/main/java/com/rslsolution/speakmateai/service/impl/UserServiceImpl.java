@@ -757,4 +757,8 @@ public class UserServiceImpl implements UserService {
 		});
 	}
 
+	public static String formatStandardToGrade(String standard) {
+		return com.rslsolution.speakmateai.util.StandardDivisionUtil.formatStandardToGrade(standard);
+	}
+
 }

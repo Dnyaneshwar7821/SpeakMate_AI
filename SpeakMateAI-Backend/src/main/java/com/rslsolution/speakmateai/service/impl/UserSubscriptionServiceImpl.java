@@ -27,6 +27,9 @@ import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.repository.UserSubscriptionRepository;
 import com.rslsolution.speakmateai.service.UserSubscriptionService;
 
+import com.rslsolution.speakmateai.entity.SubscriptionPlan;
+import com.rslsolution.speakmateai.repository.SubscriptionPlanRepository;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -36,6 +39,7 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 
 	private final UserRepository userRepository;
 	private final UserSubscriptionRepository userSubscriptionRepository;
+	private final SubscriptionPlanRepository subscriptionPlanRepository;
 
 	@Value("${razorpay.key.id:rzp_test_SpeakMateAiDev}")
 	private String razorpayKeyId;
@@ -44,10 +48,33 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 	private String razorpayKeySecret;
 
 	public UserSubscriptionServiceImpl(UserRepository userRepository,
-			UserSubscriptionRepository userSubscriptionRepository) {
+			UserSubscriptionRepository userSubscriptionRepository,
+			SubscriptionPlanRepository subscriptionPlanRepository) {
 		this.userRepository = userRepository;
 		this.userSubscriptionRepository = userSubscriptionRepository;
+		this.subscriptionPlanRepository = subscriptionPlanRepository;
 	}
+
+	private SubscriptionPlan resolveSubscriptionPlan(String planType) {
+		if (planType == null || planType.isBlank()) {
+			return null;
+		}
+		Optional<SubscriptionPlan> planOpt = subscriptionPlanRepository.findByPlanNameIgnoreCase(planType.trim());
+		if (planOpt.isPresent()) {
+			return planOpt.get();
+		}
+		if ("MONTHLY_PRO".equalsIgnoreCase(planType) || "MONTHLY".equalsIgnoreCase(planType)) {
+			return subscriptionPlanRepository.findByPlanNameIgnoreCase("SpeakMate Pro (1 Month Pass)")
+					.or(() -> subscriptionPlanRepository.findByPlanNameIgnoreCase("SpeakMate Pro Monthly"))
+					.orElse(null);
+		} else if ("YEARLY_PRO".equalsIgnoreCase(planType) || "YEARLY".equalsIgnoreCase(planType)) {
+			return subscriptionPlanRepository.findByPlanNameIgnoreCase("SpeakMate Pro (1 Year Annual Pass)")
+					.or(() -> subscriptionPlanRepository.findByPlanNameIgnoreCase("SpeakMate Pro Annual"))
+					.orElse(null);
+		}
+		return null;
+	}
+
 
 	private User getAuthenticatedUser() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -114,9 +141,11 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 		}
 
 		// Save pending subscription
+		SubscriptionPlan planEntity = resolveSubscriptionPlan(planType);
 		LocalDateTime now = LocalDateTime.now();
 		UserSubscription subscription = UserSubscription.builder()
 				.user(user)
+				.subscriptionPlan(planEntity)
 				.planType(planType)
 				.status("PENDING")
 				.amount(amount)
@@ -181,6 +210,13 @@ public class UserSubscriptionServiceImpl implements UserSubscriptionService {
 				.currency("INR")
 				.razorpayOrderId(orderId)
 				.build());
+
+		if (subscription.getSubscriptionPlan() == null) {
+			SubscriptionPlan plan = resolveSubscriptionPlan(planType);
+			if (plan != null) {
+				subscription.setSubscriptionPlan(plan);
+			}
+		}
 
 		subscription.setPlanType(planType);
 		subscription.setStatus("ACTIVE");

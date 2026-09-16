@@ -28,6 +28,18 @@ public class AdminServiceImpl implements AdminService {
 	private final AchievementRepository achievementRepository;
 	private final NotificationRepository notificationRepository;
 
+	private static class CachedAdminDashboard {
+		final long timestamp;
+		final AdminDashboardResponse data;
+
+		CachedAdminDashboard(long timestamp, AdminDashboardResponse data) {
+			this.timestamp = timestamp;
+			this.data = data;
+		}
+	}
+
+	private volatile CachedAdminDashboard adminDashboardCache;
+
 	public AdminServiceImpl(UserRepository userRepository, LessonRepository lessonRepository,
 			SpeakingSessionRepository speakingSessionRepository, VocabularyRepository vocabularyRepository,
 			AchievementRepository achievementRepository, NotificationRepository notificationRepository) {
@@ -42,13 +54,24 @@ public class AdminServiceImpl implements AdminService {
 
 	@Override
 	public AdminDashboardResponse getDashboard() {
+		CachedAdminDashboard cached = adminDashboardCache;
+		if (cached != null && (System.currentTimeMillis() - cached.timestamp < 60_000)) {
+			return cached.data;
+		}
 
-		return AdminDashboardResponse.builder().totalUsers(userRepository.count())
-				.activeUsers(userRepository.countByActiveTrue()).totalLessons(lessonRepository.count())
+		AdminDashboardResponse response = AdminDashboardResponse.builder()
+				.totalUsers(userRepository.count())
+				.activeUsers(userRepository.countByActiveTrue())
+				.totalLessons(lessonRepository.count())
 				.activeLessons(lessonRepository.countByActiveTrue())
 				.totalSpeakingSessions(speakingSessionRepository.count())
-				.totalVocabularyWords(vocabularyRepository.count()).totalAchievements(achievementRepository.count())
-				.totalNotifications(notificationRepository.count()).build();
+				.totalVocabularyWords(vocabularyRepository.count())
+				.totalAchievements(achievementRepository.count())
+				.totalNotifications(notificationRepository.count())
+				.build();
+
+		adminDashboardCache = new CachedAdminDashboard(System.currentTimeMillis(), response);
+		return response;
 	}
 
 	@Override

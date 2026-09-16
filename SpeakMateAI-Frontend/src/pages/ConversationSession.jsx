@@ -111,7 +111,7 @@ export function ConversationSession() {
   // Avatar Model State & Hooks
   const [model, setModel] = useState(null);
   const containerRef = useRef(null);
-  
+
   useLipSync(model, isAiSpeaking);
   useBlink(model);
   useMouseTracking(model, containerRef);
@@ -139,7 +139,7 @@ export function ConversationSession() {
   useEffect(() => {
     return () => {
       if (!hasFinishedRef.current && sessionIdRef.current && !String(sessionIdRef.current).startsWith("sim_")) {
-        speakingService.deleteHistory(sessionIdRef.current).catch(() => {});
+        speakingService.deleteHistory(sessionIdRef.current).catch(() => { });
       }
     };
   }, []);
@@ -403,7 +403,7 @@ export function ConversationSession() {
       };
 
       setMessages((prev) => [...prev, aiMsg]);
-      
+
       // Only set corrections if it doesn't contain raw markdown table noise
       if (feedback.grammarCorrection && !feedback.grammarCorrection.includes("|")) {
         setCorrections({
@@ -562,31 +562,28 @@ export function ConversationSession() {
   const avatarState = isPaused
     ? "Paused ⏸️"
     : isAiSpeaking
-    ? "SpeakMate AI Speaking... 🔊"
-    : isThinking
-    ? "SpeakMate AI Thinking... 🧠"
-    : isListening
-    ? "Listening to You... 🎙️"
-    : "Idle Ready ✨";
+      ? "SpeakMate AI Speaking... 🔊"
+      : isThinking
+        ? "SpeakMate AI Thinking... 🧠"
+        : isListening
+          ? "Listening to You... 🎙️"
+          : "Idle Ready ✨";
 
   return (
     <div ref={containerRef} className="h-[calc(100vh-80px)] max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 p-2 sm:p-4 overflow-hidden">
-      
+
       {/* LEFT COLUMN: AVATAR STAGE STUDIO */}
-      <div className={`lg:w-5/12 h-[320px] lg:h-full backdrop-blur-2xl border rounded-3xl overflow-hidden relative shadow-xl flex flex-col shrink-0 transition-colors ${
-        isDark ? "bg-slate-900/80 border-white/10" : "bg-white border-slate-200/90"
-      }`}>
-        
-        {/* Stage Header */}
-        <div className={`p-3.5 border-b backdrop-blur-md flex items-center justify-between gap-3 z-10 shrink-0 ${
-          isDark ? "bg-slate-800/40 border-white/10" : "bg-slate-50/90 border-slate-200/90"
+      <div className={`lg:w-5/12 h-[320px] lg:h-full backdrop-blur-2xl border rounded-3xl overflow-hidden relative shadow-xl flex flex-col shrink-0 transition-colors ${isDark ? "bg-slate-900/80 border-white/10" : "bg-white border-slate-200/90"
         }`}>
+
+        {/* Stage Header */}
+        <div className={`p-3.5 border-b backdrop-blur-md flex items-center justify-between gap-3 z-10 shrink-0 ${isDark ? "bg-slate-800/40 border-white/10" : "bg-slate-50/90 border-slate-200/90"
+          }`}>
           <div className="flex items-center gap-2.5 min-w-0">
             <button
               onClick={handleEscapeSession}
-              className={`p-2 rounded-xl border transition-colors shrink-0 shadow-sm cursor-pointer ${
-                isDark ? "bg-slate-800/80 border-white/10 text-slate-300 hover:text-white" : "bg-white border-slate-200 text-slate-700 hover:text-slate-900"
-              }`}
+              className={`p-2 rounded-xl border transition-colors shrink-0 shadow-sm cursor-pointer ${isDark ? "bg-slate-800/80 border-white/10 text-slate-300 hover:text-white" : "bg-white border-slate-200 text-slate-700 hover:text-slate-900"
+                }`}
               title="Close & Discard without Finishing"
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -603,9 +600,8 @@ export function ConversationSession() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-extrabold shadow-sm ${
-              isDark ? "bg-slate-800/80 border-white/10 text-white" : "bg-white border-slate-200 text-slate-800"
-            }`}>
+            <div className={`flex items-center gap-1 px-2.5 py-1 rounded-xl border text-[11px] font-extrabold shadow-sm ${isDark ? "bg-slate-800/80 border-white/10 text-white" : "bg-white border-slate-200 text-slate-800"
+              }`}>
               <span>⏱️</span>
               <span>{formatTime(timer)}</span>
             </div>
@@ -619,13 +615,12 @@ export function ConversationSession() {
                 }
                 setIsPaused(!isPaused);
               }}
-              className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all border shadow-sm ${
-                isPaused
+              className={`px-2.5 py-1 rounded-xl text-[11px] font-extrabold transition-all border shadow-sm ${isPaused
                   ? "bg-amber-500/20 text-amber-500 border-amber-500/40"
                   : isDark
-                  ? "bg-slate-800/80 border-white/10 text-slate-300 hover:text-white"
-                  : "bg-white border-slate-200 text-slate-700 hover:text-slate-900"
-              }`}
+                    ? "bg-slate-800/80 border-white/10 text-slate-300 hover:text-white"
+                    : "bg-white border-slate-200 text-slate-700 hover:text-slate-900"
+                }`}
             >
               {isPaused ? "▶" : "⏸"}
             </button>
@@ -633,26 +628,23 @@ export function ConversationSession() {
         </div>
 
         {/* Live2D Avatar Canvas Display (Unobstructed, studio stage) */}
-        <div className={`flex-1 relative w-full h-full overflow-hidden flex items-center justify-center ${
-          isDark
+        <div className={`flex-1 relative w-full h-full overflow-hidden flex items-center justify-center ${isDark
             ? "bg-gradient-to-b from-[#0F172A] via-[#111827] to-[#0B0F19]"
             : "bg-gradient-to-b from-sky-50 via-indigo-50/70 to-purple-50/60"
-        }`}>
+          }`}>
           <AvatarCanvas className="w-full h-full" onModelLoaded={setModel} framing="faceToChest" />
-          
+
           {/* Subtle Stage Lighting Overlay */}
-          <div className={`absolute inset-0 pointer-events-none ${
-            isDark
+          <div className={`absolute inset-0 pointer-events-none ${isDark
               ? "bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"
               : "bg-gradient-to-t from-indigo-100/30 via-transparent to-transparent"
-          }`} />
-          
+            }`} />
+
           {/* Avatar Speech Waves Floating Pill */}
-          <div className={`absolute bottom-4 left-4 right-4 flex items-center justify-between p-2.5 rounded-2xl backdrop-blur-xl border shadow-lg pointer-events-none ${
-            isDark
+          <div className={`absolute bottom-4 left-4 right-4 flex items-center justify-between p-2.5 rounded-2xl backdrop-blur-xl border shadow-lg pointer-events-none ${isDark
               ? "bg-slate-900/85 border-white/10 text-slate-200"
               : "bg-white/95 border-slate-200/90 text-slate-800 shadow-md"
-          }`}>
+            }`}>
             <div className="flex items-center gap-2">
               <span className={`h-2.5 w-2.5 rounded-full ${isAiSpeaking ? 'bg-emerald-500 animate-ping' : isListening ? 'bg-rose-500 animate-pulse' : 'bg-[#6c63ff]'}`} />
               <span className={`text-[11px] font-bold ${isDark ? "text-slate-200" : "text-slate-800"}`}>{avatarState}</span>
@@ -669,14 +661,12 @@ export function ConversationSession() {
       </div>
 
       {/* RIGHT COLUMN: CONVERSATION THREAD & CONTROL CENTER */}
-      <div className={`lg:w-7/12 flex-1 flex flex-col backdrop-blur-2xl border rounded-3xl overflow-hidden shadow-xl relative min-h-0 transition-colors ${
-        isDark ? "bg-slate-900/80 border-white/10" : "bg-white border-slate-200/90"
-      }`}>
-        
-        {/* Panel Header */}
-        <div className={`px-5 py-3 border-b backdrop-blur-md flex items-center justify-between shrink-0 ${
-          isDark ? "bg-slate-800/40 border-white/10" : "bg-slate-50/90 border-slate-200/90"
+      <div className={`lg:w-7/12 flex-1 flex flex-col backdrop-blur-2xl border rounded-3xl overflow-hidden shadow-xl relative min-h-0 transition-colors ${isDark ? "bg-slate-900/80 border-white/10" : "bg-white border-slate-200/90"
         }`}>
+
+        {/* Panel Header */}
+        <div className={`px-5 py-3 border-b backdrop-blur-md flex items-center justify-between shrink-0 ${isDark ? "bg-slate-800/40 border-white/10" : "bg-slate-50/90 border-slate-200/90"
+          }`}>
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-[#6c63ff]" />
             <span className={`text-xs font-extrabold uppercase tracking-wider ${isDark ? "text-slate-200" : "text-slate-800"}`}>
@@ -684,33 +674,29 @@ export function ConversationSession() {
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
-              isDark ? "bg-[#6c63ff]/15 border-[#6c63ff]/30 text-[#A5B4FC]" : "bg-[#6c63ff]/10 border-[#6c63ff]/25 text-[#6c63ff]"
-            }`}>
+            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${isDark ? "bg-[#6c63ff]/15 border-[#6c63ff]/30 text-[#A5B4FC]" : "bg-[#6c63ff]/10 border-[#6c63ff]/25 text-[#6c63ff]"
+              }`}>
               {messages.length} Exchanges
             </span>
-            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
-              isDark ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" : "bg-emerald-500/10 border-emerald-500/25 text-emerald-600"
-            }`}>
+            <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${isDark ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-400" : "bg-emerald-500/10 border-emerald-500/25 text-emerald-600"
+              }`}>
               {chatLevel}
             </span>
           </div>
         </div>
 
         {/* Scrollable Conversation Thread */}
-        <div className={`flex-1 overflow-y-auto space-y-4 p-4 sm:p-5 ${
-          isDark ? "bg-slate-950/40" : "bg-[#F8FAFC]"
-        }`}>
+        <div className={`flex-1 overflow-y-auto space-y-4 p-4 sm:p-5 ${isDark ? "bg-slate-950/40" : "bg-[#F8FAFC]"
+          }`}>
           {messages.map((m) => (
             <div key={m.id} className={`flex flex-col ${m.sender === "user" ? "items-end" : "items-start"}`}>
               <div
-                className={`max-w-[88%] sm:max-w-[80%] p-4 rounded-2xl text-xs font-semibold shadow-md space-y-2 ${
-                  m.sender === "user"
+                className={`max-w-[88%] sm:max-w-[80%] p-4 rounded-2xl text-xs font-semibold shadow-md space-y-2 ${m.sender === "user"
                     ? "bg-gradient-to-r from-[#6c63ff] to-[#5a52e0] text-white rounded-br-none"
                     : isDark
-                    ? "bg-slate-800/80 backdrop-blur-md border border-white/10 text-slate-100 rounded-bl-none shadow-sm"
-                    : "bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm"
-                }`}
+                      ? "bg-slate-800/80 backdrop-blur-md border border-white/10 text-slate-100 rounded-bl-none shadow-sm"
+                      : "bg-white border border-slate-200 text-slate-800 rounded-bl-none shadow-sm"
+                  }`}
               >
                 <div className="flex items-center justify-between gap-4">
                   <span className={`text-[10px] font-black uppercase tracking-wide flex items-center gap-1.5 ${m.sender === "user" ? "text-white/90" : isDark ? "text-slate-400" : "text-slate-500"}`}>
@@ -719,9 +705,8 @@ export function ConversationSession() {
                   {m.sender === "ai" && (
                     <button
                       onClick={() => handleSpeakText(m.message)}
-                      className={`p-1 rounded-lg transition-all text-xs ${
-                        isDark ? "bg-white/10 hover:bg-white/20 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                      }`}
+                      className={`p-1 rounded-lg transition-all text-xs ${isDark ? "bg-white/10 hover:bg-white/20 text-white" : "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        }`}
                       title="Replay Voice"
                     >
                       🔊
@@ -742,12 +727,10 @@ export function ConversationSession() {
 
           {/* Dynamic Tutor Feedback & Corrections card */}
           {corrections && (
-            <div className={`p-4 rounded-2xl backdrop-blur-md border space-y-2.5 shadow-lg animate-in fade-in duration-300 ${
-              isDark ? "bg-slate-800/90 border-white/10 text-slate-100" : "bg-white border-slate-200 text-slate-800"
-            }`}>
-              <div className={`flex items-center justify-between gap-2 text-xs font-extrabold text-[#6c63ff] pb-2 border-b ${
-                isDark ? "border-white/10" : "border-slate-200"
+            <div className={`p-4 rounded-2xl backdrop-blur-md border space-y-2.5 shadow-lg animate-in fade-in duration-300 ${isDark ? "bg-slate-800/90 border-white/10 text-slate-100" : "bg-white border-slate-200 text-slate-800"
               }`}>
+              <div className={`flex items-center justify-between gap-2 text-xs font-extrabold text-[#6c63ff] pb-2 border-b ${isDark ? "border-white/10" : "border-slate-200"
+                }`}>
                 <span className="flex items-center gap-1.5">🎓 Live Tutor Evaluation</span>
                 <button
                   onClick={() => handleSpeakText(getSpeakableText(corrections))}
@@ -773,9 +756,8 @@ export function ConversationSession() {
               )}
 
               {corrections.explanation && (
-                <div className={`p-2.5 rounded-xl border text-xs space-y-1 ${
-                  isDark ? "bg-slate-900/60 border-white/10 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-600"
-                }`}>
+                <div className={`p-2.5 rounded-xl border text-xs space-y-1 ${isDark ? "bg-slate-900/60 border-white/10 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-600"
+                  }`}>
                   <span className={`text-[10px] font-black uppercase tracking-wider ${isDark ? "text-slate-400" : "text-slate-500"}`}>Explanation</span>
                   <p className="font-normal italic">{corrections.explanation}</p>
                 </div>
@@ -793,9 +775,8 @@ export function ConversationSession() {
           {/* Live Transcript Stream */}
           {isListening && (
             <div className="flex flex-col items-end">
-              <div className={`p-3.5 rounded-2xl bg-[#6c63ff]/20 border border-[#6c63ff]/40 text-xs font-semibold italic animate-pulse ${
-                isDark ? "text-white" : "text-indigo-950"
-              }`}>
+              <div className={`p-3.5 rounded-2xl bg-[#6c63ff]/20 border border-[#6c63ff]/40 text-xs font-semibold italic animate-pulse ${isDark ? "text-white" : "text-indigo-950"
+                }`}>
                 🎙️ "{currentTranscript || "Listening to your voice..."}"
               </div>
             </div>
@@ -809,23 +790,20 @@ export function ConversationSession() {
           const lastAi = [...messages].reverse().find((m) => m.sender === "ai");
           const activeHints = hints.length > 0 ? hints : getScenarioHints(scenario, lastAi);
           return (
-            <div className={`p-2.5 sm:px-4 border-t flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none ${
-              isDark ? "bg-slate-900/60 border-white/10" : "bg-slate-50 border-slate-200"
-            }`}>
-              <span className={`text-[10px] font-black uppercase tracking-wide shrink-0 flex items-center gap-1 ${
-                isDark ? "text-indigo-300" : "text-indigo-600"
+            <div className={`p-2.5 sm:px-4 border-t flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none ${isDark ? "bg-slate-900/60 border-white/10" : "bg-slate-50 border-slate-200"
               }`}>
+              <span className={`text-[10px] font-black uppercase tracking-wide shrink-0 flex items-center gap-1 ${isDark ? "text-indigo-300" : "text-indigo-600"
+                }`}>
                 💡 Suggestions:
               </span>
               {activeHints.map((hint, idx) => (
                 <button
                   key={idx}
                   onClick={() => sendUserText(hint)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all border shadow-sm whitespace-nowrap ${
-                    isDark
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all border shadow-sm whitespace-nowrap ${isDark
                       ? "bg-slate-800/80 hover:bg-[#6c63ff] hover:text-white text-slate-200 border-white/10"
                       : "bg-white hover:bg-[#6c63ff] hover:text-white text-slate-700 border-slate-200"
-                  }`}
+                    }`}
                 >
                   {hint}
                 </button>
@@ -835,13 +813,11 @@ export function ConversationSession() {
         })()}
 
         {/* Bottom Control Center */}
-        <div className={`p-3 sm:p-4 border-t backdrop-blur-2xl flex flex-col gap-2.5 shrink-0 ${
-          isDark ? "bg-slate-900/80 border-white/10" : "bg-white border-slate-200"
-        }`}>
+        <div className={`p-3 sm:p-4 border-t backdrop-blur-2xl flex flex-col gap-2.5 shrink-0 ${isDark ? "bg-slate-900/80 border-white/10" : "bg-white border-slate-200"
+          }`}>
           {isListening && (
-            <div className={`flex items-center justify-between px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs font-bold ${
-              isDark ? "text-rose-400" : "text-rose-500"
-            }`}>
+            <div className={`flex items-center justify-between px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs font-bold ${isDark ? "text-rose-400" : "text-rose-500"
+              }`}>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5 h-4">
                   <span className="w-1 bg-rose-500 rounded-full h-3 animate-pulse" />
@@ -867,13 +843,12 @@ export function ConversationSession() {
                   }
                   setIsMuted(!isMuted);
                 }}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm ${
-                  isMuted
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border shadow-sm ${isMuted
                     ? "bg-rose-500/10 border-rose-500/30 text-rose-500"
                     : isDark
-                    ? "bg-slate-800/60 border-white/10 text-slate-300 hover:text-white"
-                    : "bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900"
-                }`}
+                      ? "bg-slate-800/60 border-white/10 text-slate-300 hover:text-white"
+                      : "bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-900"
+                  }`}
                 title={isMuted ? "Unmute AI Voice" : "Mute AI Voice"}
               >
                 {isMuted ? "🔇" : "🔊"}
@@ -881,9 +856,8 @@ export function ConversationSession() {
 
               <button
                 onClick={handleToggleSpeed}
-                className={`px-3.5 py-2 rounded-xl border text-xs font-extrabold text-[#6c63ff] transition-all shadow-sm flex items-center gap-1.5 ${
-                  isDark ? "bg-slate-800/60 border-white/10 hover:bg-slate-700" : "bg-slate-100 border-slate-200 hover:bg-slate-200"
-                }`}
+                className={`px-3.5 py-2 rounded-xl border text-xs font-extrabold text-[#6c63ff] transition-all shadow-sm flex items-center gap-1.5 ${isDark ? "bg-slate-800/60 border-white/10 hover:bg-slate-700" : "bg-slate-100 border-slate-200 hover:bg-slate-200"
+                  }`}
                 title="Adjust Speech Speed"
               >
                 <span>⏱️ {speechSpeed}x</span>

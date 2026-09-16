@@ -28,6 +28,16 @@ export function AuthProvider({ children }) {
     setSessionVal(getAdminSession());
   }, []);
 
+  useEffect(() => {
+    const handleSync = () => syncUser();
+    window.addEventListener("storage", handleSync);
+    window.addEventListener("admin-session-updated", handleSync);
+    return () => {
+      window.removeEventListener("storage", handleSync);
+      window.removeEventListener("admin-session-updated", handleSync);
+    };
+  }, [syncUser]);
+
   const logout = useCallback(() => {
     clearAdminAuthenticated();
     setSessionVal(null);

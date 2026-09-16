@@ -1,7 +1,9 @@
 package com.rslsolution.speakmateai.controller;
 
 import com.rslsolution.speakmateai.dto.request.SchoolAdminSendInvitationRequest;
+import com.rslsolution.speakmateai.dto.request.SchoolPaymentOrderRequest;
 import com.rslsolution.speakmateai.dto.request.SchoolRequest;
+import com.rslsolution.speakmateai.dto.response.CreateOrderResponse;
 import com.rslsolution.speakmateai.dto.response.SchoolAdminSendInvitationResponse;
 import com.rslsolution.speakmateai.dto.response.SchoolResponse;
 import com.rslsolution.speakmateai.service.SchoolService;
@@ -20,6 +22,12 @@ import java.util.List;
 public class SchoolController {
 
     private final SchoolService schoolService;
+
+    @PostMapping("/create-payment-order")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<CreateOrderResponse> createPaymentOrder(@Valid @RequestBody SchoolPaymentOrderRequest request) {
+        return ResponseEntity.ok(schoolService.createSchoolPaymentOrder(request));
+    }
 
     @PostMapping("/send-invitation")
     @PreAuthorize("hasRole('SUPER_ADMIN')")

@@ -6,7 +6,7 @@ const getStorageKey = (userContext = null) => {
     try {
       const raw = localStorage.getItem("speakmate_user");
       if (raw) user = JSON.parse(raw);
-    } catch (e) {}
+    } catch (e) { }
   }
   const identifier = user?.id || user?.email || user?.username || "guest";
   return `speakmate_user_progress_stats_${identifier}`;
@@ -26,8 +26,8 @@ const persistProgressToBackend = (stats) => {
       totalSpeakingSessions: stats.speakingSessions || 0,
       totalGrammarChecks: stats.grammarChecks || 0,
       totalVocabularyWords: stats.wordsLearned || 0,
-    }).catch(() => {});
-  } catch (e) {}
+    }).catch(() => { });
+  } catch (e) { }
 };
 
 const getLocalDateStr = (d = new Date()) => {
@@ -62,7 +62,7 @@ export const getLiveProgressStats = (userContext = null) => {
   try {
     const raw = localStorage.getItem(storageKey);
     if (raw) stored = JSON.parse(raw);
-  } catch (e) {}
+  } catch (e) { }
 
   if (!stored) {
     stored = {
@@ -88,7 +88,7 @@ export const getLiveProgressStats = (userContext = null) => {
     };
     try {
       localStorage.setItem(storageKey, JSON.stringify(stored));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Ensure default fallback attributes
@@ -145,7 +145,7 @@ export const getLiveProgressStats = (userContext = null) => {
     stored.lastActiveDate = today;
     try {
       localStorage.setItem(storageKey, JSON.stringify(stored));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   const accuracy = stored.accuracyCount > 0
@@ -168,7 +168,7 @@ export const getLiveProgressStats = (userContext = null) => {
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const weeklyData = [];
   const curr = new Date();
-  
+
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(curr.getDate() - i);
@@ -205,7 +205,7 @@ export const saveProgressStats = (stats, userContext = null, syncToBackend = tru
     if (typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("speakmate_progress_updated", { detail: stats }));
     }
-  } catch (e) {}
+  } catch (e) { }
 
   if (syncToBackend) {
     persistProgressToBackend(stats);
@@ -281,11 +281,11 @@ export const recordSpeakingSession = (durationMins = 5, accuracyScore = 90, user
   stats.speakingSessions += 1;
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
-  
+
   const timeReward = Math.min(25, Math.max(3, durationMins * 5));
   const scoreBonus = accuracyScore >= 90 ? 15 : (accuracyScore >= 80 ? 10 : (accuracyScore >= 60 ? 5 : 0));
   stats.xp += Math.min(45, Math.max(3, timeReward + scoreBonus));
-  
+
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
   return stats;
@@ -299,7 +299,7 @@ export const recordGrammarCheck = (accuracyScore = 95, userContext = null) => {
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
   stats.xp += 8;
-  
+
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
   return stats;
@@ -311,7 +311,7 @@ export const recordVocabularyMastered = (count = 1, userContext = null) => {
   stats.wordsLearned += count;
   stats.todayMins = (stats.todayMins || 0) + count;
   stats.xp += count * 10;
-  
+
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
   return stats;
@@ -348,7 +348,7 @@ export const recordLessonCompleted = (accuracyScore = 90, userContext = null) =>
   stats.accuracySum += accuracyScore;
   stats.accuracyCount += 1;
   stats.xp += 35;
-  
+
   checkAndUpdateDailyGoal(stats, userContext);
   saveProgressStats(stats, userContext);
   return stats;

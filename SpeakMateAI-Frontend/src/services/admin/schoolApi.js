@@ -70,6 +70,11 @@ export const schoolApi = {
       ...extra
     });
     return response.data;
+  },
+
+  createSchoolPaymentOrder: async (data) => {
+    const response = await apiClient.post("/api/admin/schools/create-payment-order", data);
+    return response.data; // CreateOrderResponse
   }
 };
 

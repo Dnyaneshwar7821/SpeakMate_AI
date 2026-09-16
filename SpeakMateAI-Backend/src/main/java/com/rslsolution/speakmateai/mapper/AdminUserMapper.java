@@ -42,6 +42,10 @@ public class AdminUserMapper {
      * Safely accesses collections to provide statistics for a single user.
      */
     public AdminUserResponse mapToDetailResponse(User user) {
+        return mapToDetailResponse(user, null);
+    }
+
+    public AdminUserResponse mapToDetailResponse(User user, Boolean emailSent) {
         if (user == null) {
             return null;
         }
@@ -54,6 +58,7 @@ public class AdminUserMapper {
         response.setTotalVocabularySaved(user.getVocabularyList() != null ? user.getVocabularyList().size() : 0);
         response.setTotalLessonsCompleted(user.getLessonProgresses() != null ? user.getLessonProgresses().size() : 0);
         response.setTotalAchievements(user.getAchievements() != null ? user.getAchievements().size() : 0);
+        response.setEmailSent(emailSent);
 
         return response;
     }

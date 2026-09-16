@@ -18,4 +18,14 @@ public class UserProgressResponse {
     private double completionPercentage;
     private int weeklyProgress; // Percentage or XP gained this week
 
+    private Integer xp;
+    private Integer level;
+    private Integer currentStreak;
+    private Integer longestStreak;
+    private Integer totalPracticeMinutes;
+    private Integer totalSpeakingSessions;
+    private Integer totalGrammarChecks;
+    private Integer totalVocabularyWords;
+    private String learningGoal;
+
 }

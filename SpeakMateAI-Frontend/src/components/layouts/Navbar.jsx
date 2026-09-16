@@ -278,7 +278,7 @@ export function Navbar() {
               {/* ── Instant Live Search Dropdown ── */}
               {searchOpen && (
                 <div className="absolute left-0 top-full mt-2 w-[420px] lg:w-[480px] max-h-[460px] overflow-y-auto rounded-3xl bg-[var(--bg-surface)]/95 backdrop-blur-2xl border border-[var(--border-default)] shadow-2xl p-2.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  
+
                   {filteredResults.totalCount === 0 ? (
                     <div className="p-6 text-center space-y-2">
                       <p className="text-2xl">🔎</p>
@@ -289,7 +289,7 @@ export function Navbar() {
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      
+
                       {/* Section 1: Features & Pages */}
                       {filteredResults.pages.length > 0 && (
                         <div>
@@ -305,11 +305,10 @@ export function Navbar() {
                                   key={item.id}
                                   type="button"
                                   onClick={() => handleSelectResult(item.route)}
-                                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-left transition-all cursor-pointer group ${
-                                    isSelected
+                                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-left transition-all cursor-pointer group ${isSelected
                                       ? "bg-[#6C63FF] text-white shadow-md shadow-[#6C63FF]/30"
                                       : "hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-center gap-3 min-w-0">
                                     <span className="w-8 h-8 rounded-xl bg-[var(--bg-elevated)] group-hover:scale-105 border border-[var(--border-default)] flex items-center justify-center text-base shrink-0">
@@ -324,9 +323,8 @@ export function Navbar() {
                                       </p>
                                     </div>
                                   </div>
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
-                                    isSelected ? "bg-white/20 text-white" : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-default)]"
-                                  }`}>
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${isSelected ? "bg-white/20 text-white" : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-default)]"
+                                    }`}>
                                     {item.category}
                                   </span>
                                 </button>
@@ -352,11 +350,10 @@ export function Navbar() {
                                   key={lesson.id}
                                   type="button"
                                   onClick={() => handleSelectResult(lesson.route)}
-                                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-left transition-all cursor-pointer group ${
-                                    isSelected
+                                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-left transition-all cursor-pointer group ${isSelected
                                       ? "bg-[#6C63FF] text-white shadow-md shadow-[#6C63FF]/30"
                                       : "hover:bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-center gap-3 min-w-0">
                                     <span className="w-8 h-8 rounded-xl bg-[var(--bg-elevated)] group-hover:scale-105 border border-[var(--border-default)] flex items-center justify-center text-base shrink-0">
@@ -371,9 +368,8 @@ export function Navbar() {
                                       </p>
                                     </div>
                                   </div>
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
-                                    isSelected ? "bg-white/20 text-white" : "bg-[#6C63FF]/10 text-[#6C63FF]"
-                                  }`}>
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${isSelected ? "bg-white/20 text-white" : "bg-[#6C63FF]/10 text-[#6C63FF]"
+                                    }`}>
                                     Open ▶
                                   </span>
                                 </button>
@@ -413,9 +409,8 @@ export function Navbar() {
               {/* Notifications Button */}
               <Link
                 to={ROUTES.NOTIFICATIONS}
-                className={`grid h-11 w-11 place-items-center rounded-2xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border-default)] relative transition-all shadow-sm active:scale-95 ${
-                  location.pathname === ROUTES.NOTIFICATIONS ? "border-[#6C63FF] text-[#6C63FF]" : ""
-                }`}
+                className={`grid h-11 w-11 place-items-center rounded-2xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border-default)] relative transition-all shadow-sm active:scale-95 ${location.pathname === ROUTES.NOTIFICATIONS ? "border-[#6C63FF] text-[#6C63FF]" : ""
+                  }`}
                 title="Notifications"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

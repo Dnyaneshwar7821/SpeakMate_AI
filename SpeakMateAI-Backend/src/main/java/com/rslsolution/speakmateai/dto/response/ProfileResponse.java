@@ -48,9 +48,17 @@ public class ProfileResponse {
 	private Integer totalSpeakingSessions;
 
 	private Integer totalGrammarChecks;
-
 	private Integer totalVocabularyWords;
 
+	private com.rslsolution.speakmateai.enums.Status status;
+
+	private Boolean active;
+
+	public com.rslsolution.speakmateai.enums.Status getStatus() { return status; }
+	public void setStatus(com.rslsolution.speakmateai.enums.Status status) { this.status = status; }
+
+	public Boolean getActive() { return active; }
+	public void setActive(Boolean active) { this.active = active; }
 	public Long getId() { return id; }
 	public void setId(Long id) { this.id = id; }
 
@@ -120,6 +128,8 @@ public class ProfileResponse {
 		private Integer totalSpeakingSessions;
 		private Integer totalGrammarChecks;
 		private Integer totalVocabularyWords;
+		private com.rslsolution.speakmateai.enums.Status status;
+		private Boolean active;
 
 		public ProfileResponseBuilder id(Long id) { this.id = id; return this; }
 		public ProfileResponseBuilder firstName(String firstName) { this.firstName = firstName; return this; }
@@ -137,6 +147,8 @@ public class ProfileResponse {
 		public ProfileResponseBuilder totalSpeakingSessions(Integer totalSpeakingSessions) { this.totalSpeakingSessions = totalSpeakingSessions; return this; }
 		public ProfileResponseBuilder totalGrammarChecks(Integer totalGrammarChecks) { this.totalGrammarChecks = totalGrammarChecks; return this; }
 		public ProfileResponseBuilder totalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; return this; }
+		public ProfileResponseBuilder status(com.rslsolution.speakmateai.enums.Status status) { this.status = status; return this; }
+		public ProfileResponseBuilder active(Boolean active) { this.active = active; return this; }
 
 		public ProfileResponse build() {
             ProfileResponse obj = new ProfileResponse();
@@ -156,6 +168,8 @@ public class ProfileResponse {
             obj.setTotalSpeakingSessions(totalSpeakingSessions);
             obj.setTotalGrammarChecks(totalGrammarChecks);
             obj.setTotalVocabularyWords(totalVocabularyWords);
+            obj.setStatus(status);
+            obj.setActive(active);
             return obj;
         }
 	}

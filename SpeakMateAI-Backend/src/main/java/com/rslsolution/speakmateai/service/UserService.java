@@ -38,6 +38,8 @@ public interface UserService {
 
 	void resetPasswordWithTemporary(com.rslsolution.speakmateai.dto.request.ResetWithTemporaryPasswordRequest request);
 
+	boolean checkNeedsFirstTimePasswordSetup(String email);
+
 	UserResponse completeOnboarding(com.rslsolution.speakmateai.dto.request.CompleteOnboardingRequest request);
 
 	UserResponse getCurrentUser();

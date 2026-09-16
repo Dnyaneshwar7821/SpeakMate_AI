@@ -119,14 +119,19 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = []
         const initialActive = initialData?.active !== undefined
             ? Boolean(initialData.active)
             : (initialData?.status ? String(initialData.status).toLowerCase() === "active" : true);
+        const matchedTeacher = initialData?.teacherId && teachers && teachers.length > 0
+            ? teachers.find(t => String(t.id) === String(initialData.teacherId))
+            : null;
+        const resolvedTeacherName = matchedTeacher?.name || initialData?.assignedTeacher || initialData?.teacherName || "";
+
         setForm({
             name: initialData?.name ?? "",
             email: initialData?.email ?? "",
             status: initialActive ? "active" : "inactive",
             userType: initialData?.userType || (isStudentForm ? "school" : "general"),
             standard: initialStdRaw || "1",
-            teacherId: initialData?.teacherId || (initialData?.assignedTeacher && teachers.length > 0 ? (teachers.find(t => t.name === initialData?.assignedTeacher)?.id || "") : ""),
-            assignedTeacher: initialData?.assignedTeacher || "",
+            teacherId: initialData?.teacherId || (resolvedTeacherName && teachers.length > 0 ? (teachers.find(t => t.name === resolvedTeacherName)?.id || "") : ""),
+            assignedTeacher: resolvedTeacherName,
             rollNo: initialData?.rollNo ?? "",
             schoolName: initialData?.schoolName || assignedSchoolName || (schools.length > 0 ? schools[0].name : ""),
             division: initialData?.division ?? "",
@@ -136,13 +141,13 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = []
             password: "",
         });
         setErrors({});
-        if (initialData?.assignedTeacher) {
+        if (resolvedTeacherName) {
             setAssignedTeacherLookup({
                 loading: false,
                 teacher: {
-                    id: initialData.teacherId,
-                    firstName: initialData.assignedTeacher.split(" ")[0] || initialData.assignedTeacher,
-                    lastName: initialData.assignedTeacher.split(" ").slice(1).join(" ") || ""
+                    id: initialData?.teacherId || matchedTeacher?.id,
+                    firstName: matchedTeacher?.firstName || resolvedTeacherName.split(" ")[0] || resolvedTeacherName,
+                    lastName: matchedTeacher?.lastName || resolvedTeacherName.split(" ").slice(1).join(" ") || ""
                 },
                 error: null
             });
@@ -150,7 +155,7 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = []
             setAssignedTeacherLookup({ loading: false, teacher: null, error: null });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, initialData]);
+    }, [isOpen, initialData, teachers]);
 
     useEffect(() => {
         if (!isStudentForm || !form.schoolName || !form.standard || !form.division || !schools || schools.length === 0) {
@@ -405,7 +410,7 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = []
                                         <option value={String(form.standard)}>{getOrdinal(form.standard || 1)} Standard</option>
                                     )
                                 ) : (
-                                    [1,2,3,4,5,6,7,8,9,10].map(s => (
+                                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
                                         <option key={s} value={s}>{getOrdinal(s)} Standard</option>
                                     ))
                                 )}

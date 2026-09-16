@@ -69,19 +69,38 @@ export async function openRazorpayCheckout({ orderData, onSuccess, onFailure, on
     return;
   }
 
+  const rawAmount = orderData.amountInPaise
+    ? orderData.amountInPaise
+    : (orderData.amount ? Math.round(Number(orderData.amount) * 100) : 100);
+
   const options = {
     key: orderData.razorpayKeyId,
-    amount: (orderData.planType === 'MONTHLY_PRO' || orderData.planType === 'MONTHLY') ? 100 : (orderData.amountInPaise || 119900),
-    currency: orderData.currency || "INR",
+    amount: rawAmount,
+    currency: "INR", // INR ensures UPI (GPay, PhonePe, Paytm, QR) and Net Banking are enabled
     name: "SpeakMate AI",
-    description: orderData.description || "SpeakMate Pro Plan",
+    description: orderData.description || orderData.planName || "Institutional Subscription",
     order_id: orderData.razorpayOrderId,
     prefill: {
       name: orderData.userName || "",
       email: orderData.userEmail || "",
+      contact: orderData.userPhone || orderData.contactPhone || "",
     },
     theme: {
-      color: "#6366F1", // SpeakMate brand indigo
+      color: "#4F46E5", // SpeakMate brand indigo
+    },
+    method: {
+      card: true,
+      upi: true,
+      netbanking: true,
+      wallet: true,
+    },
+    config: {
+      display: {
+        sequence: ["block.upi", "block.card", "block.netbanking", "block.wallet"],
+        preferences: {
+          show_default_blocks: true,
+        },
+      },
     },
     handler: function (response) {
       if (onSuccess) {
@@ -89,7 +108,7 @@ export async function openRazorpayCheckout({ orderData, onSuccess, onFailure, on
           razorpay_order_id: response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
           razorpay_signature: response.razorpay_signature,
-          planType: orderData.planType,
+          planType: orderData.planType || orderData.planName,
         });
       }
     },

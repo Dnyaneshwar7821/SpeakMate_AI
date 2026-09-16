@@ -120,7 +120,6 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
 		admin.setPassword(passwordEncoder.encode(newPassword));
 		adminRepository.save(admin);
-
 		if (userRepository != null) {
 			userRepository.findByEmail(admin.getEmail()).ifPresent(u -> {
 				u.setPassword(admin.getPassword());
@@ -231,7 +230,6 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 		admin.setResetPasswordToken(null);
 		admin.setResetPasswordTokenExpiry(null);
 		adminRepository.save(admin);
-
 		if (userRepository != null) {
 			userRepository.findByEmail(admin.getEmail()).ifPresent(u -> {
 				u.setPassword(admin.getPassword());

@@ -120,6 +120,20 @@ export function AllUsers() {
     };
 
     const handleConfirmDelete = async (u) => {
+        if (!u?.id) return;
+        const role = (u.raw?.role || u.role || "").toString().toUpperCase();
+        if (
+            role.includes("SUPER_ADMIN") ||
+            role.includes("SUPER ADMIN") ||
+            role.includes("SCHOOL_ADMIN") ||
+            role.includes("SCHOOL ADMIN") ||
+            role.includes("TEACHER") ||
+            role.includes("ADMIN")
+        ) {
+            alert("Administrative accounts cannot be deleted.");
+            setDeleteTarget(null);
+            return;
+        }
         setIsDeleting(true);
         try {
             await deleteUser(u.id);

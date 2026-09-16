@@ -66,4 +66,12 @@ public class AdminUserMapper {
 
         return response;
     }
+
+    public AdminUserResponse mapToDetailResponse(User user, Boolean emailSent) {
+        AdminUserResponse response = mapToDetailResponse(user);
+        if (response != null) {
+            response.setEmailSent(emailSent);
+        }
+        return response;
+    }
 }

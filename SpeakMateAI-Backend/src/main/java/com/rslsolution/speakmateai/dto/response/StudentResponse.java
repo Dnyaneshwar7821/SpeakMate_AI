@@ -1,12 +1,13 @@
 package com.rslsolution.speakmateai.dto.response;
 
+import java.time.LocalDateTime;
+
 import com.rslsolution.speakmateai.enums.Status;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -28,6 +29,7 @@ public class StudentResponse {
     private String phone;
     private Long teacherId;
     private String teacherName;
+    private String assignedTeacher;
     private Boolean active;
     private Status status;
     private LocalDateTime createdAt;
@@ -36,4 +38,13 @@ public class StudentResponse {
     private Double averageScore;
     private Integer speakingSessions;
     private Integer practiceMinutes;
+    private Boolean emailSent;
+
+    public String getAssignedTeacher() {
+        return assignedTeacher != null && !assignedTeacher.isBlank() ? assignedTeacher : teacherName;
+    }
+
+    public String getTeacherName() {
+        return teacherName != null && !teacherName.isBlank() ? teacherName : assignedTeacher;
+    }
 }

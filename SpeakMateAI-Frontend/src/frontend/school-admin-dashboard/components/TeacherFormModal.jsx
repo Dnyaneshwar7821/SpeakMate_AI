@@ -34,13 +34,13 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
     const [errors, setErrors] = useState({});
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
-    
+
     // Config from backend
     const [schoolStandardsConfig, setSchoolStandardsConfig] = useState([]);
 
     useEffect(() => {
         if (!isOpen) return;
-        
+
         const initialGroups = loadInitialAssignmentGroups(
             initialData,
             schoolStandardsConfig.length > 0 ? schoolStandardsConfig : STANDARD_OPTIONS
@@ -105,13 +105,13 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
         }
         const phoneErr = getIndianMobileError(form.phone, "Phone number", true);
         if (phoneErr) nextErrors.phone = phoneErr;
-        
+
         // Validate Standard Divisions
         const assignmentError = validateStandardDivisions(assignmentGroups, conflicts);
         if (assignmentError) {
             nextErrors.standardDivisions = assignmentError;
         }
-        
+
         setErrors(nextErrors);
         return Object.keys(nextErrors).length === 0;
     };
@@ -178,7 +178,7 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
                     <Input label={mode === "edit" ? "New password (optional)" : "Password"} type="password" value={form.password} onChange={handleChange("password")} error={errors.password} autoComplete="new-password" disabled={isSubmitting} />
                     <Input label="Phone" placeholder="e.g. 9876543210" value={form.phone} onChange={handleChange("phone")} error={errors.phone} disabled={isSubmitting} />
                     <Input label="Department" placeholder="English" value={form.department} onChange={handleChange("department")} disabled={isSubmitting} />
-                    
+
                     <StandardDivisionPicker
                         assignmentGroups={assignmentGroups}
                         onChange={(newGroups, newAssignments) => {
@@ -205,7 +205,7 @@ export function TeacherFormModal({ isOpen, mode = "add", initialData, onClose, o
                         }
                         onConflictsChange={setConflicts}
                     />
-                    
+
                     <Input label="Experience" placeholder="5 years" value={form.experience} onChange={handleChange("experience")} disabled={isSubmitting} />
                     <Input label="Qualification" placeholder="M.A., B.Ed." value={form.qualification} onChange={handleChange("qualification")} disabled={isSubmitting} />
                     <label className="block sm:col-span-2">

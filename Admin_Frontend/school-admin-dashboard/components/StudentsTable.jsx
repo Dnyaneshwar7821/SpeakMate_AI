@@ -37,7 +37,11 @@ export function StudentsTable({ students, isLoading, onRowClick, onEdit, onDelet
                 </thead>
                 <tbody>
                     {students.map((student) => {
+<<<<<<< HEAD
                         const isActive = student.active !== undefined ? Boolean(student.active) : student.status === "active";
+=======
+                        const isActive = student.status === "active";
+>>>>>>> origin/nandini
                         return (
                         <tr
                             key={student.id}

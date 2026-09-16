@@ -174,6 +174,7 @@ public class UserResponse {
 		private String preferredAccent;
 		private String ageGroup;
 		private String schoolGrade;
+		private String standard;
 		private String interests;
 		private Long schoolId;
 		private Boolean isSchoolStudent;

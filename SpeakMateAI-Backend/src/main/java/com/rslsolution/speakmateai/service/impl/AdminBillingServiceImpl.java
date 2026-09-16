@@ -54,10 +54,10 @@ public class AdminBillingServiceImpl implements AdminBillingService {
                 .id(payment.getId())
                 .userId(payment.getUser().getId())
                 .userFirstName(payment.getUser().getFirstName())
-                .userLastName(payment.getUser().getLastName())
-                .userEmail(payment.getUser().getEmail())
-                .planId(payment.getSubscriptionPlan().getId())
-                .planName(payment.getSubscriptionPlan().getPlanName())
+                .userLastName(payment.getUser() != null ? payment.getUser().getLastName() : "")
+                .userEmail(payment.getUser() != null ? payment.getUser().getEmail() : "")
+                .planId(payment.getSubscriptionPlan() != null ? payment.getSubscriptionPlan().getId() : null)
+                .planName(payment.getSubscriptionPlan() != null ? payment.getSubscriptionPlan().getPlanName() : "N/A")
                 .amount(payment.getAmount())
                 .currency(payment.getCurrency())
                 .paymentMethod(payment.getPaymentMethod())
@@ -260,10 +260,13 @@ public class AdminBillingServiceImpl implements AdminBillingService {
         StringBuilder csv = new StringBuilder();
         csv.append("ID,User Name,Email,Plan,Amount,Currency,Method,Gateway,Transaction ID,Status,Date\n");
         for (Payment p : payments) {
+            String userName = p.getUser() != null ? (p.getUser().getFirstName() + " " + p.getUser().getLastName()) : "Unknown";
+            String email = p.getUser() != null ? p.getUser().getEmail() : "";
+            String planName = p.getSubscriptionPlan() != null ? p.getSubscriptionPlan().getPlanName() : "N/A";
             csv.append(p.getId()).append(",");
-            csv.append(escapeCsv(p.getUser().getFirstName() + " " + p.getUser().getLastName())).append(",");
-            csv.append(escapeCsv(p.getUser().getEmail())).append(",");
-            csv.append(escapeCsv(p.getSubscriptionPlan().getPlanName())).append(",");
+            csv.append(escapeCsv(userName)).append(",");
+            csv.append(escapeCsv(email)).append(",");
+            csv.append(escapeCsv(planName)).append(",");
             csv.append(p.getAmount()).append(",");
             csv.append(p.getCurrency()).append(",");
             csv.append(p.getPaymentMethod()).append(",");

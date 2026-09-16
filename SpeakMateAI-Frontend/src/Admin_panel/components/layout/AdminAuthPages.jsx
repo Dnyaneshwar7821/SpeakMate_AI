@@ -45,9 +45,9 @@ export function RoleLoginPage({ config }) {
 export function RoleForgotPasswordPage({ config }) {
     return (
         <AdminAuthShell>
-            <h1 className="text-2xl font-black text-[var(--text-primary)]">{config.forgotPasswordHeading}</h1>
+            <h1 className="text-2xl font-black text-[var(--text-primary)]">Set Your Permanent Password</h1>
             <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                Enter your temporary password and create a new permanent password for your account.
+                Enter your temporary password and create a new permanent password for your school management workspace.
             </p>
             <AdminForgotPasswordForm
                 role={config.role}

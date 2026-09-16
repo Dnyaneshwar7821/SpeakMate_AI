@@ -37,6 +37,13 @@ public class SubscriptionSpecification {
         };
     }
 
+    public static Specification<UserSubscription> onlyLearnerUsers() {
+        return (root, query, cb) -> {
+            Join<Object, Object> userJoin = root.join("user", jakarta.persistence.criteria.JoinType.LEFT);
+            return cb.or(cb.isNull(userJoin.get("id")), cb.equal(userJoin.get("role"), com.rslsolution.speakmateai.enums.Role.USER));
+        };
+    }
+
     public static Specification<UserSubscription> filterUserSubscriptions(
             String keyword, PaymentStatus paymentStatus, SubscriptionStatus subscriptionStatus,
             PaymentMethod paymentMethod, LocalDateTime startDate, LocalDateTime endDate) {
@@ -44,10 +51,12 @@ public class SubscriptionSpecification {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
+            Join<Object, Object> userJoin = root.join("user", jakarta.persistence.criteria.JoinType.LEFT);
+            predicates.add(cb.or(cb.isNull(userJoin.get("id")), cb.equal(userJoin.get("role"), com.rslsolution.speakmateai.enums.Role.USER)));
+
             if (StringUtils.hasText(keyword)) {
                 String searchPattern = "%" + keyword.toLowerCase() + "%";
-                Join<Object, Object> userJoin = root.join("user");
-                Join<Object, Object> planJoin = root.join("subscriptionPlan");
+                Join<Object, Object> planJoin = root.join("subscriptionPlan", jakarta.persistence.criteria.JoinType.LEFT);
                 
                 Predicate firstNameMatch = cb.like(cb.lower(userJoin.get("firstName")), searchPattern);
                 Predicate lastNameMatch = cb.like(cb.lower(userJoin.get("lastName")), searchPattern);

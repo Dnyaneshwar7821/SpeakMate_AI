@@ -59,6 +59,12 @@ public class SpeakingSession {
 	@OneToOne(mappedBy = "session", cascade = CascadeType.ALL, orphanRemoval = true)
 	private ConversationFeedback sessionFeedback;
 
+	@Builder.Default
+	private Boolean completed = false;
+
+	public Boolean getCompleted() { return completed != null ? completed : false; }
+	public void setCompleted(Boolean completed) { this.completed = completed; }
+
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
@@ -67,6 +73,18 @@ public class SpeakingSession {
 		createdAt = LocalDateTime.now();
 		if (scenario == null) {
 			scenario = topic;
+		}
+	}
+
+	public User getUser() { return student; }
+	public void setUser(User user) { if (user instanceof Student s) this.student = s; }
+
+	public static class SpeakingSessionBuilder {
+		public SpeakingSessionBuilder user(User user) {
+			if (user instanceof Student s) {
+				this.student = s;
+			}
+			return this;
 		}
 	}
 }

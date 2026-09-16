@@ -169,12 +169,12 @@ export function Profile() {
           }
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     subscriptionService
       .getMySubscription()
       .then((sub) => setSubInfo(sub))
-      .catch(() => {});
+      .catch(() => { });
   }, [user]);
 
   const playAvatarPreview = (av) => {
@@ -543,35 +543,31 @@ export function Profile() {
         <div className="flex sm:flex-col gap-2 z-10 w-full sm:w-auto">
           <button
             onClick={() => setActiveTab("general")}
-            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
-              activeTab === "general" ? "bg-white text-[#6C63FF] shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
-            }`}
+            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${activeTab === "general" ? "bg-white text-[#6C63FF] shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
           >
             👤 General Details
           </button>
           <button
             onClick={() => setActiveTab("preferences")}
-            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
-              activeTab === "preferences" ? "bg-white text-[#6C63FF] shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
-            }`}
+            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${activeTab === "preferences" ? "bg-white text-[#6C63FF] shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
           >
             🎯 Goals & Voices
           </button>
           {!isStudent && (
             <button
               onClick={() => setActiveTab("subscription")}
-              className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
-                activeTab === "subscription" ? "bg-white text-amber-600 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
-              }`}
+              className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${activeTab === "subscription" ? "bg-white text-amber-600 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
             >
               ⭐ Subscription
             </button>
           )}
           <button
             onClick={() => setActiveTab("security")}
-            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${
-              activeTab === "security" ? "bg-white text-rose-600 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
-            }`}
+            className={`flex-1 sm:flex-none px-5 py-3 rounded-2xl text-xs font-black transition-all cursor-pointer active:scale-95 ${activeTab === "security" ? "bg-white text-rose-600 shadow-lg" : "bg-white/10 hover:bg-white/20 text-white"
+              }`}
           >
             🔒 Security
           </button>
@@ -649,11 +645,10 @@ export function Profile() {
                     key={item.level}
                     type="button"
                     onClick={() => handleSelectProficiencyLevel(item.level)}
-                    className={`p-5 rounded-3xl text-left border transition-all cursor-pointer active:scale-95 group overflow-hidden ${
-                      active
+                    className={`p-5 rounded-3xl text-left border transition-all cursor-pointer active:scale-95 group overflow-hidden ${active
                         ? "bg-gradient-to-br from-[#6C63FF] to-[#8B5CF6] text-white border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30"
                         : "bg-[var(--bg-elevated)] text-[var(--text-primary)] border-[var(--border-default)] hover:border-[#6C63FF]/50"
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-2xl">{item.icon}</span>
@@ -840,11 +835,10 @@ export function Profile() {
                       key={av.id}
                       type="button"
                       onClick={() => handleSelectTutor(av)}
-                      className={`p-4 rounded-2xl border text-left font-black transition-all cursor-pointer active:scale-95 flex flex-col justify-between ${
-                        isSelected
+                      className={`p-4 rounded-2xl border text-left font-black transition-all cursor-pointer active:scale-95 flex flex-col justify-between ${isSelected
                           ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md ring-2 ring-[#6C63FF]/30"
                           : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)] hover:border-[#6C63FF]/50"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start justify-between gap-2 w-full">
                         <span className="text-2xl">{av.emoji}</span>
@@ -858,11 +852,10 @@ export function Profile() {
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-sm font-black">{av.name}</span>
                           <span
-                            className={`text-[8px] font-black px-1.5 py-0.5 rounded-full border ${
-                              av.category === "cartoon"
+                            className={`text-[8px] font-black px-1.5 py-0.5 rounded-full border ${av.category === "cartoon"
                                 ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
                                 : "bg-purple-500/15 text-purple-400 border-purple-500/30"
-                            }`}
+                              }`}
                           >
                             {av.badge}
                           </span>
@@ -892,11 +885,10 @@ export function Profile() {
                     key={mins}
                     type="button"
                     onClick={() => setDailyGoal(mins)}
-                    className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                      dailyGoal === mins
+                    className={`p-4 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${dailyGoal === mins
                         ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
                         : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                    }`}
+                      }`}
                   >
                     <span className="text-lg block">⏱️ {mins} Mins</span>
                     <span className="text-[10px] opacity-75">{mins === 15 ? "Recommended" : mins === 30 ? "Intense" : "Casual"}</span>
@@ -915,11 +907,10 @@ export function Profile() {
                     key={acc.code}
                     type="button"
                     onClick={() => setPreferredAccent(acc.code)}
-                    className={`p-3.5 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${
-                      preferredAccent === acc.code
+                    className={`p-3.5 rounded-2xl border text-center font-black transition-all cursor-pointer active:scale-95 ${preferredAccent === acc.code
                         ? "border-[#6C63FF] bg-[#6C63FF]/15 text-[#6C63FF] shadow-md"
                         : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-primary)]"
-                    }`}
+                      }`}
                   >
                     <span className="text-xl block mb-1">{acc.flag}</span>
                     <span className="text-xs">{acc.label}</span>
@@ -1111,11 +1102,10 @@ export function Profile() {
                   key={emoji}
                   type="button"
                   onClick={() => handleSelectPresetAvatar(emoji)}
-                  className={`h-12 text-2xl rounded-2xl border-2 flex items-center justify-center transition-all cursor-pointer active:scale-95 ${
-                    selectedAvatar === emoji
+                  className={`h-12 text-2xl rounded-2xl border-2 flex items-center justify-center transition-all cursor-pointer active:scale-95 ${selectedAvatar === emoji
                       ? "border-[#6C63FF] bg-[#6C63FF]/15 scale-105"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
-                  }`}
+                    }`}
                 >
                   {emoji}
                 </button>
@@ -1260,11 +1250,10 @@ export function Profile() {
                       playAvatarPreview(av);
                       setShowTutorModal(false);
                     }}
-                    className={`p-5 rounded-3xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between group ${
-                      isSelected
+                    className={`p-5 rounded-3xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between group ${isSelected
                         ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102 ring-2 ring-[#6C63FF]/30"
                         : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
-                    }`}
+                      }`}
                   >
                     <div>
                       <div className="flex items-start justify-between gap-3">
@@ -1278,11 +1267,10 @@ export function Profile() {
                             </span>
                           )}
                           <span
-                            className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${
-                              av.category === "cartoon"
+                            className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${av.category === "cartoon"
                                 ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
                                 : "bg-purple-500/15 text-purple-400 border-purple-500/30"
-                            }`}
+                              }`}
                           >
                             {av.badge}
                           </span>

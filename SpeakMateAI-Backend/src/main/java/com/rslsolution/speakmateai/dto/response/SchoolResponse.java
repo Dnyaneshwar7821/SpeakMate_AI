@@ -32,4 +32,13 @@ public class SchoolResponse {
     private Integer totalDivisions;
     private Integer divisionCount;
     private List<StandardDivisionResponse> academicStructure;
+
+    // Subscription Details
+    private Long subscriptionPlanId;
+    private String subscriptionPlanName;
+    private Double subscriptionPrice;
+    private String subscriptionBillingCycle;
+    private LocalDateTime subscriptionStartDate;
+    private LocalDateTime subscriptionEndDate;
+    private Integer maxStudents;
 }

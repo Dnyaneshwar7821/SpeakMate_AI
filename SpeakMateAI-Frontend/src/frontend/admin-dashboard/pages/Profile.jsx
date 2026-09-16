@@ -218,8 +218,8 @@ export function Profile() {
                             {isLoading
                                 ? "Loading profile..."
                                 : isEditing
-                                  ? "Make edits to your credentials and save or discard."
-                                  : "Manage your super administrator identity, profile insignia, and details"}
+                                    ? "Make edits to your credentials and save or discard."
+                                    : "Manage your super administrator identity, profile insignia, and details"}
                         </p>
                     </div>
                 </div>
@@ -374,9 +374,8 @@ export function Profile() {
                                     <button
                                         type="button"
                                         onClick={() => setMenuOpen((v) => !v)}
-                                        className={`grid h-8 w-8 place-items-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-secondary)] shadow-sm transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] focus:outline-none ${
-                                            menuOpen ? "bg-[var(--bg-hover)] border-[var(--border-strong)]" : ""
-                                        }`}
+                                        className={`grid h-8 w-8 place-items-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-secondary)] shadow-sm transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] focus:outline-none ${menuOpen ? "bg-[var(--bg-hover)] border-[var(--border-strong)]" : ""
+                                            }`}
                                         aria-label="More options"
                                     >
                                         <MoreHorizontal className="h-4 w-4" />

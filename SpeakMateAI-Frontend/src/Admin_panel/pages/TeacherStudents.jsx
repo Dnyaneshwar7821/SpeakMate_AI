@@ -7,6 +7,7 @@ import Button from "@components/common/Button";
 import Card from "@components/common/Card";
 import EmptyState from "@/Admin_panel/components/teacher/common/EmptyState";
 import { teacherDataApi } from "@services/admin/teacherDataApi";
+import UserProgressModal from "@admin/components/UserProgressModal";
 
 const statusStyles = {
     Excellent: "bg-emerald-50 text-emerald-700 ring-emerald-600/10 dark:bg-emerald-500/15 dark:text-emerald-400 dark:ring-emerald-500/20",
@@ -152,7 +153,7 @@ function EmptyStudentsState({ isFiltered = false }) {
     );
 }
 
-function StudentsTable({ students, onViewProfile, query, sortConfig, onSort }) {
+function StudentsTable({ students, onViewProfile, query, sortConfig, onSort, onOpenProgress }) {
     return (
         <Card className="hidden overflow-hidden md:block">
             <div className="max-h-[70vh] overflow-auto">
@@ -247,13 +248,24 @@ function StudentsTable({ students, onViewProfile, query, sortConfig, onSort }) {
                                     <StatusBadge status={student.status} />
                                 </td>
                                 <td className="px-4 py-4 pr-5">
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => onViewProfile(student.id)}
-                                        className="h-9 whitespace-nowrap px-3 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
-                                    >
-                                        View Profile
-                                    </Button>
+                                    <div className="flex items-center gap-1.5">
+                                        <Button
+                                            variant="ghost"
+                                            onClick={() => onViewProfile(student.id)}
+                                            className="h-9 whitespace-nowrap px-3 text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+                                        >
+                                            View Profile
+                                        </Button>
+                                        {onOpenProgress && (
+                                            <Button
+                                                variant="secondary"
+                                                onClick={() => onOpenProgress(student)}
+                                                className="h-9 whitespace-nowrap px-2.5 text-xs text-slate-700 hover:bg-slate-100 dark:text-slate-200"
+                                            >
+                                                Live Progress
+                                            </Button>
+                                        )}
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -313,7 +325,7 @@ function StudentsTableSkeleton() {
     );
 }
 
-function StudentCards({ students, onViewProfile, query }) {
+function StudentCards({ students, onViewProfile, query, onOpenProgress }) {
     return (
         <div className="grid gap-4 md:hidden">
             {students.map((student) => (
@@ -366,13 +378,24 @@ function StudentCards({ students, onViewProfile, query }) {
                             </p>
                             <p className="mt-1 text-xs font-semibold text-slate-600">{student.lastActive}</p>
                         </div>
-                        <Button
-                            variant="secondary"
-                            onClick={() => onViewProfile(student.id)}
-                            className="h-9 px-3 text-xs text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50"
-                        >
-                            View Profile
-                        </Button>
+                        <div className="flex items-center gap-1.5">
+                            <Button
+                                variant="secondary"
+                                onClick={() => onViewProfile(student.id)}
+                                className="h-9 px-3 text-xs text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50"
+                            >
+                                Profile
+                            </Button>
+                            {onOpenProgress && (
+                                <Button
+                                    variant="primary"
+                                    onClick={() => onOpenProgress(student)}
+                                    className="h-9 px-2.5 text-xs font-bold"
+                                >
+                                    Progress
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </Card>
             ))}
@@ -425,6 +448,7 @@ export function TeacherStudents() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedGrade, setSelectedGrade] = useState("All Grades");
     const [sortConfig, setSortConfig] = useState({ key: "name", direction: "ascending" });
+    const [selectedStudentForModal, setSelectedStudentForModal] = useState(null);
 
     useEffect(() => {
         const fetchStudentsData = async () => {
@@ -526,7 +550,7 @@ export function TeacherStudents() {
                 || (student.name && student.name.toLocaleLowerCase().includes(normalizedQuery))
                 || (student.rollNumber && student.rollNumber.toLocaleLowerCase().includes(normalizedQuery));
             const matchesGrade = selectedGrade === "All Grades" || student.status === selectedGrade;
-            const matchesDivision = selectedDivision === "All Divisions" 
+            const matchesDivision = selectedDivision === "All Divisions"
                 || (student.division && student.division.trim().toUpperCase() === selectedDivision.trim().toUpperCase());
             return matchesSearch && matchesGrade && matchesDivision;
         });
@@ -614,7 +638,7 @@ export function TeacherStudents() {
                     </p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-stretch">
-                    <motion.div 
+                    <motion.div
                         whileHover={{ scale: 1.02, translateY: -2 }}
                         transition={{ type: "spring", stiffness: 300 }}
                         className={`relative overflow-hidden rounded-2xl ${activeBg} px-5 py-3.5 shadow-sm sm:min-w-[200px]`}
@@ -630,7 +654,7 @@ export function TeacherStudents() {
                         </p>
                     </motion.div>
 
-                    <motion.div 
+                    <motion.div
                         whileHover={{ scale: 1.02, translateY: -2 }}
                         transition={{ type: "spring", stiffness: 300 }}
                         className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white/80 px-5 py-3.5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] backdrop-blur-xl dark:border-slate-700/50 dark:bg-slate-800/80 sm:min-w-[140px]"
@@ -802,6 +826,7 @@ export function TeacherStudents() {
                         <StudentsTable
                             students={visibleStudents}
                             onViewProfile={viewStudentProfile}
+                            onOpenProgress={setSelectedStudentForModal}
                             query={searchQuery}
                             sortConfig={sortConfig}
                             onSort={handleSort}
@@ -809,11 +834,20 @@ export function TeacherStudents() {
                         <StudentCards
                             students={visibleStudents}
                             onViewProfile={viewStudentProfile}
+                            onOpenProgress={setSelectedStudentForModal}
                             query={searchQuery}
                         />
                     </>
                 )}
             </motion.section>
+
+            {/* Comprehensive Live Evaluation Profile Modal */}
+            <UserProgressModal
+                isOpen={Boolean(selectedStudentForModal)}
+                user={selectedStudentForModal}
+                student={selectedStudentForModal}
+                onClose={() => setSelectedStudentForModal(null)}
+            />
         </motion.div>
     );
 }

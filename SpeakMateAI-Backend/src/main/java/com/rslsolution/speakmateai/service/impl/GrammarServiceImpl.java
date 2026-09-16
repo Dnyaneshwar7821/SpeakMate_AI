@@ -201,7 +201,6 @@ public class GrammarServiceImpl implements GrammarService {
 	}
 
 	@Override
-	@org.springframework.transaction.annotation.Transactional
 	public void clearAllGrammarHistory() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 		User user = userRepository.findByEmail(authentication.getName())

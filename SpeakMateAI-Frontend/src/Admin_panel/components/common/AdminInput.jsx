@@ -26,8 +26,8 @@ export function AdminInput({ id, label, error, icon, className = "", type = "tex
           aria-invalid={Boolean(error)}
           aria-describedby={describedBy}
           className={`admin-auth-input h-11 w-full rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] shadow-sm outline-none transition-all duration-200 ease-out placeholder:text-[var(--text-muted)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 disabled:cursor-not-allowed disabled:opacity-60 ${error
-              ? "!border-rose-500 focus:!ring-rose-500/20"
-              : "hover:border-[#6C63FF]/40"
+            ? "!border-rose-500 focus:!ring-rose-500/20"
+            : "hover:border-[#6C63FF]/40"
             } ${icon ? "pl-10" : "pl-3.5"} ${isPassword ? "pr-10" : "pr-3.5"} ${className}`}
           {...props}
         />

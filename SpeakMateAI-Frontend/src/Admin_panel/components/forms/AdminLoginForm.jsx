@@ -5,6 +5,7 @@ import AdminButton from "../common/AdminButton";
 import AdminAlert from "../common/AdminAlert";
 import PasswordInput from "./PasswordInput";
 import { useAdminAuth } from "../../hooks/useAdminAuth";
+import { adminAuthService } from "../../services/adminAuthService";
 
 function MailIcon() {
   return (
@@ -32,31 +33,76 @@ export function AdminLoginForm({
     password: "",
   });
   const [rememberMe, setRememberMe] = useState(false);
+  const [isVerifyingFirstTime, setIsVerifyingFirstTime] = useState(
+    searchParams.get("firstTime") === "true" && !location.state?.resetSuccess
+  );
 
   useEffect(() => {
+    let isMounted = true;
     const isFirstTime = searchParams.get("firstTime") === "true";
     const emailParam = searchParams.get("email") || location.state?.email || "";
-    const isPwdAlreadySet =
-      Boolean(emailParam) &&
-      (localStorage.getItem(`pwd_set_${emailParam.toLowerCase().trim()}`) === "true" || Boolean(location.state?.resetSuccess));
 
-    if (isFirstTime && !isPwdAlreadySet && forgotPasswordRoute) {
-      navigate(`${forgotPasswordRoute}?email=${encodeURIComponent(emailParam || "")}&firstTime=true`, {
-        replace: true,
-        state: { email: emailParam || "", firstTime: true },
-      });
+    // If user just reset password in this flow, keep them on the login page with success banner
+    if (location.state?.resetSuccess) {
+      if (emailParam) {
+        setForm((prev) => ({ ...prev, email: emailParam }));
+      }
+      setIsVerifyingFirstTime(false);
       return;
     }
 
-    if (isFirstTime && isPwdAlreadySet) {
-      navigate(`${location.pathname}?email=${encodeURIComponent(emailParam || "")}`, { replace: true });
+    if (!isFirstTime) {
+      if (emailParam) {
+        setForm((prev) => ({ ...prev, email: emailParam }));
+      }
+      setIsVerifyingFirstTime(false);
       return;
     }
 
-    const effectiveEmail = location.state?.email || searchParams.get("email");
-    if (effectiveEmail) {
-      setForm((prev) => ({ ...prev, email: effectiveEmail }));
-    }
+    // Verify account setup status directly from the server database
+    const verifySetupStatus = async () => {
+      let needsSetup = true;
+      if (emailParam) {
+        try {
+          const status = await adminAuthService.checkFirstTimeStatus(emailParam);
+          if (typeof status === "boolean") {
+            needsSetup = status;
+          } else {
+            const localPwdSet = localStorage.getItem(`pwd_set_${emailParam.toLowerCase().trim()}`) === "true";
+            needsSetup = !localPwdSet;
+          }
+        } catch (_) {
+          const localPwdSet = localStorage.getItem(`pwd_set_${emailParam.toLowerCase().trim()}`) === "true";
+          needsSetup = !localPwdSet;
+        }
+      }
+
+      if (!isMounted) return;
+
+      if (needsSetup && forgotPasswordRoute) {
+        // Needs temporary password setup
+        navigate(
+          `${forgotPasswordRoute}?email=${encodeURIComponent(emailParam || "")}&firstTime=true`,
+          {
+            replace: true,
+            state: { email: emailParam || "", firstTime: true },
+          }
+        );
+      } else {
+        // Password already updated! Strip firstTime=true and allow direct sign-in with new password
+        navigate(`${location.pathname}?email=${encodeURIComponent(emailParam || "")}`, { replace: true });
+        if (emailParam) {
+          setForm((prev) => ({ ...prev, email: emailParam }));
+        }
+        setIsVerifyingFirstTime(false);
+      }
+    };
+
+    verifySetupStatus();
+
+    return () => {
+      isMounted = false;
+    };
   }, [searchParams, location.state, forgotPasswordRoute, navigate, location.pathname]);
 
   const handleChange = (field) => (event) => {
@@ -77,11 +123,27 @@ export function AdminLoginForm({
     if (result.success) navigate(dashboardRoute, { replace: true });
   };
 
+  if (isVerifyingFirstTime) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 space-y-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#6C63FF] border-t-transparent" />
+        <p className="text-sm font-medium text-[var(--text-secondary)]">
+          Verifying school admin access...
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form className="mt-6 space-y-4" onSubmit={handleSubmit} noValidate>
       {location.state?.resetSuccess && (
         <AdminAlert tone="success">
           Your permanent password has been set successfully! Please log in with your new password.
+        </AdminAlert>
+      )}
+      {location.state?.alreadySetup && (
+        <AdminAlert tone="info">
+          Your permanent password has already been configured. Please sign in below.
         </AdminAlert>
       )}
       {error && <AdminAlert tone="error">{error}</AdminAlert>}

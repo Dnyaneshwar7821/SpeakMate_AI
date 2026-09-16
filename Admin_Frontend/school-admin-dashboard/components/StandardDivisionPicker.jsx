@@ -560,7 +560,6 @@ export function StandardDivisionPicker({
                                             {group.divisions.length} of {availableDivisions.length} selected
                                         </span>
                                     </div>
-
                                     {availableDivisions.length === 0 ? (
                                         <p className="text-xs text-[var(--text-muted)] italic">No divisions configured for this standard.</p>
                                     ) : (

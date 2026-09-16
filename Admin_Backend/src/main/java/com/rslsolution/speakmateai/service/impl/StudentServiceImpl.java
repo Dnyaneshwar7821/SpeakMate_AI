@@ -43,6 +43,20 @@ public class StudentServiceImpl implements StudentService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.rslsolution.speakmateai.repository.TeacherRepository teacherRepository;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.service.EmailService emailService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.service.email.EmailTemplateService emailTemplateService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.repository.SchoolRepository schoolRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.service.SchoolTeacherService schoolTeacherService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.service.StudentProgressAnalyticsService studentProgressAnalyticsService;
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         
@@ -158,7 +172,93 @@ public class StudentServiceImpl implements StudentService {
             } catch (Exception ignored) {}
         }
 
-        return mapToResponse(savedStudent);
+        Boolean emailSent = false;
+        if (emailService != null && savedStudent.getEmail() != null && !savedStudent.getEmail().isBlank()) {
+            try {
+                String studentName = ((savedStudent.getFirstName() != null ? savedStudent.getFirstName() : "") + " "
+                        + (savedStudent.getLastName() != null ? savedStudent.getLastName() : "")).trim();
+
+                String schoolName = (savedStudent.getSchoolName() != null && !savedStudent.getSchoolName().isBlank())
+                        ? savedStudent.getSchoolName()
+                        : "Your School";
+                String schoolCode = "N/A";
+                if (savedStudent.getSchoolId() != null && schoolRepository != null) {
+                    com.rslsolution.speakmateai.entity.School school = schoolRepository.findById(savedStudent.getSchoolId()).orElse(null);
+                    if (school != null) {
+                        if (school.getName() != null && !school.getName().isBlank()) {
+                            schoolName = school.getName();
+                        }
+                        if (school.getSchoolCode() != null && !school.getSchoolCode().isBlank()) {
+                            schoolCode = school.getSchoolCode();
+                        }
+                    }
+                }
+
+                String rollNumber = (savedStudent.getRollNumber() != null && !savedStudent.getRollNumber().isBlank())
+                        ? savedStudent.getRollNumber()
+                        : "N/A";
+
+                String assignedTeacher = null;
+                if (savedStudent.getTeacherId() != null && teacherRepository != null) {
+                    com.rslsolution.speakmateai.entity.Teacher teacher = teacherRepository.findById(savedStudent.getTeacherId()).orElse(null);
+                    if (teacher != null) {
+                        assignedTeacher = ((teacher.getFirstName() != null ? teacher.getFirstName() : "") + " "
+                                + (teacher.getLastName() != null ? teacher.getLastName() : "")).trim();
+                    }
+                }
+                if (assignedTeacher == null || assignedTeacher.isBlank()) {
+                    assignedTeacher = "Assigned by School";
+                }
+
+                String subject = "Welcome to SpeakMate AI - Your Student Account Credentials";
+
+                if (emailTemplateService != null) {
+                    String html = emailTemplateService.buildStudentWelcomeEmailHtml(
+                            studentName,
+                            savedStudent.getEmail(),
+                            rawPassword,
+                            schoolName,
+                            schoolCode,
+                            savedStudent.getStandard(),
+                            savedStudent.getDivision(),
+                            rollNumber,
+                            assignedTeacher
+                    );
+                    String text = emailTemplateService.buildStudentWelcomeEmailText(
+                            studentName,
+                            savedStudent.getEmail(),
+                            rawPassword,
+                            schoolName,
+                            schoolCode,
+                            savedStudent.getStandard(),
+                            savedStudent.getDivision(),
+                            rollNumber,
+                            assignedTeacher
+                    );
+                    emailService.sendHtmlEmail(savedStudent.getEmail(), subject, html, text);
+                } else {
+                    String text = "Hello " + (studentName.isEmpty() ? "Student" : studentName) + ",\n\n"
+                            + "Your student account for " + schoolName + " has been created on SpeakMate AI.\n\n"
+                            + "School Code: " + schoolCode + "\n"
+                            + "Roll Number: " + rollNumber + "\n"
+                            + "Teacher:     " + assignedTeacher + "\n\n"
+                            + "Here are your login credentials:\n"
+                            + "--------------------------------------------------\n"
+                            + "Email:    " + savedStudent.getEmail() + "\n"
+                            + "Password: " + rawPassword + "\n"
+                            + "--------------------------------------------------\n\n"
+                            + "Best regards,\nSpeakMate AI Team";
+                    emailService.sendEmail(savedStudent.getEmail(), subject, text);
+                }
+                emailSent = true;
+                System.out.println("Student credentials email dispatched successfully to " + savedStudent.getEmail());
+            } catch (Exception e) {
+                System.err.println("Failed to dispatch student credentials email to " + savedStudent.getEmail() + ": " + e.getMessage());
+                emailSent = false;
+            }
+        }
+
+        return mapToResponse(savedStudent, emailSent);
     }
 
     @Override
@@ -174,13 +274,11 @@ public class StudentServiceImpl implements StudentService {
             if (request.getSchoolId() != null) {
                 student.setSchoolId(request.getSchoolId());
             }
-
         } else if (currentUser.getRole() == Role.SCHOOL_ADMIN || currentUser.getRole() == Role.TEACHER) {
             student = studentRepository.findByIdAndSchoolId(id, currentUser.getSchoolId())
                     .orElseThrow(() -> new RuntimeException("Student not found or not in your school"));
             
             // Ignore schoolId in request, keeping the student in the current school
-
         } else {
             throw new RuntimeException("Unauthorized to update students");
         }
@@ -212,7 +310,6 @@ public class StudentServiceImpl implements StudentService {
         if (request.getParentPhone() != null) student.setParentPhone(request.getParentPhone().trim());
         if (request.getPhone() != null) student.setPhone(request.getPhone().trim());
         if (request.getTeacherId() != null) student.setTeacherId(request.getTeacherId());
-
         Student updatedStudent = studentRepository.save(student);
         return mapToResponse(updatedStudent);
     }
@@ -352,16 +449,43 @@ public class StudentServiceImpl implements StudentService {
     }
 
     private StudentResponse mapToResponse(Student user) {
+        return mapToResponse(user, null);
+    }
+
+    private StudentResponse mapToResponse(Student user, Boolean emailSent) {
         Status resolvedStatus = user.getStatus();
         if (resolvedStatus == null) {
             resolvedStatus = user.isActive() ? Status.ACTIVE : Status.INACTIVE;
         }
 
         String teacherName = null;
-        if (user.getTeacherId() != null && teacherRepository != null) {
-            teacherName = teacherRepository.findById(user.getTeacherId())
-                    .map(t -> (t.getFirstName() + " " + (t.getLastName() != null ? t.getLastName() : "")).trim())
-                    .orElse(null);
+        if (user.getTeacherId() != null) {
+            if (teacherRepository != null) {
+                teacherName = teacherRepository.findById(user.getTeacherId())
+                        .map(t -> (t.getFirstName() + " " + (t.getLastName() != null ? t.getLastName() : "")).trim())
+                        .filter(s -> !s.isBlank())
+                        .orElse(null);
+            }
+            if (teacherName == null && userRepository != null) {
+                teacherName = userRepository.findById(user.getTeacherId())
+                        .map(t -> (t.getFirstName() + " " + (t.getLastName() != null ? t.getLastName() : "")).trim())
+                        .filter(s -> !s.isBlank())
+                        .orElse(null);
+            }
+        }
+        if (teacherName == null && schoolTeacherService != null && user.getStandard() != null && user.getDivision() != null) {
+            Long sId = user.getSchoolId();
+            if (sId == null && user.getSchoolName() != null && schoolRepository != null) {
+                sId = schoolRepository.findByName(user.getSchoolName()).map(com.rslsolution.speakmateai.entity.School::getId).orElse(null);
+            }
+            if (sId != null) {
+                try {
+                    com.rslsolution.speakmateai.dto.response.SchoolTeacherResponse resp = schoolTeacherService.getAssignedTeacher(sId, user.getStandard(), user.getDivision());
+                    if (resp != null) {
+                        teacherName = (resp.getFirstName() + " " + (resp.getLastName() != null ? resp.getLastName() : "")).trim();
+                    }
+                } catch (Exception ignored) {}
+            }
         }
 
         return StudentResponse.builder()
@@ -380,9 +504,50 @@ public class StudentServiceImpl implements StudentService {
                 .phone(user.getPhone())
                 .teacherId(user.getTeacherId())
                 .teacherName(teacherName)
+                .assignedTeacher(teacherName)
                 .active(user.isActive())
                 .status(resolvedStatus)
                 .createdAt(user.getCreatedAt())
+                .emailSent(emailSent)
                 .build();
+    }
+
+    @Override
+    public java.util.Map<String, Object> getStudentProgress(Long id) {
+        StudentResponse student = getStudentById(id);
+        java.util.Map<String, Object> result = new java.util.HashMap<>();
+        result.put("student", student);
+        if (studentProgressAnalyticsService != null) {
+            try {
+                result.put("profile", studentProgressAnalyticsService.getStudentProgressProfile(id));
+            } catch (Exception ignored) {}
+        }
+        return result;
+    }
+
+    @Override
+    public com.rslsolution.speakmateai.dto.response.analytics.StudentProgressProfileResponse getStudentProgressProfile(Long id) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() != Role.SUPER_ADMIN && (currentUser.getRole() == Role.SCHOOL_ADMIN || currentUser.getRole() == Role.TEACHER)) {
+            studentRepository.findByIdAndSchoolId(id, currentUser.getSchoolId())
+                    .orElseThrow(() -> new RuntimeException("Student not found or not in your school"));
+        }
+        if (studentProgressAnalyticsService == null) {
+            throw new IllegalStateException("StudentProgressAnalyticsService is not initialized");
+        }
+        return studentProgressAnalyticsService.getStudentProgressProfile(id);
+    }
+
+    @Override
+    public List<com.rslsolution.speakmateai.dto.response.analytics.LessonDetailProgressDto> getStudentLessonsDetail(Long id) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() != Role.SUPER_ADMIN && (currentUser.getRole() == Role.SCHOOL_ADMIN || currentUser.getRole() == Role.TEACHER)) {
+            studentRepository.findByIdAndSchoolId(id, currentUser.getSchoolId())
+                    .orElseThrow(() -> new RuntimeException("Student not found or not in your school"));
+        }
+        if (studentProgressAnalyticsService == null) {
+            throw new IllegalStateException("StudentProgressAnalyticsService is not initialized");
+        }
+        return studentProgressAnalyticsService.getStudentLessonsDetail(id);
     }
 }

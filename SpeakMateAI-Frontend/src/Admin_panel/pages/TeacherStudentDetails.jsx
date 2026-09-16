@@ -8,6 +8,8 @@ import Card from "@components/common/Card";
 import ROUTES from "@constants/routes";
 import ErrorState from "@/Admin_panel/components/teacher/common/ErrorState";
 import { teacherDataApi } from "@services/admin/teacherDataApi";
+import { Sparkles } from "lucide-react";
+import UserProgressModal from "@admin/components/UserProgressModal";
 
 const statusStyles = {
     Excellent: "bg-emerald-50 text-emerald-700 ring-emerald-600/10 dark:bg-emerald-500/15 dark:text-emerald-400 dark:ring-emerald-500/20",
@@ -89,7 +91,7 @@ function ProgressBar({ value, tone = "bg-indigo-500" }) {
     );
 }
 
-function ProfileHeader({ student, onBack }) {
+function ProfileHeader({ student, onBack, onOpenProgress }) {
     return (
         <motion.div variants={itemVariants}>
             <Button variant="ghost" onClick={onBack} className="h-9 gap-2 px-3 text-slate-600">
@@ -125,6 +127,16 @@ function ProfileHeader({ student, onBack }) {
                                 {student.status}
                             </span>
                         </div>
+                        {onOpenProgress && (
+                            <Button
+                                variant="primary"
+                                onClick={onOpenProgress}
+                                className="col-span-2 sm:col-span-1 h-12 px-4 text-xs font-bold gap-1.5 shadow-sm"
+                            >
+                                <Sparkles size={15} />
+                                Live Evaluation
+                            </Button>
+                        )}
                     </div>
                 </div>
             </Card>
@@ -396,6 +408,7 @@ export function TeacherStudentDetails() {
                         name: prof.name || `${prof.firstName || ''} ${prof.lastName || ''}`.trim() || "Student Profile",
                         rollNumber: prof.rollNumber || `RN-${studentId}`,
                         assignedClass: prof.assignedClass || prof.standard || "Assigned Class",
+                        assignedStandard: prof.standard || prof.assignedClass || "Assigned Standard",
                         status: prof.status || "Good",
                         overallProgress: Math.round(prof.overallProgress || 80),
                         lastActive: prof.lastActive || "Recently",
@@ -403,6 +416,11 @@ export function TeacherStudentDetails() {
                         grammarScore: Math.round(perf.grammarScore || 75),
                         vocabularyScore: Math.round(perf.vocabularyScore || 85),
                         listeningScore: Math.round(perf.listeningScore || 70),
+                        grammar: Math.round(perf.grammarScore ?? perf.grammar ?? 75),
+                        vocabulary: Math.round(perf.vocabularyScore ?? perf.vocabulary ?? 85),
+                        speaking: Math.round(perf.speakingScore ?? perf.speaking ?? 80),
+                        listening: Math.round(perf.listeningScore ?? perf.listening ?? 70),
+                        practiceCompletion: Math.round(perf.practiceCompletion || (stats.totalPracticeMinutes ? Math.min(100, stats.totalPracticeMinutes) : 85)),
                         recentActivity: res.recentActivity || [],
                         strengths: res.strengths || [],
                         improvementAreas: res.improvementAreas || [],
@@ -425,6 +443,7 @@ export function TeacherStudentDetails() {
         fetchStudentDetail();
     }, [studentId]);
 
+    const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
     const student = studentData;
 
     if (!student && !loading) {
@@ -433,7 +452,7 @@ export function TeacherStudentDetails() {
 
     return (
         <motion.div variants={containerVariants} initial="hidden" animate="visible">
-            <ProfileHeader student={student} onBack={goToStudents} />
+            <ProfileHeader student={student} onBack={goToStudents} onOpenProgress={() => setIsProgressModalOpen(true)} />
             <PerformanceSummary student={student} />
 
             <motion.div variants={itemVariants} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] lg:items-start">
@@ -450,6 +469,14 @@ export function TeacherStudentDetails() {
                     <Achievements achievements={student.achievements} />
                 </div>
             </motion.div>
+
+            {/* Comprehensive Live Evaluation Profile Modal */}
+            <UserProgressModal
+                isOpen={isProgressModalOpen}
+                user={student}
+                student={student}
+                onClose={() => setIsProgressModalOpen(false)}
+            />
         </motion.div>
     );
 }

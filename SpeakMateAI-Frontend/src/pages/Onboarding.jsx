@@ -301,7 +301,7 @@ export function Onboarding() {
 
       {/* Main Step Card */}
       <div className="p-6 sm:p-10 rounded-3xl glass-card border border-[var(--border-default)] shadow-2xl space-y-8 min-h-[500px] flex flex-col justify-between">
-        
+
         {/* Step Header */}
         <div>
           <h2 className="text-2xl sm:text-3xl font-black text-[var(--text-primary)]">{currentStep.title}</h2>
@@ -315,11 +315,10 @@ export function Onboarding() {
               <button
                 key={lang.key}
                 onClick={() => setLanguage(lang.key)}
-                className={`p-4 rounded-2xl border text-left font-black text-sm transition-all flex items-center gap-3 active:scale-95 ${
-                  language === lang.key
+                className={`p-4 rounded-2xl border text-left font-black text-sm transition-all flex items-center gap-3 active:scale-95 ${language === lang.key
                     ? "border-[#6C63FF] bg-[#6C63FF]/20 text-[var(--text-primary)] ring-2 ring-[#6C63FF]/50 shadow-md"
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                }`}
+                  }`}
               >
                 <span className="text-2xl">{lang.flag}</span>
                 <span>{lang.label}</span>
@@ -338,11 +337,10 @@ export function Onboarding() {
                   setAiVoice(v.key);
                   setPlayingVoice(playingVoice === v.key ? null : v.key);
                 }}
-                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${
-                  aiVoice === v.key
+                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${aiVoice === v.key
                     ? "border-[#6C63FF] bg-[#6C63FF]/20 ring-2 ring-[#6C63FF]/50 shadow-md"
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)] shadow-inner">{v.icon}</span>
@@ -368,11 +366,10 @@ export function Onboarding() {
                 <button
                   key={g.key}
                   onClick={() => toggleGoal(g.key)}
-                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 active:scale-95 ${
-                    active
+                  className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 active:scale-95 ${active
                       ? "border-[#6C63FF] bg-[#6C63FF]/20 ring-2 ring-[#6C63FF]/50 shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
-                  }`}
+                    }`}
                 >
                   <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)] shrink-0 shadow-inner">{g.icon}</span>
                   <div>
@@ -392,11 +389,10 @@ export function Onboarding() {
               <button
                 key={lvl.key}
                 onClick={() => setLevel(lvl.key)}
-                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${
-                  level === lvl.key
+                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${level === lvl.key
                     ? "border-[#6C63FF] bg-[#6C63FF]/20 ring-2 ring-[#6C63FF]/50 shadow-md"
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <div className="h-10 w-12 rounded-xl bg-[var(--bg-base)] grid place-items-center font-black text-xs text-[#6C63FF]">
@@ -420,11 +416,10 @@ export function Onboarding() {
               <button
                 key={a.key}
                 onClick={() => setAgeGroup(a.key)}
-                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center gap-4 active:scale-95 ${
-                  ageGroup === a.key
+                className={`w-full p-4 rounded-2xl border text-left transition-all flex items-center gap-4 active:scale-95 ${ageGroup === a.key
                     ? "border-[#6C63FF] bg-[#6C63FF]/20 ring-2 ring-[#6C63FF]/50 shadow-md"
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
-                }`}
+                  }`}
               >
                 <span className="text-3xl p-2.5 rounded-xl bg-[var(--bg-base)] shadow-inner">{a.icon}</span>
                 <div>
@@ -445,11 +440,10 @@ export function Onboarding() {
                 <button
                   key={int.key}
                   onClick={() => toggleInterest(int.key)}
-                  className={`p-3.5 rounded-2xl border text-left text-xs sm:text-sm font-black transition-all flex items-center gap-3 active:scale-95 ${
-                    isSelected
+                  className={`p-3.5 rounded-2xl border text-left text-xs sm:text-sm font-black transition-all flex items-center gap-3 active:scale-95 ${isSelected
                       ? "border-[#6C63FF] bg-[#6C63FF]/20 text-[var(--text-primary)] ring-2 ring-[#6C63FF] shadow-md"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
+                    }`}
                 >
                   <span className="text-xl sm:text-2xl">{int.icon}</span>
                   <span className="truncate">{int.label}</span>
@@ -466,11 +460,10 @@ export function Onboarding() {
               <button
                 key={src.key}
                 onClick={() => setHeardAbout(src.key)}
-                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${
-                  heardAbout === src.key
+                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${heardAbout === src.key
                     ? "border-[#6C63FF] bg-[#6C63FF]/20 ring-2 ring-[#6C63FF]/50 shadow-md"
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{src.icon}</span>
@@ -489,11 +482,10 @@ export function Onboarding() {
               <button
                 key={g.key}
                 onClick={() => setDailyGoal(g.value)}
-                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${
-                  dailyGoal === g.value
+                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${dailyGoal === g.value
                     ? "border-[#6C63FF] bg-[#6C63FF]/20 ring-2 ring-[#6C63FF]/50 shadow-md"
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
-                }`}
+                  }`}
               >
                 <div>
                   <h3 className="font-black text-base text-[var(--text-primary)]">{g.key} / day</h3>
@@ -512,11 +504,10 @@ export function Onboarding() {
               <button
                 key={r.key}
                 onClick={() => setReminderTime(r.key)}
-                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${
-                  reminderTime === r.key
+                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${reminderTime === r.key
                     ? "border-[#6C63FF] bg-[#6C63FF]/20 ring-2 ring-[#6C63FF]/50 shadow-md"
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{r.icon}</span>
@@ -539,11 +530,10 @@ export function Onboarding() {
                 <button
                   key={idx}
                   onClick={() => setSelectedAvatar(avUrl)}
-                  className={`relative rounded-2xl p-2 border overflow-hidden transition-all active:scale-95 ${
-                    selectedAvatar === avUrl
+                  className={`relative rounded-2xl p-2 border overflow-hidden transition-all active:scale-95 ${selectedAvatar === avUrl
                       ? "border-[#6C63FF] ring-4 ring-[#6C63FF]/40 bg-[#6C63FF]/10 scale-105"
                       : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
-                  }`}
+                    }`}
                 >
                   <img src={avUrl} alt={`Avatar ${idx + 1}`} className="w-full h-16 sm:h-20 object-cover rounded-xl" />
                   {selectedAvatar === avUrl && (
@@ -571,9 +561,8 @@ export function Onboarding() {
             <button
               onClick={handleStartMicTest}
               disabled={isRecording}
-              className={`px-8 py-3.5 rounded-2xl font-black text-xs sm:text-sm transition-all shadow-md active:scale-95 ${
-                isRecording ? "bg-red-500 text-white animate-pulse" : "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white"
-              }`}
+              className={`px-8 py-3.5 rounded-2xl font-black text-xs sm:text-sm transition-all shadow-md active:scale-95 ${isRecording ? "bg-red-500 text-white animate-pulse" : "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white"
+                }`}
             >
               {isRecording ? "Listening to your voice..." : "🎙️ Test My Microphone"}
             </button>

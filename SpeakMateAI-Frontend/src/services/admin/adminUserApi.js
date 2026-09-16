@@ -112,5 +112,15 @@ export const adminUserApi = {
       params: { page, size }
     });
     return response.data;
+  },
+
+  getUserProgressProfile: async (userId) => {
+    const response = await apiClient.get(`/api/admin/users/${userId}/progress-profile`);
+    return response.data;
+  },
+
+  getUserLessonsDetail: async (userId) => {
+    const response = await apiClient.get(`/api/admin/users/${userId}/lessons-detail`);
+    return response.data;
   }
 };

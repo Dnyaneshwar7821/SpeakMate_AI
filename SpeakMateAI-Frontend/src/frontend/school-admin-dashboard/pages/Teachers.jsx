@@ -9,6 +9,7 @@ import SectionCard from "@school-admin/components/SectionCard";
 import TeachersTable from "@school-admin/components/TeachersTable";
 import TeacherFormModal from "@school-admin/components/TeacherFormModal";
 import TeacherStudentsModal from "@school-admin/components/TeacherStudentsModal";
+import DeleteUserDialog from "@admin/components/DeleteUserDialog";
 import { useTeachers } from "@school-admin/hooks/useSchoolData";
 
 export function Teachers() {
@@ -26,6 +27,8 @@ export function Teachers() {
 
     const [selectedTeacher, setSelectedTeacher] = useState(null); // For viewing assigned students
     const [formModal, setFormModal] = useState({ isOpen: false, mode: "add", teacher: null });
+    const [teacherToDelete, setTeacherToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
     
     // Filters state
     const [filters, setFilters] = useState({
@@ -137,6 +140,21 @@ export function Teachers() {
         }
     };
 
+    const handleConfirmDeleteTeacher = async (teacher) => {
+        if (!teacher?.id || isDeleting) return;
+        setIsDeleting(true);
+        try {
+            await deleteTeacher(teacher.id);
+            triggerToast(`Teacher "${teacher.name || "Teacher"}" deleted successfully`, "success");
+            setTeacherToDelete(null);
+        } catch (error) {
+            console.error("Failed to delete teacher:", error);
+            triggerToast(error.message || "Failed to delete teacher", "error");
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     const handleExport = () => {
         if (!teachers || !teachers.length) {
             alert("No teacher data available to export.");
@@ -234,7 +252,7 @@ export function Teachers() {
                     getStudentCount={(teacher) => getStudentsForTeacher(teacher).length}
                     onRowClick={setSelectedTeacher}
                     onEdit={(teacher) => setFormModal({ isOpen: true, mode: "edit", teacher })}
-                    onDelete={(t) => { if (confirm(`Are you sure you want to delete ${t.name}?`)) deleteTeacher(t.id); }}
+                    onDelete={(t) => setTeacherToDelete(t)}
                     onToggleStatus={handleToggleStatus}
                     filters={filters}
                     setFilters={setFilters}
@@ -258,6 +276,17 @@ export function Teachers() {
                 teacher={selectedTeacher}
                 students={selectedTeacher ? getStudentsForTeacher(selectedTeacher) : []}
                 onClose={() => setSelectedTeacher(null)}
+            />
+
+            <DeleteUserDialog
+                isOpen={Boolean(teacherToDelete)}
+                user={teacherToDelete}
+                isDeleting={isDeleting}
+                title="Delete Teacher"
+                onClose={() => {
+                    if (!isDeleting) setTeacherToDelete(null);
+                }}
+                onConfirm={handleConfirmDeleteTeacher}
             />
 
             {/* Toasts */}

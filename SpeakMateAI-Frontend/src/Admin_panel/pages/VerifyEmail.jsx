@@ -10,7 +10,7 @@ import AdminFooter from "../components/layout/AdminFooter";
 export function VerifyEmail() {
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
-    
+
     const [status, setStatus] = useState("verifying"); // "verifying" | "success" | "error"
     const [errorMessage, setErrorMessage] = useState("");
 

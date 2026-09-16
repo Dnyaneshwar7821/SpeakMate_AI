@@ -39,91 +39,91 @@ export function StudentsTable({ students, isLoading, onRowClick, onEdit, onDelet
                     {students.map((student) => {
                         const isActive = student.active !== undefined ? Boolean(student.active) : student.status === "active";
                         return (
-                        <tr
-                            key={student.id}
-                            onClick={() => onRowClick && onRowClick(student)}
-                            className="cursor-pointer border-b border-[var(--border-subtle)] transition last:border-0 hover:bg-[var(--bg-hover)]"
-                        >
-                            <td className="px-4 py-3 sm:px-5">
-                                <div className="flex min-w-0 items-center gap-3">
-                                    <InsigniaBadge
-                                        name={student.name}
-                                        email={student.email}
-                                        role="STUDENT"
-                                        size="sm"
-                                        className="!h-9 !w-9 shrink-0 rounded-full"
-                                    />
-                                    <div className="min-w-0">
-                                        <p className="truncate font-semibold text-[var(--text-primary)]">
-                                            {student.name}
-                                        </p>
-                                        <p className="truncate text-xs text-[var(--text-secondary)]">
-                                            {student.email}
-                                        </p>
+                            <tr
+                                key={student.id}
+                                onClick={() => onRowClick && onRowClick(student)}
+                                className="cursor-pointer border-b border-[var(--border-subtle)] transition last:border-0 hover:bg-[var(--bg-hover)]"
+                            >
+                                <td className="px-4 py-3 sm:px-5">
+                                    <div className="flex min-w-0 items-center gap-3">
+                                        <InsigniaBadge
+                                            name={student.name}
+                                            email={student.email}
+                                            role="STUDENT"
+                                            size="sm"
+                                            className="!h-9 !w-9 shrink-0 rounded-full"
+                                        />
+                                        <div className="min-w-0">
+                                            <p className="truncate font-semibold text-[var(--text-primary)]">
+                                                {student.name}
+                                            </p>
+                                            <p className="truncate text-xs text-[var(--text-secondary)]">
+                                                {student.email}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            </td>
-                            <td className="px-4 py-3 text-[var(--text-secondary)] sm:px-5">{student.standard}th</td>
-                            <td className="px-4 py-3 text-[var(--text-secondary)] sm:px-5">
-                                <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-500">
-                                    {student.assignedTeacher ? (
-                                        <>
-                                            <InsigniaBadge name={student.assignedTeacher} role="TEACHER" size="xs" />
-                                            <span>{student.assignedTeacher}</span>
-                                        </>
-                                    ) : (
-                                        "Unassigned"
-                                    )}
-                                </span>
-                            </td>
-                            <td className="px-4 py-3 text-[var(--text-secondary)] sm:px-5">{student.rollNo}</td>
-                            <td className="px-4 py-3 sm:px-5">
-                                <span
-                                    className={[
-                                        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold",
-                                        isActive
-                                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500"
-                                            : "bg-[var(--bg-subtle)] text-[var(--text-muted)] dark:bg-slate-800",
-                                    ].join(" ")}
-                                >
+                                </td>
+                                <td className="px-4 py-3 text-[var(--text-secondary)] sm:px-5">{student.standard}th</td>
+                                <td className="px-4 py-3 text-[var(--text-secondary)] sm:px-5">
+                                    <span className="inline-flex items-center gap-1.5 rounded-md bg-indigo-500/10 px-2 py-1 text-xs font-medium text-indigo-500">
+                                        {student.assignedTeacher ? (
+                                            <>
+                                                <InsigniaBadge name={student.assignedTeacher} role="TEACHER" size="xs" />
+                                                <span>{student.assignedTeacher}</span>
+                                            </>
+                                        ) : (
+                                            "Unassigned"
+                                        )}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 text-[var(--text-secondary)] sm:px-5">{student.rollNo}</td>
+                                <td className="px-4 py-3 sm:px-5">
                                     <span
                                         className={[
-                                            "h-1.5 w-1.5 rounded-full",
-                                            isActive ? "bg-emerald-500" : "bg-[var(--text-muted)]",
+                                            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold",
+                                            isActive
+                                                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500"
+                                                : "bg-[var(--bg-subtle)] text-[var(--text-muted)] dark:bg-slate-800",
                                         ].join(" ")}
-                                    />
-                                    {isActive ? "Active" : "Inactive"}
-                                </span>
-                            </td>
-                            <td className="px-4 py-3 sm:px-5">
-                                <div className="flex items-center justify-end gap-1">
-                                    <button
-                                        type="button"
-                                        aria-label={isActive ? `Deactivate ${student.name}` : `Activate ${student.name}`}
-                                        onClick={(e) => { e.stopPropagation(); onToggleStatus && onToggleStatus(student); }}
-                                        className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)]"
                                     >
-                                        {isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label={`Edit ${student.name}`}
-                                        onClick={(e) => { e.stopPropagation(); onEdit(student); }}
-                                        className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)]"
-                                    >
-                                        <Edit className="h-4 w-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label={`Delete ${student.name}`}
-                                        onClick={(e) => { e.stopPropagation(); onDelete(student); }}
-                                        className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-rose-500/10 hover:text-rose-500"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
+                                        <span
+                                            className={[
+                                                "h-1.5 w-1.5 rounded-full",
+                                                isActive ? "bg-emerald-500" : "bg-[var(--text-muted)]",
+                                            ].join(" ")}
+                                        />
+                                        {isActive ? "Active" : "Inactive"}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 sm:px-5">
+                                    <div className="flex items-center justify-end gap-1">
+                                        <button
+                                            type="button"
+                                            aria-label={isActive ? `Deactivate ${student.name}` : `Activate ${student.name}`}
+                                            onClick={(e) => { e.stopPropagation(); onToggleStatus && onToggleStatus(student); }}
+                                            className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)]"
+                                        >
+                                            {isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            aria-label={`Edit ${student.name}`}
+                                            onClick={(e) => { e.stopPropagation(); onEdit(student); }}
+                                            className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)]"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                            type="button"
+                                            aria-label={`Delete ${student.name}`}
+                                            onClick={(e) => { e.stopPropagation(); onDelete(student); }}
+                                            className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-rose-500/10 hover:text-rose-500"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                         );
                     })}
                 </tbody>

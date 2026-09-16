@@ -5,6 +5,7 @@ import AdminButton from "../common/AdminButton";
 import AdminAlert from "../common/AdminAlert";
 import PasswordInput from "./PasswordInput";
 import { useAdminPasswordReset } from "../../hooks/useAdminPasswordReset";
+import { adminAuthService } from "../../services/adminAuthService";
 import ROUTES from "@constants/routes";
 
 function MailIcon() {
@@ -44,17 +45,32 @@ export function AdminForgotPasswordForm({
   });
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const targetLoginRoute = loginRoute || getFallbackLoginRoute(role);
+
   useEffect(() => {
+    let isMounted = true;
     const effectiveEmail = location.state?.email || searchParams.get("email");
     if (effectiveEmail) {
       setForm((prev) => ({ ...prev, email: effectiveEmail }));
+
+      if (isFirstTime && !isSuccess) {
+        adminAuthService.checkFirstTimeStatus(effectiveEmail).then((needsSetup) => {
+          if (isMounted && needsSetup === false) {
+            navigate(
+              `${targetLoginRoute}${effectiveEmail ? `?email=${encodeURIComponent(effectiveEmail)}` : ""}`,
+              { replace: true, state: { email: effectiveEmail, alreadySetup: true } }
+            );
+          }
+        }).catch(() => {});
+      }
     }
     if (location.state?.tempPassword) {
       setForm((prev) => ({ ...prev, temporaryPassword: location.state.tempPassword }));
     }
-  }, [searchParams, location.state]);
-
-  const targetLoginRoute = loginRoute || getFallbackLoginRoute(role);
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams, location.state, isFirstTime, isSuccess, navigate, targetLoginRoute]);
 
   useEffect(() => {
     if (!isSuccess) return undefined;

@@ -34,14 +34,21 @@ const generateActivity = (hasData) => {
   ];
 };
 
+// Module-level in-memory caches for instant cross-tab navigation
+let studentsCache = null;
+let resultsCache = null;
+let teachersCache = null;
+
 export function useStudents() {
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState(() => studentsCache || []);
   const [standard, setStandard] = useState("All Standards");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => !studentsCache);
 
   const loadStudents = useCallback(async (currentStandard, currentSearch) => {
-    setIsLoading(true);
+    if (!studentsCache) {
+      setIsLoading(true);
+    }
     try {
       const params = {};
       if (currentStandard && currentStandard !== "All Standards") {
@@ -69,7 +76,7 @@ export function useStudents() {
           status: (s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true)) ? "active" : "inactive",
           joinedAt: s.createdAt ? s.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
           teacherId: s.teacherId || null,
-          assignedTeacher: s.teacherName || "Unassigned",
+          assignedTeacher: s.assignedTeacher || s.teacherName || "Unassigned",
           progress: {
             level: s.level || 1,
             xp: s.xp || 0,
@@ -87,6 +94,9 @@ export function useStudents() {
           }
         };
       });
+      if ((!currentStandard || currentStandard === "All Standards") && (!currentSearch || !currentSearch.trim())) {
+        studentsCache = mapped;
+      }
       setStudents(mapped);
     } catch (err) {
       console.error("Failed to load students:", err);
@@ -113,7 +123,11 @@ export function useStudents() {
       refreshStudents();
     };
     window.addEventListener("school_data_updated", handleUpdate);
-    return () => window.removeEventListener("school_data_updated", handleUpdate);
+    window.addEventListener("teacher_profile_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("school_data_updated", handleUpdate);
+      window.removeEventListener("teacher_profile_updated", handleUpdate);
+    };
   }, [refreshStudents]);
 
   const addStudent = async (data) => {
@@ -140,6 +154,8 @@ export function useStudents() {
     console.log("[useSchoolData Debug] Creating student with payload:", payload);
     try {
       const res = await schoolAdminDataApi.createStudent(payload);
+      studentsCache = null;
+      resultsCache = null;
       await refreshStudents();
       return res;
     } catch (err) {
@@ -171,6 +187,8 @@ export function useStudents() {
     console.log("[useSchoolData Debug] Updating student ID " + id + " with payload:", payload);
     try {
       await schoolAdminDataApi.updateStudent(id, payload);
+      studentsCache = null;
+      resultsCache = null;
       await refreshStudents();
     } catch (err) {
       console.error("Failed to update student:", err);
@@ -182,6 +200,8 @@ export function useStudents() {
     try {
       const res = await schoolAdminDataApi.deleteStudent(id);
       console.log("Delete API response:", res);
+      studentsCache = null;
+      resultsCache = null;
       await refreshStudents();
     } catch (err) {
       console.error("Failed to delete student:", err);
@@ -193,14 +213,16 @@ export function useStudents() {
 }
 
 export function useResults() {
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState(() => resultsCache || []);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => !resultsCache);
   const [error, setError] = useState("");
-  const [studentsList, setStudentsList] = useState([]);
+  const [studentsList, setStudentsList] = useState(() => studentsCache || []);
 
   const loadResults = useCallback(async (query = "") => {
-    setIsLoading(true);
+    if (!resultsCache) {
+      setIsLoading(true);
+    }
     setError("");
     try {
       const trimmedQuery = query.trim();
@@ -218,19 +240,29 @@ export function useResults() {
         status: r.status || "Fail",
         submittedAt: r.submittedAt ? r.submittedAt.slice(0, 10) : new Date().toISOString().slice(0, 10)
       }));
+      if (!trimmedQuery) {
+        resultsCache = mapped;
+      }
       setResults(mapped);
 
-      // Cache students separately so an auxiliary cache failure does not hide valid Results data.
-      try {
-        const stData = await schoolAdminDataApi.getAllStudents();
-        setStudentsList(stData);
-      } catch (studentError) {
-        console.error("Failed to cache students for results:", studentError);
+      // Reuse cached students if already loaded to avoid redundant roundtrips
+      if (studentsCache && studentsCache.length > 0) {
+        setStudentsList(studentsCache);
+      } else {
+        try {
+          const stData = await schoolAdminDataApi.getAllStudents();
+          studentsCache = stData;
+          setStudentsList(stData);
+        } catch (studentError) {
+          console.error("Failed to cache students for results:", studentError);
+        }
       }
     } catch (err) {
       console.error("Failed to load results:", err);
-      setResults([]);
-      setError(err?.response?.data?.message || "Unable to load results. Please try again.");
+      if (!resultsCache) {
+        setResults([]);
+        setError(err?.response?.data?.message || "Unable to load results. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -300,13 +332,15 @@ export function useResults() {
 }
 
 export function useTeachers() {
-  const [teachers, setTeachers] = useState([]);
-  const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState(() => teachersCache || []);
+  const [students, setStudents] = useState(() => studentsCache || []);
   const [searchTerm, setSearchTerm] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(() => !teachersCache);
 
   const loadTeachersData = useCallback(async () => {
-    setIsLoading(true);
+    if (!teachersCache) {
+      setIsLoading(true);
+    }
     try {
       const data = await schoolAdminDataApi.getAllTeachers();
       const mapped = data.map((t) => ({
@@ -336,32 +370,38 @@ export function useTeachers() {
         active: Boolean(t.active),
         status: t.active ? "active" : "inactive"
       }));
+      teachersCache = mapped;
       setTeachers(mapped);
 
-      // Load students to allow teacher-student filtering
-      const stData = await schoolAdminDataApi.getAllStudents();
-      const mappedStudents = (Array.isArray(stData) ? stData : []).map((s) => ({
-        id: s.id || s.studentId,
-        studentId: s.studentId,
-        name: `${s.firstName || ""} ${s.lastName || ""}`.trim() || "Unknown Student",
-        email: s.email,
-        standard: s.standard != null ? String(s.standard) : "",
-        rollNo: s.rollNumber || (s.studentId ? `RN-${s.studentId}` : `RN-${s.id}`),
-        division: s.division != null ? String(s.division) : "",
-        parentName: s.parentName || "Parent",
-        parentPhone: s.parentPhone || "",
-        phone: s.phone || "",
-        active: s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true),
-        status: (s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true)) ? "active" : "inactive",
-        joinedAt: s.createdAt ? s.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
-        teacherId: s.teacherId || null,
-        assignedTeacher: s.teacherName || "Unassigned",
-        progress: {
-          level: s.level || 1,
-          xp: s.xp || 0
-        }
-      }));
-      setStudents(mappedStudents);
+      // Load students to allow teacher-student filtering (reuse cache if available)
+      if (studentsCache && studentsCache.length > 0) {
+        setStudents(studentsCache);
+      } else {
+        const stData = await schoolAdminDataApi.getAllStudents();
+        const mappedStudents = (Array.isArray(stData) ? stData : []).map((s) => ({
+          id: s.id || s.studentId,
+          studentId: s.studentId,
+          name: `${s.firstName || ""} ${s.lastName || ""}`.trim() || "Unknown Student",
+          email: s.email,
+          standard: s.standard != null ? String(s.standard) : "",
+          rollNo: s.rollNumber || (s.studentId ? `RN-${s.studentId}` : `RN-${s.id}`),
+          division: s.division != null ? String(s.division) : "",
+          parentName: s.parentName || "Parent",
+          parentPhone: s.parentPhone || "",
+          phone: s.phone || "",
+          active: s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true),
+          status: (s.active !== undefined ? Boolean(s.active) : (s.status ? String(s.status).toLowerCase() === "active" : true)) ? "active" : "inactive",
+          joinedAt: s.createdAt ? s.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
+          teacherId: s.teacherId || null,
+          assignedTeacher: s.assignedTeacher || s.teacherName || "Unassigned",
+          progress: {
+            level: s.level || 1,
+            xp: s.xp || 0
+          }
+        }));
+        studentsCache = mappedStudents;
+        setStudents(mappedStudents);
+      }
     } catch (err) {
       console.error("Failed to load teachers:", err);
     } finally {
@@ -376,10 +416,15 @@ export function useTeachers() {
   // Auto-refresh teachers when real-time school data update notification occurs
   useEffect(() => {
     const handleUpdate = () => {
+      teachersCache = null;
       loadTeachersData();
     };
     window.addEventListener("school_data_updated", handleUpdate);
-    return () => window.removeEventListener("school_data_updated", handleUpdate);
+    window.addEventListener("teacher_profile_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("school_data_updated", handleUpdate);
+      window.removeEventListener("teacher_profile_updated", handleUpdate);
+    };
   }, [loadTeachersData]);
 
   const addTeacher = async (data) => {
@@ -397,6 +442,7 @@ export function useTeachers() {
     };
     try {
       await schoolAdminDataApi.createTeacher(payload);
+      teachersCache = null;
       await loadTeachersData();
     } catch (err) {
       console.error("Failed to add teacher:", err);
@@ -426,6 +472,7 @@ export function useTeachers() {
     if (data.password) payload.password = data.password;
     try {
       await schoolAdminDataApi.updateTeacher(id, payload);
+      teachersCache = null;
       await loadTeachersData();
     } catch (err) {
       console.error("Failed to update teacher:", err);
@@ -442,6 +489,7 @@ export function useTeachers() {
   const deleteTeacher = async (id) => {
     try {
       await schoolAdminDataApi.deleteTeacher(id);
+      teachersCache = null;
       await loadTeachersData();
     } catch (err) {
       console.error("Failed to deactivate teacher:", err);

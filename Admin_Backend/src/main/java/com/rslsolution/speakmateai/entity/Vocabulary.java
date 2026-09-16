@@ -38,7 +38,26 @@ public class Vocabulary {
 	@Column(columnDefinition = "TEXT")
 	private String antonym;
 
+	@Column(length = 100)
+	private String phonetic;
+
+	@Column(length = 50)
+	private String partOfSpeech;
+
+	@Column(columnDefinition = "TEXT")
+	private String collocations;
+
+	@Column(length = 50)
+	private String level;
+
 	private Boolean favorite;
+
+	private Boolean mastered;
+
+	public Boolean getMastered() { return mastered != null ? mastered : false; }
+	public void setMastered(Boolean mastered) { this.mastered = mastered; }
+	public Boolean getFavorite() { return favorite != null ? favorite : false; }
+	public void setFavorite(Boolean favorite) { this.favorite = favorite; }
 
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;

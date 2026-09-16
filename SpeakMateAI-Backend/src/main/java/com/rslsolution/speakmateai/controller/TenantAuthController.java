@@ -48,4 +48,10 @@ public class TenantAuthController {
 		userService.resetPasswordWithTemporary(request);
 		return org.springframework.http.ResponseEntity.ok(java.util.Map.of("message", "Password updated successfully."));
 	}
+
+	@org.springframework.web.bind.annotation.GetMapping("/first-time-status")
+	public org.springframework.http.ResponseEntity<?> getFirstTimeStatus(@org.springframework.web.bind.annotation.RequestParam("email") String email) {
+		boolean needsSetup = userService.checkNeedsFirstTimePasswordSetup(email);
+		return org.springframework.http.ResponseEntity.ok(java.util.Map.of("needsPasswordSetup", needsSetup));
+	}
 }

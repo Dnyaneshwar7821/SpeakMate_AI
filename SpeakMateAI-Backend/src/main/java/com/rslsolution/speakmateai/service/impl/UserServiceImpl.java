@@ -116,6 +116,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired(required = false)
 	private JavaMailSender mailSender;
 
+	@Value("${brevo.api.key:${BREVO_API_KEY:}}")
+	private String configuredBrevoApiKey;
+
 	private static final java.util.Map<String, RegistrationOtpDetails> registrationOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
 	private static final java.util.Map<String, RegistrationOtpDetails> deleteAccountOtpMap = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -477,6 +480,23 @@ public class UserServiceImpl implements UserService {
 		throw new IllegalArgumentException("No account found with the provided email.");
 	}
 
+	@Override
+	public boolean checkNeedsFirstTimePasswordSetup(String email) {
+		if (email == null || email.trim().isEmpty()) {
+			return false;
+		}
+		String normalizedEmail = email.trim().toLowerCase();
+		User user = (schoolAdminRepository != null ? schoolAdminRepository.findByEmail(normalizedEmail).map(sa -> (User) sa) : java.util.Optional.<User>empty())
+				.or(() -> (teacherRepository != null ? teacherRepository.findByEmail(normalizedEmail).map(t -> (User) t) : java.util.Optional.<User>empty()))
+				.or(() -> userRepository.findByEmail(normalizedEmail))
+				.orElse(null);
+
+		if (user != null) {
+			return !user.isWelcomeCompleted();
+		}
+		return false;
+	}
+
 	private void validatePasswordStrength(String password) {
 		if (password == null || password.length() < 8) {
 			throw new IllegalArgumentException("Password must be at least 8 characters");
@@ -697,22 +717,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	public static String formatStandardToGrade(String standard) {
-		if (standard == null || standard.isBlank()) return null;
-		String std = standard.trim();
-		if (std.toLowerCase().contains("std") || std.toLowerCase().contains("grade")) {
-			return std;
-		}
-		if (std.matches("\\d+")) {
-			int n = Integer.parseInt(std);
-			if (n % 100 >= 11 && n % 100 <= 13) return n + "th Std";
-			return switch (n % 10) {
-				case 1 -> n + "st Std";
-				case 2 -> n + "nd Std";
-				case 3 -> n + "rd Std";
-				default -> n + "th Std";
-			};
-		}
-		return std + " Std";
+		return com.rslsolution.speakmateai.util.StandardDivisionUtil.formatStandardToGrade(standard);
 	}
 
 	private UserResponse mapToUserResponse(User user) {
@@ -731,10 +736,7 @@ public class UserServiceImpl implements UserService {
 				effectiveAge = ob.get().getAgeGroup();
 			}
 		}
-		String effectiveLevel = user.getEnglishLevel();
-		if ((effectiveLevel == null || effectiveLevel.trim().isEmpty()) && ob.isPresent()) {
-			effectiveLevel = ob.get().getEnglishLevel();
-		}
+		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : (user.getEnglishLevel() != null && !user.getEnglishLevel().trim().isEmpty() ? user.getEnglishLevel() : (ob.isPresent() ? ob.get().getEnglishLevel() : null));
 		boolean isCompleted = user.isOnboardingCompleted() || 
 				(ob.isPresent() && Boolean.TRUE.equals(ob.get().getOnboardingCompleted())) ||
 				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
@@ -908,7 +910,7 @@ public class UserServiceImpl implements UserService {
 
 	private void sendAsyncEmail(String toEmail, String subject, String htmlContent, String otp) {
 		java.util.concurrent.CompletableFuture.runAsync(() -> {
-			String brevoApiKey = System.getenv("BREVO_API_KEY");
+			String brevoApiKey = (configuredBrevoApiKey != null && !configuredBrevoApiKey.isBlank()) ? configuredBrevoApiKey.trim() : System.getenv("BREVO_API_KEY");
 			if (brevoApiKey != null && !brevoApiKey.isBlank()) {
 				try {
 					java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();

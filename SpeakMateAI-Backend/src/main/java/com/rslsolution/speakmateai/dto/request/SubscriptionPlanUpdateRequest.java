@@ -20,7 +20,7 @@ public class SubscriptionPlanUpdateRequest {
     private String description;
 
     @NotNull(message = "Duration is required")
-    @Min(value = 1, message = "Duration must be at least 1 month")
+    @Min(value = 0, message = "Duration cannot be negative")
     private Integer durationMonths;
 
     @NotNull(message = "Price is required")
@@ -29,6 +29,8 @@ public class SubscriptionPlanUpdateRequest {
 
     @NotBlank(message = "Currency is required")
     private String currency;
+
+    private String billingCycle;
 
     @NotBlank(message = "Features are required")
     private String features;
@@ -39,6 +41,7 @@ public class SubscriptionPlanUpdateRequest {
     private Integer grammarPracticeLimit;
     private Integer speakingPracticeLimit;
     private Integer vocabularyPracticeLimit;
+    private Integer aiMinutesLimit;
     
     private Boolean isActive;
 }

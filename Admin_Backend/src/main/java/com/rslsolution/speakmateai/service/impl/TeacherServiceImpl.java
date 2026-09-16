@@ -157,6 +157,32 @@ public class TeacherServiceImpl implements TeacherService {
 			if (user instanceof Teacher) {
 				return (Teacher) user;
 			}
+			if (user.getId() != null) {
+				Teacher t = teacherRepository.findById(user.getId()).orElse(null);
+				if (t != null) {
+					return t;
+				}
+			}
+			if (user.getRole() == Role.TEACHER) {
+				Teacher t = Teacher.builder()
+						.id(user.getId())
+						.email(user.getEmail())
+						.firstName(user.getFirstName())
+						.lastName(user.getLastName())
+						.password(user.getPassword())
+						.role(user.getRole())
+						.schoolId(user.getSchoolId())
+						.phone(user.getPhone())
+						.active(user.isActive())
+						.userType(user.getUserType())
+						.status(user.getStatus())
+						.standard(user.getStandard())
+						.division(user.getDivision())
+						.createdAt(user.getCreatedAt())
+						.updatedAt(user.getUpdatedAt())
+						.build();
+				return teacherRepository.save(t);
+			}
 			if (user.getSchoolId() != null) {
 				List<Teacher> schoolTeachers = teacherRepository.findBySchoolId(user.getSchoolId());
 				if (!schoolTeachers.isEmpty()) {
@@ -1665,6 +1691,8 @@ public class TeacherServiceImpl implements TeacherService {
 		teacher.setBio(request.getBio() != null ? request.getBio().trim() : null);
 
 		teacherRepository.save(teacher);
+		teacherRepository.flush();
+		userRepository.flush();
 		return getProfile();
 	}
 

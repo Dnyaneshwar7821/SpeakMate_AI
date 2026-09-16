@@ -38,3 +38,24 @@ export function setAdminAuthenticated({ role, token = null, rememberMe = false, 
 export function clearAdminAuthenticated() {
   localStorage.removeItem(ADMIN_SESSION_KEY);
 }
+
+export function updateAdminSessionUser(userUpdates) {
+  try {
+    const raw = localStorage.getItem(ADMIN_SESSION_KEY);
+    if (raw) {
+      const session = JSON.parse(raw);
+      if (session && session.user) {
+        session.user = {
+          ...session.user,
+          ...userUpdates,
+        };
+        localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(session));
+        window.dispatchEvent(new Event("admin-session-updated"));
+        return session;
+      }
+    }
+  } catch (e) {
+    console.error("Failed to update admin session user in localStorage:", e);
+  }
+  return null;
+}

@@ -91,6 +91,21 @@ export const schoolAdminDataApi = {
     return response.data;
   },
 
+  getStudentProgress: async (id) => {
+    const response = await apiClient.get(`/api/school/students/${id}/progress`);
+    return response.data;
+  },
+
+  getStudentProgressProfile: async (id) => {
+    const response = await apiClient.get(`/api/students/${id}/progress-profile`);
+    return response.data;
+  },
+
+  getStudentLessonsDetail: async (id) => {
+    const response = await apiClient.get(`/api/students/${id}/lessons-detail`);
+    return response.data;
+  },
+
   createStudent: async (studentData) => {
     const response = await apiClient.post("/api/school/students", studentData);
     return response.data;

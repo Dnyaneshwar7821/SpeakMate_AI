@@ -405,7 +405,7 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = []
                                         <option value={String(form.standard)}>{getOrdinal(form.standard || 1)} Standard</option>
                                     )
                                 ) : (
-                                    [1,2,3,4,5,6,7,8,9,10].map(s => (
+                                    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(s => (
                                         <option key={s} value={s}>{getOrdinal(s)} Standard</option>
                                     ))
                                 )}

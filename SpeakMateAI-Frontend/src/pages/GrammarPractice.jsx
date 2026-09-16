@@ -90,7 +90,7 @@ export function GrammarPractice() {
           setHistory(data);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const handleAnalyzeText = async (overrideText) => {
@@ -279,11 +279,10 @@ export function GrammarPractice() {
         <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-[var(--bg-base)] border border-[var(--border-default)]">
           <button
             onClick={() => setActiveTab("checker")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === "checker"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === "checker"
                 ? "bg-[#6C63FF] text-white shadow-md"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
+              }`}
           >
             <span>🩺</span>
             <span>AI Doctor</span>
@@ -291,11 +290,10 @@ export function GrammarPractice() {
 
           <button
             onClick={() => setActiveTab("guide")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === "guide"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === "guide"
                 ? "bg-[#6C63FF] text-white shadow-md"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
+              }`}
           >
             <span>📖</span>
             <span>Handbook</span>
@@ -303,11 +301,10 @@ export function GrammarPractice() {
 
           <button
             onClick={() => setActiveTab("quiz")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === "quiz"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === "quiz"
                 ? "bg-[#6C63FF] text-white shadow-md"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
+              }`}
           >
             <span>🏆</span>
             <span>Daily Quizzes</span>
@@ -315,11 +312,10 @@ export function GrammarPractice() {
 
           <button
             onClick={() => setActiveTab("history")}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${
-              activeTab === "history"
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeTab === "history"
                 ? "bg-[#6C63FF] text-white shadow-md"
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
+              }`}
           >
             <span>🕒</span>
             <span>History</span>
@@ -390,19 +386,16 @@ export function GrammarPractice() {
 
           {/* RESULTS DISPLAY: ORDERED PROMINENTLY */}
           {analysisResult && (
-            <div className={`p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 animate-in slide-in-from-bottom-2 ${
-              isDark ? "bg-[#131B2B] border-white/10" : "bg-white border-slate-200"
-            }`}>
-              {/* 1. TOP STATUS & SCORE BAR */}
-              <div className={`flex flex-wrap items-center justify-between gap-4 pb-4 border-b ${
-                isDark ? "border-white/10" : "border-slate-100"
+            <div className={`p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 animate-in slide-in-from-bottom-2 ${isDark ? "bg-[#131B2B] border-white/10" : "bg-white border-slate-200"
               }`}>
+              {/* 1. TOP STATUS & SCORE BAR */}
+              <div className={`flex flex-wrap items-center justify-between gap-4 pb-4 border-b ${isDark ? "border-white/10" : "border-slate-100"
+                }`}>
                 <div className="flex items-center gap-3">
-                  <span className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${
-                    analysisResult.isCorrect
+                  <span className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${analysisResult.isCorrect
                       ? isDark ? "bg-emerald-500/20 text-emerald-300" : "bg-emerald-100 text-emerald-800"
                       : isDark ? "bg-indigo-500/20 text-indigo-300" : "bg-indigo-100 text-[#4338CA]"
-                  }`}>
+                    }`}>
                     {analysisResult.isCorrect ? "✅ 100% Grammatically Correct" : "🌟 Corrected Sentence"}
                   </span>
                   <span className={`text-xs font-bold ${isDark ? "text-slate-400" : "text-slate-600"}`}>
@@ -412,11 +405,10 @@ export function GrammarPractice() {
 
                 <button
                   onClick={() => speakFeedback(analysisResult)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${
-                    isAiSpeaking
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm ${isAiSpeaking
                       ? "bg-indigo-500/20 text-[#6C63FF] animate-pulse"
                       : "bg-[#6C63FF] text-white hover:bg-[#5a52e0]"
-                  }`}
+                    }`}
                 >
                   <span>🔊</span>
                   <span>{isAiSpeaking ? "Speaking..." : "Hear Audio Feedback"}</span>
@@ -425,29 +417,26 @@ export function GrammarPractice() {
 
               {/* 2. CORRECTED SENTENCE PROMINENT DISPLAY (FIRST) */}
               <div className="space-y-2">
-                <span className={`text-xs font-black uppercase tracking-wider ${
-                  isDark ? "text-slate-400" : "text-slate-600"
-                }`}>
+                <span className={`text-xs font-black uppercase tracking-wider ${isDark ? "text-slate-400" : "text-slate-600"
+                  }`}>
                   {analysisResult.isCorrect ? "Your Sentence (100% Correct):" : "Corrected English Sentence:"}
                 </span>
-                <div className={`p-5 sm:p-6 rounded-2xl border text-base sm:text-lg font-black tracking-wide transition-all shadow-sm ${
-                  isDark
+                <div className={`p-5 sm:p-6 rounded-2xl border text-base sm:text-lg font-black tracking-wide transition-all shadow-sm ${isDark
                     ? analysisResult.isCorrect
                       ? "bg-emerald-950/70 border-emerald-500/50 text-emerald-100"
                       : "bg-indigo-950/70 border-indigo-500/50 text-indigo-100"
                     : analysisResult.isCorrect
-                    ? "bg-emerald-50 border-emerald-300 text-emerald-900"
-                    : "bg-indigo-50/90 border-indigo-200 text-[#1E1B4B]"
-                }`}>
+                      ? "bg-emerald-50 border-emerald-300 text-emerald-900"
+                      : "bg-indigo-50/90 border-indigo-200 text-[#1E1B4B]"
+                  }`}>
                   "{analysisResult.correctedText}"
                 </div>
               </div>
 
               {/* Praise message if perfect */}
               {analysisResult.isCorrect && (
-                <div className={`flex items-center gap-3 p-4 rounded-2xl border text-xs sm:text-sm font-bold ${
-                  isDark ? "bg-emerald-950/40 border-emerald-500/30 text-emerald-200" : "bg-emerald-50 border-emerald-200 text-emerald-900"
-                }`}>
+                <div className={`flex items-center gap-3 p-4 rounded-2xl border text-xs sm:text-sm font-bold ${isDark ? "bg-emerald-950/40 border-emerald-500/30 text-emerald-200" : "bg-emerald-50 border-emerald-200 text-emerald-900"
+                  }`}>
                   <span className="text-xl">🎉</span>
                   <span>{analysisResult.praiseMessage || "Given sentence is correct with no grammar mistakes!"}</span>
                 </div>
@@ -455,9 +444,8 @@ export function GrammarPractice() {
 
               {/* Native Upgrade Alternative */}
               {analysisResult.nativeAlternative && (
-                <div className={`flex items-start gap-3 p-4 rounded-2xl border text-xs sm:text-sm ${
-                  isDark ? "bg-indigo-950/40 border-indigo-500/30 text-slate-200" : "bg-indigo-50/80 border-indigo-200 text-slate-900"
-                }`}>
+                <div className={`flex items-start gap-3 p-4 rounded-2xl border text-xs sm:text-sm ${isDark ? "bg-indigo-950/40 border-indigo-500/30 text-slate-200" : "bg-indigo-50/80 border-indigo-200 text-slate-900"
+                  }`}>
                   <span className="text-base">💡</span>
                   <div>
                     <span className={`font-black ${isDark ? "text-indigo-400" : "text-[#4338CA]"}`}>Native Natural Phrasing: </span>
@@ -469,13 +457,11 @@ export function GrammarPractice() {
               {/* 3. ITEMIZED MISTAKES BREAKDOWN (WHEN ERRORS EXIST) */}
               {!analysisResult.isCorrect && analysisResult.errors && analysisResult.errors.length > 0 && (
                 <div className="space-y-3 pt-2">
-                  <h3 className={`text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2 ${
-                    isDark ? "text-white" : "text-slate-900"
-                  }`}>
-                    <span>🔍 Identified Mistakes & Rules</span>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-black ${
-                      isDark ? "bg-rose-500/20 text-rose-300" : "bg-rose-100 text-rose-700"
+                  <h3 className={`text-xs sm:text-sm font-black uppercase tracking-wider flex items-center gap-2 ${isDark ? "text-white" : "text-slate-900"
                     }`}>
+                    <span>🔍 Identified Mistakes & Rules</span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-black ${isDark ? "bg-rose-500/20 text-rose-300" : "bg-rose-100 text-rose-700"
+                      }`}>
                       {analysisResult.errors.length}
                     </span>
                   </h3>
@@ -484,28 +470,25 @@ export function GrammarPractice() {
                     {analysisResult.errors.map((err, idx) => (
                       <div
                         key={idx}
-                        className={`p-4 sm:p-5 rounded-2xl border space-y-2.5 transition-all shadow-sm ${
-                          isDark
+                        className={`p-4 sm:p-5 rounded-2xl border space-y-2.5 transition-all shadow-sm ${isDark
                             ? "bg-slate-800/60 border-white/10 text-slate-200 hover:border-[#6C63FF]/50"
                             : "bg-white border-slate-200/90 text-slate-900 hover:border-indigo-300 shadow-slate-200/50"
-                        }`}
+                          }`}
                       >
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-black flex items-center justify-center shadow-sm">
                             {idx + 1}
                           </span>
-                          <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase ${
-                            isDark ? "bg-indigo-500/20 text-indigo-300" : "bg-indigo-100 text-[#4338CA]"
-                          }`}>
+                          <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase ${isDark ? "bg-indigo-500/20 text-indigo-300" : "bg-indigo-100 text-[#4338CA]"
+                            }`}>
                             {err.type || "Grammar Rule"}
                           </span>
                           {err.errorSnippet &&
                             err.errorSnippet.length <= 25 &&
                             !err.errorSnippet.includes("[") &&
                             !err.errorSnippet.toLowerCase().includes("missing") && (
-                              <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold line-through ${
-                                isDark ? "bg-rose-500/20 text-rose-300" : "bg-rose-100 text-rose-700"
-                              }`}>
+                              <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold line-through ${isDark ? "bg-rose-500/20 text-rose-300" : "bg-rose-100 text-rose-700"
+                                }`}>
                                 "{err.errorSnippet}"
                               </span>
                             )}
@@ -516,9 +499,8 @@ export function GrammarPractice() {
                         </p>
 
                         {err.rule && (
-                          <div className={`p-3 rounded-xl border text-xs font-semibold ${
-                            isDark ? "bg-slate-900/70 border-white/10 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-700"
-                          }`}>
+                          <div className={`p-3 rounded-xl border text-xs font-semibold ${isDark ? "bg-slate-900/70 border-white/10 text-slate-300" : "bg-slate-50 border-slate-200 text-slate-700"
+                            }`}>
                             <strong className={isDark ? "text-indigo-400 font-bold" : "text-[#4338CA] font-black"}>Rule Insight: </strong>
                             {err.rule}
                           </div>
@@ -551,11 +533,10 @@ export function GrammarPractice() {
                 <button
                   key={i}
                   onClick={() => setSelectedGuideCategory(cat)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                    selectedGuideCategory === cat
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${selectedGuideCategory === cat
                       ? "bg-[#6C63FF] text-white shadow-sm"
                       : "bg-[var(--bg-surface)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  }`}
+                    }`}
                 >
                   {cat}
                 </button>
@@ -814,9 +795,8 @@ export function GrammarPractice() {
                 className="p-5 rounded-3xl bg-[var(--bg-surface)] border border-[var(--border-default)] shadow-sm space-y-3"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                    item.isCorrect ? "bg-emerald-500/15 text-emerald-600" : "bg-indigo-500/15 text-[#6C63FF]"
-                  }`}>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase ${item.isCorrect ? "bg-emerald-500/15 text-emerald-600" : "bg-indigo-500/15 text-[#6C63FF]"
+                    }`}>
                     {item.isCorrect ? "100% Correct" : `Score: ${item.accuracyScore || 85}%`}
                   </span>
 

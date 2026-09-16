@@ -39,6 +39,21 @@ public class StudentController {
         return ResponseEntity.ok(studentService.getStudentById(id));
     }
 
+    @GetMapping("/{id}/progress")
+    public ResponseEntity<java.util.Map<String, Object>> getStudentProgress(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentProgress(id));
+    }
+
+    @GetMapping("/{id}/progress-profile")
+    public ResponseEntity<com.rslsolution.speakmateai.dto.response.analytics.StudentProgressProfileResponse> getStudentProgressProfile(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentProgressProfile(id));
+    }
+
+    @GetMapping("/{id}/lessons-detail")
+    public ResponseEntity<List<com.rslsolution.speakmateai.dto.response.analytics.LessonDetailProgressDto>> getStudentLessonsDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentLessonsDetail(id));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<StudentResponse> updateStudent(@PathVariable Long id, @RequestBody StudentRequest request) {
         return ResponseEntity.ok(studentService.updateStudent(id, request));

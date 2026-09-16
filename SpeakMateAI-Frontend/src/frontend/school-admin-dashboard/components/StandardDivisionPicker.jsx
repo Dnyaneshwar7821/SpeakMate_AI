@@ -112,9 +112,9 @@ export const buildOccupiedAssignmentsMap = (
         const isSameId =
             editingTeacherId != null &&
             (String(t.id) === String(editingTeacherId) ||
-             String(t.teacherId) === String(editingTeacherId) ||
-             String(t.userId) === String(editingTeacherId) ||
-             String(t.dbId) === String(editingTeacherId));
+                String(t.teacherId) === String(editingTeacherId) ||
+                String(t.userId) === String(editingTeacherId) ||
+                String(t.dbId) === String(editingTeacherId));
 
         const isSameEmail =
             editingTeacherEmail &&
@@ -600,13 +600,12 @@ export function StandardDivisionPicker({
                                                                 checked={isChecked}
                                                                 disabled={isNonClickable}
                                                                 onChange={() => handleToggleDivision(groupIndex, div)}
-                                                                className={`h-4 w-4 rounded ${
-                                                                    isOccupied && isChecked
+                                                                className={`h-4 w-4 rounded ${isOccupied && isChecked
                                                                         ? "border-rose-400 text-rose-600 focus:ring-rose-500 dark:border-rose-500 accent-rose-600 cursor-pointer"
                                                                         : isOccupied
-                                                                        ? "border-slate-300 text-slate-400 cursor-not-allowed opacity-50"
-                                                                        : "border-[var(--border-default)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
-                                                                }`}
+                                                                            ? "border-slate-300 text-slate-400 cursor-not-allowed opacity-50"
+                                                                            : "border-[var(--border-default)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)] cursor-pointer"
+                                                                    }`}
                                                             />
                                                             <span className={`font-bold text-sm ${isOccupied && !isChecked ? "line-through text-slate-400 dark:text-slate-500" : ""}`}>{div}</span>
                                                             {isOccupied && (
@@ -616,11 +615,10 @@ export function StandardDivisionPicker({
                                                             )}
                                                         </div>
                                                         {isOccupied ? (
-                                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] leading-tight font-medium ${
-                                                                isChecked
+                                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] leading-tight font-medium ${isChecked
                                                                     ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 font-bold"
                                                                     : "bg-amber-100/90 text-amber-900 dark:bg-amber-900/50 dark:text-amber-200 border border-amber-200 dark:border-amber-800"
-                                                            }`}>
+                                                                }`}>
                                                                 {isChecked ? `Assigned to ${conflictInfo.teacherName}` : `Assigned: ${conflictInfo.teacherName} (Unavailable)`}
                                                             </span>
                                                         ) : (
@@ -662,11 +660,10 @@ export function StandardDivisionPicker({
                             return (
                                 <span
                                     key={`${assignment.standard}-${assignment.division}-${idx}`}
-                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border shadow-xs transition-all ${
-                                        conflict
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border shadow-xs transition-all ${conflict
                                             ? "bg-rose-100/90 text-rose-900 dark:bg-rose-950/60 dark:text-rose-200 border-rose-300 dark:border-rose-800"
                                             : "bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20"
-                                    }`}
+                                        }`}
                                 >
                                     {conflict && <AlertTriangle className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />}
                                     <span>{assignment.standard}-{assignment.division}</span>
@@ -679,11 +676,10 @@ export function StandardDivisionPicker({
                                         type="button"
                                         disabled={disabled}
                                         onClick={() => handleRemoveAssignment(assignment.standard, assignment.division)}
-                                        className={`p-0.5 rounded transition-opacity ${
-                                            conflict
+                                        className={`p-0.5 rounded transition-opacity ${conflict
                                                 ? "text-rose-600 hover:opacity-75"
                                                 : "text-[var(--color-primary)] hover:opacity-75"
-                                        }`}
+                                            }`}
                                         title={`Remove ${assignment.standard}-${assignment.division}`}
                                     >
                                         <X className="h-3 w-3" />

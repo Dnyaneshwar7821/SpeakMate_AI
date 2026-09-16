@@ -37,6 +37,13 @@ public class SchoolTeacherResponse {
 	public String getLastName() { return lastName; }
 	public void setLastName(String lastName) { this.lastName = lastName; }
 
+	public String getName() {
+		String f = firstName != null ? firstName.trim() : "";
+		String l = lastName != null ? lastName.trim() : "";
+		String full = (f + " " + l).trim();
+		return !full.isEmpty() ? full : (email != null ? email : "");
+	}
+
 	public String getEmail() { return email; }
 	public void setEmail(String email) { this.email = email; }
 

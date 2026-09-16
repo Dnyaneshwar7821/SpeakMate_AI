@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { schoolAdminDataApi } from "@services/admin/schoolAdminDataApi";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Plus, Users, Calendar, Award, TrendingUp, Bell, CheckCircle2, Star, Clock } from "lucide-react";
+import { Download, Plus, Users, Calendar, Award, TrendingUp, Bell, CheckCircle2, Star, Clock, Sparkles } from "lucide-react";
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
     LineChart, Line
@@ -22,6 +22,32 @@ import TeacherFormModal from "@school-admin/components/TeacherFormModal";
 import { useResults, useStudents, useTeachers } from "@school-admin/hooks/useSchoolData";
 import { getInitials } from "@utils/formatters";
 import InsigniaBadge from "@components/common/InsigniaBadge";
+
+const SCHOOL_DASHBOARD_CACHE_KEY = "speakmate_school_dashboard_cache";
+let inMemorySchoolDashboardCache = null;
+
+function getSchoolDashboardCache() {
+    if (inMemorySchoolDashboardCache) return inMemorySchoolDashboardCache;
+    try {
+        const stored = sessionStorage.getItem(SCHOOL_DASHBOARD_CACHE_KEY);
+        if (stored) {
+            inMemorySchoolDashboardCache = JSON.parse(stored);
+            return inMemorySchoolDashboardCache;
+        }
+    } catch (e) {
+        console.warn("Failed to read school dashboard cache", e);
+    }
+    return null;
+}
+
+function setSchoolDashboardCache(data) {
+    inMemorySchoolDashboardCache = data;
+    try {
+        sessionStorage.setItem(SCHOOL_DASHBOARD_CACHE_KEY, JSON.stringify(data));
+    } catch (e) {
+        console.warn("Failed to write school dashboard cache", e);
+    }
+}
 
 export function Dashboard() {
     const { results, totalResults, searchTerm, setSearchTerm } = useResults();
@@ -47,31 +73,47 @@ export function Dashboard() {
         }, 3000);
     };
 
-    // Dynamic API Data States
-    const [stats, setStats] = useState(null);
-    const [insights, setInsights] = useState(null);
-    const [schoolInfo, setSchoolInfo] = useState({ name: "Loading...", code: "Loading...", location: "Loading..." });
+    // Dynamic API Data States (initialized from cache for instant 0ms rendering)
+    const cachedDashboard = getSchoolDashboardCache();
+    const [stats, setStats] = useState(() => cachedDashboard?.stats || null);
+    const [insights, setInsights] = useState(() => cachedDashboard?.insights || null);
+    const [schoolInfo, setSchoolInfo] = useState(() => cachedDashboard?.schoolInfo || { name: "Loading...", code: "Loading...", location: "Loading..." });
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            let fetchedStats = null;
+            let fetchedInsights = null;
+            let resolvedInfo = null;
+
             try {
                 const dashboardStats = await schoolAdminDataApi.getDashboardStats();
+                fetchedStats = dashboardStats;
                 setStats(dashboardStats);
-                setSchoolInfo({
+                resolvedInfo = {
                     id: dashboardStats.schoolId || null,
                     name: dashboardStats.schoolName || "",
                     code: dashboardStats.schoolCode || "",
                     location: dashboardStats.schoolAddress || ""
-                });
+                };
+                setSchoolInfo(resolvedInfo);
             } catch (err) {
                 console.error("Failed to load school dashboard stats:", err);
             }
 
             try {
                 const insightsRes = await schoolAdminDataApi.getInsights("6m");
+                fetchedInsights = insightsRes;
                 setInsights(insightsRes);
             } catch (err) {
                 console.error("Failed to load school insights:", err);
+            }
+
+            if (fetchedStats) {
+                setSchoolDashboardCache({
+                    stats: fetchedStats,
+                    insights: fetchedInsights || cachedDashboard?.insights || null,
+                    schoolInfo: resolvedInfo || cachedDashboard?.schoolInfo || { name: "", code: "", location: "" }
+                });
             }
         };
         fetchDashboardData();
@@ -347,6 +389,15 @@ export function Dashboard() {
                                 <span className="text-[var(--text-muted)]">Location:</span>
                                 <span className="text-[var(--text-primary)] font-bold">{schoolInfo.location}</span>
                             </div>
+                            {stats?.subscriptionPlanName && (
+                                <div className="flex items-center gap-1.5 rounded-lg bg-emerald-500/10 px-2.5 py-1.5 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-semibold shadow-sm">
+                                    <Sparkles className="h-3.5 w-3.5" />
+                                    <span>Plan: {stats.subscriptionPlanName}</span>
+                                    {stats.maxStudents && (
+                                        <span className="text-xs font-normal text-emerald-700 dark:text-emerald-300">({stats.maxStudents} seats)</span>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 

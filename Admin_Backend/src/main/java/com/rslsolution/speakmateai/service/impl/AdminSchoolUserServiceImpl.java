@@ -105,6 +105,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                 .parentPhone(user.getParentPhone())
                 .teacherId(teacherId)
                 .assignedTeacher(assignedTeacher)
+                .teacherName(assignedTeacher)
                 .active(user.isActive())
                 .createdAt(user.getCreatedAt())
                 .build();
@@ -127,6 +128,14 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
 
     private AdminSchoolUserResponse mapToResponse(Student user) {
         return mapToDetailResponse(user);
+    }
+
+    private AdminSchoolUserResponse mapToResponse(Student user, Boolean emailSent) {
+        AdminSchoolUserResponse response = mapToDetailResponse(user);
+        if (response != null) {
+            response.setEmailSent(emailSent);
+        }
+        return response;
     }
 
     @Override
@@ -213,6 +222,7 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
             } catch (Exception ignored) {}
         }
 
+        Boolean emailSent = false;
         if (emailService != null && savedUser.getEmail() != null && !savedUser.getEmail().isBlank()) {
             try {
                 String rawPassword = (request.getPassword() != null && !request.getPassword().isBlank())
@@ -307,12 +317,15 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                             + "Best regards,\nSpeakMate AI Team";
                     emailService.sendEmail(savedUser.getEmail(), subject, text);
                 }
+                emailSent = true;
+                System.out.println("Super Admin: Student credentials email sent successfully to " + savedUser.getEmail());
             } catch (Exception e) {
                 System.err.println("Failed to dispatch student credentials email to " + savedUser.getEmail() + ": " + e.getMessage());
+                emailSent = false;
             }
         }
 
-        return mapToResponse(savedUser);
+        return mapToResponse(savedUser, emailSent);
     }
 
     @Override

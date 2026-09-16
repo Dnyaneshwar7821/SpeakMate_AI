@@ -72,6 +72,13 @@ public class AdminUserServiceImpl implements AdminUserService {
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     private com.rslsolution.speakmateai.service.EntityCascadeDeletionService entityCascadeDeletionService;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.repository.GrammarHistoryRepository grammarHistoryRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.rslsolution.speakmateai.repository.VocabularyRepository vocabularyRepository;
+
+    @org.springframework.beans.factory.annotation.Autowired
     public AdminUserServiceImpl(UserRepository userRepository, AdminUserMapper adminUserMapper,
             PasswordEncoder passwordEncoder,
             ProgressRepository progressRepository, SpeakingSessionRepository speakingSessionRepository,
@@ -82,6 +89,18 @@ public class AdminUserServiceImpl implements AdminUserService {
         this.progressRepository = progressRepository;
         this.speakingSessionRepository = speakingSessionRepository;
         this.userSubscriptionRepository = userSubscriptionRepository;
+    }
+
+    public AdminUserServiceImpl(UserRepository userRepository, AdminUserMapper adminUserMapper,
+            PasswordEncoder passwordEncoder,
+            ProgressRepository progressRepository, SpeakingSessionRepository speakingSessionRepository,
+            UserSubscriptionRepository userSubscriptionRepository,
+            com.rslsolution.speakmateai.repository.GrammarHistoryRepository grammarHistoryRepository,
+            com.rslsolution.speakmateai.repository.VocabularyRepository vocabularyRepository) {
+        this(userRepository, adminUserMapper, passwordEncoder, progressRepository, speakingSessionRepository,
+                userSubscriptionRepository);
+        this.grammarHistoryRepository = grammarHistoryRepository;
+        this.vocabularyRepository = vocabularyRepository;
     }
 
     @Override
@@ -134,6 +153,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             } catch (Exception ignored) {}
         }
 
+        Boolean emailSent = false;
         if (emailService != null && savedUser.getEmail() != null && !savedUser.getEmail().isBlank()) {
             try {
                 String rawPassword = (request.getPassword() != null && !request.getPassword().isBlank())
@@ -172,12 +192,15 @@ public class AdminUserServiceImpl implements AdminUserService {
                             + "SpeakMate AI Team";
                     emailService.sendEmail(savedUser.getEmail(), subject, text);
                 }
+                emailSent = true;
+                System.out.println("Super Admin: User credentials email sent successfully to " + savedUser.getEmail());
             } catch (Exception e) {
                 System.err.println("Failed to dispatch user credentials email to " + savedUser.getEmail() + ": " + e.getMessage());
+                emailSent = false;
             }
         }
 
-        return adminUserMapper.mapToDetailResponse(savedUser);
+        return adminUserMapper.mapToDetailResponse(savedUser, emailSent);
     }
 
     @Override
@@ -618,7 +641,15 @@ public class AdminUserServiceImpl implements AdminUserService {
         int totalMistakes = 0;
         double improvementPercentage = 0.0;
 
-        if (user instanceof Student student) {
+        if (grammarHistoryRepository != null) {
+            List<com.rslsolution.speakmateai.entity.GrammarHistory> histories = grammarHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+            if (histories != null && !histories.isEmpty()) {
+                exercises = histories.size();
+                accuracy = histories.stream().filter(g -> g.getGrammarScore() != null)
+                        .mapToDouble(com.rslsolution.speakmateai.entity.GrammarHistory::getGrammarScore).average().orElse(0.0);
+                totalMistakes = 0; // Not available in DB model
+            }
+        } else if (user instanceof Student student) {
             if (student.getGrammarHistories() != null && !student.getGrammarHistories().isEmpty()) {
                 exercises = student.getGrammarHistories().size();
                 accuracy = student.getGrammarHistories().stream().filter(g -> g.getGrammarScore() != null)
@@ -645,10 +676,18 @@ public class AdminUserServiceImpl implements AdminUserService {
         int pending = 0;
         double score = 0.0;
 
-        if (user instanceof Student student) {
+        if (vocabularyRepository != null) {
+            List<com.rslsolution.speakmateai.entity.Vocabulary> vocabList = vocabularyRepository.findByUser(user);
+            if (vocabList != null && !vocabList.isEmpty()) {
+                wordsLearned = vocabList.size();
+                mastered = (int) vocabList.stream().filter(v -> Boolean.TRUE.equals(v.getMastered())).count();
+                pending = wordsLearned - mastered;
+                score = 0.0;
+            }
+        } else if (user instanceof Student student) {
             if (student.getVocabularyList() != null && !student.getVocabularyList().isEmpty()) {
                 wordsLearned = student.getVocabularyList().size();
-                mastered = (int) student.getVocabularyList().stream().filter(v -> Boolean.TRUE.equals(v.getFavorite()))
+                mastered = (int) student.getVocabularyList().stream().filter(v -> Boolean.TRUE.equals(v.getMastered()))
                         .count();
                 pending = wordsLearned - mastered;
                 score = 0.0;

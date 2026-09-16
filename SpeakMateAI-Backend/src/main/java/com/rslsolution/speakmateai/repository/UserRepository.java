@@ -36,7 +36,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
 	long countByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 
-	@Query("SELECT COUNT(l) FROM LessonProgress l WHERE l.user.id = :userId")
+	@Query("SELECT COUNT(l) FROM LessonProgress l WHERE l.user.id = :userId AND l.completed = true")
 	long countLessonProgressByUserId(@Param("userId") Long userId);
 
 	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.user.id = :userId")
@@ -47,6 +47,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
 	@Query("SELECT COUNT(v) FROM Vocabulary v WHERE v.user.id = :userId")
 	long countVocabularyByUserId(@Param("userId") Long userId);
+
+	@Query("SELECT AVG(s.overallScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.overallScore IS NOT NULL")
+	Double findAverageScoreByUserId(@Param("userId") Long userId);
 
 	@Query("SELECT u FROM User u WHERE u.role = com.rslsolution.speakmateai.enums.Role.STUDENT")
 	List<User> findAllStudents();
@@ -64,10 +67,13 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	boolean existsStudentByStudentId(@Param("rollNumber") String rollNumber);
 
 	@Query("SELECT CASE WHEN COUNT(u) > 0 THEN true ELSE false END FROM User u WHERE u.rollNumber = :rollNumber AND u.schoolId = :schoolId AND u.role = com.rslsolution.speakmateai.enums.Role.STUDENT")
-	boolean existsStudentByStudentIdAndSchoolId(@Param("rollNumber") String rollNumber, @Param("schoolId") Long schoolId);
+	boolean existsStudentByStudentIdAndSchoolId(@Param("rollNumber") String rollNumber,
+			@Param("schoolId") Long schoolId);
 
 	@Query("SELECT u FROM User u WHERE u.schoolId = :schoolId AND u.role = :role")
 	List<User> findBySchoolIdAndRole(@Param("schoolId") Long schoolId, @Param("role") Role role);
 
 	List<User> findByRole(Role role);
+
+	long countByRole(Role role);
 }

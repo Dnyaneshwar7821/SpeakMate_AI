@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/school/students")
+@RequestMapping({"/api/school/students", "/api/students"})
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'TEACHER')")
 public class StudentController {
@@ -42,6 +42,16 @@ public class StudentController {
     @GetMapping("/{id}/progress")
     public ResponseEntity<Map<String, Object>> getStudentProgress(@PathVariable Long id) {
         return ResponseEntity.ok(studentService.getStudentProgress(id));
+    }
+
+    @GetMapping("/{id}/progress-profile")
+    public ResponseEntity<com.rslsolution.speakmateai.dto.response.analytics.StudentProgressProfileResponse> getStudentProgressProfile(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentProgressProfile(id));
+    }
+
+    @GetMapping("/{id}/lessons-detail")
+    public ResponseEntity<List<com.rslsolution.speakmateai.dto.response.analytics.LessonDetailProgressDto>> getStudentLessonsDetail(@PathVariable Long id) {
+        return ResponseEntity.ok(studentService.getStudentLessonsDetail(id));
     }
 
     @PutMapping("/{id}")

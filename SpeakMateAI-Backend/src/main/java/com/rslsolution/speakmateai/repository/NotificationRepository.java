@@ -37,6 +37,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
 	List<Notification> findByRecipientEmail(String recipientEmail);
 
+	@Query("SELECT COUNT(n) > 0 FROM Notification n WHERE n.recipientEmail = :recipientEmail AND n.title = :title AND n.createdAt >= :after")
+	boolean existsRecentDuplicate(@Param("recipientEmail") String recipientEmail, @Param("title") String title, @Param("after") LocalDateTime after);
+
 	default List<Notification> findByStudent(Student student) {
 		return student != null ? findByRecipientEmail(student.getEmail()) : List.of();
 	}

@@ -8,6 +8,18 @@ import InsigniaBadge from "@components/common/InsigniaBadge";
  * Lists users with role/status pills and row actions.
  * Uses theme CSS variables so it adapts to light/dark themes.
  */
+const isAdminUser = (u) => {
+    const r = (u?.raw?.role || u?.role || "").toString().toUpperCase();
+    return (
+        r.includes("SUPER_ADMIN") ||
+        r.includes("SUPER ADMIN") ||
+        r.includes("SCHOOL_ADMIN") ||
+        r.includes("SCHOOL ADMIN") ||
+        r.includes("TEACHER") ||
+        r.includes("ADMIN")
+    );
+};
+
 export function UsersTable({ users = [], isLoading = false, onEdit, onDelete, onToggleStatus, onUserClick }) {
     if (isLoading && (!users || users.length === 0)) {
         return (
@@ -151,20 +163,22 @@ export function UsersTable({ users = [], isLoading = false, onEdit, onDelete, on
                                         </svg>
                                     </button>
 
-                                    <button
-                                        type="button"
-                                        aria-label={`Delete ${user.name}`}
-                                        onClick={(e) => { e.stopPropagation(); onDelete(user); }}
-                                        className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-rose-500/10 hover:text-rose-500"
-                                    >
-                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16"
-                                            />
-                                        </svg>
-                                    </button>
+                                    {!isAdminUser(user) && (
+                                        <button
+                                            type="button"
+                                            aria-label={`Delete ${user.name}`}
+                                            onClick={(e) => { e.stopPropagation(); onDelete(user); }}
+                                            className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-rose-500/10 hover:text-rose-500"
+                                        >
+                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3M4 7h16"
+                                                />
+                                            </svg>
+                                        </button>
+                                    )}
                                 </div>
                             </td>
                         </tr>
