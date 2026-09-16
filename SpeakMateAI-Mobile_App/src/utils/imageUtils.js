@@ -2,64 +2,29 @@
  * Image processing utilities for profile avatars.
  *
  * Enforces the Mobile <-> Backend contract:
- * - If expo-image-manipulator is available: Resizes to 256x256 px, compresses JPEG quality to 0.5.
- * - If expo-image-manipulator is not in current native build: Seamlessly uses native ImagePicker
- *   compressed Base64 (quality ~0.2) or FileSystem fallback.
- * - Encodes to clean Base64 data URI (data:image/jpeg;base64,...).
- * - Validates that payload size stays strictly under 64 KB (65,536 chars).
+ * - Uses native ImagePicker built-in cropping (1:1 square) and compression (quality: 0.2, base64: true).
+ *   Native ImagePicker (UCrop) produces a ~18 KB - 28 KB clean avatar, running natively in the existing dev-client APK.
+ * - Formats to clean Base64 data URI (data:image/jpeg;base64,...).
+ * - Validates that payload size stays strictly under 64 KB (65,536 characters).
  */
 
 export const MAX_AVATAR_PAYLOAD_CHARS = 65536; // 64 KB backend contract
 
 /**
- * Resizes and compresses a selected image URI for use as a profile avatar.
+ * Validates and formats a selected image for use as a profile avatar.
  *
  * @param {string} imageUri - File URI of the picked/cropped image
- * @param {string|null} fallbackBase64 - Base64 data from native ImagePicker if available
+ * @param {string|null} pickerBase64 - Base64 data produced natively by ImagePicker (base64: true)
  * @returns {Promise<{ dataUri: string, sizeChars: number, approxKb: number }>}
  */
-export async function prepareAvatarAsync(imageUri, fallbackBase64 = null) {
-  if (!imageUri && !fallbackBase64) {
+export async function prepareAvatarAsync(imageUri, pickerBase64 = null) {
+  if (!imageUri && !pickerBase64) {
     throw new Error('No image provided.');
   }
 
-  let base64Data = null;
+  let base64Data = pickerBase64;
 
-  // 1. Try hardware-accelerated expo-image-manipulator if available in current runtime
-  try {
-    const ImageManipulator = require('expo-image-manipulator');
-    const manipFunc =
-      ImageManipulator?.manipulateAsync ||
-      ImageManipulator?.ImageManipulator?.manipulateAsync;
-
-    if (typeof manipFunc === 'function') {
-      const result = await manipFunc(
-        imageUri,
-        [{ resize: { width: 256, height: 256 } }],
-        {
-          compress: 0.5,
-          format: 'jpeg', // string literal avoids any undefined SaveFormat enum
-          base64: true,
-        }
-      );
-
-      if (result && result.base64) {
-        base64Data = result.base64;
-      }
-    }
-  } catch (manipError) {
-    console.warn(
-      '[imageUtils] expo-image-manipulator not available in current native build, using native picker/filesystem fallback:',
-      manipError?.message
-    );
-  }
-
-  // 2. Fallback to native ImagePicker base64 if available
-  if (!base64Data && fallbackBase64) {
-    base64Data = fallbackBase64;
-  }
-
-  // 3. Fallback to FileSystem base64 read if still needed
+  // If base64 was not provided directly by ImagePicker, try reading file via FileSystem
   if (!base64Data && imageUri) {
     try {
       const FileSystem = require('expo-file-system');
@@ -69,12 +34,12 @@ export async function prepareAvatarAsync(imageUri, fallbackBase64 = null) {
         });
       }
     } catch (fsErr) {
-      console.warn('[imageUtils] FileSystem read fallback failed:', fsErr?.message);
+      console.warn('[imageUtils] FileSystem fallback skipped or failed:', fsErr?.message);
     }
   }
 
   if (!base64Data) {
-    throw new Error('Unable to compress and encode image. Please try another photo.');
+    throw new Error('Unable to encode image. Please try another photo.');
   }
 
   // Strip any existing data URI prefix
@@ -90,7 +55,7 @@ export async function prepareAvatarAsync(imageUri, fallbackBase64 = null) {
   const sizeChars = dataUri.length;
   const approxKb = Math.round(sizeChars / 1024);
 
-  // Validate contract limit before sending
+  // Validate contract limit before sending (strict 64 KB backend limit)
   if (sizeChars > MAX_AVATAR_PAYLOAD_CHARS) {
     throw new Error(
       `Avatar payload (${approxKb} KB) exceeds the maximum allowed limit (64 KB). Please crop closer or choose a simpler photo.`
@@ -103,4 +68,5 @@ export async function prepareAvatarAsync(imageUri, fallbackBase64 = null) {
     approxKb,
   };
 }
+
 
