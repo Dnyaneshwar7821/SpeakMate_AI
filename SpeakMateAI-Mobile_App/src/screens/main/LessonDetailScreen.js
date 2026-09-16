@@ -875,7 +875,7 @@ export default function LessonDetailScreen({ navigation, route }) {
           silenceTimerRef.current = 0;
         } else if (speechDetectedRef.current) {
           silenceTimerRef.current += 300;
-          if (silenceTimerRef.current >= 1500) { // 1.5s silence -> AUTO STOP
+          if (silenceTimerRef.current >= 2400) { // 2.4s silence -> AUTO STOP
             stopRecordingAndTranscribe();
           }
         } else {

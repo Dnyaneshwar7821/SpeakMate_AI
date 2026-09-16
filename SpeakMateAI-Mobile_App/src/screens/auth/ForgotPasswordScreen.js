@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -36,6 +36,14 @@ export default function ForgotPasswordScreen({ navigation }) {
   const [error, setError] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
   const [touched, setTouched] = useState({ email: false, otp: false });
+  const [otpVerified, setOtpVerified] = useState(false);
+  const redirectTimerRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
 
   const validateEmail = () => {
     const normalized = normalizeEmail(email);
@@ -59,18 +67,18 @@ export default function ForgotPasswordScreen({ navigation }) {
       return;
     }
     setError('');
-    setInfoMessage('');
+    setOtpVerified(false);
     setLoading(true);
 
     try {
       const normalizedEmail = normalizeEmail(email);
-      await authService.forgotPassword({
-        email: normalizedEmail,
-      });
+      await authService.forgotPassword({ email: normalizedEmail });
       setStep('OTP');
-      setInfoMessage(`A 6-digit OTP has been sent to ${normalizedEmail}`);
+      setOtp('');
+      setTouched((p) => ({ ...p, otp: false }));
+      setInfoMessage(`We've sent a 6-digit code to ${normalizedEmail}`);
     } catch (err) {
-      setError(err.userMessage || err.response?.data?.message || 'Unable to send OTP. Please try again.');
+      setError(err.response?.data?.message || err.userMessage || 'Failed to send OTP code. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -79,14 +87,15 @@ export default function ForgotPasswordScreen({ navigation }) {
   const handleResendOtp = async () => {
     Keyboard.dismiss();
     setError('');
+    setOtpVerified(false);
     setResending(true);
 
     try {
       const normalizedEmail = normalizeEmail(email);
-      await authService.forgotPassword({
-        email: normalizedEmail,
-      });
-      setInfoMessage(`A new OTP has been sent to ${normalizedEmail}`);
+      await authService.forgotPassword({ email: normalizedEmail });
+      setOtp('');
+      setTouched((p) => ({ ...p, otp: false }));
+      setInfoMessage(`A fresh 6-digit OTP code has been sent to ${normalizedEmail}`);
       Alert.alert('OTP Resent', `A fresh 6-digit OTP code has been sent to ${normalizedEmail}`);
     } catch (err) {
       setError(err.userMessage || err.response?.data?.message || 'Failed to resend OTP.');
@@ -96,6 +105,7 @@ export default function ForgotPasswordScreen({ navigation }) {
   };
 
   const handleVerifyOtp = async () => {
+    if (otpVerified) return;
     Keyboard.dismiss();
     setTouched((p) => ({ ...p, otp: true }));
     const validationError = validateOtp();
@@ -114,16 +124,21 @@ export default function ForgotPasswordScreen({ navigation }) {
       });
 
       if (response && response.token) {
-        navigation.navigate('ResetPassword', {
-          token: response.token,
-          email: normalizedEmail,
-        });
+        setOtpVerified(true);
+        setError('');
+        // Smooth transition to ResetPassword while replacing stack
+        redirectTimerRef.current = setTimeout(() => {
+          navigation.replace('ResetPassword', {
+            token: response.token,
+            email: normalizedEmail,
+          });
+        }, 750);
       } else {
         setError('Invalid response from server.');
+        setLoading(false);
       }
     } catch (err) {
       setError(err.response?.data?.message || err.userMessage || 'Invalid or expired OTP. Please try again.');
-    } finally {
       setLoading(false);
     }
   };
@@ -145,8 +160,12 @@ export default function ForgotPasswordScreen({ navigation }) {
             <BackButton
               onPress={() => {
                 if (step === 'OTP') {
+                  if (otpVerified) return; // Prevent aborting while redirecting
+                  if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
                   setStep('EMAIL');
                   setError('');
+                  setOtp('');
+                  setOtpVerified(false);
                 } else {
                   navigation.goBack();
                 }
@@ -202,7 +221,7 @@ export default function ForgotPasswordScreen({ navigation }) {
               ) : null}
 
               {step === 'EMAIL' ? (
-                /* ΓöÇΓöÇ STEP 1: Enter Registered Email ΓöÇΓöÇ */
+                /* ── STEP 1: Enter Registered Email ── */
                 <>
                   <Text style={styles.formHint}>
                     We will send a 6-digit Verification OTP code to your registered Gmail address.
@@ -245,7 +264,7 @@ export default function ForgotPasswordScreen({ navigation }) {
                   />
                 </>
               ) : (
-                /* ΓöÇΓöÇ STEP 2: Enter 6-Digit OTP Code ΓöÇΓöÇ */
+                /* ── STEP 2: Enter 6-Digit OTP Code ── */
                 <>
                   <Text style={styles.formHint}>
                     Please check your Gmail inbox for the 6-digit verification code.
@@ -255,7 +274,9 @@ export default function ForgotPasswordScreen({ navigation }) {
                     label="6-Digit OTP Code"
                     value={otp}
                     onChangeText={(t) => {
-                      setOtp(t);
+                      if (otpVerified) return;
+                      const cleanDigits = t.replace(/[^0-9]/g, '').slice(0, 6);
+                      setOtp(cleanDigits);
                       if (error) setError('');
                     }}
                     onBlur={() => setTouched((p) => ({ ...p, otp: true }))}
@@ -264,41 +285,52 @@ export default function ForgotPasswordScreen({ navigation }) {
                     placeholder="123456"
                     keyboardType="number-pad"
                     maxLength={6}
+                    editable={!otpVerified && !loading}
                     returnKeyType="done"
                     onSubmitEditing={handleVerifyOtp}
                     inputStyle={styles.otpInputText}
                   />
 
+                  {otpVerified && (
+                    <View style={styles.verifiedSuccessRow}>
+                      <Ionicons name="checkmark-circle" size={18} color="#10B981" style={{ marginRight: 8 }} />
+                      <Text style={styles.verifiedSuccessText}>Code verified successfully! ✓</Text>
+                    </View>
+                  )}
+
                   <PrimaryButton
-                    title="Verify OTP & Proceed"
+                    title={otpVerified ? 'Code Verified ✓' : 'Verify OTP & Proceed'}
                     onPress={handleVerifyOtp}
-                    loading={loading}
-                    disabled={loading}
+                    loading={loading && !otpVerified}
+                    disabled={loading || otpVerified}
                   />
 
                   <View style={styles.otpFooterRow}>
                     <TouchableOpacity
                       onPress={handleResendOtp}
-                      disabled={resending}
+                      disabled={resending || otpVerified}
                       style={styles.resendBtn}
                     >
-                      <Text style={styles.resendText}>
+                      <Text style={[styles.resendText, otpVerified && { opacity: 0.5 }]}>
                         {resending ? 'Resending...' : 'Resend OTP'}
                       </Text>
                     </TouchableOpacity>
 
-                    <Text style={styles.bulletDot}>ΓÇó</Text>
+                    <Text style={styles.bulletDot}>•</Text>
 
                     <TouchableOpacity
                       onPress={() => {
+                        if (otpVerified) return;
                         setStep('EMAIL');
                         setOtp('');
                         setError('');
                         setInfoMessage('');
+                        setOtpVerified(false);
                       }}
+                      disabled={otpVerified}
                       style={styles.resendBtn}
                     >
-                      <Text style={styles.changeEmailText}>Change Email</Text>
+                      <Text style={[styles.changeEmailText, otpVerified && { opacity: 0.5 }]}>Change Email</Text>
                     </TouchableOpacity>
                   </View>
 
@@ -492,5 +524,21 @@ const styles = StyleSheet.create({
     color: '#94A3B8',
     fontSize: 14,
     fontWeight: '600',
+  },
+  verifiedSuccessRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+  },
+  verifiedSuccessText: {
+    color: '#059669',
+    fontSize: 14,
+    fontWeight: '800',
   },
 });

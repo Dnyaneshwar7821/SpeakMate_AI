@@ -202,7 +202,7 @@ export default function LoginScreen({ navigation }) {
                     color={loginType === 'SCHOOL' ? '#4F46E5' : '#64748B'}
                   />
                   <Text style={[styles.tabBtnText, loginType === 'SCHOOL' && styles.activeTabBtnText]}>
-                    Student ≡ƒÄô
+                    Student 🎓
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -281,7 +281,7 @@ export default function LoginScreen({ navigation }) {
 
               {/* Action Buttons */}
               <PrimaryButton
-                title={loginType === 'SCHOOL' ? 'Sign In as Student ≡ƒÄô' : 'Sign In'}
+                title={loginType === 'SCHOOL' ? 'Sign In as Student 🎓' : 'Sign In'}
                 onPress={handleLogin}
                 loading={loading}
                 disabled={loading}

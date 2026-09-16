@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  BackHandler,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -33,6 +34,27 @@ export default function ResetPasswordScreen({ navigation, route }) {
   const [touched, setTouched] = useState({ password: false, confirmPassword: false });
   const passwordRef = useRef(null);
   const confirmRef = useRef(null);
+
+  const handleBackPress = () => {
+    Alert.alert(
+      'Cancel Password Reset? ⚠️',
+      'Leaving this screen will cancel your password reset session. To reset your password later, you will need to request a new verification code.',
+      [
+        { text: 'Keep Editing', style: 'cancel' },
+        {
+          text: 'Exit to Sign In',
+          style: 'destructive',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]
+    );
+    return true; // Prevents default unprompted back navigation
+  };
+
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => backHandler.remove();
+  }, []);
 
   useEffect(() => {
     if (route?.params?.token) {
@@ -104,7 +126,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
       <StatusBar barStyle="light-content" />
       <LinearGradient colors={['#0F172A', '#1E1B4B', '#3730A3']} style={styles.header}>
         <SafeAreaView edges={['top']} style={styles.headerContent}>
-          <BackButton onPress={() => navigation.goBack()} light />
+          <BackButton onPress={handleBackPress} light />
           <Text style={styles.headerTitle}>Create New Password</Text>
           <Text style={styles.headerSubtitle}>Please enter a secure new password for your account.</Text>
         </SafeAreaView>

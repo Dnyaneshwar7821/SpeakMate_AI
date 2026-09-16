@@ -29,21 +29,22 @@ import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
 import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
 import { prepareAvatarAsync } from '../../utils/imageUtils';
+import { VoiceService } from '../../services/VoiceService';
 
-const PRESET_AVATARS = ['≡ƒÄô', '≡ƒªü', '≡ƒÜÇ', '≡ƒªë', '≡ƒææ', 'ΓÜí', '≡ƒªè', '≡ƒÄ»', '≡ƒÆÄ', '≡ƒîƒ', '≡ƒöÑ', '≡ƒÅå'];
+const PRESET_AVATARS = ['🎓', '🦁', '🚀', '🦉', '👑', '⚡', '🦊', '🎯', '💎', '🌟', '🔥', '🏆'];
 
 const getRankTier = (xp = 0) => {
-  if (xp < 100) return { name: 'Bronze III', icon: '≡ƒÑë', colors: ['#CD7F32', '#A0522D'] };
-  if (xp < 300) return { name: 'Bronze II', icon: '≡ƒÑë', colors: ['#D2691E', '#8B4513'] };
-  if (xp < 600) return { name: 'Bronze I', icon: '≡ƒÑë', colors: ['#CD7F32', '#B8860B'] };
-  if (xp < 1000) return { name: 'Silver III', icon: '≡ƒÑê', colors: ['#94A3B8', '#64748B'] };
-  if (xp < 1500) return { name: 'Silver II', icon: '≡ƒÑê', colors: ['#94A3B8', '#64748B'] };
-  if (xp < 2200) return { name: 'Silver I', icon: '≡ƒÑê', colors: ['#CBD5E1', '#475569'] };
-  if (xp < 3000) return { name: 'Gold III', icon: '≡ƒÑç', colors: ['#F59E0B', '#D97706'] };
-  if (xp < 4000) return { name: 'Gold II', icon: '≡ƒÑç', colors: ['#F59E0B', '#D97706'] };
-  if (xp < 5000) return { name: 'Gold I', icon: '≡ƒÑç', colors: ['#F59E0B', '#D97706'] };
-  if (xp < 7000) return { name: 'Platinum Master', icon: '≡ƒÆÄ', colors: ['#06B6D4', '#0284C7'] };
-  return { name: 'Diamond Orator', icon: '≡ƒææ', colors: ['#8B5CF6', '#6D28D9'] };
+  if (xp < 100) return { name: 'Bronze III', icon: '🥉', colors: ['#CD7F32', '#A0522D'] };
+  if (xp < 300) return { name: 'Bronze II', icon: '🥉', colors: ['#D2691E', '#8B4513'] };
+  if (xp < 600) return { name: 'Bronze I', icon: '🥉', colors: ['#CD7F32', '#B8860B'] };
+  if (xp < 1000) return { name: 'Silver III', icon: '🥈', colors: ['#94A3B8', '#64748B'] };
+  if (xp < 1500) return { name: 'Silver II', icon: '🥈', colors: ['#94A3B8', '#64748B'] };
+  if (xp < 2200) return { name: 'Silver I', icon: '🥈', colors: ['#CBD5E1', '#475569'] };
+  if (xp < 3000) return { name: 'Gold III', icon: '🥇', colors: ['#F59E0B', '#D97706'] };
+  if (xp < 4000) return { name: 'Gold II', icon: '🥇', colors: ['#F59E0B', '#D97706'] };
+  if (xp < 5000) return { name: 'Gold I', icon: '🥇', colors: ['#F59E0B', '#D97706'] };
+  if (xp < 7000) return { name: 'Platinum Master', icon: '💎', colors: ['#06B6D4', '#0284C7'] };
+  return { name: 'Diamond Orator', icon: '👑', colors: ['#8B5CF6', '#6D28D9'] };
 };
 
 export default function ProfileScreen({ navigation }) {
@@ -76,11 +77,11 @@ export default function ProfileScreen({ navigation }) {
     const entry = typeof avatarInput === 'object' ? avatarInput : getAvatarById(avatarInput);
     setPlayingTutorId(entry.id);
     try {
-      await Speech.stop();
-      const greeting = `Hello! I'm ${entry.name}, your AI speaking coach. Let's practice speaking English together!`;
-      Speech.speak(greeting, {
-        rate: 1.0,
-        pitch: entry.defaultPitch || 1.0,
+      VoiceService.stop();
+      const greeting = entry.previewGreeting || `Hello! I'm ${entry.name}, your AI speaking coach. Let's practice speaking English together!`;
+      VoiceService.speak(greeting, {
+        avatarId: entry.id,
+        voiceType: entry.voiceProfile,
         onDone: () => setPlayingTutorId(null),
         onError: () => setPlayingTutorId(null),
       });
@@ -191,7 +192,7 @@ export default function ProfileScreen({ navigation }) {
       }, 1000);
 
       Alert.alert(
-        'Verification Code Sent ≡ƒôº',
+        'Verification Code Sent 📧',
         `A 6-digit OTP verification code has been sent to ${cleanEmail}. Please check your inbox or spam folder.`
       );
     } catch (err) {
@@ -272,7 +273,7 @@ export default function ProfileScreen({ navigation }) {
     }
 
     Alert.alert(
-      'Final Confirmation ΓÜá∩╕Å',
+      'Final Confirmation ⚠️',
       'Are you completely sure you want to delete your SpeakMateAI account? This action is permanent and cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
@@ -420,7 +421,7 @@ export default function ProfileScreen({ navigation }) {
       await AsyncStorage.setItem('speakmate_voice_code', voiceCode);
       await AsyncStorage.setItem('speakmate_voice_pitch', String(pitch));
 
-      showToast('Tutor Updated Γ£ô', 'success', `${entry.emoji} ${entry.name} (${entry.badge}) is active!`);
+      showToast('Tutor Updated ✓', 'success', `${entry.emoji} ${entry.name} (${entry.badge}) is active!`);
     } catch (e) {}
   };
 
@@ -465,7 +466,7 @@ export default function ProfileScreen({ navigation }) {
         });
         setState({ loading: false, error: '', profile });
         if (updateUser) updateUser(profile);
-        showToast('Profile Updated Γ£ô', 'success', 'Your personal details were saved successfully');
+        showToast('Profile Updated ✓', 'success', 'Your personal details were saved successfully');
       } catch (error) {
         const data = error.response?.data;
         const fieldMsg = data && typeof data === 'object' && !data.message
@@ -479,7 +480,7 @@ export default function ProfileScreen({ navigation }) {
 
     if (emailChanged) {
       Alert.alert(
-        'Change Email Address? ≡ƒôº',
+        'Change Email Address? 📧',
         'Changing your email address updates your login username ID. You will need to use this new email to log in next time.',
         [
           { text: 'Cancel', style: 'cancel' },
@@ -560,7 +561,7 @@ export default function ProfileScreen({ navigation }) {
       const updated = await profileService.updateAvatar(emoji);
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
-      showToast('Avatar Changed ≡ƒÄë', 'success', `Avatar set to ${emoji}`);
+      showToast('Avatar Changed 🎉', 'success', `Avatar set to ${emoji}`);
     } catch (uploadError) {
       showToast('Avatar Update Failed', 'error', uploadError.userMessage || 'Unable to update avatar.');
     } finally {
@@ -581,7 +582,7 @@ export default function ProfileScreen({ navigation }) {
       DashboardCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
-      showToast('Grade Updated ≡ƒÄô', 'success', `School curriculum set to ${newGrade}`);
+      showToast('Grade Updated 🎓', 'success', `School curriculum set to ${newGrade}`);
     } catch (err) {
       showToast('Update Failed', 'error', 'Could not update School Grade.');
     } finally {
@@ -601,7 +602,7 @@ export default function ProfileScreen({ navigation }) {
       DashboardCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
-      showToast('Proficiency Updated ≡ƒÄ»', 'success', `AI Tutor level set to ${newLevel}`);
+      showToast('Proficiency Updated 🎯', 'success', `AI Tutor level set to ${newLevel}`);
     } catch (err) {
       showToast('Update Failed', 'error', 'Could not update English proficiency level.');
     } finally {
@@ -637,7 +638,7 @@ export default function ProfileScreen({ navigation }) {
           ageGroup: newAge,
         });
       }
-      showToast('Age Group Updated ≡ƒæÑ', 'success', `Target audience set to ${newAge}`);
+      showToast('Age Group Updated 👥', 'success', `Target audience set to ${newAge}`);
     } catch (err) {
       showToast('Update Failed', 'error', 'Could not update Age Group.');
     } finally {
@@ -656,7 +657,7 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
-  const avatarValue = state.profile?.avatar || '≡ƒÄô';
+  const avatarValue = state.profile?.avatar || '🎓';
   const isPhotoUri = avatarValue.startsWith('data:') || avatarValue.startsWith('http') || avatarValue.startsWith('file:');
 
   // Math for Level Progress Bar (500 XP per Level)
@@ -761,7 +762,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <View>
                 <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  ≡ƒÅ½ School Curriculum Grade
+                  🏫 School Curriculum Grade
                 </Text>
                 <Text style={{ fontSize: 12, color: sublabelColor }}>
                   Select your current school standard for personalized tests & syllabus
@@ -808,7 +809,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
               <View>
                 <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  ≡ƒæñ AI Tutor English Level
+                  👤 AI Tutor English Level
                 </Text>
                 <Text style={{ fontSize: 12, color: sublabelColor }}>
                   Controls speaking & chat response complexity
@@ -856,7 +857,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={{ marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <View style={{ flex: 1, marginRight: 8 }}>
                   <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                    ≡ƒÄ¡ Active AI Speaking Tutor
+                    🎭 Active AI Speaking Tutor
                   </Text>
                   <Text style={{ fontSize: 12, color: sublabelColor }}>
                     Your personalized AI speaking partner
@@ -885,7 +886,7 @@ export default function ProfileScreen({ navigation }) {
                       {activeTutor.subtitle}
                     </Text>
                     <Text style={[styles.activeTutorVoiceText, { color: COLORS.primary }]} numberOfLines={1}>
-                      ≡ƒÄÖ∩╕Å {activeTutor.voiceLabel}
+                      🎙️ {activeTutor.voiceLabel}
                     </Text>
                   </View>
                 </View>
@@ -965,7 +966,7 @@ export default function ProfileScreen({ navigation }) {
             <View style={styles.optionTextContainer}>
               <Text style={[styles.optionTitle, { color: labelColor }]}>Upload Profile Photo</Text>
               <Text style={[styles.optionSubtitle, { color: sublabelColor }]}>
-                {uploadingPhoto ? 'Uploading your photoΓÇª' : 'Choose a photo from your gallery'}
+                {uploadingPhoto ? 'Uploading your photo…' : 'Choose a photo from your gallery'}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
@@ -983,7 +984,7 @@ export default function ProfileScreen({ navigation }) {
               </View>
               <View style={styles.optionTextContainer}>
                 <Text style={[styles.optionTitle, { color: isDark ? '#FFFFFF' : '#312E81', fontWeight: '800' }]}>
-                  {(!isStudent && (user?.isPro || user?.pro)) ? 'Γ¡É SpeakMate Pro Member' : 'Γ¡É Upgrade to Pro'}
+                  {(!isStudent && (user?.isPro || user?.pro)) ? '⭐ SpeakMate Pro Member' : '⭐ Upgrade to Pro'}
                 </Text>
                 <Text style={[styles.optionSubtitle, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>
                   {(!isStudent && (user?.isPro || user?.pro)) ? 'Manage your active subscription' : 'Unlimited AI Speaking & Accent Coach'}
@@ -1041,7 +1042,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </StateView>
 
-      {/* ΓöÇΓöÇ DELETE ACCOUNT MODAL ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── DELETE ACCOUNT MODAL ────────────────────────────────────── */}
       <Modal
         visible={showDeleteModal}
         transparent
@@ -1224,7 +1225,7 @@ export default function ProfileScreen({ navigation }) {
                   <TextInput
                     value={deleteOtp}
                     onChangeText={handleOtpChange}
-                    placeholder="ΓÇóΓÇóΓÇóΓÇóΓÇóΓÇó"
+                    placeholder="••••••"
                     placeholderTextColor="#94A3B8"
                     keyboardType="number-pad"
                     maxLength={6}
@@ -1258,7 +1259,7 @@ export default function ProfileScreen({ navigation }) {
                     <View style={styles.otpStatusRow}>
                       <Ionicons name="checkmark-circle" size={16} color="#10B981" style={{ marginRight: 5 }} />
                       <Text style={[styles.otpStatusText, { color: '#059669', fontWeight: '800' }]}>
-                        Code verified Γ£ô
+                        Code verified ✓
                       </Text>
                     </View>
                   )}
@@ -1320,7 +1321,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* ΓöÇΓöÇ AVATAR PICKER MODAL ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ── AVATAR PICKER MODAL ────────────────────────────────────── */}
       <Modal
         visible={showAvatarModal}
         transparent
@@ -1380,7 +1381,7 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </Modal>
 
-      {/* ΓöÇΓöÇ 10 AI AVATAR TUTORS SELECTION POPUP MODAL ΓöÇΓöÇ */}
+      {/* ── 10 AI AVATAR TUTORS SELECTION POPUP MODAL ── */}
       <Modal
         visible={showTutorModal}
         transparent={true}
@@ -1392,10 +1393,10 @@ export default function ProfileScreen({ navigation }) {
             <View style={[styles.modalHeader, { justifyContent: 'space-between' }]}>
               <View style={{ flex: 1, marginRight: 8 }}>
                 <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  Choose AI Speaking Tutor ≡ƒÄ¡
+                  Choose AI Speaking Tutor 🎭
                 </Text>
                 <Text style={{ fontSize: 12, color: sublabelColor }}>
-                  Select your tutor ΓÇö tap <Text style={{ fontWeight: '800', color: labelColor }}>Test Voice</Text> to preview audio!
+                  Select your tutor — tap <Text style={{ fontWeight: '800', color: labelColor }}>Test Voice</Text> to preview audio!
                 </Text>
               </View>
               <TouchableOpacity
@@ -1454,7 +1455,7 @@ export default function ProfileScreen({ navigation }) {
 
                       <View style={styles.modalTutorBottomRow}>
                         <Text style={[styles.tutorVoiceLabel, { color: sublabelColor, flex: 1 }]} numberOfLines={1}>
-                          ≡ƒÄÖ∩╕Å {av.voiceLabel}
+                          🎙️ {av.voiceLabel}
                         </Text>
                         <TouchableOpacity
                           activeOpacity={0.7}
@@ -1462,7 +1463,7 @@ export default function ProfileScreen({ navigation }) {
                           style={[styles.modalTutorTestBtn, { borderColor: isDark ? '#475569' : '#CBD5E1', backgroundColor: isDark ? '#334155' : '#FFFFFF' }]}
                         >
                           <Text style={[styles.modalTutorTestText, { color: COLORS.primary }]}>
-                            {isSpeakingThis ? '≡ƒöè' : 'Γû╢ Test'}
+                            {isSpeakingThis ? '🔊' : '▶ Test'}
                           </Text>
                         </TouchableOpacity>
                       </View>

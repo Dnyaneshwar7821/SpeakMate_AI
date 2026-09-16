@@ -234,11 +234,16 @@ export default function ConversationScreen({ navigation, route }) {
     };
   }, [sessionId]);
 
-  // VAD / Silence Auto-Stop refs
+  // VAD / Silence Auto-Stop refs & Session Token
   const speechDetectedRef = useRef(false);
   const silenceTimerRef = useRef(0);
   const initialSilenceTimerRef = useRef(0);
   const stoppingRef = useRef(false);
+  const startingRef = useRef(false);
+  const isRecordingRef = useRef(false);
+  const recordingSessionIdRef = useRef(0);
+  const isUserPausingRef = useRef(false);
+  const [isUserPausing, setIsUserPausing] = useState(false);
 
   // Auto-collapse top avatar on keyboard show to maximize chat view
   useEffect(() => {
@@ -408,6 +413,13 @@ export default function ConversationScreen({ navigation, route }) {
 
     return () => {
       VoiceService.stop();
+      if (recordingRef.current) {
+        try {
+          recordingRef.current.setOnRecordingStatusUpdate(null);
+          recordingRef.current.stopAndUnloadAsync().catch(() => {});
+        } catch (_) {}
+        recordingRef.current = null;
+      }
     };
   }, []); // Run only once on mount
 
@@ -501,6 +513,7 @@ export default function ConversationScreen({ navigation, route }) {
     // Stage 1: Speak in-character conversational response
     VoiceService.speak(mainReply, {
       isMuted,
+      avatarId: selectedAvatarModel,
       voiceType: preferredVoice,
       speechSpeed,
       availableVoices,
@@ -519,6 +532,7 @@ export default function ConversationScreen({ navigation, route }) {
               setCurrentSpokenText(coachingPhrase);
               VoiceService.speak(coachingPhrase, {
                 isMuted,
+                avatarId: selectedAvatarModel,
                 voiceType: preferredVoice,
                 speechSpeed,
                 availableVoices,
@@ -565,6 +579,7 @@ export default function ConversationScreen({ navigation, route }) {
     setCurrentSpokenText(text);
     VoiceService.speak(text, {
       isMuted,
+      avatarId: selectedAvatarModel,
       voiceType: rawVoice,
       speechSpeed: effectiveSpeed,
       availableVoices: voicesList,
@@ -624,12 +639,15 @@ export default function ConversationScreen({ navigation, route }) {
 
     if (nextPaused) {
       // 1. Immediately stop recording if active
-      if (isRecording) {
+      if (isRecording || isRecordingRef.current) {
         try {
+          recordingRef.current?.setOnRecordingStatusUpdate(null);
           recordingRef.current?.stopAndUnloadAsync();
         } catch (_) {}
         recordingRef.current = null;
+        isRecordingRef.current = false;
         setIsRecording(false);
+        setIsUserPausing(false);
       }
       // 2. Immediately stop AI voice playback
       if (isSpeaking) {
@@ -799,8 +817,16 @@ export default function ConversationScreen({ navigation, route }) {
     }
   };
 
-  // ── Recording Handling (expo-av with 1.5s Silence Auto-Stop VAD) ──────
+  // ── Recording Handling (expo-av with 2.4s Silence Auto-Stop VAD & Race-Protection) ──────
+  const SILENCE_THRESHOLD_MS = 2400; // 2.4s post-speech silence auto-stop (allows natural thinking pauses)
+  const INITIAL_SILENCE_THRESHOLD_MS = 6000; // 6s initial silence before user speaks
+  const MAX_RECORDING_DURATION_MS = 180000; // 3 minutes generous hard limit for long speech practice
+  const METERING_SPEECH_THRESHOLD = -42; // dB volume threshold for speech detection
+
   const startRecording = async () => {
+    if (startingRef.current || isRecordingRef.current) return;
+    startingRef.current = true;
+
     try {
       // Stop any AI speech immediately
       VoiceService.stop();
@@ -809,6 +835,7 @@ export default function ConversationScreen({ navigation, route }) {
       const permission = await Audio.requestPermissionsAsync();
       if (permission.status !== 'granted') {
         Alert.alert('Microphone Access Denied', 'Please grant microphone permissions to speak with your AI tutor.');
+        startingRef.current = false;
         return;
       }
 
@@ -819,6 +846,7 @@ export default function ConversationScreen({ navigation, route }) {
 
       if (recordingRef.current) {
         try {
+          recordingRef.current.setOnRecordingStatusUpdate(null);
           await recordingRef.current.stopAndUnloadAsync();
         } catch (_) {}
         recordingRef.current = null;
@@ -851,30 +879,49 @@ export default function ConversationScreen({ navigation, route }) {
         },
       });
 
+      const currentSessionId = ++recordingSessionIdRef.current;
       speechDetectedRef.current = false;
       silenceTimerRef.current = 0;
       initialSilenceTimerRef.current = 0;
       stoppingRef.current = false;
+      isUserPausingRef.current = false;
+      setIsUserPausing(false);
 
       recording.setProgressUpdateInterval(250);
       recording.setOnRecordingStatusUpdate((status) => {
-        if (!status.isRecording || stoppingRef.current) return;
+        if (!status.isRecording || stoppingRef.current || recordingSessionIdRef.current !== currentSessionId) return;
+
+        // Hard maximum duration enforcement (3 minutes)
+        if (status.durationMillis && status.durationMillis >= MAX_RECORDING_DURATION_MS) {
+          stopRecordingAndSend();
+          return;
+        }
 
         const metering = status.metering ?? -100;
-        // User speaking detected if metering > -42 dB
-        if (metering > -42) {
+        // User speaking detected if metering > METERING_SPEECH_THRESHOLD (-42 dB)
+        if (metering > METERING_SPEECH_THRESHOLD) {
           speechDetectedRef.current = true;
           silenceTimerRef.current = 0;
+          if (isUserPausingRef.current) {
+            isUserPausingRef.current = false;
+            setIsUserPausing(false);
+          }
         } else if (speechDetectedRef.current) {
-          // User spoke and is now silent
+          // User spoke and is now taking a pause
+          if (!isUserPausingRef.current) {
+            isUserPausingRef.current = true;
+            setIsUserPausing(true);
+          }
           silenceTimerRef.current += 250;
-          if (silenceTimerRef.current >= 1500) { // 1.5s silence after speaking -> Auto stop and send
+          if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) {
+            // 2.4s sustained silence after speaking -> user is done speaking -> auto stop and send
             stopRecordingAndSend();
           }
         } else {
           // Initial silence before speaking
           initialSilenceTimerRef.current += 250;
-          if (initialSilenceTimerRef.current >= 6000) { // 6s initial silence
+          if (initialSilenceTimerRef.current >= INITIAL_SILENCE_THRESHOLD_MS) {
+            // 6s initial silence -> Auto stop
             stopRecordingAndSend();
           }
         }
@@ -882,19 +929,26 @@ export default function ConversationScreen({ navigation, route }) {
 
       await recording.startAsync();
       recordingRef.current = recording;
+      isRecordingRef.current = true;
       setIsRecording(true);
       setStatusText('Listening');
     } catch (error) {
       console.warn('Failed to start recording:', error);
       Alert.alert('Recording failed', 'Could not initialize microphone. Please check permissions.');
+      isRecordingRef.current = false;
       setIsRecording(false);
       setStatusText('Waiting for Response');
+    } finally {
+      startingRef.current = false;
     }
   };
 
   const stopRecordingAndSend = async () => {
     if (stoppingRef.current) return;
     stoppingRef.current = true;
+    isRecordingRef.current = false;
+    isUserPausingRef.current = false;
+    setIsUserPausing(false);
 
     setIsRecording(false);
     setLoading(true);
@@ -908,6 +962,11 @@ export default function ConversationScreen({ navigation, route }) {
         stoppingRef.current = false;
         return;
       }
+
+      // Detach status update listener immediately to prevent trailing bridge events
+      try {
+        recording.setOnRecordingStatusUpdate(null);
+      } catch (_) {}
 
       await recording.stopAndUnloadAsync();
       const uri = recording.getURI();
@@ -952,7 +1011,7 @@ export default function ConversationScreen({ navigation, route }) {
       return;
     }
 
-    if (isRecording) {
+    if (isRecording || isRecordingRef.current) {
       stopRecordingAndSend();
     } else {
       startRecording();
@@ -1111,9 +1170,9 @@ export default function ConversationScreen({ navigation, route }) {
     : isSpeaking
     ? '✨ Tutor speaking...'
     : loading
-    ? '✨ Tutor thinking...'
+    ? '✨ Processing speech...'
     : isRecording
-    ? '✨ Tutor listening (speak now)...'
+    ? (isUserPausing ? '👂 Listening... take your time (pause to send)' : '🎙️ Listening... speak as much as you\'d like')
     : '✨ Tap mic to speak';
 
   // ── Feedback helpers (used in FlatList footer) ────────────────────────

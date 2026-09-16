@@ -329,7 +329,7 @@ export default function RegisterScreen({ navigation }) {
         >
           <Pressable onPress={Keyboard.dismiss} style={styles.pressableContainer}>
             {registered ? (
-              /* ΓöÇΓöÇ Success State ΓöÇΓöÇ */
+              /* ── Success State ── */
               <Animated.View
                 style={[
                   styles.successCard,
@@ -359,7 +359,7 @@ export default function RegisterScreen({ navigation }) {
                 </View>
               </Animated.View>
             ) : (
-              /* ΓöÇΓöÇ Registration Form ΓöÇΓöÇ */
+              /* ── Registration Form ── */
               <AuthCard style={styles.card}>
                 <ErrorMessage message={error} />
 
@@ -367,7 +367,7 @@ export default function RegisterScreen({ navigation }) {
                 {/* School Student Direct Login Notice Banner */}
                 <View style={styles.studentNoticeBanner}>
                   <View style={styles.studentNoticeLeft}>
-                    <Text style={styles.studentNoticeEmoji}>≡ƒÄô</Text>
+                    <Text style={styles.studentNoticeEmoji}>🎓</Text>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.studentNoticeTitle}>School Student?</Text>
                       <Text style={styles.studentNoticeSubtitle}>Your school has created your account.</Text>
@@ -377,7 +377,7 @@ export default function RegisterScreen({ navigation }) {
                     onPress={() => navigation.navigate('Login')}
                     style={styles.studentLoginBtn}
                   >
-                    <Text style={styles.studentLoginBtnText}>Log In Γ₧ö</Text>
+                    <Text style={styles.studentLoginBtnText}>Log In ➔</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -530,7 +530,7 @@ export default function RegisterScreen({ navigation }) {
                   <View style={styles.verifiedSuccessBanner}>
                     <Ionicons name="checkmark-circle" size={20} color="#059669" />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.verifiedSuccessTitle}>Email Verified Γ£ô</Text>
+                      <Text style={styles.verifiedSuccessTitle}>Email Verified ✓</Text>
                       <Text style={styles.verifiedSuccessSubtitle}>Code verified for {email}</Text>
                     </View>
                   </View>

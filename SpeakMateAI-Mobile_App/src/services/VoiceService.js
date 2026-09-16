@@ -1,7 +1,7 @@
 import * as Speech from 'expo-speech';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OnboardingVoiceService } from './OnboardingVoiceService';
-import { getAvatarById } from '../config/AvatarCatalog';
+import { getAvatarById, getCachedAvatarModel } from '../config/AvatarCatalog';
 
 export const VOICE_PROFILES = [
   { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male' },
@@ -14,6 +14,124 @@ export const VOICE_PROFILES = [
   { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female' },
   { code: 'Default', accent: 'System Default', locale: 'en-US', gender: 'female', label: 'System Default' },
 ];
+
+/**
+ * SpeakMate Centralized Avatar Voice Profiles
+ * Provides tailored, natural acoustic differentiation (pitch, rate, locale, preferred voices)
+ * ensuring all avatars sound distinct without unnatural distortion.
+ */
+export const AVATAR_VOICE_PROFILES = {
+  haru: {
+    avatarId: 'haru',
+    name: 'Haru',
+    category: 'human',
+    intendedGender: 'female',
+    voiceCode: 'US Female',
+    targetLocale: 'en-US',
+    basePitch: 1.00,
+    baseRate: 1.00,
+    preferredVoices: ['sfg', 'iol', 'rgf', 'samantha', 'victoria', 'karen', 'female'],
+  },
+  chitose: {
+    avatarId: 'chitose',
+    name: 'Chitose',
+    category: 'human',
+    intendedGender: 'male',
+    voiceCode: 'US Male',
+    targetLocale: 'en-US',
+    basePitch: 0.94,
+    baseRate: 0.98,
+    preferredVoices: ['tpf', 'tpc', 'iog', 'david', 'alex', 'george', 'male'],
+  },
+  robopaws: {
+    avatarId: 'robopaws',
+    name: 'Robo-Paws',
+    category: 'cartoon',
+    intendedGender: 'female',
+    voiceCode: 'Robo-Paws',
+    targetLocale: 'en-IN',
+    basePitch: 1.24,
+    baseRate: 1.04,
+    preferredVoices: ['cbf', 'inf', 'ena', 'iol', 'sfg', 'rgf', 'tessa', 'samantha', 'female'],
+  },
+  motu: {
+    avatarId: 'motu',
+    name: 'Motu',
+    category: 'cartoon',
+    intendedGender: 'male',
+    voiceCode: 'Motu',
+    targetLocale: 'en-IN',
+    basePitch: 1.10,
+    baseRate: 0.96,
+    preferredVoices: ['ind', 'inc', 'inb', 'end', 'rishi', 'ravi', 'prabhat', 'tpc', 'tpf', 'male'],
+  },
+  sparky: {
+    avatarId: 'sparky',
+    name: 'Sparky',
+    category: 'cartoon',
+    intendedGender: 'male',
+    voiceCode: 'Sparky',
+    targetLocale: 'en-US',
+    basePitch: 1.06,
+    baseRate: 1.05,
+    preferredVoices: ['tpf', 'tpc', 'iog', 'alex', 'david', 'daniel', 'male'],
+  },
+  wanko: {
+    avatarId: 'wanko',
+    name: 'Wanko',
+    category: 'cartoon',
+    intendedGender: 'cartoon',
+    voiceCode: 'Wanko',
+    targetLocale: 'en-US',
+    basePitch: 1.32,
+    baseRate: 1.04,
+    preferredVoices: ['rgf', 'iol', 'sfg', 'karen', 'samantha', 'female'],
+  },
+  koharu: {
+    avatarId: 'koharu',
+    name: 'Koharu',
+    category: 'cartoon',
+    intendedGender: 'male',
+    voiceCode: 'Koharu',
+    targetLocale: 'en-US',
+    basePitch: 1.20,
+    baseRate: 1.03,
+    preferredVoices: ['tpc', 'iog', 'tpf', 'alex', 'daniel', 'male'],
+  },
+  haruto: {
+    avatarId: 'haruto',
+    name: 'Haruto',
+    category: 'cartoon',
+    intendedGender: 'male',
+    voiceCode: 'Haruto',
+    targetLocale: 'en-US',
+    basePitch: 1.25,
+    baseRate: 1.05,
+    preferredVoices: ['tpc', 'iog', 'daniel', 'alex', 'oliver', 'fred', 'tpf', 'male'],
+  },
+  tororo: {
+    avatarId: 'tororo',
+    name: 'Tororo',
+    category: 'cartoon',
+    intendedGender: 'female',
+    voiceCode: 'Tororo',
+    targetLocale: 'en-GB',
+    basePitch: 1.36,
+    baseRate: 0.96,
+    preferredVoices: ['gba', 'gbb', 'fis', 'serena', 'iol', 'sfg', 'female'],
+  },
+  rexy: {
+    avatarId: 'rexy',
+    name: 'Rexy',
+    category: 'cartoon',
+    intendedGender: 'cartoon',
+    voiceCode: 'Rexy',
+    targetLocale: 'en-US',
+    basePitch: 1.26,
+    baseRate: 1.05,
+    preferredVoices: ['rgf', 'iol', 'sfg', 'samantha', 'female'],
+  },
+};
 
 // --- Direct Explicit Lookup for Google TTS & System Voices (Android & iOS) ---
 const DIRECT_VOICE_GENDERS = {
@@ -190,6 +308,120 @@ const sortVoices = (voices) =>
   });
 
 export const VoiceService = {
+  getAvatarVoiceProfile: (avatarOrVoice) => {
+    if (!avatarOrVoice) return AVATAR_VOICE_PROFILES.haru;
+    const key = String(avatarOrVoice).toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (key.includes('motu') || key.includes('patlu')) return AVATAR_VOICE_PROFILES.motu;
+    if (key.includes('robo') || key.includes('paws') || key.includes('doraemon')) return AVATAR_VOICE_PROFILES.robopaws;
+    if (key.includes('sparky') || key.includes('hero')) return AVATAR_VOICE_PROFILES.sparky;
+    if (key.includes('chitose') || key === 'male') return AVATAR_VOICE_PROFILES.chitose;
+    if (key.includes('wanko') || key.includes('dog') || key.includes('puppy') || key.includes('shiba')) return AVATAR_VOICE_PROFILES.wanko;
+    if (key.includes('koharu') || key.includes('ribbon') || key.includes('shizuku') || key.includes('mao')) return AVATAR_VOICE_PROFILES.koharu;
+    if (key.includes('haruto') || key.includes('explorer') || key.includes('cap')) return AVATAR_VOICE_PROFILES.haruto;
+    if (key.includes('tororo') || key.includes('kitty') || key.includes('cat') || key.includes('sakura')) return AVATAR_VOICE_PROFILES.tororo;
+    if (key.includes('rexy') || key.includes('dino') || key.includes('trex')) return AVATAR_VOICE_PROFILES.rexy;
+    if (key.includes('haru')) return AVATAR_VOICE_PROFILES.haru;
+    return AVATAR_VOICE_PROFILES[key] || AVATAR_VOICE_PROFILES.haru;
+  },
+
+  selectSystemVoiceForAvatar: (availableVoices, avatarProfile, userSelectedAccent = null) => {
+    if (!availableVoices || availableVoices.length === 0) return null;
+
+    const isCartoon = avatarProfile.category === 'cartoon';
+
+    // If user explicitly configured an accent in Settings, only override if it's a human coach
+    // (cartoon avatars preserve their cute cartoon voice unless explicitly forced)
+    if (!isCartoon && userSelectedAccent && userSelectedAccent !== 'Default' && !userSelectedAccent.toLowerCase().includes('friendly')) {
+      const accentVoice = VoiceService.selectSystemVoice(availableVoices, userSelectedAccent);
+      if (accentVoice) return accentVoice;
+    }
+
+    const targetLoc = (avatarProfile.targetLocale || 'en-US').toLowerCase();
+    const wantsMale = avatarProfile.intendedGender === 'male';
+    const wantsFemale = avatarProfile.intendedGender === 'female';
+
+    // 1. Try matching preferred voice substrings for this specific avatar within the target locale
+    if (avatarProfile.preferredVoices && avatarProfile.preferredVoices.length > 0) {
+      for (const pref of avatarProfile.preferredVoices) {
+        const found = availableVoices.find(v => {
+          const id = (v.identifier || '').toLowerCase();
+          const name = (v.name || '').toLowerCase();
+          const lang = (v.language || '').toLowerCase().replace('_', '-');
+          const matchesPref = id.includes(pref) || name.includes(pref);
+          if (!matchesPref) return false;
+
+          // Never pick deep mature woman voice (iol) for Haruto little boy voice
+          if (avatarProfile.avatarId === 'haruto' && (id.includes('iol') || name.includes('iol'))) {
+            return false;
+          }
+
+          const isFemale = isFemalePattern(id, name, v.gender);
+          if (wantsMale && isFemale) return false;
+          if (wantsFemale && !isFemale) return false;
+
+          return lang.startsWith(targetLoc) || lang.startsWith('en');
+        });
+        if (found) return found.identifier;
+      }
+    }
+
+    // 2. Target locale voices matching requested gender
+    const locVoices = availableVoices.filter(v => (v.language || '').toLowerCase().replace('_', '-').startsWith(targetLoc));
+    if (locVoices.length > 0) {
+      if (wantsMale) {
+        const maleVoice = locVoices.find(v => {
+          const id = (v.identifier || '').toLowerCase();
+          const name = (v.name || '').toLowerCase();
+          return !isFemalePattern(id, name, v.gender);
+        });
+        if (maleVoice) return maleVoice.identifier;
+      } else if (wantsFemale) {
+        const femaleVoice = locVoices.find(v => {
+          const id = (v.identifier || '').toLowerCase();
+          const name = (v.name || '').toLowerCase();
+          return isFemalePattern(id, name, v.gender);
+        });
+        if (femaleVoice) return femaleVoice.identifier;
+      }
+    }
+
+    // 3. Fallback across all English voices respecting requested gender
+    if (wantsMale) {
+      const anyMale = availableVoices.find(v => {
+        const id = (v.identifier || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        const lang = (v.language || '').toLowerCase();
+        return lang.startsWith('en') && !isFemalePattern(id, name, v.gender);
+      });
+      if (anyMale) return anyMale.identifier;
+    } else if (wantsFemale || isCartoon) {
+      const anyFemale = availableVoices.find(v => {
+        const id = (v.identifier || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        const lang = (v.language || '').toLowerCase();
+        return lang.startsWith('en') && isFemalePattern(id, name, v.gender);
+      });
+      if (anyFemale) return anyFemale.identifier;
+    }
+
+    // 4. Best voice general fallback
+    const targetGender = wantsMale ? 'male' : 'female';
+    const best = VoiceService.findBestVoice(availableVoices, targetLoc, targetGender);
+    if (best && best.voice) {
+      const bestId = (best.voice.identifier || '').toLowerCase();
+      if (avatarProfile.avatarId === 'haruto' && bestId.includes('iol')) {
+        const nonIol = availableVoices.find(v => {
+          const vid = (v.identifier || '').toLowerCase();
+          return !vid.includes('iol') && (v.language || '').toLowerCase().startsWith('en');
+        });
+        if (nonIol) return nonIol.identifier;
+      }
+      return best.voice.identifier;
+    }
+
+    return VoiceService.selectSystemVoice(availableVoices, targetGender === 'male' ? 'US Male' : 'Default');
+  },
+
   getVoiceProfile: (voiceCode) => {
     return VOICE_PROFILES.find((profile) => profile.code === voiceCode) || null;
   },
@@ -501,9 +733,12 @@ export const VoiceService = {
 
   speak: async (text, {
     isMuted        = false,
-    voiceType      = 'Friendly',
+    avatarId       = null,
+    voiceType      = null,
     speechSpeed    = null,
     availableVoices = [],
+    pitch          = null,
+    rate           = null,
     onStart,
     onDone,
     onError,
@@ -513,7 +748,21 @@ export const VoiceService = {
     const cleanedText = VoiceService.sanitizeTextForSpeech(text);
     if (!cleanedText) return;
 
-    // Load saved speech speed from AsyncStorage if not provided explicitly
+    // 1. Resolve active avatar model (explicit param -> voiceType if avatar -> cached model -> AsyncStorage)
+    let effectiveAvatarId = avatarId;
+    if (!effectiveAvatarId && voiceType && AVATAR_VOICE_PROFILES[String(voiceType).toLowerCase()]) {
+      effectiveAvatarId = voiceType;
+    }
+    if (!effectiveAvatarId) {
+      try {
+        const cached = typeof getCachedAvatarModel === 'function' ? getCachedAvatarModel() : null;
+        const saved = cached || (await AsyncStorage.getItem('speakmate_avatar_model'));
+        if (saved) effectiveAvatarId = saved;
+      } catch (_) {}
+    }
+    const avatarProfile = VoiceService.getAvatarVoiceProfile(effectiveAvatarId);
+
+    // 2. Load saved speech speed from AsyncStorage if not provided explicitly
     let effectiveSpeed = speechSpeed;
     if (effectiveSpeed === null || effectiveSpeed === undefined || isNaN(effectiveSpeed)) {
       try {
@@ -529,17 +778,17 @@ export const VoiceService = {
       effectiveSpeed = 1.0;
     }
 
-    // ── 1. Resolve System Default → onboarding-selected voice config ──────────
-    let voiceConfig = null; // full config from OnboardingVoiceService
-    let resolvedVoice = voiceType;
-    const isSysDefault = OnboardingVoiceService.isSystemDefault(voiceType);
+    // ── 3. Resolve user settings accent preference ───────────────────────────
+    let resolvedVoice = voiceType || avatarProfile.voiceCode;
+    const isSysDefault = OnboardingVoiceService.isSystemDefault(resolvedVoice);
+    let voiceConfig = null;
 
     if (isSysDefault) {
       voiceConfig = await OnboardingVoiceService.load();
-      resolvedVoice = voiceConfig.style;
+      resolvedVoice = voiceConfig?.style || 'Friendly';
     }
 
-    // ── 2. Ensure we have system voices ───────────────────────────────────────
+    // ── 4. Ensure we have system voices ───────────────────────────────────────
     let voices = availableVoices;
     if (!voices || voices.length === 0) {
       try {
@@ -550,53 +799,45 @@ export const VoiceService = {
       }
     }
 
-    const gs = (resolvedVoice || '').toLowerCase();
-    const isBritish = gs.includes('uk') || gs.includes('british') || gs.includes('gb');
-    const isIndian = gs.includes('in') || gs.includes('indian');
+    // ── 5. Pitch & rate based on centralized avatar profile ───────────────────
+    const speedMultiplier = Number(effectiveSpeed) || 1.0;
+    let effectivePitch = pitch !== null && pitch !== undefined ? Number(pitch) : avatarProfile.basePitch;
+    let effectiveRate  = rate !== null && rate !== undefined ? Number(rate) : (avatarProfile.baseRate * speedMultiplier);
 
-    // ── 3. Locale resolution ──────────────────────────────────────────────────
-    let targetLocale = voiceConfig?.locale?.toLowerCase().replace('_', '-') || 'en-us';
-    if (!voiceConfig) {
-      if      (isBritish)                                  targetLocale = 'en-gb';
-      else if (isIndian)                                   targetLocale = 'en-in';
-      else if (gs.includes('au') || gs.includes('australian')) targetLocale = 'en-au';
-      else if (gs.includes('ca') || gs.includes('canadian')) targetLocale = 'en-ca';
+    // ── 6. Select system voice for avatar ─────────────────────────────────────
+    let systemVoiceId = VoiceService.selectSystemVoiceForAvatar(voices, avatarProfile, isSysDefault ? null : resolvedVoice);
+    if (!systemVoiceId && isSysDefault) {
+      systemVoiceId = VoiceService.resolveSystemDefaultVoice(voices);
+    }
+    if (!systemVoiceId) {
+      systemVoiceId = VoiceService.selectSystemVoice(voices, resolvedVoice);
     }
 
-    // ── 4. Gender logic ──────────────────────────────────────────────────────
-    let targetGender = voiceConfig?.gender || 'female';
-    if (!voiceConfig) {
-      if (gs.includes('male') && !gs.includes('female')) {
-        targetGender = (isBritish || isIndian) ? 'male' : 'female';
-      } else if (gs.includes('female')) {
-        targetGender = (isBritish || isIndian) ? 'female' : 'male';
+    // ── 7. Male / Female fallback pitch safety (Human coaches only) ─────────
+    if (avatarProfile.category !== 'cartoon') {
+      const targetGender = avatarProfile.intendedGender === 'male' ? 'male' : 'female';
+      if (systemVoiceId && voices && voices.length > 0) {
+        const voiceObj = voices.find(v => v.identifier === systemVoiceId);
+        if (voiceObj) {
+          const vid = (voiceObj.identifier || '').toLowerCase();
+          const vname = (voiceObj.name || '').toLowerCase();
+          const isActuallyFemale = isFemalePattern(vid, vname, voiceObj.gender);
+
+          if (targetGender === 'male' && isActuallyFemale) {
+            effectivePitch = Math.min(effectivePitch, 0.88); // Shift pitch down for male coach on female voice
+          } else if (targetGender === 'female' && !isActuallyFemale) {
+            effectivePitch = Math.max(effectivePitch, 1.15); // Shift pitch up for female coach on male voice
+          }
+        }
       }
     }
 
-    // ── 5. Pitch & rate ───────────────────────────────────────────────────────
-    let pitch = 1.0;
-    if (voiceConfig && voiceConfig.pitch) {
-      pitch = voiceConfig.pitch;
-    }
-    let rate  = Number(effectiveSpeed) || 1.0;
-
-    // Align with Web App Voice Profiles & Robo-Paws Cute Voice
-    if (gs.includes('robo') || gs.includes('paws')) {
-      pitch = 1.35; // Dedicated cute, cheerful, high-pitch cartoon robot voice
-      rate  = 1.05 * (Number(effectiveSpeed) || 1.0);
-    } else if (gs.includes('in') && gs.includes('male') && !gs.includes('female')) {
-      pitch = 0.95; // Exact Web App Indian Male pitch
-      rate  = 1.02 * (Number(effectiveSpeed) || 1.0);
-    } else if (gs.includes('in') && gs.includes('female')) {
-      pitch = 1.12; // Exact Web App Indian Female pitch
-      rate  = 1.02 * (Number(effectiveSpeed) || 1.0);
-    }
-
-    // ── 6. Build TTS options ──────────────────────────────────────────────────
+    // ── 8. Build TTS options ──────────────────────────────────────────────────
+    const targetLocale = avatarProfile.targetLocale || 'en-US';
     const options = {
-      rate,
-      pitch,
-      language: 'en-US',
+      rate: effectiveRate,
+      pitch: effectivePitch,
+      language: targetLocale,
       onStart,
       onDone,
       onError: (err) => {
@@ -605,75 +846,11 @@ export const VoiceService = {
       },
     };
 
-    if      (targetLocale === 'en-gb') options.language = 'en-GB';
-    else if (targetLocale === 'en-in') options.language = 'en-IN';
-    else if (targetLocale === 'en-au') options.language = 'en-AU';
-    else if (targetLocale === 'en-ca') options.language = 'en-CA';
-    else                               options.language = 'en-US';
-
-    // Use the saved device voice identifier directly if available (onboarding config),
-    // otherwise resolve via the normal system voice matching.
-    let pinnedVoiceId = voiceConfig?.voiceIdentifier || null;
-
-    // Male voice identifier substrings that must never be used for female / System Default tutor voices
-    const MALE_VOICE_SUBSTRINGS = [
-      'iol', 'iom', 'iog', 'tpf', 'tpc', 'gbc', 'gbd', 'rjs',
-      'ind', 'inc', 'inb', 'end', 'david', 'george', 'daniel',
-      'alex', 'guy', 'male'
-    ];
-
-    // Safety validation for pinned voice:
-    // If resolving a female voice or System Default, ensure pinnedVoiceId is NOT male!
-    if (pinnedVoiceId && (isSysDefault || targetGender === 'female')) {
-      const pLower = pinnedVoiceId.toLowerCase();
-      if (MALE_VOICE_SUBSTRINGS.some(m => pLower.includes(m))) {
-        pinnedVoiceId = null;
-      }
-    }
-
-    if (pinnedVoiceId && targetGender === 'female' && voices && voices.length > 0) {
-      const voiceObj = voices.find(v => v.identifier === pinnedVoiceId);
-      if (voiceObj) {
-        const vid = (voiceObj.identifier || '').toLowerCase();
-        const vname = (voiceObj.name || '').toLowerCase();
-        if (!isFemalePattern(vid, vname, voiceObj.gender) || MALE_VOICE_SUBSTRINGS.some(m => vid.includes(m) || vname.includes(m))) {
-          // Discard invalid male pinned voice from older onboarding saves
-          pinnedVoiceId = null;
-        }
-      }
-    }
-
-    let systemVoiceId = pinnedVoiceId;
-    if (!systemVoiceId && isSysDefault) {
-      systemVoiceId = VoiceService.resolveSystemDefaultVoice(voices);
-      if (systemVoiceId) {
-        OnboardingVoiceService.save(voiceConfig?.style || 'Friendly', systemVoiceId).catch(() => {});
-      }
-    }
-    if (!systemVoiceId) {
-      systemVoiceId = VoiceService.selectSystemVoice(voices, resolvedVoice);
-    }
     if (systemVoiceId) {
       options.voice = systemVoiceId;
-      
-      const voiceObj = voices.find(v => v.identifier === systemVoiceId);
-      if (voiceObj) {
-        const vid = (voiceObj.identifier || '').toLowerCase();
-        const vname = (voiceObj.name || '').toLowerCase();
-        const isActuallyFemale = isFemalePattern(vid, vname, voiceObj.gender);
-
-        // If resolving male requested voice to a female voice fallback, apply Web App pitch-shift
-        if (gs.includes('male') && !gs.includes('female') && isActuallyFemale) {
-          options.pitch = 0.88; // Match Web App fallback male pitch
-        }
-        // If resolving female / System Default voice but system fell back to a male voice, pitch shift up
-        else if (targetGender === 'female' && !isActuallyFemale) {
-          options.pitch = Math.max(pitch, 1.15); // Ensure female vocal resonance
-        }
-      }
     }
 
-    // ── 7. Speak ──────────────────────────────────────────────────────────────
+    // ── 9. Speak ──────────────────────────────────────────────────────────────
     try {
       Speech.stop();
       Speech.speak(cleanedText, options);

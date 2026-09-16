@@ -15,9 +15,11 @@ export const AVATAR_CATALOG = {
     emoji: '👩',
     subtitle: 'Warm, clear, and encouraging anime coach',
     description: 'Calm, patient guidance for daily conversation and foundational fluency.',
-    voiceProfile: 'Default',
-    voiceLabel: 'System Default Voice',
-    defaultPitch: 1.05,
+    voiceProfile: 'US Female',
+    voiceLabel: 'American Female Voice',
+    defaultPitch: 1.00,
+    defaultRate: 1.00,
+    previewGreeting: "Hello! I'm Haru, your AI speaking coach. Let's practice speaking English together!",
     type: 'live2d',
     modelPath: '/models/avatar/haru/haru_greeter_t03.model3.json',
     scaleMultiplier: 3.1,
@@ -37,7 +39,9 @@ export const AVATAR_CATALOG = {
     description: 'Structured English for professional interviews, presentations, and workplace chats.',
     voiceProfile: 'US Male',
     voiceLabel: 'American Male Voice',
-    defaultPitch: 0.98,
+    defaultPitch: 0.94,
+    defaultRate: 0.98,
+    previewGreeting: "Hello! I'm Chitose, your AI speaking coach. Let's practice speaking English together!",
     type: 'live2d',
     modelPath: '/models/avatar/chitose/chitose.model.json',
     scaleMultiplier: 3.1,
@@ -58,8 +62,10 @@ export const AVATAR_CATALOG = {
     subtitle: 'Cute Robot Cat / Doraemon-Style Mascot',
     description: 'High-energy 3D mascot with red nose & golden bell for fun, stress-free practice.',
     voiceProfile: 'Robo-Paws',
-    voiceLabel: 'Cute Cartoon Voice',
-    defaultPitch: 1.35,
+    voiceLabel: 'Doraemon Buddy Voice',
+    defaultPitch: 1.24,
+    defaultRate: 1.04,
+    previewGreeting: "Hello friend! I'm Robo-Paws, your robot cat buddy! Let's practice speaking English together and have lots of fun!",
     themeColor: '#0284C7', // Sky Blue
     glowColor: 'rgba(2, 132, 199, 0.45)',
     ringColor: '#38BDF8',
@@ -73,9 +79,11 @@ export const AVATAR_CATALOG = {
     emoji: '🥟',
     subtitle: 'Jolly samosa-loving cartoon friend from Furfuri Nagar',
     description: 'Enthusiastic and funny friend! Builds everyday confidence through storytelling, laughter, and dialogues.',
-    voiceProfile: 'US Male',
-    voiceLabel: 'Jolly Motu Voice',
-    defaultPitch: 1.15,
+    voiceProfile: 'Motu',
+    voiceLabel: 'Chubby Male Voice',
+    defaultPitch: 1.10,
+    defaultRate: 0.96,
+    previewGreeting: "Hello my friend! I am Motu! Let's talk, laugh, and practice English together! It will be so fun!",
     themeColor: '#EA580C', // Orange
     glowColor: 'rgba(234, 88, 12, 0.45)',
     ringColor: '#FB923C',
@@ -89,9 +97,11 @@ export const AVATAR_CATALOG = {
     emoji: '⚡',
     subtitle: 'Brave superhero kid with cape & lightning emblem',
     description: 'High-energy speech sprint drills, level unlocks, and heroic motivational coaching.',
-    voiceProfile: 'US Male',
-    voiceLabel: 'Hero Kid Voice',
-    defaultPitch: 1.30,
+    voiceProfile: 'Sparky',
+    voiceLabel: 'Male Superhero Voice',
+    defaultPitch: 1.06,
+    defaultRate: 1.05,
+    previewGreeting: "Hey there! I'm Sparky! Power up your voice and let's go on an English speaking adventure!",
     themeColor: '#EF4444', // Red
     glowColor: 'rgba(239, 68, 68, 0.45)',
     ringColor: '#F87171',
@@ -105,9 +115,11 @@ export const AVATAR_CATALOG = {
     emoji: '🐶',
     subtitle: 'Playful cartoon Shiba puppy with perky ears',
     description: 'High encouragement, cheerful ear wiggles, and interactive friendly conversations.',
-    voiceProfile: 'US Male',
+    voiceProfile: 'Wanko',
     voiceLabel: 'Playful Pup Voice',
-    defaultPitch: 1.30,
+    defaultPitch: 1.32,
+    defaultRate: 1.04,
+    previewGreeting: "Woof! Hi there! I'm Wanko! I'm so happy to see you! Let's have fun and practice speaking English together!",
     themeColor: '#D97706', // Amber
     glowColor: 'rgba(217, 119, 6, 0.45)',
     ringColor: '#FBBF24',
@@ -121,9 +133,11 @@ export const AVATAR_CATALOG = {
     emoji: '🎀',
     subtitle: 'Cheerful, sweet schoolgirl with twin ribbon buns',
     description: 'Loves celebrating streaks, storytelling, and building everyday speaking confidence.',
-    voiceProfile: 'Default',
-    voiceLabel: 'Youth Female Voice',
-    defaultPitch: 1.28,
+    voiceProfile: 'Koharu',
+    voiceLabel: 'Sweet Chibi Voice',
+    defaultPitch: 1.20,
+    defaultRate: 1.03,
+    previewGreeting: "Yay, hello! I'm Koharu! I'm so excited to practice speaking English with you! Let's do our best!",
     themeColor: '#F43F5E', // Rose
     glowColor: 'rgba(244, 63, 94, 0.45)',
     ringColor: '#FB7185',
@@ -137,9 +151,11 @@ export const AVATAR_CATALOG = {
     emoji: '🧢',
     subtitle: 'Friendly schoolboy with backwards cap and headset',
     description: 'Casual chats, school dialogues, sports, gaming, and interactive vocabulary games.',
-    voiceProfile: 'US Male',
-    voiceLabel: 'Youth Male Voice',
+    voiceProfile: 'Haruto',
+    voiceLabel: 'Little Boy Explorer Voice',
     defaultPitch: 1.25,
+    defaultRate: 1.05,
+    previewGreeting: "Hey! I'm Haruto the junior explorer! Grab your backpack and let's explore English together!",
     themeColor: '#2563EB', // Indigo Blue
     glowColor: 'rgba(37, 99, 235, 0.45)',
     ringColor: '#60A5FA',
@@ -153,9 +169,11 @@ export const AVATAR_CATALOG = {
     emoji: '🐱',
     subtitle: 'Fluffy white kitten with pink bow and bell',
     description: 'Gentle, soothing mentor for slow-paced pronunciation drills and comforting practice.',
-    voiceProfile: 'Default',
-    voiceLabel: 'Soft Kitty Voice',
-    defaultPitch: 1.32,
+    voiceProfile: 'Tororo',
+    voiceLabel: 'Cute Kitty Voice',
+    defaultPitch: 1.36,
+    defaultRate: 0.96,
+    previewGreeting: "Meow! Hello! I'm Tororo, your sweet kitty friend! Let's practice gentle and lovely English together!",
     themeColor: '#A855F7', // Purple
     glowColor: 'rgba(168, 85, 247, 0.45)',
     ringColor: '#C084FC',
@@ -169,9 +187,11 @@ export const AVATAR_CATALOG = {
     emoji: '🦖',
     subtitle: 'Playful baby green T-Rex with a friendly grin',
     description: 'Fun-filled practice, prehistoric adventures, and high-energy vocabulary games.',
-    voiceProfile: 'US Male',
-    voiceLabel: 'Cheerful Dino Voice',
-    defaultPitch: 1.28,
+    voiceProfile: 'Rexy',
+    voiceLabel: 'Baby Dino Voice',
+    defaultPitch: 1.26,
+    defaultRate: 1.05,
+    previewGreeting: "Roar! Hello friend! I'm Rexy the baby dinosaur! Let's have a stomping good time speaking English!",
     themeColor: '#10B981', // Emerald Green
     glowColor: 'rgba(168, 185, 129, 0.45)',
     ringColor: '#34D399',
@@ -210,13 +230,15 @@ export function getCachedAvatarModel() {
 export function setCachedAvatarModel(model) {
   if (model) {
     _cachedAvatarModel = model;
-    AsyncStorage.setItem('speakmate_avatar_model', model).catch(() => {});
+    AsyncStorage?.setItem?.('speakmate_avatar_model', model)?.catch?.(() => {});
   }
 }
 
-// Pre-warm the cache immediately upon module evaluation
-AsyncStorage.getItem('speakmate_avatar_model')
-  .then((val) => {
-    if (val) _cachedAvatarModel = val;
-  })
-  .catch(() => {});
+// Pre-warm the cache immediately upon module evaluation if available
+try {
+  AsyncStorage?.getItem?.('speakmate_avatar_model')
+    ?.then?.((val) => {
+      if (val) _cachedAvatarModel = val;
+    })
+    ?.catch?.(() => {});
+} catch (_) {}
