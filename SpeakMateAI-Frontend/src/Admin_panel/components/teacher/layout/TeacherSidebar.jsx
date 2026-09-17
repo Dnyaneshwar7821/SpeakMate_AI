@@ -2,6 +2,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Menu, X, GraduationCap } from "lucide-react";
 import { useAuth } from "@/Admin_panel/context/AuthContext";
+import { useTheme } from "@/Admin_panel/context/ThemeContext";
 import ROUTES from "@constants/routes";
 import {
     TEACHER_SIDEBAR_MENU,
@@ -12,12 +13,15 @@ import LogoutDialog from "@/Admin_panel/components/teacher/common/LogoutDialog";
 import { useNotifications } from "@hooks/useNotifications";
 
 function SidebarLink({ item }) {
+    const { sidebarDensity } = useTheme();
+    const paddingY = sidebarDensity === "compact" ? "py-1.5" : "py-2.5";
     return (
         <NavLink
             to={item.path}
             className={({ isActive }) =>
                 [
-                    "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200",
+                    "group relative flex items-center gap-3 rounded-xl px-3 text-[13px] font-medium transition-all duration-200",
+                    paddingY,
                     isActive
                         ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
                         : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]",

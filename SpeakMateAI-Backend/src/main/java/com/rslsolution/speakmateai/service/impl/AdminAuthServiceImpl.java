@@ -40,9 +40,6 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 	@Autowired
 	private EmailService emailService;
 
-	@Autowired(required = false)
-	private com.rslsolution.speakmateai.repository.UserRepository userRepository;
-
 	public AdminAuthServiceImpl(AdminRepository adminRepository, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
 		this.adminRepository = adminRepository;
 		this.passwordEncoder = passwordEncoder;
@@ -59,7 +56,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 				.fullName(request.getFullName())
 				.email(request.getEmail())
 				.password(passwordEncoder.encode(request.getPassword()))
-				.phone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(), "Phone number"))
+				.phone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(),
+						"Phone number"))
 				.role(request.getRole() != null ? request.getRole() : Role.ADMIN)
 				.status(AdminStatus.ACTIVE)
 				.build();
@@ -103,7 +101,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 	@Override
 	public void changePassword(AdminChangePasswordRequest request) {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+		if (authentication == null || !authentication.isAuthenticated()
+				|| "anonymousUser".equals(authentication.getName())) {
 			throw new InvalidCredentialsException("Admin not authenticated");
 		}
 
@@ -120,12 +119,6 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
 		admin.setPassword(passwordEncoder.encode(newPassword));
 		adminRepository.save(admin);
-		if (userRepository != null) {
-			userRepository.findByEmail(admin.getEmail()).ifPresent(u -> {
-				u.setPassword(admin.getPassword());
-				userRepository.save(u);
-			});
-		}
 	}
 
 	@Override
@@ -133,7 +126,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 		String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
 
 		Admin admin = adminRepository.findByEmail(cleanEmail)
-				.orElseThrow(() -> new IllegalArgumentException("No registered admin account found with email: " + cleanEmail));
+				.orElseThrow(() -> new IllegalArgumentException(
+						"No registered admin account found with email: " + cleanEmail));
 
 		String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
 		admin.setResetOtp(otp);
@@ -143,37 +137,47 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 		System.out.println("[Admin Forgot Password OTP Generated] OTP for " + admin.getEmail() + " is: " + otp);
 
 		String htmlContent = String.format(
-			"<!DOCTYPE html>\n" +
-			"<html>\n" +
-			"<head>\n" +
-			"    <style>\n" +
-			"        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; }\n" +
-			"        .container { max-width: 600px; background-color: #FFFFFF; border-radius: 16px; padding: 40px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }\n" +
-			"        .logo { font-size: 28px; font-weight: 900; color: #4F46E5; text-align: center; margin-bottom: 24px; }\n" +
-			"        h1 { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px; text-align: center; }\n" +
-			"        p { font-size: 15px; color: #64748B; line-height: 24px; margin-bottom: 24px; }\n" +
-			"        .otp-box { background-color: #EEF2FF; border: 2px dashed #6366F1; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }\n" +
-			"        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #4F46E5; margin: 0; }\n" +
-			"        .footer { text-align: center; font-size: 13px; color: #94A3B8; margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 20px; }\n" +
-			"    </style>\n" +
-			"</head>\n" +
-			"<body>\n" +
-			"    <div class=\"container\">\n" +
-			"        <div class=\"logo\">SpeakMateAI Admin Portal</div>\n" +
-			"        <h1>Password Reset OTP</h1>\n" +
-			"        <p>Hello %s,</p>\n" +
-			"        <p>We received a request to reset your admin password. Use the Verification Code below to complete your reset request:</p>\n" +
-			"        <div class=\"otp-box\">\n" +
-			"            <h2 class=\"otp-code\">%s</h2>\n" +
-			"        </div>\n" +
-			"        <p>This OTP code is valid for <strong>10 minutes</strong>. Do not share this OTP with anyone.</p>\n" +
-			"        <p>If you did not request a password reset, please ignore this message.</p>\n" +
-			"        <div class=\"footer\">\n" +
-			"            Regards,<br/><strong>SpeakMateAI Team</strong>\n" +
-			"        </div>\n" +
-			"    </div>\n" +
-			"</body>\n" +
-			"</html>", admin.getFullName(), otp);
+				"<!DOCTYPE html>\n" +
+						"<html>\n" +
+						"<head>\n" +
+						"    <style>\n" +
+						"        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #F8FAFC; margin: 0; padding: 20px; }\n"
+						+
+						"        .container { max-width: 600px; background-color: #FFFFFF; border-radius: 16px; padding: 40px; margin: 0 auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }\n"
+						+
+						"        .logo { font-size: 28px; font-weight: 900; color: #4F46E5; text-align: center; margin-bottom: 24px; }\n"
+						+
+						"        h1 { font-size: 22px; font-weight: 700; color: #0F172A; margin-bottom: 16px; text-align: center; }\n"
+						+
+						"        p { font-size: 15px; color: #64748B; line-height: 24px; margin-bottom: 24px; }\n" +
+						"        .otp-box { background-color: #EEF2FF; border: 2px dashed #6366F1; border-radius: 12px; padding: 20px; text-align: center; margin: 24px 0; }\n"
+						+
+						"        .otp-code { font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #4F46E5; margin: 0; }\n"
+						+
+						"        .footer { text-align: center; font-size: 13px; color: #94A3B8; margin-top: 32px; border-top: 1px solid #E2E8F0; padding-top: 20px; }\n"
+						+
+						"    </style>\n" +
+						"</head>\n" +
+						"<body>\n" +
+						"    <div class=\"container\">\n" +
+						"        <div class=\"logo\">SpeakMateAI Admin Portal</div>\n" +
+						"        <h1>Password Reset OTP</h1>\n" +
+						"        <p>Hello %s,</p>\n" +
+						"        <p>We received a request to reset your admin password. Use the Verification Code below to complete your reset request:</p>\n"
+						+
+						"        <div class=\"otp-box\">\n" +
+						"            <h2 class=\"otp-code\">%s</h2>\n" +
+						"        </div>\n" +
+						"        <p>This OTP code is valid for <strong>10 minutes</strong>. Do not share this OTP with anyone.</p>\n"
+						+
+						"        <p>If you did not request a password reset, please ignore this message.</p>\n" +
+						"        <div class=\"footer\">\n" +
+						"            Regards,<br/><strong>SpeakMateAI Team</strong>\n" +
+						"        </div>\n" +
+						"    </div>\n" +
+						"</body>\n" +
+						"</html>",
+				admin.getFullName(), otp);
 		EmailMessage emailMessage = EmailMessage.builder()
 				.to(admin.getEmail())
 				.subject("Your SpeakMateAI Admin Password Reset OTP")
@@ -196,7 +200,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 			throw new IllegalArgumentException("Invalid OTP code. Please check your email and try again.");
 		}
 
-		if (!isMasterOtp && (admin.getResetOtpExpiry() == null || admin.getResetOtpExpiry().isBefore(LocalDateTime.now()))) {
+		if (!isMasterOtp
+				&& (admin.getResetOtpExpiry() == null || admin.getResetOtpExpiry().isBefore(LocalDateTime.now()))) {
 			throw new IllegalArgumentException("OTP code has expired. Please request a new OTP.");
 		}
 
@@ -220,7 +225,8 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException("Invalid or expired reset token."));
 
-		if (admin.getResetPasswordTokenExpiry() == null || admin.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
+		if (admin.getResetPasswordTokenExpiry() == null
+				|| admin.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
 			throw new IllegalArgumentException("Reset token has expired.");
 		}
 
@@ -230,18 +236,12 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 		admin.setResetPasswordToken(null);
 		admin.setResetPasswordTokenExpiry(null);
 		adminRepository.save(admin);
-		if (userRepository != null) {
-			userRepository.findByEmail(admin.getEmail()).ifPresent(u -> {
-				u.setPassword(admin.getPassword());
-				userRepository.save(u);
-			});
-		}
 	}
 
 	@Override
 	public AdminLoginResponse refreshToken(AdminRefreshTokenRequest request) {
 		String token = request.getRefreshToken();
-		
+
 		String email;
 		String type;
 		try {
@@ -250,14 +250,14 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 		} catch (Exception e) {
 			throw new InvalidCredentialsException("Invalid refresh token");
 		}
-		
+
 		if (email == null || !"ADMIN".equals(type)) {
 			throw new InvalidCredentialsException("Invalid refresh token type");
 		}
-		
+
 		Admin admin = adminRepository.findByEmail(email)
 				.orElseThrow(() -> new InvalidCredentialsException("Admin account not found"));
-				
+
 		if (admin.getStatus() != AdminStatus.ACTIVE) {
 			throw new InvalidCredentialsException("Admin account is not active");
 		}
@@ -300,14 +300,16 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 				try {
 					java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
 					String escapedHtml = htmlContent.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
-					String jsonBody = "{\"from\":\"SpeakMateAI Admin <onboarding@resend.dev>\",\"to\":[\"" + toEmail + "\"],\"subject\":\"" + subject + "\",\"html\":\"" + escapedHtml + "\"}";
+					String jsonBody = "{\"from\":\"SpeakMateAI Admin <onboarding@resend.dev>\",\"to\":[\"" + toEmail
+							+ "\"],\"subject\":\"" + subject + "\",\"html\":\"" + escapedHtml + "\"}";
 					java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-						.uri(java.net.URI.create("https://api.resend.com/emails"))
-						.header("Authorization", "Bearer " + resendApiKey)
-						.header("Content-Type", "application.json")
-						.POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonBody))
-						.build();
-					java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+							.uri(java.net.URI.create("https://api.resend.com/emails"))
+							.header("Authorization", "Bearer " + resendApiKey)
+							.header("Content-Type", "application.json")
+							.POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonBody))
+							.build();
+					java.net.http.HttpResponse<String> response = client.send(request,
+							java.net.http.HttpResponse.BodyHandlers.ofString());
 					System.out.println("[Resend Admin Email Sent] Status: " + response.statusCode());
 				} catch (Exception ex) {
 					System.err.println("[Resend Admin Email Error] " + ex.getMessage());

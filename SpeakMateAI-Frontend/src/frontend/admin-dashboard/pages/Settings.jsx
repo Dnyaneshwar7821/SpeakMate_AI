@@ -22,6 +22,7 @@ import SectionCard from "@admin/components/SectionCard";
 import { useTheme } from "@/Admin_panel/context/ThemeContext";
 import { adminSettingsApi } from "@services/admin/adminSettingsApi";
 import { adminProfileApi } from "@services/admin/adminProfileApi";
+import PlatformIntegrationsManager from "../components/PlatformIntegrationsManager";
 
 /**
  * admin-dashboard/pages/Settings.jsx
@@ -672,121 +673,9 @@ export function Settings() {
                                 {activeTab === "integrations" && (
                                     <SectionCard
                                         title="Platform Integrations"
-                                        subtitle="Connect external services to synchronize classroom and student data"
+                                        subtitle="Connect external services to synchronize classroom, payments, and student data"
                                     >
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
-                                            {/* Google Calendar */}
-                                            <div className="flex flex-col justify-between p-4 border border-[var(--border-subtle)] bg-[var(--bg-surface)] rounded-xl space-y-4">
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <span className="grid h-9 w-9 place-items-center rounded-lg bg-blue-500/10 text-blue-600 text-sm font-bold">
-                                                            G
-                                                        </span>
-                                                        <h4 className="text-sm font-bold text-[var(--text-primary)]">Google Calendar</h4>
-                                                    </div>
-                                                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                        Synchronize speaking drills, mock class schedules and speaking practice dates with instructor calendars.
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-                                                    <span className={`text-[11px] font-medium ${integrations.google ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                                                        {integrations.google ? "Connected" : "Disconnected"}
-                                                    </span>
-                                                    <Button
-                                                        variant={integrations.google ? "secondary" : "primary"}
-                                                        size="sm"
-                                                        className="!h-8 text-[11px]"
-                                                        onClick={() => toggleIntegration("google", "Google Calendar")}
-                                                    >
-                                                        {integrations.google ? "Disconnect" : "Connect"}
-                                                    </Button>
-                                                </div>
-                                            </div>
-
-                                            {/* Slack */}
-                                            <div className="flex flex-col justify-between p-4 border border-[var(--border-subtle)] bg-[var(--bg-surface)] rounded-xl space-y-4">
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <span className="grid h-9 w-9 place-items-center rounded-lg bg-orange-500/10 text-orange-600 text-sm font-bold">
-                                                            S
-                                                        </span>
-                                                        <h4 className="text-sm font-bold text-[var(--text-primary)]">Slack Workspace</h4>
-                                                    </div>
-                                                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                        Dispatch critical billing failures, platform error alerts and license notifications directly to Slack channels.
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-                                                    <span className={`text-[11px] font-medium ${integrations.slack ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                                                        {integrations.slack ? "Connected" : "Disconnected"}
-                                                    </span>
-                                                    <Button
-                                                        variant={integrations.slack ? "secondary" : "primary"}
-                                                        size="sm"
-                                                        className="!h-8 text-[11px]"
-                                                        onClick={() => toggleIntegration("slack", "Slack Workspace")}
-                                                    >
-                                                        {integrations.slack ? "Disconnect" : "Connect"}
-                                                    </Button>
-                                                </div>
-                                            </div>
-
-                                            {/* Zoom */}
-                                            <div className="flex flex-col justify-between p-4 border border-[var(--border-subtle)] bg-[var(--bg-surface)] rounded-xl space-y-4">
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <span className="grid h-9 w-9 place-items-center rounded-lg bg-sky-500/10 text-sky-600 text-sm font-bold">
-                                                            Z
-                                                        </span>
-                                                        <h4 className="text-sm font-bold text-[var(--text-primary)]">Zoom Video API</h4>
-                                                    </div>
-                                                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                        Auto-generate online meeting rooms for virtual lectures, teacher-student speaking sessions, or grammar lessons.
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-                                                    <span className={`text-[11px] font-medium ${integrations.zoom ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                                                        {integrations.zoom ? "Connected" : "Disconnected"}
-                                                    </span>
-                                                    <Button
-                                                        variant={integrations.zoom ? "secondary" : "primary"}
-                                                        size="sm"
-                                                        className="!h-8 text-[11px]"
-                                                        onClick={() => toggleIntegration("zoom", "Zoom Video API")}
-                                                    >
-                                                        {integrations.zoom ? "Disconnect" : "Connect"}
-                                                    </Button>
-                                                </div>
-                                            </div>
-
-                                            {/* Stripe */}
-                                            <div className="flex flex-col justify-between p-4 border border-[var(--border-subtle)] bg-[var(--bg-surface)] rounded-xl space-y-4">
-                                                <div className="space-y-2">
-                                                    <div className="flex items-center gap-2.5">
-                                                        <span className="grid h-9 w-9 place-items-center rounded-lg bg-purple-500/10 text-purple-600 text-sm font-bold">
-                                                            S
-                                                        </span>
-                                                        <h4 className="text-sm font-bold text-[var(--text-primary)]">Stripe Gateway</h4>
-                                                    </div>
-                                                    <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                        Process learner subscription payments, school invoicing, and view real-time platform revenue records.
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-                                                    <span className={`text-[11px] font-medium ${integrations.stripe ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                                                        {integrations.stripe ? "Connected" : "Disconnected"}
-                                                    </span>
-                                                    <Button
-                                                        variant={integrations.stripe ? "secondary" : "primary"}
-                                                        size="sm"
-                                                        className="!h-8 text-[11px]"
-                                                        onClick={() => toggleIntegration("stripe", "Stripe Gateway")}
-                                                    >
-                                                        {integrations.stripe ? "Disconnect" : "Connect"}
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <PlatformIntegrationsManager role="SUPER_ADMIN" onToast={triggerToast} />
                                     </SectionCard>
                                 )}
 

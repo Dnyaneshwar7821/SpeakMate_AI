@@ -236,6 +236,9 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                 if (savedUser.getSchoolId() != null) {
                     notificationService.notifySchoolAdmins(savedUser.getSchoolId(), "New Student Added", "Student " + studentName + " (Std " + savedUser.getStandard() + " - " + savedUser.getDivision() + ") has been registered.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED, savedUser.getId(), "STUDENT");
                 }
+                if (savedUser.getTeacherId() != null) {
+                    notificationService.notifyTeacher(savedUser.getTeacherId(), "New Student Assigned", "Student " + studentName + " has been enrolled in your class (Std " + savedUser.getStandard() + " - " + savedUser.getDivision() + ").", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_ASSIGNED, savedUser.getId(), "STUDENT");
+                }
             } catch (Exception ignored) {}
         }
 
@@ -411,6 +414,9 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                 notificationService.notifyAdmins("Student Removed", "Student " + studentName + " has been removed by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
                 if (schoolId != null) {
                     notificationService.notifySchoolAdmins(schoolId, "Student Removed", "Student " + studentName + " has been removed by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
+                }
+                if (user.getTeacherId() != null) {
+                    notificationService.notifyTeacher(user.getTeacherId(), "Student Removed", "Student " + studentName + " has been removed from your class.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
                 }
             } catch (Exception ignored) {}
         }

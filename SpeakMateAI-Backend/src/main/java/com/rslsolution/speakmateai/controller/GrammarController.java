@@ -51,11 +51,4 @@ public class GrammarController {
 
 		return "Grammar history deleted successfully.";
 	}
-	@DeleteMapping("/clear-history")
-	public String clearAllGrammarHistory() {
-
-		grammarService.clearAllGrammarHistory();
-
-		return "All grammar history cleared successfully.";
-	}
 }

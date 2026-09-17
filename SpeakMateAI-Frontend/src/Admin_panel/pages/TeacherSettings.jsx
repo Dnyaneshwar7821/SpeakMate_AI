@@ -2,22 +2,17 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ROUTES from "@constants/routes";
-import Modal from "@components/common/Modal";
 import {
     Settings as SettingsIcon,
-    Bell,
-    Globe,
     Moon,
     Shield,
     KeyRound,
     Database,
     HelpCircle,
-    Save,
     RotateCcw,
     ExternalLink,
     Check,
     AlertTriangle,
-    CreditCard,
     Cpu,
     CheckCircle2,
     Lock,
@@ -26,8 +21,6 @@ import {
     Laptop,
     Sun,
     Info,
-    Calendar,
-    ArrowUpRight,
     Edit2,
     X,
 } from "lucide-react";
@@ -38,21 +31,18 @@ import SectionCard from "@admin/components/SectionCard";
 import { useTheme } from "@/Admin_panel/context/ThemeContext";
 import { useAuth } from "@/Admin_panel/context/AuthContext";
 import { teacherDataApi } from "@services/admin/teacherDataApi";
+import PlatformIntegrationsManager from "@/frontend/admin-dashboard/components/PlatformIntegrationsManager";
 
 /**
- * admin-dashboard/pages/Settings.jsx
+ * TeacherSettings.jsx
  *
- * Highly polished SaaS Settings page with a responsive vertical layout
- * and 7 functional sections: General, Account & Security, Notifications,
- * Appearance, Billing & Subscription, Integrations, and Danger Zone.
+ * Highly polished SaaS Settings page aligned with Super Admin:
+ * 4 functional sections: Account & Security, Appearance, Integrations, and Danger Zone.
  */
 
 const TABS = [
-    { id: "general", label: "General", icon: Globe },
     { id: "account", label: "Account & Security", icon: Shield },
-    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "appearance", label: "Appearance", icon: Moon },
-    { id: "billing", label: "Billing & Subscription", icon: CreditCard },
     { id: "integrations", label: "Integrations", icon: Cpu },
     { id: "danger", label: "Danger Zone", icon: AlertTriangle },
 ];
@@ -77,18 +67,17 @@ export function TeacherSettings() {
 
     const { theme, setTheme, accent: accentColor, setAccent: setAccentColor, sidebarDensity, setSidebarDensity } = useTheme();
     const [activeTab, setActiveTab] = useState(() => {
-        return location.state?.activeTab || "general";
+        const stateTab = location.state?.activeTab;
+        if (stateTab && TABS.some((t) => t.id === stateTab)) return stateTab;
+        return "account";
     });
 
     useEffect(() => {
-        if (location.state?.activeTab) {
-            setActiveTab(location.state.activeTab);
-        } else {
-            const params = new URLSearchParams(location.search);
-            const tabParam = params.get("tab");
-            if (tabParam) {
-                setActiveTab(tabParam);
-            }
+        const target = location.state?.activeTab || new URLSearchParams(location.search).get("tab");
+        if (target && TABS.some((t) => t.id === target)) {
+            setActiveTab(target);
+        } else if (target) {
+            setActiveTab("account");
         }
     }, [location]);
     const [selectedThemeCard, setSelectedThemeCard] = useState(theme);
@@ -112,33 +101,7 @@ export function TeacherSettings() {
         onConfirm: null,
     });
 
-    // 1. General Tab States
-    const [platformName, setPlatformName] = useState("SpeakMateAI");
-    const [language, setLanguage] = useState("English");
-    const [timezone, setTimezone] = useState("Asia/Kolkata (IST)");
-    const [dateFormat, setDateFormat] = useState("MM/DD/YYYY");
-
-    const mapLanguageToUI = (code) => {
-        switch (code?.toLowerCase()) {
-            case "en": return "English";
-            case "es": return "Spanish";
-            case "fr": return "French";
-            case "hi": return "Hindi";
-            default: return "English";
-        }
-    };
-
-    const mapLanguageToBackend = (name) => {
-        switch (name) {
-            case "English": return "en";
-            case "Spanish": return "es";
-            case "French": return "fr";
-            case "Hindi": return "hi";
-            default: return "en";
-        }
-    };
-
-    // 2. Account & Security States
+    // Account & Security States
     const [passwords, setPasswords] = useState({
         current: "",
         new: "",
@@ -154,14 +117,6 @@ export function TeacherSettings() {
         { id: 3, device: "Firefox on macOS", location: "Noida, India", status: "3 days ago", current: false },
     ]);
 
-    // 3. Notifications States
-    const [notifications, setNotifications] = useState({
-        notificationsEnabled: true,
-        emailNotifications: true,
-        systemNotifications: true,
-    });
-
-
     // Fetch settings on mount
     useEffect(() => {
         let isMounted = true;
@@ -170,14 +125,8 @@ export function TeacherSettings() {
                 const res = await teacherDataApi.getSettings();
                 if (res?.success && res.data && isMounted) {
                     const d = res.data;
-                    setLanguage(mapLanguageToUI(d.language));
                     setTwoFactor(!!d.twoFactorEnabled);
                     setSessionTimeout(d.sessionTimeout || 30);
-                    setNotifications({
-                        notificationsEnabled: !!d.notificationsEnabled,
-                        emailNotifications: !!d.emailNotifications,
-                        systemNotifications: !!d.systemNotifications,
-                    });
                     const backendTheme = d.theme ? d.theme.toLowerCase() : "light";
                     setSelectedThemeCard(backendTheme);
                 }
@@ -186,47 +135,9 @@ export function TeacherSettings() {
             }
         };
 
-        const fetchBillingAndUsage = async () => {
-            try {
-                if (isMounted) {
-                    setActiveSchoolsCount(1);
-                }
-
-                // Fetch invoices safely without admin api calls
-                const invoiceRes = await teacherDataApi.getInvoices(0, 100);
-                if (invoiceRes?.success && invoiceRes.data?.content && isMounted) {
-                    const content = invoiceRes.data.content;
-                    if (content.length > 0) {
-                        const mappedInvoices = content.map((inv) => ({
-                            date: inv.invoiceDate ? new Date(inv.invoiceDate).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—",
-                            desc: `SpeakMate Subscription - Invoice ${inv.invoiceNumber}`,
-                            amount: `₹${inv.totalAmount || inv.amount}`,
-                            status: inv.invoiceStatus === "PAID" ? "Paid" : (inv.invoiceStatus === "UNPAID" ? "Unpaid" : "Pending"),
-                        }));
-                        setBillingHistory(mappedInvoices);
-                    }
-                }
-            } catch (err) {
-                console.error("Failed to load billing history:", err);
-            }
-        };
-
         fetchSettings();
-        fetchBillingAndUsage();
         return () => { isMounted = false; };
     }, []);
-
-    const handleSaveGeneral = async (e) => {
-        if (e) e.preventDefault();
-        try {
-            const langCode = mapLanguageToBackend(language);
-            await teacherDataApi.updateLanguage({ language: langCode });
-            triggerToast("General settings saved successfully!");
-        } catch (err) {
-            console.error("Failed to save language settings:", err);
-            triggerToast("Failed to save general settings.");
-        }
-    };
 
     const handleUpdatePassword = async (e) => {
         e.preventDefault();
@@ -296,23 +207,6 @@ export function TeacherSettings() {
         triggerToast(`Session on ${device} has been revoked.`);
     };
 
-    const toggleNotification = async (key) => {
-        const nextVal = !notifications[key];
-        const nextNotifications = { ...notifications, [key]: nextVal };
-        setNotifications(nextNotifications);
-        try {
-            await teacherDataApi.updateNotifications({
-                notificationsEnabled: nextNotifications.notificationsEnabled,
-                emailNotifications: nextNotifications.emailNotifications,
-                systemNotifications: nextNotifications.systemNotifications
-            });
-            triggerToast("Notification setting updated.");
-        } catch (err) {
-            console.error("Failed to update notifications:", err);
-            triggerToast("Failed to save notification setting.");
-        }
-    };
-
     const handleThemeChange = async (newTheme) => {
         setSelectedThemeCard(newTheme);
         let targetTheme = newTheme;
@@ -344,306 +238,7 @@ export function TeacherSettings() {
         triggerToast(`Sidebar density set to ${density}.`);
     };
 
-    // 5. Billing & Subscription States
-    const [activeSchoolsCount, setActiveSchoolsCount] = useState(12);
-    const [billingHistory, setBillingHistory] = useState([
-        { date: "Jul 24, 2026", desc: "Enterprise Plan Monthly Renewal", amount: "$299.00", status: "Paid" },
-        { date: "Jun 24, 2026", desc: "Enterprise Plan Monthly Renewal", amount: "$299.00", status: "Paid" },
-        { date: "May 24, 2026", desc: "Enterprise Plan Monthly Renewal", amount: "$299.00", status: "Paid" },
-        { date: "Apr 24, 2026", desc: "Platform Setup Fee", amount: "$499.00", status: "Paid" },
-    ]);
-
-    const [cardDetails, setCardDetails] = useState(() => {
-        const saved = localStorage.getItem("speakmate_admin_card");
-        return saved ? JSON.parse(saved) : {
-            brand: "Visa",
-            last4: "4242",
-            expiry: "08/2027"
-        };
-    });
-    const [cardModalOpen, setCardModalOpen] = useState(false);
-    const [cardForm, setCardForm] = useState({
-        number: "",
-        expiry: "",
-        brand: "Visa"
-    });
-
-    const handleUpdateCard = (e) => {
-        if (e) e.preventDefault();
-        if (!cardForm.number || !cardForm.expiry) {
-            triggerToast("Please fill in all card details.");
-            return;
-        }
-        const last4 = cardForm.number.replace(/\s+/g, "").slice(-4) || "4242";
-        const brand = cardForm.brand || "Visa";
-        const expiry = cardForm.expiry || "08/2027";
-        
-        const nextDetails = { brand, last4, expiry };
-        setCardDetails(nextDetails);
-        localStorage.setItem("speakmate_admin_card", JSON.stringify(nextDetails));
-        setCardModalOpen(false);
-        triggerToast("Payment method updated successfully!");
-    };
-
-    const handleDownloadPDF = (bill) => {
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) {
-            triggerToast("Pop-up blocker prevented invoice download. Please allow popups.");
-            return;
-        }
-
-        const invoiceNumber = `INV-2026-${Math.floor(100 + Math.random() * 900)}`;
-        const invoiceHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Invoice - SpeakMate AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            color: #1e293b;
-            background: #ffffff;
-            margin: 0;
-            padding: 40px;
-        }
-        .invoice-box {
-            max-width: 800px;
-            margin: auto;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 30px;
-            margin-bottom: 30px;
-        }
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-            color: #7c3aed;
-        }
-        .logo span {
-            color: #4f46e5;
-        }
-        .invoice-title {
-            text-align: right;
-        }
-        .invoice-title h1 {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 800;
-            color: #0f172a;
-            letter-spacing: -0.025em;
-        }
-        .invoice-title p {
-            margin: 5px 0 0;
-            font-size: 14px;
-            color: #64748b;
-        }
-        .details-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-        .details-block h3 {
-            margin: 0 0 10px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: #94a3b8;
-            font-weight: 700;
-        }
-        .details-block p {
-            margin: 0;
-            font-size: 14px;
-            line-height: 1.5;
-            color: #334155;
-        }
-        .table-container {
-            margin-bottom: 40px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-        th {
-            border-bottom: 2px solid #f1f5f9;
-            padding: 12px 16px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #64748b;
-        }
-        td {
-            border-bottom: 1px solid #f1f5f9;
-            padding: 16px;
-            font-size: 14px;
-            color: #334155;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .summary-container {
-            display: flex;
-            justify-content: flex-end;
-        }
-        .summary-box {
-            width: 300px;
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            font-size: 14px;
-            color: #64748b;
-        }
-        .summary-row.total {
-            border-top: 2px solid #f1f5f9;
-            padding-top: 12px;
-            margin-top: 8px;
-            font-size: 18px;
-            font-weight: 800;
-            color: #0f172a;
-        }
-        .footer {
-            margin-top: 60px;
-            text-align: center;
-            border-top: 1px solid #f1f5f9;
-            padding-top: 20px;
-            font-size: 12px;
-            color: #94a3b8;
-        }
-        @media print {
-            body {
-                padding: 0;
-            }
-            .invoice-box {
-                border: none;
-                box-shadow: none;
-                padding: 0;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="invoice-box">
-        <div class="header">
-            <div class="logo">SpeakMate<span>AI</span></div>
-            <div class="invoice-title">
-                <h1>INVOICE</h1>
-                <p>No: ${invoiceNumber}</p>
-            </div>
-        </div>
-        
-        <div class="details-grid">
-            <div class="details-block">
-                <h3>Supplier</h3>
-                <p><strong>SpeakMate AI Technologies, Inc.</strong><br>
-                100 Innovation Way, Suite 400<br>
-                San Francisco, CA 94107<br>
-                billing@speakmate.ai</p>
-            </div>
-            <div class="details-block">
-                <h3>Bill To</h3>
-                <p><strong>SpeakMate Admin Panel Customer</strong><br>
-                Primary Enterprise Workspace Owner<br>
-                admin@speakmate.ai</p>
-            </div>
-        </div>
-
-        <div class="details-grid" style="margin-bottom: 30px;">
-            <div class="details-block">
-                <h3>Invoice Date</h3>
-                <p>${bill.date}</p>
-            </div>
-            <div class="details-block">
-                <h3>Payment Status</h3>
-                <p style="color: #059669; font-weight: 600;">${bill.status}</p>
-            </div>
-        </div>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th class="text-right">Quantity</th>
-                        <th class="text-right">Unit Price</th>
-                        <th class="text-right">Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>${bill.desc}</td>
-                        <td class="text-right">1</td>
-                        <td class="text-right">${bill.amount}</td>
-                        <td class="text-right">${bill.amount}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="summary-container">
-            <div class="summary-box">
-                <div class="summary-row">
-                    <span>Subtotal</span>
-                    <span>${bill.amount}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Tax (0%)</span>
-                    <span>$0.00</span>
-                </div>
-                <div class="summary-row total">
-                    <span>Total</span>
-                    <span>${bill.amount}</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>Thank you for choosing SpeakMate AI! If you have any questions, please contact support.</p>
-            <p style="margin-top: 5px;">&copy; 2026 SpeakMate AI. All rights reserved.</p>
-        </div>
-    </div>
-    <script>
-        window.onload = function() {
-            window.print();
-        }
-    </script>
-</body>
-</html>
-        `;
-
-        printWindow.document.open();
-        printWindow.document.write(invoiceHtml);
-        printWindow.document.close();
-    };
-
-    // 6. Integrations States
-    const [integrations, setIntegrations] = useState({
-        google: true,
-        slack: false,
-        zoom: false,
-        stripe: true,
-    });
-
-    const toggleIntegration = (key, name) => {
-        setIntegrations((prev) => {
-            const nextVal = !prev[key];
-            triggerToast(`${name} is now ${nextVal ? "Connected" : "Disconnected"}.`);
-            return { ...prev, [key]: nextVal };
-        });
-    };
-
-    // 7. Danger Zone Trigger Methods
+    // Danger Zone Trigger Methods
     const handleResetPlatformData = () => {
         setConfirmDialog({
             isOpen: true,
@@ -754,71 +349,6 @@ export function TeacherSettings() {
                             exit={{ opacity: 0, x: -8 }}
                             transition={{ duration: 0.2 }}
                         >
-                            {/* GENERAL TAB */}
-                            {activeTab === "general" && (
-                                <SectionCard
-                                    title="General Settings"
-                                    subtitle="Configure default brand, language and region configurations"
-                                >
-                                    <form onSubmit={handleSaveGeneral} className="space-y-6 max-w-2xl">
-                                        <Input
-                                            label="Platform Name"
-                                            value={platformName}
-                                            onChange={(e) => setPlatformName(e.target.value)}
-                                        />
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-1.5">
-                                                <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">Default Language</span>
-                                                <select
-                                                    value={language}
-                                                    onChange={(e) => setLanguage(e.target.value)}
-                                                    className="form-control"
-                                                >
-                                                    <option value="English">English</option>
-                                                    <option value="Spanish">Spanish</option>
-                                                    <option value="French">French</option>
-                                                    <option value="Hindi">Hindi</option>
-                                                </select>
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">Timezone</span>
-                                                <select
-                                                    value={timezone}
-                                                    onChange={(e) => setTimezone(e.target.value)}
-                                                    className="form-control"
-                                                >
-                                                    <option value="Asia/Kolkata (IST)">Asia/Kolkata (IST)</option>
-                                                    <option value="UTC">UTC</option>
-                                                    <option value="America/New_York (EST)">America/New_York (EST)</option>
-                                                    <option value="Europe/London (GMT)">Europe/London (GMT)</option>
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <span className="block text-sm font-medium text-slate-700 dark:text-slate-200">Date Format</span>
-                                            <select
-                                                value={dateFormat}
-                                                onChange={(e) => setDateFormat(e.target.value)}
-                                                className="form-control"
-                                            >
-                                                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                                                <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                                <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                                            </select>
-                                        </div>
-
-                                        <div className="flex justify-end pt-3">
-                                            <Button type="submit">
-                                                <Save className="mr-1.5 h-4 w-4" />
-                                                Save Changes
-                                            </Button>
-                                        </div>
-                                    </form>
-                                </SectionCard>
-                            )}
-
                             {/* ACCOUNT & SECURITY TAB */}
                             {activeTab === "account" && (
                                 <div className="space-y-5 sm:space-y-6">
@@ -1013,88 +543,6 @@ export function TeacherSettings() {
                                 </div>
                             )}
 
-                            {/* NOTIFICATIONS TAB */}
-                            {activeTab === "notifications" && (
-                                <SectionCard
-                                    title="Notification Settings"
-                                    subtitle="Configure email and classroom alert preferences for teacher updates"
-                                >
-                                    <div className="space-y-4 max-w-2xl">
-                                        <div className="flex items-start justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
-                                            <div className="space-y-0.5">
-                                                <p className="text-sm font-semibold text-[var(--text-primary)]">Classroom Dashboard Notifications</p>
-                                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                    Enable or disable all notifications and alerts across the teacher workspace dashboard.
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                role="switch"
-                                                aria-checked={notifications.notificationsEnabled}
-                                                onClick={() => toggleNotification("notificationsEnabled")}
-                                                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                                                    notifications.notificationsEnabled ? "bg-[var(--color-primary)]" : "bg-[var(--border-strong)]"
-                                                }`}
-                                            >
-                                                <span
-                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                                                        notifications.notificationsEnabled ? "translate-x-6" : "translate-x-1"
-                                                    }`}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-start justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
-                                            <div className="space-y-0.5">
-                                                <p className="text-sm font-semibold text-[var(--text-primary)]">Automated Email Alerts</p>
-                                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                    Receive automated email digests and weekly summaries of assigned student progress.
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                role="switch"
-                                                aria-checked={notifications.emailNotifications}
-                                                onClick={() => toggleNotification("emailNotifications")}
-                                                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                                                    notifications.emailNotifications ? "bg-[var(--color-primary)]" : "bg-[var(--border-strong)]"
-                                                }`}
-                                            >
-                                                <span
-                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                                                        notifications.emailNotifications ? "translate-x-6" : "translate-x-1"
-                                                    }`}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-start justify-between gap-4 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4">
-                                            <div className="space-y-0.5">
-                                                <p className="text-sm font-semibold text-[var(--text-primary)]">Student Activity Alerts</p>
-                                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                    Display alerts when students complete exercises, vocabulary modules, or speaking sessions.
-                                                </p>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                role="switch"
-                                                aria-checked={notifications.systemNotifications}
-                                                onClick={() => toggleNotification("systemNotifications")}
-                                                className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
-                                                    notifications.systemNotifications ? "bg-[var(--color-primary)]" : "bg-[var(--border-strong)]"
-                                                }`}
-                                            >
-                                                <span
-                                                    className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                                                        notifications.systemNotifications ? "translate-x-6" : "translate-x-1"
-                                                    }`}
-                                                />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </SectionCard>
-                            )}
-
                             {/* APPEARANCE TAB */}
                             {activeTab === "appearance" && (
                                 <div className="space-y-5 sm:space-y-6">
@@ -1218,127 +666,16 @@ export function TeacherSettings() {
                                 </div>
                             )}
 
-                            {/* BILLING & SUBSCRIPTION TAB */}
-
                             {/* INTEGRATIONS TAB */}
                             {activeTab === "integrations" && (
                                 <SectionCard
                                     title="Platform Integrations"
-                                    subtitle="Connect external services to synchronize classroom and student data"
+                                    subtitle="Connect external services to synchronize classroom, payments, and student data"
                                 >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
-                                        {/* Google Calendar */}
-                                        <div className="flex flex-col justify-between p-4 border border-[var(--border-subtle)] bg-[var(--bg-surface)] rounded-xl space-y-4">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2.5">
-                                                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-blue-500/10 text-blue-600 text-sm font-bold">
-                                                        G
-                                                    </span>
-                                                    <h4 className="text-sm font-bold text-[var(--text-primary)]">Google Calendar</h4>
-                                                </div>
-                                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                    Synchronize speaking drills, mock class schedules and speaking practice dates with instructor calendars.
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-                                                <span className={`text-[11px] font-medium ${integrations.google ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                                                    {integrations.google ? "Connected" : "Disconnected"}
-                                                </span>
-                                                <Button
-                                                    variant={integrations.google ? "secondary" : "primary"}
-                                                    size="sm"
-                                                    className="!h-8 text-[11px]"
-                                                    onClick={() => toggleIntegration("google", "Google Calendar")}
-                                                >
-                                                    {integrations.google ? "Disconnect" : "Connect"}
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        {/* Slack */}
-                                        <div className="flex flex-col justify-between p-4 border border-[var(--border-subtle)] bg-[var(--bg-surface)] rounded-xl space-y-4">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2.5">
-                                                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-orange-500/10 text-orange-600 text-sm font-bold">
-                                                        S
-                                                    </span>
-                                                    <h4 className="text-sm font-bold text-[var(--text-primary)]">Slack Workspace</h4>
-                                                </div>
-                                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                    Dispatch critical billing failures, platform error alerts and license notifications directly to Slack channels.
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-                                                <span className={`text-[11px] font-medium ${integrations.slack ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                                                    {integrations.slack ? "Connected" : "Disconnected"}
-                                                </span>
-                                                <Button
-                                                    variant={integrations.slack ? "secondary" : "primary"}
-                                                    size="sm"
-                                                    className="!h-8 text-[11px]"
-                                                    onClick={() => toggleIntegration("slack", "Slack Workspace")}
-                                                >
-                                                    {integrations.slack ? "Disconnect" : "Connect"}
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        {/* Zoom */}
-                                        <div className="flex flex-col justify-between p-4 border border-[var(--border-subtle)] bg-[var(--bg-surface)] rounded-xl space-y-4">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2.5">
-                                                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-sky-500/10 text-sky-600 text-sm font-bold">
-                                                        Z
-                                                    </span>
-                                                    <h4 className="text-sm font-bold text-[var(--text-primary)]">Zoom Video API</h4>
-                                                </div>
-                                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                    Auto-generate online meeting rooms for virtual lectures, teacher-student speaking sessions, or grammar lessons.
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-                                                <span className={`text-[11px] font-medium ${integrations.zoom ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                                                    {integrations.zoom ? "Connected" : "Disconnected"}
-                                                </span>
-                                                <Button
-                                                    variant={integrations.zoom ? "secondary" : "primary"}
-                                                    size="sm"
-                                                    className="!h-8 text-[11px]"
-                                                    onClick={() => toggleIntegration("zoom", "Zoom Video API")}
-                                                >
-                                                    {integrations.zoom ? "Disconnect" : "Connect"}
-                                                </Button>
-                                            </div>
-                                        </div>
-
-                                        {/* Stripe */}
-                                        <div className="flex flex-col justify-between p-4 border border-[var(--border-subtle)] bg-[var(--bg-surface)] rounded-xl space-y-4">
-                                            <div className="space-y-2">
-                                                <div className="flex items-center gap-2.5">
-                                                    <span className="grid h-9 w-9 place-items-center rounded-lg bg-purple-500/10 text-purple-600 text-sm font-bold">
-                                                        S
-                                                    </span>
-                                                    <h4 className="text-sm font-bold text-[var(--text-primary)]">Stripe Gateway</h4>
-                                                </div>
-                                                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                                                    Process learner subscription payments, school invoicing, and view real-time platform revenue records.
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center justify-between border-t border-[var(--border-subtle)] pt-3">
-                                                <span className={`text-[11px] font-medium ${integrations.stripe ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                                                    {integrations.stripe ? "Connected" : "Disconnected"}
-                                                </span>
-                                                <Button
-                                                    variant={integrations.stripe ? "secondary" : "primary"}
-                                                    size="sm"
-                                                    className="!h-8 text-[11px]"
-                                                    onClick={() => toggleIntegration("stripe", "Stripe Gateway")}
-                                                >
-                                                    {integrations.stripe ? "Disconnect" : "Connect"}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <PlatformIntegrationsManager
+                                        role="TEACHER_ADMIN"
+                                        onToast={triggerToast}
+                                    />
                                 </SectionCard>
                             )}
 
@@ -1451,54 +788,6 @@ export function TeacherSettings() {
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            {/* Card Update Modal */}
-            <Modal
-                isOpen={cardModalOpen}
-                onClose={() => setCardModalOpen(false)}
-                title="Update Payment Method"
-                description="Provide your new primary credit card details"
-            >
-                <form onSubmit={handleUpdateCard} className="space-y-4">
-                    <div className="space-y-1.5">
-                        <label className="text-xs font-semibold text-[var(--text-secondary)]">Card Brand</label>
-                        <select
-                            value={cardForm.brand}
-                            onChange={(e) => setCardForm({ ...cardForm, brand: e.target.value })}
-                            className="w-full h-10 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-primary)]"
-                        >
-                            <option value="Visa">Visa</option>
-                            <option value="Mastercard">Mastercard</option>
-                            <option value="Amex">American Express</option>
-                            <option value="Discover">Discover</option>
-                        </select>
-                    </div>
-                    <Input
-                        label="Card Number"
-                        type="text"
-                        placeholder="1234 5678 1234 5678"
-                        maxLength="19"
-                        value={cardForm.number}
-                        onChange={(e) => setCardForm({ ...cardForm, number: e.target.value })}
-                    />
-                    <Input
-                        label="Expiration Date"
-                        type="text"
-                        placeholder="MM/YY"
-                        maxLength="5"
-                        value={cardForm.expiry}
-                        onChange={(e) => setCardForm({ ...cardForm, expiry: e.target.value })}
-                    />
-                    <div className="flex justify-end gap-3 mt-5">
-                        <Button type="button" variant="secondary" onClick={() => setCardModalOpen(false)}>
-                            Cancel
-                        </Button>
-                        <Button type="submit">
-                            Save Changes
-                        </Button>
-                    </div>
-                </form>
-            </Modal>
 
             {/* Cosmetic Toasts Notification Overlay */}
             <div className="fixed bottom-5 right-5 z-[150] flex flex-col gap-2 max-w-sm w-full">

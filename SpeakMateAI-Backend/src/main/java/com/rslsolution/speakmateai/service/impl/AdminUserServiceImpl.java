@@ -354,9 +354,26 @@ public class AdminUserServiceImpl implements AdminUserService {
 
         if (notificationService != null) {
             try {
-                notificationService.notifyAdmins("User Deleted", "User " + userName + " has been deleted by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.USER_DELETED, id, "USER");
+                com.rslsolution.speakmateai.enums.NotificationType notifType = com.rslsolution.speakmateai.enums.NotificationType.USER_DELETED;
+                String notifTitle = "User Deleted";
+                String notifMsg = "User " + userName + " has been deleted by Super Admin.";
+                String entityType = "USER";
+
+                if (user.getRole() == Role.TEACHER) {
+                    notifType = com.rslsolution.speakmateai.enums.NotificationType.TEACHER_DELETED;
+                    notifTitle = "Teacher Removed";
+                    notifMsg = "Teacher " + userName + " has been removed by Super Admin.";
+                    entityType = "TEACHER";
+                } else if (user.getRole() == Role.STUDENT) {
+                    notifType = com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED;
+                    notifTitle = "Student Removed";
+                    notifMsg = "Student " + userName + " has been removed by Super Admin.";
+                    entityType = "STUDENT";
+                }
+
+                notificationService.notifyAdmins(notifTitle, notifMsg, notifType, id, entityType);
                 if (schoolId != null) {
-                    notificationService.notifySchoolAdmins(schoolId, "User Deleted", "User " + userName + " has been deleted by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.USER_DELETED, id, "USER");
+                    notificationService.notifySchoolAdmins(schoolId, notifTitle, notifMsg, notifType, id, entityType);
                 }
             } catch (Exception ignored) {}
         }

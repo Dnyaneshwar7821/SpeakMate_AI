@@ -32,6 +32,7 @@ function getBreadcrumbs(pathname) {
         [ROUTES.TEACHER_REPORTS, "Reports"],
         [ROUTES.TEACHER_PROFILE, "Profile"],
         [ROUTES.TEACHER_SETTINGS, "Settings"],
+        [ROUTES.TEACHER_NOTIFICATIONS, "Notifications"],
     ].find(([path]) => path === pathname);
 
     return page
