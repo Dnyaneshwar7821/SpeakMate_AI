@@ -26,10 +26,12 @@ import {
   Square,
   Sparkles,
   Radio,
-  ChevronDown
+  ChevronDown,
+  Sliders
 } from "lucide-react";
 import Button from "@components/common/Button";
 import SectionCard from "@admin/components/SectionCard";
+import NotificationSettingsModal from "../components/NotificationSettingsModal";
 import { useNotifications } from "@hooks/useNotifications";
 import { useAuth } from "@/Admin_panel/context/AuthContext";
 import { handleViewNotificationDetails, getNotificationTarget } from "@utils/notificationNavigation";
@@ -133,11 +135,17 @@ export function NotificationsPage() {
     isConnected,
     isMuted,
     toggleMute,
+    settings,
+    updateSettings,
+    testSound,
     markAsRead,
     markMultipleAsRead,
     markAllAsRead,
     refreshNotifications
   } = useNotifications();
+
+  // Notification Preferences Modal State
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Role detection
   const userRole = (user?.role || "SUPER_ADMIN").toUpperCase();
@@ -208,11 +216,12 @@ export function NotificationsPage() {
     }
     // Teacher Admin
     return [
-      { id: "all", label: "My Activity", icon: Bell },
+      { id: "all", label: "All Activity", icon: Bell },
       { id: "unread", label: "Unread", icon: Check },
-      { id: "students", label: "My Students", icon: GraduationCap },
+      { id: "students", label: "Students", icon: GraduationCap },
       { id: "practice", label: "Speaking & Practice", icon: Mic },
-      { id: "assessments", label: "Assessments & Progress", icon: Sparkles }
+      { id: "assessments", label: "Assessments & Progress", icon: Sparkles },
+      { id: "security", label: "Security & System", icon: ShieldCheck }
     ];
   }, [isSuperAdmin, isSchoolAdmin, isTeacher]);
 
@@ -404,6 +413,17 @@ export function NotificationsPage() {
             {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
             <span>{isMuted ? "Chime Muted" : "Chime Active"}</span>
           </button>
+
+          {/* Notification Preferences Button */}
+          <Button
+            variant="secondary"
+            onClick={() => setIsSettingsOpen(true)}
+            className="!h-9 text-xs font-medium"
+            title="Notification preferences, sounds & channels"
+          >
+            <Sliders className="mr-1.5 h-3.5 w-3.5" />
+            Preferences
+          </Button>
 
           <Button
             variant="secondary"
@@ -807,6 +827,15 @@ export function NotificationsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Notification Settings Preferences Modal */}
+      <NotificationSettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onUpdateSettings={updateSettings}
+        onTestSound={testSound}
+      />
     </div>
   );
 }

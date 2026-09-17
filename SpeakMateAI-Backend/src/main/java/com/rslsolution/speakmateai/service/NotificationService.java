@@ -42,6 +42,12 @@ public interface NotificationService {
 
 	void notifySchoolAdmins(Long schoolId, String title, String message, NotificationType type, Long entityId, String entityType);
 
+	void notifyTeachersOfSchool(Long schoolId, String title, String message, NotificationType type, Long entityId, String entityType);
+
+	void notifyTeacher(Long teacherId, String title, String message, NotificationType type, Long entityId, String entityType);
+
+	void notifySchool(Long schoolId, String title, String message, NotificationType type, Long entityId, String entityType);
+
 	SseEmitter subscribeToStream(String email);
 
 	void clearAllNotifications();
