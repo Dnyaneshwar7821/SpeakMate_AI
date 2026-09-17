@@ -74,14 +74,9 @@ public class SecurityConfig {
 								"/api/users/send-delete-account-otp", "/api/users/verify-delete-account-otp",
 								"/api/users/delete-account",
 								"/api/users/forgot-password", "/api/users/verify-otp",
-<<<<<<< HEAD
 								"/api/users/reset-password", "/api/users/reset-password-with-temporary", "/api/users/reset-redirect",
-								"/api/users/register-expo-url", "/error")
-=======
-								"/api/users/reset-password", "/api/users/reset-redirect",
 								"/api/users/register-expo-url", "/error",
 								"/api/v1/integrations/**")
->>>>>>> 3e872bd9 (Align teacher settings and notifications with super admin)
 						.permitAll()
 
 						// Lesson read endpoints — public browse (progress/start/complete require JWT)
