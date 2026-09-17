@@ -104,7 +104,7 @@ export function ProgressKpiGrid({ summary, speaking, grammar, vocabulary, onScro
       id: "section-grammar",
       title: "Grammar Checks",
       value: `${summary.totalGrammarChecks ?? 0} Checks`,
-      subtitle: grammar?.averageScore != null ? `Avg: ${Math.round(grammar.averageScore)}% accuracy` : "No checks evaluated",
+      subtitle: (grammar?.averageGrammarScore ?? grammar?.averageScore) != null ? `Avg: ${Math.round(grammar.averageGrammarScore ?? grammar.averageScore)}% accuracy` : "No checks evaluated",
       details: "Interactive syntax & sentence checks",
       icon: SpellCheck,
       color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/30",

@@ -195,42 +195,43 @@ public class StudentProgressAnalyticsServiceImpl implements StudentProgressAnaly
                 .sum();
         int totalSpeakingMinutes = totalSpeakingSeconds / 60;
 
-        Double avgOverallScore = averageScore(speakingSessions.stream()
-                .map(s -> s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
+        // Filter sessions that have real evaluated speech results (exclude abandoned/un-scored sessions)
+        List<SpeakingSession> scoredSessions = speakingSessions.stream()
+                .filter(this::isEvaluatedSpeakingSession)
+                .toList();
+
+        Double avgOverallScore = averageScore(scoredSessions.stream()
+                .map(this::getEvaluatedSpeakingScore)
                 .filter(Objects::nonNull).toList());
 
-        Double avgFluencyScore = averageScore(speakingSessions.stream()
+        Double avgFluencyScore = averageScore(scoredSessions.stream()
                 .map(SpeakingSession::getFluencyScore)
-                .filter(Objects::nonNull).toList());
+                .filter(s -> s != null && s > 0).toList());
 
-        Double avgPronunciationScore = averageScore(speakingSessions.stream()
+        Double avgPronunciationScore = averageScore(scoredSessions.stream()
                 .map(SpeakingSession::getPronunciationScore)
-                .filter(Objects::nonNull).toList());
+                .filter(s -> s != null && s > 0).toList());
 
-        Double avgGrammarScoreFromSpeaking = averageScore(speakingSessions.stream()
+        Double avgGrammarScoreFromSpeaking = averageScore(scoredSessions.stream()
                 .map(SpeakingSession::getGrammarScore)
-                .filter(Objects::nonNull).toList());
+                .filter(s -> s != null && s > 0).toList());
 
-        Double avgVocabScoreFromSpeaking = averageScore(speakingSessions.stream()
+        Double avgVocabScoreFromSpeaking = averageScore(scoredSessions.stream()
                 .map(SpeakingSession::getVocabularyScore)
-                .filter(Objects::nonNull).toList());
+                .filter(s -> s != null && s > 0).toList());
 
-        Double bestSpeakingScore = speakingSessions.stream()
-                .map(s -> s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
+        Double bestSpeakingScore = scoredSessions.stream()
+                .map(this::getEvaluatedSpeakingScore)
                 .filter(Objects::nonNull)
                 .max(Double::compareTo)
                 .orElse(null);
 
         // Speaking Trend Calculation (Latest 3 valid sessions vs preceding valid sessions)
-        List<SpeakingSession> scoredSessions = speakingSessions.stream()
-                .filter(s -> (s.getOverallScore() != null || s.getScore() != null))
-                .toList();
-
         SpeakingAnalyticsDto.SpeakingTrendDto speakingTrend;
         if (scoredSessions.size() < 4) {
             speakingTrend = SpeakingAnalyticsDto.SpeakingTrendDto.builder()
                     .trendDirection(TrendDirection.INSUFFICIENT_DATA)
-                    .recentAverage(scoredSessions.isEmpty() ? null : roundOneDecimal(scoredSessions.get(0).getOverallScore() != null ? scoredSessions.get(0).getOverallScore() : scoredSessions.get(0).getScore()))
+                    .recentAverage(scoredSessions.isEmpty() ? null : roundOneDecimal(getEvaluatedSpeakingScore(scoredSessions.get(0))))
                     .previousAverage(null)
                     .change(null)
                     .description("At least 4 scored speaking sessions are required to evaluate a trend.")
@@ -240,10 +241,10 @@ public class StudentProgressAnalyticsServiceImpl implements StudentProgressAnaly
             List<SpeakingSession> previousList = scoredSessions.subList(3, scoredSessions.size());
 
             double recentAvg = recent3.stream()
-                    .mapToDouble(s -> s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
+                    .mapToDouble(this::getEvaluatedSpeakingScore)
                     .average().orElse(0.0);
             double prevAvg = previousList.stream()
-                    .mapToDouble(s -> s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
+                    .mapToDouble(this::getEvaluatedSpeakingScore)
                     .average().orElse(0.0);
 
             double change = roundOneDecimal(recentAvg - prevAvg);
@@ -291,7 +292,7 @@ public class StudentProgressAnalyticsServiceImpl implements StudentProgressAnaly
                             .scenario(s.getScenario() != null ? s.getScenario() : s.getTopic())
                             .topic(s.getTopic())
                             .durationSeconds(s.getDuration())
-                            .overallScore(s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
+                            .overallScore(getEvaluatedSpeakingScore(s))
                             .fluencyScore(s.getFluencyScore())
                             .pronunciationScore(s.getPronunciationScore())
                             .grammarScore(s.getGrammarScore())
@@ -387,8 +388,10 @@ public class StudentProgressAnalyticsServiceImpl implements StudentProgressAnaly
         GrammarAnalyticsDto grammarAnalytics = GrammarAnalyticsDto.builder()
                 .totalChecks(totalGrammarChecks)
                 .averageGrammarScore(avgGrammarScore)
+                .averageScore(avgGrammarScore)
                 .grammarTrend(grammarTrend)
                 .recentGrammarChecks(recentGrammarList)
+                .recentChecks(recentGrammarList)
                 .build();
 
         // 6. Vocabulary Analytics (Bug Fixed: strictly uses v.getMastered())
@@ -1020,11 +1023,11 @@ public class StudentProgressAnalyticsServiceImpl implements StudentProgressAnaly
         List<TimeSeriesAnalyticsDto.SpeakingPoint> speakingPoints = Collections.emptyList();
         if (speakingList != null) {
             speakingPoints = speakingList.stream()
-                    .filter(s -> s.getCreatedAt() != null && (s.getOverallScore() != null || s.getScore() != null))
+                    .filter(s -> s.getCreatedAt() != null && isEvaluatedSpeakingSession(s))
                     .sorted(Comparator.comparing(SpeakingSession::getCreatedAt))
                     .map(s -> TimeSeriesAnalyticsDto.SpeakingPoint.builder()
                             .date(s.getCreatedAt())
-                            .overallScore(s.getOverallScore() != null ? s.getOverallScore() : s.getScore())
+                            .overallScore(getEvaluatedSpeakingScore(s))
                             .fluencyScore(s.getFluencyScore())
                             .pronunciationScore(s.getPronunciationScore())
                             .build())
@@ -1102,5 +1105,18 @@ public class StudentProgressAnalyticsServiceImpl implements StudentProgressAnaly
 
     private double roundOneDecimal(double val) {
         return Math.round(val * 10.0) / 10.0;
+    }
+
+    private boolean isEvaluatedSpeakingSession(SpeakingSession s) {
+        if (s == null) return false;
+        if (s.getOverallScore() != null && s.getOverallScore() > 0) return true;
+        return Boolean.TRUE.equals(s.getCompleted()) && s.getScore() != null && s.getScore() > 0;
+    }
+
+    private Double getEvaluatedSpeakingScore(SpeakingSession s) {
+        if (s == null) return null;
+        if (s.getOverallScore() != null && s.getOverallScore() > 0) return s.getOverallScore();
+        if (Boolean.TRUE.equals(s.getCompleted()) && s.getScore() != null && s.getScore() > 0) return s.getScore();
+        return null;
     }
 }

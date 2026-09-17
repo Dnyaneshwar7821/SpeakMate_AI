@@ -27,14 +27,24 @@ export function SpeakingAnalyticsSection({ speaking, timeSeries }) {
 
   // Use the actual Phase 2 DTO field name: timeSeries.speakingTrend
   const trendPoints = Array.isArray(timeSeries?.speakingTrend) ? timeSeries.speakingTrend : [];
-  const chartData = trendPoints.map((pt, idx) => ({
-    name: pt.date
-      ? new Date(pt.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-      : `Session ${idx + 1}`,
-    overall: pt.overallScore != null ? Math.round(pt.overallScore) : null,
-    fluency: pt.fluencyScore != null ? Math.round(pt.fluencyScore) : null,
-    pronunciation: pt.pronunciationScore != null ? Math.round(pt.pronunciationScore) : null,
-  }));
+  const chartData = trendPoints.map((pt, idx) => {
+    const dateObj = pt.date ? new Date(pt.date) : null;
+    const dateLabel = dateObj
+      ? dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+      : `Session ${idx + 1}`;
+    const timeLabel = dateObj
+      ? dateObj.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+      : "";
+    return {
+      idx,
+      name: dateLabel,
+      time: timeLabel,
+      fullDate: dateObj ? `${dateLabel}, ${timeLabel}` : `Session ${idx + 1}`,
+      overall: pt.overallScore != null ? Math.round(pt.overallScore) : null,
+      fluency: pt.fluencyScore != null ? Math.round(pt.fluencyScore) : null,
+      pronunciation: pt.pronunciationScore != null ? Math.round(pt.pronunciationScore) : null,
+    };
+  });
 
   const trend = speaking.speakingTrend;
 
@@ -198,8 +208,14 @@ export function SpeakingAnalyticsSection({ speaking, timeSeries }) {
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 10, fill: "#64748b" }}
-                  interval="preserveStartEnd"
+                  interval={0}
                   stroke="#64748b"
+                  tickFormatter={(val, idx) => {
+                    if (idx > 0 && chartData[idx - 1]?.name === val) {
+                      return "";
+                    }
+                    return val;
+                  }}
                 />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#64748b" }} stroke="#64748b" />
                 <Tooltip
@@ -209,6 +225,10 @@ export function SpeakingAnalyticsSection({ speaking, timeSeries }) {
                     borderRadius: "10px",
                     color: "#f8fafc",
                     fontSize: "12px",
+                  }}
+                  labelFormatter={(label, items) => {
+                    const payload = items?.[0]?.payload;
+                    return payload?.fullDate || label;
                   }}
                   formatter={(val, name) => [`${val}%`, String(name).toUpperCase()]}
                 />

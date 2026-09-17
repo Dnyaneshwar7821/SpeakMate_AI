@@ -25,13 +25,25 @@ export function GrammarAnalyticsSection({ grammar, timeSeries }) {
 
   // Use the actual Phase 2 DTO field name: timeSeries.grammarTrend
   const trendPoints = Array.isArray(timeSeries?.grammarTrend) ? timeSeries.grammarTrend : [];
-  const chartData = trendPoints.map((pt, idx) => ({
-    name: pt.date
-      ? new Date(pt.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-      : `Check ${idx + 1}`,
-    score: pt.grammarScore != null ? Math.round(pt.grammarScore) : null,
-  }));
+  const chartData = trendPoints.map((pt, idx) => {
+    const dateObj = pt.date ? new Date(pt.date) : null;
+    const dateLabel = dateObj
+      ? dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+      : `Check ${idx + 1}`;
+    const timeLabel = dateObj
+      ? dateObj.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+      : "";
+    return {
+      idx,
+      name: dateLabel,
+      time: timeLabel,
+      fullDate: dateObj ? `${dateLabel}, ${timeLabel}` : `Check ${idx + 1}`,
+      score: pt.grammarScore != null ? Math.round(pt.grammarScore) : null,
+    };
+  });
 
+  const avgAccuracy = grammar.averageGrammarScore ?? grammar.averageScore;
+  const recentChecksList = grammar.recentGrammarChecks || grammar.recentChecks || [];
   const trend = grammar.grammarTrend;
 
   const renderTrendBanner = () => {
@@ -123,7 +135,7 @@ export function GrammarAnalyticsSection({ grammar, timeSeries }) {
               Average Accuracy
             </span>
             <span className="font-black text-emerald-600 dark:text-emerald-400">
-              {grammar.averageScore != null ? `${Math.round(grammar.averageScore)}%` : "—"}
+              {avgAccuracy != null ? `${Math.round(avgAccuracy)}%` : "—"}
             </span>
           </div>
         </div>
@@ -163,8 +175,14 @@ export function GrammarAnalyticsSection({ grammar, timeSeries }) {
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 10, fill: "#64748b" }}
-                  interval="preserveStartEnd"
+                  interval={0}
                   stroke="#64748b"
+                  tickFormatter={(val, idx) => {
+                    if (idx > 0 && chartData[idx - 1]?.name === val) {
+                      return "";
+                    }
+                    return val;
+                  }}
                 />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 10, fill: "#64748b" }} stroke="#64748b" />
                 <Tooltip
@@ -174,6 +192,10 @@ export function GrammarAnalyticsSection({ grammar, timeSeries }) {
                     borderRadius: "10px",
                     color: "#f8fafc",
                     fontSize: "12px",
+                  }}
+                  labelFormatter={(label, items) => {
+                    const payload = items?.[0]?.payload;
+                    return payload?.fullDate || label;
                   }}
                   formatter={(val) => [`${val}%`, "Accuracy Score"]}
                 />
@@ -199,7 +221,7 @@ export function GrammarAnalyticsSection({ grammar, timeSeries }) {
       </div>
 
       {/* Recent Grammar Checks Toggle */}
-      {grammar.recentChecks && grammar.recentChecks.length > 0 && (
+      {recentChecksList.length > 0 && (
         <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
           <button
             type="button"
@@ -209,13 +231,13 @@ export function GrammarAnalyticsSection({ grammar, timeSeries }) {
             onClick={() => setShowRecent(!showRecent)}
             className="flex items-center justify-between w-full text-left text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 rounded-lg p-1"
           >
-            <span>Recent Grammar Checks ({grammar.recentChecks.length})</span>
+            <span>Recent Grammar Checks ({recentChecksList.length})</span>
             {showRecent ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
           </button>
 
           {showRecent && (
             <div id="recent-grammar-checks-list" role="region" aria-labelledby="recent-grammar-toggle" className="mt-3 space-y-2.5">
-              {grammar.recentChecks.map((c, idx) => (
+              {recentChecksList.map((c, idx) => (
                 <div
                   key={c.id || idx}
                   className="rounded-xl border border-slate-100 dark:border-slate-800 p-3.5 bg-slate-50/50 dark:bg-slate-800/30 text-xs space-y-2"

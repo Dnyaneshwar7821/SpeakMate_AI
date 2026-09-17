@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   BookOpen,
-  Sparkles,
-  ChevronDown,
-  ChevronUp
+  Sparkles
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -17,19 +15,27 @@ import {
 } from "recharts";
 
 export function VocabularyAnalyticsSection({ vocabulary, timeSeries }) {
-  const [showRecent, setShowRecent] = useState(false);
-
   if (!vocabulary) return null;
 
   // Use the actual Phase 2 DTO field name: timeSeries.vocabularyGrowth
   const trendPoints = Array.isArray(timeSeries?.vocabularyGrowth) ? timeSeries.vocabularyGrowth : [];
-  const chartData = trendPoints.map((pt, idx) => ({
-    name: pt.date
-      ? new Date(pt.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })
-      : `Day ${idx + 1}`,
-    total: pt.cumulativeWords ?? 0,
-    mastered: pt.masteredWords ?? 0,
-  }));
+  const chartData = trendPoints.map((pt, idx) => {
+    const dateObj = pt.date ? new Date(pt.date) : null;
+    const dateLabel = dateObj
+      ? dateObj.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+      : `Point ${idx + 1}`;
+    const timeLabel = dateObj
+      ? dateObj.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
+      : "";
+    return {
+      idx,
+      name: dateLabel,
+      time: timeLabel,
+      fullDate: dateObj ? `${dateLabel}, ${timeLabel}` : `Point ${idx + 1}`,
+      total: pt.cumulativeWords ?? 0,
+      mastered: pt.masteredWords ?? 0,
+    };
+  });
 
   const totalWords = vocabulary.totalWords ?? 0;
   const masteredWords = vocabulary.masteredWords ?? 0;
@@ -146,8 +152,14 @@ export function VocabularyAnalyticsSection({ vocabulary, timeSeries }) {
                 <XAxis
                   dataKey="name"
                   tick={{ fontSize: 10, fill: "#64748b" }}
-                  interval="preserveStartEnd"
+                  interval={0}
                   stroke="#64748b"
+                  tickFormatter={(val, idx) => {
+                    if (idx > 0 && chartData[idx - 1]?.name === val) {
+                      return "";
+                    }
+                    return val;
+                  }}
                 />
                 <YAxis tick={{ fontSize: 10, fill: "#64748b" }} stroke="#64748b" />
                 <Tooltip
@@ -157,6 +169,10 @@ export function VocabularyAnalyticsSection({ vocabulary, timeSeries }) {
                     borderRadius: "10px",
                     color: "#f8fafc",
                     fontSize: "12px",
+                  }}
+                  labelFormatter={(label, items) => {
+                    const payload = items?.[0]?.payload;
+                    return payload?.fullDate || label;
                   }}
                   formatter={(val, name) => [`${val} words`, name === "total" ? "Total Logged" : "Mastered"]}
                 />
@@ -191,67 +207,6 @@ export function VocabularyAnalyticsSection({ vocabulary, timeSeries }) {
           </div>
         )}
       </div>
-
-      {/* Recent Vocabulary Words Toggle */}
-      {vocabulary.recentVocabulary && vocabulary.recentVocabulary.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button
-            type="button"
-            id="recent-vocabulary-toggle"
-            aria-expanded={showRecent}
-            aria-controls="recent-vocabulary-list"
-            onClick={() => setShowRecent(!showRecent)}
-            className="flex items-center justify-between w-full text-left text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg p-1"
-          >
-            <span>Recently Added Vocabulary ({vocabulary.recentVocabulary.length})</span>
-            {showRecent ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
-
-          {showRecent && (
-            <div id="recent-vocabulary-list" role="region" aria-labelledby="recent-vocabulary-toggle" className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {vocabulary.recentVocabulary.map((v, idx) => (
-                <div
-                  key={v.id || idx}
-                  className="rounded-xl border border-slate-100 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-800/30 text-xs flex items-start justify-between gap-3"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-black text-slate-900 dark:text-white capitalize">
-                        {v.word}
-                      </span>
-                      {v.partOfSpeech && (
-                        <span className="text-[10px] italic text-slate-500 font-serif">
-                          ({v.partOfSpeech})
-                        </span>
-                      )}
-                      {v.level && (
-                        <span className="text-[9px] font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-1.5 py-0.2 rounded">
-                          {v.level}
-                        </span>
-                      )}
-                    </div>
-                    {v.meaning && (
-                      <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1">
-                        {v.meaning}
-                      </p>
-                    )}
-                  </div>
-
-                  <span
-                    className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      v.mastered
-                        ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800"
-                        : "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400 border border-blue-200 dark:border-blue-800"
-                    }`}
-                  >
-                    {v.mastered ? "Mastered" : "Learning"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

@@ -15,8 +15,10 @@ import lombok.NoArgsConstructor;
 public class GrammarAnalyticsDto {
     private Integer totalChecks;
     private Double averageGrammarScore;
+    private Double averageScore; // Alias for averageGrammarScore
     private GrammarTrendDto grammarTrend;
     private List<RecentGrammarCheckDto> recentGrammarChecks;
+    private List<RecentGrammarCheckDto> recentChecks; // Alias for recentGrammarChecks
 
     @Data
     @Builder
