@@ -44,8 +44,10 @@ SpeakMate AI/.env
 *.sw?
 .DS_Store
 
-# --- Redundant nested clones ---
+# --- Redundant nested clones & deprecated folders ---
 SpeakMate AI/Admin_dashboard/
+Admin_Backend/
+Admin_Frontend/
 
 
 # --- Environment & Credentials ---
