@@ -177,8 +177,10 @@ public class UserServiceAccountLifecycleTest {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> otpMap = (Map<String, Object>) otpMapField.get(userService);
 
-		Class<?> otpDetailsClass = Class.forName("com.rslsolution.speakmateai.service.impl.UserServiceImpl$RegistrationOtpDetails");
-		java.lang.reflect.Constructor<?> constructor = otpDetailsClass.getDeclaredConstructor(String.class, LocalDateTime.class);
+		Class<?> otpDetailsClass = Class
+				.forName("com.rslsolution.speakmateai.service.impl.UserServiceImpl$RegistrationOtpDetails");
+		java.lang.reflect.Constructor<?> constructor = otpDetailsClass.getDeclaredConstructor(String.class,
+				LocalDateTime.class);
 		constructor.setAccessible(true);
 		Object otpDetailsObj = constructor.newInstance("123456", LocalDateTime.now().plusMinutes(10));
 		otpMap.put(testEmail, otpDetailsObj);
@@ -224,7 +226,8 @@ public class UserServiceAccountLifecycleTest {
 		assertEquals("new.jwt.token", newAuth.getToken());
 
 		// Old password fails
-		assertThrows(InvalidCredentialsException.class, () -> userService.login(new LoginRequest(testEmail, oldPassword)));
+		assertThrows(InvalidCredentialsException.class,
+				() -> userService.login(new LoginRequest(testEmail, oldPassword)));
 	}
 
 	@Test
@@ -251,7 +254,8 @@ public class UserServiceAccountLifecycleTest {
 		@SuppressWarnings("unchecked")
 		Map<String, Object> deleteMap = (Map<String, Object>) deleteMapField.get(null);
 
-		Class<?> detailsClass = Class.forName("com.rslsolution.speakmateai.service.impl.UserServiceImpl$RegistrationOtpDetails");
+		Class<?> detailsClass = Class
+				.forName("com.rslsolution.speakmateai.service.impl.UserServiceImpl$RegistrationOtpDetails");
 		var constructor = detailsClass.getDeclaredConstructor(String.class, LocalDateTime.class);
 		constructor.setAccessible(true);
 
@@ -260,7 +264,8 @@ public class UserServiceAccountLifecycleTest {
 
 		// 2. Verification with wrong OTP throws IllegalArgumentException
 		VerifyOtpRequest wrongOtpReq = new VerifyOtpRequest(testEmail, "000000");
-		IllegalArgumentException wrongEx = assertThrows(IllegalArgumentException.class, () -> userService.verifyDeleteAccountOtp(wrongOtpReq));
+		IllegalArgumentException wrongEx = assertThrows(IllegalArgumentException.class,
+				() -> userService.verifyDeleteAccountOtp(wrongOtpReq));
 		assertEquals("The 6-digit OTP code is incorrect. Please check your email.", wrongEx.getMessage());
 
 		// 3. Verification with valid OTP succeeds
@@ -271,12 +276,16 @@ public class UserServiceAccountLifecycleTest {
 
 		// 4. Verification with expired OTP throws IllegalArgumentException
 		deleteMap.put(testEmail, constructor.newInstance("654321", LocalDateTime.now().minusMinutes(1)));
-		IllegalArgumentException expiredEx = assertThrows(IllegalArgumentException.class, () -> userService.verifyDeleteAccountOtp(validOtpReq));
-		assertEquals("The OTP verification code has expired. Please tap 'Resend Code' to get a new code.", expiredEx.getMessage());
+		IllegalArgumentException expiredEx = assertThrows(IllegalArgumentException.class,
+				() -> userService.verifyDeleteAccountOtp(validOtpReq));
+		assertEquals("The OTP verification code has expired. Please tap 'Resend Code' to get a new code.",
+				expiredEx.getMessage());
 
 		// 5. Verification when no OTP exists throws IllegalArgumentException
 		deleteMap.remove(testEmail);
-		IllegalArgumentException noneEx = assertThrows(IllegalArgumentException.class, () -> userService.verifyDeleteAccountOtp(validOtpReq));
-		assertEquals("No active OTP code found for this email. Please tap 'Send Code' to receive a code.", noneEx.getMessage());
+		IllegalArgumentException noneEx = assertThrows(IllegalArgumentException.class,
+				() -> userService.verifyDeleteAccountOtp(validOtpReq));
+		assertEquals("No active OTP code found for this email. Please tap 'Send Code' to receive a code.",
+				noneEx.getMessage());
 	}
 }

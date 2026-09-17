@@ -92,12 +92,15 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		try {
 			return speakingSessionRepository.save(session);
 		} catch (Exception e) {
-			// If legacy foreign key constraint pointing to students table is encountered, drop it dynamically and retry
+			// If legacy foreign key constraint pointing to students table is encountered,
+			// drop it dynamically and retry
 			try {
 				if (jdbcTemplate != null) {
-					jdbcTemplate.execute("ALTER TABLE IF EXISTS speaking_sessions DROP CONSTRAINT IF EXISTS fkbtsorovntca8vl5eslvcwfwf3 CASCADE");
+					jdbcTemplate.execute(
+							"ALTER TABLE IF EXISTS speaking_sessions DROP CONSTRAINT IF EXISTS fkbtsorovntca8vl5eslvcwfwf3 CASCADE");
 				}
-			} catch (Exception ignored) {}
+			} catch (Exception ignored) {
+			}
 			return speakingSessionRepository.save(session);
 		}
 	}
@@ -106,7 +109,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 	private User currentUser() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getName())) {
+		if (authentication == null || !authentication.isAuthenticated()
+				|| "anonymousUser".equals(authentication.getName())) {
 			throw new UserNotFoundException("User not authenticated");
 		}
 		return userRepository.findByEmail(authentication.getName())
@@ -116,8 +120,7 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	private static final List<String> FALLBACK_MODELS = List.of(
 			"openai/gpt-oss-120b",
 			"qwen/qwen3.6-27b",
-			"openai/gpt-oss-20b"
-	);
+			"openai/gpt-oss-20b");
 
 	private String callGroqChat(List<GroqRequest.Message> messages) {
 		List<String> modelsToTry = new ArrayList<>();
@@ -151,13 +154,16 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				// If 429 rate limit or error, automatically try the next model in the cascade!
 			}
 		}
-		throw new GroqException("Groq API Call failed on all models: " + (lastException != null ? lastException.getMessage() : "Unknown"));
+		throw new GroqException("Groq API Call failed on all models: "
+				+ (lastException != null ? lastException.getMessage() : "Unknown"));
 	}
 
 	private String stripReasoning(String text) {
-		if (text == null) return "";
+		if (text == null)
+			return "";
 		String clean = text.replaceAll("(?s)<think>.*?</think>", "").trim();
-		if (clean.contains("Analyze User Input:") || clean.contains("Identify Key Constraints:") || clean.contains("Context:") || clean.contains("**Analyze")) {
+		if (clean.contains("Analyze User Input:") || clean.contains("Identify Key Constraints:")
+				|| clean.contains("Context:") || clean.contains("**Analyze")) {
 			int idx = clean.lastIndexOf("\n\n");
 			if (idx != -1 && idx < clean.length() - 1) {
 				String candidate = clean.substring(idx).trim();
@@ -171,7 +177,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	}
 
 	private String cleanJsonResponse(String response) {
-		if (response == null) return "{}";
+		if (response == null)
+			return "{}";
 		String trimmed = response.replaceAll("(?s)<think>.*?</think>", "").trim();
 
 		// Find first '{' and last '}' to extract JSON block cleanly
@@ -193,30 +200,29 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	}
 
 	private String extractFieldFromJson(String json, String fieldName) {
-		if (json == null || !json.contains(fieldName)) return null;
+		if (json == null || !json.contains(fieldName))
+			return null;
 		try {
 			// Try quoted string pattern first (handles multi-line values using DOTALL)
 			java.util.regex.Pattern quotedPattern = java.util.regex.Pattern.compile(
 					"\"" + fieldName + "\"\\s*:\\s*\"(.*?)\"\\s*(?=,|\\n|\\r|\\})",
-					java.util.regex.Pattern.DOTALL | java.util.regex.Pattern.CASE_INSENSITIVE
-			);
+					java.util.regex.Pattern.DOTALL | java.util.regex.Pattern.CASE_INSENSITIVE);
 			java.util.regex.Matcher matcher = quotedPattern.matcher(json);
 			if (matcher.find()) {
 				String val = matcher.group(1);
 				// Unescape common JSON escapes
 				val = val.replace("\\\"", "\"")
-						 .replace("\\n", "\n")
-						 .replace("\\r", "\r")
-						 .replace("\\t", "\t")
-						 .replace("\\\\", "\\");
+						.replace("\\n", "\n")
+						.replace("\\r", "\r")
+						.replace("\\t", "\t")
+						.replace("\\\\", "\\");
 				return val.trim();
 			}
 
 			// Try unquoted pattern (like null, numbers, booleans)
 			java.util.regex.Pattern unquotedPattern = java.util.regex.Pattern.compile(
 					"\"" + fieldName + "\"\\s*:\\s*([^,\\}\\s]+)",
-					java.util.regex.Pattern.CASE_INSENSITIVE
-			);
+					java.util.regex.Pattern.CASE_INSENSITIVE);
 			matcher = unquotedPattern.matcher(json);
 			if (matcher.find()) {
 				String val = matcher.group(1).trim();
@@ -241,7 +247,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		double fluencyScore = request.getFluencyScore() != null ? request.getFluencyScore() : overallScore;
 		double grammarScore = request.getGrammarScore() != null ? request.getGrammarScore() : overallScore;
 		double vocabularyScore = request.getVocabularyScore() != null ? request.getVocabularyScore() : overallScore;
-		double pronunciationScore = request.getPronunciationScore() != null ? request.getPronunciationScore() : overallScore;
+		double pronunciationScore = request.getPronunciationScore() != null ? request.getPronunciationScore()
+				: overallScore;
 		int xp = request.getXpEarned() != null ? request.getXpEarned() : 15;
 		int duration = request.getDuration() != null ? request.getDuration() : 60;
 		String scenario = request.getScenario() != null ? request.getScenario() : request.getTopic();
@@ -297,8 +304,11 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 							.totalVocabularyWords(0)
 							.build());
 			int sessionMinutes = (int) Math.max(1, Math.ceil(duration / 60.0));
-			progress.setTotalPracticeMinutes((progress.getTotalPracticeMinutes() == null ? 0 : progress.getTotalPracticeMinutes()) + sessionMinutes);
-			progress.setTotalSpeakingSessions((progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
+			progress.setTotalPracticeMinutes(
+					(progress.getTotalPracticeMinutes() == null ? 0 : progress.getTotalPracticeMinutes())
+							+ sessionMinutes);
+			progress.setTotalSpeakingSessions(
+					(progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
 			int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + xp;
 			progress.setXp(newXp);
 			progress.setLevel(Math.max(1, (newXp / 500) + 1));
@@ -332,13 +342,15 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				.orElseThrow(() -> new SpeakingSessionNotFoundException("Speaking session not found"));
 		try {
 			feedbackRepository.findBySession(session).ifPresent(feedbackRepository::delete);
-		} catch (Exception ignored) {}
+		} catch (Exception ignored) {
+		}
 		try {
 			List<ConversationMessage> msgs = messageRepository.findBySessionOrderByTimestampAsc(session);
 			if (msgs != null && !msgs.isEmpty()) {
 				messageRepository.deleteAll(msgs);
 			}
-		} catch (Exception ignored) {}
+		} catch (Exception ignored) {
+		}
 		speakingSessionRepository.delete(session);
 	}
 
@@ -361,7 +373,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	// ── Phase 2 — Speaking practice module ────────────────────────────
 
 	private String getDefaultScenarioOpening(String scenario) {
-		if (scenario == null) return "Hello! Welcome to our speaking practice session. How are you doing today?";
+		if (scenario == null)
+			return "Hello! Welcome to our speaking practice session. How are you doing today?";
 		String s = scenario.toLowerCase();
 
 		// Kids
@@ -419,9 +432,11 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			return "Hi there! Welcome to the cafe. What specialty coffee or tea can I brew for you today?";
 		} else if (s.contains("hotel") || s.contains("check-in")) {
 			return "Good day and welcome to our hotel! Are you checking in under a reservation today?";
-		} else if (s.contains("airport") || s.contains("customs") || s.contains("backpacking") || s.contains("travel")) {
+		} else if (s.contains("airport") || s.contains("customs") || s.contains("backpacking")
+				|| s.contains("travel")) {
 			return "Good day! Welcome to airport check-in. May I see your passport and travel documents, please?";
-		} else if (s.contains("job interview") || s.contains("admission interview") || s.contains("part-time job") || s.contains("interview")) {
+		} else if (s.contains("job interview") || s.contains("admission interview") || s.contains("part-time job")
+				|| s.contains("interview")) {
 			return "Welcome and thank you for meeting with us today! To begin, could you please introduce yourself and tell us what interests you about this role?";
 		} else if (s.contains("roommate") || s.contains("hostel") || s.contains("apartment")) {
 			return "Hi there! It's great to meet you. Shall we discuss our room layout, shared chores, and daily schedules?";
@@ -432,7 +447,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		}
 
 		// Professionals & Seniors
-		else if (s.contains("office small talk") || s.contains("business meeting") || s.contains("meeting") || s.contains("business")) {
+		else if (s.contains("office small talk") || s.contains("business meeting") || s.contains("meeting")
+				|| s.contains("business")) {
 			return "Good morning! Thank you for joining our session today. Shall we review the key project milestones and agenda items?";
 		} else if (s.contains("salary") || s.contains("contract negotiation")) {
 			return "Good afternoon. Thank you for taking the time to discuss the offer. What aspects of the compensation package would you like to review?";
@@ -448,7 +464,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			return "Hello! Welcome to our daily conversation practice. How has your day been going so far?";
 		}
 
-		String cleanScenario = (scenario != null ? scenario : "").replaceAll("(?i)\\b(conversation|practice|session)\\b", "").trim();
+		String cleanScenario = (scenario != null ? scenario : "")
+				.replaceAll("(?i)\\b(conversation|practice|session)\\b", "").trim();
 		String prefix = cleanScenario.isEmpty() ? "" : cleanScenario + " ";
 		return "Hello! Welcome to our " + prefix + "conversation practice. What would you like to start with?";
 	}
@@ -457,9 +474,10 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	public SpeakingSessionResponse startSession(SpeakingStartRequest request) {
 		User user = currentUser();
 
-		String scenarioName = (request != null && request.getScenario() != null && !request.getScenario().trim().isEmpty())
-				? request.getScenario().trim()
-				: "Daily Conversation";
+		String scenarioName = (request != null && request.getScenario() != null
+				&& !request.getScenario().trim().isEmpty())
+						? request.getScenario().trim()
+						: "Daily Conversation";
 
 		SpeakingSession session = SpeakingSession.builder()
 				.user(user)
@@ -480,11 +498,11 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			List<GroqRequest.Message> messages = new ArrayList<>();
 			String sysPrompt = String.format(
 					"You are an English tutor roleplaying the opening of the scenario: '%s'.\n" +
-					"Immediately greet the student in-character (e.g. as a friendly waiter, interviewer, hotel clerk, or conversation partner).\n" +
-					"Ask an engaging opening question to start the dialogue.\n" +
-					"Keep it warm, natural, and under 2 sentences. Never output JSON, chain of thought, or formatting tags.",
-					scenarioName
-			);
+							"Immediately greet the student in-character (e.g. as a friendly waiter, interviewer, hotel clerk, or conversation partner).\n"
+							+
+							"Ask an engaging opening question to start the dialogue.\n" +
+							"Keep it warm, natural, and under 2 sentences. Never output JSON, chain of thought, or formatting tags.",
+					scenarioName);
 			messages.add(new GroqRequest.Message("system", sysPrompt));
 			messages.add(new GroqRequest.Message("user", "Hello! Let's start the conversation."));
 
@@ -513,7 +531,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	}
 
 	private String sanitizeSpokenText(String text) {
-		if (text == null) return null;
+		if (text == null)
+			return null;
 		String clean = text.trim();
 		// 1. Remove all bracket tags like [article], [GRAMMAR], [BETTER_SENTENCE], etc.
 		clean = clean.replaceAll("\\[.*?\\]", "");
@@ -531,22 +550,27 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	}
 
 	private String cleanAndSanitizeHint(String raw) {
-		if (raw == null) return null;
+		if (raw == null)
+			return null;
 		String text = sanitizeSpokenText(raw);
-		if (text == null) return null;
+		if (text == null)
+			return null;
 		// Strip prefixes like "Suggestion 1:", "Option 1 -", "1. ", "Hint 1:"
 		text = text.replaceAll("(?i)^(suggestion|option|hint|response|choice)\\s*\\d*\\s*[:\\-.]?\\s*", "");
 		text = text.replaceAll("^\\d+[\\.\\)]\\s*", "");
 		text = text.replaceAll("^[\"']+|[\"']+$", "").trim();
-		if (text.isEmpty()) return null;
+		if (text.isEmpty())
+			return null;
 
 		String lower = text.toLowerCase();
 		if (lower.equals("suggestion one") || lower.equals("suggestion two") || lower.equals("suggestion three")
 				|| lower.startsWith("suggestion ") || lower.startsWith("option ") || lower.equals("simple option")
 				|| lower.equals("natural idiom option") || lower.equals("follow-up question option")
 				|| lower.equals("simple direct response") || lower.equals("natural native response")
-				|| lower.equals("engaging follow up question") || lower.equals("first realistic sentence student can speak")
-				|| lower.equals("second realistic sentence student can speak") || lower.equals("third realistic sentence student can speak")
+				|| lower.equals("engaging follow up question")
+				|| lower.equals("first realistic sentence student can speak")
+				|| lower.equals("second realistic sentence student can speak")
+				|| lower.equals("third realistic sentence student can speak")
 				|| lower.equals("none") || lower.equals("null")) {
 			return null;
 		}
@@ -556,84 +580,71 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	private List<String> getDefaultScenarioHints(String scenario) {
 		if (scenario == null) {
 			return List.of(
-				"Could you please tell me more about that?",
-				"That sounds great, what should we do next?",
-				"What do you recommend in this case?"
-			);
+					"Could you please tell me more about that?",
+					"That sounds great, what should we do next?",
+					"What do you recommend in this case?");
 		}
 		String s = scenario.toLowerCase();
 		if (s.contains("daily conversation") || s.contains("small talk") || s.contains("routine")) {
 			return List.of(
-				"I've had a busy but great day!",
-				"How has your day been going so far?",
-				"I'm planning to relax and listen to music later."
-			);
+					"I've had a busy but great day!",
+					"How has your day been going so far?",
+					"I'm planning to relax and listen to music later.");
 		} else if (s.contains("restaurant") || s.contains("dining") || s.contains("food") || s.contains("burger")) {
 			return List.of(
-				"Could I please see the dinner menu?",
-				"What do you recommend as today's special?",
-				"Could we get the check, please?"
-			);
+					"Could I please see the dinner menu?",
+					"What do you recommend as today's special?",
+					"Could we get the check, please?");
 		} else if (s.contains("coffee") || s.contains("cafe")) {
 			return List.of(
-				"I'd like a medium iced latte with oat milk, please.",
-				"Do you have any fresh pastries today?",
-				"Can I get this to go, please?"
-			);
+					"I'd like a medium iced latte with oat milk, please.",
+					"Do you have any fresh pastries today?",
+					"Can I get this to go, please?");
 		} else if (s.contains("hotel") || s.contains("check-in")) {
 			return List.of(
-				"Hi, I have a reservation under my name.",
-				"What time is breakfast served in the morning?",
-				"Could you tell me the Wi-Fi password?"
-			);
+					"Hi, I have a reservation under my name.",
+					"What time is breakfast served in the morning?",
+					"Could you tell me the Wi-Fi password?");
 		} else if (s.contains("airport") || s.contains("flight") || s.contains("travel")) {
 			return List.of(
-				"Here are my passport and boarding pass.",
-				"I am traveling for a short vacation.",
-				"Which gate does my flight depart from?"
-			);
+					"Here are my passport and boarding pass.",
+					"I am traveling for a short vacation.",
+					"Which gate does my flight depart from?");
 		} else if (s.contains("interview") || s.contains("job") || s.contains("career")) {
 			return List.of(
-				"I have hands-on experience in problem solving.",
-				"My greatest strength is communicating under pressure.",
-				"I am excited about this role and your team culture."
-			);
+					"I have hands-on experience in problem solving.",
+					"My greatest strength is communicating under pressure.",
+					"I am excited about this role and your team culture.");
 		} else if (s.contains("shopping") || s.contains("store") || s.contains("clothes")) {
 			return List.of(
-				"Excuse me, do you have this in a medium size?",
-				"Where are the fitting rooms located?",
-				"Is this item currently on discount?"
-			);
+					"Excuse me, do you have this in a medium size?",
+					"Where are the fitting rooms located?",
+					"Is this item currently on discount?");
 		} else if (s.contains("doctor") || s.contains("health") || s.contains("hospital")) {
 			return List.of(
-				"I've been having a mild headache since yesterday.",
-				"How often should I take this medication?",
-				"Thank you for the helpful advice, doctor."
-			);
+					"I've been having a mild headache since yesterday.",
+					"How often should I take this medication?",
+					"Thank you for the helpful advice, doctor.");
 		} else if (s.contains("zoo") || s.contains("animal")) {
 			return List.of(
-				"Where can we find the elephant exhibit?",
-				"What time is the animal feeding show?",
-				"My favorite animals are the giant pandas!"
-			);
+					"Where can we find the elephant exhibit?",
+					"What time is the animal feeding show?",
+					"My favorite animals are the giant pandas!");
 		} else if (s.contains("school") || s.contains("class") || s.contains("grade") || s.contains("std")) {
 			return List.of(
-				"Good morning! I finished my homework assignment.",
-				"Could you please explain that question again?",
-				"My favorite subjects are science and English."
-			);
+					"Good morning! I finished my homework assignment.",
+					"Could you please explain that question again?",
+					"My favorite subjects are science and English.");
 		} else if (s.contains("meeting") || s.contains("business") || s.contains("presentation")) {
 			return List.of(
-				"Let's review the main milestones on our agenda.",
-				"I agree with that strategy and propose next steps.",
-				"Does anyone have any questions on this slide?"
-			);
+					"Let's review the main milestones on our agenda.",
+					"I agree with that strategy and propose next steps.",
+					"Does anyone have any questions on this slide?");
 		}
 		return List.of(
-			"Could you tell me a bit more about that?",
-			"That sounds interesting, what should we do next?",
-			"Could you give me an example of that?"
-		);
+				"Could you tell me a bit more about that?",
+				"That sounds interesting, what should we do next?",
+				"Could you give me an example of that?");
 	}
 
 	@Override
@@ -710,33 +721,40 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
-				"You are an expert English conversation tutor roleplaying authentically with the student in the scenario: '%s'.\n\n" +
-				"LEARNER CONTEXT & SCENARIO:\n" +
-				"%s\n" +
-				"%s\n\n" +
-				"ROLEPLAY & CONVERSATIONAL IMMERSION:\n" +
-				"1. IN-CHARACTER DIALOGUE ('aiReply'): Inhabit your persona (e.g. friendly barista, doctor, tour guide, peer, or teacher). Respond naturally in 1-2 lively, empathetic sentences tailored to the student's standard/age. Keep the conversation engaging and fluid.\n" +
-				"2. NATIVE PHRASING ('betterSentence'): If the student's expression could be polished into a natural native idiom ('How a native speaker says it'), provide it here. If they spoke naturally and cleanly, set to null.\n" +
-				"3. GRAMMAR EVALUATION ('grammarCorrection'): Provide a corrected version only if there were grammatical errors, otherwise set to null.\n" +
-				"4. DYNAMIC SPOKEN HINTS ('suggestedResponses'): Provide EXACTLY 3 complete, realistic phrases the student can literally speak out loud next. CRITICAL: Never write 'Suggestion 1', 'Option 1', or placeholder labels. Each must be a real sentence tailored directly to this dialogue.\n" +
-				"5. CLEAN TEXT RULES: Never output bracketed meta tags (e.g. [grammar]), never output ellipses '...', and never output stage directions like (smiling).\n\n" +
-				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
-				"The JSON must have these exact fields and structure:\n" +
-				"{\n" +
-				"  \"aiReply\": \"Your natural in-character conversational response (1-2 sentences).\",\n" +
-				"  \"grammarCorrection\": \"Corrected version if mistake made, otherwise null.\",\n" +
-				"  \"betterSentence\": \"Natural native phrasing alternative ('How to say it'), otherwise null.\",\n" +
-				"  \"vocabularySuggestions\": \"1-2 vocabulary enrichment words, otherwise null.\",\n" +
-				"  \"explanation\": \"A short 1-sentence tutoring note, otherwise null.\",\n" +
-				"  \"followUpQuestion\": \"A natural follow-up question to keep the dialogue flowing.\",\n" +
-				"  \"nativeTip\": \"A short pronunciation or cadence tip, otherwise null.\",\n" +
-				"  \"suggestedResponses\": [\"First realistic sentence student can speak\", \"Second realistic sentence student can speak\", \"Third realistic sentence student can speak\"]\n" +
-				"}\n\n" +
-				"Important: Escape any double quotes inside string values as \\\" to ensure valid JSON.",
+				"You are an expert English conversation tutor roleplaying authentically with the student in the scenario: '%s'.\n\n"
+						+
+						"LEARNER CONTEXT & SCENARIO:\n" +
+						"%s\n" +
+						"%s\n\n" +
+						"ROLEPLAY & CONVERSATIONAL IMMERSION:\n" +
+						"1. IN-CHARACTER DIALOGUE ('aiReply'): Inhabit your persona (e.g. friendly barista, doctor, tour guide, peer, or teacher). Respond naturally in 1-2 lively, empathetic sentences tailored to the student's standard/age. Keep the conversation engaging and fluid.\n"
+						+
+						"2. NATIVE PHRASING ('betterSentence'): If the student's expression could be polished into a natural native idiom ('How a native speaker says it'), provide it here. If they spoke naturally and cleanly, set to null.\n"
+						+
+						"3. GRAMMAR EVALUATION ('grammarCorrection'): Provide a corrected version only if there were grammatical errors, otherwise set to null.\n"
+						+
+						"4. DYNAMIC SPOKEN HINTS ('suggestedResponses'): Provide EXACTLY 3 complete, realistic phrases the student can literally speak out loud next. CRITICAL: Never write 'Suggestion 1', 'Option 1', or placeholder labels. Each must be a real sentence tailored directly to this dialogue.\n"
+						+
+						"5. CLEAN TEXT RULES: Never output bracketed meta tags (e.g. [grammar]), never output ellipses '...', and never output stage directions like (smiling).\n\n"
+						+
+						"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
+						"The JSON must have these exact fields and structure:\n" +
+						"{\n" +
+						"  \"aiReply\": \"Your natural in-character conversational response (1-2 sentences).\",\n" +
+						"  \"grammarCorrection\": \"Corrected version if mistake made, otherwise null.\",\n" +
+						"  \"betterSentence\": \"Natural native phrasing alternative ('How to say it'), otherwise null.\",\n"
+						+
+						"  \"vocabularySuggestions\": \"1-2 vocabulary enrichment words, otherwise null.\",\n" +
+						"  \"explanation\": \"A short 1-sentence tutoring note, otherwise null.\",\n" +
+						"  \"followUpQuestion\": \"A natural follow-up question to keep the dialogue flowing.\",\n" +
+						"  \"nativeTip\": \"A short pronunciation or cadence tip, otherwise null.\",\n" +
+						"  \"suggestedResponses\": [\"First realistic sentence student can speak\", \"Second realistic sentence student can speak\", \"Third realistic sentence student can speak\"]\n"
+						+
+						"}\n\n" +
+						"Important: Escape any double quotes inside string values as \\\" to ensure valid JSON.",
 				session.getScenario(),
 				levelInstruction,
-				userContextInstruction
-		);
+				userContextInstruction);
 		groqMessages.add(new GroqRequest.Message("system", systemPrompt));
 
 		// Add last 10 messages for context
@@ -767,7 +785,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			} else {
 				// If we can't extract the aiReply field, check if it looks like JSON
 				if (cleanJson.contains("{") || cleanJson.contains("\"") || cleanJson.contains("aiReply")) {
-					response.setAiReply("I'm sorry, I had some trouble processing my response. Could you please repeat that?");
+					response.setAiReply(
+							"I'm sorry, I had some trouble processing my response. Could you please repeat that?");
 				} else {
 					response.setAiReply(cleanJson);
 				}
@@ -787,26 +806,37 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		response.setNativeTip(sanitizeSpokenText(response.getNativeTip()));
 
 		// Grammar correction logic
-		String userClean = request.getMessage().trim().replaceAll("[\\p{Punct}&&[^']]+", "").replaceAll("\\s+", " ").toLowerCase();
-		String grammarClean = (response.getGrammarCorrection() != null) ? response.getGrammarCorrection().trim().replaceAll("[\\p{Punct}&&[^']]+", "").replaceAll("\\s+", " ").toLowerCase() : "";
+		String userClean = request.getMessage().trim().replaceAll("[\\p{Punct}&&[^']]+", "").replaceAll("\\s+", " ")
+				.toLowerCase();
+		String grammarClean = (response.getGrammarCorrection() != null) ? response.getGrammarCorrection().trim()
+				.replaceAll("[\\p{Punct}&&[^']]+", "").replaceAll("\\s+", " ").toLowerCase() : "";
 
-		if (response.getGrammarCorrection() == null || response.getGrammarCorrection().equalsIgnoreCase("none") || response.getGrammarCorrection().equalsIgnoreCase("null") || response.getGrammarCorrection().trim().isEmpty()) {
+		if (response.getGrammarCorrection() == null || response.getGrammarCorrection().equalsIgnoreCase("none")
+				|| response.getGrammarCorrection().equalsIgnoreCase("null")
+				|| response.getGrammarCorrection().trim().isEmpty()) {
 			response.setGrammarCorrection("✅ Your sentence is correct.");
 		} else if (grammarClean.equals(userClean)) {
 			response.setGrammarCorrection("✅ Your sentence is correct.");
 		}
 
 		// Clean up fields from "none" / "null" values
-		if (response.getBetterSentence() != null && (response.getBetterSentence().equalsIgnoreCase("none") || response.getBetterSentence().equalsIgnoreCase("null") || response.getBetterSentence().trim().isEmpty())) {
+		if (response.getBetterSentence() != null && (response.getBetterSentence().equalsIgnoreCase("none")
+				|| response.getBetterSentence().equalsIgnoreCase("null")
+				|| response.getBetterSentence().trim().isEmpty())) {
 			response.setBetterSentence(null);
 		}
-		if (response.getVocabularySuggestions() != null && (response.getVocabularySuggestions().equalsIgnoreCase("none") || response.getVocabularySuggestions().equalsIgnoreCase("null") || response.getVocabularySuggestions().trim().isEmpty())) {
+		if (response.getVocabularySuggestions() != null && (response.getVocabularySuggestions().equalsIgnoreCase("none")
+				|| response.getVocabularySuggestions().equalsIgnoreCase("null")
+				|| response.getVocabularySuggestions().trim().isEmpty())) {
 			response.setVocabularySuggestions(null);
 		}
-		if (response.getExplanation() != null && (response.getExplanation().equalsIgnoreCase("none") || response.getExplanation().equalsIgnoreCase("null") || response.getExplanation().trim().isEmpty())) {
+		if (response.getExplanation() != null && (response.getExplanation().equalsIgnoreCase("none")
+				|| response.getExplanation().equalsIgnoreCase("null") || response.getExplanation().trim().isEmpty())) {
 			response.setExplanation(null);
 		}
-		if (response.getFollowUpQuestion() != null && (response.getFollowUpQuestion().equalsIgnoreCase("none") || response.getFollowUpQuestion().equalsIgnoreCase("null") || response.getFollowUpQuestion().trim().isEmpty())) {
+		if (response.getFollowUpQuestion() != null && (response.getFollowUpQuestion().equalsIgnoreCase("none")
+				|| response.getFollowUpQuestion().equalsIgnoreCase("null")
+				|| response.getFollowUpQuestion().trim().isEmpty())) {
 			response.setFollowUpQuestion(null);
 		}
 
@@ -871,7 +901,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		long durationSeconds = 0;
 		if (session.getCreatedAt() != null) {
 			durationSeconds = Duration.between(session.getCreatedAt(), LocalDateTime.now()).toSeconds();
-			if (durationSeconds < 0) durationSeconds = 0;
+			if (durationSeconds < 0)
+				durationSeconds = 0;
 		}
 
 		// Calculate user participation metrics
@@ -920,10 +951,10 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		} else {
 			// Request comprehensive evaluation from Groq
 			List<GroqRequest.Message> messages = new ArrayList<>();
-			String sysPrompt =
-					"Review the following transcript of an English speaking practice session. " +
+			String sysPrompt = "Review the following transcript of an English speaking practice session. " +
 					"Evaluate the student's performance with realistic scores (0 to 100) and actionable feedback.\n\n" +
-					"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in markdown or ```json. Do not include any text outside the JSON.\n" +
+					"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in markdown or ```json. Do not include any text outside the JSON.\n"
+					+
 					"The JSON must have these exact fields:\n" +
 					"{\n" +
 					"  \"overallScore\": 84.0,\n" +
@@ -959,63 +990,98 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 
 				try {
 					FinalEvaluation evalObj = objectMapper.readValue(cleanJson, FinalEvaluation.class);
-					if (evalObj.getOverallScore() != null) overallScore = evalObj.getOverallScore();
-					if (evalObj.getGrammarScore() != null) grammarScore = evalObj.getGrammarScore();
-					else grammarScore = overallScore;
-					if (evalObj.getVocabularyScore() != null) vocabularyScore = evalObj.getVocabularyScore();
-					else vocabularyScore = overallScore;
-					if (evalObj.getFluencyScore() != null) fluencyScore = evalObj.getFluencyScore();
-					else fluencyScore = overallScore;
-					if (evalObj.getPronunciationScore() != null) pronunciationScore = evalObj.getPronunciationScore();
-					else pronunciationScore = overallScore;
+					if (evalObj.getOverallScore() != null)
+						overallScore = evalObj.getOverallScore();
+					if (evalObj.getGrammarScore() != null)
+						grammarScore = evalObj.getGrammarScore();
+					else
+						grammarScore = overallScore;
+					if (evalObj.getVocabularyScore() != null)
+						vocabularyScore = evalObj.getVocabularyScore();
+					else
+						vocabularyScore = overallScore;
+					if (evalObj.getFluencyScore() != null)
+						fluencyScore = evalObj.getFluencyScore();
+					else
+						fluencyScore = overallScore;
+					if (evalObj.getPronunciationScore() != null)
+						pronunciationScore = evalObj.getPronunciationScore();
+					else
+						pronunciationScore = overallScore;
 
-					if (evalObj.getSummary() != null) summary = evalObj.getSummary();
-					if (evalObj.getVocabularyLearned() != null) vocab = evalObj.getVocabularyLearned();
-					if (evalObj.getGrammarCorrections() != null) grammar = evalObj.getGrammarCorrections();
-					if (evalObj.getBetterSentences() != null) better = evalObj.getBetterSentences();
-					if (evalObj.getMotivationalMessage() != null) motivational = evalObj.getMotivationalMessage();
+					if (evalObj.getSummary() != null)
+						summary = evalObj.getSummary();
+					if (evalObj.getVocabularyLearned() != null)
+						vocab = evalObj.getVocabularyLearned();
+					if (evalObj.getGrammarCorrections() != null)
+						grammar = evalObj.getGrammarCorrections();
+					if (evalObj.getBetterSentences() != null)
+						better = evalObj.getBetterSentences();
+					if (evalObj.getMotivationalMessage() != null)
+						motivational = evalObj.getMotivationalMessage();
 				} catch (Exception e) {
 					// Fallback extraction
 					String extOverall = extractFieldFromJson(cleanJson, "overallScore");
-					if (extOverall == null) extOverall = extractFieldFromJson(cleanJson, "score");
+					if (extOverall == null)
+						extOverall = extractFieldFromJson(cleanJson, "score");
 					if (extOverall != null) {
-						try { overallScore = Double.parseDouble(extOverall); } catch (Exception ignored) {}
+						try {
+							overallScore = Double.parseDouble(extOverall);
+						} catch (Exception ignored) {
+						}
 					}
 					String extGrammarScore = extractFieldFromJson(cleanJson, "grammarScore");
 					if (extGrammarScore != null) {
-						try { grammarScore = Double.parseDouble(extGrammarScore); } catch (Exception ignored) {}
+						try {
+							grammarScore = Double.parseDouble(extGrammarScore);
+						} catch (Exception ignored) {
+						}
 					} else {
 						grammarScore = overallScore;
 					}
 					String extVocabScore = extractFieldFromJson(cleanJson, "vocabularyScore");
 					if (extVocabScore != null) {
-						try { vocabularyScore = Double.parseDouble(extVocabScore); } catch (Exception ignored) {}
+						try {
+							vocabularyScore = Double.parseDouble(extVocabScore);
+						} catch (Exception ignored) {
+						}
 					} else {
 						vocabularyScore = overallScore;
 					}
 					String extFluencyScore = extractFieldFromJson(cleanJson, "fluencyScore");
 					if (extFluencyScore != null) {
-						try { fluencyScore = Double.parseDouble(extFluencyScore); } catch (Exception ignored) {}
+						try {
+							fluencyScore = Double.parseDouble(extFluencyScore);
+						} catch (Exception ignored) {
+						}
 					} else {
 						fluencyScore = overallScore;
 					}
 					String extPronScore = extractFieldFromJson(cleanJson, "pronunciationScore");
 					if (extPronScore != null) {
-						try { pronunciationScore = Double.parseDouble(extPronScore); } catch (Exception ignored) {}
+						try {
+							pronunciationScore = Double.parseDouble(extPronScore);
+						} catch (Exception ignored) {
+						}
 					} else {
 						pronunciationScore = overallScore;
 					}
 
 					String extSummary = extractFieldFromJson(cleanJson, "summary");
-					if (extSummary != null) summary = extSummary;
+					if (extSummary != null)
+						summary = extSummary;
 					String extVocab = extractFieldFromJson(cleanJson, "vocabularyLearned");
-					if (extVocab != null) vocab = extVocab;
+					if (extVocab != null)
+						vocab = extVocab;
 					String extGrammar = extractFieldFromJson(cleanJson, "grammarCorrections");
-					if (extGrammar != null) grammar = extGrammar;
+					if (extGrammar != null)
+						grammar = extGrammar;
 					String extBetter = extractFieldFromJson(cleanJson, "betterSentences");
-					if (extBetter != null) better = extBetter;
+					if (extBetter != null)
+						better = extBetter;
 					String extMotivational = extractFieldFromJson(cleanJson, "motivationalMessage");
-					if (extMotivational != null) motivational = extMotivational;
+					if (extMotivational != null)
+						motivational = extMotivational;
 				}
 			} catch (Exception e) {
 				System.err.println("⚠️ Groq final evaluation failed, using fallback metrics: " + e.getMessage());
@@ -1090,8 +1156,11 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 								.totalVocabularyWords(0)
 								.build());
 				int sessionMinutes = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
-				progress.setTotalPracticeMinutes((progress.getTotalPracticeMinutes() == null ? 0 : progress.getTotalPracticeMinutes()) + sessionMinutes);
-				progress.setTotalSpeakingSessions((progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
+				progress.setTotalPracticeMinutes(
+						(progress.getTotalPracticeMinutes() == null ? 0 : progress.getTotalPracticeMinutes())
+								+ sessionMinutes);
+				progress.setTotalSpeakingSessions(
+						(progress.getTotalSpeakingSessions() == null ? 0 : progress.getTotalSpeakingSessions()) + 1);
 				int newXp = (progress.getXp() == null ? 0 : progress.getXp()) + xp;
 				progress.setXp(newXp);
 				progress.setLevel(Math.max(1, (newXp / 500) + 1));
@@ -1106,13 +1175,14 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 					int sessionMinutes = (int) Math.max(1, Math.ceil(durationSeconds / 60.0));
 					notificationService.createSystemNotification(session.getUser(),
 							"Speaking Session Complete! 🎙️",
-							"Great job! You practiced \"" + session.getScenario() + "\" for " + sessionMinutes + " min and earned " + xp + " XP.");
+							"Great job! You practiced \"" + session.getScenario() + "\" for " + sessionMinutes
+									+ " min and earned " + xp + " XP.");
 				}
 			} catch (Exception ex) {
 				System.err.println("⚠️ Could not create session notification: " + ex.getMessage());
 			}
 		}
-		
+
 		// Save feedback entity
 		ConversationFeedback feedback = ConversationFeedback.builder()
 				.session(session)
@@ -1154,7 +1224,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 					} else if (s.getTranscript() != null) {
 						preview = s.getTranscript();
 					}
-					if (preview.length() > 100) preview = preview.substring(0, 97) + "...";
+					if (preview.length() > 100)
+						preview = preview.substring(0, 97) + "...";
 
 					return SpeakingHistoryResponse.builder()
 							.id(s.getId())
@@ -1174,7 +1245,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		SpeakingSession s = speakingSessionRepository.findById(id)
 				.orElseThrow(() -> new SpeakingSessionNotFoundException("Session not found"));
 
-		List<SpeakingSessionDetailResponse.MessageDto> msgs = messageRepository.findBySessionOrderByTimestampAsc(s).stream()
+		List<SpeakingSessionDetailResponse.MessageDto> msgs = messageRepository.findBySessionOrderByTimestampAsc(s)
+				.stream()
 				.map(m -> SpeakingSessionDetailResponse.MessageDto.builder()
 						.id(m.getId())
 						.sender(m.getSender())
@@ -1184,12 +1256,13 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				.toList();
 
 		Optional<ConversationFeedback> fb = feedbackRepository.findBySession(s);
-		SpeakingSessionDetailResponse.FeedbackDto fbDto = fb.map(f -> SpeakingSessionDetailResponse.FeedbackDto.builder()
-				.grammarCorrections(f.getGrammarCorrections())
-				.betterSentences(f.getBetterSentences())
-				.vocabularySuggestions(f.getVocabularySuggestions())
-				.summary(f.getSummary())
-				.build())
+		SpeakingSessionDetailResponse.FeedbackDto fbDto = fb
+				.map(f -> SpeakingSessionDetailResponse.FeedbackDto.builder()
+						.grammarCorrections(f.getGrammarCorrections())
+						.betterSentences(f.getBetterSentences())
+						.vocabularySuggestions(f.getVocabularySuggestions())
+						.summary(f.getSummary())
+						.build())
 				.orElse(null);
 
 		return SpeakingSessionDetailResponse.builder()
@@ -1221,22 +1294,22 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
 				"You are an expert English tutor observing a live practice conversation under the scenario: '%s'.\n" +
-				"Based on the conversation history and the latest turn, provide EXACTLY 3 short, distinct, high-impact alternative responses the student could say next:\n" +
-				"1. Simple & direct option (3-5 words)\n" +
-				"2. Natural & idiomatic conversational option\n" +
-				"3. Thoughtful follow-up question or pivot\n" +
-				"Keep each suggestion under 8 words. Do not use punctuation tags or emojis.\n" +
-				"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
-				"The JSON must have this exact structure:\n" +
-				"{\n" +
-				"  \"hints\": [\n" +
-				"    \"Simple direct response\",\n" +
-				"    \"Natural native response\",\n" +
-				"    \"Engaging follow up question\"\n" +
-				"  ]\n" +
-				"}",
-				session.getScenario()
-		);
+						"Based on the conversation history and the latest turn, provide EXACTLY 3 short, distinct, high-impact alternative responses the student could say next:\n"
+						+
+						"1. Simple & direct option (3-5 words)\n" +
+						"2. Natural & idiomatic conversational option\n" +
+						"3. Thoughtful follow-up question or pivot\n" +
+						"Keep each suggestion under 8 words. Do not use punctuation tags or emojis.\n" +
+						"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
+						"The JSON must have this exact structure:\n" +
+						"{\n" +
+						"  \"hints\": [\n" +
+						"    \"Simple direct response\",\n" +
+						"    \"Natural native response\",\n" +
+						"    \"Engaging follow up question\"\n" +
+						"  ]\n" +
+						"}",
+				session.getScenario());
 		groqMessages.add(new GroqRequest.Message("system", systemPrompt));
 
 		// Add last 10 messages for context
@@ -1252,7 +1325,9 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			String cleanJson = cleanJsonResponse(rawReply);
 			com.fasterxml.jackson.databind.JsonNode node = objectMapper.readTree(cleanJson);
 			if (node.has("hints")) {
-				List<String> rawHints = objectMapper.convertValue(node.get("hints"), new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+				List<String> rawHints = objectMapper.convertValue(node.get("hints"),
+						new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {
+						});
 				if (rawHints != null && !rawHints.isEmpty()) {
 					List<String> cleanList = new ArrayList<>();
 					for (String h : rawHints) {
@@ -1261,7 +1336,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 							cleanList.add(c);
 						}
 					}
-					if (cleanList.size() >= 2) return cleanList;
+					if (cleanList.size() >= 2)
+						return cleanList;
 				}
 			}
 		} catch (Exception e) {
@@ -1276,7 +1352,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			return "Learner Profile: General English Learner.\nInstructions: Use friendly, clear English suited to everyday conversation.\n";
 		}
 
-		boolean isStudent = (user.getRole() == Role.STUDENT) || (user.getSchoolGrade() != null && !user.getSchoolGrade().trim().isEmpty());
+		boolean isStudent = (user.getRole() == Role.STUDENT)
+				|| (user.getSchoolGrade() != null && !user.getSchoolGrade().trim().isEmpty());
 		String grade = user.getSchoolGrade();
 		String ageGroup = user.getAgeGroup();
 		String scenario = (scenarioName != null) ? scenarioName.trim() : "General";
@@ -1292,51 +1369,55 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			sb.append("Learner Profile: School Student (").append(grade).append(").\n");
 			if (g.contains("1st") || g.contains("2nd") || g.contains("first") || g.contains("second")) {
 				sb.append("School Standard: 1st/2nd Standard (Primary School, Age 6-7).\n")
-				  .append("Instructions: Use extremely simple English (3-5 word sentences, Pre-A1/A1). Focus on cheerful, simple roleplays (pets, toys, cartoon friends, school fun). NEVER use adult, job, or financial themes.\n");
-			} else if (g.contains("3rd") || g.contains("4th") || g.contains("5th") || g.contains("third") || g.contains("fourth") || g.contains("fifth")) {
+						.append("Instructions: Use extremely simple English (3-5 word sentences, Pre-A1/A1). Focus on cheerful, simple roleplays (pets, toys, cartoon friends, school fun). NEVER use adult, job, or financial themes.\n");
+			} else if (g.contains("3rd") || g.contains("4th") || g.contains("5th") || g.contains("third")
+					|| g.contains("fourth") || g.contains("fifth")) {
 				sb.append("School Standard: 3rd-5th Standard (Upper Primary School, Age 8-10).\n")
-				  .append("Instructions: Use basic, clear English (A1-A2). Focus on school subjects, friends, hobbies, science, pets, and simple roleplays. Keep sentences short and engaging.\n");
-			} else if (g.contains("6th") || g.contains("7th") || g.contains("8th") || g.contains("sixth") || g.contains("seventh") || g.contains("eighth")) {
+						.append("Instructions: Use basic, clear English (A1-A2). Focus on school subjects, friends, hobbies, science, pets, and simple roleplays. Keep sentences short and engaging.\n");
+			} else if (g.contains("6th") || g.contains("7th") || g.contains("8th") || g.contains("sixth")
+					|| g.contains("seventh") || g.contains("eighth")) {
 				sb.append("School Standard: 6th-8th Standard (Middle School, Age 11-13).\n")
-				  .append("Instructions: Use friendly, encouraging English (A2-B1). Focus on school projects, sports, games, coding, quizzes, environment, and books.\n");
+						.append("Instructions: Use friendly, encouraging English (A2-B1). Focus on school projects, sports, games, coding, quizzes, environment, and books.\n");
 			} else { // 9th, 10th Standard or High School
 				sb.append("School Standard: 9th-10th Standard (High School / Board Exam, Age 14-16).\n")
-				  .append("Instructions: Use structured, natural conversational English (B1-B2). Focus on career dreams, technology, space science, social topics, debating, and public speaking.\n");
+						.append("Instructions: Use structured, natural conversational English (B1-B2). Focus on career dreams, technology, space science, social topics, debating, and public speaking.\n");
 			}
 		} else {
 			// Individual User Profile by Age Group
 			sb.append("Learner Profile: Individual User.\n");
 			if ("Kids".equalsIgnoreCase(ageGroup)) {
 				sb.append("Age Group: Kids (Age 6-12).\n")
-				  .append("Instructions: Be super enthusiastic and friendly. Use simple words and short sentences (A1). Zero adult or corporate themes.\n");
+						.append("Instructions: Be super enthusiastic and friendly. Use simple words and short sentences (A1). Zero adult or corporate themes.\n");
 			} else if ("Teens".equalsIgnoreCase(ageGroup)) {
 				sb.append("Age Group: Teens (Age 13-17).\n")
-				  .append("Instructions: Be a supportive peer tutor. Use modern, relatable conversational English (A2-B1). Focus on high school life, music, sports, and teen hobbies.\n");
+						.append("Instructions: Be a supportive peer tutor. Use modern, relatable conversational English (A2-B1). Focus on high school life, music, sports, and teen hobbies.\n");
 			} else if ("Young Adult".equalsIgnoreCase(ageGroup) || "Young Adults".equalsIgnoreCase(ageGroup)) {
 				sb.append("Age Group: Young Adults (Age 18-24).\n")
-				  .append("Instructions: Use energetic, natural conversational English (B1-B2). Focus on college life, travel, technology, and social confidence.\n");
+						.append("Instructions: Use energetic, natural conversational English (B1-B2). Focus on college life, travel, technology, and social confidence.\n");
 			} else if ("Senior".equalsIgnoreCase(ageGroup) || "Seniors".equalsIgnoreCase(ageGroup)) {
 				sb.append("Age Group: Seniors (Age 50+).\n")
-				  .append("Instructions: Be warm, patient, and respectful. Focus on culture, books, gardening, travel, and life experiences.\n");
+						.append("Instructions: Be warm, patient, and respectful. Focus on culture, books, gardening, travel, and life experiences.\n");
 			} else { // Professional / Working Adult (25-50) or default
 				sb.append("Age Group: Adults (Age 25-50).\n");
 				if (isBusinessScenario) {
-					sb.append("Instructions: Focus on Business English, corporate meeting scenarios, presentations, formal tone, and professional workplace communication.\n");
+					sb.append(
+							"Instructions: Focus on Business English, corporate meeting scenarios, presentations, formal tone, and professional workplace communication.\n");
 				} else {
-					sb.append("Instructions: Roleplay naturally as a friendly adult peer about daily life, cooking, fitness, travel, and personal interests. STRICT RULE: DO NOT steer the conversation into corporate meetings, office projects, or business jargon unless the scenario explicitly calls for it.\n");
+					sb.append(
+							"Instructions: Roleplay naturally as a friendly adult peer about daily life, cooking, fitness, travel, and personal interests. STRICT RULE: DO NOT steer the conversation into corporate meetings, office projects, or business jargon unless the scenario explicitly calls for it.\n");
 				}
 			}
 		}
 
 		if (!isBusinessScenario) {
-			sb.append("TOPIC GUARDRAIL: The active scenario is '").append(scenario).append("'. Stick strictly to this scenario. Do NOT turn conversations into business, office, or corporate meetings unless the user explicitly requests it.\n");
+			sb.append("TOPIC GUARDRAIL: The active scenario is '").append(scenario).append(
+					"'. Stick strictly to this scenario. Do NOT turn conversations into business, office, or corporate meetings unless the user explicitly requests it.\n");
 		}
 
 		return sb.toString();
 	}
 
 	// Helper inner class for Jackson deserialization
-	@SuppressWarnings("unused")
 	private static class FinalEvaluation {
 		private Double score;
 		private Double overallScore;
@@ -1350,27 +1431,92 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		private String betterSentences;
 		private String motivationalMessage;
 
-		public Double getScore() { return score != null ? score : overallScore; }
-		public void setScore(Double score) { this.score = score; }
-		public Double getOverallScore() { return overallScore != null ? overallScore : score; }
-		public void setOverallScore(Double overallScore) { this.overallScore = overallScore; }
-		public Double getGrammarScore() { return grammarScore; }
-		public void setGrammarScore(Double grammarScore) { this.grammarScore = grammarScore; }
-		public Double getVocabularyScore() { return vocabularyScore; }
-		public void setVocabularyScore(Double vocabularyScore) { this.vocabularyScore = vocabularyScore; }
-		public Double getFluencyScore() { return fluencyScore; }
-		public void setFluencyScore(Double fluencyScore) { this.fluencyScore = fluencyScore; }
-		public Double getPronunciationScore() { return pronunciationScore; }
-		public void setPronunciationScore(Double pronunciationScore) { this.pronunciationScore = pronunciationScore; }
-		public String getSummary() { return summary; }
-		public void setSummary(String summary) { this.summary = summary; }
-		public String getVocabularyLearned() { return vocabularyLearned; }
-		public void setVocabularyLearned(String vocabularyLearned) { this.vocabularyLearned = vocabularyLearned; }
-		public String getGrammarCorrections() { return grammarCorrections; }
-		public void setGrammarCorrections(String grammarCorrections) { this.grammarCorrections = grammarCorrections; }
-		public String getBetterSentences() { return betterSentences; }
-		public void setBetterSentences(String betterSentences) { this.betterSentences = betterSentences; }
-		public String getMotivationalMessage() { return motivationalMessage; }
-		public void setMotivationalMessage(String motivationalMessage) { this.motivationalMessage = motivationalMessage; }
+		public Double getScore() {
+			return score != null ? score : overallScore;
+		}
+
+		public void setScore(Double score) {
+			this.score = score;
+		}
+
+		public Double getOverallScore() {
+			return overallScore != null ? overallScore : score;
+		}
+
+		public void setOverallScore(Double overallScore) {
+			this.overallScore = overallScore;
+		}
+
+		public Double getGrammarScore() {
+			return grammarScore;
+		}
+
+		public void setGrammarScore(Double grammarScore) {
+			this.grammarScore = grammarScore;
+		}
+
+		public Double getVocabularyScore() {
+			return vocabularyScore;
+		}
+
+		public void setVocabularyScore(Double vocabularyScore) {
+			this.vocabularyScore = vocabularyScore;
+		}
+
+		public Double getFluencyScore() {
+			return fluencyScore;
+		}
+
+		public void setFluencyScore(Double fluencyScore) {
+			this.fluencyScore = fluencyScore;
+		}
+
+		public Double getPronunciationScore() {
+			return pronunciationScore;
+		}
+
+		public void setPronunciationScore(Double pronunciationScore) {
+			this.pronunciationScore = pronunciationScore;
+		}
+
+		public String getSummary() {
+			return summary;
+		}
+
+		public void setSummary(String summary) {
+			this.summary = summary;
+		}
+
+		public String getVocabularyLearned() {
+			return vocabularyLearned;
+		}
+
+		public void setVocabularyLearned(String vocabularyLearned) {
+			this.vocabularyLearned = vocabularyLearned;
+		}
+
+		public String getGrammarCorrections() {
+			return grammarCorrections;
+		}
+
+		public void setGrammarCorrections(String grammarCorrections) {
+			this.grammarCorrections = grammarCorrections;
+		}
+
+		public String getBetterSentences() {
+			return betterSentences;
+		}
+
+		public void setBetterSentences(String betterSentences) {
+			this.betterSentences = betterSentences;
+		}
+
+		public String getMotivationalMessage() {
+			return motivationalMessage;
+		}
+
+		public void setMotivationalMessage(String motivationalMessage) {
+			this.motivationalMessage = motivationalMessage;
+		}
 	}
 }

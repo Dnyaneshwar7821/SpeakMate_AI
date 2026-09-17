@@ -692,6 +692,11 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 				notificationService.notifyAdmins("New Teacher Added",
 						"Teacher " + teacherName + " has been added to " + schoolName + ".",
 						NotificationType.TEACHER_CREATED, savedTeacher.getId(), "TEACHER");
+				if (targetSchoolId != null) {
+					notificationService.notifySchoolAdmins(targetSchoolId, "New Teacher Added",
+							"Teacher " + teacherName + " has been added to " + schoolName + ".",
+							NotificationType.TEACHER_CREATED, savedTeacher.getId(), "TEACHER");
+				}
 				notificationService.sendNotification(savedTeacher.getEmail(), "Welcome to SpeakMate AI",
 						"Your teacher account for " + schoolName + " has been created.",
 						NotificationType.TEACHER_CREATED, savedTeacher.getId(), "TEACHER");

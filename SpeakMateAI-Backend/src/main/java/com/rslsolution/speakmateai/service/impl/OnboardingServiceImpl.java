@@ -36,18 +36,24 @@ public class OnboardingServiceImpl implements OnboardingService {
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
 		String resolvedGrade = resolveGrade(request.getSchoolGrade(), request.getEnglishLevel());
-		String resolvedLevel = (resolvedGrade != null && !resolvedGrade.trim().isEmpty()) ? null : request.getEnglishLevel();
+		String resolvedLevel = (resolvedGrade != null && !resolvedGrade.trim().isEmpty()) ? null
+				: request.getEnglishLevel();
 
 		Onboarding onboarding = Onboarding.builder().user(user)
 				.englishLevel(resolvedLevel)
-				.learningGoal(request.getLearningGoal() != null ? request.getLearningGoal() : "Improve English speaking skills")
+				.englishLevel(resolvedLevel)
+				.learningGoal(request.getLearningGoal() != null ? request.getLearningGoal()
+						: "Improve English speaking skills")
 				.dailyGoalMinutes(request.getDailyGoalMinutes() != null ? request.getDailyGoalMinutes() : 15)
 				.nativeLanguage(request.getNativeLanguage() != null ? request.getNativeLanguage() : "English")
-				.preferredLearningTime(request.getPreferredLearningTime() != null ? request.getPreferredLearningTime() : "Morning")
+				.preferredLearningTime(
+						request.getPreferredLearningTime() != null ? request.getPreferredLearningTime() : "Morning")
 				.interests(request.getInterests() != null ? request.getInterests() : "General")
 				.ageGroup(request.getAgeGroup() != null ? request.getAgeGroup() : "Professional")
 				.schoolGrade(resolvedGrade)
-				.onboardingCompleted(request.getOnboardingCompleted() != null ? request.getOnboardingCompleted() : false).build();
+				.onboardingCompleted(
+						request.getOnboardingCompleted() != null ? request.getOnboardingCompleted() : false)
+				.build();
 
 		Onboarding savedOnboarding = onboardingRepository.save(onboarding);
 		syncUserOnboarding(user, request);
@@ -111,22 +117,29 @@ public class OnboardingServiceImpl implements OnboardingService {
 					return onboardingRepository.save(defaultOnboarding);
 				});
 
-		if (request.getLearningGoal() != null) onboarding.setLearningGoal(request.getLearningGoal());
-		if (request.getDailyGoalMinutes() != null) onboarding.setDailyGoalMinutes(request.getDailyGoalMinutes());
-		if (request.getNativeLanguage() != null) onboarding.setNativeLanguage(request.getNativeLanguage());
-		if (request.getPreferredLearningTime() != null) onboarding.setPreferredLearningTime(request.getPreferredLearningTime());
-		if (request.getInterests() != null) onboarding.setInterests(request.getInterests());
-		if (request.getAgeGroup() != null) onboarding.setAgeGroup(request.getAgeGroup());
-		
+		if (request.getLearningGoal() != null)
+			onboarding.setLearningGoal(request.getLearningGoal());
+		if (request.getDailyGoalMinutes() != null)
+			onboarding.setDailyGoalMinutes(request.getDailyGoalMinutes());
+		if (request.getNativeLanguage() != null)
+			onboarding.setNativeLanguage(request.getNativeLanguage());
+		if (request.getPreferredLearningTime() != null)
+			onboarding.setPreferredLearningTime(request.getPreferredLearningTime());
+		if (request.getInterests() != null)
+			onboarding.setInterests(request.getInterests());
+		if (request.getAgeGroup() != null)
+			onboarding.setAgeGroup(request.getAgeGroup());
+
 		String resolvedGrade = resolveGrade(request.getSchoolGrade(), request.getEnglishLevel());
-		onboarding.setSchoolGrade(resolvedGrade);
 		if (resolvedGrade != null && !resolvedGrade.trim().isEmpty()) {
-			onboarding.setEnglishLevel(null);
-		} else if (request.getEnglishLevel() != null) {
+			onboarding.setSchoolGrade(resolvedGrade);
+		}
+		if (request.getEnglishLevel() != null) {
 			onboarding.setEnglishLevel(request.getEnglishLevel());
 		}
 
-		if (request.getOnboardingCompleted() != null) onboarding.setOnboardingCompleted(request.getOnboardingCompleted());
+		if (request.getOnboardingCompleted() != null)
+			onboarding.setOnboardingCompleted(request.getOnboardingCompleted());
 
 		Onboarding updatedOnboarding = onboardingRepository.save(onboarding);
 		syncUserOnboarding(user, request);
@@ -150,7 +163,8 @@ public class OnboardingServiceImpl implements OnboardingService {
 
 	private OnboardingResponse mapToResponse(Onboarding onboarding) {
 		String effectiveGrade = resolveGrade(onboarding.getSchoolGrade(), onboarding.getEnglishLevel());
-		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : onboarding.getEnglishLevel();
+		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null
+				: onboarding.getEnglishLevel();
 
 		return OnboardingResponse.builder().id(onboarding.getId()).englishLevel(effectiveLevel)
 				.learningGoal(onboarding.getLearningGoal()).dailyGoalMinutes(onboarding.getDailyGoalMinutes())
@@ -164,13 +178,19 @@ public class OnboardingServiceImpl implements OnboardingService {
 
 	private void syncUserOnboarding(User user, OnboardingRequest request) {
 
-		if (request.getNativeLanguage() != null) user.setNativeLanguage(request.getNativeLanguage());
-		if (request.getLearningGoal() != null) user.setLearningGoal(request.getLearningGoal());
-		if (request.getDailyGoalMinutes() != null) user.setDailyGoalMinutes(request.getDailyGoalMinutes());
-		if (request.getPreferredVoice() != null) user.setPreferredVoice(request.getPreferredVoice());
-		if (request.getPreferredAccent() != null) user.setPreferredAccent(request.getPreferredAccent());
-		if (request.getAgeGroup() != null) user.setAgeGroup(request.getAgeGroup());
-		
+		if (request.getNativeLanguage() != null)
+			user.setNativeLanguage(request.getNativeLanguage());
+		if (request.getLearningGoal() != null)
+			user.setLearningGoal(request.getLearningGoal());
+		if (request.getDailyGoalMinutes() != null)
+			user.setDailyGoalMinutes(request.getDailyGoalMinutes());
+		if (request.getPreferredVoice() != null)
+			user.setPreferredVoice(request.getPreferredVoice());
+		if (request.getPreferredAccent() != null)
+			user.setPreferredAccent(request.getPreferredAccent());
+		if (request.getAgeGroup() != null)
+			user.setAgeGroup(request.getAgeGroup());
+
 		String resolvedGrade = resolveGrade(request.getSchoolGrade(), request.getEnglishLevel());
 		user.setSchoolGrade(resolvedGrade);
 		if (resolvedGrade != null && !resolvedGrade.trim().isEmpty()) {
@@ -179,8 +199,10 @@ public class OnboardingServiceImpl implements OnboardingService {
 			user.setEnglishLevel(request.getEnglishLevel());
 		}
 
-		if (request.getInterests() != null) user.setInterests(request.getInterests());
-		if (request.getOnboardingCompleted() != null) user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));
+		if (request.getInterests() != null)
+			user.setInterests(request.getInterests());
+		if (request.getOnboardingCompleted() != null)
+			user.setOnboardingCompleted(Boolean.TRUE.equals(request.getOnboardingCompleted()));
 		userRepository.save(user);
 	}
 

@@ -318,6 +318,38 @@ public class NotificationServiceImpl implements NotificationService {
 	}
 
 	@Override
+	public void notifyTeachersOfSchool(Long schoolId, String title, String message, NotificationType type, Long entityId, String entityType) {
+		if (schoolId == null) return;
+		List<User> teachers = userRepository.findBySchoolIdAndRole(schoolId, Role.TEACHER);
+		if (teachers != null) {
+			java.util.Set<String> recipientEmails = new java.util.HashSet<>();
+			for (User teacher : teachers) {
+				if (teacher.getEmail() != null && !teacher.getEmail().isBlank()) {
+					recipientEmails.add(teacher.getEmail().trim());
+				}
+			}
+			for (String email : recipientEmails) {
+				sendNotification(email, title, message, type, entityId, entityType);
+			}
+		}
+	}
+
+	@Override
+	public void notifyTeacher(Long teacherId, String title, String message, NotificationType type, Long entityId, String entityType) {
+		if (teacherId == null) return;
+		User teacher = userRepository.findById(teacherId).orElse(null);
+		if (teacher != null && teacher.getEmail() != null && !teacher.getEmail().isBlank()) {
+			sendNotification(teacher.getEmail().trim(), title, message, type, entityId, entityType);
+		}
+	}
+
+	@Override
+	public void notifySchool(Long schoolId, String title, String message, NotificationType type, Long entityId, String entityType) {
+		notifySchoolAdmins(schoolId, title, message, type, entityId, entityType);
+		notifyTeachersOfSchool(schoolId, title, message, type, entityId, entityType);
+	}
+
+	@Override
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public SseEmitter subscribeToStream(String email) {
 		// 30 minute timeout
