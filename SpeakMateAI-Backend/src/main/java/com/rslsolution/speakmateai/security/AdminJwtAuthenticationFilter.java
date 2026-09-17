@@ -2,6 +2,7 @@ package com.rslsolution.speakmateai.security;
 
 import java.io.IOException;
 
+import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,14 +34,14 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 	private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(AdminJwtAuthenticationFilter.class);
 
 	@Override
-	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+	protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
 		String path = request.getServletPath();
 		// This filter runs for /api/admin/ endpoints and /api/assistant/ endpoints.
 		return !path.startsWith("/api/admin/") && !path.startsWith("/api/assistant/");
 	}
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+	protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
 			throws ServletException, IOException {
 
 		String authHeader = request.getHeader("Authorization");

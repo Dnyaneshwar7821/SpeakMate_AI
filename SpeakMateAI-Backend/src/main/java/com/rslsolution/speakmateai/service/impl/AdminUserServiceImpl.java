@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Objects;
@@ -42,7 +41,6 @@ import com.rslsolution.speakmateai.entity.LessonProgress;
 import com.rslsolution.speakmateai.entity.GrammarHistory;
 import com.rslsolution.speakmateai.entity.Vocabulary;
 import com.rslsolution.speakmateai.entity.User;
-import com.rslsolution.speakmateai.entity.Student;
 import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.mapper.AdminUserMapper;
 import com.rslsolution.speakmateai.repository.UserRepository;
@@ -56,6 +54,7 @@ import com.rslsolution.speakmateai.service.AdminUserService;
 
 @Service
 @Transactional
+@SuppressWarnings("null")
 public class AdminUserServiceImpl implements AdminUserService {
 
     private final UserRepository userRepository;

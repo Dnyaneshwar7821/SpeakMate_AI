@@ -5,9 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -31,6 +31,7 @@ import java.util.Map;
  */
 @Component("brevoEmailProvider")
 @Conditional(OnBrevoCondition.class)
+@SuppressWarnings("null")
 public class BrevoEmailProvider implements EmailProvider {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BrevoEmailProvider.class);
@@ -104,17 +105,19 @@ public class BrevoEmailProvider implements EmailProvider {
 
         try {
             log.info("Sending email via Brevo API to recipient: {}, isHtml: {}", recipient, message.isHtml());
-            ResponseEntity<Map> response = restTemplate.exchange(
+            ParameterizedTypeReference<Map<String, Object>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
                     endpoint,
                     HttpMethod.POST,
                     requestEntity,
-                    Map.class
+                    responseType
             );
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 String messageId = null;
-                if (response.getBody() != null && response.getBody().containsKey("messageId")) {
-                    messageId = String.valueOf(response.getBody().get("messageId"));
+                Map<String, Object> body = response.getBody();
+                if (body != null && body.containsKey("messageId")) {
+                    messageId = String.valueOf(body.get("messageId"));
                 }
                 log.info("Brevo email dispatched successfully to: {}, status: {}, messageId: {}",
                         recipient, response.getStatusCode(), messageId);

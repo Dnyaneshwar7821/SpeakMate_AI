@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,12 +24,10 @@ import com.rslsolution.speakmateai.dto.response.AchievementResponse;
 import com.rslsolution.speakmateai.dto.response.AiLearningInsightResponse;
 import com.rslsolution.speakmateai.dto.response.AssignedClassResponse;
 import com.rslsolution.speakmateai.dto.response.ClassPerformanceResponse;
-import com.rslsolution.speakmateai.dto.response.ClassRoomResponse;
 import com.rslsolution.speakmateai.dto.response.PerformanceSummaryResponse;
 import com.rslsolution.speakmateai.dto.response.PerformanceTrendResponse;
 import com.rslsolution.speakmateai.dto.response.PracticeStatisticsResponse;
 import com.rslsolution.speakmateai.dto.response.ProfileResponse;
-import com.rslsolution.speakmateai.dto.response.ProgressResponse;
 import com.rslsolution.speakmateai.dto.response.RecentActivityResponse;
 import com.rslsolution.speakmateai.dto.response.ReportCategoryResponse;
 import com.rslsolution.speakmateai.dto.response.RecentReportResponse;
@@ -101,6 +98,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @Transactional
+@SuppressWarnings({"null", "unused"})
 public class TeacherServiceImpl implements TeacherService {
 
 	private final UserRepository userRepository;
@@ -1308,7 +1306,6 @@ public class TeacherServiceImpl implements TeacherService {
 		double totalStudentScores = 0;
 		double totalStudentProgress = 0;
 		double totalStudentPracticeCompletion = 0;
-		double totalStudentAttendance = 0;
 
 		long activeStudentsCount = 0;
 		long practicingStudentsCount = 0;
@@ -1380,7 +1377,6 @@ public class TeacherServiceImpl implements TeacherService {
 			totalStudentScores += avgStudentScore;
 			totalStudentProgress += overallProgress;
 			totalStudentPracticeCompletion += practiceCompletion;
-			totalStudentAttendance += studentAttendance;
 		}
 
 		int totalStudents = students.size();
@@ -1408,7 +1404,7 @@ public class TeacherServiceImpl implements TeacherService {
 						.grade(selectedStd)
 						.totalStudents(totalStudents)
 						.averageScore(classAvgScore)
-						.averageProgress(classAvgPracticeCompletion)
+						.averageProgress(classAvgProgress)
 						.completedLessons((int) totalStudentPracticeCompletion)
 						.activeStudents((int) activeStudentsCount)
 						.build()
