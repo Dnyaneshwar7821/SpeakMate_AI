@@ -75,7 +75,8 @@ public class SecurityConfig {
 								"/api/users/forgot-password", "/api/users/verify-otp",
 								"/api/users/reset-password", "/api/users/reset-password-with-temporary", "/api/users/reset-redirect",
 								"/api/users/register-expo-url", "/error",
-								"/api/v1/integrations/**")
+								"/api/v1/integrations/**",
+								"/api/health", "/api/ping")
 						.permitAll()
 
 						// Lesson read endpoints — public browse (progress/start/complete require JWT)

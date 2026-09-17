@@ -22,14 +22,14 @@ public class DatabaseSchemaRepairRunner implements CommandLineRunner {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    @jakarta.annotation.PostConstruct
-    public void init() {
-        repairSchema();
-    }
+    private static volatile boolean hasRepaired = false;
 
     @Override
     public void run(String... args) {
-        repairSchema();
+        if (!hasRepaired) {
+            hasRepaired = true;
+            repairSchema();
+        }
     }
 
     public void repairSchema() {

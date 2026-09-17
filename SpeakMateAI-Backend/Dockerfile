@@ -24,5 +24,5 @@ COPY --from=build /app/target/*.jar app.jar
 ENV PORT=9091
 EXPOSE 9091
 
-# Memory limits tuned for Render Starter/Free (512MB RAM) containers
-ENTRYPOINT ["sh", "-c", "java -Xms128m -Xmx384m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -Dserver.port=${PORT:-9091} -jar app.jar"]
+# Memory and fast-boot limits tuned for Render Starter/Free (512MB RAM) containers
+ENTRYPOINT ["sh", "-c", "java -Xms128m -Xmx384m -XX:+UseSerialGC -XX:MaxMetaspaceSize=128m -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dserver.port=${PORT:-9091} -jar app.jar"]
