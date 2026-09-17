@@ -209,6 +209,7 @@ export function SpeakingAnalyticsSection({ speaking, timeSeries }) {
                   dataKey="name"
                   tick={{ fontSize: 10, fill: "#64748b" }}
                   interval={0}
+                  tickLine={false}
                   stroke="#64748b"
                   tickFormatter={(val, idx) => {
                     if (idx > 0 && chartData[idx - 1]?.name === val) {

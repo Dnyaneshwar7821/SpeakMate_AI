@@ -73,4 +73,5 @@ backup_db.js
 
 # --- Hold from push until user requests ---
 ADMIN_PANEL_MASTER_DOCUMENTATION.md
+ai-assistant-chatbot/
 

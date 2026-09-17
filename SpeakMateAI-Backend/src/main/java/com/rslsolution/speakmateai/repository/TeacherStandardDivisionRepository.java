@@ -21,4 +21,8 @@ public interface TeacherStandardDivisionRepository extends JpaRepository<Teacher
 
     @org.springframework.data.jpa.repository.Query("SELECT tsd FROM TeacherStandardDivision tsd JOIN FETCH tsd.standardDivision sd JOIN FETCH sd.schoolStandard ss LEFT JOIN FETCH ss.school WHERE tsd.teacher.id IN :teacherIds")
     List<TeacherStandardDivision> findByTeacherIdIn(@org.springframework.data.repository.query.Param("teacherIds") List<Long> teacherIds);
+
+    default List<TeacherStandardDivision> findWithClassesByTeacherIdIn(List<Long> teacherIds) {
+        return findByTeacherIdIn(teacherIds);
+    }
 }

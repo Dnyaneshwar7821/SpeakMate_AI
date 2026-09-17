@@ -24,6 +24,8 @@ public interface ProgressRepository extends JpaRepository<Progress, Long> {
 
 	List<Progress> findByCurrentStreakGreaterThan(int streak);
 
+	long countByCurrentStreakGreaterThan(int streak);
+
 	List<Progress> findTop50ByOrderByXpDesc();
 
 	List<Progress> findAllByOrderByXpDesc();

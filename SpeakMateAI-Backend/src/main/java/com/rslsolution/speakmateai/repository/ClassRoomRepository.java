@@ -12,4 +12,5 @@ public interface ClassRoomRepository extends JpaRepository<ClassRoom, Long> {
 	List<ClassRoom> findBySchoolId(Long schoolId);
 	List<ClassRoom> findByTeacherId(Long teacherId);
 	List<ClassRoom> findByTeacherIdIn(List<Long> teacherIds);
+	long countBySchoolId(Long schoolId);
 }

@@ -16,4 +16,6 @@ public interface SchoolStandardRepository extends JpaRepository<SchoolStandard, 
 
     @org.springframework.data.jpa.repository.Query("SELECT ss FROM SchoolStandard ss JOIN FETCH ss.school WHERE ss.school.id IN :schoolIds")
     List<SchoolStandard> findBySchoolIdIn(@org.springframework.data.repository.query.Param("schoolIds") List<Long> schoolIds);
+
+    long countBySchoolId(Long schoolId);
 }

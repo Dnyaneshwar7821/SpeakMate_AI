@@ -24,4 +24,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long>, JpaSpec
     Double sumRevenueBetween(@Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     long countByPaymentStatus(PaymentStatus paymentStatus);
+
+    @Query("SELECT COALESCE(SUM(p.amount), 0.0) FROM Payment p WHERE p.paymentStatus = 'PAID' AND p.user.schoolId = :schoolId")
+    Double sumTotalRevenueForSchool(@Param("schoolId") Long schoolId);
+
+    @Query("SELECT COALESCE(SUM(p.amount), 0.0) FROM Payment p WHERE p.paymentStatus = 'PAID' AND p.paymentDate >= :startDate AND p.user.schoolId = :schoolId")
+    Double sumRevenueSinceForSchool(@Param("startDate") LocalDateTime startDate, @Param("schoolId") Long schoolId);
+
+    long countByPaymentStatusAndUserSchoolId(PaymentStatus paymentStatus, Long schoolId);
 }

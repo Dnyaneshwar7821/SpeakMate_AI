@@ -60,7 +60,7 @@ export function VocabularyAnalyticsSection({ vocabulary, timeSeries }) {
               Vocabulary Acquisition & Mastery
             </h3>
             <p className="text-xs text-slate-600 dark:text-slate-400">
-              Mastery strictly verified from actual student mastery flags in database
+              Track cumulative vocabulary growth and verified word retention over time
             </p>
           </div>
         </div>
@@ -153,6 +153,7 @@ export function VocabularyAnalyticsSection({ vocabulary, timeSeries }) {
                   dataKey="name"
                   tick={{ fontSize: 10, fill: "#64748b" }}
                   interval={0}
+                  tickLine={false}
                   stroke="#64748b"
                   tickFormatter={(val, idx) => {
                     if (idx > 0 && chartData[idx - 1]?.name === val) {
@@ -170,11 +171,15 @@ export function VocabularyAnalyticsSection({ vocabulary, timeSeries }) {
                     color: "#f8fafc",
                     fontSize: "12px",
                   }}
+                  itemSorter={(item) => (item.dataKey === "total" ? -1 : 1)}
                   labelFormatter={(label, items) => {
                     const payload = items?.[0]?.payload;
                     return payload?.fullDate || label;
                   }}
-                  formatter={(val, name) => [`${val} words`, name === "total" ? "Total Logged" : "Mastered"]}
+                  formatter={(val, name, item) => {
+                    const isTotal = item?.dataKey === "total" || name === "total" || name === "Total Vocabulary";
+                    return [`${val} words`, isTotal ? "Total Vocabulary" : "Mastered Words"];
+                  }}
                 />
                 <Legend wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }} />
                 <Area

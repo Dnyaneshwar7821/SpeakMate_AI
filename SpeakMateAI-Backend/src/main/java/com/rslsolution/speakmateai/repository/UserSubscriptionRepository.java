@@ -36,6 +36,14 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
 
 	long countBySubscriptionStatus(SubscriptionStatus status);
 
+	@Query("SELECT COALESCE(SUM(us.amountPaid), 0.0) FROM UserSubscription us WHERE us.user.schoolId = :schoolId")
+	Double sumTotalRevenueForSchool(@Param("schoolId") Long schoolId);
+
+	@Query("SELECT COALESCE(SUM(us.amountPaid), 0.0) FROM UserSubscription us WHERE us.createdAt >= :startDate AND us.user.schoolId = :schoolId")
+	Double sumRevenueSinceForSchool(@Param("startDate") LocalDateTime startDate, @Param("schoolId") Long schoolId);
+
+	long countBySubscriptionStatusAndUserSchoolId(SubscriptionStatus status, Long schoolId);
+
 	Optional<UserSubscription> findFirstByUserIdAndSubscriptionStatus(Long userId, SubscriptionStatus status);
 
 	@Query("SELECT COUNT(DISTINCT us.user.id) FROM UserSubscription us")

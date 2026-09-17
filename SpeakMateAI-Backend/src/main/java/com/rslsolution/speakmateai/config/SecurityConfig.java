@@ -99,6 +99,10 @@ public class SecurityConfig {
 						.requestMatchers("/api/profile/**", "/api/settings/**", "/api/user/**")
 						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
+						// AI Assistant accessible by all roles
+						.requestMatchers("/api/assistant/**")
+						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+
 						.anyRequest().authenticated())
 				.httpBasic(Customizer.withDefaults());
 

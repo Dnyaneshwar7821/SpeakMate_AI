@@ -16,4 +16,7 @@ public interface StandardDivisionRepository extends JpaRepository<StandardDivisi
 
     @org.springframework.data.jpa.repository.Query("SELECT sd FROM StandardDivision sd JOIN FETCH sd.schoolStandard WHERE sd.schoolStandard.id IN :schoolStandardIds")
     List<StandardDivision> findBySchoolStandardIdIn(@org.springframework.data.repository.query.Param("schoolStandardIds") List<Long> schoolStandardIds);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(sd) FROM StandardDivision sd WHERE sd.schoolStandard.school.id = :schoolId")
+    long countBySchoolId(@org.springframework.data.repository.query.Param("schoolId") Long schoolId);
 }

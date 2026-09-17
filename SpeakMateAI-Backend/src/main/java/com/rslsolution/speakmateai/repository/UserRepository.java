@@ -76,4 +76,16 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	List<User> findByRole(Role role);
 
 	long countByRole(Role role);
+
+	long countByRoleAndActiveTrue(Role role);
+
+	long countByRoleAndSchoolId(Role role, Long schoolId);
+
+	long countByRoleAndSchoolIdAndActiveTrue(Role role, Long schoolId);
+
+	@Query("SELECT u.schoolId, COUNT(u) FROM User u WHERE u.role = com.rslsolution.speakmateai.enums.Role.STUDENT AND u.schoolId IS NOT NULL GROUP BY u.schoolId")
+	List<Object[]> countStudentsGroupedBySchool();
+
+	@Query("SELECT u.schoolId, COUNT(u) FROM User u WHERE u.role = com.rslsolution.speakmateai.enums.Role.TEACHER AND u.schoolId IS NOT NULL GROUP BY u.schoolId")
+	List<Object[]> countTeachersGroupedBySchool();
 }

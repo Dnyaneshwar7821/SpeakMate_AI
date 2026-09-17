@@ -16,8 +16,6 @@ import LessonsCurriculumSection from "./student-profile/LessonsCurriculumSection
 import SpeakingAnalyticsSection from "./student-profile/SpeakingAnalyticsSection";
 import GrammarAnalyticsSection from "./student-profile/GrammarAnalyticsSection";
 import VocabularyAnalyticsSection from "./student-profile/VocabularyAnalyticsSection";
-import RecentActivityTimeline from "./student-profile/RecentActivityTimeline";
-import SchoolAcademicPerformance from "./student-profile/SchoolAcademicPerformance";
 
 export function UserProgressModal({ isOpen, user, student, onClose }) {
   const targetUser = user || student;
@@ -227,14 +225,6 @@ export function UserProgressModal({ isOpen, user, student, onClose }) {
               vocabulary={profile.vocabulary}
               timeSeries={profile.timeSeries}
             />
-
-            {/* 13. Recent Activity Timeline */}
-            <RecentActivityTimeline recentActivity={profile.recentActivity} />
-
-            {/* 14. School Academic Performance (Conditional) */}
-            {profile.assessments?.schoolStudent && (
-              <SchoolAcademicPerformance assessments={profile.assessments} />
-            )}
           </>
         )}
       </div>

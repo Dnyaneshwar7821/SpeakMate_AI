@@ -6,12 +6,10 @@ import {
   ListChecks,
   BookOpen,
   Mic,
-  SpellCheck,
-  History,
-  GraduationCap
+  SpellCheck
 } from "lucide-react";
 
-export function StickyNav({ isSchoolStudent, activeSection, onScrollToSection }) {
+export function StickyNav({ activeSection, onScrollToSection }) {
   const navItems = [
     { id: "section-overview", label: "Overview", icon: LayoutDashboard },
     { id: "section-evaluation", label: "Evaluation", icon: FileText },
@@ -21,12 +19,7 @@ export function StickyNav({ isSchoolStudent, activeSection, onScrollToSection })
     { id: "section-speaking", label: "Speaking", icon: Mic },
     { id: "section-grammar", label: "Grammar", icon: SpellCheck },
     { id: "section-vocabulary", label: "Vocabulary", icon: BookOpen },
-    { id: "section-activity", label: "Activity Log", icon: History },
   ];
-
-  if (isSchoolStudent) {
-    navItems.push({ id: "section-school", label: "School Exams", icon: GraduationCap });
-  }
 
   return (
     <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-2.5 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-sm transition-all">
