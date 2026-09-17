@@ -29,9 +29,9 @@ import {
 
 const getApiBase = () => {
   try {
-    return import.meta.env.VITE_API_BASE_URL || "http://localhost:9091";
+    return import.meta.env.VITE_API_BASE_URL || "https://speakmate-ai-28z5.onrender.com";
   } catch {
-    return "http://localhost:9091";
+    return "https://speakmate-ai-28z5.onrender.com";
   }
 };
 

@@ -180,7 +180,7 @@ export function useUserManagement() {
       userType: data.userType || "general"
     };
     try {
-      console.log("API base URL:", import.meta.env.VITE_API_BASE_URL || "http://localhost:9091");
+      console.log("API base URL:", import.meta.env.VITE_API_BASE_URL || "https://speakmate-ai-28z5.onrender.com");
       console.log("Update user ID:", id);
       console.log("Update payload:", payload);
       await adminUserApi.updateUser(id, payload);

@@ -344,7 +344,7 @@ export function useNotifications() {
     const token = getSessionToken();
     if (!token) return;
 
-    const baseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:9091";
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://speakmate-ai-28z5.onrender.com";
     const streamUrl = `${baseUrl}/api/notification/stream?token=${encodeURIComponent(token)}`;
     const eventSource = new EventSource(streamUrl);
     eventSourceRef.current = eventSource;

@@ -36,8 +36,8 @@ function loadEnv() {
 }
 loadEnv();
 
-const BACKEND_URL = "http://localhost:9091";
-const FRONTEND_URL = "http://localhost:5173";
+const BACKEND_URL = process.env.BACKEND_URL || "https://speakmate-ai-28z5.onrender.com";
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
