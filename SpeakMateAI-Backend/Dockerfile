@@ -1,14 +1,14 @@
 # ==========================================
-# Build Stage
+# Build Stage (When Render Root Directory is SpeakMateAI-Backend)
 # ==========================================
 FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy pom.xml and download dependencies to optimize caching
-COPY SpeakMateAI-Backend/pom.xml .
-COPY SpeakMateAI-Backend/src ./src
+# Copy pom and source code
+COPY pom.xml .
+COPY src ./src
 
-# Package production executable JAR without running tests
+# Build production JAR without running tests
 RUN mvn clean package -DskipTests
 
 # ==========================================

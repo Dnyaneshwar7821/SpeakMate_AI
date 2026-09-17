@@ -1,0 +1,14 @@
+.git
+.gitignore
+.metadata
+**/node_modules
+**/dist
+**/build
+**/target
+backups
+SpeakMateAI-Frontend
+SpeakMateAI-Mobile_App
+*.sql
+*.md
+*.log
+*.zip
