@@ -122,17 +122,14 @@ export const DEEP_LINKS_BY_ROLE = Object.freeze({
     TEACHER: [
         { label: "Open full analytics", route: ROUTES.TEACHER_ANALYTICS, targetRole: "TEACHER" },
         { label: "View my students", route: ROUTES.TEACHER_STUDENTS, targetRole: "TEACHER" },
-        { label: "View class reports", route: ROUTES.TEACHER_REPORTS, targetRole: "TEACHER" },
     ],
     STUDENT: [
         { label: "View my progress", route: ROUTES.PROGRESS, targetRole: "STUDENT" },
         { label: "Practice speaking", route: ROUTES.SPEAKING, targetRole: "STUDENT" },
-        { label: "Explore lessons", route: ROUTES.LESSONS, targetRole: "STUDENT" },
     ],
     USER: [
         { label: "View my progress", route: ROUTES.PROGRESS, targetRole: "USER" },
         { label: "Practice speaking", route: ROUTES.SPEAKING, targetRole: "USER" },
-        { label: "Explore lessons", route: ROUTES.LESSONS, targetRole: "USER" },
     ],
 });
 

@@ -94,7 +94,7 @@ export function MessageBubble({ message, role, onClose }) {
 
                 {Array.isArray(suggestions) && suggestions.length > 0 ? (
                     <div className="mt-2 flex flex-wrap gap-1.5">
-                        {suggestions.map((suggestion, index) => (
+                        {suggestions.slice(0, 2).map((suggestion, index) => (
                             <DeepLinkChip
                                 key={`${suggestion.route}-${index}`}
                                 suggestion={suggestion}

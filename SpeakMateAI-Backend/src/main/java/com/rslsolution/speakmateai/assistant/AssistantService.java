@@ -1,9 +1,11 @@
 package com.rslsolution.speakmateai.assistant;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 
@@ -219,103 +221,152 @@ public class AssistantService {
 	}
 
 	/**
-	 * Deterministic deep-link suggestions per intent + role.
-	 *
-	 * <p>The analytics/insights deep-link ("Open full analytics") is attached ONLY
-	 * when the synthesizer decided the answer would benefit from it
-	 * ({@code suggestDeepLink == true}) - never on every message. Navigation help
-	 * therefore never includes insights/analytics routes by default.
+	 * Returns at most 2 strictly relevant deep-link suggestions tailored to the
+	 * classified intent and caller's role.
 	 */
 	private List<Suggestion> suggestionsFor(AssistantIntent intent, Role role, Boolean suggestDeepLink) {
-		if (intent == null || role == null) {
+		if (role == null) {
 			return List.of();
 		}
-		List<Suggestion> suggestions = new ArrayList<>();
-		if (Boolean.TRUE.equals(suggestDeepLink)) {
-			analyticsSuggestion(intent, role).ifPresent(suggestions::add);
+		List<Suggestion> candidates = new ArrayList<>();
+
+		// 1. Intent-specific primary suggestions
+		if (intent != null) {
+			switch (intent) {
+				case CLASS_PERFORMANCE -> {
+					if (role == Role.TEACHER) {
+						candidates.add(suggestion("View class analytics", "/teacher/analytics", "TEACHER"));
+						candidates.add(suggestion("View class reports", "/teacher/reports", "TEACHER"));
+					} else if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("View students", "/school-admin/students", "SCHOOL_ADMIN"));
+					}
+				}
+				case STUDENT_PERFORMANCE -> {
+					if (role == Role.STUDENT || role == Role.USER) {
+						candidates.add(suggestion("View my progress", "/progress", role.name()));
+						candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+					} else if (role == Role.TEACHER) {
+						candidates.add(suggestion("View my students", "/teacher/students", "TEACHER"));
+						candidates.add(suggestion("View class analytics", "/teacher/analytics", "TEACHER"));
+					} else if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("View students", "/school-admin/students", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+					}
+				}
+				case SCHOOL_ROSTER -> {
+					if (role == Role.TEACHER) {
+						candidates.add(suggestion("View my students", "/teacher/students", "TEACHER"));
+						candidates.add(suggestion("Go to dashboard", "/teacher/dashboard", "TEACHER"));
+					} else if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("View teachers", "/school-admin/teachers", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("View students", "/school-admin/students", "SCHOOL_ADMIN"));
+					} else if (role == Role.SUPER_ADMIN) {
+						candidates.add(suggestion("View school users", "/admin/school-users", "SUPER_ADMIN"));
+						candidates.add(suggestion("View all users", "/admin/users", "SUPER_ADMIN"));
+					}
+				}
+				case PLATFORM_OVERVIEW -> {
+					if (role == Role.SUPER_ADMIN) {
+						candidates.add(suggestion("View platform insights", "/admin/insights", "SUPER_ADMIN"));
+						candidates.add(suggestion("View all users", "/admin/users", "SUPER_ADMIN"));
+					}
+				}
+				case SCHOOL_OVERVIEW -> {
+					if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("Go to dashboard", "/school-admin/dashboard", "SCHOOL_ADMIN"));
+					}
+				}
+				case BILLING -> {
+					if (role == Role.SUPER_ADMIN) {
+						candidates.add(suggestion("View subscriptions", "/admin/subscription", "SUPER_ADMIN"));
+						candidates.add(suggestion("View platform insights", "/admin/insights", "SUPER_ADMIN"));
+					}
+				}
+				case PLATFORM_USERS -> {
+					if (role == Role.SUPER_ADMIN) {
+						candidates.add(suggestion("View all users", "/admin/users", "SUPER_ADMIN"));
+						candidates.add(suggestion("View school users", "/admin/school-users", "SUPER_ADMIN"));
+					}
+				}
+				case SCHOOL_DASHBOARD -> {
+					if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("Open dashboard", "/school-admin/dashboard", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+					}
+				}
+				case RESULTS_ANALYTICS -> {
+					if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("Open results", "/school-admin/results", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+					}
+				}
+				case AI_INSIGHTS -> {
+					if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("Open AI insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("Open results", "/school-admin/results", "SCHOOL_ADMIN"));
+					}
+				}
+				case PROFILE_SETTINGS -> {
+					if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("Open profile", "/school-admin/profile", "SCHOOL_ADMIN"));
+					} else if (role == Role.TEACHER) {
+						candidates.add(suggestion("Open profile", "/teacher/profile", "TEACHER"));
+					} else if (role == Role.SUPER_ADMIN) {
+						candidates.add(suggestion("Open profile", "/admin/profile", "SUPER_ADMIN"));
+					} else {
+						candidates.add(suggestion("Open profile", "/profile", role.name()));
+					}
+				}
+				default -> {
+				}
+			}
 		}
-		suggestions.addAll(navigationSuggestions(role));
-		return suggestions;
+
+		// 2. Fallback / supplementary role suggestions if fewer than 2 candidates
+		if (candidates.size() < 2) {
+			List<Suggestion> roleDefaults = defaultSuggestionsForRole(role);
+			for (Suggestion s : roleDefaults) {
+				if (candidates.size() >= 2) {
+					break;
+				}
+				candidates.add(s);
+			}
+		}
+
+		// 3. Deduplicate by route and strictly keep at most 2 relevant suggestions
+		List<Suggestion> result = new ArrayList<>();
+		Set<String> seenRoutes = new HashSet<>();
+		for (Suggestion s : candidates) {
+			if (s != null && s.getRoute() != null && seenRoutes.add(s.getRoute())) {
+				result.add(s);
+				if (result.size() == 2) {
+					break;
+				}
+			}
+		}
+		return result;
 	}
 
-	/**
-	 * The single "open the full analytics/insights page" suggestion for data-driven
-	 * intents. Empty for navigation help (nothing to deep-link to).
-	 */
-	private Optional<Suggestion> analyticsSuggestion(AssistantIntent intent, Role role) {
-		return switch (intent) {
-			case PLATFORM_OVERVIEW -> Optional.of(
-					suggestion("View platform insights", "/admin/insights", "SUPER_ADMIN"));
-			case SCHOOL_OVERVIEW -> role == Role.SCHOOL_ADMIN
-					? Optional.of(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"))
-					: Optional.of(suggestion("View school users", "/admin/school-users", "SUPER_ADMIN"));
-			case CLASS_PERFORMANCE -> role == Role.TEACHER
-					? Optional.of(suggestion("View class analytics", "/teacher/analytics", "TEACHER"))
-					: Optional.of(suggestion("View insights", "/school-admin/insights", "SCHOOL_ADMIN"));
-			case STUDENT_PERFORMANCE -> (role == Role.STUDENT || role == Role.USER)
-					? Optional.of(suggestion("View my progress", "/progress", role.name()))
-					: role == Role.TEACHER
-							? Optional.of(suggestion("View class analytics", "/teacher/analytics", "TEACHER"))
-							: Optional.of(suggestion("View insights", "/school-admin/insights", "SCHOOL_ADMIN"));
-			// Billing is visible to Super Admins (platform-wide) and School Admins
-			// (own school only). The /admin/subscription page belongs to the Super
-			// Admin panel; the School Admin panel has no billing page, so no
-			// deep-link is offered for that role.
-			case BILLING -> role == Role.SUPER_ADMIN
-					? Optional.of(suggestion("View subscriptions & billing", "/admin/subscription", "SUPER_ADMIN"))
-					: Optional.empty();
-			case SCHOOL_ROSTER -> role == Role.TEACHER
-					? Optional.of(suggestion("View my students", "/teacher/students", "TEACHER"))
-					: role == Role.SCHOOL_ADMIN
-							? Optional.of(suggestion("View teachers", "/school-admin/teachers", "SCHOOL_ADMIN"))
-							: Optional.of(suggestion("View school users", "/admin/school-users", "SUPER_ADMIN"));
-			// School-Admin dashboard PAGE datasets: deep-link to the matching page for
-			// the School Admin; Super Admins fall back to the platform insights page.
-			case SCHOOL_DASHBOARD -> role == Role.SCHOOL_ADMIN
-					? Optional.of(suggestion("Open dashboard", "/school-admin/dashboard", "SCHOOL_ADMIN"))
-					: Optional.of(suggestion("View platform insights", "/admin/insights", "SUPER_ADMIN"));
-			case RESULTS_ANALYTICS -> role == Role.SCHOOL_ADMIN
-					? Optional.of(suggestion("Open results", "/school-admin/results", "SCHOOL_ADMIN"))
-					: Optional.of(suggestion("View platform insights", "/admin/insights", "SUPER_ADMIN"));
-			case AI_INSIGHTS -> role == Role.SCHOOL_ADMIN
-					? Optional.of(suggestion("Open AI insights", "/school-admin/insights", "SCHOOL_ADMIN"))
-					: Optional.of(suggestion("View platform insights", "/admin/insights", "SUPER_ADMIN"));
-			case PROFILE_SETTINGS -> role == Role.SCHOOL_ADMIN
-					? Optional.of(suggestion("Open profile", "/school-admin/profile", "SCHOOL_ADMIN"))
-					: Optional.of(suggestion("Open profile", "/admin/profile", "SUPER_ADMIN"));
-			// Platform-wide user directory (Super Admin only): deep-link to the
-			// All Users page the data was sourced from.
-			case PLATFORM_USERS -> Optional.of(suggestion("View all users", "/admin/users", "SUPER_ADMIN"));
-			case ACCOUNT_INFO, NAVIGATION_HELP, ACCESS_DENIED -> Optional.empty();
-		};
-	}
-
-	private List<Suggestion> navigationSuggestions(Role role) {
+	private List<Suggestion> defaultSuggestionsForRole(Role role) {
 		return switch (role) {
 			case SUPER_ADMIN -> List.of(
-					suggestion("Go to dashboard", "/admin/dashboard", "SUPER_ADMIN"),
-					suggestion("Go to subscriptions", "/admin/subscription", "SUPER_ADMIN"));
+					suggestion("Platform insights", "/admin/insights", "SUPER_ADMIN"),
+					suggestion("View all users", "/admin/users", "SUPER_ADMIN"));
 			case SCHOOL_ADMIN -> List.of(
-					suggestion("Go to dashboard", "/school-admin/dashboard", "SCHOOL_ADMIN"),
+					suggestion("School insights", "/school-admin/insights", "SCHOOL_ADMIN"),
 					suggestion("Go to students", "/school-admin/students", "SCHOOL_ADMIN"));
 			case TEACHER -> List.of(
-					suggestion("Go to dashboard", "/teacher/dashboard", "TEACHER"),
-					suggestion("Go to students", "/teacher/students", "TEACHER"),
-					suggestion("Go to analytics", "/teacher/analytics", "TEACHER"),
-					suggestion("Go to reports", "/teacher/reports", "TEACHER"));
+					suggestion("View my students", "/teacher/students", "TEACHER"),
+					suggestion("View class analytics", "/teacher/analytics", "TEACHER"));
 			case STUDENT -> List.of(
-					suggestion("Go to dashboard", "/dashboard", "STUDENT"),
-					suggestion("Go to progress", "/progress", "STUDENT"),
-					suggestion("Practice speaking", "/speaking", "STUDENT"),
-					suggestion("Go to lessons", "/lessons", "STUDENT"),
-					suggestion("Vocabulary bank", "/vocabulary", "STUDENT"));
+					suggestion("View my progress", "/progress", "STUDENT"),
+					suggestion("Practice speaking", "/speaking", "STUDENT"));
 			case USER -> List.of(
-					suggestion("Go to dashboard", "/dashboard", "USER"),
-					suggestion("Go to progress", "/progress", "USER"),
-					suggestion("Practice speaking", "/speaking", "USER"),
-					suggestion("Go to lessons", "/lessons", "USER"),
-					suggestion("Vocabulary bank", "/vocabulary", "USER"));
-			default -> List.of(suggestion("Go to dashboard", "/dashboard", "STUDENT"));
+					suggestion("View my progress", "/progress", "USER"),
+					suggestion("Practice speaking", "/speaking", "USER"));
+			default -> List.of(suggestion("Go to dashboard", "/dashboard", "USER"));
 		};
 	}
 
