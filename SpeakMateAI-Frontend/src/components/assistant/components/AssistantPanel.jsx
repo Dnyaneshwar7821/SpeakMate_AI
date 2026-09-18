@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AlertCircle, Trash2, Send, Sparkles, X } from "lucide-react";
+import { AlertCircle, Delete, Send, Sparkles, X } from "lucide-react";
 
 import { useAssistant } from "../AssistantContext";
 import {
@@ -88,7 +88,7 @@ export function AssistantPanel() {
                     aria-label="Delete chat and start fresh"
                     className="grid h-8 w-8 place-items-center rounded-lg text-[var(--text-secondary,#64748b)] transition-colors duration-200 hover:bg-red-500/10 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 cursor-pointer"
                 >
-                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    <Delete className="h-4 w-4" aria-hidden="true" />
                 </button>
                 <button
                     type="button"

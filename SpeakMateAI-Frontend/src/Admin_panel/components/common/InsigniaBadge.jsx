@@ -150,14 +150,12 @@ export function InsigniaBadge({
     };
 
     const isInteractive = Boolean(onClick);
+    const Tag = isInteractive ? "button" : "div";
 
     return (
         <div className="relative inline-flex items-center justify-center shrink-0 select-none">
-            <button
-                type="button"
-                disabled={!isInteractive}
-                onClick={onClick}
-                aria-label="Profile Insignia"
+            <Tag
+                {...(isInteractive ? { type: "button", onClick, "aria-label": "Profile Insignia" } : { "aria-hidden": "true" })}
                 className={`group relative grid shrink-0 place-items-center overflow-hidden rounded-full transition-all duration-300 ${
                     curSize.container
                 } ${className} ${isInteractive ? "cursor-pointer hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40" : "cursor-default"}`}
@@ -169,7 +167,7 @@ export function InsigniaBadge({
                         <Camera size={curSize.cameraIconSize + 4} className="text-white drop-shadow-md" />
                     </div>
                 )}
-            </button>
+            </Tag>
 
             {showCameraOverlay && (
                 <button
