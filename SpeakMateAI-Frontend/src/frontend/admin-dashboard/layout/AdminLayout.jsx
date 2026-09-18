@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Sidebar from "@admin/layout/Sidebar";
 import AdminNavbar from "@admin/layout/AdminNavbar";
 import RouteProgressBar from "@admin/components/RouteProgressBar";
+import { SuperAdminAssistant } from "@components/assistant";
 
 /**
  * admin-dashboard/layout/AdminLayout.jsx
@@ -39,6 +40,9 @@ export function AdminLayout() {
                     </div>
                 </main>
             </div>
+
+            {/* Dedicated Super Admin AI Assistant */}
+            <SuperAdminAssistant />
         </div>
     );
 }

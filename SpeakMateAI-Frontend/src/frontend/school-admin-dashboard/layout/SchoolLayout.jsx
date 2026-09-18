@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Sidebar from "@school-admin/layout/Sidebar";
 import SchoolNavbar from "@school-admin/layout/SchoolNavbar";
+import { SchoolAdminAssistant } from "@components/assistant";
 
 export function SchoolLayout() {
     return (
@@ -14,6 +15,8 @@ export function SchoolLayout() {
                     </div>
                 </main>
             </div>
+            {/* Dedicated School Admin AI Assistant */}
+            <SchoolAdminAssistant />
         </div>
     );
 }

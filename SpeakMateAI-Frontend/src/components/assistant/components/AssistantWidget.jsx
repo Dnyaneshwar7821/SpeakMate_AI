@@ -28,9 +28,9 @@ export function AssistantWidgetInner() {
     );
 }
 
-export function AssistantWidget() {
+export function AssistantWidget({ role, user }) {
     return (
-        <AssistantProvider>
+        <AssistantProvider role={role} user={user}>
             <AssistantWidgetInner />
         </AssistantProvider>
     );

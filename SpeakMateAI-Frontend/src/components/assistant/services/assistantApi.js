@@ -18,7 +18,7 @@ export const assistantApi = {
     /**
      * Send one user message to the assistant.
      */
-    sendMessage: async ({ sessionId, message, currentRoute, history }) => {
+    sendMessage: async ({ sessionId, message, currentRoute, history, role }) => {
         const payload = {
             sessionId: sessionId ?? null,
             message,
@@ -30,7 +30,12 @@ export const assistantApi = {
             payload.history = history;
         }
 
-        const response = await apiClient.post("/api/assistant/message", payload);
+        const headers = {};
+        if (typeof role === "string" && role.trim()) {
+            headers["X-Assistant-Role"] = role.trim();
+        }
+
+        const response = await apiClient.post("/api/assistant/message", payload, { headers });
         const data = response.data || {};
 
         return {

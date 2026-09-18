@@ -6,6 +6,7 @@ import Sidebar from "./Sidebar";
 import BottomNav from "./BottomNav";
 import Footer from "./Footer";
 import useSpeechCleanup from "../../hooks/useSpeechCleanup";
+import { LearnerAssistant } from "@components/assistant";
 
 const NO_SIDEBAR_PATHS = [
   ROUTES.HOME,
@@ -47,6 +48,9 @@ export function Layout({ children }) {
 
       {/* Mobile Sticky Bottom Nav */}
       {showSidebar && <BottomNav />}
+
+      {/* Dedicated Learner AI Assistant (Student / General User) */}
+      {showSidebar && <LearnerAssistant />}
     </div>
   );
 }

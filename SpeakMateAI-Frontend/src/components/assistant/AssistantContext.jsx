@@ -53,9 +53,10 @@ const createAssistantMessage = (content, meta = {}) => ({
     suggestions: meta.suggestions || [],
 });
 
-export function AssistantProvider({ children }) {
-    const { user, role: detectedRole } = useAuth();
-    const role = detectedRole || user?.role || DEFAULT_ROLE;
+export function AssistantProvider({ children, role: explicitRole, user: explicitUser }) {
+    const fallbackAuth = useAuth();
+    const user = explicitUser || fallbackAuth.user;
+    const role = explicitRole || fallbackAuth.role || user?.role || DEFAULT_ROLE;
 
     const [isOpen, setIsOpen] = useState(false);
     const [sessionId, setSessionId] = useState(null);
@@ -113,6 +114,7 @@ export function AssistantProvider({ children }) {
                     message: trimmed,
                     currentRoute,
                     history: priorHistory,
+                    role,
                 });
 
                 if (response.sessionId) {
@@ -137,7 +139,7 @@ export function AssistantProvider({ children }) {
                 return false;
             }
         },
-        [loading]
+        [loading, role]
     );
 
     const value = useMemo(
@@ -148,6 +150,7 @@ export function AssistantProvider({ children }) {
             loading,
             error,
             role,
+            user,
             openWidget,
             closeWidget,
             toggle,
@@ -162,6 +165,7 @@ export function AssistantProvider({ children }) {
             loading,
             error,
             role,
+            user,
             openWidget,
             closeWidget,
             toggle,

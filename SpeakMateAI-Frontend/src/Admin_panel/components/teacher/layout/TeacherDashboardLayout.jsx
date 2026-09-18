@@ -6,6 +6,7 @@ import ROUTES from "@constants/routes";
 
 import TeacherNavbar from "./TeacherNavbar";
 import TeacherSidebar from "./TeacherSidebar";
+import { TeacherAssistant } from "@components/assistant";
 
 const teacherScrollPositions = new Map();
 const focusableSelector = [
@@ -214,6 +215,8 @@ export function TeacherDashboardLayout({ children }) {
                         </div>
                     </main>
                 </div>
+                {/* Dedicated Teacher AI Assistant */}
+                <TeacherAssistant />
             </div>
         </MotionConfig>
     );

@@ -11,53 +11,59 @@ export const ROLE_LABEL = Object.freeze({
     SCHOOL_ADMIN: "School Admin",
     TEACHER: "Teacher",
     STUDENT: "Student",
-    USER: "User",
+    USER: "Learner",
 });
 
 /** First-open welcome message shown per role (before any backend call). */
 export const WELCOME_TEXT_BY_ROLE = Object.freeze({
     SUPER_ADMIN: `
-Hi! I'm **SpeakMate Assistant** 👋
+Hi! I'm **SpeakMate Super Admin Assistant** 👋
 
 I can help you with:
 - **Platform overview** — total schools, students, teachers, active subscriptions
 - **Billing & revenue** — paid vs trial subscriptions and revenue health
 - **School insights** — school-wise engagement and status distribution
+- **Student progress lookups** — check any student's learning progress across schools
 
 Ask me a question or tap a suggestion below to get started.
   `.trim(),
     SCHOOL_ADMIN: `
-Hi! I'm **SpeakMate Assistant** 👋
+Hi! I'm **SpeakMate School Admin Assistant** 👋
 
 I can help you with:
 - **Your school overview** — students, teachers, class strength and engagement
 - **Class performance** — how divisions and classrooms are performing
-- **Student lookups** — progress snapshots for specific students
+- **Student lookups** — progress snapshots for students in your school
 
 Ask me a question or tap a suggestion below to get started.
   `.trim(),
     TEACHER: `
-Hi! I'm **SpeakMate Assistant** 👋
+Hi! I'm **SpeakMate Teacher Assistant** 👋
 
 I can help you with:
-- **Class performance** — engagement and results for your classes
+- **Class performance** — engagement and results for your assigned classes
 - **Student lookups** — progress snapshots for students assigned to you
+- **Analytics & reports** — common pronunciation mistakes and lesson progress
 
 Ask me a question or tap a suggestion below to get started.
   `.trim(),
     STUDENT: `
-Hi! I'm **SpeakMate Assistant** 👋
+Hi! I'm **SpeakMate Student Assistant** 👋
 
-I can help you track **your own progress** — lessons completed, scores and streaks.
+I can help you with:
+- **Your progress** — lessons completed, fluency scores and streaks
+- **School practice** — speaking drills and practice for your grade
+- **Vocabulary & grammar** — learn words and sentence practice
 
 Ask me a question or tap a suggestion below to get started.
   `.trim(),
     USER: `
-Hi! I'm **SpeakMate Assistant** 👋
+Hi! I'm **SpeakMate AI Assistant** 👋
 
 I can help you with:
-- **Your account** — the email, name and role you are signed in with
-- **Navigation help** — getting around the app
+- **Conversational fluency** — practice speaking naturally in English
+- **Daily practice** — check your streak, lessons and fluency score
+- **Account & subscription** — plan details, settings and daily goals
 
 Ask me a question or tap a suggestion below to get started.
   `.trim(),
@@ -70,24 +76,31 @@ export const QUICK_SUGGESTIONS_BY_ROLE = Object.freeze({
         "Show me subscription and billing health",
         "Which schools have the most students?",
         "List all users on the platform",
+        "Check a student's progress across schools",
     ],
     SCHOOL_ADMIN: [
         "Give me an overview of my school",
         "How are my classes performing?",
         "Show me a student's progress",
+        "List all teachers in my school",
     ],
     TEACHER: [
         "How is my class performing?",
         "Show me a student's progress",
         "What does my analytics dashboard show?",
+        "What are common pronunciation errors in my class?",
     ],
     STUDENT: [
         "Show me my progress",
         "How many lessons have I completed?",
+        "What should I practice for my grade?",
+        "What is my current speaking streak?",
     ],
     USER: [
+        "How is my speaking streak?",
+        "Recommend a conversation topic",
         "What email am I logged in with?",
-        "What is my account role?",
+        "What is my subscription plan?",
     ],
 });
 
@@ -123,7 +136,7 @@ export const RENDER_WHITELIST = Object.freeze({
 });
 
 /** Default fallback when a role is unknown. */
-export const DEFAULT_ROLE = "SUPER_ADMIN";
+export const DEFAULT_ROLE = "USER";
 
 export const ASSISTANT_CONSTANTS = Object.freeze({
     WELCOME_TEXT_BY_ROLE,

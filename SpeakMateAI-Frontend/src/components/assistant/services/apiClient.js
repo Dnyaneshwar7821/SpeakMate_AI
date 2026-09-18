@@ -1,8 +1,27 @@
 import axios from "axios";
 
-const getSessionToken = () => {
+const getSessionToken = (activeRole) => {
   try {
-    // 1. Check admin session (Super Admin, School Admin, Teacher)
+    // If explicitly student or user, use learner token
+    if (activeRole === "STUDENT" || activeRole === "USER") {
+      const token = localStorage.getItem("speakmate_token");
+      if (token && token !== "null" && token !== "undefined") {
+        return token;
+      }
+    }
+
+    // If explicitly admin role, use admin session token
+    if (activeRole === "SUPER_ADMIN" || activeRole === "SCHOOL_ADMIN" || activeRole === "TEACHER") {
+      const sessionStr = localStorage.getItem("speakmate_admin_session");
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        if (session && session.token) {
+          return session.token;
+        }
+      }
+    }
+
+    // Fallback: Check admin session first, then student token
     const sessionStr = localStorage.getItem("speakmate_admin_session");
     if (sessionStr) {
       const session = JSON.parse(sessionStr);
@@ -10,7 +29,6 @@ const getSessionToken = () => {
         return session.token;
       }
     }
-    // 2. Check regular user / student token
     const token = localStorage.getItem("speakmate_token");
     if (token && token !== "null" && token !== "undefined") {
       return token;
@@ -41,9 +59,13 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    const token = getSessionToken();
+    const activeRole = config.headers["X-Assistant-Role"];
+    const token = getSessionToken(activeRole);
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (config.headers["X-Assistant-Role"]) {
+      delete config.headers["X-Assistant-Role"];
     }
     return config;
   },
