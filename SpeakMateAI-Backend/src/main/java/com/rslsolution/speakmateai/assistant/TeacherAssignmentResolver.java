@@ -81,13 +81,13 @@ public class TeacherAssignmentResolver {
 		List<ClassRoom> teacherClasses = classRoomRepository.findByTeacherId(teacherId);
 		if (!teacherClasses.isEmpty()) {
 			List<Long> classIds = teacherClasses.stream()
-					.map(ClassRoom::getId)
+					.map(c -> c.getId())
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
 			if (!classIds.isEmpty()) {
 				List<ClassStudent> classStudents = classStudentRepository.findByClassIdIn(classIds);
 				List<Long> studentIds = classStudents.stream()
-						.map(ClassStudent::getStudentId)
+						.map(cs -> cs.getStudentId())
 						.filter(Objects::nonNull)
 						.distinct()
 						.collect(Collectors.toList());

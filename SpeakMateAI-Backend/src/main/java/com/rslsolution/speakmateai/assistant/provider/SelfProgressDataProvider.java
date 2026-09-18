@@ -14,13 +14,11 @@ import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
 import com.rslsolution.speakmateai.entity.LessonProgress;
 import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.SpeakingSession;
-import com.rslsolution.speakmateai.entity.Student;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.repository.LessonProgressRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
-import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 
 /**
@@ -32,20 +30,17 @@ import com.rslsolution.speakmateai.repository.UserRepository;
 public class SelfProgressDataProvider implements AssistantDataProvider {
 
 	private final UserRepository userRepository;
-	private final StudentRepository studentRepository;
 	private final ProgressRepository progressRepository;
 	private final LessonProgressRepository lessonProgressRepository;
 	private final SpeakingSessionRepository speakingSessionRepository;
 	private final ObjectMapper objectMapper;
 
 	public SelfProgressDataProvider(UserRepository userRepository,
-			StudentRepository studentRepository,
 			ProgressRepository progressRepository,
 			LessonProgressRepository lessonProgressRepository,
 			SpeakingSessionRepository speakingSessionRepository,
 			ObjectMapper objectMapper) {
 		this.userRepository = userRepository;
-		this.studentRepository = studentRepository;
 		this.progressRepository = progressRepository;
 		this.lessonProgressRepository = lessonProgressRepository;
 		this.speakingSessionRepository = speakingSessionRepository;

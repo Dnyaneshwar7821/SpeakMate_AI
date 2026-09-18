@@ -132,7 +132,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		boolean wantOthers = wantTeachers && wantStudents;
 
 		Map<Long, List<String>> classesByTeacher = wantTeachers
-				? classesByTeacherIds(teachers.stream().map(User::getId).collect(Collectors.toList()))
+				? classesByTeacherIds(teachers.stream().map(t -> t.getId()).filter(java.util.Objects::nonNull).collect(Collectors.toList()))
 				: Map.of();
 
 		List<Map<String, Object>> teacherViews = wantTeachers
@@ -248,7 +248,8 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			view.put("classes", assignedClasses);
 		}
 
-		Teacher details = teacherRepository.findById(teacher.getId()).orElse(null);
+		Long teacherUserId = teacher.getId();
+		Teacher details = teacherUserId != null ? teacherRepository.findById(teacherUserId).orElse(null) : null;
 		if (details != null) {
 			putIfPresent(view, "employeeId", details.getEmployeeId());
 			putIfPresent(view, "department", details.getDepartment());
@@ -279,9 +280,10 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		putIfPresent(view, "standard", student.getStandard());
 		putIfPresent(view, "division", student.getDivision());
 		putIfPresent(view, "rollNumber", student.getRollNumber());
-		if (student.getTeacherId() != null) {
-			view.put("teacherId", student.getTeacherId());
-			User assignedTeacher = userRepository.findById(student.getTeacherId()).orElse(null);
+		Long assignedTeacherId = student.getTeacherId();
+		if (assignedTeacherId != null) {
+			view.put("teacherId", assignedTeacherId);
+			User assignedTeacher = userRepository.findById(assignedTeacherId).orElse(null);
 			if (assignedTeacher != null) {
 				view.put("assignedTeacher", fullName(assignedTeacher.getFirstName(), assignedTeacher.getLastName()));
 			}
@@ -476,8 +478,9 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 	}
 
 	private School resolveSchool(ActorContext actor, Map<String, Object> params) {
-		if (actor.getRole() == Role.SCHOOL_ADMIN && actor.getSchoolId() != null) {
-			return schoolRepository.findById(actor.getSchoolId()).orElse(null);
+		Long adminSchoolId = actor.getSchoolId();
+		if (actor.getRole() == Role.SCHOOL_ADMIN && adminSchoolId != null) {
+			return schoolRepository.findById(adminSchoolId).orElse(null);
 		}
 		Object name = params.get("schoolName");
 		if (name == null || name.toString().isBlank()) {

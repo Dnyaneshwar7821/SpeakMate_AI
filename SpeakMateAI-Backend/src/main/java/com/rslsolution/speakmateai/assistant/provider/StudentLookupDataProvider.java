@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -14,13 +13,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
-import com.rslsolution.speakmateai.entity.ClassStudent;
 import com.rslsolution.speakmateai.entity.LessonProgress;
 import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.Student;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
-import com.rslsolution.speakmateai.repository.ClassStudentRepository;
 import com.rslsolution.speakmateai.repository.LessonProgressRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
@@ -38,20 +35,18 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 	private final StudentRepository studentRepository;
 	private final UserRepository userRepository;
 	private final ProgressRepository progressRepository;
-	private final ClassStudentRepository classStudentRepository;
 	private final LessonProgressRepository lessonProgressRepository;
 	private final TeacherAssignmentResolver teacherAssignmentResolver;
 	private final ObjectMapper objectMapper;
 
 	public StudentLookupDataProvider(StudentRepository studentRepository, UserRepository userRepository,
-			ProgressRepository progressRepository, ClassStudentRepository classStudentRepository,
+			ProgressRepository progressRepository,
 			LessonProgressRepository lessonProgressRepository,
 			TeacherAssignmentResolver teacherAssignmentResolver,
 			ObjectMapper objectMapper) {
 		this.studentRepository = studentRepository;
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
-		this.classStudentRepository = classStudentRepository;
 		this.lessonProgressRepository = lessonProgressRepository;
 		this.teacherAssignmentResolver = teacherAssignmentResolver;
 		this.objectMapper = objectMapper;
@@ -229,21 +224,6 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 		if (!name.isEmpty() && !name.contains("@")
 				&& fullName(u).toLowerCase(Locale.ROOT).contains(name.toLowerCase(Locale.ROOT))) {
-			return true;
-		}
-		return false;
-	}
-
-	/** True when the caller asked about a specific person (by name or email). */
-	private boolean hasPersonIdentifier(Map<String, Object> params) {
-		String name = strParam(params, "studentName");
-		if (name.isEmpty()) {
-			name = strParam(params, "name");
-		}
-		if (!name.isEmpty()) {
-			return true;
-		}
-		if (!strParam(params, "studentEmail").isEmpty() || !strParam(params, "email").isEmpty()) {
 			return true;
 		}
 		return false;

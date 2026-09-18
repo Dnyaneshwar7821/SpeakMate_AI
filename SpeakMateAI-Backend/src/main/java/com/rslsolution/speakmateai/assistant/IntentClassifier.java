@@ -495,10 +495,6 @@ public class IntentClassifier {
 	 * unusable output. Data questions keep their data intent; everything else
 	 * degrades to a neutral navigation-help answer (never a 500).
 	 */
-	private IntentResult deterministicFallback(String message, String raw, Role role) {
-		return deterministicFallback(message, raw, role, null);
-	}
-
 	private IntentResult deterministicFallback(String message, String raw, Role role, List<AssistantRequest.MessageTurn> history) {
 		IntentResult contextual = contextualFollowUpCheck(message, role, history);
 		if (contextual != null) {

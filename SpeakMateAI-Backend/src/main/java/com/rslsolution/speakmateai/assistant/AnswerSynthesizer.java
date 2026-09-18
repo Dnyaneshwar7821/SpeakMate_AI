@@ -87,14 +87,12 @@ public class AnswerSynthesizer {
 				"Question: " + userMessage + "\n\nDATA:\n" + dataJson));
 
 		String raw = null;
-		Exception lastFailure = null;
 		// Transient Groq failures (rate limits, timeouts) usually recover quickly;
 		// retry with a short backoff (capped) before answering gracefully.
 		for (int attempt = 1; attempt <= 3 && raw == null; attempt++) {
 			try {
 				raw = groqChatClient.chatJson(messages, 0.4);
 			} catch (Exception e) {
-				lastFailure = e;
 				if (attempt < 3) {
 					try {
 						Thread.sleep(Math.min(attempt * 300L, 800L));
