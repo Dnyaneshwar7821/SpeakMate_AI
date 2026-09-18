@@ -188,6 +188,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		}
 		int shownTeachers = wantTeachers ? teacherViews.size() : 0;
 		int shownStudents = wantStudents ? studentViews.size() : 0;
+		int shownOthers = wantOthers ? otherViews.size() : 0;
 		String summary;
 		if (wantTeachers && !wantStudents) {
 			summary = schoolLabel + " has " + shownTeachers + " teacher" + (shownTeachers == 1 ? "" : "s") + ".";
