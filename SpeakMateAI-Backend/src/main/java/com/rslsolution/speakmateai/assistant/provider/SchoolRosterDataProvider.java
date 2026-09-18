@@ -106,11 +106,10 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			teachers = userRepository.findBySchoolIdAndRole(schoolId, Role.TEACHER);
 			students = studentRepository.findBySchoolId(schoolId);
 			others = nonStudentNonTeacherUsers(schoolId);
-		} else if (actor.getRole() == Role.SUPER_ADMIN && !focusName.isBlank()) {
-			// Super-Admin per-person question that names no school ("standard of
-			// Vijay Patil"): load every school's teachers/students and locate the
-			// named person, so the answer is computed from real data instead of
-			// degrading to a NO DATA reply.
+		} else if (actor.getRole() == Role.SUPER_ADMIN) {
+			// Super-Admin question that names no school ("list of all students", "give me list student name",
+			// or per-person "standard of Vijay Patil"): load every school's teachers/students and locate the
+			// named person if specified, or return all records across the platform.
 			schoolId = null;
 			schoolLabel = "All schools";
 			teachers = userRepository.findByRole(Role.TEACHER);
@@ -189,10 +188,16 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		}
 		int shownTeachers = wantTeachers ? teacherViews.size() : 0;
 		int shownStudents = wantStudents ? studentViews.size() : 0;
-		int shownOthers = wantOthers ? otherViews.size() : 0;
-		String summary = schoolLabel + " has " + shownTeachers + " teacher"
-				+ (shownTeachers == 1 ? "" : "s") + " and " + shownStudents + " student"
-				+ (shownStudents == 1 ? "" : "s") + ".";
+		String summary;
+		if (wantTeachers && !wantStudents) {
+			summary = schoolLabel + " has " + shownTeachers + " teacher" + (shownTeachers == 1 ? "" : "s") + ".";
+		} else if (wantStudents && !wantTeachers) {
+			summary = schoolLabel + " has " + shownStudents + " student" + (shownStudents == 1 ? "" : "s") + ".";
+		} else {
+			summary = schoolLabel + " has " + shownTeachers + " teacher"
+					+ (shownTeachers == 1 ? "" : "s") + " and " + shownStudents + " student"
+					+ (shownStudents == 1 ? "" : "s") + ".";
+		}
 		if (shownOthers > 0 && shownTeachers == 0 && shownStudents == 0) {
 			// The question narrowed onto a single non-teaching, non-student account (a
 			// platform USER, School Admin or Admin). State who the person really is and
@@ -233,6 +238,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		view.put("name", name);
 		view.put("email", teacher.getEmail());
 		putIfPresent(view, "phone", teacher.getPhone());
+		putIfPresent(view, "schoolName", teacher.getSchoolName());
 		if (assignedClasses != null && !assignedClasses.isEmpty()) {
 			view.put("classes", assignedClasses);
 		}
@@ -263,6 +269,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		view.put("name", fullName(student.getFirstName(), student.getLastName()));
 		view.put("email", student.getEmail());
 		putIfPresent(view, "phone", student.getPhone());
+		putIfPresent(view, "schoolName", student.getSchoolName());
 		putIfPresent(view, "studentId", student.getStudentId());
 		putIfPresent(view, "standard", student.getStandard());
 		putIfPresent(view, "division", student.getDivision());

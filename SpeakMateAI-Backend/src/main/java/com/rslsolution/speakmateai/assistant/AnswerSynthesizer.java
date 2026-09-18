@@ -500,14 +500,14 @@ public class AnswerSynthesizer {
 		if (!teachers.isEmpty()) {
 			sb.append("\n**Teachers**\n");
 			for (Map<String, Object> teacher : teachers) {
-				appendPerson(sb, teacher, "subject", "department", "designation", "experience",
+				appendPerson(sb, teacher, "schoolName", "subject", "department", "designation", "experience",
 						"qualification", "email", "phone", "employeeId", "joinedAt", "classes");
 			}
 		}
 		if (!students.isEmpty()) {
 			sb.append("\n**Students**\n");
 			for (Map<String, Object> student : students) {
-				appendPerson(sb, student, "standard", "division", "rollNumber", "studentId",
+				appendPerson(sb, student, "schoolName", "standard", "division", "rollNumber", "studentId",
 						"assignedTeacher", "email", "phone");
 			}
 		}
