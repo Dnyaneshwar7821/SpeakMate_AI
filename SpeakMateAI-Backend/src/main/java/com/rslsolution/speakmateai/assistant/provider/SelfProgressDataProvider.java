@@ -15,11 +15,15 @@ import com.rslsolution.speakmateai.entity.LessonProgress;
 import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.SpeakingSession;
 import com.rslsolution.speakmateai.entity.User;
-import com.rslsolution.speakmateai.enums.Role;
+import java.util.stream.Collectors;
+import com.rslsolution.speakmateai.entity.GrammarHistory;
+import com.rslsolution.speakmateai.entity.Vocabulary;
+import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
 import com.rslsolution.speakmateai.repository.LessonProgressRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
+import com.rslsolution.speakmateai.repository.VocabularyRepository;
 
 /**
  * Caller's own learning progress, available to both STUDENT and USER (Learner) roles.
@@ -33,17 +37,23 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 	private final ProgressRepository progressRepository;
 	private final LessonProgressRepository lessonProgressRepository;
 	private final SpeakingSessionRepository speakingSessionRepository;
+	private final VocabularyRepository vocabularyRepository;
+	private final GrammarHistoryRepository grammarHistoryRepository;
 	private final ObjectMapper objectMapper;
 
 	public SelfProgressDataProvider(UserRepository userRepository,
 			ProgressRepository progressRepository,
 			LessonProgressRepository lessonProgressRepository,
 			SpeakingSessionRepository speakingSessionRepository,
+			VocabularyRepository vocabularyRepository,
+			GrammarHistoryRepository grammarHistoryRepository,
 			ObjectMapper objectMapper) {
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
 		this.lessonProgressRepository = lessonProgressRepository;
 		this.speakingSessionRepository = speakingSessionRepository;
+		this.vocabularyRepository = vocabularyRepository;
+		this.grammarHistoryRepository = grammarHistoryRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -82,6 +92,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		// Speaking sessions & speech metrics
 		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
 		int totalSessions = sessions.size();
+		int completedSessions = (int) sessions.stream().filter(s -> Boolean.TRUE.equals(s.getCompleted())).count();
 		double totalFluency = 0;
 		double totalPronunciation = 0;
 		double totalGrammar = 0;
@@ -107,9 +118,32 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		double avgVocab = scoredCount > 0 ? Math.round((totalVocab / scoredCount) * 10.0) / 10.0 : 0.0;
 		double avgOverall = scoredCount > 0 ? Math.round((totalOverall / scoredCount) * 10.0) / 10.0 : 0.0;
 
+		// Vocabulary words
+		List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(user);
+		int totalVocabularyWords = vocabs.size();
+		int masteredVocabularyWords = (int) vocabs.stream().filter(v -> Boolean.TRUE.equals(v.getMastered())).count();
+		List<String> recentVocabWords = vocabs.stream()
+				.limit(10)
+				.map(Vocabulary::getWord)
+				.filter(w -> w != null && !w.isBlank())
+				.collect(Collectors.toList());
+
+		// Grammar checks
+		List<GrammarHistory> grammarChecks = grammarHistoryRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+		int totalGrammarChecks = grammarChecks.size();
+		double totalGrammarScore = 0;
+		int scoredGrammarCount = 0;
+		for (GrammarHistory g : grammarChecks) {
+			if (g.getGrammarScore() != null && g.getGrammarScore() > 0) {
+				totalGrammarScore += g.getGrammarScore();
+				scoredGrammarCount++;
+			}
+		}
+		double avgGrammarScore = scoredGrammarCount > 0 ? Math.round((totalGrammarScore / scoredGrammarCount) * 10.0) / 10.0 : 0.0;
+
 		data.put("scope", "SELF (own progress only)");
 		data.put("studentName", fullName(user));
-		data.put("role", user.getRole() != null ? user.getRole().name() : Role.USER.name());
+		data.put("role", user.getRole() != null ? user.getRole().name() : "USER");
 
 		if (user.getStandard() != null && !user.getStandard().isBlank()) {
 			data.put("standard", user.getStandard());
@@ -130,18 +164,24 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			data.put("currentStreak", zeroIfNull(p.getCurrentStreak()));
 			data.put("longestStreak", zeroIfNull(p.getLongestStreak()));
 			data.put("totalPracticeMinutes", zeroIfNull(p.getTotalPracticeMinutes()));
-			data.put("totalSpeakingSessions", Math.max(totalSessions, zeroIfNull(p.getTotalSpeakingSessions())));
-			data.put("totalGrammarChecks", zeroIfNull(p.getTotalGrammarChecks()));
-			data.put("totalVocabularyWords", zeroIfNull(p.getTotalVocabularyWords()));
 		} else {
 			data.put("xp", 0);
 			data.put("level", 1);
 			data.put("currentStreak", 0);
 			data.put("longestStreak", 0);
 			data.put("totalPracticeMinutes", 0);
-			data.put("totalSpeakingSessions", totalSessions);
-			data.put("totalGrammarChecks", 0);
-			data.put("totalVocabularyWords", 0);
+		}
+
+		data.put("totalSpeakingSessions", totalSessions);
+		data.put("completedSpeakingSessions", completedSessions);
+		data.put("totalVocabularyWords", totalVocabularyWords);
+		data.put("masteredVocabularyWords", masteredVocabularyWords);
+		if (!recentVocabWords.isEmpty()) {
+			data.put("recentVocabularyWords", recentVocabWords);
+		}
+		data.put("totalGrammarChecks", totalGrammarChecks);
+		if (scoredGrammarCount > 0) {
+			data.put("averageGrammarScore", avgGrammarScore);
 		}
 
 		data.put("lessonsCompleted", lessonsCompleted);

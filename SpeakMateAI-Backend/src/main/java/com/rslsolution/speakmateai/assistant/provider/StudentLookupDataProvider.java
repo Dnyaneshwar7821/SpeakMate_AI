@@ -6,6 +6,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,15 +16,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
+import com.rslsolution.speakmateai.entity.GrammarHistory;
 import com.rslsolution.speakmateai.entity.LessonProgress;
 import com.rslsolution.speakmateai.entity.Progress;
+import com.rslsolution.speakmateai.entity.SpeakingSession;
 import com.rslsolution.speakmateai.entity.Student;
 import com.rslsolution.speakmateai.entity.User;
+import com.rslsolution.speakmateai.entity.Vocabulary;
 import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
 import com.rslsolution.speakmateai.repository.LessonProgressRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
+import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
+import com.rslsolution.speakmateai.repository.VocabularyRepository;
 
 /**
  * Individual student performance. Super Admin / School Admin can look up any
@@ -36,18 +45,27 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 	private final UserRepository userRepository;
 	private final ProgressRepository progressRepository;
 	private final LessonProgressRepository lessonProgressRepository;
+	private final SpeakingSessionRepository speakingSessionRepository;
+	private final VocabularyRepository vocabularyRepository;
+	private final GrammarHistoryRepository grammarHistoryRepository;
 	private final TeacherAssignmentResolver teacherAssignmentResolver;
 	private final ObjectMapper objectMapper;
 
 	public StudentLookupDataProvider(StudentRepository studentRepository, UserRepository userRepository,
 			ProgressRepository progressRepository,
 			LessonProgressRepository lessonProgressRepository,
+			SpeakingSessionRepository speakingSessionRepository,
+			VocabularyRepository vocabularyRepository,
+			GrammarHistoryRepository grammarHistoryRepository,
 			TeacherAssignmentResolver teacherAssignmentResolver,
 			ObjectMapper objectMapper) {
 		this.studentRepository = studentRepository;
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
 		this.lessonProgressRepository = lessonProgressRepository;
+		this.speakingSessionRepository = speakingSessionRepository;
+		this.vocabularyRepository = vocabularyRepository;
+		this.grammarHistoryRepository = grammarHistoryRepository;
 		this.teacherAssignmentResolver = teacherAssignmentResolver;
 		this.objectMapper = objectMapper;
 	}
@@ -86,10 +104,14 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		data.put("studentId", s.getStudentId());
 		data.put("standard", s.getStandard());
 		data.put("division", s.getDivision());
+		if (s.getRollNumber() != null && !s.getRollNumber().isBlank()) {
+			data.put("rollNumber", s.getRollNumber());
+		}
+		if (s.getSchoolName() != null && !s.getSchoolName().isBlank()) {
+			data.put("schoolName", s.getSchoolName());
+		}
 
-		// Lesson-completion metrics ("how many lessons completed by <student>").
-		// Completed lessons are rows in LessonProgress with completed = true;
-		// lessonsStarted counts every lesson the student has opened.
+		// 1. Lesson-completion metrics
 		List<LessonProgress> lessonRows = lessonProgressRepository.findByStudent(s);
 		long lessonsCompleted = lessonProgressRepository.countByUserIdAndCompletedTrue(s.getId());
 		long lessonsStarted = lessonRows.size();
@@ -98,28 +120,93 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		data.put("lessonsStarted", lessonsStarted);
 		data.put("lessonsPending", lessonsPending);
 
+		// 2. Speaking sessions & evaluation scores
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(s);
+		int totalSpeakingSessions = sessions.size();
+		int completedSpeakingSessions = (int) sessions.stream()
+				.filter(ss -> Boolean.TRUE.equals(ss.getCompleted()))
+				.count();
+
+		double totalFluency = 0;
+		double totalPronunciation = 0;
+		double totalGrammar = 0;
+		double totalVocab = 0;
+		double totalOverall = 0;
+		int scoredCount = 0;
+
+		for (SpeakingSession ss : sessions) {
+			if (ss.getOverallScore() != null || ss.getScore() != null) {
+				scoredCount++;
+				if (ss.getFluencyScore() != null) totalFluency += ss.getFluencyScore();
+				if (ss.getPronunciationScore() != null) totalPronunciation += ss.getPronunciationScore();
+				if (ss.getGrammarScore() != null) totalGrammar += ss.getGrammarScore();
+				if (ss.getVocabularyScore() != null) totalVocab += ss.getVocabularyScore();
+				double overall = ss.getOverallScore() != null ? ss.getOverallScore() : (ss.getScore() != null ? ss.getScore() : 0.0);
+				totalOverall += overall;
+			}
+		}
+
+		double avgFluency = scoredCount > 0 ? Math.round((totalFluency / scoredCount) * 10.0) / 10.0 : 0.0;
+		double avgPronunciation = scoredCount > 0 ? Math.round((totalPronunciation / scoredCount) * 10.0) / 10.0 : 0.0;
+		double avgGrammar = scoredCount > 0 ? Math.round((totalGrammar / scoredCount) * 10.0) / 10.0 : 0.0;
+		double avgVocab = scoredCount > 0 ? Math.round((totalVocab / scoredCount) * 10.0) / 10.0 : 0.0;
+		double avgOverall = scoredCount > 0 ? Math.round((totalOverall / scoredCount) * 10.0) / 10.0 : 0.0;
+
+		data.put("totalSpeakingSessions", totalSpeakingSessions);
+		data.put("completedSpeakingSessions", completedSpeakingSessions);
+		if (scoredCount > 0) {
+			data.put("overallSpeakingScore", avgOverall);
+			data.put("fluencyScore", avgFluency);
+			data.put("pronunciationScore", avgPronunciation);
+			data.put("speakingGrammarScore", avgGrammar);
+			data.put("speakingVocabularyScore", avgVocab);
+		}
+
+		// 3. Vocabulary words added & mastered
+		List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(s);
+		int totalVocabularyWords = vocabs.size();
+		int masteredVocabularyWords = (int) vocabs.stream().filter(v -> Boolean.TRUE.equals(v.getMastered())).count();
+		List<String> recentVocabWords = vocabs.stream()
+				.limit(10)
+				.map(Vocabulary::getWord)
+				.filter(w -> w != null && !w.isBlank())
+				.collect(Collectors.toList());
+		data.put("totalVocabularyWords", totalVocabularyWords);
+		data.put("masteredVocabularyWords", masteredVocabularyWords);
+		if (!recentVocabWords.isEmpty()) {
+			data.put("recentVocabularyWords", recentVocabWords);
+		}
+
+		// 4. Grammar checks
+		List<GrammarHistory> grammarChecks = grammarHistoryRepository.findByUserIdOrderByCreatedAtDesc(s.getId());
+		int totalGrammarChecks = grammarChecks.size();
+		double totalGrammarScore = 0;
+		int scoredGrammarCount = 0;
+		for (GrammarHistory g : grammarChecks) {
+			if (g.getGrammarScore() != null && g.getGrammarScore() > 0) {
+				totalGrammarScore += g.getGrammarScore();
+				scoredGrammarCount++;
+			}
+		}
+		double avgGrammarScore = scoredGrammarCount > 0 ? Math.round((totalGrammarScore / scoredGrammarCount) * 10.0) / 10.0 : 0.0;
+		data.put("totalGrammarChecks", totalGrammarChecks);
+		if (scoredGrammarCount > 0) {
+			data.put("averageGrammarScore", avgGrammarScore);
+		}
+
+		// 5. XP, Level & Streak
 		if (p != null) {
 			data.put("xp", zeroIfNull(p.getXp()));
-			data.put("level", zeroIfNull(p.getLevel()));
+			data.put("level", Math.max(1, zeroIfNull(p.getLevel())));
 			data.put("currentStreak", zeroIfNull(p.getCurrentStreak()));
 			data.put("longestStreak", zeroIfNull(p.getLongestStreak()));
 			data.put("totalPracticeMinutes", zeroIfNull(p.getTotalPracticeMinutes()));
-			data.put("totalSpeakingSessions", zeroIfNull(p.getTotalSpeakingSessions()));
-			data.put("totalGrammarChecks", zeroIfNull(p.getTotalGrammarChecks()));
-			data.put("totalVocabularyWords", zeroIfNull(p.getTotalVocabularyWords()));
 		} else {
-			// A student who has not started practising yet has no Progress row at all.
-			// That is not "missing data" — XP, level, streaks and every activity counter
-			// are genuinely 0, so report 0 rather than a "no progress record" notice that
-			// the reader interprets as the value being unavailable.
 			data.put("xp", 0);
-			data.put("level", 0);
+			data.put("level", 1);
 			data.put("currentStreak", 0);
 			data.put("longestStreak", 0);
 			data.put("totalPracticeMinutes", 0);
-			data.put("totalSpeakingSessions", 0);
-			data.put("totalGrammarChecks", 0);
-			data.put("totalVocabularyWords", 0);
 		}
 		return toJson(data);
 	}
@@ -318,10 +405,30 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 		final String needleName = name;
 		final String needleEmail = email;
-		return candidates.stream()
+		List<Student> matches = candidates.stream()
 				.filter(s -> schoolId == null || schoolId.equals(s.getSchoolId()))
 				.filter(s -> matchesIdentifier(s, needleName, needleEmail))
-				.findFirst();
+				.collect(Collectors.toList());
+
+		if (matches.isEmpty()) {
+			return Optional.empty();
+		}
+		if (matches.size() == 1) {
+			return Optional.of(matches.get(0));
+		}
+		// If multiple candidates match, prioritize active status and highest existing XP/activity
+		matches.sort((a, b) -> {
+			if (a.isActive() != b.isActive()) {
+				return a.isActive() ? -1 : 1;
+			}
+			int xpA = progressRepository.findByStudent(a).map(Progress::getXp).orElse(0);
+			int xpB = progressRepository.findByStudent(b).map(Progress::getXp).orElse(0);
+			if (xpA != xpB) {
+				return Integer.compare(xpB, xpA);
+			}
+			return Long.compare(b.getId(), a.getId());
+		});
+		return Optional.of(matches.get(0));
 	}
 
 	private boolean matchesIdentifier(Student s, String name, String email) {

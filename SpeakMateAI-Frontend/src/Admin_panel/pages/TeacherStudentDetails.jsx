@@ -144,6 +144,67 @@ function ProfileHeader({ student, onBack, onOpenProgress }) {
     );
 }
 
+function StudentLearningKpis({ student }) {
+    const kpis = [
+        {
+            label: "Total XP",
+            val: (student.xp ?? 0).toLocaleString(),
+            sub: `Level ${Math.max(1, Math.floor((student.xp ?? 0) / 500) + 1)}`,
+            icon: "⚡",
+        },
+        {
+            label: "Practice Streak",
+            val: `${student.practice?.currentStreak ?? 0} Days`,
+            sub: "Daily habit",
+            icon: "🔥",
+        },
+        {
+            label: "Speaking Practice",
+            val: `${student.totalSpeakingSessions ?? 0} Sessions`,
+            sub: `${student.completedSpeakingSessions ?? 0} evaluated`,
+            icon: "🎙️",
+        },
+        {
+            label: "Vocabulary Added",
+            val: `${student.totalVocabularyWords ?? 0} Words`,
+            sub: "Word mastery",
+            icon: "💡",
+        },
+        {
+            label: "Grammar Checks",
+            val: `${student.totalGrammarChecks ?? 0} Checks`,
+            sub: "Syntax accuracy",
+            icon: "📝",
+        },
+        {
+            label: "Lessons Completed",
+            val: `${student.lessonsCompleted ?? 0} Lessons`,
+            sub: "Curriculum progress",
+            icon: "📚",
+        },
+    ];
+
+    return (
+        <motion.section variants={itemVariants} className="mt-6" aria-labelledby="learning-kpis-title">
+            <SectionHeader id="learning-kpis-title" title="Learning Activity & Metrics" description="Real-time multi-pillar progress across speech, vocabulary, grammar, and lessons." />
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                {kpis.map((k, idx) => (
+                    <Card key={idx} className="p-4 flex flex-col justify-between">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{k.label}</span>
+                            <span className="text-base">{k.icon}</span>
+                        </div>
+                        <div className="mt-2">
+                            <p className="text-xl font-black text-slate-950 dark:text-slate-100">{k.val}</p>
+                            <p className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">{k.sub}</p>
+                        </div>
+                    </Card>
+                ))}
+            </div>
+        </motion.section>
+    );
+}
+
 function PerformanceSummary({ student }) {
     const metrics = [
         ["Overall Progress", student.overallProgress, progressStyles[student.status]],
@@ -156,7 +217,7 @@ function PerformanceSummary({ student }) {
 
     return (
         <motion.section variants={itemVariants} className="mt-6" aria-labelledby="performance-summary-title">
-            <SectionHeader id="performance-summary-title" title="Performance Summary" description="A current snapshot of learning outcomes and practice completion." />
+            <SectionHeader id="performance-summary-title" title="Skill Performance Breakdown" description="A current snapshot of language proficiency and practice completion." />
             <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-3 xl:grid-cols-6">
                 {metrics.map(([label, value, tone]) => (
                     <Card key={label} className="p-4">
@@ -410,25 +471,31 @@ export function TeacherStudentDetails() {
                         assignedClass: prof.assignedClass || prof.standard || "Assigned Class",
                         assignedStandard: prof.standard || prof.assignedClass || "Assigned Standard",
                         status: prof.status || "Good",
-                        overallProgress: Math.round(prof.overallProgress || 80),
+                        overallProgress: Math.round(perf.overallScore ?? prof.overallProgress ?? 0),
                         lastActive: prof.lastActive || "Recently",
-                        speakingScore: Math.round(perf.speakingScore || 80),
-                        grammarScore: Math.round(perf.grammarScore || 75),
-                        vocabularyScore: Math.round(perf.vocabularyScore || 85),
-                        listeningScore: Math.round(perf.listeningScore || 70),
-                        grammar: Math.round(perf.grammarScore ?? perf.grammar ?? 75),
-                        vocabulary: Math.round(perf.vocabularyScore ?? perf.vocabulary ?? 85),
-                        speaking: Math.round(perf.speakingScore ?? perf.speaking ?? 80),
-                        listening: Math.round(perf.listeningScore ?? perf.listening ?? 70),
-                        practiceCompletion: Math.round(perf.practiceCompletion || (stats.totalPracticeMinutes ? Math.min(100, stats.totalPracticeMinutes) : 85)),
+                        speakingScore: Math.round(perf.speakingScore ?? 0),
+                        grammarScore: Math.round(perf.grammarScore ?? 0),
+                        vocabularyScore: Math.round(perf.vocabularyScore ?? 0),
+                        listeningScore: Math.round(perf.listeningScore ?? 0),
+                        grammar: Math.round(perf.grammarScore ?? perf.grammar ?? 0),
+                        vocabulary: Math.round(perf.vocabularyScore ?? perf.vocabulary ?? 0),
+                        speaking: Math.round(perf.speakingScore ?? perf.speaking ?? 0),
+                        listening: Math.round(perf.listeningScore ?? perf.listening ?? 0),
+                        practiceCompletion: Math.round(perf.practiceCompletion ?? (stats.totalPracticeMinutes ? Math.min(100, stats.totalPracticeMinutes) : 0)),
+                        totalSpeakingSessions: perf.totalSpeakingSessions ?? stats.totalSpeakingSessions ?? 0,
+                        completedSpeakingSessions: perf.completedSpeakingSessions ?? stats.completedSpeakingSessions ?? 0,
+                        totalVocabularyWords: perf.totalVocabularyWords ?? stats.totalVocabularyWords ?? 0,
+                        totalGrammarChecks: perf.totalGrammarChecks ?? stats.totalGrammarChecks ?? 0,
+                        lessonsCompleted: stats.totalLessonsCompleted ?? perf.lessonsCompleted ?? 0,
+                        xp: prof.xp ?? 0,
                         recentActivity: res.recentActivity || [],
                         strengths: res.strengths || [],
                         improvementAreas: res.improvementAreas || [],
                         achievements: res.achievements || [],
                         latestSpeakingSession: res.latestSpeakingSession || null,
                         practice: {
-                            currentStreak: res.currentStreak || 5,
-                            practiceMinutes: stats.totalPracticeMinutes || 120,
+                            currentStreak: res.currentStreak ?? prof.currentStreak ?? 0,
+                            practiceMinutes: stats.totalPracticeMinutes ?? 0,
                             weeklyCompletion: 85
                         }
                     };
@@ -453,6 +520,7 @@ export function TeacherStudentDetails() {
     return (
         <motion.div variants={containerVariants} initial="hidden" animate="visible">
             <ProfileHeader student={student} onBack={goToStudents} onOpenProgress={() => setIsProgressModalOpen(true)} />
+            <StudentLearningKpis student={student} />
             <PerformanceSummary student={student} />
 
             <motion.div variants={itemVariants} className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)] lg:items-start">

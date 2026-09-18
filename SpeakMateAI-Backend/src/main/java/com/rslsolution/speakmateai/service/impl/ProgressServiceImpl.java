@@ -11,6 +11,9 @@ import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.exception.ProgressNotFoundException;
 import com.rslsolution.speakmateai.exception.UserNotFoundException;
+import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
+import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
+import com.rslsolution.speakmateai.repository.VocabularyRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.service.ProgressService;
@@ -21,10 +24,19 @@ public class ProgressServiceImpl implements ProgressService {
 
 	private final ProgressRepository progressRepository;
 	private final UserRepository userRepository;
+	private final SpeakingSessionRepository speakingSessionRepository;
+	private final VocabularyRepository vocabularyRepository;
+	private final GrammarHistoryRepository grammarHistoryRepository;
 
-	public ProgressServiceImpl(ProgressRepository progressRepository, UserRepository userRepository) {
+	public ProgressServiceImpl(ProgressRepository progressRepository, UserRepository userRepository,
+			SpeakingSessionRepository speakingSessionRepository,
+			VocabularyRepository vocabularyRepository,
+			GrammarHistoryRepository grammarHistoryRepository) {
 		this.progressRepository = progressRepository;
 		this.userRepository = userRepository;
+		this.speakingSessionRepository = speakingSessionRepository;
+		this.vocabularyRepository = vocabularyRepository;
+		this.grammarHistoryRepository = grammarHistoryRepository;
 	}
 
 	@Override
@@ -80,9 +92,32 @@ public class ProgressServiceImpl implements ProgressService {
 
 		int totalXp = progress.getXp() != null ? progress.getXp() : 0;
 		int calculatedLevel = Math.max(1, (totalXp / 500) + 1);
+		boolean dirty = false;
+
 		if (progress.getLevel() == null || progress.getLevel() != calculatedLevel) {
 			progress.setLevel(calculatedLevel);
-			progressRepository.save(progress);
+			dirty = true;
+		}
+
+		int liveSpeakingSessions = (int) speakingSessionRepository.countByUser(user);
+		int liveVocabWords = (int) vocabularyRepository.countByUser(user);
+		int liveGrammarChecks = (int) grammarHistoryRepository.countByUserId(user.getId());
+
+		if (progress.getTotalSpeakingSessions() == null || progress.getTotalSpeakingSessions() < liveSpeakingSessions) {
+			progress.setTotalSpeakingSessions(liveSpeakingSessions);
+			dirty = true;
+		}
+		if (progress.getTotalVocabularyWords() == null || progress.getTotalVocabularyWords() < liveVocabWords) {
+			progress.setTotalVocabularyWords(liveVocabWords);
+			dirty = true;
+		}
+		if (progress.getTotalGrammarChecks() == null || progress.getTotalGrammarChecks() < liveGrammarChecks) {
+			progress.setTotalGrammarChecks(liveGrammarChecks);
+			dirty = true;
+		}
+
+		if (dirty) {
+			progress = progressRepository.save(progress);
 		}
 
 		return ProgressResponse.builder().id(progress.getId()).xp(totalXp).level(calculatedLevel)

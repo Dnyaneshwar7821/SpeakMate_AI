@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PracticeStatisticsResponse {
 	private Integer totalSpeakingSessions;
+	private Integer completedSpeakingSessions;
 	private Integer totalPracticeMinutes;
 	private Integer totalGrammarChecks;
 	private Integer totalVocabularyWords;

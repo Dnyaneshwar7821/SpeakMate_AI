@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { getLiveProgressStats, recordSpeakingSession } from "../utils/progressTracker";
+import { progressService } from "../services/appServices";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
 import { speakGlobalText } from "../utils/speechHelper";
@@ -45,10 +46,28 @@ export function Progress() {
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
 
-  const updateStats = () => {
+  const updateStats = async () => {
     try {
       setLoading(true);
-      setLiveStats(getLiveProgressStats());
+      const local = getLiveProgressStats();
+      const backend = await progressService.get().catch(() => null);
+      if (backend) {
+        const merged = {
+          ...local,
+          xp: Math.max(local.xp || 0, backend.xp || 0),
+          level: Math.max(local.level || 1, backend.level || 1),
+          streak: Math.max(local.streak || 0, backend.currentStreak || 0),
+          longestStreak: Math.max(local.longestStreak || 0, backend.longestStreak || 0),
+          speakingSessions: Math.max(local.speakingSessions || 0, backend.totalSpeakingSessions || 0),
+          wordsLearned: Math.max(local.wordsLearned || 0, backend.totalVocabularyWords || 0),
+          grammarExercises: Math.max(local.grammarExercises || 0, backend.totalGrammarChecks || 0),
+          speakingMins: Math.max(local.speakingMins || 0, backend.totalPracticeMinutes || 0),
+          totalHours: ((Math.max(local.speakingMins || 0, backend.totalPracticeMinutes || 0)) / 60).toFixed(1),
+        };
+        setLiveStats(merged);
+      } else {
+        setLiveStats(local);
+      }
     } catch (err) {
       console.warn("Failed to load progress stats", err);
     } finally {

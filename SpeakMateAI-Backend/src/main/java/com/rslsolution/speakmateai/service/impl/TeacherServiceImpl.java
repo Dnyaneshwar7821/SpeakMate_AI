@@ -463,6 +463,10 @@ public class TeacherServiceImpl implements TeacherService {
 
 	private ProfileResponse buildProfileResponse(User user, Progress progress) {
 		int xp = (progress != null && progress.getXp() != null) ? progress.getXp() : 0;
+		int liveSpeaking = (int) speakingSessionRepository.countByUser(user);
+		int liveGrammar = (int) grammarHistoryRepository.countByUserId(user.getId());
+		int liveVocab = (int) vocabularyRepository.countByUser(user);
+
 		return ProfileResponse.builder().id(user.getId()).firstName(user.getFirstName()).lastName(user.getLastName())
 				.email(user.getEmail()).role(user.getRole().name()).avatar(user.getAvatar())
 				.englishLevel(user.getEnglishLevel()).learningGoal(user.getLearningGoal()).xp(xp)
@@ -470,9 +474,9 @@ public class TeacherServiceImpl implements TeacherService {
 				.currentStreak(progress != null ? progress.getCurrentStreak() : 0)
 				.longestStreak(progress != null ? progress.getLongestStreak() : 0)
 				.totalPracticeMinutes(progress != null ? progress.getTotalPracticeMinutes() : 0)
-				.totalSpeakingSessions(progress != null ? progress.getTotalSpeakingSessions() : 0)
-				.totalGrammarChecks(progress != null ? progress.getTotalGrammarChecks() : 0)
-				.totalVocabularyWords(progress != null ? progress.getTotalVocabularyWords() : 0)
+				.totalSpeakingSessions(liveSpeaking)
+				.totalGrammarChecks(liveGrammar)
+				.totalVocabularyWords(liveVocab)
 				.status(user.getStatus())
 				.active(user.isActive())
 				.build();
@@ -1037,20 +1041,29 @@ public class TeacherServiceImpl implements TeacherService {
 		Progress progress = progressRepository.findByUser(student).orElse(null);
 		ProfileResponse profile = buildProfileResponse(student, progress);
 
+		List<SpeakingSession> allStudentSessions = speakingSessionRepository.findByUser(student);
+		int totalSpeakingSessions = allStudentSessions.size();
+		int completedSpeakingSessions = (int) allStudentSessions.stream()
+				.filter(s -> Boolean.TRUE.equals(s.getCompleted()))
+				.count();
+		int totalVocabularyWords = (int) vocabularyRepository.countByUser(student);
+		int totalGrammarChecks = (int) grammarHistoryRepository.countByUserId(student.getId());
+
 		Double grammarScore = getAverageGrammarScore(student);
-		Double vocabularyScore = progress != null && progress.getTotalVocabularyWords() != null
-				? progress.getTotalVocabularyWords().doubleValue()
-				: 0.0;
 		Double speakingScore = getAverageSpeakingScore(student);
 		Double listeningScore = getAverageListeningScore(student);
+		Double vocabularyScore = speakingSessionRepository.findAverageVocabularyScoreByUserId(student.getId());
+		if (vocabularyScore == null || vocabularyScore == 0.0) {
+			vocabularyScore = totalVocabularyWords > 0 ? Math.min(95.0, 60.0 + totalVocabularyWords * 2.0) : 0.0;
+		}
+
 		int lessonsCompleted = (int) lessonProgressRepository.countByUserIdAndCompletedTrue(student.getId());
-		int totalSpeakingSessions = (int) speakingSessionRepository.countByUserIdAndCreatedAtBetween(student.getId(),
-				LocalDateTime.now().minusYears(100), LocalDateTime.now());
 
 		List<Double> validScores = new ArrayList<>();
 		if (speakingScore != null && speakingScore > 0) validScores.add(speakingScore);
 		if (grammarScore != null && grammarScore > 0) validScores.add(grammarScore);
 		if (listeningScore != null && listeningScore > 0) validScores.add(listeningScore);
+		if (vocabularyScore != null && vocabularyScore > 0) validScores.add(vocabularyScore);
 
 		Double overallScore = validScores.isEmpty()
 				? (speakingScore != null ? speakingScore : 0.0)
@@ -1059,7 +1072,11 @@ public class TeacherServiceImpl implements TeacherService {
 		PerformanceSummaryResponse performance = PerformanceSummaryResponse.builder().overallScore(overallScore)
 				.grammarScore(grammarScore).vocabularyScore(vocabularyScore).speakingScore(speakingScore)
 				.listeningScore(listeningScore).lessonsCompleted(lessonsCompleted)
-				.totalSpeakingSessions(totalSpeakingSessions).build();
+				.totalSpeakingSessions(totalSpeakingSessions)
+				.completedSpeakingSessions(completedSpeakingSessions)
+				.totalVocabularyWords(totalVocabularyWords)
+				.totalGrammarChecks(totalGrammarChecks)
+				.build();
 
 		List<RecentActivityResponse> recentActivity = new ArrayList<>();
 		LocalDateTime oneWeekAgo = LocalDateTime.now().minusDays(7);
@@ -1129,14 +1146,17 @@ public class TeacherServiceImpl implements TeacherService {
 				.collect(Collectors.toList());
 
 		int totalPracticeMinutes = progress != null && progress.getTotalPracticeMinutes() != null ? progress.getTotalPracticeMinutes() : 0;
-		int totalGrammarChecks = progress != null && progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : 0;
-		int totalVocabularyWords = progress != null && progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : 0;
 		double averageSessionScore = speakingScore != null ? speakingScore : 0;
 
 		PracticeStatisticsResponse practiceStatistics = PracticeStatisticsResponse.builder()
-				.totalSpeakingSessions(totalSpeakingSessions).totalPracticeMinutes(totalPracticeMinutes)
-				.totalGrammarChecks(totalGrammarChecks).totalVocabularyWords(totalVocabularyWords)
-				.totalLessonsCompleted(lessonsCompleted).averageSessionScore(averageSessionScore).build();
+				.totalSpeakingSessions(totalSpeakingSessions)
+				.completedSpeakingSessions(completedSpeakingSessions)
+				.totalPracticeMinutes(totalPracticeMinutes)
+				.totalGrammarChecks(totalGrammarChecks)
+				.totalVocabularyWords(totalVocabularyWords)
+				.totalLessonsCompleted(lessonsCompleted)
+				.averageSessionScore(averageSessionScore)
+				.build();
 
 		List<WeeklyProgressResponse> weeklyCompletion = getWeeklyProgressForUser(student);
 

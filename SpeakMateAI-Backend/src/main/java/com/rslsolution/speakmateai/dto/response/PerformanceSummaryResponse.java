@@ -17,4 +17,7 @@ public class PerformanceSummaryResponse {
 	private Double listeningScore;
 	private Integer lessonsCompleted;
 	private Integer totalSpeakingSessions;
+	private Integer completedSpeakingSessions;
+	private Integer totalVocabularyWords;
+	private Integer totalGrammarChecks;
 }

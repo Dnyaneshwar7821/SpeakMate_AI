@@ -201,8 +201,8 @@ public class AnswerSynthesizer {
 			case PLATFORM_OVERVIEW -> "Summarize platform-wide statistics in a dashboard-style overview. When the question asks for a platform-wide total or count (e.g., total students, registered teachers, active users, schools, classes, standards, divisions, revenue, active subscription plans), answer directly from the provided fields such as totalStudents, totalTeachers, totalSchoolAdmins, totalUsers, totalSchools, totalClasses, totalStandards, totalDivisions, activeUsers, activeStudents, activeTeachers, studentsWithActiveStreak, totalRevenueFromPayments, totalRevenueFromSubscriptions, activeSubscriptionPlans — never say the data is unavailable when these fields are present. If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount (which contains schoolName, studentCount and teacherCount for every school) and highlight the top schools, including a bar chart when a ranking series exists.";
 			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area.";
 			case CLASS_PERFORMANCE -> "Summarize the class/grade/division performance. Highlight top areas and areas to improve.";
-			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats. Report the metric(s) asked about: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions; fluency/pronunciation -> fluencyScore and pronunciationScore; vocabulary -> totalVocabularyWords; grammar -> totalGrammarChecks. When broad ('how is my progress', 'how am I doing', 'my stats'), give an uplifting summary with 3-4 key metrics and recommend their next step (e.g. daily speaking practice or completing the next lesson). Always include stat cards for key metrics.\n"
-					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot including the student's name, standard, division, XP, current streak, lessons completed/started/pending, and practice time. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, and completed lessons.\n"
+			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats with numbers. Report the metric(s) asked about clearly: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions, completedSpeakingSessions, and speech scores (fluencyScore, pronunciationScore, speakingGrammarScore, speakingVocabularyScore, overallSpeakingScore); vocabulary -> totalVocabularyWords, masteredVocabularyWords, and recentVocabularyWords; grammar -> totalGrammarChecks and averageGrammarScore. When asked broadly ('how is my progress', 'how am I doing', 'my stats', etc.), present a comprehensive 5-pillar breakdown with clean headings or bullet points: 🎙️ Speaking Practice, 💡 Vocabulary, 📝 Grammar Checks, 📚 Lessons, and ⚡ XP & Streak. Always include stat cards for key metrics.\n"
+					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons.\n"
 					+ "A count of 0 is a valid number, so state 0 explicitly rather than saying data is unavailable. If the person is not a student (it carries a personRole field), state they are not a student and report their role EXACTLY as given in personRole.";
 			case BILLING -> "Summarize billing/subscription/revenue numbers clearly.";
 			case SCHOOL_ROSTER -> "Answer ONLY from the provided teachers/students arrays, using every detail those entries contain. Never reply that a detail is unavailable when the field is present on the entry.\n"
@@ -645,17 +645,93 @@ public class AnswerSynthesizer {
 		}
 		if (containsWord(m, "speaking", "speak", "spoken", "session", "sessions")) {
 			matched |= metric(sb, d, "Total Speaking Sessions", "totalSpeakingSessions");
+			if (d.get("completedSpeakingSessions") != null) {
+				sb.append("- **Completed Speaking Sessions (Evaluated):** ").append(d.get("completedSpeakingSessions")).append('\n');
+				matched = true;
+			}
+			if (d.get("overallSpeakingScore") != null) {
+				sb.append("- **Overall Speaking Score:** ").append(d.get("overallSpeakingScore")).append("%\n");
+				matched = true;
+			}
+			if (d.get("fluencyScore") != null) {
+				sb.append("- **Fluency Score:** ").append(d.get("fluencyScore")).append("%\n");
+			}
+			if (d.get("pronunciationScore") != null) {
+				sb.append("- **Pronunciation Score:** ").append(d.get("pronunciationScore")).append("%\n");
+			}
+			if (d.get("speakingGrammarScore") != null) {
+				sb.append("- **Speaking Grammar Score:** ").append(d.get("speakingGrammarScore")).append("%\n");
+			}
+			if (d.get("speakingVocabularyScore") != null) {
+				sb.append("- **Speaking Vocabulary Score:** ").append(d.get("speakingVocabularyScore")).append("%\n");
+			}
 		}
 		if (containsWord(m, "grammar", "checks", "check")) {
 			matched |= metric(sb, d, "Total Grammar Checks", "totalGrammarChecks");
+			if (d.get("averageGrammarScore") != null) {
+				sb.append("- **Average Grammar Accuracy:** ").append(d.get("averageGrammarScore")).append("%\n");
+				matched = true;
+			}
 		}
 		if (containsWord(m, "vocabulary", "vocab", "words", "word")) {
 			matched |= metric(sb, d, "Total Vocabulary Words", "totalVocabularyWords");
+			if (d.get("masteredVocabularyWords") != null) {
+				sb.append("- **Mastered Words:** ").append(d.get("masteredVocabularyWords")).append('\n');
+				matched = true;
+			}
+			Object recent = d.get("recentVocabularyWords");
+			if (recent instanceof List<?> rList && !rList.isEmpty()) {
+				sb.append("- **Recent Words Added:** ").append(String.join(", ", rList.stream().map(String::valueOf).toList())).append("\n");
+				matched = true;
+			}
 		}
 
 		if (!matched) {
-			// Broad question ("how is this student doing?") — fall back to the full picture.
-			return summaryOr(d, null);
+			// Broad progress overview across the 5 pillars
+			sb.append("\n**Overall Learning Progress**\n");
+			sb.append("- **Level & XP:** Level ").append(zeroIfBlank(num(d, "level"))).append(" (").append(zeroIfBlank(num(d, "xp"))).append(" XP)\n");
+			sb.append("- **Practice Streak:** ").append(zeroIfBlank(num(d, "currentStreak"))).append(" day(s) (Best: ").append(zeroIfBlank(num(d, "longestStreak"))).append(" days)\n");
+
+			sb.append("\n**Speaking Practice**\n");
+			sb.append("- **Total Sessions:** ").append(zeroIfBlank(num(d, "totalSpeakingSessions")));
+			if (d.get("completedSpeakingSessions") != null) {
+				sb.append(" (").append(d.get("completedSpeakingSessions")).append(" completed with AI evaluations)");
+			}
+			sb.append("\n");
+			if (d.get("overallSpeakingScore") != null) {
+				sb.append("- **Average Speaking Score:** ").append(d.get("overallSpeakingScore")).append("%");
+				if (d.get("fluencyScore") != null && d.get("pronunciationScore") != null) {
+					sb.append(" (Fluency: ").append(d.get("fluencyScore")).append("% | Pronunciation: ").append(d.get("pronunciationScore")).append("%)");
+				}
+				sb.append("\n");
+			}
+
+			sb.append("\n**Vocabulary & Grammar**\n");
+			sb.append("- **Vocabulary Words Added:** ").append(zeroIfBlank(num(d, "totalVocabularyWords")));
+			if (d.get("masteredVocabularyWords") != null) {
+				sb.append(" (").append(d.get("masteredVocabularyWords")).append(" mastered)");
+			}
+			sb.append("\n");
+			Object recent = d.get("recentVocabularyWords");
+			if (recent instanceof List<?> rList && !rList.isEmpty()) {
+				sb.append("- **Recent Words:** ").append(String.join(", ", rList.stream().limit(6).map(String::valueOf).toList())).append("\n");
+			}
+			sb.append("- **Grammar Checks Done:** ").append(zeroIfBlank(num(d, "totalGrammarChecks")));
+			if (d.get("averageGrammarScore") != null) {
+				sb.append(" (Accuracy: ").append(d.get("averageGrammarScore")).append("%)");
+			}
+			sb.append("\n");
+
+			sb.append("\n**Curriculum Lessons**\n");
+			sb.append("- **Lessons Completed:** ").append(zeroIfBlank(num(d, "lessonsCompleted"))).append(" of ").append(zeroIfBlank(num(d, "lessonsStarted"))).append(" started\n");
+
+			if (isNonStudentPerson(d)) {
+				String summary = str(d, "summary");
+				if (!summary.isBlank()) {
+					sb.append('\n').append(summary);
+				}
+			}
+			return trimOrNull(sb);
 		}
 		// A real, non-student person now carries zeroed learning metrics so a focused
 		// metric question returns a number. Keep the provider's authoritative role
