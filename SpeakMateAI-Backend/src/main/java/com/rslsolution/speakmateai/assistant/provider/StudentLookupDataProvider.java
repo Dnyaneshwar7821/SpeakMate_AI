@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
+import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
 import com.rslsolution.speakmateai.entity.ClassStudent;
 import com.rslsolution.speakmateai.entity.LessonProgress;
@@ -39,16 +40,20 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 	private final ProgressRepository progressRepository;
 	private final ClassStudentRepository classStudentRepository;
 	private final LessonProgressRepository lessonProgressRepository;
+	private final TeacherAssignmentResolver teacherAssignmentResolver;
 	private final ObjectMapper objectMapper;
 
 	public StudentLookupDataProvider(StudentRepository studentRepository, UserRepository userRepository,
 			ProgressRepository progressRepository, ClassStudentRepository classStudentRepository,
-			LessonProgressRepository lessonProgressRepository, ObjectMapper objectMapper) {
+			LessonProgressRepository lessonProgressRepository,
+			TeacherAssignmentResolver teacherAssignmentResolver,
+			ObjectMapper objectMapper) {
 		this.studentRepository = studentRepository;
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
 		this.classStudentRepository = classStudentRepository;
 		this.lessonProgressRepository = lessonProgressRepository;
+		this.teacherAssignmentResolver = teacherAssignmentResolver;
 		this.objectMapper = objectMapper;
 	}
 
@@ -135,11 +140,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		Long schoolId = scopedSchoolId;
 
 		if (actor.getRole() == Role.TEACHER && actor.getTeacherId() != null) {
-			Optional<Student> mine = findAssignedStudent(actor.getTeacherId(), params);
-			if (mine.isPresent()) {
-				return mine;
-			}
-			return Optional.empty();
+			return teacherAssignmentResolver.findAssignedStudent(actor.getTeacherId(), actor.getSchoolId(), params);
 		}
 
 		Optional<Student> byName = findByName(studentRepository.findAll(), params, schoolId);
@@ -317,20 +318,6 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		*/
 	private boolean isStudent(User u) {
 		return u.getRole() == Role.STUDENT;
-	}
-
-	private Optional<Student> findAssignedStudent(Long teacherId, Map<String, Object> params) {
-		List<Student> assigned = studentRepository.findByTeacherId(teacherId);
-		if (assigned.isEmpty()) {
-			// Also include students linked via class memberships of the teacher's classes.
-			List<Long> classIds = classStudentRepository.findAll().stream()
-					.map(ClassStudent::getClassId)
-					.distinct()
-					.collect(Collectors.toList());
-			// (Teacher classes are resolved in ClassDataProvider; here we rely on
-			// Student.teacherId which is the primary assignment mechanism.)
-		}
-		return findByName(assigned, params, null);
 	}
 
 	/**

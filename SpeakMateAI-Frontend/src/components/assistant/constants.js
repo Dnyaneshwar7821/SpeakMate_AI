@@ -85,21 +85,23 @@ export const QUICK_SUGGESTIONS_BY_ROLE = Object.freeze({
         "List all teachers in my school",
     ],
     TEACHER: [
+        "Who are my assigned students?",
         "How is my class performing?",
-        "Show me a student's progress",
+        "Show me Siddhi Narke's progress",
         "What does my analytics dashboard show?",
         "What are common pronunciation errors in my class?",
     ],
     STUDENT: [
-        "Show me my progress",
+        "Show me my progress and learning streak",
         "How many lessons have I completed?",
-        "What should I practice for my grade?",
-        "What is my current speaking streak?",
+        "How is my speaking fluency and pronunciation?",
+        "What should I practice next?",
     ],
     USER: [
-        "How is my speaking streak?",
-        "Recommend a conversation topic",
-        "What email am I logged in with?",
+        "Show me my progress and learning streak",
+        "How many lessons have I completed?",
+        "How is my speaking fluency and pronunciation?",
+        "Recommend a conversation topic to practice",
         "What is my subscription plan?",
     ],
 });
@@ -115,12 +117,23 @@ export const DEEP_LINKS_BY_ROLE = Object.freeze({
     ],
     SCHOOL_ADMIN: [
         { label: "Open full analytics", route: ROUTES.SCHOOL_ADMIN_INSIGHTS, targetRole: "SCHOOL_ADMIN" },
+        { label: "View school students", route: ROUTES.SCHOOL_ADMIN_STUDENTS, targetRole: "SCHOOL_ADMIN" },
     ],
     TEACHER: [
         { label: "Open full analytics", route: ROUTES.TEACHER_ANALYTICS, targetRole: "TEACHER" },
+        { label: "View my students", route: ROUTES.TEACHER_STUDENTS, targetRole: "TEACHER" },
+        { label: "View class reports", route: ROUTES.TEACHER_REPORTS, targetRole: "TEACHER" },
     ],
-    STUDENT: [],
-    USER: [],
+    STUDENT: [
+        { label: "View my progress", route: ROUTES.PROGRESS, targetRole: "STUDENT" },
+        { label: "Practice speaking", route: ROUTES.SPEAKING, targetRole: "STUDENT" },
+        { label: "Explore lessons", route: ROUTES.LESSONS, targetRole: "STUDENT" },
+    ],
+    USER: [
+        { label: "View my progress", route: ROUTES.PROGRESS, targetRole: "USER" },
+        { label: "Practice speaking", route: ROUTES.SPEAKING, targetRole: "USER" },
+        { label: "Explore lessons", route: ROUTES.LESSONS, targetRole: "USER" },
+    ],
 });
 
 /**
@@ -132,7 +145,26 @@ export const RENDER_WHITELIST = Object.freeze({
     [ROUTES.ADMIN_INSIGHTS]: ROUTES.ADMIN_INSIGHTS,
     [ROUTES.ADMIN_USERS]: ROUTES.ADMIN_USERS,
     [ROUTES.SCHOOL_ADMIN_INSIGHTS]: ROUTES.SCHOOL_ADMIN_INSIGHTS,
+    [ROUTES.SCHOOL_ADMIN_STUDENTS]: ROUTES.SCHOOL_ADMIN_STUDENTS,
     [ROUTES.TEACHER_ANALYTICS]: ROUTES.TEACHER_ANALYTICS,
+    [ROUTES.TEACHER_STUDENTS]: ROUTES.TEACHER_STUDENTS,
+    [ROUTES.TEACHER_REPORTS]: ROUTES.TEACHER_REPORTS,
+    [ROUTES.PROGRESS]: ROUTES.PROGRESS,
+    [ROUTES.SPEAKING]: ROUTES.SPEAKING,
+    [ROUTES.LESSONS]: ROUTES.LESSONS,
+    [ROUTES.VOCABULARY]: ROUTES.VOCABULARY,
+    [ROUTES.GRAMMAR]: ROUTES.GRAMMAR,
+    [ROUTES.DASHBOARD]: ROUTES.DASHBOARD,
+    "/progress": "/progress",
+    "/speaking": "/speaking",
+    "/lessons": "/lessons",
+    "/vocabulary": "/vocabulary",
+    "/grammar": "/grammar",
+    "/dashboard": "/dashboard",
+    "/teacher/dashboard": "/teacher/dashboard",
+    "/teacher/students": "/teacher/students",
+    "/teacher/analytics": "/teacher/analytics",
+    "/teacher/reports": "/teacher/reports",
 });
 
 /** Default fallback when a role is unknown. */

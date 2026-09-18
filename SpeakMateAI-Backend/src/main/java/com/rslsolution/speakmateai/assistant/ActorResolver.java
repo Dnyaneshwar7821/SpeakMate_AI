@@ -57,7 +57,7 @@ public class ActorResolver {
 					.userId(u.getId())
 					.schoolId(u.getSchoolId())
 					.teacherId(role == Role.TEACHER ? u.getId() : null)
-					.studentId(role == Role.STUDENT ? u.getId() : null)
+					.studentId((role == Role.STUDENT || role == Role.USER) ? u.getId() : null)
 					.displayName(displayName(u.getFirstName(), u.getLastName()))
 					.phone(firstNonBlank(u.getPhone(), adminPhone(fallback)))
 					.location(fallback != null ? fallback.getLocation() : null)

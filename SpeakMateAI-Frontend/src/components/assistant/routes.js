@@ -1,4 +1,16 @@
 export const ROUTES = Object.freeze({
+    // Learner / Student Routes
+    DASHBOARD: "/dashboard",
+    AI_CHAT: "/ai-chat",
+    SPEAKING: "/speaking",
+    LESSONS: "/lessons",
+    GRAMMAR: "/grammar",
+    VOCABULARY: "/vocabulary",
+    PROGRESS: "/progress",
+    ACHIEVEMENTS: "/achievements",
+    PROFILE: "/profile",
+    SETTINGS: "/settings",
+
     // Super Admin Routes
     ADMIN_LOGIN: "/admin/login",
     ADMIN_FORGOT_PASSWORD: "/admin/forgot-password",

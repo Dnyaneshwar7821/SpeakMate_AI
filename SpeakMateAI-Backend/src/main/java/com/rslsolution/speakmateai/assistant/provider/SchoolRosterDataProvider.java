@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
+import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
 import com.rslsolution.speakmateai.entity.School;
 import com.rslsolution.speakmateai.entity.SchoolStandard;
@@ -54,17 +55,20 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 	private final StudentRepository studentRepository;
 	private final TeacherRepository teacherRepository;
 	private final TeacherStandardDivisionRepository teacherStandardDivisionRepository;
+	private final TeacherAssignmentResolver teacherAssignmentResolver;
 	private final ObjectMapper objectMapper;
 
 	public SchoolRosterDataProvider(SchoolRepository schoolRepository, UserRepository userRepository,
 			StudentRepository studentRepository, TeacherRepository teacherRepository,
 			TeacherStandardDivisionRepository teacherStandardDivisionRepository,
+			TeacherAssignmentResolver teacherAssignmentResolver,
 			ObjectMapper objectMapper) {
 		this.schoolRepository = schoolRepository;
 		this.userRepository = userRepository;
 		this.studentRepository = studentRepository;
 		this.teacherRepository = teacherRepository;
 		this.teacherStandardDivisionRepository = teacherStandardDivisionRepository;
+		this.teacherAssignmentResolver = teacherAssignmentResolver;
 		this.objectMapper = objectMapper;
 	}
 
@@ -77,7 +81,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 	public String provide(ActorContext actor, Map<String, Object> params) {
 		// Teachers see ONLY their own assigned students.
 		if (actor.getRole() == Role.TEACHER && actor.getTeacherId() != null) {
-			List<Student> assigned = studentRepository.findByTeacherId(actor.getTeacherId());
+			List<Student> assigned = teacherAssignmentResolver.resolveAssignedStudents(actor.getTeacherId(), actor.getSchoolId());
 			Map<String, Object> data = new LinkedHashMap<>();
 			data.put("scope", "SELF (assigned students only)");
 			data.put("entityType", "STUDENTS");

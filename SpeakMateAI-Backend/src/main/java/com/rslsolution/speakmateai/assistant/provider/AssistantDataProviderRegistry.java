@@ -46,7 +46,7 @@ public class AssistantDataProviderRegistry {
 			case SCHOOL_OVERVIEW -> role == Role.SUPER_ADMIN || role == Role.SCHOOL_ADMIN;
 			case CLASS_PERFORMANCE -> role == Role.SUPER_ADMIN || role == Role.SCHOOL_ADMIN || role == Role.TEACHER;
 			case STUDENT_PERFORMANCE -> role == Role.SUPER_ADMIN || role == Role.SCHOOL_ADMIN
-					|| role == Role.TEACHER || role == Role.STUDENT;
+					|| role == Role.TEACHER || role == Role.STUDENT || role == Role.USER;
 			case ACCOUNT_INFO -> true; // every authenticated caller can see their own account
 			case BILLING -> role == Role.SUPER_ADMIN || role == Role.SCHOOL_ADMIN; // School Admin: own school only
 			case SCHOOL_ROSTER -> role == Role.SUPER_ADMIN || role == Role.SCHOOL_ADMIN || role == Role.TEACHER;
@@ -66,7 +66,7 @@ public class AssistantDataProviderRegistry {
 	}
 
 	public Optional<AssistantDataProvider> providerFor(AssistantIntent intent, Role role) {
-		if (intent == AssistantIntent.STUDENT_PERFORMANCE && role == Role.STUDENT && selfProgressProvider != null) {
+		if (intent == AssistantIntent.STUDENT_PERFORMANCE && (role == Role.STUDENT || role == Role.USER) && selfProgressProvider != null) {
 			return Optional.of(selfProgressProvider);
 		}
 		return Optional.ofNullable(providers.get(intent));

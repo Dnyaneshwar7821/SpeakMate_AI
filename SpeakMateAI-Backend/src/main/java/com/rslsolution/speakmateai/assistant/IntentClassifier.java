@@ -1022,6 +1022,10 @@ public class IntentClassifier {
 		if (emailMatcher.find()) {
 			return emailMatcher.group();
 		}
+		String personFocus = extractAnyPersonFocusName(message);
+		if (!personFocus.isEmpty()) {
+			return personFocus;
+		}
 		String capitalized = extractPersonFocusName(message);
 		if (!capitalized.isEmpty()) {
 			return capitalized;
@@ -1583,36 +1587,50 @@ public class IntentClassifier {
 						"invoice", "fees", "plans"))) {
 					return AssistantIntent.ACCESS_DENIED;
 				}
-				boolean classEntity = containsAny(m, List.of("class", "grade", "standard",
-						"division", "section", "student", "learner"));
-				return dataMarker && classEntity ? AssistantIntent.CLASS_PERFORMANCE
-						: (dataMarker && !m.contains("how do i") && !m.contains("how to") ? AssistantIntent.ACCESS_DENIED : null);
+				// 1. Roster query: "who are my students", "list of my students", "how many students do I have", etc.
+				boolean rosterQuestion = containsAny(m, List.of(
+						"who are my students", "list my students", "list of my students",
+						"show my students", "names of my students", "my students list",
+						"how many students do i have", "how many students are assigned",
+						"my assigned students", "students assigned to me", "which students do i teach",
+						"students in my class", "students in my standard", "all my students"));
+				if (rosterQuestion) {
+					return AssistantIntent.SCHOOL_ROSTER;
+				}
+				// 2. Individual student metrics or name
+				if (studentMetricOverride(message, role) != null) {
+					return AssistantIntent.STUDENT_PERFORMANCE;
+				}
+				String person = extractAnyPersonFocusName(message);
+				if (!person.isBlank() && containsAny(m, List.of(
+						"progress", "performance", "performing", "doing", "streak", "xp", "score",
+						"scores", "lesson", "lessons", "completed", "practice", "details", "how is", "how are"))) {
+					return AssistantIntent.STUDENT_PERFORMANCE;
+				}
+				// 3. Class performance
+				boolean classEntity = containsAny(m, List.of("class", "grade", "standard", "division", "section"));
+				if (dataMarker && classEntity) {
+					return AssistantIntent.CLASS_PERFORMANCE;
+				}
+				// 4. Data query referencing student / learner
+				if (dataMarker && containsAny(m, List.of("student", "learner", "progress", "performance", "doing", "streak", "xp", "score"))) {
+					return AssistantIntent.STUDENT_PERFORMANCE;
+				}
+				return (dataMarker && !m.contains("how do i") && !m.contains("how to") ? AssistantIntent.ACCESS_DENIED : null);
 			}
-			case STUDENT: {
+			case STUDENT:
+			case USER: {
 				if (containsAny(m, List.of("revenue", "billing", "subscription", "payment",
 						"invoice", "fees", "plans"))) {
 					return AssistantIntent.ACCESS_DENIED;
 				}
-				boolean selfEntity = containsAny(m, List.of("progress", "streak", "xp", "lesson",
-						"score", "mark", "performance", "practice minutes", "speaking session",
-						"grammar", "vocabulary", "how am i doing", "i have completed", "my stats",
-						"performing", "progressing", "doing"));
-				return selfEntity ? AssistantIntent.STUDENT_PERFORMANCE
-						: (dataMarker && !m.contains("how do i") && !m.contains("how to") ? AssistantIntent.ACCESS_DENIED : null);
-			}
-			default: {
-				// General users have no school/class/student/billing data scope: a
-				// data question must be gracefully denied (ACCESS_DENIED) instead of
-				// leaking through as NAVIGATION_HELP, which would be answered by the
-				// navigation provider and imply the data exists for them.
-				//
-				// Out-of-scope platform user-directory requests ("names of all users",
-				// "list every account", "who are all the users") are the clearest case:
-				// a general USER cannot see the platform directory, so the answer must
-				// be the graceful ACCESS_DENIED, never a navigation punt that implies
-				// the data exists for them. Own-account phrasings ("my email",
-				// "my account details") are already handled by accountInfoOverride
-				// above and never reach this branch.
+				boolean selfEntity = containsAny(m, List.of("progress", "streak", "xp", "lesson", "lessons",
+						"score", "mark", "marks", "performance", "practice", "practice minutes", "speaking", "session",
+						"sessions", "fluency", "pronunciation", "grammar", "vocabulary", "words", "how am i doing",
+						"i have completed", "my stats", "performing", "progressing", "doing", "daily goal", "tips", "level", "learning"));
+				if (selfEntity) {
+					return AssistantIntent.STUDENT_PERFORMANCE;
+				}
 				boolean platformUserDirectory = containsAny(m, List.of(
 						"all users", "all the users", "all of the users",
 						"every user", "all accounts", "all the accounts",
@@ -1631,8 +1649,6 @@ public class IntentClassifier {
 				if (actionQuestion) {
 					return null;
 				}
-				// Self-membership/account phrasings are already handled by
-				// accountInfoOverride and must never be downgraded to a data denial.
 				boolean selfAccount = containsAny(m, List.of(
 						"which school am i", "what is my school", "my school name",
 						"school am i in", "which class am i", "what class am i",
@@ -1641,14 +1657,16 @@ public class IntentClassifier {
 					return null;
 				}
 				boolean userDataMarker = dataMarker || containsAny(m, List.of(
-						"progress", "streak", "performance", "performing", "overview",
+						"overview",
 						"class", "grade", "standard", "division", "section",
 						"student", "learner", "teacher", "school", "roster",
 						"list of", "who are", "enrolled",
-						// platform-directory entities a general USER cannot see
 						"users", "user ", "accounts", "account ", "members", "member ",
 						"everyone", "directory"));
 				return userDataMarker ? AssistantIntent.ACCESS_DENIED : null;
+			}
+			default: {
+				return (dataMarker && !m.contains("how do i") && !m.contains("how to") ? AssistantIntent.ACCESS_DENIED : null);
 			}
 		}
 	}

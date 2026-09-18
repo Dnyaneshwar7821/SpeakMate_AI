@@ -252,9 +252,11 @@ public class AssistantService {
 			case CLASS_PERFORMANCE -> role == Role.TEACHER
 					? Optional.of(suggestion("View class analytics", "/teacher/analytics", "TEACHER"))
 					: Optional.of(suggestion("View insights", "/school-admin/insights", "SCHOOL_ADMIN"));
-			case STUDENT_PERFORMANCE -> role == Role.STUDENT
-					? Optional.of(suggestion("View my progress", "/progress", "STUDENT"))
-					: Optional.of(suggestion("View analytics", "/teacher/analytics", "TEACHER"));
+			case STUDENT_PERFORMANCE -> (role == Role.STUDENT || role == Role.USER)
+					? Optional.of(suggestion("View my progress", "/progress", role.name()))
+					: role == Role.TEACHER
+							? Optional.of(suggestion("View class analytics", "/teacher/analytics", "TEACHER"))
+							: Optional.of(suggestion("View insights", "/school-admin/insights", "SCHOOL_ADMIN"));
 			// Billing is visible to Super Admins (platform-wide) and School Admins
 			// (own school only). The /admin/subscription page belongs to the Super
 			// Admin panel; the School Admin panel has no billing page, so no
@@ -298,14 +300,21 @@ public class AssistantService {
 					suggestion("Go to students", "/school-admin/students", "SCHOOL_ADMIN"));
 			case TEACHER -> List.of(
 					suggestion("Go to dashboard", "/teacher/dashboard", "TEACHER"),
-					suggestion("Go to students", "/teacher/students", "TEACHER"));
+					suggestion("Go to students", "/teacher/students", "TEACHER"),
+					suggestion("Go to analytics", "/teacher/analytics", "TEACHER"),
+					suggestion("Go to reports", "/teacher/reports", "TEACHER"));
 			case STUDENT -> List.of(
 					suggestion("Go to dashboard", "/dashboard", "STUDENT"),
 					suggestion("Go to progress", "/progress", "STUDENT"),
-					suggestion("Go to lessons", "/lessons", "STUDENT"));
+					suggestion("Practice speaking", "/speaking", "STUDENT"),
+					suggestion("Go to lessons", "/lessons", "STUDENT"),
+					suggestion("Vocabulary bank", "/vocabulary", "STUDENT"));
 			case USER -> List.of(
 					suggestion("Go to dashboard", "/dashboard", "USER"),
-					suggestion("Go to lessons", "/lessons", "USER"));
+					suggestion("Go to progress", "/progress", "USER"),
+					suggestion("Practice speaking", "/speaking", "USER"),
+					suggestion("Go to lessons", "/lessons", "USER"),
+					suggestion("Vocabulary bank", "/vocabulary", "USER"));
 			default -> List.of(suggestion("Go to dashboard", "/dashboard", "STUDENT"));
 		};
 	}

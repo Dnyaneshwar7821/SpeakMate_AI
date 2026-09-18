@@ -1,6 +1,7 @@
 package com.rslsolution.speakmateai.assistant.provider;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -10,27 +11,44 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
+import com.rslsolution.speakmateai.entity.LessonProgress;
 import com.rslsolution.speakmateai.entity.Progress;
+import com.rslsolution.speakmateai.entity.SpeakingSession;
 import com.rslsolution.speakmateai.entity.Student;
+import com.rslsolution.speakmateai.entity.User;
+import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.repository.LessonProgressRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
+import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
+import com.rslsolution.speakmateai.repository.UserRepository;
 
 /**
- * The STUDENT caller's own progress. This provider is routed explicitly by the
- * registry for the STUDENT role and is never reachable via a generic lookup, so
- * a student can only ever see their own data.
+ * Caller's own learning progress, available to both STUDENT and USER (Learner) roles.
+ * Provides a comprehensive snapshot of XP, streaks, completed lessons, speaking practice,
+ * fluency metrics, vocabulary words, and grammar checks.
  */
 @Component
 public class SelfProgressDataProvider implements AssistantDataProvider {
 
+	private final UserRepository userRepository;
 	private final StudentRepository studentRepository;
 	private final ProgressRepository progressRepository;
+	private final LessonProgressRepository lessonProgressRepository;
+	private final SpeakingSessionRepository speakingSessionRepository;
 	private final ObjectMapper objectMapper;
 
-	public SelfProgressDataProvider(StudentRepository studentRepository,
-			ProgressRepository progressRepository, ObjectMapper objectMapper) {
+	public SelfProgressDataProvider(UserRepository userRepository,
+			StudentRepository studentRepository,
+			ProgressRepository progressRepository,
+			LessonProgressRepository lessonProgressRepository,
+			SpeakingSessionRepository speakingSessionRepository,
+			ObjectMapper objectMapper) {
+		this.userRepository = userRepository;
 		this.studentRepository = studentRepository;
 		this.progressRepository = progressRepository;
+		this.lessonProgressRepository = lessonProgressRepository;
+		this.speakingSessionRepository = speakingSessionRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -41,44 +59,111 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 
 	@Override
 	public String provide(ActorContext actor, Map<String, Object> params) {
-		Optional<Student> me = studentRepository.findById(actor.getStudentId() == null ? -1L : actor.getStudentId());
+		Long targetUserId = actor.getUserId() != null ? actor.getUserId() : actor.getStudentId();
+		Optional<User> me = userRepository.findById(targetUserId == null ? -1L : targetUserId);
+		if (me.isEmpty()) {
+			// Try fallback via email
+			if (actor.getEmail() != null) {
+				me = userRepository.findByEmail(actor.getEmail());
+			}
+		}
+
 		Map<String, Object> data = new LinkedHashMap<>();
 		if (me.isEmpty()) {
 			data.put("message", "NO DATA");
-			data.put("reason", "Student profile not found.");
+			data.put("reason", "User profile not found.");
 			return toJson(data);
 		}
 
-		Student s = me.get();
-		Progress p = progressRepository.findByStudent(s).orElse(null);
+		User user = me.get();
+		Progress p = progressRepository.findByUser(user).orElse(null);
+
+		// Lesson metrics
+		long lessonsCompleted = lessonProgressRepository.countByUserIdAndCompletedTrue(user.getId());
+		List<LessonProgress> lessonRows = lessonProgressRepository.findByUser(user);
+		long lessonsStarted = lessonRows.size();
+		long lessonsPending = Math.max(0L, lessonsStarted - lessonsCompleted);
+
+		// Speaking sessions & speech metrics
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
+		int totalSessions = sessions.size();
+		double totalFluency = 0;
+		double totalPronunciation = 0;
+		double totalGrammar = 0;
+		double totalVocab = 0;
+		double totalOverall = 0;
+		int scoredCount = 0;
+
+		for (SpeakingSession s : sessions) {
+			if (s.getOverallScore() != null || s.getScore() != null) {
+				scoredCount++;
+				if (s.getFluencyScore() != null) totalFluency += s.getFluencyScore();
+				if (s.getPronunciationScore() != null) totalPronunciation += s.getPronunciationScore();
+				if (s.getGrammarScore() != null) totalGrammar += s.getGrammarScore();
+				if (s.getVocabularyScore() != null) totalVocab += s.getVocabularyScore();
+				double overall = s.getOverallScore() != null ? s.getOverallScore() : (s.getScore() != null ? s.getScore() : 0.0);
+				totalOverall += overall;
+			}
+		}
+
+		double avgFluency = scoredCount > 0 ? Math.round((totalFluency / scoredCount) * 10.0) / 10.0 : 0.0;
+		double avgPronunciation = scoredCount > 0 ? Math.round((totalPronunciation / scoredCount) * 10.0) / 10.0 : 0.0;
+		double avgGrammar = scoredCount > 0 ? Math.round((totalGrammar / scoredCount) * 10.0) / 10.0 : 0.0;
+		double avgVocab = scoredCount > 0 ? Math.round((totalVocab / scoredCount) * 10.0) / 10.0 : 0.0;
+		double avgOverall = scoredCount > 0 ? Math.round((totalOverall / scoredCount) * 10.0) / 10.0 : 0.0;
 
 		data.put("scope", "SELF (own progress only)");
-		data.put("studentName", fullName(s));
-		data.put("studentId", s.getStudentId());
-		data.put("standard", s.getStandard());
-		data.put("division", s.getDivision());
+		data.put("studentName", fullName(user));
+		data.put("role", user.getRole() != null ? user.getRole().name() : Role.USER.name());
+
+		if (user.getStandard() != null && !user.getStandard().isBlank()) {
+			data.put("standard", user.getStandard());
+		}
+		if (user.getDivision() != null && !user.getDivision().isBlank()) {
+			data.put("division", user.getDivision());
+		}
+		if (user.getRollNumber() != null && !user.getRollNumber().isBlank()) {
+			data.put("rollNumber", user.getRollNumber());
+		}
+		if (user.getSchoolName() != null && !user.getSchoolName().isBlank()) {
+			data.put("schoolName", user.getSchoolName());
+		}
+
 		if (p != null) {
 			data.put("xp", zeroIfNull(p.getXp()));
-			data.put("level", zeroIfNull(p.getLevel()));
+			data.put("level", Math.max(1, zeroIfNull(p.getLevel())));
 			data.put("currentStreak", zeroIfNull(p.getCurrentStreak()));
 			data.put("longestStreak", zeroIfNull(p.getLongestStreak()));
 			data.put("totalPracticeMinutes", zeroIfNull(p.getTotalPracticeMinutes()));
-			data.put("totalSpeakingSessions", zeroIfNull(p.getTotalSpeakingSessions()));
+			data.put("totalSpeakingSessions", Math.max(totalSessions, zeroIfNull(p.getTotalSpeakingSessions())));
 			data.put("totalGrammarChecks", zeroIfNull(p.getTotalGrammarChecks()));
 			data.put("totalVocabularyWords", zeroIfNull(p.getTotalVocabularyWords()));
 		} else {
-			// No Progress row yet means the student has not started practising, so every
-			// metric is genuinely 0. Report the zeros rather than a "no progress record"
-			// notice the reader would interpret as the value being unavailable.
 			data.put("xp", 0);
-			data.put("level", 0);
+			data.put("level", 1);
 			data.put("currentStreak", 0);
 			data.put("longestStreak", 0);
 			data.put("totalPracticeMinutes", 0);
-			data.put("totalSpeakingSessions", 0);
+			data.put("totalSpeakingSessions", totalSessions);
 			data.put("totalGrammarChecks", 0);
 			data.put("totalVocabularyWords", 0);
 		}
+
+		data.put("lessonsCompleted", lessonsCompleted);
+		data.put("lessonsStarted", lessonsStarted);
+		data.put("lessonsPending", lessonsPending);
+
+		if (scoredCount > 0) {
+			data.put("fluencyScore", avgFluency);
+			data.put("pronunciationScore", avgPronunciation);
+			data.put("grammarScore", avgGrammar);
+			data.put("vocabularyScore", avgVocab);
+			data.put("overallSpeakingScore", avgOverall);
+		}
+
+		boolean hasStarted = (lessonsCompleted > 0 || totalSessions > 0 || (p != null && p.getXp() != null && p.getXp() > 0));
+		data.put("hasStartedLearning", hasStarted);
+
 		return toJson(data);
 	}
 
@@ -86,10 +171,11 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		return value == null ? 0 : value;
 	}
 
-	private String fullName(Student s) {
-		String first = s.getFirstName() != null ? s.getFirstName() : "";
-		String last = s.getLastName() != null ? s.getLastName() : "";
-		return (first + " " + last).trim();
+	private String fullName(User u) {
+		String first = u.getFirstName() != null ? u.getFirstName() : "";
+		String last = u.getLastName() != null ? u.getLastName() : "";
+		String combined = (first + " " + last).trim();
+		return combined.isEmpty() ? "Learner" : combined;
 	}
 
 	private String toJson(Map<String, Object> data) {
