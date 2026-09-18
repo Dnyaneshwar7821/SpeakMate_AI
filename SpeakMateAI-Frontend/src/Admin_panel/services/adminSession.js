@@ -37,6 +37,16 @@ export function setAdminAuthenticated({ role, token = null, rememberMe = false, 
 
 export function clearAdminAuthenticated() {
   localStorage.removeItem(ADMIN_SESSION_KEY);
+  try {
+    const toRemove = [];
+    for (let i = 0; i < sessionStorage.length; i++) {
+      const k = sessionStorage.key(i);
+      if (k && k.startsWith("speakmate_assistant_")) {
+        toRemove.push(k);
+      }
+    }
+    toRemove.forEach((k) => sessionStorage.removeItem(k));
+  } catch (_) {}
 }
 
 export function updateAdminSessionUser(userUpdates) {

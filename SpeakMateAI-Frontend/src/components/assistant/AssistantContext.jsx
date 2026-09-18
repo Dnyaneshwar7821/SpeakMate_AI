@@ -58,15 +58,73 @@ export function AssistantProvider({ children, role: explicitRole, user: explicit
     const user = explicitUser || fallbackAuth.user;
     const role = explicitRole || fallbackAuth.role || user?.role || DEFAULT_ROLE;
 
-    const [isOpen, setIsOpen] = useState(false);
-    const [sessionId, setSessionId] = useState(null);
-    const [messages, setMessages] = useState([]);
+    const userIdOrEmail = user?.id || user?.email || "guest";
+    const storageKey = `speakmate_assistant_${role}_${userIdOrEmail}`;
+
+    const [isOpen, setIsOpen] = useState(() => {
+        try {
+            return sessionStorage.getItem(`${storageKey}_open`) === "true";
+        } catch (_) {
+            return false;
+        }
+    });
+    const [sessionId, setSessionId] = useState(() => {
+        try {
+            return sessionStorage.getItem(`${storageKey}_sid`) || null;
+        } catch (_) {
+            return null;
+        }
+    });
+    const [messages, setMessages] = useState(() => {
+        try {
+            const raw = sessionStorage.getItem(`${storageKey}_msgs`);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) return parsed;
+            }
+        } catch (_) {}
+        return [];
+    });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     // Refs so callbacks stay stable without stale closures
-    const sessionIdRef = useRef(null);
-    const messagesRef = useRef([]);
+    const sessionIdRef = useRef(sessionId);
+    const messagesRef = useRef(messages);
+
+    useEffect(() => {
+        sessionIdRef.current = sessionId;
+    }, [sessionId]);
+
+    useEffect(() => {
+        messagesRef.current = messages;
+    }, [messages]);
+
+    useEffect(() => {
+        try {
+            sessionStorage.setItem(`${storageKey}_open`, isOpen ? "true" : "false");
+        } catch (_) {}
+    }, [isOpen, storageKey]);
+
+    useEffect(() => {
+        try {
+            if (sessionId) {
+                sessionStorage.setItem(`${storageKey}_sid`, sessionId);
+            } else {
+                sessionStorage.removeItem(`${storageKey}_sid`);
+            }
+        } catch (_) {}
+    }, [sessionId, storageKey]);
+
+    useEffect(() => {
+        try {
+            if (messages && messages.length > 0) {
+                sessionStorage.setItem(`${storageKey}_msgs`, JSON.stringify(messages));
+            } else {
+                sessionStorage.removeItem(`${storageKey}_msgs`);
+            }
+        } catch (_) {}
+    }, [messages, storageKey]);
 
     const openWidget = useCallback(() => {
         setError(null);
@@ -84,12 +142,16 @@ export function AssistantProvider({ children, role: explicitRole, user: explicit
     const clearError = useCallback(() => setError(null), []);
 
     const startNewChat = useCallback(() => {
+        try {
+            sessionStorage.removeItem(`${storageKey}_sid`);
+            sessionStorage.removeItem(`${storageKey}_msgs`);
+        } catch (_) {}
         sessionIdRef.current = null;
         setSessionId(null);
         messagesRef.current = [];
         setMessages([]);
         setError(null);
-    }, []);
+    }, [storageKey]);
 
     const send = useCallback(
         async (text) => {

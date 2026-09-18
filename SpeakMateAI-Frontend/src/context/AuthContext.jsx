@@ -216,6 +216,16 @@ export function AuthProvider({ children }) {
         }
       }
       keysToRemove.forEach((k) => localStorage.removeItem(k));
+
+      // Clear assistant chat history in sessionStorage
+      const sessionKeysToRemove = [];
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith("speakmate_assistant_")) {
+          sessionKeysToRemove.push(key);
+        }
+      }
+      sessionKeysToRemove.forEach((k) => sessionStorage.removeItem(k));
     } catch (e) { }
 
     setToken(null);
