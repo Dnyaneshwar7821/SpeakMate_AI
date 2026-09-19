@@ -4,6 +4,7 @@ import {
     BarChart,
     CartesianGrid,
     Cell,
+    LabelList,
     Legend,
     Line,
     LineChart,
@@ -93,6 +94,57 @@ function CustomXAxisTick(props) {
     );
 }
 
+function renderPieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }) {
+    if (!percent || percent < 0.08) return null;
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.55;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    return (
+        <text
+            x={x}
+            y={y}
+            fill="#ffffff"
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize={10}
+            fontWeight={700}
+        >
+            {`${Math.round(percent * 100)}%`}
+        </text>
+    );
+}
+
+function CustomChartTooltip({ active, payload, label, isPieOrDonut, total }) {
+    if (!active || !payload || !payload.length) return null;
+    const title = isPieOrDonut ? payload[0]?.name : (label || payload[0]?.name);
+
+    return (
+        <div className="rounded-xl border border-[var(--border-default,#e2e8f0)] bg-[var(--bg-surface,#ffffff)] px-2.5 py-1.5 shadow-md">
+            <p className="text-[11px] font-semibold text-[var(--text-primary,#0f172a)]">{title}</p>
+            <div className="mt-1 space-y-0.5">
+                {payload.map((item, idx) => {
+                    const value = item.value;
+                    const pct = isPieOrDonut && total > 0 ? ((value / total) * 100).toFixed(1) : null;
+                    return (
+                        <div key={idx} className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary,#64748b)]">
+                            <span
+                                className="inline-block h-2 w-2 rounded-full"
+                                style={{ backgroundColor: item.color || item.payload?.fill || "var(--color-primary,#6C63FF)" }}
+                            />
+                            <span>{item.name || item.dataKey}:</span>
+                            <strong className="font-semibold text-[var(--text-primary,#0f172a)]">{value}</strong>
+                            {pct !== null && (
+                                <span className="text-[10px] text-[var(--text-muted,#94a3b8)]">({pct}%)</span>
+                            )}
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 export function MiniChart({ chart }) {
     const { type = "bar", title, labels = [], datasets = [] } = chart || {};
 
@@ -104,15 +156,15 @@ export function MiniChart({ chart }) {
         [labels, series]
     );
 
-    if (!chart || !type || series.length === 0) return null;
+    const totalCount = useMemo(() => {
+        if (!series.length) return 0;
+        return chartData.reduce((sum, item) => {
+            const val = Number(item[series[0]?.label]) || 0;
+            return sum + val;
+        }, 0);
+    }, [chartData, series]);
 
-    const tooltipStyle = {
-        borderRadius: "0.75rem",
-        border: "1px solid var(--border-default, #e2e8f0)",
-        background: "var(--bg-surface, #ffffff)",
-        color: "var(--text-primary, #0f172a)",
-        fontSize: "12px",
-    };
+    if (!chart || !type || series.length === 0) return null;
 
     const isDoughnut = normalizedType === "doughnut" || normalizedType === "donut";
     const isPie = normalizedType === "pie";
@@ -121,13 +173,20 @@ export function MiniChart({ chart }) {
 
     return (
         <div className="mt-3 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3 shadow-sm">
-            {title ? (
-                <p className="mb-2 text-xs font-semibold text-[var(--text-secondary)]">{title}</p>
-            ) : null}
-            <div className="h-44 w-full">
+            <div className="mb-2 flex items-center justify-between gap-2">
+                {title ? (
+                    <p className="text-xs font-semibold text-[var(--text-secondary)]">{title}</p>
+                ) : <span />}
+                {totalCount > 0 && (
+                    <span className="rounded-full bg-[var(--bg-muted,#f1f5f9)] px-2 py-0.5 text-[10px] font-semibold text-[var(--text-muted,#64748b)]">
+                        Total: {totalCount}
+                    </span>
+                )}
+            </div>
+            <div className={isDoughnut || isPie ? "h-52 w-full" : "h-44 w-full"}>
                 <ResponsiveContainer width="100%" height="100%">
                     {isLine ? (
-                        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 8 }}>
+                        <LineChart data={chartData} margin={{ top: 12, right: 12, left: -18, bottom: 8 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default, #e2e8f0)" vertical={false} />
                             <XAxis
                                 dataKey="name"
@@ -137,8 +196,14 @@ export function MiniChart({ chart }) {
                                 axisLine={false}
                                 tickLine={false}
                             />
-                            <YAxis tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} axisLine={false} tickLine={false} width={44} />
-                            <Tooltip contentStyle={tooltipStyle} />
+                            <YAxis
+                                allowDecimals={false}
+                                tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }}
+                                axisLine={false}
+                                tickLine={false}
+                                width={44}
+                            />
+                            <Tooltip content={<CustomChartTooltip total={totalCount} />} />
                             {series.map((s, index) => (
                                 <Line
                                     key={s.label}
@@ -146,46 +211,104 @@ export function MiniChart({ chart }) {
                                     dataKey={s.label}
                                     stroke={PALETTE[index % PALETTE.length]}
                                     strokeWidth={2}
-                                    dot={{ r: 2.5, fill: PALETTE[index % PALETTE.length] }}
-                                />
+                                    dot={{ r: 3, fill: PALETTE[index % PALETTE.length], strokeWidth: 1.5, stroke: "#fff" }}
+                                    activeDot={{ r: 5 }}
+                                >
+                                    <LabelList
+                                        dataKey={s.label}
+                                        position="top"
+                                        fill="var(--text-secondary, #64748b)"
+                                        fontSize={9.5}
+                                        fontWeight={600}
+                                        offset={6}
+                                    />
+                                </Line>
                             ))}
                         </LineChart>
                     ) : isDoughnut ? (
                         <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                            <Tooltip contentStyle={tooltipStyle} />
+                            <Tooltip content={<CustomChartTooltip isPieOrDonut total={totalCount} />} />
                             <Legend
                                 iconType="circle"
                                 iconSize={8}
-                                wrapperStyle={{ fontSize: "10px", paddingTop: "4px", color: "var(--text-secondary, #64748b)" }}
+                                formatter={(value, entry) => {
+                                    const rawVal = entry?.payload?.[series[0]?.label] ?? entry?.payload?.value ?? 0;
+                                    const pct = totalCount > 0 ? Math.round((rawVal / totalCount) * 100) : 0;
+                                    return (
+                                        <span className="text-[10px] text-[var(--text-secondary,#64748b)]">
+                                            <span className="font-medium text-[var(--text-primary,#0f172a)]">{value}</span>:{" "}
+                                            <span className="font-semibold text-[var(--color-primary,#6C63FF)]">{rawVal}</span>{" "}
+                                            <span className="text-[var(--text-muted,#94a3b8)]">({pct}%)</span>
+                                        </span>
+                                    );
+                                }}
+                                wrapperStyle={{ fontSize: "10px", paddingTop: "8px" }}
                             />
                             <Pie
                                 data={chartData}
                                 dataKey={series[0]?.label}
                                 nameKey="name"
-                                innerRadius="48%"
-                                outerRadius="78%"
+                                innerRadius="46%"
+                                outerRadius="74%"
                                 paddingAngle={3}
+                                label={renderPieLabel}
+                                labelLine={false}
                             >
                                 {chartData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} />
                                 ))}
                             </Pie>
+                            <text
+                                x="50%"
+                                y="40%"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                className="fill-[var(--text-muted,#94a3b8)]"
+                                fontSize={10}
+                                fontWeight={500}
+                            >
+                                Total
+                            </text>
+                            <text
+                                x="50%"
+                                y="52%"
+                                textAnchor="middle"
+                                dominantBaseline="middle"
+                                className="fill-[var(--text-primary,#0f172a)]"
+                                fontSize={14}
+                                fontWeight={700}
+                            >
+                                {totalCount}
+                            </text>
                         </PieChart>
                     ) : isPie ? (
                         <PieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
-                            <Tooltip contentStyle={tooltipStyle} />
+                            <Tooltip content={<CustomChartTooltip isPieOrDonut total={totalCount} />} />
                             <Legend
                                 iconType="circle"
                                 iconSize={8}
-                                wrapperStyle={{ fontSize: "10px", paddingTop: "4px", color: "var(--text-secondary, #64748b)" }}
+                                formatter={(value, entry) => {
+                                    const rawVal = entry?.payload?.[series[0]?.label] ?? entry?.payload?.value ?? 0;
+                                    const pct = totalCount > 0 ? Math.round((rawVal / totalCount) * 100) : 0;
+                                    return (
+                                        <span className="text-[10px] text-[var(--text-secondary,#64748b)]">
+                                            <span className="font-medium text-[var(--text-primary,#0f172a)]">{value}</span>:{" "}
+                                            <span className="font-semibold text-[var(--color-primary,#6C63FF)]">{rawVal}</span>{" "}
+                                            <span className="text-[var(--text-muted,#94a3b8)]">({pct}%)</span>
+                                        </span>
+                                    );
+                                }}
+                                wrapperStyle={{ fontSize: "10px", paddingTop: "8px" }}
                             />
                             <Pie
                                 data={chartData}
                                 dataKey={series[0]?.label}
                                 nameKey="name"
                                 innerRadius={0}
-                                outerRadius="78%"
+                                outerRadius="74%"
                                 paddingAngle={2}
+                                label={renderPieLabel}
+                                labelLine={false}
                             >
                                 {chartData.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={PALETTE[index % PALETTE.length]} />
@@ -193,17 +316,46 @@ export function MiniChart({ chart }) {
                             </Pie>
                         </PieChart>
                     ) : isHorizontalBar ? (
-                        <BarChart layout="vertical" data={chartData} margin={{ top: 4, right: 16, left: -10, bottom: 0 }}>
+                        <BarChart layout="vertical" data={chartData} margin={{ top: 4, right: 28, left: -10, bottom: 0 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default, #e2e8f0)" horizontal={false} />
-                            <XAxis type="number" tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} axisLine={false} tickLine={false} />
-                            <YAxis type="category" dataKey="name" tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} tickFormatter={formatAxis} axisLine={false} tickLine={false} width={75} />
-                            <Tooltip contentStyle={tooltipStyle} />
+                            <XAxis
+                                type="number"
+                                allowDecimals={false}
+                                tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }}
+                                axisLine={false}
+                                tickLine={false}
+                            />
+                            <YAxis
+                                type="category"
+                                dataKey="name"
+                                tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }}
+                                tickFormatter={formatAxis}
+                                axisLine={false}
+                                tickLine={false}
+                                width={80}
+                            />
+                            <Tooltip content={<CustomChartTooltip total={totalCount} />} />
                             {series.map((s, index) => (
-                                <Bar key={s.label} dataKey={s.label} fill={PALETTE[index % PALETTE.length]} radius={[0, 4, 4, 0]} maxBarSize={20} />
+                                <Bar
+                                    key={s.label}
+                                    dataKey={s.label}
+                                    fill={PALETTE[index % PALETTE.length]}
+                                    radius={[0, 4, 4, 0]}
+                                    maxBarSize={20}
+                                >
+                                    <LabelList
+                                        dataKey={s.label}
+                                        position="right"
+                                        fill="var(--text-secondary, #64748b)"
+                                        fontSize={9.5}
+                                        fontWeight={600}
+                                        offset={6}
+                                    />
+                                </Bar>
                             ))}
                         </BarChart>
                     ) : (
-                        <BarChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 8 }}>
+                        <BarChart data={chartData} margin={{ top: 12, right: 8, left: -18, bottom: 8 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default, #e2e8f0)" vertical={false} />
                             <XAxis
                                 dataKey="name"
@@ -213,10 +365,31 @@ export function MiniChart({ chart }) {
                                 axisLine={false}
                                 tickLine={false}
                             />
-                            <YAxis tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} axisLine={false} tickLine={false} width={44} />
-                            <Tooltip contentStyle={tooltipStyle} />
+                            <YAxis
+                                allowDecimals={false}
+                                tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }}
+                                axisLine={false}
+                                tickLine={false}
+                                width={44}
+                            />
+                            <Tooltip content={<CustomChartTooltip total={totalCount} />} />
                             {series.map((s, index) => (
-                                <Bar key={s.label} dataKey={s.label} fill={PALETTE[index % PALETTE.length]} radius={[4, 4, 0, 0]} maxBarSize={22} />
+                                <Bar
+                                    key={s.label}
+                                    dataKey={s.label}
+                                    fill={PALETTE[index % PALETTE.length]}
+                                    radius={[4, 4, 0, 0]}
+                                    maxBarSize={22}
+                                >
+                                    <LabelList
+                                        dataKey={s.label}
+                                        position="top"
+                                        fill="var(--text-secondary, #64748b)"
+                                        fontSize={9.5}
+                                        fontWeight={600}
+                                        offset={4}
+                                    />
+                                </Bar>
                             ))}
                         </BarChart>
                     )}

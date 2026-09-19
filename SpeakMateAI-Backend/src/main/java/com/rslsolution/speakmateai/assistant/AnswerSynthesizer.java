@@ -40,10 +40,14 @@ public class AnswerSynthesizer {
 			Rules:
 			- Always keep at most ONE chart per message. If no chart is relevant, set "chart": null.
 			- Select the most appropriate dynamic chart type:
-			  * "doughnut" or "pie": for distributions, role breakdowns, and category proportions (e.g. user role breakdown, active vs inactive users, pass vs fail results).
+			  * "doughnut" or "pie": for distributions, completion ratios, role breakdowns, and proportions (e.g. speaking sessions completed vs remaining, user role breakdown, active vs inactive users).
 			  * "line": for trends over time, progress histories, and weekly activity (e.g. speaking practice minutes, scores over time).
 			  * "horizontal-bar": for rankings and comparisons among schools, classrooms, or teachers so names on the left axis are never cut off.
 			  * "bar": for standard vertical counts.
+			- Chart parameters must be well-formed:
+			  * "title": Provide a clear, descriptive title (e.g. "Speaking Sessions: Completed vs Remaining", "User Role Distribution").
+			  * "labels": Short, distinct, properly capitalized category labels.
+			  * "datasets": Must include a descriptive "label" (e.g. "Sessions", "Users", "Score %") and numeric data matching the DATA exactly.
 			- For platform users and platform overview, always include key role breakdown cards in "stats": "Total Users", "Teachers" (totalTeachers), "Students" (totalStudents), and "School Admins" (totalSchoolAdmins). Never omit the Teachers card.
 			- Only use numbers from the provided DATA. Never invent figures.
 			- Keep markdown under 220 words.
