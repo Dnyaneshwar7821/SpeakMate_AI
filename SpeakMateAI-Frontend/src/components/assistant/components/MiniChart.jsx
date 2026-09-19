@@ -38,6 +38,7 @@ function formatAxis(value) {
     const trimmed = value.trim();
     if (/^school\s*admin/i.test(trimmed)) return "School Admin";
     if (/^super\s*admin/i.test(trimmed)) return "Super Admin";
+    if (/^vocab(ulary)?/i.test(trimmed)) return "Vocabulary";
     return trimmed.length > 12 ? `${trimmed.slice(0, 11)}…` : trimmed;
 }
 
@@ -51,6 +52,9 @@ function formatTickLines(value) {
     }
     if (/^super\s*admin/i.test(trimmed)) {
         return ["Super", "Admin"];
+    }
+    if (/^vocab(ulary)?$/i.test(trimmed)) {
+        return ["Vocabulary"];
     }
 
     if (trimmed.includes(" ") && trimmed.length > 7) {
@@ -67,7 +71,7 @@ function formatTickLines(value) {
         ];
     }
 
-    return [trimmed.length > 9 ? `${trimmed.slice(0, 8)}…` : trimmed];
+    return [trimmed.length > 11 ? `${trimmed.slice(0, 10)}…` : trimmed];
 }
 
 function CustomXAxisTick(props) {

@@ -45,9 +45,10 @@ public class AnswerSynthesizer {
 			  * "horizontal-bar": for rankings and comparisons among schools, classrooms, or teachers so names on the left axis are never cut off.
 			  * "bar": for standard vertical counts.
 			- Chart parameters must be well-formed:
-			  * "title": Provide a clear, descriptive title (e.g. "Speaking Sessions: Completed vs Remaining", "User Role Distribution").
+			  * "title": Provide a clear, descriptive title (e.g. "Learning Activity by Module", "User Role Distribution").
 			  * "labels": Short, distinct, properly capitalized category labels.
-			  * "datasets": Must include a descriptive "label" (e.g. "Sessions", "Users", "Score %") and numeric data matching the DATA exactly.
+			  * "datasets": Must include a descriptive "label" (e.g. "Activities", "Users", "Score %") and numeric data matching the DATA exactly.
+			  * For student learning progress or performance, NEVER create a narrow 'Completed vs Remaining' chart. Always break down activity across the 4 modules: Speaking (totalSpeakingSessions), Lessons (lessonsCompleted), Grammar (totalGrammarChecks), and Vocabulary (totalVocabularyWords).
 			- For platform users and platform overview, always include key role breakdown cards in "stats": "Total Users", "Teachers" (totalTeachers), "Students" (totalStudents), and "School Admins" (totalSchoolAdmins). Never omit the Teachers card.
 			- Only use numbers from the provided DATA. Never invent figures.
 			- Keep markdown under 220 words.
@@ -123,6 +124,7 @@ public class AnswerSynthesizer {
 		try {
 			SynthesizedAnswer answer = objectMapper.readValue(extractJson(raw), SynthesizedAnswer.class);
 			enrichPlatformStatsIfMissing(answer, intent, dataJson);
+			enrichStudentProgressChart(answer, intent, dataJson);
 			return answer;
 		} catch (Exception e) {
 			// Graceful fallback: keep the raw text so the user still gets an answer.
@@ -131,6 +133,7 @@ public class AnswerSynthesizer {
 							: stripFences(raw))
 					.build();
 			enrichPlatformStatsIfMissing(answer, intent, dataJson);
+			enrichStudentProgressChart(answer, intent, dataJson);
 			return answer;
 		}
 	}
@@ -216,7 +219,8 @@ public class AnswerSynthesizer {
 			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area.";
 			case CLASS_PERFORMANCE -> "Summarize the class/grade/division performance. Highlight top areas and areas to improve.";
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats with numbers. Report the metric(s) asked about clearly: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions, completedSpeakingSessions, and speech scores (fluencyScore, pronunciationScore, speakingGrammarScore, speakingVocabularyScore, overallSpeakingScore); vocabulary -> totalVocabularyWords, masteredVocabularyWords, and recentVocabularyWords; grammar -> totalGrammarChecks and averageGrammarScore. When asked broadly ('how is my progress', 'how am I doing', 'my stats', etc.), present a comprehensive 5-pillar breakdown with clean headings or bullet points: 🎙️ Speaking Practice, 💡 Vocabulary, 📝 Grammar Checks, 📚 Lessons, and ⚡ XP & Streak. Always include stat cards for key metrics.\n"
-					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons. If displaying score progress or activity trends over time, use a 'line' chart.\n"
+					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons.\n"
+					+ "CHART RULE FOR STUDENT LEARNING: When adding a chart for learning progress or performance, NEVER create a narrow 'Completed vs Remaining' chart. Always break down activity across EACH MODULE: Speaking (totalSpeakingSessions), Lessons (lessonsCompleted), Grammar (totalGrammarChecks), and Vocabulary (totalVocabularyWords). Set labels: ['Speaking', 'Lessons', 'Grammar', 'Vocabulary'], title: 'Learning Activity by Module', dataset label: 'Activities', with dynamic chart type 'bar' or 'doughnut'. If the user specifically asks for speech scores progress, use labels ['Fluency', 'Pronunciation', 'Grammar', 'Vocabulary'] with speaking evaluation scores.\n"
 					+ "A count of 0 is a valid number, so state 0 explicitly rather than saying data is unavailable. If the person is not a student (it carries a personRole field), state they are not a student and report their role EXACTLY as given in personRole.";
 			case BILLING -> "Summarize billing/subscription/revenue numbers clearly.";
 			case SCHOOL_ROSTER -> "Answer ONLY from the provided teachers/students arrays, using every detail those entries contain. Never reply that a detail is unavailable when the field is present on the entry.\n"
@@ -257,6 +261,7 @@ public class AnswerSynthesizer {
 		}
 		SynthesizedAnswer answer = SynthesizedAnswer.builder().markdown(markdown).build();
 		enrichPlatformStatsIfMissing(answer, intent, dataJson);
+		enrichStudentProgressChart(answer, intent, dataJson);
 		return answer;
 	}
 
@@ -1077,6 +1082,75 @@ public class AnswerSynthesizer {
 					return;
 				}
 			}
+		}
+	}
+
+	private void enrichStudentProgressChart(SynthesizedAnswer answer, AssistantIntent intent, String dataJson) {
+		if (answer == null || intent != AssistantIntent.STUDENT_PERFORMANCE) {
+			return;
+		}
+		Map<String, Object> data = parseData(dataJson);
+		if (data.isEmpty()) {
+			return;
+		}
+
+		double speaking = parseDoubleOrZero(data.get("totalSpeakingSessions"));
+		if (speaking == 0) {
+			speaking = parseDoubleOrZero(data.get("completedSpeakingSessions"));
+		}
+		double lessons = parseDoubleOrZero(data.get("lessonsCompleted"));
+		double grammar = parseDoubleOrZero(data.get("totalGrammarChecks"));
+		double vocab = parseDoubleOrZero(data.get("totalVocabularyWords"));
+
+		double totalActivities = speaking + lessons + grammar + vocab;
+		if (totalActivities <= 0) {
+			return;
+		}
+
+		AssistantResponse.ChartData existingChart = answer.getChart();
+		boolean isCompletedRemaining = false;
+		if (existingChart != null && existingChart.getLabels() != null) {
+			for (String l : existingChart.getLabels()) {
+				if (l != null) {
+					String lower = l.toLowerCase(Locale.ROOT);
+					if (lower.contains("completed") || lower.contains("remaining") || lower.contains("pending")) {
+						isCompletedRemaining = true;
+						break;
+					}
+				}
+			}
+		}
+
+		// Replace chart if it's missing or if it was a narrow "completed vs remaining" chart
+		if (existingChart == null || isCompletedRemaining) {
+			String chartType = (existingChart != null && existingChart.getType() != null)
+					? existingChart.getType() : "bar";
+			if ("line".equalsIgnoreCase(chartType)) {
+				chartType = "bar";
+			}
+
+			List<String> labels = List.of("Speaking", "Lessons", "Grammar", "Vocabulary");
+			List<Double> counts = List.of(speaking, lessons, grammar, vocab);
+
+			answer.setChart(AssistantResponse.ChartData.builder()
+					.type(chartType)
+					.title("Learning Activity by Module")
+					.labels(labels)
+					.datasets(List.of(AssistantResponse.Dataset.builder()
+							.label("Activities")
+							.data(counts)
+							.build()))
+					.build());
+		}
+	}
+
+	private double parseDoubleOrZero(Object obj) {
+		if (obj == null) return 0.0;
+		if (obj instanceof Number num) return num.doubleValue();
+		try {
+			return Double.parseDouble(String.valueOf(obj).trim());
+		} catch (Exception e) {
+			return 0.0;
 		}
 	}
 }
