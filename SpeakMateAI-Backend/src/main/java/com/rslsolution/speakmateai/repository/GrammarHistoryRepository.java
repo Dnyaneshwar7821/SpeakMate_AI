@@ -39,4 +39,11 @@ public interface GrammarHistoryRepository extends JpaRepository<GrammarHistory, 
 	@org.springframework.transaction.annotation.Transactional
 	@org.springframework.data.jpa.repository.Query("DELETE FROM GrammarHistory g WHERE g.user = :user")
 	void deleteByUser(@org.springframework.data.repository.query.Param("user") User user);
+
+    // Added methods for live progress metrics
+    @org.springframework.data.jpa.repository.Query("SELECT gh FROM GrammarHistory gh WHERE gh.user.id = :userId ORDER BY gh.createdAt DESC")
+    java.util.List<GrammarHistory> findByUserIdOrderByCreatedAtDesc(@org.springframework.data.repository.query.Param("userId") Long userId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(gh) FROM GrammarHistory gh WHERE gh.user.id = :userId")
+    long countByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
 }

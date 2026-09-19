@@ -60,4 +60,7 @@ public interface SpeakingSessionRepository extends JpaRepository<SpeakingSession
 
 	@Query("SELECT COALESCE(AVG(s.overallScore), 0.0) FROM SpeakingSession s")
 	Double getAverageSpeakingScore();
+    // Count total speaking sessions for a user
+    long countByUser(com.rslsolution.speakmateai.entity.User user);
+
 }
