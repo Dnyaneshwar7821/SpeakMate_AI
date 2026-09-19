@@ -5,8 +5,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
@@ -189,7 +187,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		int masteredVocabularyWords = (int) vocabs.stream().filter(v -> Boolean.TRUE.equals(v.getMastered())).count();
 		List<String> recentVocabWords = vocabs.stream()
 				.limit(10)
-				.map(Vocabulary::getWord)
+				.map(v -> v != null ? v.getWord() : null)
 				.filter(w -> w != null && !w.isBlank())
 				.collect(Collectors.toList());
 		data.put("totalVocabularyWords", totalVocabularyWords);
@@ -259,8 +257,8 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 				if (a.isActive() != b.isActive()) {
 					return a.isActive() ? -1 : 1;
 				}
-				int xpA = progressRepository.findByStudent(a).map(Progress::getXp).orElse(0);
-				int xpB = progressRepository.findByStudent(b).map(Progress::getXp).orElse(0);
+				int xpA = progressRepository.findByStudent(a).map(prog -> prog.getXp() != null ? prog.getXp() : 0).orElse(0);
+				int xpB = progressRepository.findByStudent(b).map(prog -> prog.getXp() != null ? prog.getXp() : 0).orElse(0);
 				if (xpA != xpB) {
 					return Integer.compare(xpB, xpA);
 				}
