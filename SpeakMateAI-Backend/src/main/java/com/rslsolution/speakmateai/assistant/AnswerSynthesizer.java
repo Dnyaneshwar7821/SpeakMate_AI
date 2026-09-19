@@ -11,6 +11,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
 import com.rslsolution.speakmateai.dto.assistant.AssistantRequest;
+import com.rslsolution.speakmateai.dto.assistant.AssistantResponse;
 import com.rslsolution.speakmateai.dto.assistant.SynthesizedAnswer;
 import com.rslsolution.speakmateai.dto.groq.GroqChatRequest;
 
@@ -38,6 +39,7 @@ public class AnswerSynthesizer {
 			}
 			Rules:
 			- stats and chart are optional; include stats when you cite 2+ concrete numbers, chart when a series exists.
+			- For platform users and platform overview, always include key role breakdown cards in "stats": "Total Users", "Teachers" (totalTeachers), "Students" (totalStudents), and "School Admins" (totalSchoolAdmins). Never omit the Teachers card.
 			- If no chart is relevant, set "chart": null.
 			- Only use numbers from the provided DATA. Never invent figures.
 			- Keep markdown under 220 words.
@@ -111,13 +113,17 @@ public class AnswerSynthesizer {
 		}
 
 		try {
-			return objectMapper.readValue(extractJson(raw), SynthesizedAnswer.class);
+			SynthesizedAnswer answer = objectMapper.readValue(extractJson(raw), SynthesizedAnswer.class);
+			enrichPlatformStatsIfMissing(answer, intent, dataJson);
+			return answer;
 		} catch (Exception e) {
 			// Graceful fallback: keep the raw text so the user still gets an answer.
-			return SynthesizedAnswer.builder()
+			SynthesizedAnswer answer = SynthesizedAnswer.builder()
 					.markdown(raw == null || raw.isBlank() ? "I couldn't build a clean answer just now. Please try again."
 							: stripFences(raw))
 					.build();
+			enrichPlatformStatsIfMissing(answer, intent, dataJson);
+			return answer;
 		}
 	}
 
@@ -198,7 +204,7 @@ public class AnswerSynthesizer {
 			return "Give a helpful general answer.";
 		}
 		return switch (intent) {
-			case PLATFORM_OVERVIEW -> "Summarize platform-wide statistics in a dashboard-style overview. When the question asks for a platform-wide total or count (e.g., total students, registered teachers, active users, schools, classes, standards, divisions, revenue, active subscription plans), answer directly from the provided fields such as totalStudents, totalTeachers, totalSchoolAdmins, totalUsers, totalSchools, totalClasses, totalStandards, totalDivisions, activeUsers, activeStudents, activeTeachers, studentsWithActiveStreak, totalRevenueFromPayments, totalRevenueFromSubscriptions, activeSubscriptionPlans — never say the data is unavailable when these fields are present. If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount (which contains schoolName, studentCount and teacherCount for every school) and highlight the top schools, including a bar chart when a ranking series exists.";
+			case PLATFORM_OVERVIEW -> "Summarize platform-wide statistics in a dashboard-style overview. When the question asks for a platform-wide total or count (e.g., total students, registered teachers, active users, schools, classes, standards, divisions, revenue, active subscription plans), answer directly from the provided fields such as totalStudents, totalTeachers, totalSchoolAdmins, totalUsers, totalSchools, totalClasses, totalStandards, totalDivisions, activeUsers, activeStudents, activeTeachers, studentsWithActiveStreak, totalRevenueFromPayments, totalRevenueFromSubscriptions, activeSubscriptionPlans — never say the data is unavailable when these fields are present. In the 'stats' array, ALWAYS include key cards: 'Total Users', 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'Schools' (totalSchools) or 'School Admins' (totalSchoolAdmins) so teachers and educators are prominently visible. If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount (which contains schoolName, studentCount and teacherCount for every school) and highlight the top schools, including a bar chart when a ranking series exists.";
 			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area.";
 			case CLASS_PERFORMANCE -> "Summarize the class/grade/division performance. Highlight top areas and areas to improve.";
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats with numbers. Report the metric(s) asked about clearly: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions, completedSpeakingSessions, and speech scores (fluencyScore, pronunciationScore, speakingGrammarScore, speakingVocabularyScore, overallSpeakingScore); vocabulary -> totalVocabularyWords, masteredVocabularyWords, and recentVocabularyWords; grammar -> totalGrammarChecks and averageGrammarScore. When asked broadly ('how is my progress', 'how am I doing', 'my stats', etc.), present a comprehensive 5-pillar breakdown with clean headings or bullet points: 🎙️ Speaking Practice, 💡 Vocabulary, 📝 Grammar Checks, 📚 Lessons, and ⚡ XP & Streak. Always include stat cards for key metrics.\n"
@@ -217,7 +223,7 @@ public class AnswerSynthesizer {
 			case RESULTS_ANALYTICS -> "Summarize the school's Results page from the provided fields: totalResults, averagePercentage, passed, failed, passPercentage, failPercentage, highestPercentage, lowestPercentage, excellentResults, goodResults, passResults, failResults and any per-standard breakdown. Answer count/percentage questions directly from those numbers — 0 is a valid number. Present pass/fail clearly and note where the school can improve.";
 			case AI_INSIGHTS -> "Summarize the school's AI Insights page from the provided fields: fluency, pronunciation, vocabulary and grammar scores, speakingTimeSeconds, speechMetrics, trends, topSpeakers and mispronouncedWords. Answer metric questions directly from those numbers (e.g. average fluency score) — a value of 0 is valid. If mispronouncedWordsAvailable is false (or the mispronouncedWords list is empty), state plainly that word-level mispronunciation data is not available and DO NOT invent, guess or list any words. Be encouraging and call out the strongest and weakest area plus the top speakers.";
 			case PROFILE_SETTINGS -> "Answer with the caller's OWN profile and settings from the provided fields (name, email, role, phone, schoolName, schoolCode, department, joinedAt and preference/security settings such as theme, notification preferences and two-factor status). State values directly (e.g. 'Your profile email is ...'); never mention ids or internal field names and never claim the data is unavailable — this is the caller's own profile.";
-			case PLATFORM_USERS -> "The caller is a Super Admin, who can access every dataset on the platform (the All Users page at /admin/users). Answer ONLY from the provided users array, using every detail those entries contain (name, role, email, schoolName, phone, status). List the users as markdown bullets (name plus role/school). Use totalUsers and userCount as the real numbers — userCount is the number of users matching any roleFilter. Never reply that the data is unavailable — this directory is always available to a Super Admin. When the question simply asks for the names of all users, list every name from the users array.";
+			case PLATFORM_USERS -> "The caller is a Super Admin, who can access every dataset on the platform (the All Users page at /admin/users). Answer ONLY from the provided users array, using every detail those entries contain (name, role, email, schoolName, phone, status). List the users as markdown bullets (name plus role/school). Use totalUsers and userCount as the real numbers — userCount is the number of users matching any roleFilter. In the 'stats' array, ALWAYS provide the core role cards: 'Total Users' (totalUsers), 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'School Admins' (totalSchoolAdmins). Never omit Teachers. Never reply that the data is unavailable — this directory is always available to a Super Admin. When the question simply asks for the names of all users, list every name from the users array.";
 			case ACCESS_DENIED -> "Politely explain the question is outside the caller's access and suggest what they CAN ask.";
 		};
 	}
@@ -241,7 +247,9 @@ public class AnswerSynthesizer {
 		if (markdown == null || markdown.isBlank()) {
 			markdown = NO_DATA_MESSAGE;
 		}
-		return SynthesizedAnswer.builder().markdown(markdown).build();
+		SynthesizedAnswer answer = SynthesizedAnswer.builder().markdown(markdown).build();
+		enrichPlatformStatsIfMissing(answer, intent, dataJson);
+		return answer;
 	}
 
 	/**
@@ -523,6 +531,9 @@ public class AnswerSynthesizer {
 		StringBuilder sb = new StringBuilder("**Platform users**\n");
 		String roleFilter = str(d, "roleFilter");
 		addLine(sb, "Total users", num(d, "totalUsers"));
+		addLine(sb, "Total teachers", num(d, "totalTeachers"));
+		addLine(sb, "Total students", num(d, "totalStudents"));
+		addLine(sb, "School admins", num(d, "totalSchoolAdmins"));
 		addLine(sb, "Users shown", num(d, "userCount"));
 		if (!roleFilter.isBlank()) {
 			addLine(sb, "Role filter", roleFilter);
@@ -946,5 +957,83 @@ public class AnswerSynthesizer {
 		}
 		String text = sb.toString().trim();
 		return text.isEmpty() ? null : text;
+	}
+
+	private void enrichPlatformStatsIfMissing(SynthesizedAnswer answer, AssistantIntent intent, String dataJson) {
+		if (answer == null || intent == null) {
+			return;
+		}
+		if (intent != AssistantIntent.PLATFORM_USERS && intent != AssistantIntent.PLATFORM_OVERVIEW) {
+			return;
+		}
+		Map<String, Object> data = parseData(dataJson);
+		if (data.isEmpty()) {
+			return;
+		}
+
+		List<AssistantResponse.StatCard> stats = answer.getStats();
+		if (stats == null) {
+			stats = new ArrayList<>();
+			answer.setStats(stats);
+		} else if (!(stats instanceof ArrayList)) {
+			stats = new ArrayList<>(stats);
+			answer.setStats(stats);
+		}
+
+		boolean hasTeacher = stats.stream().anyMatch(s -> s != null && s.getLabel() != null
+				&& s.getLabel().toLowerCase(Locale.ROOT).contains("teacher"));
+		boolean hasStudent = stats.stream().anyMatch(s -> s != null && s.getLabel() != null
+				&& s.getLabel().toLowerCase(Locale.ROOT).contains("student"));
+		boolean hasUser = stats.stream().anyMatch(s -> s != null && s.getLabel() != null
+				&& s.getLabel().toLowerCase(Locale.ROOT).contains("user"));
+		boolean hasSchoolAdmin = stats.stream().anyMatch(s -> s != null && s.getLabel() != null
+				&& s.getLabel().toLowerCase(Locale.ROOT).contains("school admin"));
+
+		String teachers = num(data, "totalTeachers");
+		String students = num(data, "totalStudents");
+		String users = num(data, "totalUsers");
+		String schoolAdmins = num(data, "totalSchoolAdmins");
+
+		if (!hasUser && !users.isBlank()) {
+			stats.add(0, new AssistantResponse.StatCard("Total Users", users, null));
+		}
+		if (!hasTeacher && !teachers.isBlank()) {
+			stats.add(new AssistantResponse.StatCard("Teachers", teachers, null));
+		}
+		if (!hasStudent && !students.isBlank()) {
+			stats.add(new AssistantResponse.StatCard("Students", students, null));
+		}
+		if (!hasSchoolAdmin && !schoolAdmins.isBlank()) {
+			stats.add(new AssistantResponse.StatCard("School Admins", schoolAdmins, null));
+		}
+
+		// Order cards logically: Total Users -> Teachers -> Students -> School Admins -> Super Admins -> Others
+		List<AssistantResponse.StatCard> ordered = new ArrayList<>();
+		addFirstMatching(ordered, stats, "total user", "user");
+		addFirstMatching(ordered, stats, "teacher");
+		addFirstMatching(ordered, stats, "student");
+		addFirstMatching(ordered, stats, "school admin");
+		addFirstMatching(ordered, stats, "super admin");
+		for (AssistantResponse.StatCard sc : stats) {
+			if (!ordered.contains(sc)) {
+				ordered.add(sc);
+			}
+		}
+		answer.setStats(ordered);
+	}
+
+	private void addFirstMatching(List<AssistantResponse.StatCard> target, List<AssistantResponse.StatCard> source, String... keywords) {
+		for (AssistantResponse.StatCard sc : source) {
+			if (sc == null || sc.getLabel() == null || target.contains(sc)) {
+				continue;
+			}
+			String label = sc.getLabel().toLowerCase(Locale.ROOT);
+			for (String kw : keywords) {
+				if (label.contains(kw)) {
+					target.add(sc);
+					return;
+				}
+			}
+		}
 	}
 }

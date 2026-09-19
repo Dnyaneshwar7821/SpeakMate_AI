@@ -69,9 +69,20 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 
 		List<Map<String, Object>> views = ordered.stream().map(this::userView).collect(Collectors.toList());
 
+		long teacherCount = all.stream().filter(u -> u.getRole() == Role.TEACHER).count();
+		long studentCount = all.stream().filter(u -> u.getRole() == Role.STUDENT).count();
+		long schoolAdminCount = all.stream().filter(u -> u.getRole() == Role.SCHOOL_ADMIN).count();
+		long superAdminCount = all.stream().filter(u -> u.getRole() == Role.SUPER_ADMIN).count();
+		long learnerCount = all.stream().filter(u -> u.getRole() == Role.USER).count();
+
 		Map<String, Object> data = new LinkedHashMap<>();
 		data.put("scope", "PLATFORM (all users)");
 		data.put("totalUsers", all.size());
+		data.put("totalTeachers", teacherCount);
+		data.put("totalStudents", studentCount);
+		data.put("totalSchoolAdmins", schoolAdminCount);
+		data.put("totalSuperAdmins", superAdminCount);
+		data.put("totalLearners", learnerCount);
 		data.put("userCount", views.size());
 		data.put("roleFilter", roleFilter == null ? "" : roleLabel(roleFilter));
 		data.put("users", views);

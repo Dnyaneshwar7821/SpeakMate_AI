@@ -18,9 +18,12 @@ const isPositiveDelta = (delta) => {
 export function StatRow({ stats = [] }) {
     if (!Array.isArray(stats) || stats.length === 0) return null;
 
+    const visibleStats = stats.slice(0, 6);
+    const isOdd = visibleStats.length % 2 === 1;
+
     return (
         <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-2">
-            {stats.slice(0, 4).map((stat, index) => {
+            {visibleStats.map((stat, index) => {
                 const delta = isPositiveDelta(stat.delta);
                 const DeltaIcon = delta === true ? TrendingUp : delta === false ? TrendingDown : null;
                 const deltaClass =
@@ -30,10 +33,14 @@ export function StatRow({ stats = [] }) {
                             ? "text-red-500"
                             : "text-[var(--text-muted)]";
 
+                const isFullWidth = isOdd && index === 0;
+
                 return (
                     <div
                         key={`${stat.label}-${index}`}
-                        className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2.5 shadow-sm"
+                        className={`rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2.5 shadow-sm ${
+                            isFullWidth ? "col-span-2 sm:col-span-2" : ""
+                        }`}
                     >
                         <p className="truncate text-[11px] font-medium uppercase tracking-wide text-[var(--text-muted)]">
                             {stat.label}
