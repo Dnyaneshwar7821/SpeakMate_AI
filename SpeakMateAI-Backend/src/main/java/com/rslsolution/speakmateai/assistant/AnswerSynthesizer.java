@@ -34,13 +34,17 @@ public class AnswerSynthesizer {
 			{
 			  "markdown": "Your answer as markdown. Use short paragraphs, bullets, and bold for key numbers.",
 			  "stats": [{"label":"Short label","value":"Number or short text","delta":"Optional +x%/-x%/vs text"}],
-			  "chart": {"type":"bar|line|doughnut","title":"Chart title","labels":["A","B","C"],"datasets":[{"label":"Series name","data":[1,2,3]}]},
+			  "chart": {"type":"doughnut|pie|line|horizontal-bar|bar","title":"Chart title","labels":["A","B","C"],"datasets":[{"label":"Series name","data":[1,2,3]}]},
 			  "suggestDeepLink": true
 			}
 			Rules:
-			- stats and chart are optional; include stats when you cite 2+ concrete numbers, chart when a series exists.
+			- Always keep at most ONE chart per message. If no chart is relevant, set "chart": null.
+			- Select the most appropriate dynamic chart type:
+			  * "doughnut" or "pie": for distributions, role breakdowns, and category proportions (e.g. user role breakdown, active vs inactive users, pass vs fail results).
+			  * "line": for trends over time, progress histories, and weekly activity (e.g. speaking practice minutes, scores over time).
+			  * "horizontal-bar": for rankings and comparisons among schools, classrooms, or teachers so names on the left axis are never cut off.
+			  * "bar": for standard vertical counts.
 			- For platform users and platform overview, always include key role breakdown cards in "stats": "Total Users", "Teachers" (totalTeachers), "Students" (totalStudents), and "School Admins" (totalSchoolAdmins). Never omit the Teachers card.
-			- If no chart is relevant, set "chart": null.
 			- Only use numbers from the provided DATA. Never invent figures.
 			- Keep markdown under 220 words.
 			- "suggestDeepLink" must be true ONLY when the question is about metrics/statistics/performance and the user would clearly benefit from opening the full Analytics/Insights page (e.g., platform overview, school overview, class/student performance, billing). Set it false for navigation help, greetings, chit-chat, or when no data was available.
@@ -204,11 +208,11 @@ public class AnswerSynthesizer {
 			return "Give a helpful general answer.";
 		}
 		return switch (intent) {
-			case PLATFORM_OVERVIEW -> "Summarize platform-wide statistics in a dashboard-style overview. When the question asks for a platform-wide total or count (e.g., total students, registered teachers, active users, schools, classes, standards, divisions, revenue, active subscription plans), answer directly from the provided fields such as totalStudents, totalTeachers, totalSchoolAdmins, totalUsers, totalSchools, totalClasses, totalStandards, totalDivisions, activeUsers, activeStudents, activeTeachers, studentsWithActiveStreak, totalRevenueFromPayments, totalRevenueFromSubscriptions, activeSubscriptionPlans — never say the data is unavailable when these fields are present. In the 'stats' array, ALWAYS include key cards: 'Total Users', 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'Schools' (totalSchools) or 'School Admins' (totalSchoolAdmins) so teachers and educators are prominently visible. If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount (which contains schoolName, studentCount and teacherCount for every school) and highlight the top schools, including a bar chart when a ranking series exists.";
+			case PLATFORM_OVERVIEW -> "Summarize platform-wide statistics in a dashboard-style overview. When the question asks for a platform-wide total or count (e.g., total students, registered teachers, active users, schools, classes, standards, divisions, revenue, active subscription plans), answer directly from the provided fields such as totalStudents, totalTeachers, totalSchoolAdmins, totalUsers, totalSchools, totalClasses, totalStandards, totalDivisions, activeUsers, activeStudents, activeTeachers, studentsWithActiveStreak, totalRevenueFromPayments, totalRevenueFromSubscriptions, activeSubscriptionPlans — never say the data is unavailable when these fields are present. In the 'stats' array, ALWAYS include key cards: 'Total Users', 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'Schools' (totalSchools) or 'School Admins' (totalSchoolAdmins) so teachers and educators are prominently visible. If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount (which contains schoolName, studentCount and teacherCount for every school) and highlight the top schools, using a 'horizontal-bar' chart so school names on the axis are never cut off.";
 			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area.";
 			case CLASS_PERFORMANCE -> "Summarize the class/grade/division performance. Highlight top areas and areas to improve.";
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats with numbers. Report the metric(s) asked about clearly: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions, completedSpeakingSessions, and speech scores (fluencyScore, pronunciationScore, speakingGrammarScore, speakingVocabularyScore, overallSpeakingScore); vocabulary -> totalVocabularyWords, masteredVocabularyWords, and recentVocabularyWords; grammar -> totalGrammarChecks and averageGrammarScore. When asked broadly ('how is my progress', 'how am I doing', 'my stats', etc.), present a comprehensive 5-pillar breakdown with clean headings or bullet points: 🎙️ Speaking Practice, 💡 Vocabulary, 📝 Grammar Checks, 📚 Lessons, and ⚡ XP & Streak. Always include stat cards for key metrics.\n"
-					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons.\n"
+					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons. If displaying score progress or activity trends over time, use a 'line' chart.\n"
 					+ "A count of 0 is a valid number, so state 0 explicitly rather than saying data is unavailable. If the person is not a student (it carries a personRole field), state they are not a student and report their role EXACTLY as given in personRole.";
 			case BILLING -> "Summarize billing/subscription/revenue numbers clearly.";
 			case SCHOOL_ROSTER -> "Answer ONLY from the provided teachers/students arrays, using every detail those entries contain. Never reply that a detail is unavailable when the field is present on the entry.\n"
@@ -220,10 +224,10 @@ public class AnswerSynthesizer {
 			case ACCOUNT_INFO -> "Answer with the caller's OWN account details from the provided fields (email, displayName, role, schoolName, location). When asked for the email, state it clearly (e.g., \"Your logged-in email is ...\"). When asked for their location/address/city (e.g. \"my location\"), answer directly from the location field (e.g., \"Your location is ...\") — never reply with navigation links or say the data is unavailable when the location field is present. Also give their name, role and school when asked. Never mention ids or internal field names, and never claim the data is unavailable — this is the caller's own account and is always available.";
 			case NAVIGATION_HELP -> "Give a short, friendly navigation guide pointing to the relevant page.";
 			case SCHOOL_DASHBOARD -> "Summarize the school-admin Dashboard KPIs from the provided fields: totalStudents, activeStudents, inactiveStudents, totalTeachers, totalClasses, totalResults, averageResultPercentage, excellentResults, goodResults, passResults, failResults and totalLessonsCompleted. Answer count questions directly from those numbers — a count of 0 is a valid, real number and must be stated as 0 (never 'unavailable'). Highlight the headline numbers and one area to watch.";
-			case RESULTS_ANALYTICS -> "Summarize the school's Results page from the provided fields: totalResults, averagePercentage, passed, failed, passPercentage, failPercentage, highestPercentage, lowestPercentage, excellentResults, goodResults, passResults, failResults and any per-standard breakdown. Answer count/percentage questions directly from those numbers — 0 is a valid number. Present pass/fail clearly and note where the school can improve.";
-			case AI_INSIGHTS -> "Summarize the school's AI Insights page from the provided fields: fluency, pronunciation, vocabulary and grammar scores, speakingTimeSeconds, speechMetrics, trends, topSpeakers and mispronouncedWords. Answer metric questions directly from those numbers (e.g. average fluency score) — a value of 0 is valid. If mispronouncedWordsAvailable is false (or the mispronouncedWords list is empty), state plainly that word-level mispronunciation data is not available and DO NOT invent, guess or list any words. Be encouraging and call out the strongest and weakest area plus the top speakers.";
+			case RESULTS_ANALYTICS -> "Summarize the school's Results page from the provided fields: totalResults, averagePercentage, passed, failed, passPercentage, failPercentage, highestPercentage, lowestPercentage, excellentResults, goodResults, passResults, failResults and any per-standard breakdown. When illustrating pass/fail distribution, use a 'doughnut' or 'pie' chart. Answer count/percentage questions directly from those numbers — 0 is a valid number. Present pass/fail clearly and note where the school can improve.";
+			case AI_INSIGHTS -> "Summarize the school's AI Insights page from the provided fields: fluency, pronunciation, vocabulary and grammar scores, speakingTimeSeconds, speechMetrics, trends, topSpeakers and mispronouncedWords. Answer metric questions directly from those numbers (e.g. average fluency score) — a value of 0 is valid. When illustrating speech metric trends over time, use a 'line' chart. If mispronouncedWordsAvailable is false (or the mispronouncedWords list is empty), state plainly that word-level mispronunciation data is not available and DO NOT invent, guess or list any words. Be encouraging and call out the strongest and weakest area plus the top speakers.";
 			case PROFILE_SETTINGS -> "Answer with the caller's OWN profile and settings from the provided fields (name, email, role, phone, schoolName, schoolCode, department, joinedAt and preference/security settings such as theme, notification preferences and two-factor status). State values directly (e.g. 'Your profile email is ...'); never mention ids or internal field names and never claim the data is unavailable — this is the caller's own profile.";
-			case PLATFORM_USERS -> "The caller is a Super Admin, who can access every dataset on the platform (the All Users page at /admin/users). Answer ONLY from the provided users array, using every detail those entries contain (name, role, email, schoolName, phone, status). List the users as markdown bullets (name plus role/school). Use totalUsers and userCount as the real numbers — userCount is the number of users matching any roleFilter. In the 'stats' array, ALWAYS provide the core role cards: 'Total Users' (totalUsers), 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'School Admins' (totalSchoolAdmins). Never omit Teachers. Never reply that the data is unavailable — this directory is always available to a Super Admin. When the question simply asks for the names of all users, list every name from the users array.";
+			case PLATFORM_USERS -> "The caller is a Super Admin, who can access every dataset on the platform (the All Users page at /admin/users). Answer ONLY from the provided users array, using every detail those entries contain (name, role, email, schoolName, phone, status). List the users as markdown bullets (name plus role/school). Use totalUsers and userCount as the real numbers — userCount is the number of users matching any roleFilter. In the 'stats' array, ALWAYS provide the core role cards: 'Total Users' (totalUsers), 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'School Admins' (totalSchoolAdmins). Never omit Teachers. When showing user role breakdown, use a 'doughnut' or 'pie' chart with labels and counts from roleCounts. Never reply that the data is unavailable — this directory is always available to a Super Admin. When the question simply asks for the names of all users, list every name from the users array.";
 			case ACCESS_DENIED -> "Politely explain the question is outside the caller's access and suggest what they CAN ask.";
 		};
 	}
@@ -1019,7 +1023,42 @@ public class AnswerSynthesizer {
 				ordered.add(sc);
 			}
 		}
-		answer.setStats(ordered);
+		// Ensure dynamic chart type is optimal (use doughnut for user role distribution)
+		if (answer.getChart() != null && intent == AssistantIntent.PLATFORM_USERS) {
+			String cType = answer.getChart().getType();
+			if ("bar".equalsIgnoreCase(cType)) {
+				answer.getChart().setType("doughnut");
+			}
+		} else if (answer.getChart() == null && intent == AssistantIntent.PLATFORM_USERS && !data.isEmpty()) {
+			List<String> labels = new ArrayList<>();
+			List<Double> counts = new ArrayList<>();
+			addRoleSlice(labels, counts, "Users", num(data, "totalLearners"));
+			addRoleSlice(labels, counts, "Teachers", num(data, "totalTeachers"));
+			addRoleSlice(labels, counts, "Students", num(data, "totalStudents"));
+			addRoleSlice(labels, counts, "School Admins", num(data, "totalSchoolAdmins"));
+			addRoleSlice(labels, counts, "Super Admins", num(data, "totalSuperAdmins"));
+			if (!labels.isEmpty()) {
+				answer.setChart(AssistantResponse.ChartData.builder()
+						.type("doughnut")
+						.title("User Role Distribution")
+						.labels(labels)
+						.datasets(List.of(AssistantResponse.Dataset.builder().label("Users").data(counts).build()))
+						.build());
+			}
+		}
+	}
+
+	private void addRoleSlice(List<String> labels, List<Double> counts, String label, String valueStr) {
+		if (valueStr != null && !valueStr.isBlank()) {
+			try {
+				double val = Double.parseDouble(valueStr.trim());
+				if (val > 0) {
+					labels.add(label);
+					counts.add(val);
+				}
+			} catch (NumberFormatException ignored) {
+			}
+		}
 	}
 
 	private void addFirstMatching(List<AssistantResponse.StatCard> target, List<AssistantResponse.StatCard> source, String... keywords) {
