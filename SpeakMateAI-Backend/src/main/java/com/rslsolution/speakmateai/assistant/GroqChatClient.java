@@ -2,6 +2,7 @@ package com.rslsolution.speakmateai.assistant;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,7 +111,9 @@ public class GroqChatClient {
 			headers.setBearerAuth(cleanKey);
 
 			HttpEntity<GroqChatRequest> entity = new HttpEntity<>(request, headers);
-			ResponseEntity<GroqResponse> response = restTemplate.postForEntity(apiUrl, entity, GroqResponse.class);
+			String targetUrl = Objects.requireNonNull(
+					(apiUrl != null && !apiUrl.isBlank()) ? apiUrl.trim() : "https://api.groq.com/openai/v1/chat/completions");
+			ResponseEntity<GroqResponse> response = restTemplate.postForEntity(targetUrl, entity, GroqResponse.class);
 			GroqResponse body = response.getBody();
 
 			if (body == null || body.getChoices() == null || body.getChoices().isEmpty()
