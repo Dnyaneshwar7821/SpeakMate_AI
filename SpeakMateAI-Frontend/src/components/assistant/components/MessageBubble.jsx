@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Volume2, VolumeX } from "lucide-react";
 
 import StatRow from "./StatRow";
 import MiniChart from "./MiniChart";
@@ -53,6 +54,44 @@ const markdownComponents = {
 
 export function MessageBubble({ message, role, onClose }) {
     const isUser = message.sender === "user";
+    const [speaking, setSpeaking] = useState(false);
+
+    const { content, stats = [], chart = null, suggestions = [], accessDenied } = message;
+
+    const handleToggleSpeech = () => {
+        if (!("speechSynthesis" in window)) {
+            alert("Text-to-speech is not supported in this browser.");
+            return;
+        }
+
+        if (speaking) {
+            window.speechSynthesis.cancel();
+            setSpeaking(false);
+        } else {
+            window.speechSynthesis.cancel();
+            const cleanText = (content || "")
+                .replace(/[*#`_~[\]]/g, "")
+                .replace(/\(http[^)]+\)/g, "")
+                .trim();
+            if (!cleanText) return;
+
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.onend = () => setSpeaking(false);
+            utterance.onerror = () => setSpeaking(false);
+            setSpeaking(true);
+            window.speechSynthesis.speak(utterance);
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            if (speaking && "speechSynthesis" in window) {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, [speaking]);
 
     if (isUser) {
         return (
@@ -64,8 +103,6 @@ export function MessageBubble({ message, role, onClose }) {
         );
     }
 
-    const { content, stats = [], chart = null, suggestions = [], accessDenied } = message;
-
     return (
         <div className="flex justify-start">
             <div
@@ -75,6 +112,28 @@ export function MessageBubble({ message, role, onClose }) {
                         : "border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
                 }`}
             >
+                {content ? (
+                    <div className="mb-2 flex items-center justify-between border-b border-[var(--border-default)]/40 pb-1.5">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
+                            Assistant
+                        </span>
+                        <button
+                            type="button"
+                            onClick={handleToggleSpeech}
+                            title={speaking ? "Stop reading" : "Read aloud"}
+                            aria-label={speaking ? "Stop reading" : "Read aloud"}
+                            className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
+                                speaking
+                                    ? "bg-red-500 text-white animate-pulse"
+                                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--color-primary)]"
+                            }`}
+                        >
+                            {speaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
+                            <span>{speaking ? "Stop" : "Listen"}</span>
+                        </button>
+                    </div>
+                ) : null}
+
                 {content ? (
                     <div className="prose-xs max-w-none break-words text-[var(--text-primary)]">
                         <ReactMarkdown

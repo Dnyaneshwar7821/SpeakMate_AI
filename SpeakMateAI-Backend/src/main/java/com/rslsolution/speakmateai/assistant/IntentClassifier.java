@@ -305,6 +305,13 @@ public class IntentClassifier {
 	}
 
 	public IntentResult classify(String message, Role role, List<AssistantRequest.MessageTurn> history) {
+		// FAST PATH: Check deterministic high-confidence rules first. If matched, return
+		// immediately in 0ms without waiting for a 2-second LLM classification roundtrip.
+		IntentResult fastPath = tryFastPath(message, role, history);
+		if (fastPath != null) {
+			return fastPath;
+		}
+
 		List<GroqChatRequest.Message> messages = new ArrayList<>();
 		messages.add(new GroqChatRequest.Message("system", SYSTEM_PROMPT));
 
@@ -488,6 +495,72 @@ public class IntentClassifier {
 			// classifier instead of the old navigation-only "data not available" reply.
 			return deterministicFallback(message, raw, role, history);
 		}
+	}
+
+	/**
+	 * High-confidence deterministic routing. Runs BEFORE the Groq API call to eliminate
+	 * the 2-second LLM classification latency for explicit questions (account info,
+	 * student metrics, roster inquiries, dashboard KPIs, etc.).
+	 */
+	private IntentResult tryFastPath(String message, Role role, List<AssistantRequest.MessageTurn> history) {
+		if (message == null || message.isBlank()) {
+			return null;
+		}
+
+		IntentResult contextual = contextualFollowUpCheck(message, role, history);
+		if (contextual != null) {
+			return contextual;
+		}
+
+		AssistantIntent accountOverride = accountInfoOverride(message, role);
+		if (accountOverride != null) {
+			return new IntentResult(accountOverride, Map.of(), null);
+		}
+
+		AssistantIntent studentMetric = studentMetricOverride(message, role);
+		if (studentMetric != null) {
+			Map<String, Object> metricParams = enrichStudentMetricParams(message, new java.util.LinkedHashMap<>());
+			return new IntentResult(studentMetric, metricParams, null);
+		}
+
+		AssistantIntent usersOverride = usersListOverride(message, role);
+		if (usersOverride != null) {
+			return new IntentResult(usersOverride, Map.of(), null);
+		}
+
+		AssistantIntent userAttribute = superAdminUserAttributeOverride(message, role);
+		if (userAttribute != null) {
+			return new IntentResult(userAttribute, Map.of(), null);
+		}
+
+		AssistantIntent roster = rosterOverride(message, role);
+		if (roster != null) {
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			params = enrichRosterParams(message, role, params);
+			return new IntentResult(roster, params, null);
+		}
+
+		AssistantIntent page = pageDataOverride(message, role);
+		if (page != null) {
+			return new IntentResult(page, Map.of(), null);
+		}
+
+		AssistantIntent platformOverride = platformWideOverride(message, role);
+		if (platformOverride != null) {
+			return new IntentResult(platformOverride, Map.of(), null);
+		}
+
+		AssistantIntent schoolInfo = schoolInfoOverride(message, role);
+		if (schoolInfo != null) {
+			Map<String, Object> infoParams = new java.util.LinkedHashMap<>();
+			String extractedSchool = extractSchoolName(message);
+			if (!extractedSchool.isEmpty()) {
+				infoParams.put("schoolName", extractedSchool);
+			}
+			return new IntentResult(schoolInfo, infoParams, null);
+		}
+
+		return null;
 	}
 
 	/**

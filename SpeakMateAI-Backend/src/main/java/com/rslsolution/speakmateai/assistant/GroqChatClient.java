@@ -16,6 +16,8 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
+import jakarta.annotation.PostConstruct;
+
 import com.rslsolution.speakmateai.dto.groq.GroqChatRequest;
 import com.rslsolution.speakmateai.dto.groq.GroqResponse;
 import com.rslsolution.speakmateai.exception.GroqException;
@@ -32,14 +34,41 @@ public class GroqChatClient {
 
 	private final RestTemplate restTemplate;
 
-	@Value("${groq.api.url:https://api.groq.com/openai/v1/chat/completions}")
+	@Value("${groq.assistant.api.url:${GROQ_ASSISTANT_API_URL:${groq.api.url:https://api.groq.com/openai/v1/chat/completions}}}")
 	private String apiUrl;
 
-	@Value("${groq.api.key:}")
+	@Value("${groq.assistant.api.key:${GROQ_ASSISTANT_API_KEY:${groq.chatbot.api.key:${GROQ_CHATBOT_API_KEY:${chatbot.groq.api.key:${CHATBOT_GROQ_API_KEY:${groq.api.key.chatbot:${GROQ_API_KEY_CHATBOT:${assistant.groq.api.key:${ASSISTANT_GROQ_API_KEY:${assistant.api.key:${ASSISTANT_API_KEY:${chatbot.api.key:${CHATBOT_API_KEY:${groq.key:${GROQ_KEY:${groq.api.key:${GROQ_API_KEY:}}}}}}}}}}}}}}}}}")
 	private String apiKey;
 
-	@Value("${groq.model:openai/gpt-oss-120b}")
+	@Value("${groq.assistant.model:${GROQ_ASSISTANT_MODEL:${groq.chatbot.model:${GROQ_CHATBOT_MODEL:${groq.model.assistant:${groq.model.chat:${groq.model:openai/gpt-oss-120b}}}}}}}")
 	private String model;
+
+	/**
+	 * Returns the sanitized API key (whitespace and surrounding quotes removed).
+	 */
+	public String getCleanApiKey() {
+		if (apiKey == null) {
+			return null;
+		}
+		String clean = apiKey.trim();
+		if ((clean.startsWith("\"") && clean.endsWith("\"")) || (clean.startsWith("'") && clean.endsWith("'"))) {
+			clean = clean.substring(1, clean.length() - 1).trim();
+		}
+		return clean;
+	}
+
+	@PostConstruct
+	public void init() {
+		String key = getCleanApiKey();
+		if (key != null && !key.isBlank()) {
+			String masked = key.length() > 8
+					? key.substring(0, 4) + "..." + key.substring(key.length() - 4)
+					: "***";
+			log.info("Assistant GroqChatClient initialized successfully with active API key ({}), model={}", masked, model);
+		} else {
+			log.warn("Assistant GroqChatClient initialized with NO API key configured! (Check GROQ_ASSISTANT_API_KEY, GROQ_CHATBOT_API_KEY, or GROQ_API_KEY in Render environment)");
+		}
+	}
 
 	/**
 	 * Uses a dedicated, timeout-bounded RestTemplate instead of the shared application
@@ -69,15 +98,16 @@ public class GroqChatClient {
 	}
 
 	private String call(List<GroqChatRequest.Message> messages, double temperature, Map<String, Object> responseFormat) {
-		if (apiKey == null || apiKey.isBlank()) {
-			throw new GroqException("Groq API key is not configured. Set GROQ_API_KEY before using the AI assistant.");
+		String cleanKey = getCleanApiKey();
+		if (cleanKey == null || cleanKey.isBlank()) {
+			throw new GroqException("Groq API key is not configured. Set GROQ_ASSISTANT_API_KEY, GROQ_CHATBOT_API_KEY, or GROQ_API_KEY before using the AI assistant.");
 		}
 		try {
 			GroqChatRequest request = new GroqChatRequest(model, messages, temperature, responseFormat);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
-			headers.setBearerAuth(apiKey);
+			headers.setBearerAuth(cleanKey);
 
 			HttpEntity<GroqChatRequest> entity = new HttpEntity<>(request, headers);
 			ResponseEntity<GroqResponse> response = restTemplate.postForEntity(apiUrl, entity, GroqResponse.class);

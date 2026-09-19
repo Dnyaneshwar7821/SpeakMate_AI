@@ -37,6 +37,8 @@ import com.rslsolution.speakmateai.enums.Role;
 @Service
 public class AssistantService {
 
+	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AssistantService.class);
+
 	private final ActorResolver actorResolver;
 	private final IntentClassifier intentClassifier;
 	private final AnswerSynthesizer answerSynthesizer;
@@ -89,10 +91,24 @@ public class AssistantService {
 			return denialResponse(request, actor);
 		}
 
-		String dataJson = provider.get().provide(actor, classified.getParams());
+		String dataJson;
+		try {
+			dataJson = provider.get().provide(actor, classified.getParams());
+		} catch (Exception e) {
+			log.error("Data provider for intent {} threw an exception: {}", intent, e.getMessage(), e);
+			dataJson = "{}";
+		}
 
-		SynthesizedAnswer synthesized = answerSynthesizer.synthesize(
-				intent, actor, request.getMessage(), classified.getParams(), dataJson, request.getHistory());
+		SynthesizedAnswer synthesized;
+		try {
+			synthesized = answerSynthesizer.synthesize(
+					intent, actor, request.getMessage(), classified.getParams(), dataJson, request.getHistory());
+		} catch (Exception e) {
+			log.error("Answer synthesizer threw an exception: {}", e.getMessage(), e);
+			synthesized = SynthesizedAnswer.builder()
+					.markdown("I'm currently unable to retrieve that information right now. Please try again or rephrase your question.")
+					.build();
+		}
 
 		return AssistantResponse.builder()
 				.markdown(synthesized.getMarkdown())

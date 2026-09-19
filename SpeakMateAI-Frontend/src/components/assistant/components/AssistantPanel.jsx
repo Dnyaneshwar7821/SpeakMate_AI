@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AlertCircle, Send, Sparkles, Trash2, X } from "lucide-react";
+import { AlertCircle, Mic, MicOff, Send, Sparkles, Trash2, X } from "lucide-react";
 
 import { useAssistant } from "../AssistantContext";
 import {
@@ -24,9 +24,11 @@ export function AssistantPanel() {
     } = useAssistant();
 
     const [draft, setDraft] = useState("");
+    const [isListening, setIsListening] = useState(false);
     const scrollRef = useRef(null);
     const inputRef = useRef(null);
     const messagesEndRef = useRef(null);
+    const recognitionRef = useRef(null);
 
     const welcome = WELCOME_TEXT_BY_ROLE[role] || WELCOME_TEXT_BY_ROLE[DEFAULT_ROLE];
     const suggestions = QUICK_SUGGESTIONS_BY_ROLE[role] || [];
@@ -48,8 +50,69 @@ export function AssistantPanel() {
         }
     }, [loading, isEmpty]);
 
+    // Speech-to-Text setup using browser Web Speech API
+    useEffect(() => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = "en-US";
+
+            recognition.onresult = (event) => {
+                const transcript = Array.from(event.results)
+                    .map((result) => result[0].transcript)
+                    .join("");
+                setDraft(transcript);
+            };
+
+            recognition.onerror = () => {
+                setIsListening(false);
+            };
+
+            recognition.onend = () => {
+                setIsListening(false);
+            };
+
+            recognitionRef.current = recognition;
+        }
+
+        return () => {
+            if (recognitionRef.current) {
+                try {
+                    recognitionRef.current.abort();
+                } catch {
+                    // Ignore abort errors on cleanup
+                }
+            }
+        };
+    }, []);
+
+    const toggleListening = () => {
+        if (!recognitionRef.current) {
+            alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+            return;
+        }
+        if (isListening) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        } else {
+            try {
+                recognitionRef.current.start();
+                setIsListening(true);
+            } catch (err) {
+                console.error("Speech recognition start failed:", err);
+                setIsListening(false);
+            }
+        }
+    };
+
     const handleSubmit = async (event) => {
         event.preventDefault();
+        if (isListening && recognitionRef.current) {
+            recognitionRef.current.stop();
+            setIsListening(false);
+        }
         const trimmed = draft.trim();
         if (!trimmed || loading) return;
 
@@ -181,10 +244,34 @@ export function AssistantPanel() {
                     type="text"
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
-                    placeholder={loading ? "Waiting for assistant..." : "Ask SpeakMate Assistant..."}
+                    placeholder={
+                        isListening
+                            ? "Listening... Speak now..."
+                            : loading
+                            ? "Waiting for assistant..."
+                            : "Ask SpeakMate Assistant..."
+                    }
                     disabled={loading}
-                    className="min-w-0 flex-1 rounded-xl border border-[var(--border-default,#e2e8f0)] bg-[var(--bg-base,#ffffff)] px-3.5 py-2 text-xs text-[var(--text-primary,#0f172a)] placeholder-[var(--text-muted,#94a3b8)] transition-colors duration-200 focus:border-[var(--color-primary,#6C63FF)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary,#6C63FF)] disabled:opacity-50"
+                    className={`min-w-0 flex-1 rounded-xl border bg-[var(--bg-base,#ffffff)] px-3.5 py-2 text-xs text-[var(--text-primary,#0f172a)] placeholder-[var(--text-muted,#94a3b8)] transition-colors duration-200 focus:outline-none focus:ring-1 disabled:opacity-50 ${
+                        isListening
+                            ? "border-red-400 focus:border-red-500 focus:ring-red-400"
+                            : "border-[var(--border-default,#e2e8f0)] focus:border-[var(--color-primary,#6C63FF)] focus:ring-[var(--color-primary,#6C63FF)]"
+                    }`}
                 />
+                <button
+                    type="button"
+                    onClick={toggleListening}
+                    disabled={loading}
+                    aria-label={isListening ? "Stop listening" : "Voice input"}
+                    title={isListening ? "Listening... Click to stop" : "Speak your question"}
+                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary,#6C63FF)] disabled:opacity-40 cursor-pointer ${
+                        isListening
+                            ? "bg-red-500 text-white animate-pulse shadow-md shadow-red-500/30"
+                            : "border border-[var(--border-default,#e2e8f0)] bg-[var(--bg-base,#ffffff)] text-[var(--text-secondary,#64748b)] hover:border-[var(--color-primary,#6C63FF)] hover:text-[var(--color-primary,#6C63FF)]"
+                    }`}
+                >
+                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                </button>
                 <button
                     type="submit"
                     disabled={loading || !draft.trim()}
