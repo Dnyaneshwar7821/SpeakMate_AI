@@ -34,7 +34,10 @@ function buildSeries(labels, datasets) {
 
 function formatAxis(value) {
     if (typeof value !== "string") return value;
-    return value.length > 12 ? `${value.slice(0, 11)}…` : value;
+    const trimmed = value.trim();
+    if (/^school\s*admin/i.test(trimmed)) return "School Adm.";
+    if (/^super\s*admin/i.test(trimmed)) return "Super Adm.";
+    return trimmed.length > 10 ? `${trimmed.slice(0, 9)}…` : trimmed;
 }
 
 export function MiniChart({ chart }) {
@@ -71,9 +74,16 @@ export function MiniChart({ chart }) {
             <div className={isDoughnut || isPie ? "h-44 w-full" : "h-40 w-full"}>
                 <ResponsiveContainer width="100%" height="100%">
                     {isLine ? (
-                        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 4 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default, #e2e8f0)" vertical={false} />
-                            <XAxis dataKey="name" tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} tickFormatter={formatAxis} axisLine={false} tickLine={false} />
+                            <XAxis
+                                dataKey="name"
+                                interval={0}
+                                tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 9.5 }}
+                                tickFormatter={formatAxis}
+                                axisLine={false}
+                                tickLine={false}
+                            />
                             <YAxis tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} axisLine={false} tickLine={false} width={44} />
                             <Tooltip contentStyle={tooltipStyle} />
                             {series.map((s, index) => (
@@ -140,9 +150,16 @@ export function MiniChart({ chart }) {
                             ))}
                         </BarChart>
                     ) : (
-                        <BarChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
+                        <BarChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 4 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default, #e2e8f0)" vertical={false} />
-                            <XAxis dataKey="name" tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} tickFormatter={formatAxis} axisLine={false} tickLine={false} />
+                            <XAxis
+                                dataKey="name"
+                                interval={0}
+                                tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 9.5 }}
+                                tickFormatter={formatAxis}
+                                axisLine={false}
+                                tickLine={false}
+                            />
                             <YAxis tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} axisLine={false} tickLine={false} width={44} />
                             <Tooltip contentStyle={tooltipStyle} />
                             {series.map((s, index) => (
