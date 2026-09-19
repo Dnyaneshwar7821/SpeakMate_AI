@@ -18,7 +18,7 @@ const isPositiveDelta = (delta) => {
 export function StatRow({ stats = [] }) {
     if (!Array.isArray(stats) || stats.length === 0) return null;
 
-    const visibleStats = stats.slice(0, 6);
+    const visibleStats = stats;
     const isOdd = visibleStats.length % 2 === 1;
 
     return (

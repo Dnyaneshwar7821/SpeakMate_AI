@@ -77,8 +77,8 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 
 	@Override
 	public String provide(ActorContext actor, Map<String, Object> params) {
-		Optional<Student> target = resolveStudent(actor, params);
-		if (target.isEmpty()) {
+		StudentResolution target = resolveStudent(actor, params);
+		if (target == null || target.student() == null) {
 			// The named person may exist in the users table but not in the students
 			// table (a platform USER, a School Admin or a Teacher). XP is stored only on
 			// a Student's Progress row, so a non-student legitimately has no learning
@@ -95,7 +95,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 			return toJson(empty);
 		}
 
-		Student s = target.get();
+		Student s = target.student();
 		Progress p = progressRepository.findByStudent(s).orElse(null);
 
 		Map<String, Object> data = new LinkedHashMap<>();
@@ -109,6 +109,27 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 		if (s.getSchoolName() != null && !s.getSchoolName().isBlank()) {
 			data.put("schoolName", s.getSchoolName());
+		}
+
+		// Disambiguation candidates if multiple students match the name
+		if (target.candidates() != null && target.candidates().size() > 1) {
+			List<Map<String, String>> others = target.candidates().stream()
+					.filter(cand -> !cand.getId().equals(s.getId()))
+					.map(cand -> {
+						Map<String, String> m = new LinkedHashMap<>();
+						m.put("studentName", fullName(cand));
+						m.put("studentId", cand.getStudentId() != null ? cand.getStudentId() : String.valueOf(cand.getId()));
+						m.put("standard", cand.getStandard() != null ? cand.getStandard() : "N/A");
+						m.put("division", cand.getDivision() != null ? cand.getDivision() : "N/A");
+						if (cand.getSchoolName() != null && !cand.getSchoolName().isBlank()) {
+							m.put("schoolName", cand.getSchoolName());
+						}
+						return m;
+					})
+					.collect(Collectors.toList());
+			data.put("hasMultipleMatches", true);
+			data.put("otherMatchingStudents", others);
+			data.put("disambiguationNote", "Multiple students with matching names were found. Showing primary match.");
 		}
 
 		// 1. Lesson-completion metrics
@@ -211,51 +232,57 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		return toJson(data);
 	}
 
+	private record StudentResolution(Student student, List<Student> candidates) {}
+
 	private int zeroIfNull(Integer value) {
 		return value == null ? 0 : value;
 	}
 
-	private Optional<Student> resolveStudent(ActorContext actor, Map<String, Object> params) {
+	private StudentResolution resolveStudent(ActorContext actor, Map<String, Object> params) {
 		final Long scopedSchoolId = (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER)
 				? actor.getSchoolId()
 				: null;
 		Long schoolId = scopedSchoolId;
 
 		if (actor.getRole() == Role.TEACHER && actor.getTeacherId() != null) {
-			return teacherAssignmentResolver.findAssignedStudent(actor.getTeacherId(), actor.getSchoolId(), params);
+			Optional<Student> assigned = teacherAssignmentResolver.findAssignedStudent(actor.getTeacherId(), actor.getSchoolId(), params);
+			return assigned.map(s -> new StudentResolution(s, List.of(s))).orElse(null);
 		}
 
-		Optional<Student> byName = findByName(studentRepository.findAll(), params, schoolId);
-		if (byName.isPresent()) {
-			return byName;
+		List<Student> byNameMatches = findAllByName(studentRepository.findAll(), params, schoolId);
+		if (!byNameMatches.isEmpty()) {
+			if (byNameMatches.size() == 1) {
+				return new StudentResolution(byNameMatches.get(0), byNameMatches);
+			}
+			List<Student> sorted = new java.util.ArrayList<>(byNameMatches);
+			sorted.sort((a, b) -> {
+				if (a.isActive() != b.isActive()) {
+					return a.isActive() ? -1 : 1;
+				}
+				int xpA = progressRepository.findByStudent(a).map(Progress::getXp).orElse(0);
+				int xpB = progressRepository.findByStudent(b).map(Progress::getXp).orElse(0);
+				if (xpA != xpB) {
+					return Integer.compare(xpB, xpA);
+				}
+				return Long.compare(b.getId(), a.getId());
+			});
+			return new StudentResolution(sorted.get(0), sorted);
 		}
 
 		String studentIdParam = strParam(params, "studentId");
 		String rollNumber = strParam(params, "rollNumber");
 		String idValue = !studentIdParam.isEmpty() ? studentIdParam : rollNumber;
 		if (!idValue.isEmpty()) {
-			if (schoolId != null) {
-				Optional<Student> bySchoolAndId = studentRepository.findAll().stream()
-						.filter(s -> schoolId.equals(s.getSchoolId()))
-						.filter(s -> idValue.equalsIgnoreCase(s.getStudentId()) || idValue.equalsIgnoreCase(String.valueOf(s.getId())))
-						.findFirst();
-				if (bySchoolAndId.isPresent()) {
-					return bySchoolAndId;
-				}
-			} else {
-				Optional<Student> byId = studentRepository.findAll().stream()
-						.filter(s -> idValue.equalsIgnoreCase(s.getStudentId()) || idValue.equalsIgnoreCase(String.valueOf(s.getId())))
-						.findFirst();
-				if (byId.isPresent()) {
-					return byId;
-				}
+			List<Student> byIdMatches = studentRepository.findAll().stream()
+					.filter(s -> schoolId == null || schoolId.equals(s.getSchoolId()))
+					.filter(s -> idValue.equalsIgnoreCase(s.getStudentId()) || idValue.equalsIgnoreCase(String.valueOf(s.getId())))
+					.collect(Collectors.toList());
+			if (!byIdMatches.isEmpty()) {
+				return new StudentResolution(byIdMatches.get(0), byIdMatches);
 			}
 		}
 
-		// No arbitrary Super Admin fallback: if the request did not resolve to a
-		// student (or named person) in scope, report "not found" rather than
-		// silently selecting the first student in the table.
-		return Optional.empty();
+		return null;
 	}
 
 	/**
@@ -394,41 +421,21 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 	 * Matching is case-insensitive: the full name is matched by substring
 	 * ("Siddhi Narke" -> "Siddhi Narke"), the email by exact address.
 	 */
-	private Optional<Student> findByName(List<Student> candidates, Map<String, Object> params, Long schoolId) {
+	private List<Student> findAllByName(List<Student> candidates, Map<String, Object> params, Long schoolId) {
 		String name = strParam(params, "studentName");
 		String email = strParam(params, "studentEmail");
 		if (email.isEmpty() && name.contains("@")) {
 			email = name;
 		}
 		if (name.isEmpty() && email.isEmpty()) {
-			return Optional.empty();
+			return List.of();
 		}
 		final String needleName = name;
 		final String needleEmail = email;
-		List<Student> matches = candidates.stream()
+		return candidates.stream()
 				.filter(s -> schoolId == null || schoolId.equals(s.getSchoolId()))
 				.filter(s -> matchesIdentifier(s, needleName, needleEmail))
 				.collect(Collectors.toList());
-
-		if (matches.isEmpty()) {
-			return Optional.empty();
-		}
-		if (matches.size() == 1) {
-			return Optional.of(matches.get(0));
-		}
-		// If multiple candidates match, prioritize active status and highest existing XP/activity
-		matches.sort((a, b) -> {
-			if (a.isActive() != b.isActive()) {
-				return a.isActive() ? -1 : 1;
-			}
-			int xpA = progressRepository.findByStudent(a).map(Progress::getXp).orElse(0);
-			int xpB = progressRepository.findByStudent(b).map(Progress::getXp).orElse(0);
-			if (xpA != xpB) {
-				return Integer.compare(xpB, xpA);
-			}
-			return Long.compare(b.getId(), a.getId());
-		});
-		return Optional.of(matches.get(0));
 	}
 
 	private boolean matchesIdentifier(Student s, String name, String email) {
