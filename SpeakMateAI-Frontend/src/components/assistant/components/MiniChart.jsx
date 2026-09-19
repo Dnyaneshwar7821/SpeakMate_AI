@@ -35,9 +35,62 @@ function buildSeries(labels, datasets) {
 function formatAxis(value) {
     if (typeof value !== "string") return value;
     const trimmed = value.trim();
-    if (/^school\s*admin/i.test(trimmed)) return "School Adm.";
-    if (/^super\s*admin/i.test(trimmed)) return "Super Adm.";
-    return trimmed.length > 10 ? `${trimmed.slice(0, 9)}…` : trimmed;
+    if (/^school\s*admin/i.test(trimmed)) return "School Admin";
+    if (/^super\s*admin/i.test(trimmed)) return "Super Admin";
+    return trimmed.length > 12 ? `${trimmed.slice(0, 11)}…` : trimmed;
+}
+
+function formatTickLines(value) {
+    if (typeof value !== "string") return [String(value ?? "")];
+    const trimmed = value.trim();
+    if (!trimmed) return [""];
+
+    if (/^school\s*admin/i.test(trimmed)) {
+        return ["School", "Admin"];
+    }
+    if (/^super\s*admin/i.test(trimmed)) {
+        return ["Super", "Admin"];
+    }
+
+    if (trimmed.includes(" ") && trimmed.length > 7) {
+        const words = trimmed.split(/\s+/);
+        if (words.length === 2) {
+            return words.map((w) => (w.length > 8 ? `${w.slice(0, 7)}…` : w));
+        }
+        const mid = Math.ceil(words.length / 2);
+        const line1 = words.slice(0, mid).join(" ");
+        const line2 = words.slice(mid).join(" ");
+        return [
+            line1.length > 8 ? `${line1.slice(0, 7)}…` : line1,
+            line2.length > 8 ? `${line2.slice(0, 7)}…` : line2,
+        ];
+    }
+
+    return [trimmed.length > 9 ? `${trimmed.slice(0, 8)}…` : trimmed];
+}
+
+function CustomXAxisTick(props) {
+    const { x, y, payload } = props;
+    const lines = formatTickLines(payload?.value);
+    return (
+        <g transform={`translate(${x},${y})`}>
+            <text
+                x={0}
+                y={0}
+                dy={9}
+                textAnchor="middle"
+                fill="var(--text-muted, #94a3b8)"
+                fontSize={9}
+                fontWeight={500}
+            >
+                {lines.map((line, idx) => (
+                    <tspan key={idx} x={0} dy={idx === 0 ? 0 : 11}>
+                        {line}
+                    </tspan>
+                ))}
+            </text>
+        </g>
+    );
 }
 
 export function MiniChart({ chart }) {
@@ -71,16 +124,16 @@ export function MiniChart({ chart }) {
             {title ? (
                 <p className="mb-2 text-xs font-semibold text-[var(--text-secondary)]">{title}</p>
             ) : null}
-            <div className={isDoughnut || isPie ? "h-44 w-full" : "h-40 w-full"}>
+            <div className="h-44 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     {isLine ? (
-                        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 4 }}>
+                        <LineChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 8 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default, #e2e8f0)" vertical={false} />
                             <XAxis
                                 dataKey="name"
                                 interval={0}
-                                tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 9.5 }}
-                                tickFormatter={formatAxis}
+                                height={34}
+                                tick={<CustomXAxisTick />}
                                 axisLine={false}
                                 tickLine={false}
                             />
@@ -150,20 +203,20 @@ export function MiniChart({ chart }) {
                             ))}
                         </BarChart>
                     ) : (
-                        <BarChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 4 }}>
+                        <BarChart data={chartData} margin={{ top: 4, right: 8, left: -18, bottom: 8 }}>
                             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-default, #e2e8f0)" vertical={false} />
                             <XAxis
                                 dataKey="name"
                                 interval={0}
-                                tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 9.5 }}
-                                tickFormatter={formatAxis}
+                                height={34}
+                                tick={<CustomXAxisTick />}
                                 axisLine={false}
                                 tickLine={false}
                             />
                             <YAxis tick={{ fill: "var(--text-muted, #94a3b8)", fontSize: 10 }} axisLine={false} tickLine={false} width={44} />
                             <Tooltip contentStyle={tooltipStyle} />
                             {series.map((s, index) => (
-                                <Bar key={s.label} dataKey={s.label} fill={PALETTE[index % PALETTE.length]} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                                <Bar key={s.label} dataKey={s.label} fill={PALETTE[index % PALETTE.length]} radius={[4, 4, 0, 0]} maxBarSize={22} />
                             ))}
                         </BarChart>
                     )}
