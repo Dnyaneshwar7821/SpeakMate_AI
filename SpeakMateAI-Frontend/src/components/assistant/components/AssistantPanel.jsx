@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { AlertCircle, Mic, MicOff, Send, Sparkles, Trash2, X } from "lucide-react";
+import { AlertCircle, Loader2, Mic, MicOff, Send, Sparkles, Trash2, X } from "lucide-react";
 
 import { useAssistant } from "../AssistantContext";
 import {
@@ -248,7 +248,7 @@ export function AssistantPanel() {
                         isListening
                             ? "Listening... Speak now..."
                             : loading
-                            ? "Waiting for assistant..."
+                            ? "Assistant is answering..."
                             : "Ask SpeakMate Assistant..."
                     }
                     disabled={loading}
@@ -275,10 +275,15 @@ export function AssistantPanel() {
                 <button
                     type="submit"
                     disabled={loading || !draft.trim()}
-                    aria-label="Send message"
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-primary,#6C63FF)] text-white transition-opacity duration-200 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary,#6C63FF)] disabled:opacity-40 cursor-pointer"
+                    aria-label={loading ? "Generating response..." : "Send message"}
+                    title={loading ? "Assistant is thinking..." : "Send"}
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-primary,#6C63FF)] text-white transition-all duration-200 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary,#6C63FF)] disabled:opacity-50 cursor-pointer"
                 >
-                    <Send className="h-4 w-4" aria-hidden="true" />
+                    {loading ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-white" aria-hidden="true" />
+                    ) : (
+                        <Send className="h-4 w-4" aria-hidden="true" />
+                    )}
                 </button>
             </form>
         </div>

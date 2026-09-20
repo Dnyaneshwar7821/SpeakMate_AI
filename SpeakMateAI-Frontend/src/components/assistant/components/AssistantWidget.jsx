@@ -6,7 +6,7 @@ import AssistantBubble from "./AssistantBubble";
 import AssistantPanel from "./AssistantPanel";
 
 export function AssistantWidgetInner() {
-    const { isOpen, toggle, closeWidget } = useAssistant();
+    const { isOpen, toggle, closeWidget, loading } = useAssistant();
 
     return (
         <>
@@ -23,7 +23,7 @@ export function AssistantWidgetInner() {
                     </motion.div>
                 ) : null}
             </AnimatePresence>
-            <AssistantBubble isOpen={isOpen} onClick={isOpen ? closeWidget : toggle} />
+            <AssistantBubble isOpen={isOpen} loading={loading} onClick={isOpen ? closeWidget : toggle} />
         </>
     );
 }
