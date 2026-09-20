@@ -90,6 +90,13 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 			Map<String, Object> empty = new LinkedHashMap<>();
 			empty.put("message", "NO DATA");
 			empty.put("reason", "Student not found in the caller's scope.");
+			String requestedName = strParam(params, "studentName");
+			if (requestedName.isEmpty()) {
+				requestedName = strParam(params, "name");
+			}
+			if (!requestedName.isEmpty()) {
+				empty.put("requestedStudent", requestedName);
+			}
 			return toJson(empty);
 		}
 
@@ -111,14 +118,16 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 
 		// Disambiguation candidates if multiple students match the name
 		if (target.candidates() != null && target.candidates().size() > 1) {
-			List<Map<String, String>> others = target.candidates().stream()
-					.filter(cand -> !cand.getId().equals(s.getId()))
+			List<Map<String, String>> allCandidates = target.candidates().stream()
 					.map(cand -> {
 						Map<String, String> m = new LinkedHashMap<>();
 						m.put("studentName", fullName(cand));
 						m.put("studentId", cand.getStudentId() != null ? cand.getStudentId() : String.valueOf(cand.getId()));
 						m.put("standard", cand.getStandard() != null ? cand.getStandard() : "N/A");
 						m.put("division", cand.getDivision() != null ? cand.getDivision() : "N/A");
+						if (cand.getRollNumber() != null && !cand.getRollNumber().isBlank()) {
+							m.put("rollNumber", cand.getRollNumber());
+						}
 						if (cand.getSchoolName() != null && !cand.getSchoolName().isBlank()) {
 							m.put("schoolName", cand.getSchoolName());
 						}
@@ -126,8 +135,9 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 					})
 					.collect(Collectors.toList());
 			data.put("hasMultipleMatches", true);
-			data.put("otherMatchingStudents", others);
-			data.put("disambiguationNote", "Multiple students with matching names were found. Showing primary match.");
+			data.put("matchingCandidates", allCandidates);
+			data.put("otherMatchingStudents", allCandidates.stream().filter(c -> !s.getId().toString().equals(c.get("studentId"))).collect(Collectors.toList()));
+			data.put("disambiguationPrompt", "Multiple students with matching names were found. Clarification required.");
 		}
 
 		// 1. Lesson-completion metrics
@@ -430,10 +440,49 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 		final String needleName = name;
 		final String needleEmail = email;
-		return candidates.stream()
+
+		List<Student> matched = candidates.stream()
 				.filter(s -> schoolId == null || schoolId.equals(s.getSchoolId()))
 				.filter(s -> matchesIdentifier(s, needleName, needleEmail))
 				.collect(Collectors.toList());
+
+		if (matched.size() > 1) {
+			String std = strParam(params, "standard");
+			if (std.isEmpty()) {
+				std = strParam(params, "className");
+			}
+			String div = strParam(params, "division");
+			String roll = strParam(params, "rollNumber");
+			String stuId = strParam(params, "studentId");
+
+			final String filterStd = std.replaceAll("(?i)class|std|standard", "").trim();
+			final String filterDiv = div.trim();
+			final String filterRoll = roll.trim();
+			final String filterStuId = stuId.trim();
+
+			if (!filterStd.isEmpty() || !filterDiv.isEmpty() || !filterRoll.isEmpty() || !filterStuId.isEmpty()) {
+				List<Student> narrowed = matched.stream().filter(s -> {
+					if (!filterStuId.isEmpty() && !filterStuId.equalsIgnoreCase(s.getStudentId())
+							&& !filterStuId.equalsIgnoreCase(String.valueOf(s.getId()))) {
+						return false;
+					}
+					if (!filterRoll.isEmpty() && !filterRoll.equalsIgnoreCase(s.getRollNumber())) {
+						return false;
+					}
+					if (!filterStd.isEmpty() && (s.getStandard() == null || !s.getStandard().contains(filterStd))) {
+						return false;
+					}
+					if (!filterDiv.isEmpty() && (s.getDivision() == null || !s.getDivision().equalsIgnoreCase(filterDiv))) {
+						return false;
+					}
+					return true;
+				}).collect(Collectors.toList());
+				if (!narrowed.isEmpty()) {
+					return narrowed;
+				}
+			}
+		}
+		return matched;
 	}
 
 	private boolean matchesIdentifier(Student s, String name, String email) {

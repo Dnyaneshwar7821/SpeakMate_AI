@@ -112,10 +112,14 @@ public class ClassDataProvider implements AssistantDataProvider {
 			data.put("averageXpPerStudent", 0);
 		}
 
-		List<String> available = classes.stream().limit(10)
+		List<String> available = classes.stream()
 				.map(ClassRoom::getName)
+				.filter(Objects::nonNull)
+				.distinct()
 				.collect(Collectors.toList());
 		data.put("availableClasses", available);
+		data.put("assignedClasses", available);
+		data.put("totalAssignedClasses", available.size());
 		return toJson(data);
 	}
 

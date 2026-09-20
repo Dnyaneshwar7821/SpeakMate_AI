@@ -155,16 +155,19 @@ public class AssistantService {
 		// Unauthorized inquiries asking for passwords, tokens, API keys, or system credentials
 		return containsAnyPhrase(m, List.of(
 				"password", "passwords", "passwd",
-				"jwt secret", "jwt token", "jwt_secret", "jwt",
+				"jwt secret", "jwt secrets", "jwt token", "jwt tokens", "jwt_secret", "jwt",
 				"secret token", "secret tokens", "secret key", "secret_key", "secret keys",
 				"access token", "access tokens", "bearer token", "bearer tokens",
 				"token", "tokens", "private key", "private keys",
-				"api key", "apikey", "api_key", "api keys", "apikeys",
+				"api key", "apikey", "api_key", "api keys", "apikeys", "api secret", "api secrets",
 				"database password", "db password", "database credentials", "db credentials",
+				"database connection string", "db connection string", "connection string",
 				"smtp password", "smtp credentials", "mail password",
 				"reset token", "reset tokens", "verification token", "verification tokens",
 				"auth token", "auth tokens", "authentication token", "authentication tokens",
-				"credentials", "credential", "login credentials", "admin credentials"));
+				"credentials", "credential", "login credentials", "admin credentials",
+				"admin password", "teacher's password", "teacher password", "super admin's password",
+				"razorpay secret", "groq api key", "system secret", "system secrets"));
 	}
 
 	private boolean containsAnyPhrase(String text, List<String> needles) {
@@ -181,7 +184,7 @@ public class AssistantService {
 
 	private AssistantResponse credentialDenialResponse(AssistantRequest request, ActorContext actor) {
 		return AssistantResponse.builder()
-				.markdown("### 🔒 Access Denied\n\nPasswords, credentials, authentication tokens, and API secrets are strictly confidential and cannot be retrieved, viewed, or disclosed through the assistant.\n\nIf you need to update your password or access keys, please visit your account Settings.")
+				.markdown("### 🔒 Access Denied\n\nPasswords, credentials, authentication tokens, API keys, database connection strings, and system secrets are strictly confidential and cannot be retrieved, viewed, or disclosed through the assistant.\n\nIf you need to update your password or access keys, please visit your account Settings.")
 				.intent(AssistantIntent.ACCESS_DENIED.name())
 				.accessDenied(true)
 				.sessionId(request.getSessionId())
@@ -191,16 +194,46 @@ public class AssistantService {
 
 	private AssistantResponse denialResponse(AssistantRequest request, ActorContext actor) {
 		return AssistantResponse.builder()
-				.markdown(denialMarkdown(actor.getRole()))
+				.markdown(denialMarkdown(actor.getRole(), request != null ? request.getMessage() : null))
 				.intent(AssistantIntent.ACCESS_DENIED.name())
 				.accessDenied(true)
-				.sessionId(request.getSessionId())
+				.sessionId(request != null ? request.getSessionId() : null)
 				.suggestions(suggestionsFor(AssistantIntent.NAVIGATION_HELP, actor.getRole(), false))
 				.build();
 	}
 
-	private String denialMarkdown(Role role) {
+	private String denialMarkdown(Role role, String message) {
+		String m = message == null ? "" : message.toLowerCase(Locale.ROOT).trim();
 		String scope = roleLabel(role);
+
+		if ((role == Role.STUDENT || role == Role.USER)
+				&& (m.contains("another student") || m.contains("other student") || m.contains("someone else"))) {
+			return "### 🔒 Access Restricted\n\n"
+					+ "You do not have permission to view other students' learning progress.\n\n"
+					+ "As a **Student**, your access is strictly limited to your own learning progress, personal metrics, and account details.";
+		}
+		if (m.contains("another school") || m.contains("other school") || m.contains("different school") || m.contains("outside your school")) {
+			return "### 🔒 Access Restricted\n\n"
+					+ "You do not have permission to access data from other schools.\n\n"
+					+ "As a **" + scope + "**, your access is strictly limited to your own school.";
+		}
+		if ((role == Role.STUDENT || role == Role.USER || role == Role.TEACHER)
+				&& (m.contains("revenue") || m.contains("billing") || m.contains("finances"))) {
+			return "### 🔒 Access Restricted\n\n"
+					+ "You do not have permission to view financial or billing information.\n\n"
+					+ "As a **" + scope + "**, your access does not include school or platform financial metrics.";
+		}
+		if (role == Role.SCHOOL_ADMIN && (m.contains("platform revenue") || m.contains("across all schools") || m.contains("entire platform"))) {
+			return "### 🔒 Access Restricted\n\n"
+					+ "You do not have permission to view platform-wide revenue.\n\n"
+					+ "As a **School Admin**, your billing access is strictly limited to your own school.";
+		}
+		if (role == Role.TEACHER && (m.contains("another teacher") || m.contains("other teacher"))) {
+			return "### 🔒 Access Restricted\n\n"
+					+ "You do not have permission to view classes or students assigned to other teachers.\n\n"
+					+ "As a **Teacher**, your access is limited to your own assigned classes and students.";
+		}
+
 		String canAsk = switch (role == null ? Role.USER : role) {
 			case SUPER_ADMIN -> "- Your own account details (email, name, role)\n"
 					+ "- Platform-wide stats (students, schools, teachers, revenue)\n"

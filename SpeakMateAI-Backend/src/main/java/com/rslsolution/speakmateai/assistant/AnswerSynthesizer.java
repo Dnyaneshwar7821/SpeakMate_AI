@@ -75,7 +75,9 @@ public class AnswerSynthesizer {
 		// "School Admin"). A person's role is a factual attribute, so render this
 		// case from the provider's own wording deterministically instead of letting
 		// the model rewrite it.
-		if (describesNonStudentPerson(dataJson)) {
+		// Similarly, multi-student duplicate name disambiguation and cross-student
+		// privacy denials must be rendered deterministically with zero hallucination.
+		if (describesNonStudentPerson(dataJson) || hasDisambiguationOrDenial(dataJson)) {
 			return deterministicAnswer(intent, actor, userMessage, params, dataJson);
 		}
 
@@ -291,6 +293,15 @@ public class AnswerSynthesizer {
 				|| Boolean.TRUE.equals(data.get("notStudent"));
 	}
 
+	private boolean hasDisambiguationOrDenial(String dataJson) {
+		if (dataJson == null || dataJson.isBlank() || "NO DATA".equals(dataJson.trim())) {
+			return false;
+		}
+		return dataJson.contains("\"hasMultipleMatches\":true")
+				|| dataJson.contains("\"CROSS_STUDENT_DENIED\"")
+				|| dataJson.contains("\"accessDenied\":true");
+	}
+
 	@SuppressWarnings("unchecked")
 	private Map<String, Object> parseData(String dataJson) {
 		if (dataJson == null || dataJson.isBlank() || "NO DATA".equals(dataJson.trim())) {
@@ -308,8 +319,26 @@ public class AnswerSynthesizer {
 		if (data == null || data.isEmpty()) {
 			return NO_DATA_MESSAGE;
 		}
+		// Cross-Student Privacy Denial:
+		if (Boolean.TRUE.equals(data.get("accessDenied")) || "CROSS_STUDENT_DENIED".equals(data.get("reason"))) {
+			return "### 🔒 Access Restricted\n\n"
+					+ "You do not have permission to view other students' learning progress.\n\n"
+					+ "As a **Student**, your access is strictly limited to your own learning progress, personal metrics, and account details.";
+		}
 		// Provider signalled "no data" (e.g. {"message":"NO DATA","reason":...}).
 		if (data.containsKey("message") && !data.containsKey("scope")) {
+			String reason = str(data, "reason");
+			if ("Student not found in the caller's scope.".equalsIgnoreCase(reason)) {
+				String requested = str(data, "requestedStudent");
+				if (actor != null && actor.getRole() == com.rslsolution.speakmateai.enums.Role.TEACHER) {
+					return "No student named **" + (requested.isBlank() ? "this student" : requested)
+							+ "** was found in your assigned classes. Please verify the name or check with your school administrator.";
+				} else if (actor != null && actor.getRole() == com.rslsolution.speakmateai.enums.Role.SCHOOL_ADMIN) {
+					return "No student named **" + (requested.isBlank() ? "this student" : requested) + "** was found in your school.";
+				} else {
+					return "No student named **" + (requested.isBlank() ? "this student" : requested) + "** was found in your scope.";
+				}
+			}
 			return NO_DATA_MESSAGE;
 		}
 		if (intent == null) {
@@ -631,6 +660,9 @@ public class AnswerSynthesizer {
 	 * summary.
 	 */
 	private String renderStudentPerformance(Map<String, Object> d, String userMessage) {
+		if (Boolean.TRUE.equals(d.get("hasMultipleMatches"))) {
+			return renderDisambiguationPrompt(d);
+		}
 		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT);
 		StringBuilder sb = new StringBuilder();
 
@@ -771,6 +803,48 @@ public class AnswerSynthesizer {
 			}
 		}
 		return trimOrNull(sb);
+	}
+
+	private String renderDisambiguationPrompt(Map<String, Object> data) {
+		String studentName = str(data, "studentName");
+		StringBuilder sb = new StringBuilder();
+		sb.append("### 🔍 Multiple Students Found\n\n");
+		sb.append("Multiple students named **").append(studentName.isBlank() ? "this student" : studentName)
+				.append("** were found in your assigned scope. Please specify which student you would like to view by providing their **Class/Division** or **Roll Number**:\n\n");
+
+		List<Map<String, Object>> candidates = maps(data, "matchingCandidates");
+		if (candidates.isEmpty()) {
+			candidates = maps(data, "otherMatchingStudents");
+		}
+		for (Map<String, Object> c : candidates) {
+			String name = str(c, "studentName");
+			String standard = str(c, "standard");
+			String division = str(c, "division");
+			String roll = str(c, "rollNumber");
+			String studentId = str(c, "studentId");
+			String school = str(c, "schoolName");
+
+			sb.append("- **").append(name.isBlank() ? studentName : name).append("** — Class: `")
+					.append(standard.isBlank() ? "N/A" : standard);
+			if (!division.isBlank() && !"N/A".equalsIgnoreCase(division)) {
+				sb.append("-").append(division);
+			}
+			sb.append("`");
+			if (!roll.isBlank()) {
+				sb.append(" | Roll No: `").append(roll).append("`");
+			}
+			if (!studentId.isBlank()) {
+				sb.append(" | Student ID: `").append(studentId).append("`");
+			}
+			if (!school.isBlank()) {
+				sb.append(" (").append(school).append(")");
+			}
+			sb.append('\n');
+		}
+		sb.append("\n*You can reply with, for example: \"Show me ")
+				.append(studentName.isBlank() ? "the student" : studentName)
+				.append(" in Class 5-A\" or \"Show Roll 12\".*");
+		return sb.toString().trim();
 	}
 
 	/**

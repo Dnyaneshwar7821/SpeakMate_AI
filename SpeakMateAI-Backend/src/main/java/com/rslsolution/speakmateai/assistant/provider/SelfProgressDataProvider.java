@@ -81,6 +81,31 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		}
 
 		User user = me.get();
+
+		// Defensive Cross-Student Privacy Guard:
+		// Students and Learners are strictly restricted to their own metrics.
+		// If a target student name or email is specified that does not match the caller,
+		// deny access immediately.
+		String requestedTarget = strParam(params, "studentName");
+		if (requestedTarget.isEmpty()) {
+			requestedTarget = strParam(params, "name");
+		}
+		if (requestedTarget.isEmpty()) {
+			requestedTarget = strParam(params, "studentEmail");
+		}
+		if (requestedTarget.isEmpty()) {
+			requestedTarget = strParam(params, "email");
+		}
+		if (!requestedTarget.isEmpty() && !isCallerIdentity(user, requestedTarget)) {
+			Map<String, Object> denial = new LinkedHashMap<>();
+			denial.put("accessDenied", true);
+			denial.put("reason", "CROSS_STUDENT_DENIED");
+			denial.put("requestedTarget", requestedTarget);
+			denial.put("scope", "SELF");
+			denial.put("message", "You do not have permission to view other students' learning progress.");
+			return toJson(denial);
+		}
+
 		Progress p = progressRepository.findByUser(user).orElse(null);
 
 		// Lesson metrics
@@ -211,6 +236,48 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		String last = u.getLastName() != null ? u.getLastName() : "";
 		String combined = (first + " " + last).trim();
 		return combined.isEmpty() ? "Learner" : combined;
+	}
+
+	private boolean isCallerIdentity(User user, String requested) {
+		if (requested == null || requested.isBlank()) {
+			return true;
+		}
+		String req = requested.trim().toLowerCase(java.util.Locale.ROOT);
+		if (req.equals("my") || req.equals("me") || req.equals("myself") || req.equals("self")
+				|| req.equals("own") || req.equals("i")) {
+			return true;
+		}
+		if (user.getEmail() != null && user.getEmail().equalsIgnoreCase(requested.trim())) {
+			return true;
+		}
+		String first = user.getFirstName() != null ? user.getFirstName().trim().toLowerCase(java.util.Locale.ROOT) : "";
+		String last = user.getLastName() != null ? user.getLastName().trim().toLowerCase(java.util.Locale.ROOT) : "";
+		String full = (first + " " + last).trim();
+		if (!full.isEmpty() && (full.contains(req) || req.contains(full))) {
+			return true;
+		}
+		if (!first.isEmpty() && (first.contains(req) || req.contains(first))) {
+			return true;
+		}
+		if (user instanceof com.rslsolution.speakmateai.entity.Student s
+				&& s.getStudentId() != null && s.getStudentId().equalsIgnoreCase(requested.trim())) {
+			return true;
+		}
+		if (user.getRollNumber() != null && user.getRollNumber().equalsIgnoreCase(requested.trim())) {
+			return true;
+		}
+		if (String.valueOf(user.getId()).equals(requested.trim())) {
+			return true;
+		}
+		return false;
+	}
+
+	private String strParam(Map<String, Object> params, String key) {
+		if (params == null) {
+			return "";
+		}
+		Object v = params.get(key);
+		return v == null ? "" : v.toString().trim();
 	}
 
 	private String toJson(Map<String, Object> data) {
