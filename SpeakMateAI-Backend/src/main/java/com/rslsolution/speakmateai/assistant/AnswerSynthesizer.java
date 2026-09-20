@@ -125,7 +125,7 @@ public class AnswerSynthesizer {
 
 		try {
 			SynthesizedAnswer answer = objectMapper.readValue(extractJson(raw), SynthesizedAnswer.class);
-			enrichPlatformStatsIfMissing(answer, intent, dataJson);
+			enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 			return answer;
@@ -135,7 +135,7 @@ public class AnswerSynthesizer {
 					.markdown(raw == null || raw.isBlank() ? "I couldn't build a clean answer just now. Please try again."
 							: stripFences(raw))
 					.build();
-			enrichPlatformStatsIfMissing(answer, intent, dataJson);
+			enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 			return answer;
@@ -199,12 +199,15 @@ public class AnswerSynthesizer {
 				%s
 
 				%s
-				""".formatted(roleLabel(actor), actor.getDisplayName() != null ? " (" + actor.getDisplayName() + ")" : "",
+				""".formatted(roleLabel(actor), (actor != null && actor.getDisplayName() != null) ? " (" + actor.getDisplayName() + ")" : "",
 				intentGuidance(intent), OUTPUT_SHAPE);
 	}
 
 	private String roleLabel(ActorContext actor) {
-		switch (actor.getRole() == null ? "USER" : actor.getRole().name()) {
+		if (actor == null || actor.getRole() == null) {
+			return "User";
+		}
+		switch (actor.getRole().name()) {
 			case "SUPER_ADMIN": return "Super Admin (platform-wide access)";
 			case "SCHOOL_ADMIN": return "School Admin (access limited to their own school)";
 			case "TEACHER": return "Teacher (access limited to their own assigned classes and students)";
@@ -219,7 +222,11 @@ public class AnswerSynthesizer {
 			return "Give a helpful general answer.";
 		}
 		return switch (intent) {
-			case PLATFORM_OVERVIEW -> "Summarize platform-wide statistics in a dashboard-style overview. When the question asks for a platform-wide total or count (e.g., total students, registered teachers, active users, schools, classes, standards, divisions, revenue, active subscription plans), answer directly from the provided fields such as totalStudents, totalTeachers, totalSchoolAdmins, totalUsers, totalSchools, totalClasses, totalStandards, totalDivisions, activeUsers, activeStudents, activeTeachers, studentsWithActiveStreak, totalRevenueFromPayments, totalRevenueFromSubscriptions, activeSubscriptionPlans — never say the data is unavailable when these fields are present. In the 'stats' array, ALWAYS include key cards: 'Total Users', 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'Schools' (totalSchools) or 'School Admins' (totalSchoolAdmins) so teachers and educators are prominently visible. If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount (which contains schoolName, studentCount and teacherCount for every school) and highlight the top schools, using a 'horizontal-bar' chart so school names on the axis are never cut off.";
+			case PLATFORM_OVERVIEW -> "Answer questions about platform-wide statistics accurately using the provided data.\n"
+					+ "- TARGETED METRIC RULE: When the user asks for ONE specific metric or category (e.g. 'How many students are there?', 'How many teachers are there?', 'How many schools are there?', 'How many classes are there?', 'How many users are there?'): answer that specific question concisely and directly first (e.g., \"There are 6 students on the platform across all schools (all 6 are active).\"). For student questions, include the breakdown of top schools by students. Do NOT dump unrelated metrics like revenue, classes, or divisions when only asked about students or teachers. In the 'stats' array, include ONLY the stat cards relevant to the asked metric (e.g. for students: 'Total Students' and 'Active Students'; for teachers: 'Total Teachers' and 'Active Teachers'; for schools: 'Total Schools'; for users: 'Total Users' and 'Active Users').\n"
+					+ "- BROAD OVERVIEW RULE: When the user asks for a platform overview ('platform overview', 'give me a platform overview', 'summary of platform', etc.) or asks about multiple metrics simultaneously, summarize the key platform numbers across users, teachers, students, schools, and classes. In the 'stats' array, provide key cards: 'Total Users', 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'School Admins' (totalSchoolAdmins).\n"
+					+ "- If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount and highlight the top schools, using a 'horizontal-bar' chart so school names on the axis are never cut off.\n"
+					+ "Never say data is unavailable when the fields are present.";
 			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area.";
 			case CLASS_PERFORMANCE -> "Summarize the class/grade/division performance. Highlight top areas and areas to improve.";
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats with numbers. Report the metric(s) asked about clearly: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions, completedSpeakingSessions, and speech scores (fluencyScore, pronunciationScore, speakingGrammarScore, speakingVocabularyScore, overallSpeakingScore); vocabulary -> totalVocabularyWords, masteredVocabularyWords, and recentVocabularyWords; grammar -> totalGrammarChecks and averageGrammarScore. When asked broadly ('how is my progress', 'how am I doing', 'my stats', etc.), present a comprehensive 5-pillar breakdown with clean headings or bullet points: 🎙️ Speaking Practice, 💡 Vocabulary, 📝 Grammar Checks, 📚 Lessons, and ⚡ XP & Streak. Always include stat cards for key metrics.\n"
@@ -264,7 +271,7 @@ public class AnswerSynthesizer {
 			markdown = NO_DATA_MESSAGE;
 		}
 		SynthesizedAnswer answer = SynthesizedAnswer.builder().markdown(markdown).build();
-		enrichPlatformStatsIfMissing(answer, intent, dataJson);
+		enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
 		enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 		enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 		return answer;
@@ -345,7 +352,7 @@ public class AnswerSynthesizer {
 			return summaryOr(data, null);
 		}
 		return switch (intent) {
-			case PLATFORM_OVERVIEW -> renderPlatform(data);
+			case PLATFORM_OVERVIEW -> renderPlatform(data, userMessage);
 			case SCHOOL_OVERVIEW -> renderSchool(data);
 			case SCHOOL_DASHBOARD -> renderDashboard(data);
 			case RESULTS_ANALYTICS -> renderResults(data);
@@ -363,7 +370,100 @@ public class AnswerSynthesizer {
 		};
 	}
 
-	private String renderPlatform(Map<String, Object> d) {
+	private boolean isBroadOverview(String msg) {
+		if (msg == null || msg.isBlank()) {
+			return true;
+		}
+		String m = msg.toLowerCase(Locale.ROOT);
+		if (m.contains("overview") || m.contains("summary") || m.contains("dashboard")
+				|| m.contains("complete") || m.contains("everything") || m.contains("all schools")) {
+			return true;
+		}
+		int entities = 0;
+		if (m.contains("student") || m.contains("learner")) entities++;
+		if (m.contains("teacher") || m.contains("educator") || m.contains("teaching staff")) entities++;
+		if (m.contains("school") && !m.contains("school admin")) entities++;
+		if (m.contains("class") || m.contains("standard") || m.contains("division")) entities++;
+		if (m.contains("user") || m.contains("account")) entities++;
+		return entities > 1;
+	}
+
+	private String renderPlatform(Map<String, Object> d, String userMessage) {
+		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT).trim() : "");
+		boolean broad = isBroadOverview(msg);
+
+		if (!broad) {
+			boolean isStudent = (msg.contains("student") || msg.contains("learner"));
+			boolean isTeacher = (msg.contains("teacher") || msg.contains("educator") || msg.contains("teaching staff"));
+			boolean isSchool = msg.contains("school") && !isStudent && !isTeacher;
+			boolean isClass = msg.contains("class") || msg.contains("standard") || msg.contains("division");
+			boolean isUser = (msg.contains("user") || msg.contains("account"));
+
+			if (isStudent) {
+				StringBuilder sb = new StringBuilder("**Platform students**\n");
+				addLine(sb, "Total students", num(d, "totalStudents"));
+				addLine(sb, "Active students", num(d, "activeStudents"));
+				List<Map<String, Object>> schools = maps(d, "schoolsByStudentCount");
+				if (!schools.isEmpty()) {
+					sb.append("\n**Top schools by students**\n");
+					int rank = 1;
+					for (Map<String, Object> school : schools) {
+						if (rank > 5) break;
+						String name = str(school, "schoolName");
+						if (name.isBlank()) continue;
+						sb.append("- **").append(name).append("** — ").append(num(school, "studentCount")).append(" students");
+						String teachers = num(school, "teacherCount");
+						if (!teachers.isBlank()) {
+							sb.append(", ").append(teachers).append(" teachers");
+						}
+						sb.append('\n');
+						rank++;
+					}
+				}
+				return trimOrNull(sb);
+			} else if (isTeacher) {
+				StringBuilder sb = new StringBuilder("**Platform teachers**\n");
+				addLine(sb, "Total teachers", num(d, "totalTeachers"));
+				addLine(sb, "Active teachers", num(d, "activeTeachers"));
+				return trimOrNull(sb);
+			} else if (isSchool) {
+				StringBuilder sb = new StringBuilder("**Platform schools**\n");
+				addLine(sb, "Total schools", num(d, "totalSchools"));
+				List<Map<String, Object>> schools = maps(d, "schoolsByStudentCount");
+				if (!schools.isEmpty()) {
+					sb.append("\n**Schools by student enrollment**\n");
+					int rank = 1;
+					for (Map<String, Object> school : schools) {
+						if (rank > 5) break;
+						String name = str(school, "schoolName");
+						if (name.isBlank()) continue;
+						sb.append("- **").append(name).append("** — ").append(num(school, "studentCount")).append(" students");
+						String teachers = num(school, "teacherCount");
+						if (!teachers.isBlank()) {
+							sb.append(", ").append(teachers).append(" teachers");
+						}
+						sb.append('\n');
+						rank++;
+					}
+				}
+				return trimOrNull(sb);
+			} else if (isClass) {
+				StringBuilder sb = new StringBuilder("**Platform classes & curriculum**\n");
+				addLine(sb, "Total classes", num(d, "totalClasses"));
+				addLine(sb, "Total standards", num(d, "totalStandards"));
+				addLine(sb, "Total divisions", num(d, "totalDivisions"));
+				return trimOrNull(sb);
+			} else if (isUser) {
+				StringBuilder sb = new StringBuilder("**Platform users**\n");
+				addLine(sb, "Total users", num(d, "totalUsers"));
+				addLine(sb, "Active users", num(d, "activeUsers"));
+				addLine(sb, "School admins", num(d, "totalSchoolAdmins"));
+				addLine(sb, "Teachers", num(d, "totalTeachers"));
+				addLine(sb, "Students", num(d, "totalStudents"));
+				return trimOrNull(sb);
+			}
+		}
+
 		StringBuilder sb = new StringBuilder("**Platform overview**\n");
 		addLine(sb, "Total schools", num(d, "totalSchools"));
 		addLine(sb, "Total users", num(d, "totalUsers"));
@@ -1066,7 +1166,7 @@ public class AnswerSynthesizer {
 		return text.isEmpty() ? null : text;
 	}
 
-	private void enrichPlatformStatsIfMissing(SynthesizedAnswer answer, AssistantIntent intent, String dataJson) {
+	private void enrichPlatformStatsIfMissing(SynthesizedAnswer answer, AssistantIntent intent, String userMessage, String dataJson) {
 		if (answer == null || intent == null) {
 			return;
 		}
@@ -1087,6 +1187,78 @@ public class AnswerSynthesizer {
 			answer.setStats(stats);
 		}
 
+		String teachers = num(data, "totalTeachers");
+		String students = num(data, "totalStudents");
+		String users = num(data, "totalUsers");
+		String schoolAdmins = num(data, "totalSchoolAdmins");
+		String activeStudents = num(data, "activeStudents");
+		String activeTeachers = num(data, "activeTeachers");
+		String activeUsers = num(data, "activeUsers");
+		String schools = num(data, "totalSchools");
+		String classes = num(data, "totalClasses");
+
+		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT).trim() : "");
+		boolean broad = isBroadOverview(msg) || intent == AssistantIntent.PLATFORM_USERS;
+
+		if (!broad) {
+			boolean isStudent = (msg.contains("student") || msg.contains("learner"));
+			boolean isTeacher = (msg.contains("teacher") || msg.contains("educator") || msg.contains("teaching staff"));
+			boolean isSchool = msg.contains("school") && !isStudent && !isTeacher;
+			boolean isClass = msg.contains("class") || msg.contains("standard") || msg.contains("division");
+			boolean isUser = (msg.contains("user") || msg.contains("account"));
+
+			if (isStudent) {
+				stats.removeIf(s -> s != null && s.getLabel() != null && !s.getLabel().toLowerCase(Locale.ROOT).contains("student"));
+				boolean hasTotal = stats.stream().anyMatch(s -> s != null && s.getLabel() != null && s.getLabel().equalsIgnoreCase("Total Students"));
+				boolean hasActive = stats.stream().anyMatch(s -> s != null && s.getLabel() != null && s.getLabel().equalsIgnoreCase("Active Students"));
+				if (!hasTotal && !students.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("Total Students", students, null));
+				}
+				if (!hasActive && !activeStudents.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("Active Students", activeStudents, null));
+				}
+				answer.setStats(stats);
+				return;
+			} else if (isTeacher) {
+				stats.removeIf(s -> s != null && s.getLabel() != null && !s.getLabel().toLowerCase(Locale.ROOT).contains("teacher"));
+				boolean hasTotal = stats.stream().anyMatch(s -> s != null && s.getLabel() != null && s.getLabel().equalsIgnoreCase("Total Teachers"));
+				boolean hasActive = stats.stream().anyMatch(s -> s != null && s.getLabel() != null && s.getLabel().equalsIgnoreCase("Active Teachers"));
+				if (!hasTotal && !teachers.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("Total Teachers", teachers, null));
+				}
+				if (!hasActive && !activeTeachers.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("Active Teachers", activeTeachers, null));
+				}
+				answer.setStats(stats);
+				return;
+			} else if (isSchool) {
+				stats.removeIf(s -> s != null && s.getLabel() != null && !s.getLabel().toLowerCase(Locale.ROOT).contains("school"));
+				boolean hasTotal = stats.stream().anyMatch(s -> s != null && s.getLabel() != null && s.getLabel().toLowerCase(Locale.ROOT).contains("school"));
+				if (!hasTotal && !schools.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("Total Schools", schools, null));
+				}
+				answer.setStats(stats);
+				return;
+			} else if (isClass) {
+				stats.removeIf(s -> s != null && s.getLabel() != null && !s.getLabel().toLowerCase(Locale.ROOT).contains("class") && !s.getLabel().toLowerCase(Locale.ROOT).contains("standard") && !s.getLabel().toLowerCase(Locale.ROOT).contains("division"));
+				if (!classes.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("Total Classes", classes, null));
+				}
+				answer.setStats(stats);
+				return;
+			} else if (isUser) {
+				stats.removeIf(s -> s != null && s.getLabel() != null && !s.getLabel().toLowerCase(Locale.ROOT).contains("user"));
+				if (!users.isBlank()) {
+					stats.add(0, new AssistantResponse.StatCard("Total Users", users, null));
+				}
+				if (!activeUsers.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("Active Users", activeUsers, null));
+				}
+				answer.setStats(stats);
+				return;
+			}
+		}
+
 		boolean hasTeacher = stats.stream().anyMatch(s -> s != null && s.getLabel() != null
 				&& s.getLabel().toLowerCase(Locale.ROOT).contains("teacher"));
 		boolean hasStudent = stats.stream().anyMatch(s -> s != null && s.getLabel() != null
@@ -1095,11 +1267,6 @@ public class AnswerSynthesizer {
 				&& s.getLabel().toLowerCase(Locale.ROOT).contains("user"));
 		boolean hasSchoolAdmin = stats.stream().anyMatch(s -> s != null && s.getLabel() != null
 				&& s.getLabel().toLowerCase(Locale.ROOT).contains("school admin"));
-
-		String teachers = num(data, "totalTeachers");
-		String students = num(data, "totalStudents");
-		String users = num(data, "totalUsers");
-		String schoolAdmins = num(data, "totalSchoolAdmins");
 
 		if (!hasUser && !users.isBlank()) {
 			stats.add(0, new AssistantResponse.StatCard("Total Users", users, null));
@@ -1126,6 +1293,7 @@ public class AnswerSynthesizer {
 				ordered.add(sc);
 			}
 		}
+		answer.setStats(ordered);
 		// Ensure dynamic chart type is optimal (use doughnut for user role distribution)
 		if (answer.getChart() != null && intent == AssistantIntent.PLATFORM_USERS) {
 			String cType = answer.getChart().getType();
