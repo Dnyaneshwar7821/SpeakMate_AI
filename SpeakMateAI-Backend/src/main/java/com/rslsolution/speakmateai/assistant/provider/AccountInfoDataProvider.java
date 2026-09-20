@@ -103,8 +103,9 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 
 		String schoolName = null;
 		String schoolAddress = null;
-		if (actor.getSchoolId() != null) {
-			Optional<School> school = schoolRepository.findById(actor.getSchoolId());
+		Long schoolId = actor.getSchoolId();
+		if (schoolId != null) {
+			Optional<School> school = schoolRepository.findById(java.util.Objects.requireNonNull(schoolId));
 			if (school.isPresent()) {
 				School s = school.get();
 				schoolName = displayName(s);

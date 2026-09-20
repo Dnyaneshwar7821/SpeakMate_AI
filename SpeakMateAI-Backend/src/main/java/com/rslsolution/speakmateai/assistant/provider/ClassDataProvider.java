@@ -21,7 +21,6 @@ import com.rslsolution.speakmateai.entity.ClassRoom;
 import com.rslsolution.speakmateai.entity.ClassStudent;
 import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.Student;
-import com.rslsolution.speakmateai.entity.TeacherStandardDivision;
 import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.repository.ClassRoomRepository;
 import com.rslsolution.speakmateai.repository.ClassStudentRepository;
