@@ -57,68 +57,82 @@ public class AssistantService {
 	 * Never writes to the database; never exposes data outside the caller's scope.
 	 */
 	public AssistantResponse answer(String email, AssistantRequest request) {
-		ActorContext actor = actorResolver.resolve(email);
+		ActorContext actor = null;
+		try {
+			actor = actorResolver.resolve(email);
 
-		// Security hardening: unauthorized requests for passwords, credentials, tokens, or secrets
-		// are strictly denied immediately across all roles (including SUPER_ADMIN) without calling
-		// any data provider or the LLM.
-		if (isCredentialOrSecretRequest(request.getMessage())) {
-			return credentialDenialResponse(request, actor);
-		}
+			// Security hardening: unauthorized requests for passwords, credentials, tokens, or secrets
+			// are strictly denied immediately across all roles (including SUPER_ADMIN) without calling
+			// any data provider or the LLM.
+			if (isCredentialOrSecretRequest(request.getMessage())) {
+				return credentialDenialResponse(request, actor);
+			}
 
-		IntentResult classified = intentClassifier.classify(request.getMessage(), actor.getRole(), request.getHistory());
-		AssistantIntent intent = classified.getIntent();
+			IntentResult classified = intentClassifier.classify(request.getMessage(), actor.getRole(), request.getHistory());
+			AssistantIntent intent = classified.getIntent();
 
-		// Attach frontend currentRoute to params so navigation can contextualize suggestions if needed
-		if (request.getCurrentRoute() != null && !request.getCurrentRoute().isBlank()) {
-			classified.getParams().put("currentRoute", request.getCurrentRoute().trim());
-		}
+			Map<String, Object> params = new LinkedHashMap<>(classified.getParams() != null ? classified.getParams() : Map.of());
+			// Attach frontend currentRoute to params so navigation can contextualize suggestions if needed
+			if (request.getCurrentRoute() != null && !request.getCurrentRoute().isBlank()) {
+				params.put("currentRoute", request.getCurrentRoute().trim());
+			}
 
-		// Graceful denial for out-of-scope / unrecognized questions (no data, no Groq answer call).
-		// A Super Admin can access every dataset the web app exposes, so a Super Admin
-		// must NEVER be shown the role-scope denial: re-route the question to the
-		// closest platform-wide provider instead of returning denialResponse.
-		if (intent == AssistantIntent.ACCESS_DENIED || !registry.isRoleAllowed(intent, actor.getRole())) {
-			if (actor.getRole() == Role.SUPER_ADMIN) {
-				intent = superAdminFallbackIntent(request.getMessage());
-			} else {
+			// Graceful denial for out-of-scope / unrecognized questions (no data, no Groq answer call).
+			// A Super Admin can access every dataset the web app exposes, so a Super Admin
+			// must NEVER be shown the role-scope denial: re-route the question to the
+			// closest platform-wide provider instead of returning denialResponse.
+			if (intent == AssistantIntent.ACCESS_DENIED || !registry.isRoleAllowed(intent, actor.getRole())) {
+				if (actor.getRole() == Role.SUPER_ADMIN) {
+					intent = superAdminFallbackIntent(request.getMessage());
+				} else {
+					return denialResponse(request, actor);
+				}
+			}
+
+			Optional<AssistantDataProvider> provider = registry.providerFor(intent, actor.getRole());
+			if (provider.isEmpty()) {
 				return denialResponse(request, actor);
 			}
-		}
 
-		Optional<AssistantDataProvider> provider = registry.providerFor(intent, actor.getRole());
-		if (provider.isEmpty()) {
-			return denialResponse(request, actor);
-		}
+			String dataJson;
+			try {
+				dataJson = provider.get().provide(actor, params);
+			} catch (Exception e) {
+				log.error("Data provider for intent {} threw an exception: {}", intent, e.getMessage(), e);
+				dataJson = "{}";
+			}
 
-		String dataJson;
-		try {
-			dataJson = provider.get().provide(actor, classified.getParams());
-		} catch (Exception e) {
-			log.error("Data provider for intent {} threw an exception: {}", intent, e.getMessage(), e);
-			dataJson = "{}";
-		}
+			SynthesizedAnswer synthesized;
+			try {
+				synthesized = answerSynthesizer.synthesize(
+						intent, actor, request.getMessage(), params, dataJson, request.getHistory());
+			} catch (Exception e) {
+				log.error("Answer synthesizer threw an exception: {}", e.getMessage(), e);
+				synthesized = SynthesizedAnswer.builder()
+						.markdown("I'm currently unable to retrieve that information right now. Please try again or rephrase your question.")
+						.build();
+			}
 
-		SynthesizedAnswer synthesized;
-		try {
-			synthesized = answerSynthesizer.synthesize(
-					intent, actor, request.getMessage(), classified.getParams(), dataJson, request.getHistory());
-		} catch (Exception e) {
-			log.error("Answer synthesizer threw an exception: {}", e.getMessage(), e);
-			synthesized = SynthesizedAnswer.builder()
-					.markdown("I'm currently unable to retrieve that information right now. Please try again or rephrase your question.")
+			return AssistantResponse.builder()
+					.markdown(synthesized.getMarkdown())
+					.intent(intent.name())
+					.accessDenied(false)
+					.sessionId(request.getSessionId())
+					.stats(synthesized.getStats())
+					.chart(synthesized.getChart())
+					.suggestions(suggestionsFor(intent, actor.getRole(), synthesized.getSuggestDeepLink()))
+					.build();
+		} catch (Throwable t) {
+			log.error("Unhandled error in AssistantService for {}: {}", email, t.getMessage(), t);
+			Role fallbackRole = (actor != null && actor.getRole() != null) ? actor.getRole() : Role.USER;
+			return AssistantResponse.builder()
+					.markdown("I encountered a temporary issue while retrieving this information. Please try asking again or rephrasing your question.")
+					.intent(AssistantIntent.NAVIGATION_HELP.name())
+					.accessDenied(false)
+					.sessionId(request != null ? request.getSessionId() : null)
+					.suggestions(suggestionsFor(AssistantIntent.NAVIGATION_HELP, fallbackRole, false))
 					.build();
 		}
-
-		return AssistantResponse.builder()
-				.markdown(synthesized.getMarkdown())
-				.intent(intent.name())
-				.accessDenied(false)
-				.sessionId(request.getSessionId())
-				.stats(synthesized.getStats())
-				.chart(synthesized.getChart())
-				.suggestions(suggestionsFor(intent, actor.getRole(), synthesized.getSuggestDeepLink()))
-				.build();
 	}
 
 	private boolean isCredentialOrSecretRequest(String message) {

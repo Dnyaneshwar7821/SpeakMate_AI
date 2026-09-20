@@ -2141,16 +2141,95 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.PLATFORM_OVERVIEW, Map.of(), null);
 		}
 
+		boolean hasNewSchoolName = !extractSchoolName(message).isEmpty();
+		boolean hasNewStudentName = !extractStudentMetricName(message).isEmpty();
+
+		// 2. Chart / visualization requests: "give me chart", "give pie chart for students", "show chart", "visualize this"
+		boolean isChartQuery = containsAny(m, List.of(
+				"chart", "graph", "pie chart", "bar chart", "doughnut chart", "donut chart",
+				"line chart", "horizontal bar", "plot", "visualize", "visualization"));
+		if (isChartQuery) {
+			Map<String, Object> p = new java.util.LinkedHashMap<>();
+			p.put("wantsChart", true);
+			if (m.contains("pie")) {
+				p.put("chartType", "pie");
+			} else if (m.contains("doughnut") || m.contains("donut")) {
+				p.put("chartType", "doughnut");
+			} else if (m.contains("line")) {
+				p.put("chartType", "line");
+			} else if (m.contains("bar")) {
+				p.put("chartType", "bar");
+			}
+
+			// If an individual student name is present in the current message or history:
+			String studentName = extractStudentMetricName(message);
+			if (studentName.isBlank()) {
+				studentName = extractAnyPersonFocusName(message);
+			}
+			if (studentName.isBlank() && !hasNewSchoolName && history != null && !history.isEmpty()) {
+				studentName = resolvePreviousStudentName(history);
+			}
+			boolean genericStudents = m.contains("students") || m.contains("learners") || m.contains("all students");
+			if (!studentName.isBlank() && !genericStudents) {
+				p.put("studentName", studentName);
+				return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, p, null);
+			}
+
+			// If a specific school name is present in current message or history:
+			String schoolName = extractSchoolName(message);
+			if (schoolName.isBlank() && history != null && !history.isEmpty()) {
+				schoolName = resolvePreviousSchoolName(history);
+			}
+			if (!schoolName.isBlank() && role != Role.SUPER_ADMIN) {
+				p.put("schoolName", schoolName);
+				return new IntentResult(AssistantIntent.SCHOOL_OVERVIEW, p, null);
+			}
+
+			// If the user mentions users or accounts:
+			if (m.contains("user") || m.contains("account") || m.contains("role")) {
+				if (role == Role.SUPER_ADMIN) {
+					return new IntentResult(AssistantIntent.PLATFORM_USERS, p, null);
+				}
+			}
+
+			// If the user mentions results / pass / fail:
+			if (m.contains("result") || m.contains("exam") || m.contains("pass") || m.contains("fail") || m.contains("marks")) {
+				return new IntentResult(AssistantIntent.RESULTS_ANALYTICS, p, null);
+			}
+
+			// If the user mentions speech / fluency / pronunciation / insights:
+			if (m.contains("fluency") || m.contains("pronunciation") || m.contains("insight") || m.contains("speaking")) {
+				return new IntentResult(AssistantIntent.AI_INSIGHTS, p, null);
+			}
+
+			// Check previous conversation context from history:
+			AssistantIntent prevIntent = resolvePreviousIntent(history);
+			if (prevIntent != null && prevIntent != AssistantIntent.NAVIGATION_HELP && prevIntent != AssistantIntent.ACCESS_DENIED) {
+				if (prevIntent == AssistantIntent.STUDENT_PERFORMANCE && !studentName.isBlank()) {
+					p.put("studentName", studentName);
+				} else if (prevIntent == AssistantIntent.SCHOOL_OVERVIEW && !schoolName.isBlank()) {
+					p.put("schoolName", schoolName);
+				}
+				return new IntentResult(prevIntent, p, null);
+			}
+
+			// Role-based defaults for chart requests:
+			if (role == Role.SUPER_ADMIN) {
+				return new IntentResult(AssistantIntent.PLATFORM_OVERVIEW, p, null);
+			} else if (role == Role.SCHOOL_ADMIN) {
+				return new IntentResult(AssistantIntent.SCHOOL_OVERVIEW, p, null);
+			} else if (role == Role.TEACHER) {
+				return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, p, null);
+			} else {
+				return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, p, null);
+			}
+		}
+
 		if (history == null || history.isEmpty()) {
 			return null;
 		}
 
-		// If a new specific school or person is explicitly named in the current message,
-		// do NOT hijack it with previous history context.
-		boolean hasNewSchoolName = !extractSchoolName(message).isEmpty();
-		boolean hasNewStudentName = !extractStudentMetricName(message).isEmpty();
-
-		// 2. School follow-up with pronouns or count inquiries:
+		// 3. School follow-up with pronouns or count inquiries:
 		// "How many teachers does it have?", "Tell me about it", "How many students does it have?",
 		// "What about its classes?", "Teacher strength in that school", "Does it have classes?"
 		boolean schoolPronoun = containsAny(padded, List.of(
@@ -2172,7 +2251,7 @@ public class IntentClassifier {
 			}
 		}
 
-		// 3. Student/person follow-up with pronouns:
+		// 4. Student/person follow-up with pronouns:
 		// "How is she performing?", "What is her XP?", "When did he join?", "Which department is he in?"
 		boolean personPronoun = containsAny(padded, List.of(
 				" he ", " he?", " he.", " she ", " she?", " she.", " him ", " him?", " her ", " her?", " his "));
@@ -2187,6 +2266,37 @@ public class IntentClassifier {
 			}
 		}
 
+		return null;
+	}
+
+	private AssistantIntent resolvePreviousIntent(List<AssistantRequest.MessageTurn> history) {
+		if (history == null || history.isEmpty()) {
+			return null;
+		}
+		for (int i = history.size() - 1; i >= 0; i--) {
+			AssistantRequest.MessageTurn turn = history.get(i);
+			if (turn == null || turn.getContent() == null || turn.getContent().isBlank()) {
+				continue;
+			}
+			String content = turn.getContent().toLowerCase(Locale.ROOT);
+			if (content.contains("platform overview") || content.contains("total schools")
+					|| content.contains("total students") || content.contains("schools by student count")) {
+				return AssistantIntent.PLATFORM_OVERVIEW;
+			}
+			if (content.contains("list of users") || content.contains("all users")
+					|| content.contains("user directory") || content.contains("role distribution")) {
+				return AssistantIntent.PLATFORM_USERS;
+			}
+			if (content.contains("results") || content.contains("pass rate") || content.contains("pass percentage")) {
+				return AssistantIntent.RESULTS_ANALYTICS;
+			}
+			if (content.contains("ai insights") || content.contains("fluency score") || content.contains("pronunciation")) {
+				return AssistantIntent.AI_INSIGHTS;
+			}
+			if (content.contains("billing") || content.contains("subscription") || content.contains("revenue")) {
+				return AssistantIntent.BILLING;
+			}
+		}
 		return null;
 	}
 

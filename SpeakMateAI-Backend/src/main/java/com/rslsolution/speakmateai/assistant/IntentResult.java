@@ -1,6 +1,6 @@
 package com.rslsolution.speakmateai.assistant;
 
-import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
@@ -18,7 +18,7 @@ public class IntentResult {
 
 	public IntentResult(AssistantIntent intent, Map<String, Object> params, String rawJson) {
 		this.intent = intent;
-		this.params = params == null ? Collections.emptyMap() : params;
+		this.params = params == null ? new LinkedHashMap<>() : new LinkedHashMap<>(params);
 		this.rawJson = rawJson;
 	}
 

@@ -124,7 +124,8 @@ public class AnswerSynthesizer {
 		try {
 			SynthesizedAnswer answer = objectMapper.readValue(extractJson(raw), SynthesizedAnswer.class);
 			enrichPlatformStatsIfMissing(answer, intent, dataJson);
-			enrichStudentProgressChart(answer, intent, dataJson);
+			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
+			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 			return answer;
 		} catch (Exception e) {
 			// Graceful fallback: keep the raw text so the user still gets an answer.
@@ -133,7 +134,8 @@ public class AnswerSynthesizer {
 							: stripFences(raw))
 					.build();
 			enrichPlatformStatsIfMissing(answer, intent, dataJson);
-			enrichStudentProgressChart(answer, intent, dataJson);
+			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
+			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 			return answer;
 		}
 	}
@@ -261,7 +263,8 @@ public class AnswerSynthesizer {
 		}
 		SynthesizedAnswer answer = SynthesizedAnswer.builder().markdown(markdown).build();
 		enrichPlatformStatsIfMissing(answer, intent, dataJson);
-		enrichStudentProgressChart(answer, intent, dataJson);
+		enrichStudentProgressChart(answer, intent, userMessage, dataJson);
+		enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 		return answer;
 	}
 
@@ -1085,7 +1088,7 @@ public class AnswerSynthesizer {
 		}
 	}
 
-	private void enrichStudentProgressChart(SynthesizedAnswer answer, AssistantIntent intent, String dataJson) {
+	private void enrichStudentProgressChart(SynthesizedAnswer answer, AssistantIntent intent, String userMessage, String dataJson) {
 		if (answer == null || intent != AssistantIntent.STUDENT_PERFORMANCE) {
 			return;
 		}
@@ -1125,7 +1128,11 @@ public class AnswerSynthesizer {
 		if (existingChart == null || isCompletedRemaining) {
 			String chartType = (existingChart != null && existingChart.getType() != null)
 					? existingChart.getType() : "bar";
-			if ("line".equalsIgnoreCase(chartType)) {
+			if (userMessage != null && userMessage.toLowerCase(Locale.ROOT).contains("pie")) {
+				chartType = "pie";
+			} else if (userMessage != null && (userMessage.toLowerCase(Locale.ROOT).contains("doughnut") || userMessage.toLowerCase(Locale.ROOT).contains("donut"))) {
+				chartType = "doughnut";
+			} else if ("line".equalsIgnoreCase(chartType)) {
 				chartType = "bar";
 			}
 
@@ -1141,6 +1148,127 @@ public class AnswerSynthesizer {
 							.data(counts)
 							.build()))
 					.build());
+		} else if (userMessage != null) {
+			if (userMessage.toLowerCase(Locale.ROOT).contains("pie")) {
+				existingChart.setType("pie");
+			} else if (userMessage.toLowerCase(Locale.ROOT).contains("doughnut") || userMessage.toLowerCase(Locale.ROOT).contains("donut")) {
+				existingChart.setType("doughnut");
+			}
+		}
+	}
+
+	private void enrichPlatformOverviewChart(SynthesizedAnswer answer, AssistantIntent intent, String userMessage,
+			Map<String, Object> params, String dataJson) {
+		if (answer == null || intent != AssistantIntent.PLATFORM_OVERVIEW) {
+			return;
+		}
+		Map<String, Object> data = parseData(dataJson);
+		if (data.isEmpty()) {
+			return;
+		}
+
+		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT) : "");
+		boolean wantsChart = Boolean.TRUE.equals(params != null ? params.get("wantsChart") : null)
+				|| msg.contains("chart") || msg.contains("graph") || msg.contains("visualize");
+
+		if (answer.getChart() != null) {
+			if (msg.contains("pie")) {
+				answer.getChart().setType("pie");
+			} else if (msg.contains("doughnut") || msg.contains("donut")) {
+				answer.getChart().setType("doughnut");
+			} else if (msg.contains("bar") && !answer.getChart().getType().contains("bar")) {
+				answer.getChart().setType("horizontal-bar");
+			}
+			return;
+		}
+
+		if (!wantsChart) {
+			return;
+		}
+
+		boolean isPieRequested = msg.contains("pie");
+		boolean isDoughnutRequested = msg.contains("doughnut") || msg.contains("donut");
+		String chartType = isPieRequested ? "pie" : (isDoughnutRequested ? "doughnut" : "horizontal-bar");
+
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> schoolsList = data.get("schoolsByStudentCount") instanceof List
+				? (List<Map<String, Object>>) data.get("schoolsByStudentCount")
+				: List.of();
+
+		if (!schoolsList.isEmpty()) {
+			List<String> labels = new ArrayList<>();
+			List<Double> counts = new ArrayList<>();
+			double otherTotal = 0;
+			int limit = (isPieRequested || isDoughnutRequested) ? 5 : 6;
+
+			for (int i = 0; i < schoolsList.size(); i++) {
+				Map<String, Object> schoolEntry = schoolsList.get(i);
+				String name = String.valueOf(schoolEntry.getOrDefault("schoolName", "School " + (i + 1)));
+				double studentCount = parseDoubleOrZero(schoolEntry.get("studentCount"));
+				if (i < limit) {
+					labels.add(name);
+					counts.add(studentCount);
+				} else {
+					otherTotal += studentCount;
+				}
+			}
+
+			if (otherTotal > 0 && (isPieRequested || isDoughnutRequested)) {
+				labels.add("Other Schools");
+				counts.add(otherTotal);
+			}
+
+			if (!labels.isEmpty()) {
+				answer.setChart(AssistantResponse.ChartData.builder()
+						.type(chartType)
+						.title("Students by School")
+						.labels(labels)
+						.datasets(List.of(AssistantResponse.Dataset.builder()
+								.label("Students")
+								.data(counts)
+								.build()))
+						.build());
+				return;
+			}
+		}
+
+		double activeStudents = parseDoubleOrZero(data.get("activeStudents"));
+		double totalStudents = parseDoubleOrZero(data.get("totalStudents"));
+		double inactiveStudents = Math.max(0, totalStudents - activeStudents);
+
+		if (msg.contains("student") && totalStudents > 0) {
+			answer.setChart(AssistantResponse.ChartData.builder()
+					.type(isDoughnutRequested ? "doughnut" : "pie")
+					.title("Student Activity Status")
+					.labels(List.of("Active Students", "Inactive Students"))
+					.datasets(List.of(AssistantResponse.Dataset.builder()
+							.label("Students")
+							.data(List.of(activeStudents, inactiveStudents))
+							.build()))
+					.build());
+		} else {
+			List<String> labels = new ArrayList<>();
+			List<Double> counts = new ArrayList<>();
+			double teachers = parseDoubleOrZero(data.get("totalTeachers"));
+			double schoolAdmins = parseDoubleOrZero(data.get("totalSchoolAdmins"));
+			double admins = parseDoubleOrZero(data.get("totalAdmins"));
+
+			if (totalStudents > 0) { labels.add("Students"); counts.add(totalStudents); }
+			if (teachers > 0) { labels.add("Teachers"); counts.add(teachers); }
+			if (schoolAdmins > 0) { labels.add("School Admins"); counts.add(schoolAdmins); }
+			if (admins > 0) { labels.add("Admins"); counts.add(admins); }
+
+			if (!labels.isEmpty()) {
+				answer.setChart(AssistantResponse.ChartData.builder()
+						.type(isPieRequested ? "pie" : (isDoughnutRequested ? "doughnut" : "bar"))
+						.title("Platform Users by Role")
+						.labels(labels)
+						.datasets(List.of(AssistantResponse.Dataset.builder()
+								.label("Users")
+								.data(counts)
+								.build()))
+						.build());
+			}
 		}
 	}
 
