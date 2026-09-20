@@ -98,7 +98,36 @@ const PHONETIC_NAME_REPLACEMENTS = [
     [/\bXP\b/g, "X P"],
     [/\bKPIs?\b/g, "K P I"],
     [/\bIDs?\b/g, "I D"],
+    [/\bno\.\b/gi, "number"],
+    [/\bNo\.\b/gi, "number"],
+    [/\betc\.?\b/gi, "and so on"],
 ];
+
+/**
+ * Formats emails, domains, and decimals for speech so TTS reads them naturally
+ * (e.g. "siddhi.shinde@gmail.com" -> "siddhi dot shinde at gmail dot com")
+ * and prevents the sentence splitter from pausing awkwardly at ".com" or decimals.
+ */
+function formatEmailsAndUrlsForSpeech(text) {
+    if (!text) return "";
+
+    // 1. Email addresses: name@domain.com -> "name at domain dot com" (eliminates awkward pauses at .com)
+    text = text.replace(/([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, (match, user, domain) => {
+        const spokenUser = user.replace(/\./g, " dot ").replace(/_/g, " underscore ").replace(/-/g, " hyphen ");
+        const spokenDomain = domain.replace(/\./g, " dot ");
+        return `${spokenUser} at ${spokenDomain}`;
+    });
+
+    // 2. Web domains/URLs: e.g. www.speakmate.ai -> "speakmate dot ai"
+    text = text.replace(/\b((?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9-]+\.(?:com|org|in|net|edu|io|co|ai)(?:\/[^\s)]*)?)\b/gi, (match) => {
+        return match.replace(/https?:\/\//gi, "").replace(/\./g, " dot ").replace(/\//g, " slash ");
+    });
+
+    // 3. Decimal numbers: 98.5% or 3.14 -> 98 point 5% (prevents dot from triggering a sentence split)
+    text = text.replace(/(\d+)\.(\d+)/g, "$1 point $2");
+
+    return text;
+}
 
 /**
  * Formats phone numbers so TTS speaks them digit-by-digit (1-by-1)
@@ -134,6 +163,8 @@ function parseMarkdownIntoSpeechChunks(content) {
     if (!content) return [];
 
     let text = formatPhoneNumbersForSpeech(content);
+    // Format emails, domains, and decimals so they don't break on dots
+    text = formatEmailsAndUrlsForSpeech(text);
 
     // Strip markdown links [text](url) -> text
     text = text.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
@@ -217,16 +248,15 @@ function parseMarkdownIntoSpeechChunks(content) {
 }
 
 /**
- * Selects the best Indian English Female voice available in the browser,
- * prioritizing natural/neural AI voices (like Microsoft Neerja Online / Microsoft Heera / Google en-IN)
- * and strictly excluding male voices.
+ * Selects an Indian English Female voice distinct from Neerja
+ * (prioritizing Microsoft Heera, Microsoft Swara, Microsoft Veena, Google en-IN Female).
+ * Strictly excludes Neerja and male voices.
  */
 function getIndianFemaleVoice() {
     if (!("speechSynthesis" in window)) return null;
     const voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) return null;
 
-    const femaleNames = ["heera", "neerja", "veena", "swara", "kavya", "prabha", "lekha", "ananya", "kalpana", "female", "girl", "zira", "jenny", "samantha", "victoria"];
     const maleNames = ["david", "mark", "guy", "george", "prabhat", "rishi", "ravi", "male", "boy", "stefan", "oliver", "daniel", "william"];
 
     const scored = voices.map((v) => {
@@ -238,37 +268,51 @@ function getIndianFemaleVoice() {
         const isIndiaName = name.includes("india");
         const isIndian = isIndianLang || isIndiaName;
 
-        const isKnownFemale = femaleNames.some((n) => name.includes(n));
-        const isKnownMale = maleNames.some((n) => name.includes(n));
-        const isNeuralOrNatural = name.includes("natural") || name.includes("online") || name.includes("neural") || name.includes("google");
+        const isMale = maleNames.some((n) => name.includes(n));
+        const isNeerja = name.includes("neerja");
 
-        // Heavily penalize male voices so they are NEVER selected
-        if (isKnownMale && !isKnownFemale) {
-            score -= 2000;
+        // Strictly disqualify male voices and Neerja (user requested a different Indian female voice)
+        if (isMale) score -= 20000;
+        if (isNeerja) score -= 20000;
+
+        // 1. Top priority: Heera (classic, gentle Windows Indian English Female)
+        if (isIndian && name.includes("heera")) {
+            score += 2000;
         }
-
-        // Tier 1: Indian English Female + Natural/Neural (e.g. Microsoft Neerja Online, Google en-IN Female)
-        if (isIndian && isKnownFemale && isNeuralOrNatural) {
+        // 2. Swara (modern Windows/Edge Indian English Female)
+        else if (isIndian && name.includes("swara")) {
+            score += 1800;
+        }
+        // 3. Veena (clear Indian English Female)
+        else if (isIndian && name.includes("veena")) {
+            score += 1600;
+        }
+        // 4. Google Indian English Female (Chrome)
+        else if (isIndian && name.includes("google") && !isMale) {
+            score += 1400;
+        }
+        // 5. Apple / Mobile Indian female voices (Kavya, Lekha, etc.)
+        else if (isIndian && (name.includes("kavya") || name.includes("lekha") || name.includes("ananya") || name.includes("kalpana"))) {
+            score += 1200;
+        }
+        // 6. Any Indian English voice explicitly marked female (and not Neerja)
+        else if (isIndian && (name.includes("female") || name.includes("woman"))) {
+            score += 1000;
+        }
+        // 7. Any Indian English voice that is not male and not Neerja
+        else if (isIndian) {
             score += 600;
         }
-        // Tier 2: Indian English with female names (Heera, Swara, Veena)
-        else if (isIndian && isKnownFemale) {
-            score += 500;
-        }
-        // Tier 3: Any Indian English voice not explicitly male
-        else if (isIndian && !isKnownMale) {
+        // 8. High-quality natural English female voice fallback (e.g. Microsoft Jenny Online)
+        else if (lang.startsWith("en") && (name.includes("jenny") || name.includes("aria")) && !isMale) {
             score += 300;
         }
-        // Tier 4: English Female + Natural (e.g. Microsoft Jenny Online)
-        else if (lang.startsWith("en") && isKnownFemale && isNeuralOrNatural) {
+        // 9. Standard English female voice fallback (e.g. Microsoft Zira)
+        else if (lang.startsWith("en") && (name.includes("zira") || name.includes("female")) && !isMale) {
             score += 200;
         }
-        // Tier 5: English Female (e.g. Microsoft Zira)
-        else if (lang.startsWith("en") && isKnownFemale) {
-            score += 100;
-        }
-        // Tier 6: Any English voice not explicitly male
-        else if (lang.startsWith("en") && !isKnownMale) {
+        // 10. Any English voice not male and not Neerja
+        else if (lang.startsWith("en") && !isMale) {
             score += 50;
         }
 
@@ -277,7 +321,8 @@ function getIndianFemaleVoice() {
 
     scored.sort((a, b) => b.score - a.score);
 
-    return scored[0]?.score > -500 ? scored[0]?.voice : (voices[0] || null);
+    const chosen = scored[0]?.score > -10000 ? scored[0]?.voice : null;
+    return chosen || voices.find((v) => !v.name.toLowerCase().includes("neerja") && !maleNames.some((m) => v.name.toLowerCase().includes(m))) || voices[0] || null;
 }
 
 export function MessageBubble({ message, role, onClose }) {
