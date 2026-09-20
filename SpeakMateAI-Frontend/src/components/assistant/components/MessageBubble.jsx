@@ -66,6 +66,75 @@ const DIGIT_WORDS = {
 };
 
 /**
+ * Phonetic pronunciation rules for Indian proper names, educational terms,
+ * and acronyms so Western/system TTS engines pronounce them accurately with native cadence.
+ */
+const PHONETIC_NAME_REPLACEMENTS = [
+    // Common Indian surnames where English phonetics incorrectly silences the trailing 'e'
+    [/\bNarke\b/gi, "Narkay"],
+    [/\bShinde\b/gi, "Shinday"],
+    [/\bBhosale\b/gi, "Bhoslay"],
+    [/\bBhosle\b/gi, "Bhoslay"],
+    [/\bSalunkhe\b/gi, "Salunkhay"],
+    [/\bTambe\b/gi, "Tambay"],
+    [/\bKamble\b/gi, "Kaamblay"],
+    [/\bGade\b/gi, "Gaaday"],
+    [/\bMane\b/gi, "Maanay"],
+    [/\bKapse\b/gi, "Kaapsay"],
+    [/\bChavan\b/gi, "Chav-haan"],
+    [/\bJadhav\b/gi, "Jaa-dhav"],
+    [/\bPatil\b/gi, "Paatil"],
+    [/\bPawar\b/gi, "Pawaar"],
+
+    // First names that Western TTS engines stumble on
+    [/\bDigvijay\b/gi, "Dig-vijay"],
+    [/\bEkvira\b/gi, "Ek-veera"],
+    [/\bSiddhi\b/gi, "Sid-dhi"],
+    [/\bAarav\b/gi, "Aarav"],
+    [/\bAnanya\b/gi, "Anan-ya"],
+    [/\bShruti\b/gi, "Shroo-ti"],
+    [/\bVaishnavi\b/gi, "Vaish-navi"],
+    [/\bTanvi\b/gi, "Taan-vi"],
+    [/\bSakshi\b/gi, "Saak-shi"],
+    [/\bPrashant\b/gi, "Prashant"],
+    [/\bSantosh\b/gi, "Santosh"],
+    [/\bSuresh\b/gi, "Sur-esh"],
+    [/\bRamesh\b/gi, "Ram-esh"],
+    [/\bGanesh\b/gi, "Gan-esh"],
+    [/\bMahesh\b/gi, "Mah-esh"],
+
+    // Educational Institutions & Schools
+    [/\bHighschool\b/gi, "High School"],
+    [/\bhighschools\b/gi, "High Schools"],
+    [/\bVidyalaya\b/gi, "Vidya-laya"],
+    [/\bVidyalayas\b/gi, "Vidya-layas"],
+    [/\bVidyapeeth\b/gi, "Vidya-peeth"],
+    [/\bGurukul\b/gi, "Guru-kul"],
+    [/\bShikshan\b/gi, "Shik-shan"],
+    [/\bSanstha\b/gi, "Sans-tha"],
+
+    // Educational terminology & abbreviations
+    [/\bRoll\s*no\.?\b/gi, "Roll number"],
+    [/\bRoll\s*No\.?\b/gi, "Roll number"],
+    [/\bStd\.?\b/gi, "Standard"],
+    [/\bDiv\.?\b/gi, "Division"],
+    [/\bSec\.?\b/gi, "Section"],
+    [/\bXP\b/g, "X P"],
+    [/\bKPIs\b/g, "K P I s"],
+    [/\bKPI\b/g, "K P I"],
+    [/\bDOJ\b/g, "Date of joining"],
+    [/\bAI\b/g, "A I"],
+    [/\bavg\.?\b/gi, "average"],
+    [/\bapprox\.?\b/gi, "approximately"],
+    [/\bdept\.?\b/gi, "department"],
+    [/\bgovt\.?\b/gi, "government"],
+    [/\bvs\.?\b/gi, "versus"],
+    [/\bNo\.?\s*(\d+)/gi, "Number $1"],
+    [/(\d+)%/g, "$1 percent"],
+    [/&/g, " and "],
+];
+
+/**
  * Formats phone numbers and long digit sequences so TTS speaks them digit-by-digit
  * (e.g. "9823456789" -> "nine, eight, two, three, four, five, six, seven, eight, nine")
  * instead of treating them as huge integers ("9 billion 23 million").
@@ -92,57 +161,179 @@ function formatPhoneNumbersForSpeech(text) {
 }
 
 /**
- * Selects the best Indian English Female voice available in the user's browser,
- * with fallbacks to other Indian English voices or standard English female voices.
+ * Transforms raw markdown into clean speech with natural sentence boundaries,
+ * pauses between items, accurate Indian name pronunciations, and spelled-out phone numbers.
+ */
+function formatMarkdownToSpeech(markdown) {
+    if (!markdown) return "";
+
+    // 1. Remove URLs and links: [Text](url) -> Text, bare urls -> ""
+    let text = markdown
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+        .replace(/https?:\/\/\S+/g, "");
+
+    // 2. Strip emojis completely (so speech engine doesn't pronounce icon descriptions)
+    text = text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, "");
+
+    // 3. Process line by line to introduce natural structural pauses
+    const lines = text.split("\n");
+    const processedLines = [];
+
+    for (let rawLine of lines) {
+        let line = rawLine.trim();
+        if (!line) continue;
+
+        // Skip markdown horizontal rules (---, ***) or table divider (|---|---|)
+        if (/^[-*_]{3,}$/.test(line) || /^\|?[\s-:]+\|[\s-:|]+$/.test(line)) {
+            continue;
+        }
+
+        // Headers (### Heading) -> Heading. (full pause)
+        if (/^#{1,6}\s+/.test(line)) {
+            line = line.replace(/^#{1,6}\s+/, "").trim();
+            if (line && !/[.!?:]$/.test(line)) {
+                line += ".";
+            }
+            processedLines.push(line);
+            continue;
+        }
+
+        // Table rows (| Col1 | Col2 | Col3 |)
+        if (line.startsWith("|") && line.endsWith("|")) {
+            const cells = line
+                .split("|")
+                .map((c) => c.trim())
+                .filter(Boolean);
+            if (cells.length > 0) {
+                line = cells.join(", ") + ".";
+                processedLines.push(line);
+                continue;
+            }
+        }
+
+        // Bullet points (- Item, * Item, 1. Item)
+        if (/^[-*•]\s+/.test(line) || /^\d+\.\s+/.test(line)) {
+            line = line.replace(/^[-*•]\s+/, "").replace(/^\d+\.\s+/, "").trim();
+            // Convert "Label: Value" to "Label, Value" for natural pause
+            line = line.replace(/:\s+/g, ", ");
+            if (line && !/[.!?]$/.test(line)) {
+                line += ".";
+            }
+            processedLines.push(line);
+            continue;
+        }
+
+        // Convert key-value colons to commas for natural inflection pause
+        line = line.replace(/:\s*$/, ".");
+        line = line.replace(/:\s+/g, ", ");
+
+        if (line && !/[.!?]$/.test(line)) {
+            line += ".";
+        }
+        processedLines.push(line);
+    }
+
+    let speechText = processedLines.join(" ");
+
+    // 4. Strip leftover markdown syntax (asterisks, underscores, code ticks, pipes)
+    speechText = speechText
+        .replace(/[*_`~|]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    // 5. Apply phonetic pronunciation corrections for Indian names and terms
+    for (const [pattern, replacement] of PHONETIC_NAME_REPLACEMENTS) {
+        speechText = speechText.replace(pattern, replacement);
+    }
+
+    // 6. Format phone numbers to digit-by-digit enunciation
+    speechText = formatPhoneNumbersForSpeech(speechText);
+
+    // 7. Clean up and standardize punctuation spacing for natural breathing pauses
+    speechText = speechText
+        .replace(/\s*,\s*/g, ", ")
+        .replace(/\s*\.\s*/g, ". ")
+        .replace(/\.{2,}/g, ".")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    return speechText;
+}
+
+/**
+ * Selects the absolute best Indian English Female voice available in the browser,
+ * prioritizing natural/neural AI voices (like Microsoft Neerja Online / Google en-IN)
+ * and strictly excluding male voices.
  */
 function getIndianFemaleVoice() {
     if (!("speechSynthesis" in window)) return null;
     const voices = window.speechSynthesis.getVoices();
     if (!voices || voices.length === 0) return null;
 
-    const inFemaleKeywords = ["heera", "neerja", "veena", "swara", "kavya", "prabha", "lekha", "ananya", "kalpana"];
+    const femaleNames = ["neerja", "heera", "veena", "swara", "kavya", "prabha", "lekha", "ananya", "kalpana", "female", "girl", "zira", "jenny", "samantha", "victoria"];
+    const maleNames = ["david", "mark", "guy", "george", "prabhat", "rishi", "ravi", "male", "boy", "stefan", "oliver", "daniel", "william"];
 
-    // 1. Indian English voice with a known Indian female name
-    let voice = voices.find((v) => {
-        const lang = (v.lang || "").toLowerCase();
+    const scored = voices.map((v) => {
+        const lang = (v.lang || "").toLowerCase().replace("_", "-");
         const name = (v.name || "").toLowerCase();
-        const isIndian = lang.includes("en-in") || lang.includes("en_in") || name.includes("india");
-        return isIndian && inFemaleKeywords.some((kw) => name.includes(kw));
+        let score = 0;
+
+        const isIndianLang = lang === "en-in" || lang.startsWith("en-in");
+        const isIndiaName = name.includes("india");
+        const isIndian = isIndianLang || isIndiaName;
+
+        const isKnownFemale = femaleNames.some((n) => name.includes(n));
+        const isKnownMale = maleNames.some((n) => name.includes(n));
+        const isNeuralOrNatural = name.includes("natural") || name.includes("online") || name.includes("neural") || name.includes("google");
+
+        // Heavily penalize male voices so they are never selected
+        if (isKnownMale && !isKnownFemale) {
+            score -= 1000;
+        }
+
+        // Tier 1: Indian English Female + Natural/Neural (e.g. Microsoft Neerja Online (Natural))
+        if (isIndian && isKnownFemale && isNeuralOrNatural) {
+            score += 500;
+        }
+        // Tier 2: Indian English with prominent female names (Neerja, Heera, Veena, Swara)
+        else if (isIndian && (name.includes("neerja") || name.includes("heera") || name.includes("veena") || name.includes("swara"))) {
+            score += 400;
+        }
+        // Tier 3: Any Indian English Female voice
+        else if (isIndian && isKnownFemale) {
+            score += 300;
+        }
+        // Tier 4: Indian English + Natural/Neural (e.g. Google en-IN)
+        else if (isIndian && isNeuralOrNatural) {
+            score += 250;
+        }
+        // Tier 5: Any Indian English voice
+        else if (isIndian) {
+            score += 150;
+        }
+        // Tier 6: Non-Indian English Female + Natural/Neural (e.g. Microsoft Jenny Online (Natural))
+        else if (lang.startsWith("en") && isKnownFemale && isNeuralOrNatural) {
+            score += 100;
+        }
+        // Tier 7: Non-Indian English Female
+        else if (lang.startsWith("en") && isKnownFemale) {
+            score += 70;
+        }
+        // Tier 8: Any English Natural voice
+        else if (lang.startsWith("en") && isNeuralOrNatural) {
+            score += 40;
+        }
+        // Tier 9: Any English voice
+        else if (lang.startsWith("en")) {
+            score += 20;
+        }
+
+        return { voice: v, score };
     });
-    if (voice) return voice;
 
-    // 2. Indian English voice labelled female
-    voice = voices.find((v) => {
-        const lang = (v.lang || "").toLowerCase();
-        const name = (v.name || "").toLowerCase();
-        const isIndian = lang.includes("en-in") || lang.includes("en_in");
-        return isIndian && (name.includes("female") || name.includes("woman"));
-    });
-    if (voice) return voice;
+    scored.sort((a, b) => b.score - a.score);
 
-    // 3. Any Indian English voice
-    voice = voices.find((v) => {
-        const lang = (v.lang || "").toLowerCase();
-        const name = (v.name || "").toLowerCase();
-        return lang.includes("en-in") || lang.includes("en_in") || name.includes("india");
-    });
-    if (voice) return voice;
-
-    // 4. Any natural English female voice
-    const enFemaleKeywords = ["zira", "jenny", "samantha", "victoria", "karen", "sonia", "hazel", "female"];
-    voice = voices.find((v) => {
-        const lang = (v.lang || "").toLowerCase();
-        const name = (v.name || "").toLowerCase();
-        return lang.startsWith("en") && enFemaleKeywords.some((kw) => name.includes(kw));
-    });
-    if (voice) return voice;
-
-    // 5. Any English voice
-    voice = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en"));
-    if (voice) return voice;
-
-    // 6. Default system voice
-    return voices[0] || null;
+    return scored[0]?.voice || voices[0] || null;
 }
 
 export function MessageBubble({ message, role, onClose }) {
@@ -163,16 +354,8 @@ export function MessageBubble({ message, role, onClose }) {
         } else {
             window.speechSynthesis.cancel();
 
-            // Format phone numbers to enunciate each digit individually
-            const textWithSpokenPhones = formatPhoneNumbersForSpeech(content || "");
-
-            const cleanText = textWithSpokenPhones
-                .replace(/[*#`_~[\]]/g, "")
-                .replace(/\(http[^)]+\)/g, "")
-                .replace(/[|]/g, " ")
-                .replace(/\s+/g, " ")
-                .trim();
-
+            // Transform markdown into natural spoken text with proper pauses and pronunciations
+            const cleanText = formatMarkdownToSpeech(content || "");
             if (!cleanText) return;
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
@@ -184,13 +367,23 @@ export function MessageBubble({ message, role, onClose }) {
                 utterance.lang = "en-IN";
             }
 
-            // Ideal parameters for natural, clear Indian English speech
-            utterance.rate = 0.95;
-            utterance.pitch = 1.05;
+            // 0.90 is the ideal rate: measured, clear, elegant cadence with natural breathing pauses
+            utterance.rate = 0.90;
+            utterance.pitch = 1.0;
             utterance.onend = () => setSpeaking(false);
             utterance.onerror = () => setSpeaking(false);
+
             setSpeaking(true);
             window.speechSynthesis.speak(utterance);
+
+            // Chrome/Edge auto-pause workaround for longer text
+            const resumeInterval = setInterval(() => {
+                if (!window.speechSynthesis.speaking) {
+                    clearInterval(resumeInterval);
+                } else if (window.speechSynthesis.paused) {
+                    window.speechSynthesis.resume();
+                }
+            }, 5000);
         }
     };
 
