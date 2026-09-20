@@ -244,6 +244,10 @@ public class AnswerSynthesizer {
 					+ "When asked who has taken a subscription or who the active subscribers are (e.g. 'who has taken subscription', 'who subscribed', 'active subscribers'), list each subscriber from the subscribers array with their name, email, school, plan name, amount, and dates. If the subscribers list is empty, state clearly that there are currently 0 active subscribers.";
 			case SCHOOL_ROSTER -> "Answer ONLY from the provided teachers/students arrays, using every detail those entries contain. Never reply that a detail is unavailable when the field is present on the entry.\n"
 					+ "Teacher entry fields: name, email, phone, employeeId, department, subject, designation, experience, qualification, joinedAt, classes (list of classes assigned), classCount (number of classes assigned), studentCount, hasStudents, assignedStudents. A teacher's teaching area is exposed as BOTH department and subject - treat 'subject' as the subject they teach and state it, they are the same stored value. If the caller asks which subject/department someone teaches, answer with the subject value (e.g. \"Digvijay Patil teaches English\"). If asked how many classes a teacher teaches (e.g. 'how many classes does pratik patil have/teach'), answer directly using classCount and list their assigned classes. If asked for teachers who have students or assigned classes, list the teachers along with their assigned classes and student counts.\n"
+					+ "CLASS TEACHER INQUIRIES: When the caller asks who the teacher is for a class or multiple classes (e.g. 'who is teacher of 7 B class', 'who is teacher of 7-B class', 'who is teacher of 2-A and 10-A class'):\n"
+					+ "- Always use classAssignments and the teachers array. State the teacher's name directly (e.g. \"Teacher for class 7-B: Pratik Patil (assigned teacher for class 7-B)\").\n"
+					+ "- CRITICAL RULE: A class may have 0 enrolled students, but its teacher assignment exists independently! NEVER say a teacher is unavailable or not found just because the class has 0 students. If a teacher is listed in classAssignments or teachers, report them immediately.\n"
+					+ "- For multi-class inquiries (e.g. '2-A and 10-A'), list each class: report the assigned teacher for classes that have one (e.g. \"2-A: Chetan Mali\"), and state that no teacher information is available for classes where hasTeacher is false (e.g. \"10-A: No teacher information is available for this class in the current data.\").\n"
 					+ "Student entry fields: name, email, phone, studentId, rollNumber, standard, division, assignedTeacher.\n"
 					+ "When entityType is SINGLE_PERSON (or focusName is present), the arrays were narrowed to that one person: answer the specific question about them directly (e.g. \"Pratik Patil is assigned to 8 classes: 6-A, 7-A, ...\") and, when the question is a general 'details' question, list ALL of that person's fields as markdown bullets.\n"
 					+ "When the caller asked for a name (e.g., 'name of the teacher'), state it directly - for example \"The teacher is John Doe\". For a roster list, present each person as a markdown bullet including their known details (name, plus email/department/subject/experience/qualification/classes for teachers; name, plus standard/division/assignedTeacher for students), grouping under Teachers / Students headings when both are present. Use teacherCount and studentCount as the real numbers - an empty list means no one is enrolled, so say \"0 teachers\" or \"0 students\" explicitly. Keep it concise.\n"
@@ -680,12 +684,51 @@ public class AnswerSynthesizer {
 		String schoolName = str(d, "schoolName");
 		String standard = str(d, "standard");
 		String division = str(d, "division");
+		String entityType = str(d, "entityType");
+		List<Map<String, Object>> classAssignments = maps(d, "classAssignments");
 		StringBuilder sb = new StringBuilder();
+
+		if (!classAssignments.isEmpty()) {
+			if (classAssignments.size() == 1) {
+				Map<String, Object> ca = classAssignments.get(0);
+				String cName = str(ca, "class");
+				boolean hasTeacher = Boolean.TRUE.equals(ca.get("hasTeacher"));
+				String teacherName = str(ca, "teacher");
+				if (hasTeacher && !teacherName.isBlank()) {
+					sb.append("**Teacher for class ").append(cName).append(":**\n\n")
+					  .append(teacherName).append(" (assigned teacher for class ").append(cName).append(").\n\n");
+				} else {
+					sb.append("Sorry, the teacher for class ").append(cName).append(" is not available in the current data.\n\n");
+				}
+				String sCount = num(ca, "studentCount");
+				if (!sCount.isBlank()) {
+					sb.append("- **Students enrolled:** ").append(sCount).append('\n');
+				}
+			} else {
+				sb.append("**Teacher assignments**\n\n");
+				for (Map<String, Object> ca : classAssignments) {
+					String cName = str(ca, "class");
+					boolean hasTeacher = Boolean.TRUE.equals(ca.get("hasTeacher"));
+					String teacherName = str(ca, "teacher");
+					if (hasTeacher && !teacherName.isBlank()) {
+						sb.append("- **").append(cName).append(":** ").append(teacherName).append('\n');
+					} else {
+						sb.append("- **").append(cName).append(":** No teacher information is available for this class in the current data.\n");
+					}
+				}
+				sb.append('\n');
+			}
+			return trimOrNull(sb);
+		}
 
 		if (!standard.isBlank() || !division.isBlank()) {
 			String classLabel = (!standard.isBlank() ? "Standard " + standard : "")
 					+ (!division.isBlank() ? (!standard.isBlank() ? "-" : "Division ") + division : "");
-			sb.append("**Students in ").append(classLabel);
+			if ("TEACHERS".equalsIgnoreCase(entityType)) {
+				sb.append("**Teachers for ").append(classLabel);
+			} else {
+				sb.append("**Students in ").append(classLabel);
+			}
 			if (!schoolName.isBlank() && !schoolName.equalsIgnoreCase("all schools")) {
 				sb.append(" (").append(schoolName).append(")");
 			}
@@ -734,7 +777,9 @@ public class AnswerSynthesizer {
 		} else if (!standard.isBlank() || !division.isBlank()) {
 			String classLabel = (!standard.isBlank() ? "Standard " + standard : "")
 					+ (!division.isBlank() ? (!standard.isBlank() ? "-" : "Division ") + division : "");
-			sb.append("\nNo students were found currently enrolled in ").append(classLabel).append(".\n");
+			if (!"TEACHERS".equalsIgnoreCase(entityType)) {
+				sb.append("\nNo students were found currently enrolled in ").append(classLabel).append(".\n");
+			}
 		}
 
 		String summary = str(d, "summary");

@@ -1,5 +1,6 @@
 package com.rslsolution.speakmateai.assistant;
 
+import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -412,6 +413,48 @@ public class MasterRoleScopedChatbotTest {
 			IntentResult rTeachersWithStudents = classifier.classify("give me list of teachers who have students", Role.SUPER_ADMIN, null);
 			assertEquals(AssistantIntent.SCHOOL_ROSTER, rTeachersWithStudents.getIntent());
 			assertEquals("TEACHERS", rTeachersWithStudents.getParams().get("entityType"));
+		}
+
+		@Test
+		@DisplayName("Super Admin Class Teacher Inquiries: 7-B (0 students), 9-A, 4-A, and multi-class 2-A & 10-A")
+		void testSuperAdminClassTeacherResolution() {
+			// Case A: "who is teacher of 7 B class"
+			IntentResult r7B = classifier.classify("who is teacher of 7 B class", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, r7B.getIntent());
+			assertEquals("TEACHERS", r7B.getParams().get("entityType"));
+			assertEquals("7", r7B.getParams().get("standard"));
+			assertEquals("B", r7B.getParams().get("division"));
+
+			// Case B: "who is teacher of 7-B class"
+			IntentResult r7BHyphen = classifier.classify("who is teacher of 7-B class", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, r7BHyphen.getIntent());
+			assertEquals("TEACHERS", r7BHyphen.getParams().get("entityType"));
+			assertEquals("7", r7BHyphen.getParams().get("standard"));
+			assertEquals("B", r7BHyphen.getParams().get("division"));
+
+			// Case C: "who is teacher of 9 - A class"
+			IntentResult r9A = classifier.classify("who is teacher of 9 - A class", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, r9A.getIntent());
+			assertEquals("TEACHERS", r9A.getParams().get("entityType"));
+			assertEquals("9", r9A.getParams().get("standard"));
+			assertEquals("A", r9A.getParams().get("division"));
+
+			// Case D: "who is teacher of 4 - A"
+			IntentResult r4A = classifier.classify("who is teacher of 4 - A", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, r4A.getIntent());
+			assertEquals("TEACHERS", r4A.getParams().get("entityType"));
+			assertEquals("4", r4A.getParams().get("standard"));
+			assertEquals("A", r4A.getParams().get("division"));
+
+			// Case E: "who is teacher of 2-A and 10-A class"
+			IntentResult rMulti = classifier.classify("who is teacher of 2-A and 10-A class", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rMulti.getIntent());
+			assertEquals("TEACHERS", rMulti.getParams().get("entityType"));
+			assertNotNull(rMulti.getParams().get("classes"));
+			@SuppressWarnings("unchecked")
+			List<String> classes = (List<String>) rMulti.getParams().get("classes");
+			assertTrue(classes.contains("2-A"));
+			assertTrue(classes.contains("10-A"));
 		}
 
 		@Test

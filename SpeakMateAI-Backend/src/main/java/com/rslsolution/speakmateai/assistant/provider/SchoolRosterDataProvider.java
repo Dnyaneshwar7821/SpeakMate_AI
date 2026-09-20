@@ -131,7 +131,28 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		boolean wantStudents = !entityType.equals("teachers");
 		boolean wantOthers = wantTeachers && wantStudents;
 
-		Map<Long, List<String>> classesByTeacher = wantTeachers
+		List<String> targetClasses = new ArrayList<>();
+		Object rawClasses = params.get("classes");
+		if (rawClasses instanceof List<?> list) {
+			for (Object item : list) {
+				if (item != null && !item.toString().isBlank()) {
+					targetClasses.add(item.toString().trim());
+				}
+			}
+		}
+		String requestedStandard = strParam(params, "standard").trim();
+		String requestedDivision = strParam(params, "division").trim();
+		if (targetClasses.isEmpty() && (!requestedStandard.isEmpty() || !requestedDivision.isEmpty())) {
+			if (!requestedStandard.isEmpty() && !requestedDivision.isEmpty()) {
+				targetClasses.add(requestedStandard + "-" + requestedDivision);
+			}
+		}
+		boolean hasClassFilter = !targetClasses.isEmpty() || !requestedStandard.isEmpty() || !requestedDivision.isEmpty();
+		if (hasClassFilter) {
+			wantOthers = false;
+		}
+
+		Map<Long, List<String>> classesByTeacher = (wantTeachers || hasClassFilter)
 				? classesByTeacherIds(teachers.stream().map(t -> t.getId()).filter(java.util.Objects::nonNull).collect(Collectors.toList()))
 				: Map.of();
 
@@ -166,18 +187,89 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			}
 		}
 
-		// Narrow to a requested class/standard/division (e.g. "9th A students", "standard 9 division A"):
-		String requestedStandard = strParam(params, "standard").trim();
-		String requestedDivision = strParam(params, "division").trim();
-		if (wantStudents && (!requestedStandard.isEmpty() || !requestedDivision.isEmpty())) {
+		// Narrow to a requested class/standard/division (e.g. "7-B", "9th A students", "standard 9 division A"):
+		if (wantTeachers && hasClassFilter) {
+			teacherViews = teacherViews.stream().filter(tv -> {
+				Object cList = tv.get("classes");
+				List<String> assigned = cList instanceof List<?> list
+						? list.stream().map(String::valueOf).collect(Collectors.toList())
+						: List.of();
+				if (!targetClasses.isEmpty()) {
+					for (String target : targetClasses) {
+						for (String c : assigned) {
+							if (classEquals(c, target)) {
+								return true;
+							}
+						}
+					}
+					return false;
+				}
+				if (!requestedStandard.isEmpty() && !requestedDivision.isEmpty()) {
+					String target = requestedStandard + "-" + requestedDivision;
+					for (String c : assigned) {
+						if (classEquals(c, target)) {
+							return true;
+						}
+					}
+					return false;
+				}
+				if (!requestedStandard.isEmpty()) {
+					for (String c : assigned) {
+						if (classMatchesStandard(c, requestedStandard)) {
+							return true;
+						}
+					}
+					return false;
+				}
+				return false;
+			}).collect(Collectors.toList());
+		}
+
+		if (wantStudents && hasClassFilter) {
 			studentViews = studentViews.stream().filter(sv -> {
+				String sStd = String.valueOf(sv.getOrDefault("standard", "")).trim();
+				String sDiv = String.valueOf(sv.getOrDefault("division", "")).trim();
+				String sClass = sStd + "-" + sDiv;
+				if (!targetClasses.isEmpty()) {
+					for (String target : targetClasses) {
+						if (classEquals(sClass, target)) {
+							return true;
+						}
+					}
+					return false;
+				}
 				boolean matchStd = requestedStandard.isEmpty()
-						|| requestedStandard.equalsIgnoreCase(String.valueOf(sv.get("standard")));
+						|| requestedStandard.equalsIgnoreCase(sStd);
 				boolean matchDiv = requestedDivision.isEmpty()
-						|| requestedDivision.equalsIgnoreCase(String.valueOf(sv.get("division")));
+						|| requestedDivision.equalsIgnoreCase(sDiv);
 				return matchStd && matchDiv;
 			}).collect(Collectors.toList());
-			wantTeachers = false; // user specifically requested students in a class
+		}
+
+		List<Map<String, Object>> classAssignments = new ArrayList<>();
+		if (!targetClasses.isEmpty()) {
+			for (String target : targetClasses) {
+				Map<String, Object> ca = new LinkedHashMap<>();
+				ca.put("class", target);
+				List<String> assignedTeacherNames = new ArrayList<>();
+				for (User t : teachers) {
+					List<String> tClasses = classesByTeacher.getOrDefault(t.getId(), List.of());
+					if (tClasses.stream().anyMatch(c -> classEquals(c, target))) {
+						assignedTeacherNames.add(fullName(t.getFirstName(), t.getLastName()));
+					}
+				}
+				long stdCount = students.stream().filter(s -> {
+					String sStd = s.getStandard() != null ? s.getStandard().trim() : "";
+					String sDiv = s.getDivision() != null ? s.getDivision().trim() : "";
+					return classEquals(sStd + "-" + sDiv, target);
+				}).count();
+
+				ca.put("teachers", assignedTeacherNames);
+				ca.put("hasTeacher", !assignedTeacherNames.isEmpty());
+				ca.put("teacher", assignedTeacherNames.isEmpty() ? null : String.join(", ", assignedTeacherNames));
+				ca.put("studentCount", stdCount);
+				classAssignments.add(ca);
+			}
 		}
 
 		Map<String, Object> data = new LinkedHashMap<>();
@@ -189,18 +281,24 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		if (!requestedDivision.isEmpty()) {
 			data.put("division", requestedDivision);
 		}
+		if (!targetClasses.isEmpty()) {
+			data.put("classes", targetClasses);
+		}
+		if (!classAssignments.isEmpty()) {
+			data.put("classAssignments", classAssignments);
+		}
 		if (focusName.isBlank()) {
 			data.put("entityType", entityType.isBlank() ? "BOTH" : entityType.toUpperCase(Locale.ROOT));
 		} else {
 			data.put("entityType", "SINGLE_PERSON");
 			data.put("focusName", focusName);
 		}
-		if (wantTeachers) {
+		if (wantTeachers || hasClassFilter) {
 			data.put("teacherCount", teacherViews.size());
 			data.put("teachers", teacherViews);
 			data.put("teachersText", teacherViews.size() + " teacher" + (teacherViews.size() == 1 ? "" : "s"));
 		}
-		if (wantStudents) {
+		if (wantStudents || hasClassFilter) {
 			data.put("studentCount", studentViews.size());
 			data.put("students", studentViews);
 			data.put("studentsText", studentViews.size() + " student" + (studentViews.size() == 1 ? "" : "s"));
@@ -214,7 +312,31 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		int shownStudents = wantStudents ? studentViews.size() : 0;
 		int shownOthers = wantOthers ? otherViews.size() : 0;
 		String summary;
-		if (wantTeachers && !wantStudents) {
+		if (!classAssignments.isEmpty()) {
+			if (classAssignments.size() == 1) {
+				Map<String, Object> ca = classAssignments.get(0);
+				String cName = String.valueOf(ca.get("class"));
+				long sCount = ((Number) ca.getOrDefault("studentCount", 0)).longValue();
+				if (Boolean.TRUE.equals(ca.get("hasTeacher"))) {
+					summary = "Teacher for class " + cName + ": " + ca.get("teacher")
+							+ " (" + sCount + " student" + (sCount == 1 ? "" : "s") + " enrolled).";
+				} else {
+					summary = "No teacher is assigned to class " + cName + " in the current data ("
+							+ sCount + " student" + (sCount == 1 ? "" : "s") + " enrolled).";
+				}
+			} else {
+				List<String> parts = new ArrayList<>();
+				for (Map<String, Object> ca : classAssignments) {
+					String cName = String.valueOf(ca.get("class"));
+					if (Boolean.TRUE.equals(ca.get("hasTeacher"))) {
+						parts.add(cName + ": " + ca.get("teacher"));
+					} else {
+						parts.add(cName + ": No teacher assigned");
+					}
+				}
+				summary = "Teacher assignments: " + String.join(", ", parts) + ".";
+			}
+		} else if (wantTeachers && !wantStudents) {
 			summary = schoolLabel + " has " + shownTeachers + " teacher" + (shownTeachers == 1 ? "" : "s") + ".";
 		} else if (wantStudents && !wantTeachers) {
 			if (!requestedStandard.isEmpty() || !requestedDivision.isEmpty()) {
@@ -391,6 +513,26 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			return s;
 		}
 		return s + "-" + d;
+	}
+
+	private boolean classEquals(String c1, String c2) {
+		if (c1 == null || c2 == null) {
+			return false;
+		}
+		String norm1 = c1.replace("-", "").replace(" ", "").trim().toUpperCase(Locale.ROOT);
+		String norm2 = c2.replace("-", "").replace(" ", "").trim().toUpperCase(Locale.ROOT);
+		return norm1.equalsIgnoreCase(norm2);
+	}
+
+	private boolean classMatchesStandard(String classLabel, String standard) {
+		if (classLabel == null || standard == null) {
+			return false;
+		}
+		String[] parts = classLabel.split("-");
+		if (parts.length > 0) {
+			return parts[0].trim().equalsIgnoreCase(standard.trim());
+		}
+		return false;
 	}
 
 	private boolean matchesName(List<Map<String, Object>> views, String focusName) {

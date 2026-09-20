@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -212,38 +213,63 @@ public class IntentClassifier {
 			"\\b(?:class|grade|standard|std)\\s*(\\d{1,2})\\b|\\b(\\d{1,2})\\s*(?:th|st|nd|rd)\\s*(?:class|grade|standard|std|students?|learners?)\\b",
 			Pattern.CASE_INSENSITIVE);
 
-	private ClassSpec extractClassSpec(String message) {
+	private List<ClassSpec> extractAllClassSpecs(String message) {
 		if (message == null || message.isBlank()) {
-			return null;
+			return List.of();
 		}
+		List<ClassSpec> specs = new ArrayList<>();
+		Set<String> seen = new java.util.HashSet<>();
+
 		Matcher m1 = CLASS_STD_DIV_PATTERN.matcher(message);
-		if (m1.find() && m1.group(1) != null && m1.group(2) != null) {
-			String std = m1.group(1).trim();
-			String div = m1.group(2).trim();
-			String lowerMsg = message.toLowerCase(Locale.ROOT);
-			if (lowerMsg.contains("standard") || lowerMsg.contains("std") || lowerMsg.contains("division") || lowerMsg.contains("div") || lowerMsg.contains("class") || lowerMsg.contains("grade") || lowerMsg.contains("th") || lowerMsg.contains("-")) {
-				return new ClassSpec(std, div);
+		while (m1.find()) {
+			if (m1.group(1) != null && m1.group(2) != null) {
+				String std = m1.group(1).trim();
+				String div = m1.group(2).trim().toUpperCase(Locale.ROOT);
+				String key = std + "-" + div;
+				if (!seen.contains(key)) {
+					seen.add(key);
+					specs.add(new ClassSpec(std, div));
+				}
 			}
 		}
 
 		Matcher m2 = CLASS_NUM_HYPHEN_DIV_PATTERN.matcher(message);
-		if (m2.find() && m2.group(1) != null && m2.group(2) != null) {
-			String std = m2.group(1).trim();
-			String div = m2.group(2).trim();
-			String lowerMsg = message.toLowerCase(Locale.ROOT);
-			if (lowerMsg.contains("standard") || lowerMsg.contains("std") || lowerMsg.contains("class") || lowerMsg.contains("grade") || lowerMsg.contains("th") || lowerMsg.contains("-") || lowerMsg.contains("students")) {
-				return new ClassSpec(std, div);
+		while (m2.find()) {
+			if (m2.group(1) != null && m2.group(2) != null) {
+				String std = m2.group(1).trim();
+				String div = m2.group(2).trim().toUpperCase(Locale.ROOT);
+				String key = std + "-" + div;
+				if (!seen.contains(key)) {
+					seen.add(key);
+					specs.add(new ClassSpec(std, div));
+				}
 			}
 		}
 
-		Matcher m3 = CLASS_ONLY_STD_PATTERN.matcher(message);
-		if (m3.find()) {
-			String std = m3.group(1) != null ? m3.group(1).trim() : (m3.group(2) != null ? m3.group(2).trim() : "");
-			if (!std.isEmpty()) {
-				return new ClassSpec(std, "");
+		if (specs.isEmpty()) {
+			Matcher m3 = CLASS_ONLY_STD_PATTERN.matcher(message);
+			while (m3.find()) {
+				String std = m3.group(1) != null ? m3.group(1).trim() : (m3.group(2) != null ? m3.group(2).trim() : "");
+				if (!std.isEmpty() && !seen.contains(std)) {
+					seen.add(std);
+					specs.add(new ClassSpec(std, ""));
+				}
 			}
 		}
-		return null;
+		return specs;
+	}
+
+	private ClassSpec extractClassSpec(String message) {
+		List<ClassSpec> specs = extractAllClassSpecs(message);
+		return specs.isEmpty() ? null : specs.get(0);
+	}
+
+	private boolean isTeacherClassQuery(String m) {
+		return containsAny(m, List.of(
+				"teacher", "teachers", "teaches", "teaching", "teach", "faculty",
+				"sir", "madam", "in charge", "class teacher", "assigned teacher",
+				"who teach", "who teaches", "who is teacher", "who is the teacher"
+		));
 	}
 
 	/**
@@ -766,6 +792,29 @@ public class IntentClassifier {
 			}
 		}
 
+		// Class teacher inquiries ("who is teacher of 7 B class", "who is teacher of 2-A and 10-A class", "who teaches 7-B"):
+		List<ClassSpec> superAdminClassSpecs = extractAllClassSpecs(message);
+		if (!superAdminClassSpecs.isEmpty() && isTeacherClassQuery(m)) {
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			params.put("entityType", "TEACHERS");
+			ClassSpec primary = superAdminClassSpecs.get(0);
+			if (!primary.standard.isEmpty()) params.put("standard", primary.standard);
+			if (!primary.division.isEmpty()) params.put("division", primary.division);
+			if (superAdminClassSpecs.size() > 1) {
+				List<String> classes = superAdminClassSpecs.stream()
+						.map(s -> s.standard + (!s.division.isEmpty() ? "-" + s.division : ""))
+						.collect(Collectors.toList());
+				params.put("classes", classes);
+			} else if (!primary.division.isEmpty()) {
+				params.put("classes", List.of(primary.standard + "-" + primary.division));
+			}
+			String school = extractSchoolName(message);
+			if (!school.isEmpty()) {
+				params.put("schoolName", school);
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, params, null);
+		}
+
 		// Teacher assignment / class roster inquiries:
 		if (containsAny(m, List.of("teacher", "teachers"))
 				&& (containsAny(m, List.of("assigned class", "assigned classes", "assigned division", "assigned divisions",
@@ -1030,9 +1079,10 @@ public class IntentClassifier {
 		}
 
 		// 2. Class / Standard-Division student list or performance fast-path
-		ClassSpec classSpec = extractClassSpec(message);
-		if (classSpec != null && (m.contains("student") || m.contains("learner") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give"))) {
+		List<ClassSpec> classSpecs = extractAllClassSpecs(message);
+		if (!classSpecs.isEmpty() && (m.contains("student") || m.contains("learner") || m.contains("teacher") || m.contains("teach") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give"))) {
 			boolean perf = containsAny(m, List.of("performance", "performing", "progress", "score", "marks", "exam", "result", "average", "stats"));
+			ClassSpec classSpec = classSpecs.get(0);
 			if (perf) {
 				Map<String, Object> cp = new java.util.LinkedHashMap<>();
 				if (!classSpec.standard.isEmpty()) cp.put("standard", classSpec.standard);
@@ -1040,9 +1090,25 @@ public class IntentClassifier {
 				return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, cp, null);
 			} else {
 				Map<String, Object> rp = new java.util.LinkedHashMap<>();
-				rp.put("entityType", "students");
+				boolean isTeacher = isTeacherClassQuery(m);
+				boolean isStudent = containsAny(m, List.of("student", "students", "learner", "learners"));
+				if (isTeacher && !isStudent) {
+					rp.put("entityType", "TEACHERS");
+				} else if (isStudent && !isTeacher) {
+					rp.put("entityType", "students");
+				} else {
+					rp.put("entityType", "both");
+				}
 				if (!classSpec.standard.isEmpty()) rp.put("standard", classSpec.standard);
 				if (!classSpec.division.isEmpty()) rp.put("division", classSpec.division);
+				if (classSpecs.size() > 1) {
+					List<String> classes = classSpecs.stream()
+							.map(s -> s.standard + (!s.division.isEmpty() ? "-" + s.division : ""))
+							.collect(Collectors.toList());
+					rp.put("classes", classes);
+				} else if (!classSpec.division.isEmpty()) {
+					rp.put("classes", List.of(classSpec.standard + "-" + classSpec.division));
+				}
 				if (role == Role.SUPER_ADMIN) {
 					String school = extractSchoolName(message);
 					if (!school.isEmpty()) {
@@ -1801,15 +1867,32 @@ public class IntentClassifier {
 		} else if (wantsStudents && !wantsTeachers) {
 			enriched.put("entityType", "students");
 		}
-		ClassSpec classSpec = extractClassSpec(message);
-		if (classSpec != null) {
+		List<ClassSpec> classSpecs = extractAllClassSpecs(message);
+		if (!classSpecs.isEmpty()) {
+			ClassSpec classSpec = classSpecs.get(0);
 			if (!classSpec.standard.isEmpty()) {
 				enriched.put("standard", classSpec.standard);
 			}
 			if (!classSpec.division.isEmpty()) {
 				enriched.put("division", classSpec.division);
 			}
-			enriched.put("entityType", "students");
+			if (classSpecs.size() > 1) {
+				List<String> classes = classSpecs.stream()
+						.map(s -> s.standard + (!s.division.isEmpty() ? "-" + s.division : ""))
+						.collect(Collectors.toList());
+				enriched.put("classes", classes);
+			} else if (!classSpec.division.isEmpty()) {
+				enriched.put("classes", List.of(classSpec.standard + "-" + classSpec.division));
+			}
+			if (!enriched.containsKey("entityType")) {
+				if (isTeacherClassQuery(m) || wantsTeachers) {
+					enriched.put("entityType", "teachers");
+				} else if (wantsStudents) {
+					enriched.put("entityType", "students");
+				} else {
+					enriched.put("entityType", "both");
+				}
+			}
 		}
 		if (role == Role.SUPER_ADMIN) {
 			// A person-detail question ("standard of Vijay Patil") leaves the school

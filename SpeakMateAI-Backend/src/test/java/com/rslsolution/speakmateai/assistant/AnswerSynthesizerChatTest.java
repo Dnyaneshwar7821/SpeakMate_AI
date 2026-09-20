@@ -216,4 +216,85 @@ public class AnswerSynthesizerChatTest {
 		assertTrue(answer.getMarkdown().contains("8"));
 		assertTrue(answer.getMarkdown().contains("6-A"));
 	}
+
+	@Test
+	void testClassTeacherResolutionZeroStudentsSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"standard", "7",
+				"division", "B",
+				"classes", java.util.List.of("7-B"),
+				"classAssignments", java.util.List.of(
+						Map.of(
+								"class", "7-B",
+								"teacher", "Pratik Patil",
+								"teachers", java.util.List.of("Pratik Patil"),
+								"hasTeacher", true,
+								"studentCount", 0
+						)
+				),
+				"teachers", java.util.List.of(
+						Map.of(
+								"name", "Pratik Patil",
+								"subject", "English",
+								"classes", java.util.List.of("6-A", "7-A", "7-B")
+						)
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.SCHOOL_ROSTER,
+				null,
+				"who is teacher of 7 B class",
+				Map.of("standard", "7", "division", "B", "entityType", "TEACHERS"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Pratik Patil"));
+		assertTrue(answer.getMarkdown().contains("7-B"));
+		assertFalse(answer.getMarkdown().contains("not available"));
+	}
+
+	@Test
+	void testMultiClassTeacherAssignmentsSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"classes", java.util.List.of("2-A", "10-A"),
+				"classAssignments", java.util.List.of(
+						Map.of(
+								"class", "2-A",
+								"teacher", "Chetan Mali",
+								"teachers", java.util.List.of("Chetan Mali"),
+								"hasTeacher", true,
+								"studentCount", 1
+						),
+						Map.of(
+								"class", "10-A",
+								"teacher", "",
+								"teachers", java.util.List.of(),
+								"hasTeacher", false,
+								"studentCount", 0
+						)
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.SCHOOL_ROSTER,
+				null,
+				"who is teacher of 2-A and 10-A class",
+				Map.of("classes", java.util.List.of("2-A", "10-A"), "entityType", "TEACHERS"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("2-A"));
+		assertTrue(answer.getMarkdown().contains("Chetan Mali"));
+		assertTrue(answer.getMarkdown().contains("10-A"));
+		assertTrue(answer.getMarkdown().contains("No teacher information is available"));
+	}
 }
