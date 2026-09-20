@@ -50,7 +50,10 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 
 	@Override
 	public String provide(ActorContext actor, Map<String, Object> params) {
-		Role roleFilter = parseRole(strParam(params, "role"));
+		Role roleFilter = parseRole(strParam(params, "roleFilter"));
+		if (roleFilter == null) {
+			roleFilter = parseRole(strParam(params, "role"));
+		}
 		if (roleFilter == null) {
 			roleFilter = parseRole(strParam(params, "userRole"));
 		}
@@ -59,7 +62,7 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 		List<User> all = userRepository.findAll();
 		List<User> selected = filter == null
 				? all
-				: all.stream().filter(u -> u.getRole() == filter).collect(Collectors.toList());
+				: all.stream().filter(u -> matchesRole(u.getRole(), filter)).collect(Collectors.toList());
 
 		// Stable, readable ordering: by role, then by name.
 		List<User> ordered = new ArrayList<>(selected);
@@ -71,7 +74,7 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 
 		long teacherCount = all.stream().filter(u -> u.getRole() == Role.TEACHER).count();
 		long studentCount = all.stream().filter(u -> u.getRole() == Role.STUDENT).count();
-		long schoolAdminCount = all.stream().filter(u -> u.getRole() == Role.SCHOOL_ADMIN).count();
+		long schoolAdminCount = all.stream().filter(u -> u.getRole() == Role.SCHOOL_ADMIN || u.getRole() == Role.ADMIN).count();
 		long superAdminCount = all.stream().filter(u -> u.getRole() == Role.SUPER_ADMIN).count();
 		long learnerCount = all.stream().filter(u -> u.getRole() == Role.USER).count();
 
@@ -93,6 +96,20 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 				: "The platform has " + views.size() + " " + roleLabel(roleFilter)
 						+ (views.size() == 1 ? "" : "s") + ".");
 		return toJson(data);
+	}
+
+	private boolean matchesRole(Role userRole, Role filter) {
+		if (userRole == null || filter == null) {
+			return false;
+		}
+		if (userRole == filter) {
+			return true;
+		}
+		if ((filter == Role.SCHOOL_ADMIN || filter == Role.ADMIN)
+				&& (userRole == Role.SCHOOL_ADMIN || userRole == Role.ADMIN)) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -131,6 +148,12 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 		String normalized = raw.trim().toUpperCase(Locale.ROOT).replace(' ', '_').replace('-', '_');
 		if (normalized.endsWith("S")) {
 			normalized = normalized.substring(0, normalized.length() - 1);
+		}
+		if ("ADMIN".equals(normalized)) {
+			return Role.SCHOOL_ADMIN;
+		}
+		if ("LEARNER".equals(normalized)) {
+			return Role.USER;
 		}
 		for (Role role : Role.values()) {
 			if (role.name().equals(normalized)) {

@@ -731,6 +731,17 @@ public class AnswerSynthesizer {
 	}
 
 	private String renderAccount(Map<String, Object> d) {
+		if (Boolean.TRUE.equals(d.get("botIdentity"))) {
+			return "I am **SpeakMate AI**, your dedicated assistant for English communication practice, classroom analytics, and platform administration.\n\n"
+					+ "I can help you:\n"
+					+ "- Explore users, teachers, and student rosters\n"
+					+ "- Check individual and class-level speaking performance\n"
+					+ "- Monitor fluency, pronunciation, grammar, and vocabulary progress\n"
+					+ "- Review platform enrollment, school analytics, and subscriptions";
+		}
+		if (Boolean.TRUE.equals(d.get("nonStudentXp"))) {
+			return "As an administrator, your account does not earn XP or track practice streaks. XP and streaks are recorded for students during their English speaking sessions and lesson activities.";
+		}
 		StringBuilder sb = new StringBuilder("**Your account**\n");
 		addLine(sb, "Name", str(d, "displayName"));
 		addLine(sb, "Email", str(d, "email"));

@@ -1,9 +1,9 @@
 package com.rslsolution.speakmateai.assistant;
 
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -284,6 +284,67 @@ public class MasterRoleScopedChatbotTest {
 			assertEquals(AssistantIntent.PLATFORM_USERS, classifier.classify("Show all students.", Role.SUPER_ADMIN, null).getIntent());
 			assertEquals(AssistantIntent.PLATFORM_USERS, classifier.classify("Show all School Admins.", Role.SUPER_ADMIN, null).getIntent());
 			assertEquals(AssistantIntent.PLATFORM_USERS, classifier.classify("Show user distribution by role.", Role.SUPER_ADMIN, null).getIntent());
+		}
+
+		@Test
+		@DisplayName("Super Admin Transcript Fixes: Role-filtered directories, charts, identity, AI insights, list out")
+		void testSuperAdminTranscriptFixes() {
+			// Role directory inquiries
+			IntentResult rSuperAdmins = classifier.classify("who are super admins", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rSuperAdmins.getIntent());
+			assertEquals("SUPER_ADMIN", rSuperAdmins.getParams().get("roleFilter"));
+
+			IntentResult rSuperAdminsList = classifier.classify("list of super admins", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rSuperAdminsList.getIntent());
+			assertEquals("SUPER_ADMIN", rSuperAdminsList.getParams().get("roleFilter"));
+
+			IntentResult rSchoolAdmins = classifier.classify("list of school admins", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rSchoolAdmins.getIntent());
+			assertEquals("SCHOOL_ADMIN", rSchoolAdmins.getParams().get("roleFilter"));
+
+			IntentResult rSchoolAdminsOnly = classifier.classify("list out only school admins", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rSchoolAdminsOnly.getIntent());
+			assertEquals("SCHOOL_ADMIN", rSchoolAdminsOnly.getParams().get("roleFilter"));
+
+			IntentResult rTeachers = classifier.classify("Show me all teachers.", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rTeachers.getIntent());
+			assertEquals("TEACHER", rTeachers.getParams().get("roleFilter"));
+
+			IntentResult rStudents = classifier.classify("Show me all students.", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rStudents.getIntent());
+			assertEquals("STUDENT", rStudents.getParams().get("roleFilter"));
+
+			// Bot Identity & Non-Student XP
+			IntentResult rWhoAreYou = classifier.classify("who are you", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.ACCOUNT_INFO, rWhoAreYou.getIntent());
+			assertEquals(Boolean.TRUE, rWhoAreYou.getParams().get("botIdentity"));
+
+			IntentResult rMyXp = classifier.classify("What is my XP?", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.ACCOUNT_INFO, rMyXp.getIntent());
+			assertEquals(Boolean.TRUE, rMyXp.getParams().get("nonStudentXp"));
+
+			// AI Insights & Billing
+			assertEquals(AssistantIntent.AI_INSIGHTS, classifier.classify("Show me AI speaking insights.", Role.SUPER_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.AI_INSIGHTS, classifier.classify("give me insights", Role.SUPER_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.BILLING, classifier.classify("who subscribed", Role.SUPER_ADMIN, null).getIntent());
+
+			// Charts & Name Extraction (no hijacking)
+			IntentResult rOverviewGraph = classifier.classify("overview graph give me", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_OVERVIEW, rOverviewGraph.getIntent());
+			assertNull(rOverviewGraph.getParams().get("studentName"));
+
+			IntentResult rDonutChart = classifier.classify("give donut chart of siddhi narke progress", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.STUDENT_PERFORMANCE, rDonutChart.getIntent());
+			assertNotNull(rDonutChart.getParams().get("studentName"));
+			assertTrue(rDonutChart.getParams().get("studentName").toString().toLowerCase().contains("siddhi narke"));
+
+			// List out & school extraction
+			assertEquals(AssistantIntent.PLATFORM_OVERVIEW, classifier.classify("list out school names", Role.SUPER_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.PLATFORM_OVERVIEW, classifier.classify("which school are added", Role.SUPER_ADMIN, null).getIntent());
+
+			IntentResult rJspm = classifier.classify("can you list out only JSPM student", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rJspm.getIntent());
+			assertEquals("JSPM", rJspm.getParams().get("schoolName"));
 		}
 
 		@Test

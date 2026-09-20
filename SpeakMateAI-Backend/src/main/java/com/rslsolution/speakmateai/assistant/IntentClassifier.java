@@ -97,6 +97,8 @@ public class IntentClassifier {
 	private static final Pattern SCHOOL_BEFORE_TOKEN_PATTERN = Pattern.compile(
 			"([A-Za-z][A-Za-z0-9'&.]*(?:\\s+[A-Za-z][A-Za-z0-9'&.]*){0,4}\\s+(?:school|highschool|high school|vidyalaya|academy|college|institute|university|convent|campus|polytechnic|vidyamandir|gurukul|high))\\b",
 			Pattern.CASE_INSENSITIVE);
+	private static final Pattern SCHOOL_BEFORE_ROSTER_ENTITY_PATTERN = Pattern.compile(
+			"\\b(?:only\\s+)?([A-Z0-9]{2,}|[A-Za-z0-9'&.]+(?:\\s+[A-Za-z0-9'&.]+){0,2})\\s+(?:students?|learners?|teachers?|staff)\\b");
 	/**
 	 * Interrogative / domain words that can leak into the FRONT of a fallback
 	 * name capture ("info of St.Vincent High" -> "St.Vincent High"). They can
@@ -112,7 +114,7 @@ public class IntentClassifier {
 			"can", "could", "would", "should", "strength", "number", "numbers",
 			"count", "counts", "total", "totals", "performance", "performing",
 			"progress", "progressing", "see", "view", "check", "know", "want",
-			"like", "to", "there", "teaching", "current");
+			"like", "to", "there", "teaching", "current", "out", "only");
 	private static final List<String> SCHOOL_NAME_TRAILING_FILLER = List.of(
 			"and", "or", "with", "for", "at", "in", "the", "of", "to", "please",
 			"tell", "me", "currently", "enrolled", "registered", "present",
@@ -283,7 +285,12 @@ public class IntentClassifier {
 			"lesson", "lessons", "topic", "topics", "module", "modules",
 			"chapter", "chapters", "completed", "complete", "completes",
 			"completing", "completion", "finished", "finish", "remaining",
-			"pending", "done", "accuracy", "average", "stats", "statistics", "summary");
+			"pending", "done", "accuracy", "average", "stats", "statistics", "summary",
+			// visualizations and charts
+			"chart", "charts", "graph", "graphs", "pie", "donut", "doughnut", "bar",
+			"line", "plot", "plots", "table", "tables", "diagram", "diagrams", "visualize", "visualization", "overview",
+			// chat & Indian English qualifiers
+			"out", "only", "first", "last", "full");
 
 	/**
 		* Extra scaffolding words that can never belong to a person's name in a
@@ -299,7 +306,7 @@ public class IntentClassifier {
 			"departments", "subject", "subjects", "qualification",
 			"qualifications", "experience", "designation", "designations",
 			"id", "ids", "employee", "employeeid", "phone", "contact",
-			"handle", "handles", "handling");
+			"handle", "handles", "handling", "belong", "belongs", "allocated", "allocation");
 
 	public IntentClassifier(GroqChatClient groqChatClient, ObjectMapper objectMapper) {
 		this.groqChatClient = groqChatClient;
@@ -744,7 +751,13 @@ public class IntentClassifier {
 		if (isPureNavigationQuery(message)) {
 			return null;
 		}
-		String m = message.toLowerCase(Locale.ROOT).trim();
+		String m = message.toLowerCase(Locale.ROOT).replaceAll("[?!.,;]+$", "").trim();
+
+		// Platform school list inquiries:
+		if (containsAny(m, List.of(
+				"list out school names", "list out schools", "list of schools", "which school are added", "which schools are added", "school names", "schools added", "all schools"))) {
+			return new IntentResult(AssistantIntent.PLATFORM_OVERVIEW, Map.of(), null);
+		}
 
 		// Platform overview totals:
 		if (containsAny(m, List.of(
@@ -767,22 +780,43 @@ public class IntentClassifier {
 		if (containsAny(m, List.of(
 				"what are the active plans", "active plans", "active subscription plans",
 				"show me subscription statistics", "show subscription statistics", "subscription statistics", "active subscriptions", "show active subscriptions",
+				"who subscribed", "who has subscribed", "who taken subscription", "subscribers", "subscribed users", "active subscribers",
 				"show me revenue metrics", "show revenue metrics", "revenue metrics", "platform revenue", "show me platform revenue", "show platform revenue",
 				"how much money does the platform make", "platform earnings", "total earnings",
 				"give me a billing overview", "billing overview"))) {
 			return new IntentResult(AssistantIntent.BILLING, Map.of(), null);
 		}
 
+		// AI Insights:
+		if (containsAny(m, List.of(
+				"ai speaking insights", "speaking insights", "show me ai speaking insights",
+				"give me insights", "give insights", "show insights", "speech quality insights",
+				"pronunciation insights", "fluency insights"))) {
+			return new IntentResult(AssistantIntent.AI_INSIGHTS, Map.of(), null);
+		}
+
 		// User directory:
 		if (containsAny(m, List.of(
-				"show me all users", "show all users", "names of all users", "list of all users",
-				"show me all teachers", "show all teachers", "show me all students", "show all students",
-				"show me all school admins", "show all school admins",
+				"show me all users", "show all users", "names of all users", "list of all users", "list of users", "all users on the platform", "all users", "list users", "list all users",
+				"show me all teachers", "show all teachers", "list of all teachers", "list of teachers", "list out all teachers", "list out teachers", "all teachers",
+				"show me all students", "show all students", "list of all students", "list of students", "list out all students", "list out students", "all students",
+				"show me all school admins", "show all school admins", "list of all school admins", "list of school admins", "list out school admins", "list out only school admins", "list out school admins only", "school admins", "who are school admins", "all school admins",
+				"show me all super admins", "show all super admins", "list of all super admins", "list of super admins", "list out super admins", "super admins", "who are super admins", "all super admins",
 				"user distribution by role", "user role distribution", "show user distribution by role", "show user role distribution"))) {
 			Map<String, Object> params = new java.util.LinkedHashMap<>();
-			if (m.contains("teacher")) params.put("roleFilter", "TEACHER");
-			else if (m.contains("student")) params.put("roleFilter", "STUDENT");
-			else if (m.contains("school admin")) params.put("roleFilter", "SCHOOL_ADMIN");
+			if (m.contains("super admin") || m.contains("superadmin")) {
+				params.put("roleFilter", "SUPER_ADMIN");
+				params.put("role", "SUPER_ADMIN");
+			} else if (m.contains("school admin")) {
+				params.put("roleFilter", "SCHOOL_ADMIN");
+				params.put("role", "SCHOOL_ADMIN");
+			} else if (m.contains("teacher")) {
+				params.put("roleFilter", "TEACHER");
+				params.put("role", "TEACHER");
+			} else if (m.contains("student")) {
+				params.put("roleFilter", "STUDENT");
+				params.put("role", "STUDENT");
+			}
 			return new IntentResult(AssistantIntent.PLATFORM_USERS, params, null);
 		}
 
@@ -917,6 +951,16 @@ public class IntentClassifier {
 		AssistantIntent navHelp = navigationOverride(message, role);
 		if (navHelp != null && isPureNavigationQuery(message)) {
 			return new IntentResult(navHelp, Map.of(), null);
+		}
+
+		// Bot identity inquiry ("who are you", "what are you", "introduce yourself"):
+		if (containsAny(m, List.of("who are you", "what are you", "introduce yourself", "tell me about yourself", "what is your name", "who made you"))) {
+			return new IntentResult(AssistantIntent.ACCOUNT_INFO, Map.of("botIdentity", true), null);
+		}
+
+		// Non-student asking for personal XP/streak ("what is my xp", "my xp", "my streak"):
+		if (role != Role.STUDENT && role != Role.USER && containsAny(m, List.of("my xp", "what is my xp", "my streak", "how much xp do i have", "my level", "my experience points"))) {
+			return new IntentResult(AssistantIntent.ACCOUNT_INFO, Map.of("nonStudentXp", true), null);
 		}
 
 		AssistantIntent accountOverride = accountInfoOverride(message, role);
@@ -1113,6 +1157,13 @@ public class IntentClassifier {
 				return before;
 			}
 		}
+		Matcher entityMatcher = SCHOOL_BEFORE_ROSTER_ENTITY_PATTERN.matcher(m);
+		if (entityMatcher.find()) {
+			String entitySchool = cleanSchoolFragment(entityMatcher.group(1));
+			if (isPlausibleSchoolName(entitySchool)) {
+				return entitySchool;
+			}
+		}
 		return "";
 	}
 
@@ -1196,7 +1247,7 @@ public class IntentClassifier {
 		if (f.isEmpty()) {
 			return "";
 		}
-		f = f.replaceFirst("^(?:the|a|an|my|our|this|that|which)\\s+", "").trim();
+		f = f.replaceFirst("^(?:the|a|an|my|our|this|that|which|only)\\s+", "").trim();
 		// Strip leading interrogative / domain words leaked in by a fallback
 		// capture ("info of St.Vincent High" -> "St.Vincent High").
 		boolean stripped = true;
@@ -1361,11 +1412,23 @@ public class IntentClassifier {
 				"show me my students", "show the teachers", "show the students",
 				"give me the list of", "give me a list of", "give me the names of",
 				"give list of teachers", "give list of students", "give list of", "give a list of",
-				"give list", "give names", "show list of", "show list",
+				"list out students", "list out teachers", "list out all students", "list out all teachers",
+				"list out only students", "list out only teachers", "list out the students", "list out the teachers",
 				"teachers in my school", "students in my school", "students in class", "students of class",
 				"students in standard", "students of standard", "students in grade", "students of grade"));
 		if (extractClassSpec(message) != null && (m.contains("student") || m.contains("learner") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give"))) {
 			return AssistantIntent.SCHOOL_ROSTER;
+		}
+		// A school-scoped student/teacher list inquiry ("list out only JSPM student", "list JSPM students", "students in JSPM"):
+		if ((m.contains("list") || m.contains("show") || m.contains("who are") || m.contains("names") || m.contains("give"))
+				&& (m.contains("student") || m.contains("teacher") || m.contains("learner"))
+				&& !extractSchoolName(message).isEmpty()) {
+			return AssistantIntent.SCHOOL_ROSTER;
+		}
+		// A question asking for school names / list of schools belongs to PLATFORM_OVERVIEW
+		if (containsAny(m, List.of("school names", "name of schools", "names of schools", "list of schools", "list out schools", "list out school names", "which schools", "which school"))
+				&& !m.contains("student") && !m.contains("teacher") && !m.contains("learner")) {
+			return null;
 		}
 		return (roster || detailMarker) ? AssistantIntent.SCHOOL_ROSTER : null;
 	}
@@ -1399,7 +1462,8 @@ public class IntentClassifier {
 		}
 		boolean userToken = containsAny(m, List.of(
 				"user", "users", "account", "accounts", "member", "members",
-				"login", "logins", "people", "person", "everyone"));
+				"login", "logins", "people", "person", "everyone",
+				"admin", "admins", "super admin", "super admins", "school admin", "school admins"));
 		if (!userToken) {
 			return null;
 		}
@@ -1407,7 +1471,8 @@ public class IntentClassifier {
 				"name of", "names of", "list of", "list all", "list the",
 				"list every", "all the", "all of the", "every", "who are",
 				"who is", "show me", "show all", "show the", "give me",
-				"tell me", "display", "directory", "all users", "all accounts"));
+				"tell me", "display", "directory", "all users", "all accounts",
+				"list out", "list out all", "list out only", "list out the"));
 		return listPhrase ? AssistantIntent.PLATFORM_USERS : null;
 	}
 
@@ -1510,15 +1575,17 @@ public class IntentClassifier {
 		if (emailMatcher.find()) {
 			return emailMatcher.group();
 		}
-		String personFocus = extractAnyPersonFocusName(message);
+		// Strip chart / visualization clauses before extracting names (e.g. "give donut chart of siddhi narke progress" -> "siddhi narke")
+		String sanitized = message.replaceAll("(?i)\\b(?:donut|doughnut|pie|bar|line|horizontal\\s+bar)?\\s*(?:chart|graph|plot|table|diagram|visualization)\\s*(?:of|for|with)?\\b", " ").replaceAll("\\s+", " ").trim();
+		String personFocus = extractAnyPersonFocusName(sanitized);
 		if (!personFocus.isEmpty()) {
 			return personFocus;
 		}
-		String capitalized = extractPersonFocusName(message);
+		String capitalized = extractPersonFocusName(sanitized);
 		if (!capitalized.isEmpty()) {
 			return capitalized;
 		}
-		return extractLowercaseMetricName(message);
+		return extractLowercaseMetricName(sanitized);
 	}
 
 	/**
