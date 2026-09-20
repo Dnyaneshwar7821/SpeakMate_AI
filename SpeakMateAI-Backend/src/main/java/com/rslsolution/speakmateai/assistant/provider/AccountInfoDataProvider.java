@@ -11,12 +11,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
 import com.rslsolution.speakmateai.entity.School;
+import com.rslsolution.speakmateai.entity.UserSubscription;
+import com.rslsolution.speakmateai.enums.SubscriptionStatus;
 import com.rslsolution.speakmateai.repository.SchoolRepository;
+import com.rslsolution.speakmateai.repository.UserSubscriptionRepository;
 
 /**
  * Answers questions about the authenticated caller's OWN account/identity
  * ("what is my logged-in email?", "who am I?", "my role", "my school",
- * "my phone", "my joined date").
+ * "my phone", "my joined date", "my subscription/plan").
  *
  * <p>The data comes from the already-resolved {@link ActorContext} plus the
  * caller's own school (when scoped). No sensitive profile data and no other
@@ -27,10 +30,14 @@ import com.rslsolution.speakmateai.repository.SchoolRepository;
 public class AccountInfoDataProvider implements AssistantDataProvider {
 
 	private final SchoolRepository schoolRepository;
+	private final UserSubscriptionRepository userSubscriptionRepository;
 	private final ObjectMapper objectMapper;
 
-	public AccountInfoDataProvider(SchoolRepository schoolRepository, ObjectMapper objectMapper) {
+	public AccountInfoDataProvider(SchoolRepository schoolRepository,
+			UserSubscriptionRepository userSubscriptionRepository,
+			ObjectMapper objectMapper) {
 		this.schoolRepository = schoolRepository;
+		this.userSubscriptionRepository = userSubscriptionRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -53,6 +60,24 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 		data.put("role", actor.getRole() != null ? actor.getRole().name() : null);
 		if (actor.getUserId() != null) {
 			data.put("userId", actor.getUserId());
+			try {
+				Optional<UserSubscription> sub = userSubscriptionRepository
+						.findFirstByUserIdAndSubscriptionStatus(actor.getUserId(), SubscriptionStatus.ACTIVE);
+				if (sub.isPresent()) {
+					String plan = sub.get().getPlanType() != null ? sub.get().getPlanType() : "PRO Plan";
+					data.put("currentSubscription", plan);
+					data.put("subscriptionPlan", plan);
+					data.put("subscriptionStatus", "ACTIVE");
+				} else {
+					data.put("currentSubscription", "Free Tier");
+					data.put("subscriptionPlan", "Free Tier");
+					data.put("subscriptionStatus", "FREE");
+				}
+			} catch (Exception e) {
+				data.put("currentSubscription", "Free Tier");
+				data.put("subscriptionPlan", "Free Tier");
+			}
+		}
 		}
 		if (actor.getSchoolId() != null) {
 			data.put("schoolId", actor.getSchoolId());

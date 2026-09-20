@@ -17,12 +17,15 @@ import com.rslsolution.speakmateai.entity.SpeakingSession;
 import com.rslsolution.speakmateai.entity.User;
 import java.util.stream.Collectors;
 import com.rslsolution.speakmateai.entity.GrammarHistory;
+import com.rslsolution.speakmateai.entity.UserSubscription;
 import com.rslsolution.speakmateai.entity.Vocabulary;
+import com.rslsolution.speakmateai.enums.SubscriptionStatus;
 import com.rslsolution.speakmateai.repository.GrammarHistoryRepository;
 import com.rslsolution.speakmateai.repository.LessonProgressRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
+import com.rslsolution.speakmateai.repository.UserSubscriptionRepository;
 import com.rslsolution.speakmateai.repository.VocabularyRepository;
 
 /**
@@ -39,6 +42,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 	private final SpeakingSessionRepository speakingSessionRepository;
 	private final VocabularyRepository vocabularyRepository;
 	private final GrammarHistoryRepository grammarHistoryRepository;
+	private final UserSubscriptionRepository userSubscriptionRepository;
 	private final ObjectMapper objectMapper;
 
 	public SelfProgressDataProvider(UserRepository userRepository,
@@ -47,6 +51,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			SpeakingSessionRepository speakingSessionRepository,
 			VocabularyRepository vocabularyRepository,
 			GrammarHistoryRepository grammarHistoryRepository,
+			UserSubscriptionRepository userSubscriptionRepository,
 			ObjectMapper objectMapper) {
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
@@ -54,6 +59,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		this.speakingSessionRepository = speakingSessionRepository;
 		this.vocabularyRepository = vocabularyRepository;
 		this.grammarHistoryRepository = grammarHistoryRepository;
+		this.userSubscriptionRepository = userSubscriptionRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -223,6 +229,25 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 
 		boolean hasStarted = (lessonsCompleted > 0 || totalSessions > 0 || (p != null && p.getXp() != null && p.getXp() > 0));
 		data.put("hasStartedLearning", hasStarted);
+
+		// Subscription & plan details
+		try {
+			Optional<UserSubscription> activeSub = userSubscriptionRepository.findFirstByUserIdAndSubscriptionStatus(user.getId(), SubscriptionStatus.ACTIVE);
+			if (activeSub.isPresent()) {
+				UserSubscription sub = activeSub.get();
+				String plan = sub.getPlanType() != null ? sub.getPlanType() : "PRO Plan";
+				data.put("currentSubscription", plan);
+				data.put("subscriptionPlan", plan);
+				data.put("subscriptionStatus", "ACTIVE");
+			} else {
+				data.put("currentSubscription", "Free Tier");
+				data.put("subscriptionPlan", "Free Tier");
+				data.put("subscriptionStatus", "FREE");
+			}
+		} catch (Exception e) {
+			data.put("currentSubscription", "Free Tier");
+			data.put("subscriptionPlan", "Free Tier");
+		}
 
 		return toJson(data);
 	}

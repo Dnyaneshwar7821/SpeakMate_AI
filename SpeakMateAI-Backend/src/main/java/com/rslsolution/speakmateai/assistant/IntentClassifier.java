@@ -534,8 +534,11 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
 		}
 
-		// Account / Identity queries:
-		if (containsAny(m, List.of("what is my name", "who am i", "my account details", "what are my account details", "my profile details"))) {
+		// Account / Identity / Subscription queries:
+		if (containsAny(m, List.of("what is my name", "who am i", "my account details", "what are my account details", "my profile details",
+				"what is my current subscription", "what is my current plan", "what is my subscription", "what is my plan",
+				"current subscription", "my current subscription", "current plan", "my current plan", "my subscription", "my plan", "subscription/plan",
+				"what is my current subscription/plan"))) {
 			return new IntentResult(AssistantIntent.ACCOUNT_INFO, Map.of(), null);
 		}
 
