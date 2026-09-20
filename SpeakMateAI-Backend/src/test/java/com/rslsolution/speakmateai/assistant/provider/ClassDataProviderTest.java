@@ -132,4 +132,49 @@ class ClassDataProviderTest {
 		assertEquals("Not assigned", data.get("assignedTeacher"));
 		assertEquals(0, data.get("studentCount"));
 	}
+
+	@Test
+	@DisplayName("ClassDataProvider prefers class with teacher and falls back to school students by standard and division")
+	void testFallbackToSchoolStudentsByStandardAndDivision() throws Exception {
+		ClassRoom c9Empty = ClassRoom.builder().id(12L).schoolId(24L).name("Grade 9 - A").grade("9").division("A").status(Status.ACTIVE).teacherId(null).build();
+		ClassRoom c9WithTeacher = ClassRoom.builder().id(11L).schoolId(24L).name("Grade 9 - A").grade("9").division("A").status(Status.ACTIVE).teacherId(88L).build();
+		when(classRoomRepository.findBySchoolId(24L)).thenReturn(List.of(c9Empty, c9WithTeacher));
+
+		// class_student is empty
+		when(classStudentRepository.findByClassId(11L)).thenReturn(List.of());
+
+		Student s1 = new Student();
+		s1.setId(94L);
+		s1.setFirstName("Siddhi");
+		s1.setLastName("Narke");
+		s1.setStandard("9");
+		s1.setDivision("A");
+		s1.setTeacherId(88L);
+
+		Student s2 = new Student();
+		s2.setId(99L);
+		s2.setFirstName("Rohan");
+		s2.setLastName("Kadam");
+		s2.setStandard("9");
+		s2.setDivision("A");
+		s2.setTeacherId(88L);
+
+		when(studentRepository.findBySchoolId(24L)).thenReturn(List.of(s1, s2));
+
+		Progress p1 = Progress.builder().id(76L).xp(409).currentStreak(1).totalPracticeMinutes(2).build();
+		when(progressRepository.findByStudent(s1)).thenReturn(Optional.of(p1));
+		when(progressRepository.findByStudent(s2)).thenReturn(Optional.empty());
+
+		User teacher = User.builder().id(88L).firstName("Pratik").lastName("Patil").build();
+		when(userRepository.findById(88L)).thenReturn(Optional.of(teacher));
+
+		String json = provider.provide(schoolAdmin, Map.of("standard", "9", "division", "A"));
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<>() {});
+
+		assertEquals("Grade 9 - A", data.get("className"));
+		assertEquals("Pratik Patil", data.get("assignedTeacher"));
+		assertEquals(2, data.get("studentCount"));
+		assertEquals(409, data.get("totalXp"));
+		assertEquals(204, data.get("averageXpPerStudent"));
+	}
 }
