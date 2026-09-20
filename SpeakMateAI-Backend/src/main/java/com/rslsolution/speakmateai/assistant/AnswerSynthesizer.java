@@ -234,8 +234,9 @@ public class AnswerSynthesizer {
 					+ "- TOP / BEST STUDENTS: When asked about the best student, top students, or student XP leaderboard (e.g. 'best student currently', 'how many XP does each student have', 'who has highest xp'): report the best student from bestStudent and list the top students from topStudents with their name, school, standard/division, XP, level, and streak.\n"
 					+ "- If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount and highlight the top schools, using a 'horizontal-bar' chart so school names on the axis are never cut off.\n"
 					+ "Never say data is unavailable when the fields are present.";
-			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area.";
-			case CLASS_PERFORMANCE -> "Summarize the class/grade/division performance. Highlight top areas and areas to improve.";
+			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area. "
+					+ "TOP / BEST STUDENTS & LEADERBOARDS: When asked about the best student, top students, highest XP, or student leaderboard for the school, report the top student from bestStudent and list the top students from topStudents with their name, standard, division, XP, level, and streak.";
+			case CLASS_PERFORMANCE -> "Summarize the class/grade/division performance clearly from the provided fields (className, grade, division, studentCount, totalXp, averageXpPerStudent, studentsWithActiveStreak, averagePracticeMinutesPerStudent, assignedTeacher). State the enrolled student count, assigned teacher, and learning metrics. Highlight strengths and areas to improve.";
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats with numbers. Report the metric(s) asked about clearly: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions, completedSpeakingSessions, and speech scores (fluencyScore, pronunciationScore, speakingGrammarScore, speakingVocabularyScore, overallSpeakingScore); vocabulary -> totalVocabularyWords, masteredVocabularyWords, and recentVocabularyWords; grammar -> totalGrammarChecks and averageGrammarScore. When asked broadly ('how is my progress', 'how am I doing', 'my stats', etc.), present a comprehensive 5-pillar breakdown with clean headings or bullet points: 🎙️ Speaking Practice, 💡 Vocabulary, 📝 Grammar Checks, 📚 Lessons, and ⚡ XP & Streak. Always include stat cards for key metrics.\n"
 					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons.\n"
 					+ "CHART RULE FOR STUDENT LEARNING: When adding a chart for learning progress or performance, NEVER create a narrow 'Completed vs Remaining' chart. Always break down activity across EACH MODULE: Speaking (totalSpeakingSessions), Lessons (lessonsCompleted), Grammar (totalGrammarChecks), and Vocabulary (totalVocabularyWords). Set labels: ['Speaking', 'Lessons', 'Grammar', 'Vocabulary'], title: 'Learning Activity by Module', dataset label: 'Activities', with dynamic chart type 'bar' or 'doughnut'. If the user specifically asks for speech scores progress, use labels ['Fluency', 'Pronunciation', 'Grammar', 'Vocabulary'] with speaking evaluation scores.\n"
@@ -365,7 +366,7 @@ public class AnswerSynthesizer {
 		}
 		return switch (intent) {
 			case PLATFORM_OVERVIEW -> renderPlatform(data, userMessage);
-			case SCHOOL_OVERVIEW -> renderSchool(data);
+			case SCHOOL_OVERVIEW -> renderSchool(data, userMessage);
 			case SCHOOL_DASHBOARD -> renderDashboard(data);
 			case RESULTS_ANALYTICS -> renderResults(data);
 			case AI_INSIGHTS -> renderAiInsights(data);
@@ -375,7 +376,7 @@ public class AnswerSynthesizer {
 			case BILLING -> renderBilling(data);
 			case ACCOUNT_INFO -> renderAccount(data);
 			case NAVIGATION_HELP -> renderNavigation(data);
-			case CLASS_PERFORMANCE -> summaryOr(data, null);
+			case CLASS_PERFORMANCE -> renderClassPerformance(data, userMessage);
 			case STUDENT_PERFORMANCE -> renderStudentPerformance(data, userMessage);
 			case ACCESS_DENIED -> "This question is outside your access. Ask me about your own dashboard, students, "
 					+ "teachers, results, AI insights, profile or settings.";
@@ -550,8 +551,50 @@ public class AnswerSynthesizer {
 		return trimOrNull(sb);
 	}
 
-	private String renderSchool(Map<String, Object> d) {
+	private String renderSchool(Map<String, Object> d, String userMessage) {
 		String schoolName = str(d, "schoolName");
+		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT).trim() : "");
+		boolean isBestStudent = (msg.contains("best student") || msg.contains("top student") || msg.contains("highest xp")
+				|| msg.contains("leaderboard") || msg.contains("top performer") || msg.contains("best performer")
+				|| (msg.contains("xp") && (msg.contains("student") || msg.contains("who"))));
+
+		if (isBestStudent && d.containsKey("bestStudent")) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> best = d.get("bestStudent") instanceof Map<?, ?> ? (Map<String, Object>) d.get("bestStudent") : null;
+			if (best != null) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("**Top Student at ").append(schoolName.isBlank() ? "School" : schoolName).append("**\n");
+			sb.append(str(best, "name")).append(" (XP: ").append(num(best, "xp")).append(")");
+			String std = str(best, "standard");
+			String div = str(best, "division");
+			if (!std.isBlank() || !div.isBlank()) {
+				sb.append(" — Class: ").append(std).append(!div.isBlank() ? "-" + div : "");
+			}
+			String streak = num(best, "streak");
+			if (!streak.isBlank() && !"0".equals(streak)) {
+				sb.append(", Streak: ").append(streak).append(" days");
+			}
+			sb.append('\n');
+
+			List<Map<String, Object>> topList = maps(d, "topStudents");
+			if (!topList.isEmpty()) {
+				sb.append("\n**Top Students Leaderboard**\n");
+				int rank = 1;
+				for (Map<String, Object> s : topList) {
+					sb.append(rank).append(". ").append(str(s, "name")).append(" — ").append(num(s, "xp")).append(" XP");
+					String sStd = str(s, "standard");
+					String sDiv = str(s, "division");
+					if (!sStd.isBlank() || !sDiv.isBlank()) {
+						sb.append(" (").append(sStd).append(!sDiv.isBlank() ? "-" + sDiv : "").append(")");
+					}
+					sb.append('\n');
+					rank++;
+				}
+			}
+				return trimOrNull(sb);
+			}
+		}
+
 		StringBuilder sb = new StringBuilder();
 		sb.append("**").append(schoolName.isBlank() ? "School overview" : schoolName).append("**\n");
 		sb.append("- **Total students:** ").append(zeroIfBlank(num(d, "totalStudents"))).append('\n');
@@ -569,6 +612,25 @@ public class AnswerSynthesizer {
 		if (!summary.isBlank()) {
 			sb.append('\n').append(summary).append('\n');
 		}
+		return trimOrNull(sb);
+	}
+
+	private String renderClassPerformance(Map<String, Object> d, String userMessage) {
+		StringBuilder sb = new StringBuilder();
+		String summary = str(d, "summary");
+		if (!summary.isBlank()) {
+			sb.append(summary).append("\n\n");
+		}
+		String className = str(d, "className");
+		sb.append("**Class Performance: ").append(className.isBlank() ? "Class Details" : className).append("**\n");
+		addLine(sb, "Grade / Standard", str(d, "grade"));
+		addLine(sb, "Division", str(d, "division"));
+		addLine(sb, "Assigned Teacher", str(d, "assignedTeacher"));
+		addLine(sb, "Enrolled Students", zeroIfBlank(num(d, "studentCount")));
+		addLine(sb, "Learners with Active Streak", zeroIfBlank(num(d, "studentsWithActiveStreak")));
+		addLine(sb, "Total XP", zeroIfBlank(num(d, "totalXp")));
+		addLine(sb, "Average XP per Student", zeroIfBlank(num(d, "averageXpPerStudent")));
+		addLine(sb, "Average Practice Minutes", zeroIfBlank(num(d, "averagePracticeMinutesPerStudent")));
 		return trimOrNull(sb);
 	}
 

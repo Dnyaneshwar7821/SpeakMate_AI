@@ -27,6 +27,7 @@ import com.rslsolution.speakmateai.repository.ClassStudentRepository;
 import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.TeacherStandardDivisionRepository;
+import com.rslsolution.speakmateai.repository.UserRepository;
 
 /**
  * Class / grade / division performance. Super Admin + School Admin can see any
@@ -41,17 +42,21 @@ public class ClassDataProvider implements AssistantDataProvider {
 	private final StudentRepository studentRepository;
 	private final ProgressRepository progressRepository;
 	private final TeacherStandardDivisionRepository teacherStandardDivisionRepository;
+	private final UserRepository userRepository;
 	private final ObjectMapper objectMapper;
 
 	public ClassDataProvider(ClassRoomRepository classRoomRepository,
 			ClassStudentRepository classStudentRepository, StudentRepository studentRepository,
 			ProgressRepository progressRepository,
-			TeacherStandardDivisionRepository teacherStandardDivisionRepository, ObjectMapper objectMapper) {
+			TeacherStandardDivisionRepository teacherStandardDivisionRepository,
+			UserRepository userRepository,
+			ObjectMapper objectMapper) {
 		this.classRoomRepository = classRoomRepository;
 		this.classStudentRepository = classStudentRepository;
 		this.studentRepository = studentRepository;
 		this.progressRepository = progressRepository;
 		this.teacherStandardDivisionRepository = teacherStandardDivisionRepository;
+		this.userRepository = userRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -111,6 +116,22 @@ public class ClassDataProvider implements AssistantDataProvider {
 			data.put("averageXpPerStudent", 0);
 		}
 
+		String teacherName = "Not assigned";
+		if (target.getTeacherId() != null) {
+			teacherName = userRepository.findById(target.getTeacherId())
+					.map(u -> (u.getFirstName() + " " + (u.getLastName() != null ? u.getLastName() : "")).trim())
+					.orElse("Not assigned");
+		}
+		data.put("assignedTeacher", teacherName);
+
+		int studentCount = studentIds.size();
+		String summary = "Class " + target.getName() + " (Grade " + target.getGrade()
+				+ (target.getDivision() != null && !target.getDivision().isBlank() ? ", Division " + target.getDivision() : "") + ")"
+				+ " has " + studentCount + " enrolled student" + (studentCount == 1 ? "" : "s") + "."
+				+ " Assigned teacher: " + teacherName + "."
+				+ (studentCount > 0 ? " Total XP: " + data.get("totalXp") + ", Average XP: " + data.get("averageXpPerStudent") + "." : "");
+		data.put("summary", summary);
+
 		List<String> available = classes.stream()
 				.map(cr -> cr.getName())
 				.filter(Objects::nonNull)
@@ -159,21 +180,55 @@ public class ClassDataProvider implements AssistantDataProvider {
 	private ClassRoom pickClass(List<ClassRoom> classes, Map<String, Object> params) {
 		String className = strParam(params, "className");
 		String grade = strParam(params, "grade");
+		if (grade.isEmpty()) {
+			grade = strParam(params, "standard");
+		}
 		String division = strParam(params, "division");
 
-		Optional<ClassRoom> byName = classes.stream()
-				.filter(c -> !className.isEmpty() && c.getName() != null
-						&& c.getName().equalsIgnoreCase(className))
-				.findFirst();
-		if (byName.isPresent()) {
-			return byName.get();
+		if (!className.isEmpty()) {
+			String normClassName = className.replaceAll("[\\s_-]+", "").toLowerCase(Locale.ROOT);
+			Optional<ClassRoom> byName = classes.stream()
+					.filter(c -> c.getName() != null && c.getName().replaceAll("[\\s_-]+", "").equalsIgnoreCase(normClassName))
+					.findFirst();
+			if (byName.isPresent()) {
+				return byName.get();
+			}
 		}
 
-		Optional<ClassRoom> byGradeDivision = classes.stream()
-				.filter(c -> (!grade.isEmpty() && c.getGrade() != null && c.getGrade().equalsIgnoreCase(grade))
-						&& (division.isEmpty() || (c.getDivision() != null && c.getDivision().equalsIgnoreCase(division))))
-				.findFirst();
-		return byGradeDivision.orElse(classes.get(0));
+		if (!grade.isEmpty()) {
+			String targetNormGrade = normalizeStandard(grade);
+			String targetNormDiv = division.trim().toLowerCase(Locale.ROOT);
+
+			if (!targetNormDiv.isEmpty()) {
+				Optional<ClassRoom> byBoth = classes.stream()
+						.filter(c -> normalizeStandard(c.getGrade()).equalsIgnoreCase(targetNormGrade)
+								&& c.getDivision() != null
+								&& c.getDivision().trim().equalsIgnoreCase(targetNormDiv))
+						.findFirst();
+				if (byBoth.isPresent()) {
+					return byBoth.get();
+				}
+			}
+
+			Optional<ClassRoom> byGrade = classes.stream()
+					.filter(c -> normalizeStandard(c.getGrade()).equalsIgnoreCase(targetNormGrade))
+					.findFirst();
+			if (byGrade.isPresent()) {
+				return byGrade.get();
+			}
+		}
+
+		if (!division.isEmpty()) {
+			String targetNormDiv = division.trim().toLowerCase(Locale.ROOT);
+			Optional<ClassRoom> byDiv = classes.stream()
+					.filter(c -> c.getDivision() != null && c.getDivision().trim().equalsIgnoreCase(targetNormDiv))
+					.findFirst();
+			if (byDiv.isPresent()) {
+				return byDiv.get();
+			}
+		}
+
+		return classes.get(0);
 	}
 
 	/**

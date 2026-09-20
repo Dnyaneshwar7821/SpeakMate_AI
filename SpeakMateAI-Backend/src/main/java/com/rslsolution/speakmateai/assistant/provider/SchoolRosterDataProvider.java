@@ -122,7 +122,14 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		} else {
 			Map<String, Object> empty = new LinkedHashMap<>();
 			empty.put("message", "NO DATA");
-			empty.put("availableSchools", availableSchoolNames());
+			if (actor.getRole() == Role.SCHOOL_ADMIN) {
+				empty.put("reason", "Access denied: You are only authorized to view roster data for your own school.");
+				if (actor.getSchoolId() != null) {
+					schoolRepository.findById(actor.getSchoolId()).ifPresent(s -> empty.put("availableSchools", List.of(displayName(s))));
+				}
+			} else {
+				empty.put("availableSchools", availableSchoolNames());
+			}
 			return toJson(empty);
 		}
 
@@ -673,7 +680,19 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 	private School resolveSchool(ActorContext actor, Map<String, Object> params) {
 		Long adminSchoolId = actor.getSchoolId();
 		if (actor.getRole() == Role.SCHOOL_ADMIN && adminSchoolId != null) {
-			return schoolRepository.findById(adminSchoolId).orElse(null);
+			School ownSchool = schoolRepository.findById(adminSchoolId).orElse(null);
+			Object requested = params != null ? params.get("schoolName") : null;
+			if (requested != null && !requested.toString().isBlank() && ownSchool != null) {
+				String reqKey = schoolKey(requested.toString().trim());
+				String ownKey = schoolKey(displayName(ownSchool));
+				String ownShort = schoolKey(ownSchool.getName());
+				boolean matchesOwn = ownKey.contains(reqKey) || reqKey.contains(ownKey)
+						|| (!ownShort.isEmpty() && (ownShort.contains(reqKey) || reqKey.contains(ownShort)));
+				if (!matchesOwn) {
+					return null; // Deny access to foreign school
+				}
+			}
+			return ownSchool;
 		}
 		Object name = params.get("schoolName");
 		if (name == null || name.toString().isBlank()) {

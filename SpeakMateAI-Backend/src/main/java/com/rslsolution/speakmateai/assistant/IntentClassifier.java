@@ -726,6 +726,18 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.SCHOOL_DASHBOARD, Map.of(), null);
 		}
 
+		// School student leaderboards, best student, highest XP within the school:
+		if (containsAny(m, List.of(
+				"best student", "top student", "top students", "highest xp", "most xp",
+				"highest points", "most points", "student leaderboard", "leaderboard",
+				"top performer", "top performers", "best performer", "best performing student", "best performing students",
+				"highest score", "who has highest xp", "who has the highest xp",
+				"student ranking", "student rankings"))) {
+			Map<String, Object> p = new java.util.LinkedHashMap<>();
+			p.put("leaderboard", true);
+			return new IntentResult(AssistantIntent.SCHOOL_OVERVIEW, p, null);
+		}
+
 		// Teachers / Roster (checked before overview so "show all teachers" is never matched as overview):
 		if (containsAny(m, List.of(
 				"all teachers in my school", "show me all teachers", "show all teachers in my school", "show all teachers",
@@ -1080,15 +1092,16 @@ public class IntentClassifier {
 
 		// 2. Class / Standard-Division student list or performance fast-path
 		List<ClassSpec> classSpecs = extractAllClassSpecs(message);
-		if (!classSpecs.isEmpty() && (m.contains("student") || m.contains("learner") || m.contains("teacher") || m.contains("teach") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give"))) {
-			boolean perf = containsAny(m, List.of("performance", "performing", "progress", "score", "marks", "exam", "result", "average", "stats"));
+		if (!classSpecs.isEmpty()) {
+			boolean perf = containsAny(m, List.of("performance", "performing", "progress", "score", "marks", "exam", "result", "average", "stats", "how is", "how are", "doing", "tell me about"));
+			boolean rosterWords = (m.contains("student") || m.contains("learner") || m.contains("teacher") || m.contains("teach") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give") || m.contains("details") || m.contains("info"));
 			ClassSpec classSpec = classSpecs.get(0);
-			if (perf) {
+			if (perf && !isTeacherClassQuery(m) && !m.contains("list") && !m.contains("who is")) {
 				Map<String, Object> cp = new java.util.LinkedHashMap<>();
 				if (!classSpec.standard.isEmpty()) cp.put("standard", classSpec.standard);
 				if (!classSpec.division.isEmpty()) cp.put("division", classSpec.division);
 				return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, cp, null);
-			} else {
+			} else if (rosterWords || isTeacherClassQuery(m)) {
 				Map<String, Object> rp = new java.util.LinkedHashMap<>();
 				boolean isTeacher = isTeacherClassQuery(m);
 				boolean isStudent = containsAny(m, List.of("student", "students", "learner", "learners"));
@@ -2313,7 +2326,10 @@ public class IntentClassifier {
 		boolean ownSchoolInsights = !platformWide && containsAny(m, List.of(
 				"ai insight", "ai insights", "insights page", "leaderboard",
 				"top speaker", "top speakers", "speaker leaderboard",
-				"speakers leaderboard", "top speakers leaderboard"));
+				"speakers leaderboard", "top speakers leaderboard",
+				"best student", "top student", "top students", "highest xp", "most xp",
+				"student leaderboard", "top performer", "top performers", "best performer",
+				"best performing student", "highest points", "most points"));
 		if ((platformWide || crossSchool) && !ownSchoolInsights) {
 			// Out of the caller's scoped access: a graceful denial beats answering
 			// with unavailable or wrong data.
@@ -2330,6 +2346,13 @@ public class IntentClassifier {
 				if (containsAny(m, List.of("revenue", "billing", "subscription", "payment",
 						"invoice", "fees", "plans"))) {
 					return dataMarker ? AssistantIntent.BILLING : null;
+				}
+				// School-scoped student leaderboard / top students
+				if (containsAny(m, List.of(
+						"best student", "top student", "top students", "highest xp", "most xp",
+						"highest points", "most points", "student leaderboard", "leaderboard",
+						"top performer", "top performers", "best performer", "best performing student"))) {
+					return AssistantIntent.SCHOOL_OVERVIEW;
 				}
 				// A pure count of classes ("how many classes do we have?", "total
 				// classes", "number of classes") is a SCHOOL_OVERVIEW statistic

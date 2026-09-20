@@ -233,6 +233,72 @@ public class MasterRoleScopedChatbotTest {
 		}
 
 		@Test
+		@DisplayName("School Admin: Class performance inquiries (9-A, 4-A, 7-B)")
+		void testSchoolAdminClassPerformance() {
+			IntentResult r9A = classifier.classify("How is 9-A performing?", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.CLASS_PERFORMANCE, r9A.getIntent());
+			assertEquals("9", r9A.getParams().get("standard"));
+			assertEquals("A", r9A.getParams().get("division"));
+
+			IntentResult r9ADoing = classifier.classify("How is Grade 9 - A doing?", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.CLASS_PERFORMANCE, r9ADoing.getIntent());
+			assertEquals("9", r9ADoing.getParams().get("standard"));
+			assertEquals("A", r9ADoing.getParams().get("division"));
+
+			IntentResult r4A = classifier.classify("Performance of 4-A", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.CLASS_PERFORMANCE, r4A.getIntent());
+			assertEquals("4", r4A.getParams().get("standard"));
+			assertEquals("A", r4A.getParams().get("division"));
+
+			IntentResult r7B = classifier.classify("Class 7-B performance", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.CLASS_PERFORMANCE, r7B.getIntent());
+			assertEquals("7", r7B.getParams().get("standard"));
+			assertEquals("B", r7B.getParams().get("division"));
+		}
+
+		@Test
+		@DisplayName("School Admin: School leaderboards and student rankings")
+		void testSchoolAdminLeaderboard() {
+			IntentResult rBest = classifier.classify("Who is the best student in my school?", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_OVERVIEW, rBest.getIntent());
+			assertEquals(true, rBest.getParams().get("leaderboard"));
+
+			IntentResult rHighestXp = classifier.classify("Who has the highest XP in my school?", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_OVERVIEW, rHighestXp.getIntent());
+			assertEquals(true, rHighestXp.getParams().get("leaderboard"));
+
+			IntentResult rLeaderboard = classifier.classify("Show student leaderboard", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_OVERVIEW, rLeaderboard.getIntent());
+			assertEquals(true, rLeaderboard.getParams().get("leaderboard"));
+
+			IntentResult rTop = classifier.classify("Top student in my school", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_OVERVIEW, rTop.getIntent());
+			assertEquals(true, rTop.getParams().get("leaderboard"));
+		}
+
+		@Test
+		@DisplayName("School Admin: Class teacher inquiries (9-A, 4-A, 7-B)")
+		void testSchoolAdminClassTeachers() {
+			IntentResult r9A = classifier.classify("Who is teacher of 9-A?", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, r9A.getIntent());
+			assertEquals("TEACHERS", r9A.getParams().get("entityType"));
+			assertEquals("9", r9A.getParams().get("standard"));
+			assertEquals("A", r9A.getParams().get("division"));
+
+			IntentResult r4A = classifier.classify("Who is teacher of 4-A?", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, r4A.getIntent());
+			assertEquals("TEACHERS", r4A.getParams().get("entityType"));
+			assertEquals("4", r4A.getParams().get("standard"));
+			assertEquals("A", r4A.getParams().get("division"));
+
+			IntentResult r7B = classifier.classify("Who is teacher of 7 B class?", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, r7B.getIntent());
+			assertEquals("TEACHERS", r7B.getParams().get("entityType"));
+			assertEquals("7", r7B.getParams().get("standard"));
+			assertEquals("B", r7B.getParams().get("division"));
+		}
+
+		@Test
 		@DisplayName("School Admin Restricted: Other schools, platform revenue, all schools, platform users")
 		void testSchoolAdminRestricted() {
 			String[] restrictedQueries = {

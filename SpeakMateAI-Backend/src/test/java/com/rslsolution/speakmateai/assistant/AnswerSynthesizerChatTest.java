@@ -297,4 +297,74 @@ public class AnswerSynthesizerChatTest {
 		assertTrue(answer.getMarkdown().contains("10-A"));
 		assertTrue(answer.getMarkdown().contains("No teacher information is available"));
 	}
+
+	@Test
+	void testClassPerformanceSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"className", "Grade 9 - A",
+				"grade", "Grade 9",
+				"division", "A",
+				"assignedTeacher", "Pratik Patil",
+				"studentCount", 2,
+				"studentsWithActiveStreak", 1,
+				"totalXp", 409,
+				"averageXpPerStudent", 204,
+				"averagePracticeMinutesPerStudent", 2.0,
+				"summary", "Class Grade 9 - A (Grade Grade 9, Division A) has 2 enrolled students. Assigned teacher: Pratik Patil. Total XP: 409, Average XP: 204."
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"How is 9-A performing?",
+				Map.of("standard", "9", "division", "A"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Grade 9 - A"));
+		assertTrue(answer.getMarkdown().contains("Pratik Patil"));
+		assertTrue(answer.getMarkdown().contains("409"));
+		assertTrue(answer.getMarkdown().contains("2"));
+	}
+
+	@Test
+	void testSchoolLeaderboardSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"schoolName", "DY Patil University",
+				"totalStudents", 4,
+				"totalTeachers", 3,
+				"bestStudent", Map.of(
+						"name", "Siddhi Narke",
+						"xp", 409,
+						"standard", "9",
+						"division", "A",
+						"streak", 1
+				),
+				"topStudents", java.util.List.of(
+						Map.of("name", "Siddhi Narke", "xp", 409, "standard", "9", "division", "A"),
+						Map.of("name", "Vijay Patil", "xp", 50, "standard", "4", "division", "A")
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.SCHOOL_OVERVIEW,
+				null,
+				"Who is the best student in my school?",
+				Map.of("leaderboard", true),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Top Student at DY Patil University"));
+		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
+		assertTrue(answer.getMarkdown().contains("409"));
+		assertTrue(answer.getMarkdown().contains("Vijay Patil"));
+	}
 }
