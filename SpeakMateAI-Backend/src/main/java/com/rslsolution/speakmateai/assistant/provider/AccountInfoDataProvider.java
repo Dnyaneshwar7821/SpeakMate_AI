@@ -78,7 +78,6 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 				data.put("subscriptionPlan", "Free Tier");
 			}
 		}
-		}
 		if (actor.getSchoolId() != null) {
 			data.put("schoolId", actor.getSchoolId());
 		}

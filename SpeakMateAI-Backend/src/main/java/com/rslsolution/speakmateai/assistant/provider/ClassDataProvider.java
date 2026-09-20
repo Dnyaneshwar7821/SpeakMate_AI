@@ -74,7 +74,7 @@ public class ClassDataProvider implements AssistantDataProvider {
 		ClassRoom target = pickClass(classes, params);
 		List<ClassStudent> memberships = classStudentRepository.findByClassId(target.getId());
 		List<Long> studentIds = memberships.stream()
-				.map(ClassStudent::getStudentId)
+				.map(cs -> cs.getStudentId())
 				.collect(Collectors.toList());
 
 		Map<String, Object> data = new LinkedHashMap<>();
@@ -113,7 +113,7 @@ public class ClassDataProvider implements AssistantDataProvider {
 		}
 
 		List<String> available = classes.stream()
-				.map(ClassRoom::getName)
+				.map(cr -> cr.getName())
 				.filter(Objects::nonNull)
 				.distinct()
 				.collect(Collectors.toList());
@@ -136,7 +136,7 @@ public class ClassDataProvider implements AssistantDataProvider {
 			// never by inventing an id the model does not store.
 			Set<String> assignedStandardDivisions = teacherStandardDivisionRepository
 					.findByTeacherId(actor.getTeacherId()).stream()
-					.map(TeacherStandardDivision::getStandardDivision)
+					.map(tsd -> tsd.getStandardDivision())
 					.filter(Objects::nonNull)
 					.map(sd -> standardDivisionKey(
 							sd.getSchoolStandard() == null ? null : sd.getSchoolStandard().getStandard(),

@@ -155,7 +155,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		int masteredVocabularyWords = (int) vocabs.stream().filter(v -> Boolean.TRUE.equals(v.getMastered())).count();
 		List<String> recentVocabWords = vocabs.stream()
 				.limit(10)
-				.map(Vocabulary::getWord)
+				.map(v -> v.getWord())
 				.filter(w -> w != null && !w.isBlank())
 				.collect(Collectors.toList());
 
