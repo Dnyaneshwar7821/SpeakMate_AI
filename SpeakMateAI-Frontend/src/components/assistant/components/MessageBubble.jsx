@@ -413,16 +413,16 @@ export function MessageBubble({ message, role, onClose }) {
                     utterance.lang = "en-IN";
                 }
 
-                // 1.20 is fast, energetic, clear, and responsive
-                utterance.rate = 1.20;
+                // 1.40 for brisk, rapid, highly responsive speech
+                utterance.rate = 1.40;
                 utterance.pitch = 1.0;
 
                 utterance.onend = () => {
                     if (!speechQueueRef.current.isPlaying) return;
-                    // Snappy 80ms pause between points/sentences so speech moves swiftly without breaking or dragging
+                    // Ultra-snappy 40ms transition between points so speech moves swiftly without lag
                     speechQueueRef.current.timer = setTimeout(() => {
                         playChunk(index + 1);
-                    }, 80);
+                    }, 40);
                 };
 
                 utterance.onerror = () => {
