@@ -66,27 +66,11 @@ const DIGIT_WORDS = {
 };
 
 /**
- * Phonetic pronunciation overrides for Indian surnames, academic abbreviations, and honorifics.
+ * Educational abbreviations and honorifics expansions.
+ * Note: Indian names are kept clean without artificial hyphens or distorted vowels,
+ * allowing the Indian female voice engine to pronounce them smoothly without breaking.
  */
-const PHONETIC_NAME_REPLACEMENTS = [
-    [/\bChandgude\b/gi, "Chand-guday"],
-    [/\bAlgule\b/gi, "Al-gulay"],
-    [/\bAyush\b/gi, "Aayush"],
-    [/\bPayal\b/gi, "Paayal"],
-    [/\bNarke\b/gi, "Narkay"],
-    [/\bShinde\b/gi, "Shinday"],
-    [/\bBhosale\b/gi, "Bhoslay"],
-    [/\bBhosle\b/gi, "Bhoslay"],
-    [/\bSalunkhe\b/gi, "Salunkhay"],
-    [/\bTambe\b/gi, "Tambay"],
-    [/\bKamble\b/gi, "Kaamblay"],
-    [/\bGade\b/gi, "Gaaday"],
-    [/\bMane\b/gi, "Maanay"],
-    [/\bPatil\b/gi, "Paatil"],
-    [/\bPawar\b/gi, "Pawaar"],
-    [/\bDigvijay\b/gi, "Dig-vijay"],
-    [/\bEkvira\b/gi, "Ek-veera"],
-    [/\bVidyalaya\b/gi, "Vidya-laya"],
+const ABBREVIATION_REPLACEMENTS = [
     [/\bHighschool\b/gi, "High School"],
     [/\bMr\./gi, "Mister"],
     [/\bMrs\./gi, "Missus"],
@@ -116,15 +100,15 @@ const KNOWN_INDIAN_NAME_TOKENS = [
 /**
  * Formats email usernames so glued names and trailing digits don't cause TTS
  * to swallow or cut off the last 3-4 letters of surnames (e.g. "ayushchandgude2010"
- * becomes "ayush chandgude, two zero one zero").
+ * becomes "ayush chandgude two zero one zero").
  */
 function formatEmailUserForSpeech(username, fullTextContext = "") {
     if (!username) return "";
 
-    // 1. Separate trailing or internal digits so digits never glue to the surname
+    // 1. Separate trailing or internal digits with simple space (NO comma so it doesn't break the voice)
     let cleanUser = username
-        .replace(/([a-zA-Z])(\d+)/g, "$1, $2")
-        .replace(/(\d+)([a-zA-Z])/g, "$1, $2");
+        .replace(/([a-zA-Z])(\d+)/g, "$1 $2")
+        .replace(/(\d+)([a-zA-Z])/g, "$1 $2");
 
     // 2. Replace dots, underscores, hyphens with spoken equivalents
     cleanUser = cleanUser
@@ -147,7 +131,7 @@ function formatEmailUserForSpeech(username, fullTextContext = "") {
         cleanUser = cleanUser.replace(regex, "$1 $2");
     }
 
-    // 4. Convert all numbers in the username to 1-by-1 digit speech so they are pronounced clearly
+    // 4. Convert all numbers in the username to 1-by-1 digit speech with spaces (NO commas to prevent audio stutters)
     cleanUser = cleanUser.replace(/\d+/g, (digits) => {
         return digits.split("").map((d) => DIGIT_WORDS[d] || d).join(" ");
     });
@@ -266,8 +250,8 @@ function parseMarkdownIntoSpeechChunks(content) {
         // Clean markdown formatting characters
         line = line.replace(/[*_`~#]/g, "").trim();
 
-        // Apply phonetic and abbreviation replacements
-        for (const [pattern, replacement] of PHONETIC_NAME_REPLACEMENTS) {
+        // Apply abbreviation expansions
+        for (const [pattern, replacement] of ABBREVIATION_REPLACEMENTS) {
             line = line.replace(pattern, replacement);
         }
 
@@ -429,16 +413,16 @@ export function MessageBubble({ message, role, onClose }) {
                     utterance.lang = "en-IN";
                 }
 
-                // 1.08 is crisp, fast, energetic, and natural
-                utterance.rate = 1.08;
-                utterance.pitch = 1.05;
+                // 1.20 is fast, energetic, clear, and responsive
+                utterance.rate = 1.20;
+                utterance.pitch = 1.0;
 
                 utterance.onend = () => {
                     if (!speechQueueRef.current.isPlaying) return;
-                    // Natural 180ms quick pause between points/sentences so speech flows briskly without dragging
+                    // Snappy 80ms pause between points/sentences so speech moves swiftly without breaking or dragging
                     speechQueueRef.current.timer = setTimeout(() => {
                         playChunk(index + 1);
-                    }, 180);
+                    }, 80);
                 };
 
                 utterance.onerror = () => {
