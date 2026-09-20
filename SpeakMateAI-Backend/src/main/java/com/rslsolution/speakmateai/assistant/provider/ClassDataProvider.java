@@ -109,11 +109,29 @@ public class ClassDataProvider implements AssistantDataProvider {
 			data.put("totalXp", totalXp);
 			data.put("averagePracticeMinutesPerStudent", avgPracticeMinutes);
 			data.put("averageXpPerStudent", progresses.isEmpty() ? 0 : totalXp / progresses.size());
+
+			List<Map<String, Object>> studentList = students.stream()
+					.map(s -> {
+						Progress p = progressRepository.findByStudent(s).orElse(null);
+						Map<String, Object> sm = new java.util.LinkedHashMap<>();
+						String name = (s.getFirstName() != null ? s.getFirstName() : "") + " " + (s.getLastName() != null ? s.getLastName() : "");
+						sm.put("name", name.trim().isEmpty() ? s.getEmail() : name.trim());
+						sm.put("xp", p != null && p.getXp() != null ? p.getXp() : 0);
+						sm.put("streak", p != null && p.getCurrentStreak() != null ? p.getCurrentStreak() : 0);
+						return sm;
+					})
+					.sorted(java.util.Comparator.comparingInt((Map<String, Object> sm) -> (Integer) sm.get("xp")).reversed())
+					.collect(Collectors.toList());
+			data.put("students", studentList);
+			if (!studentList.isEmpty()) {
+				data.put("topStudent", studentList.get(0));
+			}
 		} else {
 			data.put("studentsWithActiveStreak", 0);
 			data.put("totalXp", 0);
 			data.put("averagePracticeMinutesPerStudent", 0);
 			data.put("averageXpPerStudent", 0);
+			data.put("students", List.of());
 		}
 
 		String teacherName = "Not assigned";

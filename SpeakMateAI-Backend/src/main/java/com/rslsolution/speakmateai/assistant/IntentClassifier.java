@@ -1093,10 +1093,11 @@ public class IntentClassifier {
 		// 2. Class / Standard-Division student list or performance fast-path
 		List<ClassSpec> classSpecs = extractAllClassSpecs(message);
 		if (!classSpecs.isEmpty()) {
+			boolean hasXpOrPoints = containsAny(m, List.of("xp", "point", "points", "total xp", "average xp", "most xp", "highest xp", "score", "marks", "streak", "practice minutes"));
 			boolean perf = containsAny(m, List.of("performance", "performing", "progress", "score", "marks", "exam", "result", "average", "stats", "how is", "how are", "doing", "tell me about"));
 			boolean rosterWords = (m.contains("student") || m.contains("learner") || m.contains("teacher") || m.contains("teach") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give") || m.contains("details") || m.contains("info"));
 			ClassSpec classSpec = classSpecs.get(0);
-			if (perf && !isTeacherClassQuery(m) && !m.contains("list") && !m.contains("who is")) {
+			if (hasXpOrPoints || (perf && !isTeacherClassQuery(m) && !m.contains("list") && !m.contains("who is"))) {
 				Map<String, Object> cp = new java.util.LinkedHashMap<>();
 				if (!classSpec.standard.isEmpty()) cp.put("standard", classSpec.standard);
 				if (!classSpec.division.isEmpty()) cp.put("division", classSpec.division);

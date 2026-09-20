@@ -107,6 +107,12 @@ class ClassDataProviderTest {
 		assertEquals(409, data.get("totalXp"));
 		assertEquals(1, data.get("studentsWithActiveStreak"));
 
+		@SuppressWarnings("unchecked")
+		Map<String, Object> top = (Map<String, Object>) data.get("topStudent");
+		assertNotNull(top);
+		assertEquals("Siddhi Narke", top.get("name"));
+		assertEquals(409, top.get("xp"));
+
 		String summary = (String) data.get("summary");
 		assertNotNull(summary);
 		assertTrue(summary.contains("Pratik Patil"));

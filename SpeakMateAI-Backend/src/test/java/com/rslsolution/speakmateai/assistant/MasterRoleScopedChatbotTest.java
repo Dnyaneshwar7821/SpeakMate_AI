@@ -254,6 +254,11 @@ public class MasterRoleScopedChatbotTest {
 			assertEquals(AssistantIntent.CLASS_PERFORMANCE, r7B.getIntent());
 			assertEquals("7", r7B.getParams().get("standard"));
 			assertEquals("B", r7B.getParams().get("division"));
+
+			IntentResult rTricky = classifier.classify("Who is the assigned teacher for Grade 9 - A, how many students are enrolled in that class, and what is their total XP?", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.CLASS_PERFORMANCE, rTricky.getIntent());
+			assertEquals("9", rTricky.getParams().get("standard"));
+			assertEquals("A", rTricky.getParams().get("division"));
 		}
 
 		@Test
