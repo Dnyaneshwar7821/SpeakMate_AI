@@ -421,7 +421,7 @@ public class AnswerSynthesizer {
 				return trimOrNull(sb);
 			} else if (isBestStudent) {
 				StringBuilder sb = new StringBuilder("**Platform Top Students**\n");
-				Map<String, Object> best = d.get("bestStudent") instanceof Map<?, ?> ? (Map<String, Object>) d.get("bestStudent") : null;
+				Map<String, Object> best = map(d, "bestStudent");
 				if (best != null) {
 					sb.append("🏆 **Top Performer:** **").append(str(best, "name")).append("** (").append(num(best, "xp")).append(" XP, Level ").append(num(best, "level")).append(")");
 					String school = str(best, "schoolName");
@@ -559,8 +559,7 @@ public class AnswerSynthesizer {
 				|| (msg.contains("xp") && (msg.contains("student") || msg.contains("who"))));
 
 		if (isBestStudent && d.containsKey("bestStudent")) {
-			@SuppressWarnings("unchecked")
-			Map<String, Object> best = d.get("bestStudent") instanceof Map<?, ?> ? (Map<String, Object>) d.get("bestStudent") : null;
+			Map<String, Object> best = map(d, "bestStudent");
 			if (best != null) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("**Top Student at ").append(schoolName.isBlank() ? "School" : schoolName).append("**\n");
@@ -1264,6 +1263,16 @@ public class AnswerSynthesizer {
 			}
 		}
 		return out;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> map(Map<String, Object> d, String key) {
+		if (d == null) return null;
+		Object value = d.get(key);
+		if (value instanceof Map<?, ?> m) {
+			return (Map<String, Object>) m;
+		}
+		return null;
 	}
 
 	@SuppressWarnings("unchecked")

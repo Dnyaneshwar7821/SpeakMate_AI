@@ -42,7 +42,6 @@ class SchoolDataProviderTest {
 
 	private ActorContext schoolAdmin;
 	private School dyPatil;
-	private School jspm;
 
 	@BeforeEach
 	void setUp() {
@@ -67,7 +66,6 @@ class SchoolDataProviderTest {
 		);
 
 		dyPatil = School.builder().id(24L).name("DY Patil University").schoolName("DY Patil University").schoolCode("DYP01").active(true).build();
-		jspm = School.builder().id(27L).name("JSPM").schoolName("JSPM").schoolCode("JSPM01").active(true).build();
 
 		schoolAdmin = ActorContext.builder()
 				.userId(145L)
@@ -80,6 +78,7 @@ class SchoolDataProviderTest {
 
 	@Test
 	@DisplayName("School Admin gets own school overview with top students and best student")
+	@SuppressWarnings("unchecked")
 	void testSchoolAdminOverviewWithLeaderboard() throws Exception {
 		when(schoolRepository.findById(24L)).thenReturn(Optional.of(dyPatil));
 		when(userRepository.countByRoleAndSchoolId(Role.STUDENT, 24L)).thenReturn(4L);
@@ -135,6 +134,7 @@ class SchoolDataProviderTest {
 
 	@Test
 	@DisplayName("School Admin attempting to query a foreign school is denied and does not leak available schools")
+	@SuppressWarnings("unchecked")
 	void testSchoolAdminForeignSchoolAccessDenied() throws Exception {
 		when(schoolRepository.findById(24L)).thenReturn(Optional.of(dyPatil));
 

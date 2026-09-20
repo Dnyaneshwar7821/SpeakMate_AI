@@ -419,7 +419,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			int sCount = teacherStudents != null ? teacherStudents.size() : 0;
 			view.put("studentCount", sCount);
 			view.put("hasStudents", sCount > 0);
-			if (sCount > 0) {
+			if (teacherStudents != null && !teacherStudents.isEmpty()) {
 				view.put("assignedStudents", teacherStudents.stream()
 						.map(s -> fullName(s.getFirstName(), s.getLastName()))
 						.collect(Collectors.toList()));
