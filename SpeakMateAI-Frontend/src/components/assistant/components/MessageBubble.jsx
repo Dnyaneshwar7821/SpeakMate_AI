@@ -52,6 +52,99 @@ const markdownComponents = {
         ),
 };
 
+const DIGIT_WORDS = {
+    "0": "zero",
+    "1": "one",
+    "2": "two",
+    "3": "three",
+    "4": "four",
+    "5": "five",
+    "6": "six",
+    "7": "seven",
+    "8": "eight",
+    "9": "nine",
+};
+
+/**
+ * Formats phone numbers and long digit sequences so TTS speaks them digit-by-digit
+ * (e.g. "9823456789" -> "nine, eight, two, three, four, five, six, seven, eight, nine")
+ * instead of treating them as huge integers ("9 billion 23 million").
+ */
+function formatPhoneNumbersForSpeech(text) {
+    if (!text) return "";
+
+    const phonePattern = /(?:\+91[\s\-]?)?(?:\b0)?[6-9]\d{4}[\s\-]?\d{5}\b|(?:\+91[\s\-]?)?(?:\b0)?[6-9]\d{9}\b|\b\d{7,15}\b/g;
+
+    return text.replace(phonePattern, (match) => {
+        const hasPlus91 = match.startsWith("+91");
+        let digits = match.replace(/\D/g, "");
+        if (hasPlus91 && digits.startsWith("91")) {
+            digits = digits.slice(2);
+        }
+
+        const spokenDigits = digits
+            .split("")
+            .map((d) => DIGIT_WORDS[d] || d)
+            .join(", ");
+
+        return hasPlus91 ? `plus nine one, ${spokenDigits}` : spokenDigits;
+    });
+}
+
+/**
+ * Selects the best Indian English Female voice available in the user's browser,
+ * with fallbacks to other Indian English voices or standard English female voices.
+ */
+function getIndianFemaleVoice() {
+    if (!("speechSynthesis" in window)) return null;
+    const voices = window.speechSynthesis.getVoices();
+    if (!voices || voices.length === 0) return null;
+
+    const inFemaleKeywords = ["heera", "neerja", "veena", "swara", "kavya", "prabha", "lekha", "ananya", "kalpana"];
+
+    // 1. Indian English voice with a known Indian female name
+    let voice = voices.find((v) => {
+        const lang = (v.lang || "").toLowerCase();
+        const name = (v.name || "").toLowerCase();
+        const isIndian = lang.includes("en-in") || lang.includes("en_in") || name.includes("india");
+        return isIndian && inFemaleKeywords.some((kw) => name.includes(kw));
+    });
+    if (voice) return voice;
+
+    // 2. Indian English voice labelled female
+    voice = voices.find((v) => {
+        const lang = (v.lang || "").toLowerCase();
+        const name = (v.name || "").toLowerCase();
+        const isIndian = lang.includes("en-in") || lang.includes("en_in");
+        return isIndian && (name.includes("female") || name.includes("woman"));
+    });
+    if (voice) return voice;
+
+    // 3. Any Indian English voice
+    voice = voices.find((v) => {
+        const lang = (v.lang || "").toLowerCase();
+        const name = (v.name || "").toLowerCase();
+        return lang.includes("en-in") || lang.includes("en_in") || name.includes("india");
+    });
+    if (voice) return voice;
+
+    // 4. Any natural English female voice
+    const enFemaleKeywords = ["zira", "jenny", "samantha", "victoria", "karen", "sonia", "hazel", "female"];
+    voice = voices.find((v) => {
+        const lang = (v.lang || "").toLowerCase();
+        const name = (v.name || "").toLowerCase();
+        return lang.startsWith("en") && enFemaleKeywords.some((kw) => name.includes(kw));
+    });
+    if (voice) return voice;
+
+    // 5. Any English voice
+    voice = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en"));
+    if (voice) return voice;
+
+    // 6. Default system voice
+    return voices[0] || null;
+}
+
 export function MessageBubble({ message, role, onClose }) {
     const isUser = message.sender === "user";
     const [speaking, setSpeaking] = useState(false);
@@ -69,15 +162,31 @@ export function MessageBubble({ message, role, onClose }) {
             setSpeaking(false);
         } else {
             window.speechSynthesis.cancel();
-            const cleanText = (content || "")
+
+            // Format phone numbers to enunciate each digit individually
+            const textWithSpokenPhones = formatPhoneNumbersForSpeech(content || "");
+
+            const cleanText = textWithSpokenPhones
                 .replace(/[*#`_~[\]]/g, "")
                 .replace(/\(http[^)]+\)/g, "")
+                .replace(/[|]/g, " ")
+                .replace(/\s+/g, " ")
                 .trim();
+
             if (!cleanText) return;
 
             const utterance = new SpeechSynthesisUtterance(cleanText);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
+            const voice = getIndianFemaleVoice();
+            if (voice) {
+                utterance.voice = voice;
+                utterance.lang = voice.lang || "en-IN";
+            } else {
+                utterance.lang = "en-IN";
+            }
+
+            // Ideal parameters for natural, clear Indian English speech
+            utterance.rate = 0.95;
+            utterance.pitch = 1.05;
             utterance.onend = () => setSpeaking(false);
             utterance.onerror = () => setSpeaking(false);
             setSpeaking(true);
@@ -86,11 +195,20 @@ export function MessageBubble({ message, role, onClose }) {
     };
 
     useEffect(() => {
-        return () => {
-            if (speaking && "speechSynthesis" in window) {
-                window.speechSynthesis.cancel();
-            }
-        };
+        // Preload voices in browsers where voices load asynchronously
+        if (typeof window !== "undefined" && "speechSynthesis" in window) {
+            window.speechSynthesis.getVoices();
+            const onVoicesChanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+            window.speechSynthesis.addEventListener("voiceschanged", onVoicesChanged);
+            return () => {
+                window.speechSynthesis.removeEventListener("voiceschanged", onVoicesChanged);
+                if (speaking) {
+                    window.speechSynthesis.cancel();
+                }
+            };
+        }
     }, [speaking]);
 
     if (isUser) {
