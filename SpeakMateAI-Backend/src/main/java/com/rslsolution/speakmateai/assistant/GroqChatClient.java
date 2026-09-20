@@ -35,25 +35,75 @@ public class GroqChatClient {
 
 	private final RestTemplate restTemplate;
 
-	@Value("${groq.assistant.api.url:${GROQ_ASSISTANT_API_URL:${groq.api.url:https://api.groq.com/openai/v1/chat/completions}}}")
+	@org.springframework.beans.factory.annotation.Autowired(required = false)
+	private org.springframework.core.env.Environment env;
+
+	@Value("${groq.assistant.api.url:${groq.api.url:https://api.groq.com/openai/v1/chat/completions}}")
 	private String apiUrl;
 
-	@Value("${groq.assistant.api.key:${GROQ_ASSISTANT_API_KEY:${groq.chatbot.api.key:${GROQ_CHATBOT_API_KEY:${chatbot.groq.api.key:${CHATBOT_GROQ_API_KEY:${groq.api.key.chatbot:${GROQ_API_KEY_CHATBOT:${assistant.groq.api.key:${ASSISTANT_GROQ_API_KEY:${assistant.api.key:${ASSISTANT_API_KEY:${chatbot.api.key:${CHATBOT_API_KEY:${groq.key:${GROQ_KEY:${groq.api.key:${GROQ_API_KEY:}}}}}}}}}}}}}}}}}")
+	@Value("${groq.assistant.api.key:${groq.api.key:}}")
 	private String apiKey;
 
-	@Value("${groq.assistant.model:${GROQ_ASSISTANT_MODEL:${groq.chatbot.model:${GROQ_CHATBOT_MODEL:${groq.model.assistant:${groq.model.chat:${groq.model:openai/gpt-oss-120b}}}}}}}")
+	@Value("${groq.assistant.model:${groq.model.chat:${groq.model:openai/gpt-oss-120b}}}")
 	private String model;
 
 	/**
 	 * Returns the sanitized API key (whitespace and surrounding quotes removed).
+	 * Supports resolution from Spring properties, system environment variables, or JVM properties,
+	 * while discarding any unresolved placeholder strings (e.g. ${...}).
 	 */
 	public String getCleanApiKey() {
-		if (apiKey == null) {
+		String candidate = this.apiKey;
+		if (candidate != null && candidate.trim().startsWith("${") && candidate.trim().endsWith("}")) {
+			// Unresolved placeholder expression; discard
+			candidate = null;
+		}
+
+		if ((candidate == null || candidate.isBlank()) && env != null) {
+			String[] props = {
+					"groq.assistant.api.key", "GROQ_ASSISTANT_API_KEY",
+					"groq.chatbot.api.key", "GROQ_CHATBOT_API_KEY",
+					"groq.api.key", "GROQ_API_KEY",
+					"groq.key", "GROQ_KEY"
+			};
+			for (String prop : props) {
+				String val = env.getProperty(prop);
+				if (val != null && !val.isBlank() && !val.trim().startsWith("${")) {
+					candidate = val;
+					break;
+				}
+			}
+		}
+
+		if (candidate == null || candidate.isBlank()) {
+			String[] envVars = {
+					"GROQ_ASSISTANT_API_KEY", "GROQ_CHATBOT_API_KEY", "GROQ_API_KEY", "GROQ_KEY"
+			};
+			for (String envVar : envVars) {
+				String val = System.getenv(envVar);
+				if (val != null && !val.isBlank() && !val.trim().startsWith("${")) {
+					candidate = val;
+					break;
+				}
+			}
+		}
+
+		if (candidate == null || candidate.isBlank()) {
+			String val = System.getProperty("groq.api.key");
+			if (val != null && !val.isBlank() && !val.trim().startsWith("${")) {
+				candidate = val;
+			}
+		}
+
+		if (candidate == null || candidate.isBlank()) {
 			return null;
 		}
-		String clean = apiKey.trim();
+		String clean = candidate.trim();
 		if ((clean.startsWith("\"") && clean.endsWith("\"")) || (clean.startsWith("'") && clean.endsWith("'"))) {
 			clean = clean.substring(1, clean.length() - 1).trim();
+		}
+		if (clean.isBlank() || (clean.startsWith("${") && clean.endsWith("}"))) {
+			return null;
 		}
 		return clean;
 	}

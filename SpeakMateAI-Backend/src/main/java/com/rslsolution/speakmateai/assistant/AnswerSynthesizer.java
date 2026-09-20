@@ -106,6 +106,11 @@ public class AnswerSynthesizer {
 			try {
 				raw = groqChatClient.chatJson(messages, 0.4);
 			} catch (Exception e) {
+				String msg = e.getMessage() != null ? e.getMessage() : "";
+				if (msg.contains("401") || msg.contains("404")) {
+					// Non-transient authentication or model failure; do not retry
+					break;
+				}
 				if (attempt < 3) {
 					try {
 						Thread.sleep(Math.min(attempt * 300L, 800L));
