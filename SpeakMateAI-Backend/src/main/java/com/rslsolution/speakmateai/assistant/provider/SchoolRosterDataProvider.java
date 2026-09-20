@@ -166,9 +166,29 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			}
 		}
 
+		// Narrow to a requested class/standard/division (e.g. "9th A students", "standard 9 division A"):
+		String requestedStandard = strParam(params, "standard").trim();
+		String requestedDivision = strParam(params, "division").trim();
+		if (wantStudents && (!requestedStandard.isEmpty() || !requestedDivision.isEmpty())) {
+			studentViews = studentViews.stream().filter(sv -> {
+				boolean matchStd = requestedStandard.isEmpty()
+						|| requestedStandard.equalsIgnoreCase(String.valueOf(sv.get("standard")));
+				boolean matchDiv = requestedDivision.isEmpty()
+						|| requestedDivision.equalsIgnoreCase(String.valueOf(sv.get("division")));
+				return matchStd && matchDiv;
+			}).collect(Collectors.toList());
+			wantTeachers = false; // user specifically requested students in a class
+		}
+
 		Map<String, Object> data = new LinkedHashMap<>();
 		data.put("scope", schoolId == null ? "PLATFORM (all schools)" : "SCHOOL (id=" + schoolId + ")");
 		data.put("schoolName", schoolLabel);
+		if (!requestedStandard.isEmpty()) {
+			data.put("standard", requestedStandard);
+		}
+		if (!requestedDivision.isEmpty()) {
+			data.put("division", requestedDivision);
+		}
 		if (focusName.isBlank()) {
 			data.put("entityType", entityType.isBlank() ? "BOTH" : entityType.toUpperCase(Locale.ROOT));
 		} else {
@@ -197,7 +217,13 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		if (wantTeachers && !wantStudents) {
 			summary = schoolLabel + " has " + shownTeachers + " teacher" + (shownTeachers == 1 ? "" : "s") + ".";
 		} else if (wantStudents && !wantTeachers) {
-			summary = schoolLabel + " has " + shownStudents + " student" + (shownStudents == 1 ? "" : "s") + ".";
+			if (!requestedStandard.isEmpty() || !requestedDivision.isEmpty()) {
+				String classLabel = (!requestedStandard.isEmpty() ? "Standard " + requestedStandard : "")
+						+ (!requestedDivision.isEmpty() ? (!requestedStandard.isEmpty() ? "-" : "Division ") + requestedDivision : "");
+				summary = schoolLabel + " has " + shownStudents + " student" + (shownStudents == 1 ? "" : "s") + " in " + classLabel + ".";
+			} else {
+				summary = schoolLabel + " has " + shownStudents + " student" + (shownStudents == 1 ? "" : "s") + ".";
+			}
 		} else {
 			summary = schoolLabel + " has " + shownTeachers + " teacher"
 					+ (shownTeachers == 1 ? "" : "s") + " and " + shownStudents + " student"

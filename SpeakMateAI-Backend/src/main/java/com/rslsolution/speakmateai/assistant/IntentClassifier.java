@@ -240,6 +240,62 @@ public class IntentClassifier {
 	private static final Pattern EMAIL_PATTERN = Pattern.compile(
 			"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}");
 
+	private static class ClassSpec {
+		final String standard;
+		final String division;
+
+		ClassSpec(String standard, String division) {
+			this.standard = standard == null ? "" : standard.trim();
+			this.division = division == null ? "" : division.trim().toUpperCase(Locale.ROOT);
+		}
+	}
+
+	private static final Pattern CLASS_STD_DIV_PATTERN = Pattern.compile(
+			"\\b(?:standard|std)?\\s*(\\d{1,2})\\s*(?:th|st|nd|rd)?\\s*(?:standard|std)?\\s*(?:division|div|sec|section)?\\s*['\"“]?([A-Za-z])['\"”]?\\s*(?:division|div|sec|section)?\\b",
+			Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern CLASS_NUM_HYPHEN_DIV_PATTERN = Pattern.compile(
+			"\\b(?:class|grade|standard|std)?\\s*(\\d{1,2})\\s*(?:th|st|nd|rd)?\\s*[-/]?\\s*['\"“]?([A-Za-z])['\"”]?(?:\\s+(?:students?|learners?|division|div|sec|section|class))?\\b",
+			Pattern.CASE_INSENSITIVE);
+
+	private static final Pattern CLASS_ONLY_STD_PATTERN = Pattern.compile(
+			"\\b(?:class|grade|standard|std)\\s*(\\d{1,2})\\b|\\b(\\d{1,2})\\s*(?:th|st|nd|rd)\\s*(?:class|grade|standard|std|students?|learners?)\\b",
+			Pattern.CASE_INSENSITIVE);
+
+	private ClassSpec extractClassSpec(String message) {
+		if (message == null || message.isBlank()) {
+			return null;
+		}
+		Matcher m1 = CLASS_STD_DIV_PATTERN.matcher(message);
+		if (m1.find() && m1.group(1) != null && m1.group(2) != null) {
+			String std = m1.group(1).trim();
+			String div = m1.group(2).trim();
+			String lowerMsg = message.toLowerCase(Locale.ROOT);
+			if (lowerMsg.contains("standard") || lowerMsg.contains("std") || lowerMsg.contains("division") || lowerMsg.contains("div") || lowerMsg.contains("class") || lowerMsg.contains("grade") || lowerMsg.contains("th") || lowerMsg.contains("-")) {
+				return new ClassSpec(std, div);
+			}
+		}
+
+		Matcher m2 = CLASS_NUM_HYPHEN_DIV_PATTERN.matcher(message);
+		if (m2.find() && m2.group(1) != null && m2.group(2) != null) {
+			String std = m2.group(1).trim();
+			String div = m2.group(2).trim();
+			String lowerMsg = message.toLowerCase(Locale.ROOT);
+			if (lowerMsg.contains("standard") || lowerMsg.contains("std") || lowerMsg.contains("class") || lowerMsg.contains("grade") || lowerMsg.contains("th") || lowerMsg.contains("-") || lowerMsg.contains("students")) {
+				return new ClassSpec(std, div);
+			}
+		}
+
+		Matcher m3 = CLASS_ONLY_STD_PATTERN.matcher(message);
+		if (m3.find()) {
+			String std = m3.group(1) != null ? m3.group(1).trim() : (m3.group(2) != null ? m3.group(2).trim() : "");
+			if (!std.isEmpty()) {
+				return new ClassSpec(std, "");
+			}
+		}
+		return null;
+	}
+
 	/**
 		* Words that can never be part of a student's NAME in a per-student
 		* metric question ("what is total xp of onkar awate"). Used to peel the
@@ -689,15 +745,18 @@ public class IntentClassifier {
 
 		// Platform overview totals:
 		if (containsAny(m, List.of(
-				"give me a platform overview", "platform overview",
-				"how many total users", "total users are there",
-				"how many students are there", "total students are there",
-				"how many teachers are there", "total teachers are there",
-				"how many schools are there", "total schools are there",
+				"give me a platform overview", "platform overview", "system overview",
+				"how many total users", "total users are there", "how many users", "total users",
+				"how many students are there", "total students are there", "how many students are", "how many students", "total students",
+				"how many teachers are there", "total teachers are there", "how many teachers are", "how many teachers", "total teachers",
+				"how many schools are there", "total schools are there", "how many schools are", "how many schools", "total schools",
+				"how many classes are there", "total classes are there", "how many classes", "total classes",
 				"show me all schools", "platform-wide learning statistics",
 				"compare school performance", "how many students does each school have",
 				"complete platform performance summary"))) {
-			return new IntentResult(AssistantIntent.PLATFORM_OVERVIEW, Map.of(), null);
+			if (extractSchoolName(message).isEmpty()) {
+				return new IntentResult(AssistantIntent.PLATFORM_OVERVIEW, Map.of(), null);
+			}
 		}
 
 		// Billing & plans:
@@ -734,12 +793,9 @@ public class IntentClassifier {
 			return null;
 		}
 
-		IntentResult contextual = contextualFollowUpCheck(message, role, history);
-		if (contextual != null) {
-			return contextual;
-		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
 
-		// 1. Role-specific QA test suite fast-paths
+		// 1. Role-specific direct test suite fast-paths (evaluated first so explicit questions never get hijacked by context)
 		IntentResult selfProgress = selfProgressFastPath(message, role);
 		if (selfProgress != null) {
 			return selfProgress;
@@ -760,7 +816,37 @@ public class IntentClassifier {
 			return superAdminFast;
 		}
 
-		// 2. Pure navigation help fast-path
+		// 2. Class / Standard-Division student list or performance fast-path
+		ClassSpec classSpec = extractClassSpec(message);
+		if (classSpec != null && (m.contains("student") || m.contains("learner") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give"))) {
+			boolean perf = containsAny(m, List.of("performance", "performing", "progress", "score", "marks", "exam", "result", "average", "stats"));
+			if (perf) {
+				Map<String, Object> cp = new java.util.LinkedHashMap<>();
+				if (!classSpec.standard.isEmpty()) cp.put("standard", classSpec.standard);
+				if (!classSpec.division.isEmpty()) cp.put("division", classSpec.division);
+				return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, cp, null);
+			} else {
+				Map<String, Object> rp = new java.util.LinkedHashMap<>();
+				rp.put("entityType", "students");
+				if (!classSpec.standard.isEmpty()) rp.put("standard", classSpec.standard);
+				if (!classSpec.division.isEmpty()) rp.put("division", classSpec.division);
+				if (role == Role.SUPER_ADMIN) {
+					String school = extractSchoolName(message);
+					if (!school.isEmpty()) {
+						rp.put("schoolName", school);
+					}
+				}
+				return new IntentResult(AssistantIntent.SCHOOL_ROSTER, rp, null);
+			}
+		}
+
+		// 3. Contextual follow-up check (pronouns, charts, referential continuations)
+		IntentResult contextual = contextualFollowUpCheck(message, role, history);
+		if (contextual != null) {
+			return contextual;
+		}
+
+		// 4. Pure navigation help fast-path
 		AssistantIntent navHelp = navigationOverride(message, role);
 		if (navHelp != null && isPureNavigationQuery(message)) {
 			return new IntentResult(navHelp, Map.of(), null);
@@ -1204,7 +1290,13 @@ public class IntentClassifier {
 				"show me the teachers", "show me the students", "show me my teachers",
 				"show me my students", "show the teachers", "show the students",
 				"give me the list of", "give me a list of", "give me the names of",
-				"teachers in my school", "students in my school"));
+				"give list of teachers", "give list of students", "give list of", "give a list of",
+				"give list", "give names", "show list of", "show list",
+				"teachers in my school", "students in my school", "students in class", "students of class",
+				"students in standard", "students of standard", "students in grade", "students of grade"));
+		if (extractClassSpec(message) != null && (m.contains("student") || m.contains("learner") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give"))) {
+			return AssistantIntent.SCHOOL_ROSTER;
+		}
 		return (roster || detailMarker) ? AssistantIntent.SCHOOL_ROSTER : null;
 	}
 
@@ -1458,6 +1550,16 @@ public class IntentClassifier {
 		} else if (wantsTeachers && !wantsStudents) {
 			enriched.put("entityType", "teachers");
 		} else if (wantsStudents && !wantsTeachers) {
+			enriched.put("entityType", "students");
+		}
+		ClassSpec classSpec = extractClassSpec(message);
+		if (classSpec != null) {
+			if (!classSpec.standard.isEmpty()) {
+				enriched.put("standard", classSpec.standard);
+			}
+			if (!classSpec.division.isEmpty()) {
+				enriched.put("division", classSpec.division);
+			}
 			enriched.put("entityType", "students");
 		}
 		if (role == Role.SUPER_ADMIN) {
@@ -1820,11 +1922,9 @@ public class IntentClassifier {
 				|| m.contains("class") || m.contains("standard") || m.contains("division")
 				|| m.contains("admin")
 				// Same entities under their natural synonyms: the
-				// PLATFORM_OVERVIEW provider counts educators, learners and
-				// staff exactly as it counts teachers/students.
 				|| m.contains("educator") || m.contains("learner") || m.contains("staff")
 				|| m.contains("performance") || m.contains("progress") || m.contains("network")
-				|| m.contains("population");
+				|| m.contains("population") || m.contains("overview");
 		return entity ? AssistantIntent.PLATFORM_OVERVIEW : null;
 	}
 
@@ -2508,8 +2608,8 @@ public class IntentClassifier {
 				" that school ", " that school?", " this school ", " this school?",
 				" the school ", " the school?", " that one ", " that one?"));
 		boolean schoolMetricFollowUp = containsAny(m, List.of(
-				"how many teachers", "how many students", "how many classes", "teacher count",
-				"student count", "teacher strength", "student population", "teaching staff",
+				"how many teachers in it", "how many students in it", "how many classes in it",
+				"teacher strength in that school", "student population of that school",
 				"tell me about it", "details about it", "more about it", "what about it",
 				"does it have", "did it have", "does it possess", "are there in it"));
 
@@ -2580,6 +2680,10 @@ public class IntentClassifier {
 			if (turn == null || turn.getContent() == null || turn.getContent().isBlank()) {
 				continue;
 			}
+			// Only inspect USER turns so assistant responses (e.g. top schools in platform overview) never pollute context
+			if (turn.getRole() != null && !turn.getRole().equalsIgnoreCase("user")) {
+				continue;
+			}
 			String content = turn.getContent().trim();
 			String school = extractSchoolName(content);
 			if (isPlausibleSchoolName(school)) {
@@ -2603,6 +2707,10 @@ public class IntentClassifier {
 		for (int i = history.size() - 1; i >= 0; i--) {
 			AssistantRequest.MessageTurn turn = history.get(i);
 			if (turn == null || turn.getContent() == null || turn.getContent().isBlank()) {
+				continue;
+			}
+			// Only inspect USER turns so assistant responses never pollute context
+			if (turn.getRole() != null && !turn.getRole().equalsIgnoreCase("user")) {
 				continue;
 			}
 			String content = turn.getContent().trim();

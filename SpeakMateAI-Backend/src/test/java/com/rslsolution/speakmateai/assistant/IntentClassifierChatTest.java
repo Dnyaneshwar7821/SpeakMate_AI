@@ -1,0 +1,102 @@
+package com.rslsolution.speakmateai.assistant;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
+import com.rslsolution.speakmateai.dto.assistant.AssistantRequest;
+import com.rslsolution.speakmateai.enums.Role;
+
+public class IntentClassifierChatTest {
+
+	private IntentClassifier classifier;
+
+	@BeforeEach
+	void setUp() {
+		// Mock GroqChatClient as null since fast-path executes 100% deterministically
+		classifier = new IntentClassifier(null, new ObjectMapper());
+	}
+
+	@Test
+	void testClassSpecificStudentLists() {
+		IntentResult r1 = classifier.classify("give list of 9th A students", Role.SUPER_ADMIN, null);
+		assertNotNull(r1);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r1.getIntent());
+		assertEquals("9", r1.getParams().get("standard"));
+		assertEquals("A", r1.getParams().get("division"));
+		assertEquals("students", r1.getParams().get("entityType"));
+
+		IntentResult r2 = classifier.classify("give list of 9-A students", Role.SUPER_ADMIN, null);
+		assertNotNull(r2);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r2.getIntent());
+		assertEquals("9", r2.getParams().get("standard"));
+		assertEquals("A", r2.getParams().get("division"));
+
+		IntentResult r3 = classifier.classify("give list of 9 standard 'A' Division students", Role.SUPER_ADMIN, null);
+		assertNotNull(r3);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r3.getIntent());
+		assertEquals("9", r3.getParams().get("standard"));
+		assertEquals("A", r3.getParams().get("division"));
+	}
+
+	@Test
+	void testPlatformOverviewAndGeneralCounts() {
+		IntentResult r1 = classifier.classify("Give me a platform overview.", Role.SUPER_ADMIN, null);
+		assertNotNull(r1);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r1.getIntent());
+
+		IntentResult r2 = classifier.classify("How many total users are there?", Role.SUPER_ADMIN, null);
+		assertNotNull(r2);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r2.getIntent());
+
+		IntentResult r3 = classifier.classify("how many students are", Role.SUPER_ADMIN, null);
+		assertNotNull(r3);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r3.getIntent());
+
+		IntentResult r4 = classifier.classify("How many students are there?", Role.SUPER_ADMIN, null);
+		assertNotNull(r4);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r4.getIntent());
+
+		IntentResult r5 = classifier.classify("How many teachers are there?", Role.SUPER_ADMIN, null);
+		assertNotNull(r5);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r5.getIntent());
+
+		IntentResult r6 = classifier.classify("How many schools are there?", Role.SUPER_ADMIN, null);
+		assertNotNull(r6);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r6.getIntent());
+	}
+
+	@Test
+	void testHistoryFromAssistantDoesNotHijackGeneralCounts() {
+		// Simulate assistant previously responding with DY Patil University details in platform overview
+		List<AssistantRequest.MessageTurn> history = new ArrayList<>();
+		AssistantRequest.MessageTurn userTurn1 = new AssistantRequest.MessageTurn();
+		userTurn1.setRole("user");
+		userTurn1.setContent("How many total users are there?");
+		history.add(userTurn1);
+
+		AssistantRequest.MessageTurn botTurn1 = new AssistantRequest.MessageTurn();
+		botTurn1.setRole("assistant");
+		botTurn1.setContent("Platform overview\nTotal schools: 13\nTotal users: 32\nTop schools by students:\nDY Patil University — 5 students, 3 teachers");
+		history.add(botTurn1);
+
+		// Now user asks general counts
+		IntentResult r1 = classifier.classify("How many students are there? How many teachers are there? How many schools are there?", Role.SUPER_ADMIN, history);
+		assertNotNull(r1);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r1.getIntent());
+
+		IntentResult r2 = classifier.classify("How many students are there?", Role.SUPER_ADMIN, history);
+		assertNotNull(r2);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r2.getIntent());
+
+		IntentResult r3 = classifier.classify("how many students are", Role.SUPER_ADMIN, history);
+		assertNotNull(r3);
+		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r3.getIntent());
+	}
+}

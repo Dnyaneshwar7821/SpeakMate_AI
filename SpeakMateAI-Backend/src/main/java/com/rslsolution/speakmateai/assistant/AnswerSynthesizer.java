@@ -536,14 +536,27 @@ public class AnswerSynthesizer {
 
 	private String renderRoster(Map<String, Object> d) {
 		String schoolName = str(d, "schoolName");
+		String standard = str(d, "standard");
+		String division = str(d, "division");
 		StringBuilder sb = new StringBuilder();
-		sb.append("**").append(schoolName.isBlank() ? "School roster" : schoolName + " roster").append("**\n");
+
+		if (!standard.isBlank() || !division.isBlank()) {
+			String classLabel = (!standard.isBlank() ? "Standard " + standard : "")
+					+ (!division.isBlank() ? (!standard.isBlank() ? "-" : "Division ") + division : "");
+			sb.append("**Students in ").append(classLabel);
+			if (!schoolName.isBlank() && !schoolName.equalsIgnoreCase("all schools")) {
+				sb.append(" (").append(schoolName).append(")");
+			}
+			sb.append("**\n");
+		} else {
+			sb.append("**").append(schoolName.isBlank() ? "School roster" : schoolName + " roster").append("**\n");
+		}
 
 		List<Map<String, Object>> teachers = maps(d, "teachers");
 		List<Map<String, Object>> students = maps(d, "students");
 		String teacherCount = num(d, "teacherCount");
 		String studentCount = num(d, "studentCount");
-		if (!teacherCount.isBlank()) {
+		if (!teacherCount.isBlank() && standard.isBlank() && division.isBlank()) {
 			sb.append("- **Teachers:** ").append(teacherCount).append('\n');
 		}
 		if (!studentCount.isBlank()) {
@@ -563,10 +576,14 @@ public class AnswerSynthesizer {
 				appendPerson(sb, student, "schoolName", "standard", "division", "rollNumber", "studentId",
 						"assignedTeacher", "email", "phone");
 			}
+		} else if (!standard.isBlank() || !division.isBlank()) {
+			String classLabel = (!standard.isBlank() ? "Standard " + standard : "")
+					+ (!division.isBlank() ? (!standard.isBlank() ? "-" : "Division ") + division : "");
+			sb.append("\nNo students were found currently enrolled in ").append(classLabel).append(".\n");
 		}
 
 		String summary = str(d, "summary");
-		if (teachers.isEmpty() && students.isEmpty() && !summary.isBlank()) {
+		if (teachers.isEmpty() && students.isEmpty() && !summary.isBlank() && standard.isBlank() && division.isBlank()) {
 			sb.append('\n').append(summary).append('\n');
 		}
 		return trimOrNull(sb);
