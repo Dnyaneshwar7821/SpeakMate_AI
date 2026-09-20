@@ -1196,12 +1196,15 @@ public class AnswerSynthesizer {
 		String classes = num(data, "totalClasses");
 
 		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT).trim() : "");
-		boolean broad = isBroadOverview(msg) || intent == AssistantIntent.PLATFORM_USERS;
+		String roleFilter = str(data, "roleFilter");
+		boolean broad = isBroadOverview(msg) || (intent == AssistantIntent.PLATFORM_USERS && roleFilter.isBlank());
 
 		if (!broad) {
-			boolean isStudent = (msg.contains("student") || msg.contains("learner"));
-			boolean isTeacher = (msg.contains("teacher") || msg.contains("educator") || msg.contains("teaching staff"));
-			boolean isSchool = msg.contains("school") && !isStudent && !isTeacher;
+			boolean isStudent = (msg.contains("student") || msg.contains("learner") || "Student".equalsIgnoreCase(roleFilter));
+			boolean isTeacher = (msg.contains("teacher") || msg.contains("educator") || msg.contains("teaching staff") || "Teacher".equalsIgnoreCase(roleFilter));
+			boolean isSchoolAdmin = (msg.contains("school admin") || "School Admin".equalsIgnoreCase(roleFilter));
+			boolean isSuperAdmin = (msg.contains("super admin") || "Super Admin".equalsIgnoreCase(roleFilter));
+			boolean isSchool = msg.contains("school") && !isStudent && !isTeacher && !isSchoolAdmin && !isSuperAdmin;
 			boolean isClass = msg.contains("class") || msg.contains("standard") || msg.contains("division");
 			boolean isUser = (msg.contains("user") || msg.contains("account"));
 
@@ -1226,6 +1229,21 @@ public class AnswerSynthesizer {
 				}
 				if (!hasActive && !activeTeachers.isBlank()) {
 					stats.add(new AssistantResponse.StatCard("Active Teachers", activeTeachers, null));
+				}
+				answer.setStats(stats);
+				return;
+			} else if (isSchoolAdmin) {
+				stats.removeIf(s -> s != null && s.getLabel() != null && !s.getLabel().toLowerCase(Locale.ROOT).contains("school admin"));
+				if (!schoolAdmins.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("School Admins", schoolAdmins, null));
+				}
+				answer.setStats(stats);
+				return;
+			} else if (isSuperAdmin) {
+				stats.removeIf(s -> s != null && s.getLabel() != null && !s.getLabel().toLowerCase(Locale.ROOT).contains("super admin"));
+				String superAdmins = num(data, "totalSuperAdmins");
+				if (!superAdmins.isBlank()) {
+					stats.add(new AssistantResponse.StatCard("Super Admins", superAdmins, null));
 				}
 				answer.setStats(stats);
 				return;
@@ -1299,20 +1317,22 @@ public class AnswerSynthesizer {
 				answer.getChart().setType("doughnut");
 			}
 		} else if (answer.getChart() == null && intent == AssistantIntent.PLATFORM_USERS && !data.isEmpty()) {
-			List<String> labels = new ArrayList<>();
-			List<Double> counts = new ArrayList<>();
-			addRoleSlice(labels, counts, "Users", num(data, "totalLearners"));
-			addRoleSlice(labels, counts, "Teachers", num(data, "totalTeachers"));
-			addRoleSlice(labels, counts, "Students", num(data, "totalStudents"));
-			addRoleSlice(labels, counts, "School Admins", num(data, "totalSchoolAdmins"));
-			addRoleSlice(labels, counts, "Super Admins", num(data, "totalSuperAdmins"));
-			if (!labels.isEmpty()) {
-				answer.setChart(AssistantResponse.ChartData.builder()
-						.type("doughnut")
-						.title("User Role Distribution")
-						.labels(labels)
-						.datasets(List.of(AssistantResponse.Dataset.builder().label("Users").data(counts).build()))
-						.build());
+			if (roleFilter.isBlank()) {
+				List<String> labels = new ArrayList<>();
+				List<Double> counts = new ArrayList<>();
+				addRoleSlice(labels, counts, "Users", num(data, "totalLearners"));
+				addRoleSlice(labels, counts, "Teachers", num(data, "totalTeachers"));
+				addRoleSlice(labels, counts, "Students", num(data, "totalStudents"));
+				addRoleSlice(labels, counts, "School Admins", num(data, "totalSchoolAdmins"));
+				addRoleSlice(labels, counts, "Super Admins", num(data, "totalSuperAdmins"));
+				if (!labels.isEmpty()) {
+					answer.setChart(AssistantResponse.ChartData.builder()
+							.type("doughnut")
+							.title("User Role Distribution")
+							.labels(labels)
+							.datasets(List.of(AssistantResponse.Dataset.builder().label("Users").data(counts).build()))
+							.build());
+				}
 			}
 		}
 	}
@@ -1426,7 +1446,9 @@ public class AnswerSynthesizer {
 
 		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT) : "");
 		boolean wantsChart = Boolean.TRUE.equals(params != null ? params.get("wantsChart") : null)
-				|| msg.contains("chart") || msg.contains("graph") || msg.contains("visualize");
+				|| msg.contains("chart") || msg.contains("graph") || msg.contains("visualize")
+				|| isBroadOverview(userMessage) || msg.contains("platform") || msg.contains("overall")
+				|| msg.contains("performing") || msg.contains("performance");
 
 		if (answer.getChart() != null) {
 			if (msg.contains("pie")) {
