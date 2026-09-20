@@ -69,6 +69,10 @@ const DIGIT_WORDS = {
  * Phonetic pronunciation overrides for Indian surnames, academic abbreviations, and honorifics.
  */
 const PHONETIC_NAME_REPLACEMENTS = [
+    [/\bChandgude\b/gi, "Chand-guday"],
+    [/\bAlgule\b/gi, "Al-gulay"],
+    [/\bAyush\b/gi, "Aayush"],
+    [/\bPayal\b/gi, "Paayal"],
     [/\bNarke\b/gi, "Narkay"],
     [/\bShinde\b/gi, "Shinday"],
     [/\bBhosale\b/gi, "Bhoslay"],
@@ -103,17 +107,64 @@ const PHONETIC_NAME_REPLACEMENTS = [
     [/\betc\.?\b/gi, "and so on"],
 ];
 
+const KNOWN_INDIAN_NAME_TOKENS = [
+    "ayush", "chandgude", "digvijay", "patil", "nandini", "payal", "bhor",
+    "gangu", "algule", "siddhi", "narke", "shinde", "bhosale", "bhosle",
+    "salunkhe", "tambe", "kamble", "gade", "mane", "pawar", "raj", "malhotra", "virat", "sharma"
+];
+
+/**
+ * Formats email usernames so glued names and trailing digits don't cause TTS
+ * to swallow or cut off the last 3-4 letters of surnames (e.g. "ayushchandgude2010"
+ * becomes "ayush chandgude, two zero one zero").
+ */
+function formatEmailUserForSpeech(username, fullTextContext = "") {
+    if (!username) return "";
+
+    // 1. Separate trailing or internal digits so digits never glue to the surname
+    let cleanUser = username
+        .replace(/([a-zA-Z])(\d+)/g, "$1, $2")
+        .replace(/(\d+)([a-zA-Z])/g, "$1, $2");
+
+    // 2. Replace dots, underscores, hyphens with spoken equivalents
+    cleanUser = cleanUser
+        .replace(/\./g, " dot ")
+        .replace(/_/g, " underscore ")
+        .replace(/-/g, " hyphen ");
+
+    // 3. Separate first name and surname if they are mashed together in the email
+    const contextNames = [];
+    const nameMatches = (fullTextContext || "").match(/[A-Z][a-z]+/g) || [];
+    for (const n of nameMatches) {
+        if (n.length >= 3 && !['Name', 'Email', 'Role', 'Status', 'Standard', 'Division', 'School'].includes(n)) {
+            contextNames.push(n.toLowerCase());
+        }
+    }
+    const allTokens = [...new Set([...contextNames, ...KNOWN_INDIAN_NAME_TOKENS])];
+
+    for (const token of allTokens) {
+        const regex = new RegExp(`(${token})([a-z]{3,})`, 'i');
+        cleanUser = cleanUser.replace(regex, "$1 $2");
+    }
+
+    // 4. Convert all numbers in the username to 1-by-1 digit speech so they are pronounced clearly
+    cleanUser = cleanUser.replace(/\d+/g, (digits) => {
+        return digits.split("").map((d) => DIGIT_WORDS[d] || d).join(" ");
+    });
+
+    return cleanUser.trim();
+}
+
 /**
  * Formats emails, domains, and decimals for speech so TTS reads them naturally
- * (e.g. "siddhi.shinde@gmail.com" -> "siddhi dot shinde at gmail dot com")
  * and prevents the sentence splitter from pausing awkwardly at ".com" or decimals.
  */
 function formatEmailsAndUrlsForSpeech(text) {
     if (!text) return "";
 
-    // 1. Email addresses: name@domain.com -> "name at domain dot com" (eliminates awkward pauses at .com)
+    // 1. Email addresses: name@domain.com -> "name at domain dot com"
     text = text.replace(/([a-zA-Z0-9._%+-]+)@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g, (match, user, domain) => {
-        const spokenUser = user.replace(/\./g, " dot ").replace(/_/g, " underscore ").replace(/-/g, " hyphen ");
+        const spokenUser = formatEmailUserForSpeech(user, text);
         const spokenDomain = domain.replace(/\./g, " dot ");
         return `${spokenUser} at ${spokenDomain}`;
     });
@@ -378,16 +429,16 @@ export function MessageBubble({ message, role, onClose }) {
                     utterance.lang = "en-IN";
                 }
 
-                // 0.90 is a calm, natural, well-paced cadence for clear comprehension
-                utterance.rate = 0.90;
+                // 1.08 is crisp, fast, energetic, and natural
+                utterance.rate = 1.08;
                 utterance.pitch = 1.05;
 
                 utterance.onend = () => {
                     if (!speechQueueRef.current.isPlaying) return;
-                    // Natural 400ms pause between points/sentences so the user clearly hears each item distinctly
+                    // Natural 180ms quick pause between points/sentences so speech flows briskly without dragging
                     speechQueueRef.current.timer = setTimeout(() => {
                         playChunk(index + 1);
-                    }, 400);
+                    }, 180);
                 };
 
                 utterance.onerror = () => {
