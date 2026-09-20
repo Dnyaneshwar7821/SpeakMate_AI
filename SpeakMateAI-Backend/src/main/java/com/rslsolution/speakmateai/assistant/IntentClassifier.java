@@ -286,6 +286,7 @@ public class IntentClassifier {
 			"chapter", "chapters", "completed", "complete", "completes",
 			"completing", "completion", "finished", "finish", "remaining",
 			"pending", "done", "accuracy", "average", "stats", "statistics", "summary",
+			"perform", "performing", "performance", "health", "system",
 			// visualizations and charts
 			"chart", "charts", "graph", "graphs", "pie", "donut", "doughnut", "bar",
 			"line", "plot", "plots", "table", "tables", "diagram", "diagrams", "visualize", "visualization", "overview",
@@ -762,6 +763,8 @@ public class IntentClassifier {
 		// Platform overview totals:
 		if (containsAny(m, List.of(
 				"give me a platform overview", "platform overview", "system overview",
+				"how is the platform performing", "how is the platform performing overall", "platform performing", "how is platform performing", "how the platform is performing", "platform performance",
+				"how is the platform doing", "how is the platform", "platform status", "overall platform",
 				"how many total users are there", "how many total users", "total users are there", "how many users", "total users",
 				"how many students are there", "total students are there", "how many students are", "how many students", "total students", "student population",
 				"how many teachers are there", "total teachers are there", "how many teachers are", "how many teachers", "total teachers", "teaching staff",
@@ -797,12 +800,17 @@ public class IntentClassifier {
 
 		// User directory:
 		if (containsAny(m, List.of(
-				"show me all users", "show all users", "names of all users", "list of all users", "list of users", "all users on the platform", "all users", "list users", "list all users",
-				"show me all teachers", "show all teachers", "list of all teachers", "list of teachers", "list out all teachers", "list out teachers", "all teachers",
-				"show me all students", "show all students", "list of all students", "list of students", "list out all students", "list out students", "all students",
-				"show me all school admins", "show all school admins", "list of all school admins", "list of school admins", "list out school admins", "list out only school admins", "list out school admins only", "school admins", "who are school admins", "all school admins",
-				"show me all super admins", "show all super admins", "list of all super admins", "list of super admins", "list out super admins", "super admins", "who are super admins", "all super admins",
-				"user distribution by role", "user role distribution", "show user distribution by role", "show user role distribution"))) {
+				"show me all users", "show all users", "names of all users", "list of all users", "list of users", "list of user", "all users on the platform", "all users", "list users", "list all users", "list user", "show users", "show user",
+				"show me all teachers", "show all teachers", "list of all teachers", "list of teachers", "list of teacher", "list out all teachers", "list out teachers", "list out teacher", "all teachers", "list teachers", "list teacher", "show teachers", "show teacher",
+				"show me all students", "show all students", "list of all students", "list of students", "list of student", "list out all students", "list out students", "list out student", "all students", "list students", "list student", "show students", "show student",
+				"show me all school admins", "show all school admins", "list of all school admins", "list of school admins", "list of school admin", "list out school admins", "list out school admin", "list out only school admins", "list out school admins only", "school admins", "who are school admins", "all school admins", "list school admins", "list school admin", "show school admins", "show school admin",
+				"show me all super admins", "show all super admins", "list of all super admins", "list of super admins", "list of super admin", "list out super admins", "list out super admin", "super admins", "who are super admins", "all super admins", "list super admins", "list super admin", "show super admins", "show super admin",
+				"user distribution by role", "user role distribution", "show user distribution by role", "show user role distribution"))
+				|| (containsAny(m, List.of("list of", "list out", "show all", "names of", "give me the list of", "give list of"))
+						&& containsAny(m, List.of("user", "users", "teacher", "teachers", "student", "students", "admin", "admins"))
+						&& extractSchoolName(message).isEmpty()
+						&& extractClassSpec(message) == null
+						&& !containsAny(m, List.of("how many", "total", "count", "number of", "stats", "score")))) {
 			Map<String, Object> params = new java.util.LinkedHashMap<>();
 			if (m.contains("super admin") || m.contains("superadmin")) {
 				params.put("roleFilter", "SUPER_ADMIN");
@@ -813,7 +821,7 @@ public class IntentClassifier {
 			} else if (m.contains("teacher")) {
 				params.put("roleFilter", "TEACHER");
 				params.put("role", "TEACHER");
-			} else if (m.contains("student")) {
+			} else if (m.contains("student") || m.contains("learner")) {
 				params.put("roleFilter", "STUDENT");
 				params.put("role", "STUDENT");
 			}
@@ -2010,6 +2018,10 @@ public class IntentClassifier {
 			}
 			return AssistantIntent.STUDENT_PERFORMANCE;
 		}
+		if (role == Role.SUPER_ADMIN && m.contains("platform")
+				&& (m.contains("performing") || m.contains("performance") || m.contains("overview") || m.contains("progress") || m.contains("doing") || m.contains("status"))) {
+			return AssistantIntent.PLATFORM_OVERVIEW;
+		}
 		return null;
 	}
 
@@ -2052,7 +2064,7 @@ public class IntentClassifier {
 		if (isSpecificScope(m) || !extractSchoolName(message).isEmpty() || !extractStudentMetricName(message).isEmpty()) {
 			return null;
 		}
-		boolean entity = m.contains("student") || m.contains("school") || m.contains("teacher")
+		boolean entity = m.contains("platform") || m.contains("student") || m.contains("school") || m.contains("teacher")
 				|| m.contains("user") || m.contains("revenue") || m.contains("subscription")
 				|| m.contains("billing") || m.contains("enrollment") || m.contains("count")
 				|| m.contains("how many") || m.contains("how much")
@@ -2060,8 +2072,8 @@ public class IntentClassifier {
 				|| m.contains("admin")
 				// Same entities under their natural synonyms: the
 				|| m.contains("educator") || m.contains("learner") || m.contains("staff")
-				|| m.contains("performance") || m.contains("progress") || m.contains("network")
-				|| m.contains("population") || m.contains("overview");
+				|| m.contains("performance") || m.contains("performing") || m.contains("progress") || m.contains("network")
+				|| m.contains("population") || m.contains("overview") || m.contains("overall");
 		return entity ? AssistantIntent.PLATFORM_OVERVIEW : null;
 	}
 

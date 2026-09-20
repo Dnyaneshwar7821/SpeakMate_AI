@@ -345,6 +345,12 @@ public class MasterRoleScopedChatbotTest {
 			IntentResult rJspm = classifier.classify("can you list out only JSPM student", Role.SUPER_ADMIN, null);
 			assertEquals(AssistantIntent.SCHOOL_ROSTER, rJspm.getIntent());
 			assertEquals("JSPM", rJspm.getParams().get("schoolName"));
+
+			// Platform performance and singular student list
+			assertEquals(AssistantIntent.PLATFORM_OVERVIEW, classifier.classify("How is the platform performing overall?", Role.SUPER_ADMIN, null).getIntent());
+			IntentResult rListOfStudent = classifier.classify("list of student", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rListOfStudent.getIntent());
+			assertEquals("STUDENT", rListOfStudent.getParams().get("roleFilter"));
 		}
 
 		@Test
