@@ -16,8 +16,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
+import com.rslsolution.speakmateai.entity.School;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.repository.SchoolRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -25,6 +27,9 @@ class PlatformUsersDataProviderTest {
 
 	@Mock
 	private UserRepository userRepository;
+
+	@Mock
+	private SchoolRepository schoolRepository;
 
 	private ObjectMapper objectMapper;
 	private PlatformUsersDataProvider provider;
@@ -42,17 +47,20 @@ class PlatformUsersDataProviderTest {
 	@BeforeEach
 	void setUp() {
 		objectMapper = new ObjectMapper();
-		provider = new PlatformUsersDataProvider(userRepository, objectMapper);
+		provider = new PlatformUsersDataProvider(userRepository, schoolRepository, objectMapper);
 		actor = ActorContext.builder().userId(1L).displayName("Super Admin").email("super@example.com").role(Role.SUPER_ADMIN).build();
 
 		superAdmin = User.builder().firstName("System").lastName("Admin").email("super@example.com").role(Role.SUPER_ADMIN).active(true).build();
-		schoolAdmin = User.builder().firstName("Principal").lastName("Sharma").email("admin@example.com").role(Role.SCHOOL_ADMIN).active(true).build();
+		schoolAdmin = User.builder().firstName("Principal").lastName("Sharma").email("admin@example.com").role(Role.SCHOOL_ADMIN).schoolId(24L).active(true).build();
 		teacher1 = User.builder().firstName("Anita").lastName("Deshmukh").email("anita@example.com").role(Role.TEACHER).active(true).build();
 		teacher2 = User.builder().firstName("Vikram").lastName("Joshi").email("vikram@example.com").role(Role.TEACHER).active(true).build();
 		student1 = User.builder().firstName("Siddhi").lastName("Narke").email("siddhi@example.com").role(Role.STUDENT).active(true).build();
 		student2 = User.builder().firstName("Ayush").lastName("Patil").email("ayush@example.com").role(Role.STUDENT).active(true).build();
 		learner = User.builder().firstName("Gangu").lastName("Algule").email("gangu@example.com").role(Role.USER).active(true).build();
 
+		when(schoolRepository.findAll()).thenReturn(List.of(
+				School.builder().id(24L).schoolName("DY Patil University").build()
+		));
 		when(userRepository.findAll()).thenReturn(List.of(superAdmin, schoolAdmin, teacher1, teacher2, student1, student2, learner));
 	}
 
@@ -166,5 +174,45 @@ class PlatformUsersDataProviderTest {
 				new TypeReference<Map<String, Object>>() {});
 		assertEquals(1, ((Number) data4.get("userCount")).intValue());
 		assertEquals("User", data4.get("roleFilter"));
+	}
+
+	@Test
+	void testProvideSchoolAdminResolvesSchoolNameFromSchoolId() throws Exception {
+		String json = provider.provide(actor, Map.of("roleFilter", "SCHOOL_ADMIN"));
+		assertNotNull(json);
+
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> users = (List<Map<String, Object>>) data.get("users");
+		assertEquals(1, users.size());
+		Map<String, Object> admin = users.get(0);
+		assertEquals("Principal Sharma", admin.get("name"));
+		assertEquals("DY Patil University", admin.get("schoolName"));
+	}
+
+	@Test
+	void testProvideFilterBySchoolName() throws Exception {
+		String json = provider.provide(actor, Map.of("roleFilter", "SCHOOL_ADMIN", "schoolName", "DY Patil University"));
+		assertNotNull(json);
+
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> users = (List<Map<String, Object>>) data.get("users");
+		assertEquals(1, users.size());
+		assertEquals("Principal Sharma", users.get(0).get("name"));
+		assertEquals("DY Patil University", users.get(0).get("schoolName"));
+	}
+
+	@Test
+	void testProvideRecentUsers() throws Exception {
+		String json = provider.provide(actor, Map.of());
+		assertNotNull(json);
+
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+		assertTrue(data.containsKey("recentUsers"));
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> recent = (List<Map<String, Object>>) data.get("recentUsers");
+		assertNotNull(recent);
+		assertTrue(recent.size() <= 5);
 	}
 }

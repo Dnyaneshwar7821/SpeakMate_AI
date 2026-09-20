@@ -8,14 +8,18 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
+import com.rslsolution.speakmateai.entity.School;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.repository.SchoolRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 
 /**
@@ -35,11 +39,15 @@ import com.rslsolution.speakmateai.repository.UserRepository;
 @Component
 public class PlatformUsersDataProvider implements AssistantDataProvider {
 
+	private static final DateTimeFormatter REG_DATE_FMT = DateTimeFormatter.ofPattern("dd MMM yyyy");
+
 	private final UserRepository userRepository;
+	private final SchoolRepository schoolRepository;
 	private final ObjectMapper objectMapper;
 
-	public PlatformUsersDataProvider(UserRepository userRepository, ObjectMapper objectMapper) {
+	public PlatformUsersDataProvider(UserRepository userRepository, SchoolRepository schoolRepository, ObjectMapper objectMapper) {
 		this.userRepository = userRepository;
+		this.schoolRepository = schoolRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -59,10 +67,31 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 		}
 		final Role filter = roleFilter;
 
+		Map<Long, String> schoolNameById = new HashMap<>();
+		if (schoolRepository != null) {
+			for (School s : schoolRepository.findAll()) {
+				if (s.getId() != null) {
+					String sName = s.getSchoolName() != null && !s.getSchoolName().isBlank() ? s.getSchoolName() : s.getName();
+					if (sName != null && !sName.isBlank()) {
+						schoolNameById.put(s.getId(), sName.trim());
+					}
+				}
+			}
+		}
+
 		List<User> all = userRepository.findAll();
 		List<User> selected = filter == null
 				? all
 				: all.stream().filter(u -> matchesRole(u.getRole(), filter)).collect(Collectors.toList());
+
+		// Optional school filter (e.g., "who is school admin of DY Patil University")
+		String requestedSchool = strParam(params, "schoolName").trim();
+		if (!requestedSchool.isEmpty()) {
+			selected = selected.stream().filter(u -> {
+				String sName = resolveSchoolName(u, schoolNameById);
+				return sName != null && sName.toLowerCase(Locale.ROOT).contains(requestedSchool.toLowerCase(Locale.ROOT));
+			}).collect(Collectors.toList());
+		}
 
 		// Stable, readable ordering: by role, then by name.
 		List<User> ordered = new ArrayList<>(selected);
@@ -70,7 +99,15 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 				.comparingInt((User u) -> u.getRole() == null ? Integer.MAX_VALUE : u.getRole().ordinal())
 				.thenComparing(u -> fullName(u.getFirstName(), u.getLastName()), String.CASE_INSENSITIVE_ORDER));
 
-		List<Map<String, Object>> views = ordered.stream().map(this::userView).collect(Collectors.toList());
+		List<Map<String, Object>> views = ordered.stream().map(u -> userView(u, schoolNameById)).collect(Collectors.toList());
+
+		// Recently added users (sorted by createdAt descending, fallback to id descending)
+		List<Map<String, Object>> recentViews = selected.stream()
+				.sorted(Comparator.comparing(User::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+						.thenComparing(User::getId, Comparator.nullsLast(Comparator.reverseOrder())))
+				.limit(5)
+				.map(u -> userView(u, schoolNameById))
+				.collect(Collectors.toList());
 
 		long teacherCount = all.stream().filter(u -> u.getRole() == Role.TEACHER).count();
 		long studentCount = all.stream().filter(u -> u.getRole() == Role.STUDENT).count();
@@ -88,7 +125,11 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 		data.put("totalLearners", learnerCount);
 		data.put("userCount", views.size());
 		data.put("roleFilter", roleFilter == null ? "" : roleLabel(roleFilter));
+		if (!requestedSchool.isEmpty()) {
+			data.put("schoolFilter", requestedSchool);
+		}
 		data.put("users", views);
+		data.put("recentUsers", recentViews);
 		data.put("usersText", views.size() + " user" + (views.size() == 1 ? "" : "s"));
 		data.put("roleCounts", roleCounts(all));
 		data.put("summary", roleFilter == null
@@ -112,12 +153,23 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 		return false;
 	}
 
+	private String resolveSchoolName(User user, Map<Long, String> schoolNameById) {
+		if (user == null) {
+			return null;
+		}
+		String sName = user.getSchoolName();
+		if ((sName == null || sName.isBlank()) && user.getSchoolId() != null && schoolNameById != null) {
+			sName = schoolNameById.get(user.getSchoolId());
+		}
+		return sName != null && !sName.isBlank() ? sName : null;
+	}
+
 	/**
 	 * One directory entry: the base profile fields that live on {@link User}.
 	 * Only real, stored values are emitted so the synthesizer never has to say a
 	 * detail is unavailable for a record it received.
 	 */
-	private Map<String, Object> userView(User user) {
+	private Map<String, Object> userView(User user, Map<Long, String> schoolNameById) {
 		Map<String, Object> view = new LinkedHashMap<>();
 		String name = fullName(user.getFirstName(), user.getLastName());
 		view.put("name", name.isBlank() ? "(no name)" : name);
@@ -125,8 +177,12 @@ public class PlatformUsersDataProvider implements AssistantDataProvider {
 			view.put("role", roleLabel(user.getRole()));
 		}
 		putIfPresent(view, "email", user.getEmail());
-		putIfPresent(view, "schoolName", user.getSchoolName());
+		putIfPresent(view, "schoolName", resolveSchoolName(user, schoolNameById));
 		putIfPresent(view, "phone", user.getPhone());
+		if (user.getCreatedAt() != null) {
+			view.put("createdAt", user.getCreatedAt().toString());
+			view.put("registeredDate", user.getCreatedAt().format(REG_DATE_FMT));
+		}
 		view.put("status", user.isActive() ? "Active" : "Inactive");
 		return view;
 	}

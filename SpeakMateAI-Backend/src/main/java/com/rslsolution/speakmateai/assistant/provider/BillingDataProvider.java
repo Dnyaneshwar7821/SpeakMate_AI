@@ -1,8 +1,11 @@
 package com.rslsolution.speakmateai.assistant.provider;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -10,6 +13,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
+import com.rslsolution.speakmateai.entity.User;
+import com.rslsolution.speakmateai.entity.UserSubscription;
 import com.rslsolution.speakmateai.enums.PaymentStatus;
 import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.enums.SubscriptionStatus;
@@ -79,6 +84,49 @@ public class BillingDataProvider implements AssistantDataProvider {
 		data.put("cancelledSubscriptions",
 				platformWide ? userSubscriptionRepository.countBySubscriptionStatus(SubscriptionStatus.CANCELLED)
 						: userSubscriptionRepository.countBySubscriptionStatusAndUserSchoolId(SubscriptionStatus.CANCELLED, schoolId));
+
+		List<UserSubscription> allSubs = userSubscriptionRepository.findAll();
+		List<Map<String, Object>> subscriberViews = allSubs.stream()
+				.filter(s -> {
+					if (platformWide) return true;
+					return s.getUser() != null && schoolId != null && schoolId.equals(s.getUser().getSchoolId());
+				})
+				.filter(s -> "ACTIVE".equalsIgnoreCase(s.getStatus()) || s.getSubscriptionStatus() == SubscriptionStatus.ACTIVE)
+				.map(s -> {
+					Map<String, Object> sub = new LinkedHashMap<>();
+					User u = s.getUser();
+					if (u != null) {
+						String name = (u.getFirstName() != null ? u.getFirstName() : "") + " " + (u.getLastName() != null ? u.getLastName() : "");
+						sub.put("userName", name.trim().isEmpty() ? u.getEmail() : name.trim());
+						sub.put("userEmail", u.getEmail());
+						if (u.getSchoolName() != null && !u.getSchoolName().isBlank()) {
+							sub.put("schoolName", u.getSchoolName());
+						}
+					}
+					String plan = s.getPlanType();
+					if ((plan == null || plan.isBlank()) && s.getSubscriptionPlan() != null) {
+						plan = s.getSubscriptionPlan().getPlanName();
+					}
+					sub.put("plan", plan != null ? plan : "PRO");
+					if (s.getAmount() != null) {
+						sub.put("amount", s.getAmount());
+					} else if (s.getAmountPaid() != null) {
+						sub.put("amount", s.getAmountPaid());
+					}
+					sub.put("status", s.getStatus() != null ? s.getStatus() : "ACTIVE");
+					if (s.getStartDate() != null) {
+						sub.put("startDate", s.getStartDate().toLocalDate().toString());
+					}
+					if (s.getEndDate() != null) {
+						sub.put("endDate", s.getEndDate().toLocalDate().toString());
+					}
+					return sub;
+				})
+				.collect(Collectors.toList());
+
+		data.put("subscribers", subscriberViews);
+		data.put("subscriberCount", subscriberViews.size());
+
 		// Subscription plan catalog is platform-level, not school-scoped.
 		if (platformWide) {
 			data.put("activePlans", subscriptionPlanRepository.countByIsActiveTrue());

@@ -270,11 +270,36 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		view.put("email", teacher.getEmail());
 		putIfPresent(view, "phone", teacher.getPhone());
 		putIfPresent(view, "schoolName", teacher.getSchoolName());
-		if (assignedClasses != null && !assignedClasses.isEmpty()) {
-			view.put("classes", assignedClasses);
-		}
+		List<String> classes = assignedClasses != null ? assignedClasses : List.of();
+		view.put("classes", classes);
+		view.put("classCount", classes.size());
 
 		Long teacherUserId = teacher.getId();
+		if (teacherUserId != null) {
+			List<Student> teacherStudents = null;
+			try {
+				teacherStudents = teacherAssignmentResolver.resolveAssignedStudents(teacherUserId, teacher.getSchoolId());
+			} catch (Exception ignored) {
+			}
+			if (teacherStudents == null || teacherStudents.isEmpty()) {
+				try {
+					teacherStudents = studentRepository.findByTeacherId(teacherUserId);
+				} catch (Exception ignored) {
+				}
+			}
+			int sCount = teacherStudents != null ? teacherStudents.size() : 0;
+			view.put("studentCount", sCount);
+			view.put("hasStudents", sCount > 0);
+			if (sCount > 0) {
+				view.put("assignedStudents", teacherStudents.stream()
+						.map(s -> fullName(s.getFirstName(), s.getLastName()))
+						.collect(Collectors.toList()));
+			}
+		} else {
+			view.put("studentCount", 0);
+			view.put("hasStudents", false);
+		}
+
 		Teacher details = teacherUserId != null ? teacherRepository.findById(teacherUserId).orElse(null) : null;
 		if (details != null) {
 			putIfPresent(view, "employeeId", details.getEmployeeId());

@@ -754,6 +754,72 @@ public class IntentClassifier {
 		}
 		String m = message.toLowerCase(Locale.ROOT).replaceAll("[?!.,;]+$", "").trim();
 
+		// Teacher class count / teaching queries ("how many classes does pratik patil have/teach", "classes taught by pratik patil"):
+		if (containsAny(m, List.of("classes does", "classes taught", "classes assigned", "classes of", "classes do"))
+				|| (m.contains("how many classes") && containsAny(m, List.of("teach", "teaches", "have", "has", "assigned", "handled", "allocated")))) {
+			String name = extractTeacherNameFromClassQuery(message);
+			if (name != null && !name.isBlank()) {
+				Map<String, Object> params = new java.util.LinkedHashMap<>();
+				params.put("entityType", "TEACHERS");
+				params.put("focusName", name);
+				return new IntentResult(AssistantIntent.SCHOOL_ROSTER, params, null);
+			}
+		}
+
+		// Teacher assignment / class roster inquiries:
+		if (containsAny(m, List.of("teacher", "teachers"))
+				&& (containsAny(m, List.of("assigned class", "assigned classes", "assigned division", "assigned divisions",
+						"assigned standard", "assigned standards", "classes assigned", "divisions assigned",
+						"standards assigned", "who have student", "who have students", "with their classes",
+						"with their assigned", "with full info", "full info"))
+				|| (containsAny(m, List.of("assigned", "teaches", "teaching")) && containsAny(m, List.of("class", "classes", "division", "divisions", "standard", "standards"))))) {
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			params.put("entityType", "TEACHERS");
+			String school = extractSchoolName(message);
+			if (!school.isEmpty()) {
+				params.put("schoolName", school);
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, params, null);
+		}
+
+		// School Admin of specific school ("who is school admin of DY Patil University"):
+		if (containsAny(m, List.of("school admin of", "school admin for", "admin of", "admin for"))
+				&& !containsAny(m, List.of("password", "secret", "credential", "jwt", "key", "token"))) {
+			String school = extractSchoolName(message);
+			if (school.isEmpty()) {
+				Matcher sm = Pattern.compile("(?:school\\s+)?admin\\s+(?:of|for)\\s+(.+)", Pattern.CASE_INSENSITIVE).matcher(message);
+				if (sm.find()) {
+					school = sm.group(1).trim().replaceAll("[?.!]+$", "");
+				}
+			}
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			params.put("roleFilter", "SCHOOL_ADMIN");
+			params.put("role", "SCHOOL_ADMIN");
+			if (!school.isEmpty()) {
+				params.put("schoolName", school);
+			}
+			return new IntentResult(AssistantIntent.PLATFORM_USERS, params, null);
+		}
+
+		// Platform-wide speaking sessions:
+		if (containsAny(m, List.of(
+				"speaking session done students", "speaking sessions done", "speaking sessions completed",
+				"how many speaking sessions", "total speaking sessions", "speaking session count", "student speaking sessions"))
+				&& extractStudentMetricName(message).isEmpty()) {
+			return new IntentResult(AssistantIntent.PLATFORM_OVERVIEW, Map.of(), null);
+		}
+
+		// Top student / student XP leaderboard across platform:
+		if (containsAny(m, List.of(
+				"best student", "top student", "top students", "highest xp", "student with most xp",
+				"xp does each student have", "how much xp does each student have", "student leaderboard",
+				"best performing student", "best performing students"))
+				&& extractStudentMetricName(message).isEmpty()) {
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			params.put("leaderboard", Boolean.TRUE);
+			return new IntentResult(AssistantIntent.PLATFORM_OVERVIEW, params, null);
+		}
+
 		// Platform school list inquiries:
 		if (containsAny(m, List.of(
 				"list out school names", "list out schools", "list of schools", "which school are added", "which schools are added", "school names", "schools added", "all schools"))) {
@@ -769,11 +835,12 @@ public class IntentClassifier {
 				"how many students are there", "total students are there", "how many students are", "how many students", "total students", "student population",
 				"how many teachers are there", "total teachers are there", "how many teachers are", "how many teachers", "total teachers", "teaching staff",
 				"how many schools are there", "total schools are there", "how many schools are", "how many schools", "total schools", "school network",
-				"how many classes are there", "total classes are there", "how many classes", "total classes",
 				"show me all schools", "show all schools", "platform-wide learning statistics", "show platform-wide learning statistics",
 				"compare school performance", "how many students does each school have", "school enrollment statistics", "show school enrollment statistics",
 				"platform exam results", "show platform exam results", "show pass/fail statistics", "top speakers",
-				"give me a complete platform performance summary", "complete platform performance summary", "platform performance summary"))) {
+				"give me a complete platform performance summary", "complete platform performance summary", "platform performance summary"))
+				|| ((containsAny(m, List.of("how many classes are there", "total classes are there", "how many classes", "total classes")))
+						&& !containsAny(m, List.of("does", "teach", "teaches", "have", "has", "assigned", "handled", "allocated")))) {
 			if (extractSchoolName(message).isEmpty()) {
 				return new IntentResult(AssistantIntent.PLATFORM_OVERVIEW, Map.of(), null);
 			}
@@ -783,7 +850,7 @@ public class IntentClassifier {
 		if (containsAny(m, List.of(
 				"what are the active plans", "active plans", "active subscription plans",
 				"show me subscription statistics", "show subscription statistics", "subscription statistics", "active subscriptions", "show active subscriptions",
-				"who subscribed", "who has subscribed", "who taken subscription", "subscribers", "subscribed users", "active subscribers",
+				"who subscribed", "who has subscribed", "who taken subscription", "who has taken subscription", "subscribers", "subscribed users", "active subscribers",
 				"show me revenue metrics", "show revenue metrics", "revenue metrics", "platform revenue", "show me platform revenue", "show platform revenue",
 				"how much money does the platform make", "platform earnings", "total earnings",
 				"give me a billing overview", "billing overview"))) {
@@ -808,6 +875,7 @@ public class IntentClassifier {
 				"user distribution by role", "user role distribution", "show user distribution by role", "show user role distribution"))
 				|| (containsAny(m, List.of("list of", "list out", "show all", "names of", "give me the list of", "give list of"))
 						&& containsAny(m, List.of("user", "users", "teacher", "teachers", "student", "students", "admin", "admins"))
+						&& !containsAny(m, List.of("assigned", "who have student", "who have students"))
 						&& extractSchoolName(message).isEmpty()
 						&& extractClassSpec(message) == null
 						&& !containsAny(m, List.of("how many", "total", "count", "number of", "stats", "score")))) {
@@ -828,6 +896,42 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.PLATFORM_USERS, params, null);
 		}
 
+		// Recently added users / specific user role queries:
+		if (containsAny(m, List.of("recently added", "recent user", "recent users", "recent student", "recent students",
+				"recently registered", "newly added", "latest user", "latest users", "latest student", "latest students",
+				"which student recently", "which school admin recently", "which teacher recently", "which user recently"))) {
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			if (m.contains("school admin")) {
+				params.put("roleFilter", "SCHOOL_ADMIN");
+				params.put("role", "SCHOOL_ADMIN");
+			} else if (m.contains("super admin") || m.contains("superadmin")) {
+				params.put("roleFilter", "SUPER_ADMIN");
+				params.put("role", "SUPER_ADMIN");
+			} else if (m.contains("teacher")) {
+				params.put("roleFilter", "TEACHER");
+				params.put("role", "TEACHER");
+			} else if (m.contains("student") || m.contains("learner")) {
+				params.put("roleFilter", "STUDENT");
+				params.put("role", "STUDENT");
+			}
+			return new IntentResult(AssistantIntent.PLATFORM_USERS, params, null);
+		}
+
+		return null;
+	}
+
+	private String extractTeacherNameFromClassQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return null;
+		}
+		Matcher m1 = Pattern.compile("how many classes (?:does\\s+)?(.*?)\\s+(?:teach|teaches|have|has|assigned|take|takes)", Pattern.CASE_INSENSITIVE).matcher(message);
+		if (m1.find()) {
+			return m1.group(1).trim().replaceAll("[?.!]+$", "");
+		}
+		Matcher m2 = Pattern.compile("classes\\s+(?:taught by|assigned to|of)\\s+(.+)", Pattern.CASE_INSENSITIVE).matcher(message);
+		if (m2.find()) {
+			return m2.group(1).trim().replaceAll("[?.!]+$", "");
+		}
 		return null;
 	}
 

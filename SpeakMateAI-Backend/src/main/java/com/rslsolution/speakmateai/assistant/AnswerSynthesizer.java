@@ -230,6 +230,8 @@ public class AnswerSynthesizer {
 			case PLATFORM_OVERVIEW -> "Answer questions about platform-wide statistics accurately using the provided data.\n"
 					+ "- TARGETED METRIC RULE: When the user asks for ONE specific metric or category (e.g. 'How many students are there?', 'How many teachers are there?', 'How many schools are there?', 'How many classes are there?', 'How many users are there?'): answer that specific question concisely and directly first (e.g., \"There are 6 students on the platform across all schools (all 6 are active).\"). For student questions, include the breakdown of top schools by students. Do NOT dump unrelated metrics like revenue, classes, or divisions when only asked about students or teachers. In the 'stats' array, include ONLY the stat cards relevant to the asked metric (e.g. for students: 'Total Students' and 'Active Students'; for teachers: 'Total Teachers' and 'Active Teachers'; for schools: 'Total Schools'; for users: 'Total Users' and 'Active Users').\n"
 					+ "- BROAD OVERVIEW RULE: When the user asks for a platform overview ('platform overview', 'give me a platform overview', 'summary of platform', etc.) or asks about multiple metrics simultaneously, summarize the key platform numbers across users, teachers, students, schools, and classes. In the 'stats' array, provide key cards: 'Total Users', 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'School Admins' (totalSchoolAdmins).\n"
+					+ "- SPEAKING SESSIONS: When asked about speaking sessions done across the platform or students (e.g. 'How many speaking session done students' or 'total speaking sessions'), report totalSpeakingSessions directly from the data.\n"
+					+ "- TOP / BEST STUDENTS: When asked about the best student, top students, or student XP leaderboard (e.g. 'best student currently', 'how many XP does each student have', 'who has highest xp'): report the best student from bestStudent and list the top students from topStudents with their name, school, standard/division, XP, level, and streak.\n"
 					+ "- If the question compares or ranks schools (e.g., which school has the most students or teachers), rank schools using schoolsByStudentCount and highlight the top schools, using a 'horizontal-bar' chart so school names on the axis are never cut off.\n"
 					+ "Never say data is unavailable when the fields are present.";
 			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area.";
@@ -238,11 +240,12 @@ public class AnswerSynthesizer {
 					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons.\n"
 					+ "CHART RULE FOR STUDENT LEARNING: When adding a chart for learning progress or performance, NEVER create a narrow 'Completed vs Remaining' chart. Always break down activity across EACH MODULE: Speaking (totalSpeakingSessions), Lessons (lessonsCompleted), Grammar (totalGrammarChecks), and Vocabulary (totalVocabularyWords). Set labels: ['Speaking', 'Lessons', 'Grammar', 'Vocabulary'], title: 'Learning Activity by Module', dataset label: 'Activities', with dynamic chart type 'bar' or 'doughnut'. If the user specifically asks for speech scores progress, use labels ['Fluency', 'Pronunciation', 'Grammar', 'Vocabulary'] with speaking evaluation scores.\n"
 					+ "A count of 0 is a valid number, so state 0 explicitly rather than saying data is unavailable. If the person is not a student (it carries a personRole field), state they are not a student and report their role EXACTLY as given in personRole.";
-			case BILLING -> "Summarize billing/subscription/revenue numbers clearly.";
+			case BILLING -> "Summarize billing/subscription/revenue numbers clearly.\n"
+					+ "When asked who has taken a subscription or who the active subscribers are (e.g. 'who has taken subscription', 'who subscribed', 'active subscribers'), list each subscriber from the subscribers array with their name, email, school, plan name, amount, and dates. If the subscribers list is empty, state clearly that there are currently 0 active subscribers.";
 			case SCHOOL_ROSTER -> "Answer ONLY from the provided teachers/students arrays, using every detail those entries contain. Never reply that a detail is unavailable when the field is present on the entry.\n"
-					+ "Teacher entry fields: name, email, phone, employeeId, department, subject, designation, experience, qualification, joinedAt, classes (list of classes assigned). A teacher's teaching area is exposed as BOTH department and subject - treat 'subject' as the subject they teach and state it, they are the same stored value. If the caller asks which subject/department someone teaches, answer with the subject value (e.g. \"Digvijay Patil teaches English\"). If asked when someone joined, use joinedAt; only if joinedAt is absent from the entry, say the joining date is not recorded (do not say the whole record is unavailable).\n"
+					+ "Teacher entry fields: name, email, phone, employeeId, department, subject, designation, experience, qualification, joinedAt, classes (list of classes assigned), classCount (number of classes assigned), studentCount, hasStudents, assignedStudents. A teacher's teaching area is exposed as BOTH department and subject - treat 'subject' as the subject they teach and state it, they are the same stored value. If the caller asks which subject/department someone teaches, answer with the subject value (e.g. \"Digvijay Patil teaches English\"). If asked how many classes a teacher teaches (e.g. 'how many classes does pratik patil have/teach'), answer directly using classCount and list their assigned classes. If asked for teachers who have students or assigned classes, list the teachers along with their assigned classes and student counts.\n"
 					+ "Student entry fields: name, email, phone, studentId, rollNumber, standard, division, assignedTeacher.\n"
-					+ "When entityType is SINGLE_PERSON (or focusName is present), the arrays were narrowed to that one person: answer the specific question about them directly (e.g. \"Digvijay Patil is in the English department\") and, when the question is a general 'details' question, list ALL of that person's fields as markdown bullets.\n"
+					+ "When entityType is SINGLE_PERSON (or focusName is present), the arrays were narrowed to that one person: answer the specific question about them directly (e.g. \"Pratik Patil is assigned to 8 classes: 6-A, 7-A, ...\") and, when the question is a general 'details' question, list ALL of that person's fields as markdown bullets.\n"
 					+ "When the caller asked for a name (e.g., 'name of the teacher'), state it directly - for example \"The teacher is John Doe\". For a roster list, present each person as a markdown bullet including their known details (name, plus email/department/subject/experience/qualification/classes for teachers; name, plus standard/division/assignedTeacher for students), grouping under Teachers / Students headings when both are present. Use teacherCount and studentCount as the real numbers - an empty list means no one is enrolled, so say \"0 teachers\" or \"0 students\" explicitly. Keep it concise.\n"
 					+ "The payload may also contain otherUsers/otherUserCount for accounts that are neither students nor teachers (platform Users, School Admins, Admins); each entry has name, role, email, phone, schoolName and status. This directory is always available — never say the information is unavailable when these entries are present. Always state a person's role EXACTLY as given in their role field — never substitute, upgrade, or invent a different role (for example, never call a 'User' a 'School Admin').";
 			case ACCOUNT_INFO -> "Answer with the caller's OWN account details from the provided fields (email, displayName, role, schoolName, location). When asked for the email, state it clearly (e.g., \"Your logged-in email is ...\"). When asked for their location/address/city (e.g. \"my location\"), answer directly from the location field (e.g., \"Your location is ...\") — never reply with navigation links or say the data is unavailable when the location field is present. Also give their name, role and school when asked. Never mention ids or internal field names, and never claim the data is unavailable — this is the caller's own account and is always available.";
@@ -251,7 +254,7 @@ public class AnswerSynthesizer {
 			case RESULTS_ANALYTICS -> "Summarize the school's Results page from the provided fields: totalResults, averagePercentage, passed, failed, passPercentage, failPercentage, highestPercentage, lowestPercentage, excellentResults, goodResults, passResults, failResults and any per-standard breakdown. When illustrating pass/fail distribution, use a 'doughnut' or 'pie' chart. Answer count/percentage questions directly from those numbers — 0 is a valid number. Present pass/fail clearly and note where the school can improve.";
 			case AI_INSIGHTS -> "Summarize the school's AI Insights page from the provided fields: fluency, pronunciation, vocabulary and grammar scores, speakingTimeSeconds, speechMetrics, trends, topSpeakers and mispronouncedWords. Answer metric questions directly from those numbers (e.g. average fluency score) — a value of 0 is valid. When illustrating speech metric trends over time, use a 'line' chart. If mispronouncedWordsAvailable is false (or the mispronouncedWords list is empty), state plainly that word-level mispronunciation data is not available and DO NOT invent, guess or list any words. Be encouraging and call out the strongest and weakest area plus the top speakers.";
 			case PROFILE_SETTINGS -> "Answer with the caller's OWN profile and settings from the provided fields (name, email, role, phone, schoolName, schoolCode, department, joinedAt and preference/security settings such as theme, notification preferences and two-factor status). State values directly (e.g. 'Your profile email is ...'); never mention ids or internal field names and never claim the data is unavailable — this is the caller's own profile.";
-			case PLATFORM_USERS -> "The caller is a Super Admin, who can access every dataset on the platform (the All Users page at /admin/users). Answer ONLY from the provided users array, using every detail those entries contain (name, role, email, schoolName, phone, status). List the users as markdown bullets (name plus role/school). Use totalUsers and userCount as the real numbers — userCount is the number of users matching any roleFilter. In the 'stats' array, ALWAYS provide the core role cards: 'Total Users' (totalUsers), 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'School Admins' (totalSchoolAdmins). Never omit Teachers. When showing user role breakdown, use a 'doughnut' or 'pie' chart with labels and counts from roleCounts. Never reply that the data is unavailable — this directory is always available to a Super Admin. When the question simply asks for the names of all users, list every name from the users array.";
+			case PLATFORM_USERS -> "The caller is a Super Admin, who can access every dataset on the platform (the All Users page at /admin/users). Answer ONLY from the provided users array, using every detail those entries contain (name, role, email, schoolName, phone, status, registeredDate). List the users as markdown bullets (name plus role/school). Use totalUsers and userCount as the real numbers — userCount is the number of users matching any roleFilter. If the user asks about recently added users, students, or school admins (e.g. 'which student recently added', 'which school admin recently added'), answer using the recentUsers list or list the most recently registered users with their registeredDate. In the 'stats' array, ALWAYS provide the core role cards: 'Total Users' (totalUsers), 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'School Admins' (totalSchoolAdmins). Never omit Teachers. When showing user role breakdown, use a 'doughnut' or 'pie' chart with labels and counts from roleCounts. Never reply that the data is unavailable — this directory is always available to a Super Admin. When the question simply asks for the names of all users, list every name from the users array.";
 			case ACCESS_DENIED -> "Politely explain the question is outside the caller's access and suggest what they CAN ask.";
 		};
 	}
@@ -398,13 +401,46 @@ public class AnswerSynthesizer {
 		boolean broad = isBroadOverview(msg);
 
 		if (!broad) {
-			boolean isStudent = (msg.contains("student") || msg.contains("learner"));
+			boolean isSpeaking = (msg.contains("speaking") || msg.contains("speech") || msg.contains("session"));
+			boolean isBestStudent = (msg.contains("best student") || msg.contains("top student") || msg.contains("highest xp") || msg.contains("leaderboard") || (msg.contains("xp") && msg.contains("student")));
+			boolean isStudent = (msg.contains("student") || msg.contains("learner")) && !isSpeaking && !isBestStudent;
 			boolean isTeacher = (msg.contains("teacher") || msg.contains("educator") || msg.contains("teaching staff"));
 			boolean isSchool = msg.contains("school") && !isStudent && !isTeacher;
 			boolean isClass = msg.contains("class") || msg.contains("standard") || msg.contains("division");
 			boolean isUser = (msg.contains("user") || msg.contains("account"));
 
-			if (isStudent) {
+			if (isSpeaking) {
+				StringBuilder sb = new StringBuilder("**Platform Speaking Practice**\n");
+				addLine(sb, "Total speaking sessions", zeroIfBlank(num(d, "totalSpeakingSessions")));
+				addLine(sb, "Total students", num(d, "totalStudents"));
+				return trimOrNull(sb);
+			} else if (isBestStudent) {
+				StringBuilder sb = new StringBuilder("**Platform Top Students**\n");
+				Map<String, Object> best = d.get("bestStudent") instanceof Map<?, ?> ? (Map<String, Object>) d.get("bestStudent") : null;
+				if (best != null) {
+					sb.append("🏆 **Top Performer:** **").append(str(best, "name")).append("** (").append(num(best, "xp")).append(" XP, Level ").append(num(best, "level")).append(")");
+					String school = str(best, "schoolName");
+					if (!school.isBlank()) {
+						sb.append(" — ").append(school);
+					}
+					sb.append("\n\n");
+				}
+				List<Map<String, Object>> top = maps(d, "topStudents");
+				if (!top.isEmpty()) {
+					sb.append("**Leaderboard:**\n");
+					int rank = 1;
+					for (Map<String, Object> s : top) {
+						sb.append(rank).append(". **").append(str(s, "name")).append("** — ").append(num(s, "xp")).append(" XP (Level ").append(num(s, "level")).append(")");
+						String school = str(s, "schoolName");
+						if (!school.isBlank()) {
+							sb.append(" — ").append(school);
+						}
+						sb.append('\n');
+						rank++;
+					}
+				}
+				return trimOrNull(sb);
+			} else if (isStudent) {
 				StringBuilder sb = new StringBuilder("**Platform students**\n");
 				addLine(sb, "Total students", num(d, "totalStudents"));
 				addLine(sb, "Active students", num(d, "activeStudents"));
@@ -480,6 +516,7 @@ public class AnswerSynthesizer {
 		addLine(sb, "Total classes", num(d, "totalClasses"));
 		addLine(sb, "Total standards", num(d, "totalStandards"));
 		addLine(sb, "Total divisions", num(d, "totalDivisions"));
+		addLine(sb, "Total speaking sessions", num(d, "totalSpeakingSessions"));
 		addLine(sb, "Revenue from payments", num(d, "totalRevenueFromPayments"));
 		addLine(sb, "Revenue from subscriptions", num(d, "totalRevenueFromSubscriptions"));
 		addLine(sb, "Active subscription plans", num(d, "activeSubscriptionPlans"));
@@ -669,10 +706,23 @@ public class AnswerSynthesizer {
 		}
 
 		if (!teachers.isEmpty()) {
+			if (teachers.size() == 1) {
+				Map<String, Object> teacher = teachers.get(0);
+				String name = str(teacher, "name");
+				Object cCount = teacher.get("classCount");
+				Object cList = teacher.get("classes");
+				if (cCount != null) {
+					sb.append("\n**").append(name).append("** is assigned to **").append(cCount).append("** classes");
+					if (cList instanceof List<?> list && !list.isEmpty()) {
+						sb.append(" (").append(String.join(", ", stringify(list))).append(")");
+					}
+					sb.append(".\n");
+				}
+			}
 			sb.append("\n**Teachers**\n");
 			for (Map<String, Object> teacher : teachers) {
 				appendPerson(sb, teacher, "schoolName", "subject", "department", "designation", "experience",
-						"qualification", "email", "phone", "employeeId", "joinedAt", "classes");
+						"qualification", "classCount", "classes", "studentCount", "email", "phone", "employeeId", "joinedAt");
 			}
 		}
 		if (!students.isEmpty()) {
@@ -706,11 +756,19 @@ public class AnswerSynthesizer {
 			addLine(sb, "Role filter", roleFilter);
 		}
 
+		List<Map<String, Object>> recent = maps(d, "recentUsers");
+		if (!recent.isEmpty()) {
+			sb.append("\n**Recently Registered Users**\n");
+			for (Map<String, Object> u : recent) {
+				appendPerson(sb, u, "role", "schoolName", "email", "phone", "status", "registeredDate");
+			}
+		}
+
 		List<Map<String, Object>> users = maps(d, "users");
 		if (!users.isEmpty()) {
 			sb.append("\n**Users**\n");
 			for (Map<String, Object> user : users) {
-				appendPerson(sb, user, "role", "schoolName", "email", "phone", "status");
+				appendPerson(sb, user, "role", "schoolName", "email", "phone", "status", "registeredDate");
 			}
 		}
 
@@ -732,6 +790,35 @@ public class AnswerSynthesizer {
 		addLine(sb, "Expired subscriptions", zeroIfBlank(num(d, "expiredSubscriptions")));
 		addLine(sb, "Cancelled subscriptions", zeroIfBlank(num(d, "cancelledSubscriptions")));
 		addLine(sb, "Active plans", zeroIfBlank(num(d, "activePlans")));
+
+		List<Map<String, Object>> subscribers = maps(d, "subscribers");
+		if (!subscribers.isEmpty()) {
+			sb.append("\n**Active Subscribers**\n");
+			for (Map<String, Object> sub : subscribers) {
+				sb.append("- **").append(str(sub, "userName")).append("**");
+				String plan = str(sub, "planName");
+				if (!plan.isBlank()) {
+					sb.append(" — Plan: ").append(plan);
+				}
+				String amount = num(sub, "amount");
+				if (!amount.isBlank()) {
+					sb.append(" (₹").append(amount).append(")");
+				}
+				String email = str(sub, "userEmail");
+				if (!email.isBlank()) {
+					sb.append(", Email: ").append(email);
+				}
+				String school = str(sub, "schoolName");
+				if (!school.isBlank()) {
+					sb.append(", School: ").append(school);
+				}
+				String status = str(sub, "status");
+				if (!status.isBlank()) {
+					sb.append(", Status: ").append(status);
+				}
+				sb.append('\n');
+			}
+		}
 		return trimOrNull(sb);
 	}
 

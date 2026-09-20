@@ -354,6 +354,67 @@ public class MasterRoleScopedChatbotTest {
 		}
 
 		@Test
+		@DisplayName("Super Admin Transcript Fixes: All 8 Failure Cases Perfectly Routed")
+		void testSuperAdminPerfectionTranscriptCases() {
+			// Case 1: "Who is school admin of DY Patil University"
+			IntentResult rSchoolAdminSpecific = classifier.classify("Who is school admin of DY Patil University", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rSchoolAdminSpecific.getIntent());
+			assertEquals("SCHOOL_ADMIN", rSchoolAdminSpecific.getParams().get("roleFilter"));
+			assertEquals("DY Patil University", rSchoolAdminSpecific.getParams().get("schoolName"));
+
+			// Case 2: "How many classes does pratik patil have" / "teach"
+			IntentResult rTeacherClasses = classifier.classify("how many classes does pratik patil have", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rTeacherClasses.getIntent());
+			assertEquals("TEACHERS", rTeacherClasses.getParams().get("entityType"));
+			assertEquals("pratik patil", rTeacherClasses.getParams().get("focusName"));
+
+			IntentResult rTeacherTeach = classifier.classify("how many classes does pratik patil teach", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rTeacherTeach.getIntent());
+			assertEquals("TEACHERS", rTeacherTeach.getParams().get("entityType"));
+			assertEquals("pratik patil", rTeacherTeach.getParams().get("focusName"));
+
+			// Case 3: "Give list of teachers with their assigned classes"
+			IntentResult rTeachersWithClasses = classifier.classify("Give list of teachers with their assigned classes", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rTeachersWithClasses.getIntent());
+			assertEquals("TEACHERS", rTeachersWithClasses.getParams().get("entityType"));
+
+			IntentResult rTeachersAssignedDivisions = classifier.classify("give me teachers with assigned divisions", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rTeachersAssignedDivisions.getIntent());
+			assertEquals("TEACHERS", rTeachersAssignedDivisions.getParams().get("entityType"));
+
+			// Case 4: "Who has taken subscription"
+			IntentResult rWhoSubscribed = classifier.classify("who has taken subscription", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.BILLING, rWhoSubscribed.getIntent());
+
+			// Case 5: "Which student recently added" & "Which school admin recently added"
+			IntentResult rRecentStudent = classifier.classify("which student recently added", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rRecentStudent.getIntent());
+			assertEquals("STUDENT", rRecentStudent.getParams().get("roleFilter"));
+
+			IntentResult rRecentAdmin = classifier.classify("which school admin recently added", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_USERS, rRecentAdmin.getIntent());
+			assertEquals("SCHOOL_ADMIN", rRecentAdmin.getParams().get("roleFilter"));
+
+			// Case 6: "How many speaking session done students"
+			IntentResult rSpeakingSessions = classifier.classify("how many speaking session done students", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_OVERVIEW, rSpeakingSessions.getIntent());
+
+			// Case 7: "Best student currently" & "How many XP does each student have"
+			IntentResult rBestStudent = classifier.classify("best student currently", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_OVERVIEW, rBestStudent.getIntent());
+			assertEquals(Boolean.TRUE, rBestStudent.getParams().get("leaderboard"));
+
+			IntentResult rStudentXp = classifier.classify("how many xp does each student have", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.PLATFORM_OVERVIEW, rStudentXp.getIntent());
+			assertEquals(Boolean.TRUE, rStudentXp.getParams().get("leaderboard"));
+
+			// Case 8: "Give me list of teachers who have students"
+			IntentResult rTeachersWithStudents = classifier.classify("give me list of teachers who have students", Role.SUPER_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rTeachersWithStudents.getIntent());
+			assertEquals("TEACHERS", rTeachersWithStudents.getParams().get("entityType"));
+		}
+
+		@Test
 		@DisplayName("Super Admin Restricted: Technical secrets and credentials")
 		void testSuperAdminRestricted() {
 			String[] secretQueries = {
