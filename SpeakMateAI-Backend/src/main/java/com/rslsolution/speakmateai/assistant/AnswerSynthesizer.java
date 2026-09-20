@@ -819,27 +819,41 @@ public class AnswerSynthesizer {
 		if (containsWord(m, "practice", "practiced", "practise", "practicing", "minutes", "minute", "time")) {
 			matched |= metric(sb, d, "Total Practice Minutes", "totalPracticeMinutes");
 		}
-		if (containsWord(m, "speaking", "speak", "spoken", "session", "sessions")) {
-			matched |= metric(sb, d, "Total Speaking Sessions", "totalSpeakingSessions");
-			if (d.get("completedSpeakingSessions") != null) {
-				sb.append("- **Completed Speaking Sessions (Evaluated):** ").append(d.get("completedSpeakingSessions")).append('\n');
-				matched = true;
-			}
-			if (d.get("overallSpeakingScore") != null) {
-				sb.append("- **Overall Speaking Score:** ").append(d.get("overallSpeakingScore")).append("%\n");
-				matched = true;
-			}
-			if (d.get("fluencyScore") != null) {
-				sb.append("- **Fluency Score:** ").append(d.get("fluencyScore")).append("%\n");
-			}
-			if (d.get("pronunciationScore") != null) {
-				sb.append("- **Pronunciation Score:** ").append(d.get("pronunciationScore")).append("%\n");
-			}
-			if (d.get("speakingGrammarScore") != null) {
-				sb.append("- **Speaking Grammar Score:** ").append(d.get("speakingGrammarScore")).append("%\n");
-			}
-			if (d.get("speakingVocabularyScore") != null) {
-				sb.append("- **Speaking Vocabulary Score:** ").append(d.get("speakingVocabularyScore")).append("%\n");
+		if (containsWord(m, "speaking", "speak", "spoken", "session", "sessions", "fluency", "pronunciation", "pronounciation", "score", "scores", "skills")) {
+			boolean specificPronun = containsWord(m, "pronunciation", "pronounciation");
+			boolean specificFluency = containsWord(m, "fluency");
+			if (specificPronun) {
+				if (d.get("pronunciationScore") != null) {
+					sb.append("- **Pronunciation Score:** ").append(d.get("pronunciationScore")).append("%\n");
+					matched = true;
+				}
+			} else if (specificFluency) {
+				if (d.get("fluencyScore") != null) {
+					sb.append("- **Fluency Score:** ").append(d.get("fluencyScore")).append("%\n");
+					matched = true;
+				}
+			} else {
+				matched |= metric(sb, d, "Total Speaking Sessions", "totalSpeakingSessions");
+				if (d.get("completedSpeakingSessions") != null) {
+					sb.append("- **Completed Speaking Sessions (Evaluated):** ").append(d.get("completedSpeakingSessions")).append('\n');
+					matched = true;
+				}
+				if (d.get("overallSpeakingScore") != null) {
+					sb.append("- **Overall Speaking Score:** ").append(d.get("overallSpeakingScore")).append("%\n");
+					matched = true;
+				}
+				if (d.get("fluencyScore") != null) {
+					sb.append("- **Fluency Score:** ").append(d.get("fluencyScore")).append("%\n");
+				}
+				if (d.get("pronunciationScore") != null) {
+					sb.append("- **Pronunciation Score:** ").append(d.get("pronunciationScore")).append("%\n");
+				}
+				if (d.get("speakingGrammarScore") != null) {
+					sb.append("- **Speaking Grammar Score:** ").append(d.get("speakingGrammarScore")).append("%\n");
+				}
+				if (d.get("speakingVocabularyScore") != null) {
+					sb.append("- **Speaking Vocabulary Score:** ").append(d.get("speakingVocabularyScore")).append("%\n");
+				}
 			}
 		}
 		if (containsWord(m, "grammar", "checks", "check")) {
@@ -848,9 +862,17 @@ public class AnswerSynthesizer {
 				sb.append("- **Average Grammar Accuracy:** ").append(d.get("averageGrammarScore")).append("%\n");
 				matched = true;
 			}
+			if (d.get("speakingGrammarScore") != null && containsWord(m, "score", "speaking")) {
+				sb.append("- **Speaking Grammar Score:** ").append(d.get("speakingGrammarScore")).append("%\n");
+				matched = true;
+			}
 		}
 		if (containsWord(m, "vocabulary", "vocab", "words", "word")) {
 			matched |= metric(sb, d, "Total Vocabulary Words", "totalVocabularyWords");
+			if (d.get("speakingVocabularyScore") != null && containsWord(m, "score", "average")) {
+				sb.append("- **Speaking Vocabulary Score:** ").append(d.get("speakingVocabularyScore")).append("%\n");
+				matched = true;
+			}
 			if (d.get("masteredVocabularyWords") != null) {
 				sb.append("- **Mastered Words:** ").append(d.get("masteredVocabularyWords")).append('\n');
 				matched = true;
@@ -924,44 +946,9 @@ public class AnswerSynthesizer {
 
 	private String renderDisambiguationPrompt(Map<String, Object> data) {
 		String studentName = str(data, "studentName");
-		StringBuilder sb = new StringBuilder();
-		sb.append("### 🔍 Multiple Students Found\n\n");
-		sb.append("Multiple students named **").append(studentName.isBlank() ? "this student" : studentName)
-				.append("** were found in your assigned scope. Please specify which student you would like to view by providing their **Class/Division** or **Roll Number**:\n\n");
-
-		List<Map<String, Object>> candidates = maps(data, "matchingCandidates");
-		if (candidates.isEmpty()) {
-			candidates = maps(data, "otherMatchingStudents");
-		}
-		for (Map<String, Object> c : candidates) {
-			String name = str(c, "studentName");
-			String standard = str(c, "standard");
-			String division = str(c, "division");
-			String roll = str(c, "rollNumber");
-			String studentId = str(c, "studentId");
-			String school = str(c, "schoolName");
-
-			sb.append("- **").append(name.isBlank() ? studentName : name).append("** — Class: `")
-					.append(standard.isBlank() ? "N/A" : standard);
-			if (!division.isBlank() && !"N/A".equalsIgnoreCase(division)) {
-				sb.append("-").append(division);
-			}
-			sb.append("`");
-			if (!roll.isBlank()) {
-				sb.append(" | Roll No: `").append(roll).append("`");
-			}
-			if (!studentId.isBlank()) {
-				sb.append(" | Student ID: `").append(studentId).append("`");
-			}
-			if (!school.isBlank()) {
-				sb.append(" (").append(school).append(")");
-			}
-			sb.append('\n');
-		}
-		sb.append("\n*You can reply with, for example: \"Show me ")
-				.append(studentName.isBlank() ? "the student" : studentName)
-				.append(" in Class 5-A\" or \"Show Roll 12\".*");
-		return sb.toString().trim();
+		return "### 🔍 Clarification Needed\n\n"
+				+ "I found multiple students named **" + (studentName.isBlank() ? "this student" : studentName)
+				+ "**. Please specify the class, division, or another identifying detail so I can look up the correct student record.";
 	}
 
 	/**

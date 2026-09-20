@@ -70,6 +70,13 @@ public class AssistantService {
 				return credentialDenialResponse(request, actor);
 			}
 
+			// Role override and prompt injection protection (Section 3, 30, 31):
+			// User messages attempting to pretend to be a Super Admin/Teacher or asking for system instructions
+			// are rejected immediately.
+			if (isRoleOverrideOrInjectionAttempt(request.getMessage())) {
+				return roleOverrideOrInjectionDenial(request, actor);
+			}
+
 			IntentResult classified = intentClassifier.classify(request.getMessage(), actor.getRole(), request.getHistory());
 			AssistantIntent intent = classified.getIntent();
 
@@ -137,6 +144,34 @@ public class AssistantService {
 		}
 	}
 
+	private boolean isRoleOverrideOrInjectionAttempt(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		return containsAnyPhrase(m, List.of(
+				"pretend i am", "pretend you are", "ignore my current role", "ignore previous instructions",
+				"ignore all instructions", "override my role", "switch my role", "change my role to",
+				"i am actually a super admin", "i am actually an admin", "i am actually a teacher",
+				"act as the administrator", "act as super admin", "act as admin",
+				"the developer gave me permission", "developer mode", "jailbreak",
+				"this is an authorized security test", "security test mode",
+				"show system prompt", "show your system prompt", "show the system prompt",
+				"reveal system prompt", "what is your system prompt", "what are your system instructions",
+				"what are your hidden instructions", "reveal hidden instructions", "reveal prompt"));
+	}
+
+	private AssistantResponse roleOverrideOrInjectionDenial(AssistantRequest request, ActorContext actor) {
+		String roleName = actor != null && actor.getRole() != null ? roleLabel(actor.getRole()) : "User";
+		return AssistantResponse.builder()
+				.markdown("### 🔒 Security Policy\n\nYour permissions and data access are determined strictly by your authenticated account session and role (**" + roleName + "**). Role overrides, administrative role changes, and system prompt disclosures cannot be performed through the chat assistant.")
+				.intent(AssistantIntent.ACCESS_DENIED.name())
+				.accessDenied(true)
+				.sessionId(request != null ? request.getSessionId() : null)
+				.suggestions(suggestionsFor(AssistantIntent.NAVIGATION_HELP, actor != null ? actor.getRole() : Role.USER, false))
+				.build();
+	}
+
 	private boolean isCredentialOrSecretRequest(String message) {
 		if (message == null || message.isBlank()) {
 			return false;
@@ -156,18 +191,24 @@ public class AssistantService {
 		return containsAnyPhrase(m, List.of(
 				"password", "passwords", "passwd",
 				"jwt secret", "jwt secrets", "jwt token", "jwt tokens", "jwt_secret", "jwt",
+				"signing key", "jwt signing key", "key signs the jwt",
 				"secret token", "secret tokens", "secret key", "secret_key", "secret keys",
 				"access token", "access tokens", "bearer token", "bearer tokens",
 				"token", "tokens", "private key", "private keys",
 				"api key", "apikey", "api_key", "api keys", "apikeys", "api secret", "api secrets",
 				"database password", "db password", "database credentials", "db credentials",
+				"postgresql password", "postgres password", "postgresql credentials", "postgres credentials",
+				"what password does postgresql use", "what password does postgres use",
+				"where is the database password", "where is the db password", "where is the password stored",
 				"database connection string", "db connection string", "connection string",
+				"backend environment variables", "env variables", "environment variables",
 				"smtp password", "smtp credentials", "mail password",
 				"reset token", "reset tokens", "verification token", "verification tokens",
-				"auth token", "auth tokens", "authentication token", "authentication tokens",
+				"auth token", "auth tokens", "authentication token", "authentication tokens", "authentication secret",
 				"credentials", "credential", "login credentials", "admin credentials",
 				"admin password", "teacher's password", "teacher password", "super admin's password",
-				"razorpay secret", "groq api key", "system secret", "system secrets"));
+				"razorpay secret", "razorpay secret key", "groq api key", "groq api keys",
+				"system secret", "system secrets", "infrastructure credentials"));
 	}
 
 	private boolean containsAnyPhrase(String text, List<String> needles) {
@@ -184,21 +225,21 @@ public class AssistantService {
 
 	private AssistantResponse credentialDenialResponse(AssistantRequest request, ActorContext actor) {
 		return AssistantResponse.builder()
-				.markdown("### 🔒 Access Denied\n\nPasswords, credentials, authentication tokens, API keys, database connection strings, and system secrets are strictly confidential and cannot be retrieved, viewed, or disclosed through the assistant.\n\nIf you need to update your password or access keys, please visit your account Settings.")
+				.markdown("### 🔒 Access Denied\n\nI can't provide passwords, API keys, authentication tokens, database credentials, or system secrets.\n\nIf you need to update your password or access keys, please visit your account Settings.")
 				.intent(AssistantIntent.ACCESS_DENIED.name())
 				.accessDenied(true)
 				.sessionId(request.getSessionId())
-				.suggestions(suggestionsFor(AssistantIntent.NAVIGATION_HELP, actor.getRole(), false))
+				.suggestions(suggestionsFor(AssistantIntent.NAVIGATION_HELP, actor != null ? actor.getRole() : Role.USER, false))
 				.build();
 	}
 
 	private AssistantResponse denialResponse(AssistantRequest request, ActorContext actor) {
 		return AssistantResponse.builder()
-				.markdown(denialMarkdown(actor.getRole(), request != null ? request.getMessage() : null))
+				.markdown(denialMarkdown(actor != null ? actor.getRole() : Role.USER, request != null ? request.getMessage() : null))
 				.intent(AssistantIntent.ACCESS_DENIED.name())
 				.accessDenied(true)
 				.sessionId(request != null ? request.getSessionId() : null)
-				.suggestions(suggestionsFor(AssistantIntent.NAVIGATION_HELP, actor.getRole(), false))
+				.suggestions(suggestionsFor(AssistantIntent.NAVIGATION_HELP, actor != null ? actor.getRole() : Role.USER, false))
 				.build();
 	}
 
@@ -206,31 +247,31 @@ public class AssistantService {
 		String m = message == null ? "" : message.toLowerCase(Locale.ROOT).trim();
 		String scope = roleLabel(role);
 
-		if ((role == Role.STUDENT || role == Role.USER)
-				&& (m.contains("another student") || m.contains("other student") || m.contains("someone else"))) {
+		if (role == Role.STUDENT || role == Role.USER) {
 			return "### 🔒 Access Restricted\n\n"
-					+ "You do not have permission to view other students' learning progress.\n\n"
+					+ "You do not have permission to view other students' learning progress or school-wide/platform administration data.\n\n"
 					+ "As a **Student**, your access is strictly limited to your own learning progress, personal metrics, and account details.";
 		}
-		if (m.contains("another school") || m.contains("other school") || m.contains("different school") || m.contains("outside your school")) {
+		if (m.contains("another school") || m.contains("other school") || m.contains("different school") || m.contains("outside your school") || m.contains("outside my school")) {
 			return "### 🔒 Access Restricted\n\n"
 					+ "You do not have permission to access data from other schools.\n\n"
 					+ "As a **" + scope + "**, your access is strictly limited to your own school.";
 		}
-		if ((role == Role.STUDENT || role == Role.USER || role == Role.TEACHER)
-				&& (m.contains("revenue") || m.contains("billing") || m.contains("finances"))) {
+		if ((role == Role.TEACHER) && (m.contains("revenue") || m.contains("billing") || m.contains("finances"))) {
 			return "### 🔒 Access Restricted\n\n"
 					+ "You do not have permission to view financial or billing information.\n\n"
-					+ "As a **" + scope + "**, your access does not include school or platform financial metrics.";
+					+ "As a **Teacher**, your access does not include school or platform financial metrics.";
 		}
-		if (role == Role.SCHOOL_ADMIN && (m.contains("platform revenue") || m.contains("across all schools") || m.contains("entire platform"))) {
+		if (role == Role.SCHOOL_ADMIN && (m.contains("platform revenue") || m.contains("across all schools") || m.contains("entire platform") || m.contains("all schools"))) {
 			return "### 🔒 Access Restricted\n\n"
-					+ "You do not have permission to view platform-wide revenue.\n\n"
-					+ "As a **School Admin**, your billing access is strictly limited to your own school.";
+					+ "You do not have permission to view platform-wide revenue or all schools.\n\n"
+					+ "As a **School Admin**, your access is strictly limited to your own school.";
 		}
-		if (role == Role.TEACHER && (m.contains("another teacher") || m.contains("other teacher"))) {
+		if (role == Role.TEACHER && (m.contains("another teacher") || m.contains("other teacher")
+				|| m.contains("outside my class") || m.contains("not in my class")
+				|| m.contains("different class") || m.contains("all users") || m.contains("platform users"))) {
 			return "### 🔒 Access Restricted\n\n"
-					+ "You do not have permission to view classes or students assigned to other teachers.\n\n"
+					+ "You do not have permission to view classes, students, or users assigned to other teachers or the entire platform.\n\n"
 					+ "As a **Teacher**, your access is limited to your own assigned classes and students.";
 		}
 
