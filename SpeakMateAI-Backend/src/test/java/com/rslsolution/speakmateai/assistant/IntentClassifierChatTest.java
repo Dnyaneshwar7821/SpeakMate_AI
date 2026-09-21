@@ -210,5 +210,34 @@ public class IntentClassifierChatTest {
 		IntentResult r8 = classifier.classify("Show my class performance summary", Role.TEACHER, null);
 		assertNotNull(r8);
 		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r8.getIntent());
+
+		// 9. Single student name & follow-up queries
+		IntentResult r9 = classifier.classify("what about Onkar", Role.TEACHER, null);
+		assertNotNull(r9);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r9.getIntent());
+		assertEquals("onkar", r9.getParams().get("studentName").toString().toLowerCase());
+
+		IntentResult r10 = classifier.classify("how is Siddhi doing?", Role.TEACHER, null);
+		assertNotNull(r10);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r10.getIntent());
+		assertEquals("siddhi", r10.getParams().get("studentName").toString().toLowerCase());
+
+		IntentResult r11 = classifier.classify("give me progress of Siddhi Narke", Role.TEACHER, null);
+		assertNotNull(r11);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r11.getIntent());
+		assertEquals("siddhi narke", r11.getParams().get("studentName").toString().toLowerCase());
+
+		// 10. Analytical queries with "my students" should NOT route to SCHOOL_ROSTER
+		IntentResult r12 = classifier.classify("What is the average grammar score of my students?", Role.TEACHER, null);
+		assertNotNull(r12);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r12.getIntent());
+
+		IntentResult r13 = classifier.classify("Average pronunciation score of my students", Role.TEACHER, null);
+		assertNotNull(r13);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r13.getIntent());
+
+		IntentResult r14 = classifier.classify("Average fluency score of my class", Role.TEACHER, null);
+		assertNotNull(r14);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r14.getIntent());
 	}
 }

@@ -164,13 +164,13 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		int scoredCount = 0;
 
 		for (SpeakingSession ss : sessions) {
-			if (ss.getOverallScore() != null || ss.getScore() != null) {
+			double overall = ss.getOverallScore() != null ? ss.getOverallScore() : (ss.getScore() != null ? ss.getScore() : 0.0);
+			if (Boolean.TRUE.equals(ss.getCompleted()) || overall > 0.0) {
 				scoredCount++;
 				if (ss.getFluencyScore() != null) totalFluency += ss.getFluencyScore();
 				if (ss.getPronunciationScore() != null) totalPronunciation += ss.getPronunciationScore();
 				if (ss.getGrammarScore() != null) totalGrammar += ss.getGrammarScore();
 				if (ss.getVocabularyScore() != null) totalVocab += ss.getVocabularyScore();
-				double overall = ss.getOverallScore() != null ? ss.getOverallScore() : (ss.getScore() != null ? ss.getScore() : 0.0);
 				totalOverall += overall;
 			}
 		}

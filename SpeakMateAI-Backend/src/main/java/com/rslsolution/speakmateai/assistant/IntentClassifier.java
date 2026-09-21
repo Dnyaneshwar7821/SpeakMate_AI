@@ -740,7 +740,56 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
 		}
 
-		// Assigned classes & class roster:
+		String cleanM = m.replaceAll("[?!.,]+$", "").trim();
+		String target = cleanM.replaceAll("(?i)\\s+(?:doing|performing|in class)$", "").trim();
+
+		// 1. Student-specific individual lookup & conversational follow-ups:
+		// "how is Siddhi doing", "how is Siddhi", "how is Onkar performing", "what about Onkar", "what about Siddhi",
+		// "how about Onkar", "progress of Siddhi Narke", "progress of Siddhi", "xp of Siddhi", "give me progress of siddhi"
+		Pattern studentInquiryPattern = Pattern.compile(
+				"^(?:give me\\s+|show me\\s+|can you give me\\s+|what is\\s+(?:the\\s+)?(?:total\\s+)?|what's\\s+(?:the\\s+)?(?:total\\s+)?)?(?:how is|how's|what about|how about|progress of|status of|performance of|tell me about|xp of|score of|details of|and)\\s+([a-zA-Z]+(?:\\s+[a-zA-Z]+)?)$",
+				Pattern.CASE_INSENSITIVE);
+		Matcher inquiryMatcher = studentInquiryPattern.matcher(target);
+		if (inquiryMatcher.find()) {
+			String candidateName = inquiryMatcher.group(1).trim();
+			if (!isDisallowedContextName(candidateName) && !candidateName.equalsIgnoreCase("my class")
+					&& !candidateName.equalsIgnoreCase("my students") && !candidateName.equalsIgnoreCase("the class")
+					&& !candidateName.equalsIgnoreCase("it") && !candidateName.equalsIgnoreCase("that")) {
+				Map<String, Object> p = new java.util.LinkedHashMap<>();
+				p.put("studentName", candidateName);
+				return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, p, null);
+			}
+		}
+
+		// 2. Class performance, struggling students, speech/grammar/pronunciation analytics, score rankings:
+		if (containsAny(m, List.of(
+				"students who are struggling", "struggling students", "students needing attention", "students needing help",
+				"which learners need the most help", "learners need the most help", "who needs help", "who is struggling",
+				"students with low speaking", "low speaking scores", "low performance", "struggling in speaking",
+				"low-performing students", "students with low performance", "weak students"))) {
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("filter", "struggling"), null);
+		}
+		if (containsAny(m, List.of(
+				"highest xp", "students have the highest xp", "which students have the highest xp", "top students by xp", "most lessons",
+				"completed the most lessons", "which students completed the most lessons", "top students by lessons",
+				"class performance summary", "show my class performance summary",
+				"student speaking performance", "show me student speaking performance",
+				"average grammar score", "average grammar score of my students", "grammar score", "grammar accuracy",
+				"average pronunciation score", "average pronunciation score of my students", "pronunciation score",
+				"average fluency score", "average fluency score of my class", "average fluency score of my students", "fluency score",
+				"vocabulary progress of my class", "show vocabulary progress of my class", "vocabulary progress",
+				"exam results for my class", "show exam results for my class", "performance of my class", "class performance"))) {
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			List<ClassSpec> classSpecs = extractAllClassSpecs(message);
+			if (!classSpecs.isEmpty()) {
+				ClassSpec cs = classSpecs.get(0);
+				if (!cs.standard.isEmpty()) params.put("standard", cs.standard);
+				if (!cs.division.isEmpty()) params.put("division", cs.division);
+			}
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, params, null);
+		}
+
+		// 3. Assigned classes & class enrollment counts:
 		if (containsAny(m, List.of(
 				"which classes are assigned to me", "classes assigned to me", "my assigned classes",
 				"classes do i teach", "what classes are assigned", "my classes?", "my classes", "classes assigned",
@@ -752,9 +801,12 @@ public class IntentClassifier {
 				"total students in my class", "students in my classes", "total students in my classes", "count of students"))) {
 			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of(), null);
 		}
-		if (containsAny(m, List.of(
+
+		// 4. Student roster (guarded so analytical metric queries are never hijacked):
+		boolean hasMetricWord = containsAny(m, List.of("grammar", "pronunciation", "fluency", "speaking score", "speaking performance", "xp", "accuracy"));
+		if (!hasMetricWord && containsAny(m, List.of(
 				"show me my students", "who are my students", "list of my students",
-				"list my students", "show my students", "my students list", "names of my students", "my students?", "my students",
+				"list my students", "show my students", "my students list", "names of my students",
 				"assigned students", "my assigned students", "who are my assigned students", "list assigned students",
 				"who are assigned students", "roster for", "students in"))) {
 			Map<String, Object> params = new java.util.LinkedHashMap<>();
@@ -768,31 +820,8 @@ public class IntentClassifier {
 			}
 			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, params, null);
 		}
-		// Class performance, struggling students, score rankings:
-		if (containsAny(m, List.of(
-				"students who are struggling", "struggling students", "students needing attention", "students needing help",
-				"which learners need the most help", "learners need the most help", "who needs help", "who is struggling",
-				"students with low speaking", "low speaking scores", "low performance", "struggling in speaking",
-				"low-performing students", "students with low performance", "weak students"))) {
-			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("filter", "struggling"), null);
-		}
-		if (containsAny(m, List.of(
-				"highest xp", "students have the highest xp", "which students have the highest xp", "top students by xp", "most lessons",
-				"completed the most lessons", "which students completed the most lessons", "top students by lessons",
-				"class performance summary", "show my class performance summary",
-				"student speaking performance", "show me student speaking performance",
-				"average grammar score", "average grammar score of my students",
-				"average pronunciation score", "average pronunciation score of my students",
-				"vocabulary progress of my class", "show vocabulary progress of my class",
-				"exam results for my class", "show exam results for my class", "performance of my class", "class performance"))) {
-			Map<String, Object> params = new java.util.LinkedHashMap<>();
-			List<ClassSpec> classSpecs = extractAllClassSpecs(message);
-			if (!classSpecs.isEmpty()) {
-				ClassSpec cs = classSpecs.get(0);
-				if (!cs.standard.isEmpty()) params.put("standard", cs.standard);
-				if (!cs.division.isEmpty()) params.put("division", cs.division);
-			}
-			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, params, null);
+		if (!hasMetricWord && (m.equals("my students") || m.equals("my students?"))) {
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, Map.of("entityType", "students"), null);
 		}
 
 		return null;
