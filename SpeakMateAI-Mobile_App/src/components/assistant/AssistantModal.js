@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
@@ -21,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTheme } from '../../context/ThemeContext';
 import { speechService } from '../../services/appServices';
+import { BlurredBackdrop } from './BlurredBackdrop';
 import {
   DEFAULT_ROLE,
   QUICK_SUGGESTIONS_BY_ROLE,
@@ -198,13 +198,7 @@ export function AssistantModal({
     >
       <View style={styles.modalOverlay}>
         {/* Fullscreen Blurred Backdrop */}
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(15, 23, 42, 0.45)' }]}>
-          <BlurView
-            intensity={Platform.OS === 'ios' ? 45 : 60}
-            tint={isDark ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        </View>
+        <BlurredBackdrop />
 
         {/* Backdrop dismiss touch area */}
         <TouchableOpacity

@@ -5,6 +5,7 @@ export { MessageBubble } from './MessageBubble';
 export { StatRow } from './StatRow';
 export { DeepLinkChip } from './DeepLinkChip';
 export { MarkdownText } from './MarkdownText';
+export { BlurredBackdrop } from './BlurredBackdrop';
 export { assistantApi } from './assistantApi';
 
 export default LearnerAssistantWidget;
