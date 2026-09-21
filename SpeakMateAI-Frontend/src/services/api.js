@@ -7,8 +7,8 @@ export const setLogoutCallback = (cb) => {
 };
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "https://speakmate-ai-28z5.onrender.com",
-  timeout: 65000,
+  baseURL: (import.meta.env.VITE_API_BASE_URL || "https://speakmate-ai-28z5.onrender.com").replace(/\/+$/, ""),
+  timeout: 45000,
   headers: {
     "Content-Type": "application/json",
   },

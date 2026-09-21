@@ -53,17 +53,22 @@ public class SecurityConfig {
 
 						// School Portal Auth and Features
 						.requestMatchers("/api/auth/**").permitAll()
-						.requestMatchers("/api/school/**", "/api/v1/school/**").hasAnyAuthority("ROLE_SCHOOL_ADMIN", "ROLE_TEACHER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+						.requestMatchers("/api/school/**", "/api/v1/school/**")
+						.hasAnyAuthority("ROLE_SCHOOL_ADMIN", "ROLE_TEACHER", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
 						// Teacher Portal Auth and Features
-						.requestMatchers("/api/teacher/**", "/api/v1/teacher/**").hasAnyAuthority("ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+						.requestMatchers("/api/teacher/**", "/api/v1/teacher/**")
+						.hasAnyAuthority("ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
 
-						// Real-time Notification SSE stream (authenticated via ?token= parameter in EventSource)
+						// Real-time Notification SSE stream (authenticated via ?token= parameter in
+						// EventSource)
 						.requestMatchers("/api/notification/stream").permitAll()
 
-						// Notifications for all authenticated users (User, Student, Teacher, School Admin, Platform Admin)
+						// Notifications for all authenticated users (User, Student, Teacher, School
+						// Admin, Platform Admin)
 						.requestMatchers("/api/notification/**", "/api/notifications/**")
-						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN",
+								"ROLE_SUPER_ADMIN")
 
 						// Auth endpoints for mobile & learners
 						.requestMatchers(
@@ -73,7 +78,8 @@ public class SecurityConfig {
 								"/api/users/send-delete-account-otp", "/api/users/verify-delete-account-otp",
 								"/api/users/delete-account",
 								"/api/users/forgot-password", "/api/users/verify-otp",
-								"/api/users/reset-password", "/api/users/reset-password-with-temporary", "/api/users/reset-redirect",
+								"/api/users/reset-password", "/api/users/reset-password-with-temporary",
+								"/api/users/reset-redirect",
 								"/api/users/register-expo-url", "/error",
 								"/api/v1/integrations/**",
 								"/api/health", "/api/ping")
@@ -93,15 +99,18 @@ public class SecurityConfig {
 								"/api/speaking/**", "/api/progress/**", "/api/achievement/**",
 								"/api/vocabulary/**", "/api/grammar/**", "/api/chat/**", "/api/chat-legacy/**",
 								"/api/ai/**", "/api/onboarding/**", "/api/subscription/**", "/api/dashboard/**")
-						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN",
+								"ROLE_SUPER_ADMIN")
 
 						// Profile and Settings accessible by all roles
 						.requestMatchers("/api/profile/**", "/api/settings/**", "/api/user/**")
-						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN",
+								"ROLE_SUPER_ADMIN")
 
 						// AI Assistant accessible by all roles
 						.requestMatchers("/api/assistant/**")
-						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN",
+								"ROLE_SUPER_ADMIN")
 
 						.anyRequest().authenticated())
 				.httpBasic(Customizer.withDefaults());
