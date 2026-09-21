@@ -1,5 +1,0 @@
-# Created at 2026-09-15T15:58:57.306
-Boot Manifest-JAR contains absolute paths in classpath 'D:\SpeakMate-AI_AC\SpeakMate_AI\Admin_Backend\target\test-classes'
-Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
-'other' has different root
-
