@@ -784,4 +784,63 @@ public class AnswerSynthesizerChatTest {
 		assertTrue(answer.getMarkdown().contains("4 students"));
 		assertTrue(answer.getMarkdown().contains("Grade 9 - A"));
 	}
+
+	@Test
+	void testTeacherSpeechAnalyticsSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"className", "Grade 9 - A",
+				"classAverageSpeakingScore", 8.9,
+				"classAveragePronunciationScore", 9.0,
+				"classAverageFluencyScore", 8.5,
+				"classAverageGrammarScore", 86.7,
+				"studentCount", 2,
+				"studentsWithActiveStreak", 1
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"Average pronunciation score of my students",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Speech & Language Analytics: Grade 9 - A"));
+		assertTrue(answer.getMarkdown().contains("Average Pronunciation Score:"));
+		assertTrue(answer.getMarkdown().contains("9%"));
+		assertTrue(answer.getMarkdown().contains("Average Fluency Score:"));
+		assertTrue(answer.getMarkdown().contains("8.5%"));
+	}
+
+	@Test
+	void testTeacherTopStudentsLeaderboard() throws Exception {
+		Map<String, Object> data = Map.of(
+				"topStudent", Map.of("name", "Siddhi Narke", "xp", 1229),
+				"topStudents", java.util.List.of(
+						Map.of("name", "Siddhi Narke", "xp", 1229, "streak", 1, "lessonsCompleted", 2),
+						Map.of("name", "Onkar Awate", "xp", 350, "streak", 0, "lessonsCompleted", 1)
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"Which students have the highest XP?",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Top Students Leaderboard"));
+		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
+		assertTrue(answer.getMarkdown().contains("1229 XP"));
+		assertTrue(answer.getMarkdown().contains("Onkar Awate"));
+	}
 }

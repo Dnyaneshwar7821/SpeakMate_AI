@@ -791,7 +791,42 @@ public class AnswerSynthesizer {
 			return trimOrNull(sb);
 		}
 
-		// 6. General class performance summary or specific class card
+		// 6. Inquiries about average speech, pronunciation, fluency, grammar, or vocabulary analytics
+		boolean isSpeechAnalyticsQuery = (msg.contains("pronunciation") || msg.contains("fluency")
+				|| msg.contains("grammar score") || msg.contains("grammar accuracy")
+				|| msg.contains("vocabulary progress") || msg.contains("speaking performance")
+				|| msg.contains("average speaking"))
+				&& !isLowSpeakingQuery;
+		if (isSpeechAnalyticsQuery) {
+			String cName = str(d, "className");
+			sb.append("**Speech & Language Analytics: ").append(cName.isBlank() ? "Class Overview" : cName).append("**\n\n");
+			String avgSpk = num(d, "classAverageSpeakingScore");
+			String avgPro = num(d, "classAveragePronunciationScore");
+			String avgFlu = num(d, "classAverageFluencyScore");
+			String avgGrm = num(d, "classAverageGrammarScore");
+			String avgVoc = num(d, "classAverageVocabularyScore");
+
+			if (!avgSpk.isBlank() && !"0".equals(avgSpk)) {
+				sb.append("- **Class Average Speaking Score:** ").append(avgSpk).append("%\n");
+			}
+			if (!avgPro.isBlank() && !"0".equals(avgPro)) {
+				sb.append("- **Average Pronunciation Score:** ").append(avgPro).append("%\n");
+			}
+			if (!avgFlu.isBlank() && !"0".equals(avgFlu)) {
+				sb.append("- **Average Fluency Score:** ").append(avgFlu).append("%\n");
+			}
+			if (!avgGrm.isBlank() && !"0".equals(avgGrm)) {
+				sb.append("- **Average Grammar Accuracy:** ").append(avgGrm).append("%\n");
+			}
+			if (!avgVoc.isBlank() && !"0".equals(avgVoc)) {
+				sb.append("- **Average Vocabulary Mastery:** ").append(avgVoc).append("%\n");
+			}
+			sb.append("\n- **Enrolled Students:** ").append(zeroIfBlank(num(d, "studentCount"))).append('\n');
+			sb.append("- **Students with Active Practice Streak:** ").append(zeroIfBlank(num(d, "studentsWithActiveStreak"))).append('\n');
+			return trimOrNull(sb);
+		}
+
+		// 7. General class performance summary or specific class card
 		String summary = str(d, "summary");
 		if (!summary.isBlank()) {
 			sb.append(summary).append("\n\n");
@@ -1894,6 +1929,20 @@ public class AnswerSynthesizer {
 			String totalStuds = num(data, "totalStudentsAcrossClasses");
 			if (totalStuds.isBlank()) totalStuds = num(data, "studentCount");
 			stats.add(new AssistantResponse.StatCard("Total Students", totalStuds, null));
+		} else if (msg.contains("highest xp") || msg.contains("top student") || msg.contains("leaderboard")) {
+			Map<String, Object> top = map(data, "topStudent");
+			String topStudentName = top != null ? str(top, "name") : "";
+			if (!topStudentName.isBlank()) stats.add(new AssistantResponse.StatCard("Top Performer", topStudentName, null));
+			String totalStuds = num(data, "totalStudentsAcrossClasses");
+			if (totalStuds.isBlank()) totalStuds = num(data, "studentCount");
+			stats.add(new AssistantResponse.StatCard("Total Students", totalStuds, null));
+		} else if (msg.contains("pronunciation") || msg.contains("fluency") || msg.contains("grammar score")) {
+			String avgSpk = num(data, "classAverageSpeakingScore");
+			String avgPro = num(data, "classAveragePronunciationScore");
+			String avgFlu = num(data, "classAverageFluencyScore");
+			if (!avgSpk.isBlank() && !"0".equals(avgSpk)) stats.add(new AssistantResponse.StatCard("Average Speaking", avgSpk + "%", null));
+			if (!avgPro.isBlank() && !"0".equals(avgPro)) stats.add(new AssistantResponse.StatCard("Pronunciation", avgPro + "%", null));
+			if (!avgFlu.isBlank() && !"0".equals(avgFlu)) stats.add(new AssistantResponse.StatCard("Fluency", avgFlu + "%", null));
 		} else {
 			String studs = num(data, "studentCount");
 			String totalXp = num(data, "totalXp");

@@ -280,6 +280,8 @@ public class ClassDataProvider implements AssistantDataProvider {
 		double totalClassSpeaking = 0;
 		double totalClassFluency = 0;
 		double totalClassPronun = 0;
+		double totalClassGrammar = 0;
+		double totalClassVocab = 0;
 		int scoredCount = 0;
 
 		for (Student s : evalStudents) {
@@ -292,11 +294,15 @@ public class ClassDataProvider implements AssistantDataProvider {
 			double overall = scores != null ? Math.round(scores[0] * 10.0) / 10.0 : 0.0;
 			double pronun = scores != null ? Math.round(scores[1] * 10.0) / 10.0 : 0.0;
 			double fluency = scores != null ? Math.round(scores[2] * 10.0) / 10.0 : 0.0;
+			double grammar = scores != null ? Math.round(scores[3] * 10.0) / 10.0 : 0.0;
+			double vocab = scores != null ? Math.round(scores[4] * 10.0) / 10.0 : 0.0;
 
 			if (overall > 0.0) {
 				totalClassSpeaking += overall;
 				totalClassFluency += fluency;
 				totalClassPronun += pronun;
+				totalClassGrammar += grammar;
+				totalClassVocab += vocab;
 				scoredCount++;
 			}
 
@@ -314,6 +320,8 @@ public class ClassDataProvider implements AssistantDataProvider {
 			sm.put("speakingScore", overall);
 			sm.put("fluencyScore", fluency);
 			sm.put("pronunciationScore", pronun);
+			sm.put("grammarScore", grammar);
+			sm.put("vocabScore", vocab);
 			studentList.add(sm);
 
 			// Check struggling / intervention risk indicators
@@ -364,6 +372,8 @@ public class ClassDataProvider implements AssistantDataProvider {
 			data.put("classAverageSpeakingScore", Math.round((totalClassSpeaking / scoredCount) * 10.0) / 10.0);
 			data.put("classAverageFluencyScore", Math.round((totalClassFluency / scoredCount) * 10.0) / 10.0);
 			data.put("classAveragePronunciationScore", Math.round((totalClassPronun / scoredCount) * 10.0) / 10.0);
+			data.put("classAverageGrammarScore", Math.round((totalClassGrammar / scoredCount) * 10.0) / 10.0);
+			data.put("classAverageVocabularyScore", Math.round((totalClassVocab / scoredCount) * 10.0) / 10.0);
 		}
 
 		String teacherName = "Not assigned";
