@@ -149,7 +149,26 @@ function CustomChartTooltip({ active, payload, label, isPieOrDonut, total }) {
     );
 }
 
-export function MiniChart({ chart }) {
+class ChartErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+    componentDidCatch(error) {
+        console.warn("[MiniChart] Suppressed chart rendering error:", error);
+    }
+    render() {
+        if (this.state.hasError) {
+            return null;
+        }
+        return this.props.children;
+    }
+}
+
+function MiniChartInner({ chart }) {
     const { type = "bar", title, labels = [], datasets = [] } = chart || {};
 
     const normalizedType = String(type).toLowerCase().replace(/[_\s]/g, "-");
@@ -215,6 +234,7 @@ export function MiniChart({ chart }) {
                                     dataKey={s.label}
                                     stroke={PALETTE[index % PALETTE.length]}
                                     strokeWidth={2}
+                                    isAnimationActive={false}
                                     dot={{ r: 3, fill: PALETTE[index % PALETTE.length], strokeWidth: 1.5, stroke: "#fff" }}
                                     activeDot={{ r: 5 }}
                                 >
@@ -255,6 +275,7 @@ export function MiniChart({ chart }) {
                                 innerRadius="46%"
                                 outerRadius="74%"
                                 paddingAngle={3}
+                                isAnimationActive={false}
                                 label={renderPieLabel}
                                 labelLine={false}
                             >
@@ -311,6 +332,7 @@ export function MiniChart({ chart }) {
                                 innerRadius={0}
                                 outerRadius="74%"
                                 paddingAngle={2}
+                                isAnimationActive={false}
                                 label={renderPieLabel}
                                 labelLine={false}
                             >
@@ -344,6 +366,7 @@ export function MiniChart({ chart }) {
                                     key={s.label}
                                     dataKey={s.label}
                                     fill={PALETTE[index % PALETTE.length]}
+                                    isAnimationActive={false}
                                     radius={[0, 4, 4, 0]}
                                     maxBarSize={20}
                                 >
@@ -382,6 +405,7 @@ export function MiniChart({ chart }) {
                                     key={s.label}
                                     dataKey={s.label}
                                     fill={PALETTE[index % PALETTE.length]}
+                                    isAnimationActive={false}
                                     radius={[4, 4, 0, 0]}
                                     maxBarSize={22}
                                 >
@@ -400,6 +424,14 @@ export function MiniChart({ chart }) {
                 </ResponsiveContainer>
             </div>
         </div>
+    );
+}
+
+export function MiniChart(props) {
+    return (
+        <ChartErrorBoundary>
+            <MiniChartInner {...props} />
+        </ChartErrorBoundary>
     );
 }
 

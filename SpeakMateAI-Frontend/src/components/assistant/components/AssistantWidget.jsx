@@ -5,6 +5,37 @@ import { AssistantProvider, useAssistant } from "../AssistantContext";
 import AssistantBubble from "./AssistantBubble";
 import AssistantPanel from "./AssistantPanel";
 
+class AssistantErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError() {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error, info) {
+        console.warn("[AssistantWidget] Assistant widget caught render error:", error, info);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            // Failsafe fallback: Render a minimal reset trigger so users can reopen cleanly without crashing the page
+            return (
+                <AssistantBubble
+                    isOpen={false}
+                    loading={false}
+                    onClick={() => {
+                        this.setState({ hasError: false });
+                    }}
+                />
+            );
+        }
+        return this.props.children;
+    }
+}
+
 export function AssistantWidgetInner() {
     const { isOpen, toggle, closeWidget, loading } = useAssistant();
 
@@ -30,9 +61,11 @@ export function AssistantWidgetInner() {
 
 export function AssistantWidget({ role, user }) {
     return (
-        <AssistantProvider role={role} user={user}>
-            <AssistantWidgetInner />
-        </AssistantProvider>
+        <AssistantErrorBoundary>
+            <AssistantProvider role={role} user={user}>
+                <AssistantWidgetInner />
+            </AssistantProvider>
+        </AssistantErrorBoundary>
     );
 }
 
