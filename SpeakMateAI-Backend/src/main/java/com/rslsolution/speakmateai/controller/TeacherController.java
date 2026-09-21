@@ -76,6 +76,15 @@ public class TeacherController {
 		return ResponseEntity.ok(teacherService.updateProfile(request));
 	}
 
+	@PutMapping("/profile/avatar")
+	public ResponseEntity<TeacherProfileResponse> updateAvatar(@RequestBody Map<String, String> payload) {
+		String avatar = payload.get("avatar");
+		if (avatar == null) {
+			avatar = payload.get("profileImage");
+		}
+		return ResponseEntity.ok(teacherService.updateAvatar(avatar));
+	}
+
 	@PostMapping("/change-password")
 	public ResponseEntity<Map<String, String>> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
 		teacherService.changePassword(request);

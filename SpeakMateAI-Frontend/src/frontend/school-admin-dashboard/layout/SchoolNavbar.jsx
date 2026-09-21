@@ -23,6 +23,8 @@ import { schoolNavbarSearchItems } from "@school-admin/data/schoolNavbarSearchDa
 import { studentApi } from "@services/admin/studentApi";
 import { useNotifications } from "@hooks/useNotifications";
 import InsigniaBadge from "@components/common/InsigniaBadge";
+import { schoolAdminDataApi } from "@services/admin/schoolAdminDataApi";
+import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
 
 export function SchoolNavbar() {
     const { isDark, toggleTheme } = useTheme();
@@ -69,6 +71,34 @@ export function SchoolNavbar() {
         document.addEventListener("mousedown", handleClick);
         return () => document.removeEventListener("mousedown", handleClick);
     }, []);
+
+    // Cross-session and cross-tab insignia/profile sync for School Admin
+    useEffect(() => {
+        let isMounted = true;
+        const syncProfile = async () => {
+            try {
+                const data = await schoolAdminDataApi.getProfile();
+                if (data && isMounted) {
+                    const email = data.email || user?.email || "school.admin@speakmate.ai";
+                    const name = `${data.firstName || ""} ${data.lastName || ""}`.trim() || user?.name || "School Admin";
+                    if (data.avatar) {
+                        syncInsigniaFromBackend("SCHOOL_ADMIN", email, data.avatar, name);
+                    }
+                }
+            } catch {
+                // background sync fallback
+            }
+        };
+
+        syncProfile();
+        window.addEventListener("focus", syncProfile);
+        window.addEventListener("admin-session-updated", syncProfile);
+        return () => {
+            isMounted = false;
+            window.removeEventListener("focus", syncProfile);
+            window.removeEventListener("admin-session-updated", syncProfile);
+        };
+    }, [user?.email, user?.name]);
 
     // Dynamic Live Search against APIs and Navigation Items
     useEffect(() => {

@@ -14,6 +14,11 @@ export const adminProfileApi = {
   changePassword: async (passwordData) => {
     const response = await apiClient.put("/api/admin/profile/change-password", passwordData);
     return response.data; // ApiResponse<Void>
+  },
+
+  updateAvatar: async (avatar) => {
+    const response = await apiClient.put("/api/admin/profile/avatar", { avatar, profileImage: avatar });
+    return response.data; // ApiResponse<AdminProfileResponse>
   }
 };
 

@@ -18,6 +18,9 @@ import {
     getInitials,
     saveProfileInsignia,
     resetProfileInsignia,
+    compressImageFile,
+    saveProfileInsigniaWithBackend,
+    resetProfileInsigniaWithBackend,
 } from "@utils/insigniaHelper";
 
 /**
@@ -45,6 +48,7 @@ export function InsigniaStudioModal({
     // Pending uploaded image state for preview confirmation
     const [pendingImage, setPendingImage] = useState(null);
     const [imageError, setImageError] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
     // Selected calligraphy style
     const [selectedStyleId, setSelectedStyleId] = useState("royal_crest");
@@ -55,6 +59,7 @@ export function InsigniaStudioModal({
     if (!isOpen) return null;
 
     const handleClose = () => {
+        if (isSaving) return;
         setView("SELECT_SOURCE");
         setPendingImage(null);
         setImageError("");
@@ -69,8 +74,8 @@ export function InsigniaStudioModal({
         }
     };
 
-    // Handle file selection and prepare preview confirmation
-    const handleFileChange = (e) => {
+    // Handle file selection and prepare preview confirmation with client-side compression
+    const handleFileChange = async (e) => {
         setImageError("");
         const file = e.target.files?.[0];
         if (!file) return;
@@ -81,63 +86,87 @@ export function InsigniaStudioModal({
             return;
         }
 
-        // Validation: max 4 MB
-        if (file.size > 4 * 1024 * 1024) {
-            setImageError("Image file size exceeds 4 MB. Please choose a smaller photo.");
+        // Validation: max 10 MB raw input
+        if (file.size > 10 * 1024 * 1024) {
+            setImageError("Image file size exceeds 10 MB. Please choose a smaller photo.");
             return;
         }
 
-        const reader = new FileReader();
-        reader.onload = (loadEvt) => {
-            const dataUrl = loadEvt.target.result;
+        try {
+            // Compress & square crop client-side (max 360x360, ~25-40KB)
+            const compressedDataUrl = await compressImageFile(file, 360, 360, 0.82);
             setPendingImage({
-                data: dataUrl,
+                data: compressedDataUrl,
                 fileName: file.name,
-                fileSizeKb: Math.round(file.size / 1024),
+                fileSizeKb: Math.round(compressedDataUrl.length / 1024),
             });
             setView("CONFIRM_UPLOAD");
-        };
-        reader.onerror = () => {
-            setImageError("Failed to read image file. Please try again.");
-        };
-        reader.readAsDataURL(file);
+        } catch (err) {
+            console.error("Image processing error:", err);
+            setImageError("Failed to process image. Please try another photo.");
+        }
     };
 
-    // Confirm image upload
-    const handleConfirmUpload = () => {
-        if (!pendingImage?.data) return;
-        const config = {
-            type: "image",
-            data: pendingImage.data,
-            fileName: pendingImage.fileName,
-        };
-        saveProfileInsignia(role, email, config);
-        if (onInsigniaUpdated) {
-            onInsigniaUpdated("Institutional photo applied as Profile Insignia!");
+    // Confirm image upload and persist to backend
+    const handleConfirmUpload = async () => {
+        if (!pendingImage?.data || isSaving) return;
+        setIsSaving(true);
+        setImageError("");
+        try {
+            const config = {
+                type: "image",
+                data: pendingImage.data,
+                fileName: pendingImage.fileName,
+            };
+            await saveProfileInsigniaWithBackend(role, email, config, name);
+            if (onInsigniaUpdated) {
+                onInsigniaUpdated("Institutional photo applied and synced across all devices!");
+            }
+            handleClose();
+        } catch (err) {
+            console.error("Failed to save insignia to backend:", err);
+            setImageError("Failed to sync photo to server. Please try again.");
+        } finally {
+            setIsSaving(false);
         }
-        handleClose();
     };
 
-    // Apply calligraphy style
-    const handleApplyCalligraphy = () => {
-        const config = {
-            type: "calligraphy",
-            styleId: selectedStyleId,
-        };
-        saveProfileInsignia(role, email, config);
-        if (onInsigniaUpdated) {
-            onInsigniaUpdated("Stylized Calligraphy Crest applied as Profile Insignia!");
+    // Apply calligraphy style and persist to backend
+    const handleApplyCalligraphy = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        try {
+            const config = {
+                type: "calligraphy",
+                styleId: selectedStyleId,
+            };
+            await saveProfileInsigniaWithBackend(role, email, config, name);
+            if (onInsigniaUpdated) {
+                onInsigniaUpdated("Stylized Calligraphy Crest applied and synced across all devices!");
+            }
+            handleClose();
+        } catch (err) {
+            console.error("Failed to save calligraphy to backend:", err);
+        } finally {
+            setIsSaving(false);
         }
-        handleClose();
     };
 
-    // Reset to standard initials
-    const handleResetToInitials = () => {
-        resetProfileInsignia(role, email);
-        if (onInsigniaUpdated) {
-            onInsigniaUpdated("Reset to standard institutional initials crest.");
+    // Reset to standard initials and clear in backend
+    const handleResetToInitials = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        try {
+            await resetProfileInsigniaWithBackend(role, email, name);
+            if (onInsigniaUpdated) {
+                onInsigniaUpdated("Reset to standard institutional initials crest.");
+            }
+            handleClose();
+        } catch (err) {
+            console.error("Failed to reset insignia in backend:", err);
+        } finally {
+            setIsSaving(false);
         }
-        handleClose();
     };
 
     return (
@@ -313,12 +342,16 @@ export function InsigniaStudioModal({
                             <Button
                                 variant="outline"
                                 onClick={handlePickFileClick}
+                                disabled={isSaving}
                                 className="!h-10 text-xs"
                             >
                                 Choose Another
                             </Button>
                             <Button
                                 onClick={handleConfirmUpload}
+                                disabled={isSaving}
+                                isLoading={isSaving}
+                                loadingText="Applying..."
                                 className="!h-10 bg-[var(--color-primary)] text-xs"
                             >
                                 <Check className="mr-1.5 h-4 w-4" />
@@ -380,12 +413,16 @@ export function InsigniaStudioModal({
                                 <Button
                                     variant="outline"
                                     onClick={() => setView("SELECT_SOURCE")}
+                                    disabled={isSaving}
                                     className="!h-9 text-xs"
                                 >
                                     Back
                                 </Button>
                                 <Button
                                     onClick={handleApplyCalligraphy}
+                                    disabled={isSaving}
+                                    isLoading={isSaving}
+                                    loadingText="Applying..."
                                     className="!h-9 bg-[var(--color-primary)] text-xs"
                                 >
                                     <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />

@@ -1,6 +1,7 @@
 import { adminAuthApi } from "@services/admin/adminAuthApi";
 import { schoolAdminAuthApi } from "@services/admin/schoolAdminAuthApi";
 import { teacherAuthApi } from "@services/admin/teacherAuthApi";
+import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
 
 export const adminAuthService = {
   login: async ({ email, password, role }) => {
@@ -9,15 +10,18 @@ export const adminAuthService = {
       // Backend returns ResponseEntity<ApiResponse<AdminLoginResponse>>
       // Unwrapping: res is ApiResponse, containing data field (AdminLoginResponse)
       if (res && res.data) {
+        const userObj = {
+          name: res.data.fullName,
+          email: res.data.email,
+          role: "SUPER_ADMIN",
+          profileImage: res.data.profileImage,
+          avatar: res.data.profileImage
+        };
+        syncInsigniaFromBackend("SUPER_ADMIN", userObj.email, userObj.profileImage, userObj.name);
         return {
           data: {
             token: res.data.jwtToken,
-            user: {
-              name: res.data.fullName,
-              email: res.data.email,
-              role: "SUPER_ADMIN",
-              profileImage: res.data.profileImage
-            }
+            user: userObj
           }
         };
       }
@@ -25,28 +29,36 @@ export const adminAuthService = {
     } else if (role === "SCHOOL_ADMIN") {
       const res = await schoolAdminAuthApi.login(email, password);
       // Backend returns AuthResponse directly
+      const userObj = {
+        name: `${res.user.firstName || ""} ${res.user.lastName || ""}`.trim() || res.user.email,
+        email: res.user.email,
+        role: "SCHOOL_ADMIN",
+        welcomeCompleted: res.user.welcomeCompleted,
+        avatar: res.user.avatar,
+        profileImage: res.user.avatar
+      };
+      syncInsigniaFromBackend("SCHOOL_ADMIN", userObj.email, userObj.avatar, userObj.name);
       return {
         data: {
           token: res.token,
-          user: {
-            name: `${res.user.firstName} ${res.user.lastName}`,
-            email: res.user.email,
-            role: "SCHOOL_ADMIN",
-            welcomeCompleted: res.user.welcomeCompleted
-          }
+          user: userObj
         }
       };
     } else if (role === "TEACHER") {
       const res = await teacherAuthApi.login(email, password);
       // Backend returns AuthResponse directly
+      const userObj = {
+        name: `${res.user.firstName || ""} ${res.user.lastName || ""}`.trim() || res.user.email,
+        email: res.user.email,
+        role: "TEACHER",
+        avatar: res.user.avatar,
+        profileImage: res.user.avatar
+      };
+      syncInsigniaFromBackend("TEACHER", userObj.email, userObj.avatar, userObj.name);
       return {
         data: {
           token: res.token,
-          user: {
-            name: `${res.user.firstName} ${res.user.lastName}`,
-            email: res.user.email,
-            role: "TEACHER"
-          }
+          user: userObj
         }
       };
     }

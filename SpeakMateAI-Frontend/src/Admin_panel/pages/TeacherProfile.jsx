@@ -32,6 +32,7 @@ import SectionCard from "@admin/components/SectionCard";
 import InsigniaBadge from "@components/common/InsigniaBadge";
 import InsigniaStudioModal from "@components/common/InsigniaStudioModal";
 import { teacherDataApi } from "@services/admin/teacherDataApi";
+import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
 import { getIndianMobileError, normalizeIndianMobile, sanitizeMobileInput } from "@utils/phoneValidator";
 import { updateAdminSessionUser } from "../services/adminSession";
 import { invalidateStudentCache } from "@admin/hooks/useStudentManagement";
@@ -212,6 +213,10 @@ export function TeacherProfile() {
                     teacherProfileCache = profileData;
                     setForm(profileData);
                     setInitialForm(profileData);
+
+                    if (res.identity?.avatar || profileData.avatar) {
+                        syncInsigniaFromBackend("TEACHER", profileData.email, res.identity?.avatar || profileData.avatar, profileData.name);
+                    }
                 }
             } catch (err) {
                 console.error("Failed to fetch teacher profile:", err);
@@ -224,8 +229,12 @@ export function TeacherProfile() {
             }
         };
         fetchProfile();
+        window.addEventListener("focus", fetchProfile);
+        window.addEventListener("admin-session-updated", fetchProfile);
         return () => {
             isMounted = false;
+            window.removeEventListener("focus", fetchProfile);
+            window.removeEventListener("admin-session-updated", fetchProfile);
         };
     }, []);
 

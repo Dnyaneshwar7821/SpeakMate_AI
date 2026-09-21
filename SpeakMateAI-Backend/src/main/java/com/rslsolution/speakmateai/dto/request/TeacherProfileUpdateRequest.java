@@ -42,4 +42,9 @@ public class TeacherProfileUpdateRequest {
 
     @Size(max = 2000, message = "Bio cannot exceed 2000 characters")
     private String bio;
+
+    private String avatar;
+
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) { this.avatar = avatar; }
 }

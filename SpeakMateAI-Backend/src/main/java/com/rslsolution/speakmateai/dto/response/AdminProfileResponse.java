@@ -27,6 +27,7 @@ public class AdminProfileResponse {
     private LocalDateTime lastLogin;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String profileImage;
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -64,6 +65,9 @@ public class AdminProfileResponse {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
+    public String getProfileImage() { return profileImage; }
+    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
+
     public static AdminProfileResponseBuilder builder() {
         return new AdminProfileResponseBuilder();
     }
@@ -81,6 +85,7 @@ public class AdminProfileResponse {
         private LocalDateTime lastLogin;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
+        private String profileImage;
 
         public AdminProfileResponseBuilder id(Long id) { this.id = id; return this; }
         public AdminProfileResponseBuilder fullName(String fullName) { this.fullName = fullName; return this; }
@@ -94,6 +99,7 @@ public class AdminProfileResponse {
         public AdminProfileResponseBuilder lastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; return this; }
         public AdminProfileResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public AdminProfileResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
+        public AdminProfileResponseBuilder profileImage(String profileImage) { this.profileImage = profileImage; return this; }
 
         public AdminProfileResponse build() {
             AdminProfileResponse r = new AdminProfileResponse();
@@ -109,6 +115,7 @@ public class AdminProfileResponse {
             r.lastLogin = lastLogin;
             r.createdAt = createdAt;
             r.updatedAt = updatedAt;
+            r.profileImage = profileImage;
             return r;
         }
     }

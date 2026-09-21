@@ -66,6 +66,11 @@ export const teacherDataApi = {
     return response.data;
   },
 
+  updateAvatar: async (avatar) => {
+    const response = await apiClient.put("/api/v1/teacher/profile/avatar", { avatar, profileImage: avatar });
+    return response.data;
+  },
+
   changePassword: async (data) => {
     const response = await apiClient.post("/api/v1/teacher/change-password", data);
     return response.data;

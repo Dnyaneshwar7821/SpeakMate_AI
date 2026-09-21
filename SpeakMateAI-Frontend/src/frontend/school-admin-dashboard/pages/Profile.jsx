@@ -32,6 +32,7 @@ import InsigniaStudioModal from "@components/common/InsigniaStudioModal";
 import ROUTES from "@constants/routes";
 import { useAuth } from "@/Admin_panel/context/AuthContext";
 import { schoolAdminDataApi } from "@services/admin/schoolAdminDataApi";
+import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
 
 export function Profile() {
     const navigate = useNavigate();
@@ -123,6 +124,10 @@ export function Profile() {
                 };
                 setForm(loaded);
                 setInitialForm(loaded);
+
+                if (data.avatar) {
+                    syncInsigniaFromBackend("SCHOOL_ADMIN", loaded.email, data.avatar, loaded.name);
+                }
             } catch (err) {
                 console.error("Failed to load school admin profile:", err);
             } finally {
@@ -130,6 +135,10 @@ export function Profile() {
             }
         };
         fetchProfile();
+        window.addEventListener("focus", fetchProfile);
+        return () => {
+            window.removeEventListener("focus", fetchProfile);
+        };
     }, [user]);
 
     const update = (key) => (e) => {

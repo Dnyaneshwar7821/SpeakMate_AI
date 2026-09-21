@@ -35,6 +35,8 @@ public interface TeacherService {
 
     TeacherProfileResponse updateProfile(TeacherProfileUpdateRequest request);
 
+    TeacherProfileResponse updateAvatar(String avatar);
+
     void changePassword(ChangePasswordRequest request);
 
     byte[] downloadProfile();

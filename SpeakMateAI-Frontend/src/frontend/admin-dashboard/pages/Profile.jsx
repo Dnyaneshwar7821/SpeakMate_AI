@@ -12,7 +12,6 @@ import {
     X,
     Copy,
     Check,
-    MoreHorizontal,
     CheckCircle2,
     Laptop,
     Globe2,
@@ -25,6 +24,7 @@ import SectionCard from "@admin/components/SectionCard";
 import InsigniaBadge from "@components/common/InsigniaBadge";
 import InsigniaStudioModal from "@components/common/InsigniaStudioModal";
 import { adminProfileApi } from "@services/admin/adminProfileApi";
+import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
 import { getIndianMobileError, normalizeIndianMobile, sanitizeMobileInput } from "@utils/phoneValidator";
 
 /**
@@ -62,8 +62,6 @@ export function Profile() {
     // Insignia Studio Modal state
     const [isInsigniaModalOpen, setIsInsigniaModalOpen] = useState(false);
 
-    // Kebab Menu Popover State
-    const [menuOpen, setMenuOpen] = useState(false);
 
     // 1-Click Copy Feedback State (key -> boolean)
     const [copiedKey, setCopiedKey] = useState(null);
@@ -108,10 +106,16 @@ export function Profile() {
                         department: d.department || "",
                         joinedAt: d.createdAt ? d.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10),
                         bio: d.designation || "Super Administrator",
+                        profileImage: d.profileImage || "",
                     };
                     adminProfileCache = profileData;
                     setForm(profileData);
                     setInitialForm(profileData);
+
+                    // Sync insignia from backend profileImage
+                    if (d.profileImage) {
+                        syncInsigniaFromBackend("SUPER_ADMIN", profileData.email, d.profileImage, profileData.name);
+                    }
                 }
             } catch (err) {
                 console.error("Failed to fetch admin profile:", err);
@@ -121,8 +125,10 @@ export function Profile() {
         };
 
         fetchProfile();
+        window.addEventListener("focus", fetchProfile);
         return () => {
             isMounted = false;
+            window.removeEventListener("focus", fetchProfile);
         };
     }, []);
 
@@ -369,48 +375,6 @@ export function Profile() {
                                     : "Personal and credential information"
                             }
                             delay={0.1}
-                            action={
-                                <div className="relative">
-                                    <button
-                                        type="button"
-                                        onClick={() => setMenuOpen((v) => !v)}
-                                        className={`grid h-8 w-8 place-items-center rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-secondary)] shadow-sm transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] focus:outline-none ${menuOpen ? "bg-[var(--bg-hover)] border-[var(--border-strong)]" : ""
-                                            }`}
-                                        aria-label="More options"
-                                    >
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </button>
-                                    {menuOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                                            <div className="absolute right-0 mt-1.5 w-48 z-20 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-1 shadow-lg">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setMenuOpen(false);
-                                                        setIsInsigniaModalOpen(true);
-                                                    }}
-                                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-                                                >
-                                                    <Pencil className="h-3.5 w-3.5" />
-                                                    Update Insignia
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setMenuOpen(false);
-                                                        handleExportProfile();
-                                                    }}
-                                                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
-                                                >
-                                                    <Download className="h-3.5 w-3.5" />
-                                                    Export Profile JSON
-                                                </button>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                            }
                         >
                             {/* IF IN EDIT MODE: Render Active Form Inputs */}
                             {isEditing ? (

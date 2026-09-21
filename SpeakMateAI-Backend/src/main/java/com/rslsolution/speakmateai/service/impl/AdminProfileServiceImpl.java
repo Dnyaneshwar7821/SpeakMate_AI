@@ -38,6 +38,7 @@ public class AdminProfileServiceImpl implements AdminProfileService {
                 .lastLogin(admin.getLastLogin())
                 .createdAt(admin.getCreatedAt())
                 .updatedAt(admin.getUpdatedAt())
+                .profileImage(admin.getProfileImage())
                 .build();
     }
 
@@ -58,7 +59,19 @@ public class AdminProfileServiceImpl implements AdminProfileService {
         admin.setDepartment(request.getDepartment());
         admin.setDesignation(request.getDesignation());
         admin.setLocation(request.getLocation());
+        if (request.getProfileImage() != null) {
+            admin.setProfileImage(request.getProfileImage().trim().isEmpty() ? null : request.getProfileImage().trim());
+        }
 
+        return mapToResponse(adminRepository.save(admin));
+    }
+
+    @Override
+    public AdminProfileResponse updateAvatar(String email, String profileImage) {
+        Admin admin = adminRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin not found with email: " + email));
+
+        admin.setProfileImage(profileImage != null && !profileImage.trim().isEmpty() ? profileImage.trim() : null);
         return mapToResponse(adminRepository.save(admin));
     }
 

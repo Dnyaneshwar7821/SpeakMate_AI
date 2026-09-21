@@ -32,6 +32,8 @@ import { adminUserApi } from "@services/admin/adminUserApi";
 import { useNotifications } from "@hooks/useNotifications";
 import { handleViewNotificationDetails, getNotificationTarget } from "@utils/notificationNavigation";
 import InsigniaBadge from "@components/common/InsigniaBadge";
+import { adminProfileApi } from "@services/admin/adminProfileApi";
+import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
 
 function IconButton({ children, onClick, label, className = "" }) {
     return (
@@ -103,6 +105,34 @@ export function AdminNavbar() {
     const profileRef = useRef(null);
     const notifRef = useRef(null);
     const searchRef = useRef(null);
+
+    // Sync Super Admin profile insignia from backend on mount and tab focus
+    useEffect(() => {
+        let isMounted = true;
+        const syncProfile = async () => {
+            try {
+                const res = await adminProfileApi.getProfile();
+                if (res?.success && res.data && isMounted) {
+                    const email = res.data.email || user?.email || "info@rslsolution.com";
+                    const name = res.data.fullName || user?.name || "Super Admin";
+                    if (res.data.profileImage) {
+                        syncInsigniaFromBackend("SUPER_ADMIN", email, res.data.profileImage, name);
+                    }
+                }
+            } catch {
+                // background sync fallback
+            }
+        };
+
+        syncProfile();
+        window.addEventListener("focus", syncProfile);
+        window.addEventListener("admin-session-updated", syncProfile);
+        return () => {
+            isMounted = false;
+            window.removeEventListener("focus", syncProfile);
+            window.removeEventListener("admin-session-updated", syncProfile);
+        };
+    }, [user?.email, user?.name]);
 
     // Close popovers on outside click
     useEffect(() => {

@@ -21,6 +21,8 @@ import ROUTES from "@constants/routes";
 import { teacherNavbarSearchItems } from "@/Admin_panel/data/teacherNavbarSearchData";
 import { useNotifications } from "@hooks/useNotifications";
 import InsigniaBadge from "@components/common/InsigniaBadge";
+import { teacherDataApi } from "@services/admin/teacherDataApi";
+import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
 
 export function TeacherNavbar({
     teacherName = "Teacher",
@@ -76,6 +78,36 @@ export function TeacherNavbar({
 
     const displayName = user?.name || teacherName;
     const displayEmail = user?.email || "teacher@speakmate.ai";
+
+    // Cross-session and cross-tab insignia/profile sync for Teacher Admin
+    useEffect(() => {
+        let isMounted = true;
+        const syncProfile = async () => {
+            try {
+                const res = await teacherDataApi.getProfile();
+                if (res && isMounted) {
+                    const id = res.identity || {};
+                    const email = id.email || displayEmail;
+                    const name = `${id.firstName || ""} ${id.lastName || ""}`.trim() || id.email || displayName;
+                    const avatar = id.avatar || res.avatar;
+                    if (avatar) {
+                        syncInsigniaFromBackend("TEACHER", email, avatar, name);
+                    }
+                }
+            } catch {
+                // background sync fallback
+            }
+        };
+
+        syncProfile();
+        window.addEventListener("focus", syncProfile);
+        window.addEventListener("admin-session-updated", syncProfile);
+        return () => {
+            isMounted = false;
+            window.removeEventListener("focus", syncProfile);
+            window.removeEventListener("admin-session-updated", syncProfile);
+        };
+    }, [displayEmail, displayName]);
 
     return (
         <header className="sticky top-0 z-40 h-16 w-full border-b border-[var(--border-default)] bg-[var(--bg-base)]/80 backdrop-blur-xl">

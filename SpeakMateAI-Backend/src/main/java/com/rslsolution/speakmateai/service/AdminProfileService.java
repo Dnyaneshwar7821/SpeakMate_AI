@@ -10,5 +10,7 @@ public interface AdminProfileService {
 
     AdminProfileResponse updateProfile(String email, AdminProfileUpdateRequest request);
 
+    AdminProfileResponse updateAvatar(String email, String profileImage);
+
     void changePassword(String email, ChangePasswordRequest request);
 }

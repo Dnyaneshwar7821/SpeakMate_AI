@@ -236,3 +236,154 @@ export function resetProfileInsignia(role, email, name = "") {
         console.error("Failed to reset profile insignia:", e);
     }
 }
+
+/**
+ * High-performance client-side square crop and compression.
+ * Downsamples high-res photos to max 360x360 px WebP/JPEG, producing ultra-crisp
+ * ~20KB-40KB data URLs for instant network synchronization across all portals.
+ */
+export function compressImageFile(file, maxWidth = 360, maxHeight = 360, quality = 0.82) {
+    return new Promise((resolve, reject) => {
+        if (!file || !file.type || !file.type.startsWith("image/")) {
+            return reject(new Error("Invalid image file"));
+        }
+
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Failed to read image file"));
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onerror = () => reject(new Error("Failed to parse image data"));
+            img.onload = () => {
+                const { width, height } = img;
+                const cropSize = Math.min(width, height);
+                const cropX = (width - cropSize) / 2;
+                const cropY = (height - cropSize) / 2;
+
+                const targetDim = Math.min(cropSize, maxWidth);
+                const canvas = document.createElement("canvas");
+                canvas.width = targetDim;
+                canvas.height = targetDim;
+                const ctx = canvas.getContext("2d");
+
+                if (!ctx) {
+                    return resolve(e.target.result);
+                }
+
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = "high";
+
+                // Draw centered square crop
+                ctx.drawImage(
+                    img,
+                    cropX,
+                    cropY,
+                    cropSize,
+                    cropSize,
+                    0,
+                    0,
+                    targetDim,
+                    targetDim
+                );
+
+                const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+                const dataUrl = canvas.toDataURL(mime, quality);
+                resolve(dataUrl);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+/**
+ * Synchronize insignia from backend profile response (JSON insignia string or raw image URL).
+ * Immediately caches in localStorage and dispatches event so all InsigniaBadge instances update.
+ */
+export function syncInsigniaFromBackend(role, email, backendAvatar, name = "") {
+    if (!role && !email) return { type: "initials" };
+    try {
+        let config = { type: "initials" };
+        if (backendAvatar && typeof backendAvatar === "string" && backendAvatar.trim()) {
+            const trimmed = backendAvatar.trim();
+            if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+                try {
+                    config = JSON.parse(trimmed);
+                } catch {
+                    config = { type: "image", data: trimmed };
+                }
+            } else if (trimmed.startsWith("data:") || trimmed.startsWith("http://") || trimmed.startsWith("https://") || trimmed.startsWith("/")) {
+                config = { type: "image", data: trimmed };
+            }
+        }
+
+        saveProfileInsignia(role, email, config, name);
+        return config;
+    } catch (e) {
+        console.warn("Failed to sync insignia from backend:", e);
+        return { type: "initials" };
+    }
+}
+
+/**
+ * Persist Profile Insignia to local cache AND send update to the backend database
+ * across Super Admin, School Admin, and Teacher Admin roles.
+ */
+export async function saveProfileInsigniaWithBackend(role, email, insigniaConfig, name = "") {
+    // 1. Immediately save locally and broadcast for zero-latency feedback
+    saveProfileInsignia(role, email, insigniaConfig, name);
+
+    // 2. Serialize for backend storage
+    const serialized = JSON.stringify(insigniaConfig);
+    const safeRole = String(role || "").toUpperCase();
+
+    try {
+        if (safeRole.includes("SUPER")) {
+            const { adminProfileApi } = await import("@services/admin/adminProfileApi");
+            await adminProfileApi.updateAvatar(serialized);
+        } else if (safeRole.includes("SCHOOL")) {
+            const { schoolAdminDataApi } = await import("@services/admin/schoolAdminDataApi");
+            await schoolAdminDataApi.updateAvatar(serialized);
+        } else if (safeRole.includes("TEACHER")) {
+            const { teacherDataApi } = await import("@services/admin/teacherDataApi");
+            await teacherDataApi.updateAvatar(serialized);
+        }
+
+        // 3. Update localStorage admin session user if available
+        try {
+            const { updateAdminSessionUser } = await import("../Admin_panel/services/adminSession");
+            updateAdminSessionUser({ profileImage: serialized, avatar: serialized });
+        } catch {}
+    } catch (err) {
+        console.error(`Failed to persist insignia to backend for role ${role}:`, err);
+        throw err;
+    }
+}
+
+/**
+ * Reset Profile Insignia to standard initials and clear in backend database.
+ */
+export async function resetProfileInsigniaWithBackend(role, email, name = "") {
+    resetProfileInsignia(role, email, name);
+
+    const safeRole = String(role || "").toUpperCase();
+    try {
+        if (safeRole.includes("SUPER")) {
+            const { adminProfileApi } = await import("@services/admin/adminProfileApi");
+            await adminProfileApi.updateAvatar("");
+        } else if (safeRole.includes("SCHOOL")) {
+            const { schoolAdminDataApi } = await import("@services/admin/schoolAdminDataApi");
+            await schoolAdminDataApi.updateAvatar("");
+        } else if (safeRole.includes("TEACHER")) {
+            const { teacherDataApi } = await import("@services/admin/teacherDataApi");
+            await teacherDataApi.updateAvatar("");
+        }
+
+        try {
+            const { updateAdminSessionUser } = await import("../Admin_panel/services/adminSession");
+            updateAdminSessionUser({ profileImage: null, avatar: null });
+        } catch {}
+    } catch (err) {
+        console.error(`Failed to reset insignia in backend for role ${role}:`, err);
+        throw err;
+    }
+}

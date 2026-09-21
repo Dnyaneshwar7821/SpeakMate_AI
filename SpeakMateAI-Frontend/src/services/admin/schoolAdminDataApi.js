@@ -169,6 +169,11 @@ export const schoolAdminDataApi = {
     return response.data;
   },
 
+  updateAvatar: async (avatar) => {
+    const response = await apiClient.put("/api/profile/update-avatar", { avatar });
+    return response.data;
+  },
+
   // Settings
   getSettings: async () => {
     const response = await apiClient.get("/api/settings/get-settings");

@@ -1897,7 +1897,20 @@ public class TeacherServiceImpl implements TeacherService {
 		teacher.setExperience(request.getExperience() != null ? request.getExperience().trim() : null);
 		teacher.setLocation(request.getLocation() != null ? request.getLocation().trim() : null);
 		teacher.setBio(request.getBio() != null ? request.getBio().trim() : null);
+		if (request.getAvatar() != null) {
+			teacher.setAvatar(request.getAvatar().trim().isEmpty() ? null : request.getAvatar().trim());
+		}
 
+		teacherRepository.save(teacher);
+		teacherRepository.flush();
+		userRepository.flush();
+		return getProfile();
+	}
+
+	@Override
+	public TeacherProfileResponse updateAvatar(String avatar) {
+		Teacher teacher = getAuthenticatedTeacher();
+		teacher.setAvatar(avatar != null && !avatar.trim().isEmpty() ? avatar.trim() : null);
 		teacherRepository.save(teacher);
 		teacherRepository.flush();
 		userRepository.flush();

@@ -25,6 +25,8 @@ public class AdminProfileUpdateRequest {
     
     private String location;
 
+    private String profileImage;
+
     public String getFullName() { return fullName; }
     public void setFullName(String fullName) { this.fullName = fullName; }
 
@@ -40,6 +42,9 @@ public class AdminProfileUpdateRequest {
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 
+    public String getProfileImage() { return profileImage; }
+    public void setProfileImage(String profileImage) { this.profileImage = profileImage; }
+
     public static AdminProfileUpdateRequestBuilder builder() {
         return new AdminProfileUpdateRequestBuilder();
     }
@@ -50,12 +55,14 @@ public class AdminProfileUpdateRequest {
         private String department;
         private String designation;
         private String location;
+        private String profileImage;
 
         public AdminProfileUpdateRequestBuilder fullName(String fullName) { this.fullName = fullName; return this; }
         public AdminProfileUpdateRequestBuilder phone(String phone) { this.phone = phone; return this; }
         public AdminProfileUpdateRequestBuilder department(String department) { this.department = department; return this; }
         public AdminProfileUpdateRequestBuilder designation(String designation) { this.designation = designation; return this; }
         public AdminProfileUpdateRequestBuilder location(String location) { this.location = location; return this; }
+        public AdminProfileUpdateRequestBuilder profileImage(String profileImage) { this.profileImage = profileImage; return this; }
 
         public AdminProfileUpdateRequest build() {
             AdminProfileUpdateRequest r = new AdminProfileUpdateRequest();
@@ -64,6 +71,7 @@ public class AdminProfileUpdateRequest {
             r.department = department;
             r.designation = designation;
             r.location = location;
+            r.profileImage = profileImage;
             return r;
         }
     }

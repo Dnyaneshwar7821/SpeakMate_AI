@@ -45,7 +45,9 @@ function getOrdinal(n) {
     return num + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
-export function UserFormModal({ isOpen, mode = "add", initialData, teachers = [], schools = [], assignedSchoolName, isStudentForm = false, isSubmitting = false, onClose, onSubmit }) {
+const EMPTY_ARRAY = [];
+
+export function UserFormModal({ isOpen, mode = "add", initialData, teachers = EMPTY_ARRAY, schools = EMPTY_ARRAY, assignedSchoolName, isStudentForm = false, isSubmitting = false, onClose, onSubmit }) {
     const [form, setForm] = useState(EMPTY_FORM);
     const [errors, setErrors] = useState({});
     const [schoolStandardsConfig, setSchoolStandardsConfig] = useState([]);
@@ -155,7 +157,7 @@ export function UserFormModal({ isOpen, mode = "add", initialData, teachers = []
             setAssignedTeacherLookup({ loading: false, teacher: null, error: null });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isOpen, initialData, teachers]);
+    }, [isOpen, initialData]);
 
     useEffect(() => {
         if (!isStudentForm || !form.schoolName || !form.standard || !form.division || !schools || schools.length === 0) {

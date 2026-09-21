@@ -37,6 +37,15 @@ public class AdminProfileController {
         return ResponseEntity.ok(ApiResponse.success("Profile updated successfully", adminProfileService.updateProfile(principal.getName(), request)));
     }
 
+    @PutMapping("/avatar")
+    public ResponseEntity<ApiResponse<AdminProfileResponse>> updateAvatar(Principal principal, @RequestBody java.util.Map<String, String> payload) {
+        String image = payload.get("avatar");
+        if (image == null) {
+            image = payload.get("profileImage");
+        }
+        return ResponseEntity.ok(ApiResponse.success("Profile image updated successfully", adminProfileService.updateAvatar(principal.getName(), image)));
+    }
+
     @PutMapping("/change-password")
     public ResponseEntity<ApiResponse<Void>> changePassword(Principal principal, @Valid @RequestBody ChangePasswordRequest request) {
         adminProfileService.changePassword(principal.getName(), request);
