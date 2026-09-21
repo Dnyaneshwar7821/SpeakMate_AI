@@ -67,6 +67,8 @@ const linking = {
 
 import { StatusBar } from 'expo-status-bar';
 import { ToastProvider } from './src/context/ToastContext';
+import { navigationRef } from './src/navigation/navigationRef';
+import LearnerAssistantWidget from './src/components/assistant/LearnerAssistantWidget';
 
 // Inner component so hooks work inside providers
 function AppContent() {
@@ -76,6 +78,7 @@ function AppContent() {
     <>
       <StatusBar style={isDark ? 'light' : 'dark'} translucent={true} backgroundColor="transparent" />
       <AppNavigator />
+      <LearnerAssistantWidget />
     </>
   );
 }
@@ -104,7 +107,7 @@ export default function App() {
             <NotificationProvider>
               <DrawerProvider>
                 <ToastProvider>
-                  <NavigationContainer linking={linking}>
+                  <NavigationContainer ref={navigationRef} linking={linking}>
                     <AppContent />
                   </NavigationContainer>
                 </ToastProvider>

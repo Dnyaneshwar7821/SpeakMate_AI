@@ -1,0 +1,10 @@
+export { LearnerAssistantWidget } from './LearnerAssistantWidget';
+export { AssistantFAB } from './AssistantFAB';
+export { AssistantModal } from './AssistantModal';
+export { MessageBubble } from './MessageBubble';
+export { StatRow } from './StatRow';
+export { DeepLinkChip } from './DeepLinkChip';
+export { MarkdownText } from './MarkdownText';
+export { assistantApi } from './assistantApi';
+
+export default LearnerAssistantWidget;
