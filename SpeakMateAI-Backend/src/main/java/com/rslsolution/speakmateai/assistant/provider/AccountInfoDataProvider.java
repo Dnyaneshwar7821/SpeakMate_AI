@@ -68,14 +68,24 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 					data.put("currentSubscription", plan);
 					data.put("subscriptionPlan", plan);
 					data.put("subscriptionStatus", "ACTIVE");
+				} else if (actor.getSchoolId() != null) {
+					data.put("currentSubscription", "Institutional School Plan");
+					data.put("subscriptionPlan", "Institutional School Plan");
+					data.put("subscriptionStatus", "ACTIVE");
 				} else {
 					data.put("currentSubscription", "Free Tier");
 					data.put("subscriptionPlan", "Free Tier");
 					data.put("subscriptionStatus", "FREE");
 				}
 			} catch (Exception e) {
-				data.put("currentSubscription", "Free Tier");
-				data.put("subscriptionPlan", "Free Tier");
+				if (actor.getSchoolId() != null) {
+					data.put("currentSubscription", "Institutional School Plan");
+					data.put("subscriptionPlan", "Institutional School Plan");
+					data.put("subscriptionStatus", "ACTIVE");
+				} else {
+					data.put("currentSubscription", "Free Tier");
+					data.put("subscriptionPlan", "Free Tier");
+				}
 			}
 		}
 		if (actor.getSchoolId() != null) {
@@ -127,11 +137,21 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 		if (location != null && !location.isBlank()) {
 			data.put("location", location);
 		}
-		data.put("summary", accountSummary(actor, schoolName, location));
+		if (actor.getStandard() != null && !actor.getStandard().isBlank()) {
+			data.put("standard", actor.getStandard());
+		}
+		if (actor.getDivision() != null && !actor.getDivision().isBlank()) {
+			data.put("division", actor.getDivision());
+		}
+		if (actor.getRollNumber() != null && !actor.getRollNumber().isBlank()) {
+			data.put("rollNumber", actor.getRollNumber());
+		}
+		String subPlan = data.get("subscriptionPlan") != null ? String.valueOf(data.get("subscriptionPlan")) : null;
+		data.put("summary", accountSummary(actor, schoolName, location, subPlan));
 		return toJson(data);
 	}
 
-	private String accountSummary(ActorContext actor, String schoolName, String location) {
+	private String accountSummary(ActorContext actor, String schoolName, String location, String subscriptionPlan) {
 		String role = actor.getRole() != null ? actor.getRole().name().replace('_', ' ') : "user";
 		StringBuilder sb = new StringBuilder();
 		if (actor.getDisplayName() != null && !actor.getDisplayName().isBlank()) {
@@ -142,8 +162,20 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 		if (actor.getEmail() != null) {
 			sb.append(" with email ").append(actor.getEmail());
 		}
+		if (actor.getStandard() != null && !actor.getStandard().isBlank()) {
+			sb.append(", Standard ").append(actor.getStandard());
+			if (actor.getDivision() != null && !actor.getDivision().isBlank()) {
+				sb.append("-").append(actor.getDivision());
+			}
+		}
+		if (actor.getRollNumber() != null && !actor.getRollNumber().isBlank()) {
+			sb.append(", Roll No. ").append(actor.getRollNumber());
+		}
 		if (schoolName != null) {
 			sb.append(" at ").append(schoolName);
+		}
+		if (subscriptionPlan != null && !subscriptionPlan.isBlank()) {
+			sb.append(" enrolled in the ").append(subscriptionPlan);
 		}
 		if (location != null && !location.isBlank()) {
 			sb.append(" based in ").append(location);

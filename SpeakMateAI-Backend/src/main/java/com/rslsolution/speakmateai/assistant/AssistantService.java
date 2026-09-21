@@ -129,7 +129,7 @@ public class AssistantService {
 					.sessionId(request.getSessionId())
 					.stats(synthesized.getStats())
 					.chart(synthesized.getChart())
-					.suggestions(suggestionsFor(intent, actor.getRole(), synthesized.getSuggestDeepLink()))
+					.suggestions(suggestionsFor(intent, actor.getRole(), synthesized.getSuggestDeepLink(), request != null ? request.getMessage() : null))
 					.build();
 		} catch (Throwable t) {
 			log.error("Unhandled error in AssistantService for {}: {}", email, t.getMessage(), t);
@@ -326,15 +326,20 @@ public class AssistantService {
 		return userish ? AssistantIntent.PLATFORM_USERS : AssistantIntent.PLATFORM_OVERVIEW;
 	}
 
+	private List<Suggestion> suggestionsFor(AssistantIntent intent, Role role, Boolean suggestDeepLink) {
+		return suggestionsFor(intent, role, suggestDeepLink, null);
+	}
+
 	/**
 	 * Returns at most 2 strictly relevant deep-link suggestions tailored to the
 	 * classified intent and caller's role.
 	 */
-	private List<Suggestion> suggestionsFor(AssistantIntent intent, Role role, Boolean suggestDeepLink) {
+	private List<Suggestion> suggestionsFor(AssistantIntent intent, Role role, Boolean suggestDeepLink, String userMessage) {
 		if (role == null) {
 			return List.of();
 		}
 		List<Suggestion> candidates = new ArrayList<>();
+		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT);
 
 		// 1. Intent-specific primary suggestions
 		if (intent != null) {
@@ -350,14 +355,54 @@ public class AssistantService {
 				}
 				case STUDENT_PERFORMANCE -> {
 					if (role == Role.STUDENT || role == Role.USER) {
-						candidates.add(suggestion("View my progress", "/progress", role.name()));
-						candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+						if (m.contains("gramm")) {
+							candidates.add(suggestion("Practice grammar", "/grammar", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						} else if (m.contains("vocab") || m.contains("word")) {
+							candidates.add(suggestion("View vocabulary", "/vocabulary", role.name()));
+							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+						} else if (m.contains("lesson") || m.contains("curriculum")) {
+							candidates.add(suggestion("View lessons", "/lessons", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						} else {
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+						}
 					} else if (role == Role.TEACHER) {
 						candidates.add(suggestion("View my students", "/teacher/students", "TEACHER"));
 						candidates.add(suggestion("View class analytics", "/teacher/analytics", "TEACHER"));
 					} else if (role == Role.SCHOOL_ADMIN) {
 						candidates.add(suggestion("View students", "/school-admin/students", "SCHOOL_ADMIN"));
 						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+					}
+				}
+				case NAVIGATION_HELP -> {
+					if (role == Role.STUDENT || role == Role.USER) {
+						if (m.contains("gramm")) {
+							candidates.add(suggestion("Practice grammar", "/grammar", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						} else if (m.contains("vocab") || m.contains("word")) {
+							candidates.add(suggestion("View vocabulary", "/vocabulary", role.name()));
+							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+						} else if (m.contains("lesson") || m.contains("curriculum")) {
+							candidates.add(suggestion("View lessons", "/lessons", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						} else if (m.contains("what should") || m.contains("next")) {
+							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+							candidates.add(suggestion("View lessons", "/lessons", role.name()));
+						} else {
+							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						}
+					} else if (role == Role.TEACHER) {
+						candidates.add(suggestion("View my students", "/teacher/students", "TEACHER"));
+						candidates.add(suggestion("Go to dashboard", "/teacher/dashboard", "TEACHER"));
+					} else if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("Go to dashboard", "/school-admin/dashboard", "SCHOOL_ADMIN"));
+					} else if (role == Role.SUPER_ADMIN) {
+						candidates.add(suggestion("View platform insights", "/admin/insights", "SUPER_ADMIN"));
+						candidates.add(suggestion("View all users", "/admin/users", "SUPER_ADMIN"));
 					}
 				}
 				case SCHOOL_ROSTER -> {

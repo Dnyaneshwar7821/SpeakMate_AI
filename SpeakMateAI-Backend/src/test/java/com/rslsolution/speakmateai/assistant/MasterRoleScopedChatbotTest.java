@@ -125,6 +125,14 @@ public class MasterRoleScopedChatbotTest {
 			assertEquals(AssistantIntent.NAVIGATION_HELP, classifier.classify("Where can I practice speaking?", Role.STUDENT, null).getIntent());
 			assertEquals(AssistantIntent.NAVIGATION_HELP, classifier.classify("Where can I see my progress?", Role.STUDENT, null).getIntent());
 			assertEquals(AssistantIntent.NAVIGATION_HELP, classifier.classify("Take me to vocabulary.", Role.STUDENT, null).getIntent());
+
+			// Indian student phrasing & informal queries:
+			assertEquals(AssistantIntent.STUDENT_PERFORMANCE, classifier.classify("which sentence last check in grammer module by me", Role.STUDENT, null).getIntent());
+			assertEquals(AssistantIntent.STUDENT_PERFORMANCE, classifier.classify("roll number tell", Role.STUDENT, null).getIntent());
+			assertEquals(AssistantIntent.STUDENT_PERFORMANCE, classifier.classify("my rool number tell", Role.STUDENT, null).getIntent());
+			assertEquals(AssistantIntent.STUDENT_PERFORMANCE, classifier.classify("my roll number tell", Role.STUDENT, null).getIntent());
+			assertEquals(AssistantIntent.STUDENT_PERFORMANCE, classifier.classify("how many lesson completed and which are they", Role.STUDENT, null).getIntent());
+			assertEquals(AssistantIntent.ACCOUNT_INFO, classifier.classify("which school and class do I belong to? (for school student accounts) What is my roll number? What is my subscription plan?", Role.STUDENT, null).getIntent());
 		}
 
 		@Test
@@ -135,6 +143,9 @@ public class MasterRoleScopedChatbotTest {
 				"Aarav's XP",
 				"Can you show me another student's progress?",
 				"Show me Aarav Sharma's performance.",
+				"How is Onkar doing?",
+				"Show me Siddhi's progress",
+				"What are the average marks of class 9-A?",
 				"Show me all students in my school.",
 				"Show me all teachers in my school.",
 				"What is the school's total revenue?",

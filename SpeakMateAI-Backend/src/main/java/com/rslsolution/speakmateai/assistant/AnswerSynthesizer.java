@@ -397,7 +397,7 @@ public class AnswerSynthesizer {
 			case PLATFORM_USERS -> renderUsers(data);
 			case BILLING -> renderBilling(data);
 			case ACCOUNT_INFO -> renderAccount(data);
-			case NAVIGATION_HELP -> renderNavigation(data);
+			case NAVIGATION_HELP -> renderNavigation(data, userMessage);
 			case CLASS_PERFORMANCE -> renderClassPerformance(data, userMessage);
 			case STUDENT_PERFORMANCE -> renderStudentPerformance(data, userMessage);
 			case ACCESS_DENIED -> "This question is outside your access. Ask me about your own dashboard, students, "
@@ -1245,8 +1245,12 @@ public class AnswerSynthesizer {
 		addLine(sb, "Email", str(d, "email"));
 		String role = str(d, "role").replace('_', ' ');
 		addLine(sb, "Role", role);
+		addLine(sb, "Standard", str(d, "standard"));
+		addLine(sb, "Division", str(d, "division"));
+		addLine(sb, "Roll Number", str(d, "rollNumber"));
 		addLine(sb, "Phone", str(d, "phone"));
 		addLine(sb, "School", str(d, "schoolName"));
+		addLine(sb, "Subscription Plan", str(d, "subscriptionPlan"));
 		addLine(sb, "Location", str(d, "location"));
 		addLine(sb, "Joined", str(d, "joinedAt"));
 		String summary = str(d, "summary");
@@ -1256,7 +1260,58 @@ public class AnswerSynthesizer {
 		return trimOrNull(sb);
 	}
 
-	private String renderNavigation(Map<String, Object> d) {
+	private String renderNavigation(Map<String, Object> d, String userMessage) {
+		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();
+		if (m.contains("speak") || m.contains("talk") || m.contains("audio") || m.contains("voice") || m.contains("mic")) {
+			return "**Speaking Practice**\n\n"
+					+ "You can practice speaking by clicking **Speaking** in your sidebar menu or tapping **Practice speaking** below.\n\n"
+					+ "In the Speaking module, you can:\n"
+					+ "- Select real-world conversation scenarios and structured speaking prompts\n"
+					+ "- Record your voice and receive instant AI analysis on fluency, pronunciation, grammar, and vocabulary\n"
+					+ "- Track your progress and earn XP for every practice session";
+		}
+		if (m.contains("gramm") || m.contains("sentence")) {
+			return "**Grammar Practice**\n\n"
+					+ "You can practice grammar by selecting **Grammar** from your sidebar menu or tapping **Practice grammar** below.\n\n"
+					+ "In the Grammar module, you can:\n"
+					+ "- Enter sentences to receive immediate AI grammar checking\n"
+					+ "- Review corrections with explanations and grammatical rule tips\n"
+					+ "- Maintain and improve your grammar accuracy percentage";
+		}
+		if (m.contains("vocab") || m.contains("word")) {
+			return "**Vocabulary Builder**\n\n"
+					+ "You can view and build your vocabulary list by choosing **Vocabulary** in the sidebar menu.\n\n"
+					+ "In the Vocabulary module, you can:\n"
+					+ "- Browse saved vocabulary words, meanings, and contextual usage\n"
+					+ "- Master new words through repetitive speech practice\n"
+					+ "- Monitor your total saved and mastered word count";
+		}
+		if (m.contains("lesson") || m.contains("curriculum") || m.contains("course") || m.contains("study")) {
+			return "**Curriculum Lessons**\n\n"
+					+ "You can access your interactive lessons by selecting **Lessons** from your sidebar menu.\n\n"
+					+ "In the Lessons section, you can:\n"
+					+ "- Explore sequential English speaking and grammar units\n"
+					+ "- Learn practical speaking structures and vocabulary\n"
+					+ "- Track completed lessons and unlock new modules";
+		}
+		if (m.contains("progress") || m.contains("streak") || m.contains("stats") || m.contains("report")) {
+			return "**Learning Progress**\n\n"
+					+ "You can review your detailed learning stats and streaks by selecting **Progress** in the sidebar menu.\n\n"
+					+ "In your Progress dashboard, you can track:\n"
+					+ "- Current and longest practice streaks\n"
+					+ "- Overall XP points and current learner level\n"
+					+ "- Speaking performance breakdown (fluency, pronunciation, grammar, vocabulary)";
+		}
+		if (m.contains("what should i practice") || m.contains("what to practice") || m.contains("what should i do") || m.contains("recommend")) {
+			return "**Recommended Next Practice**\n\n"
+					+ "Here are great ways to keep improving your English fluency:\n\n"
+					+ "1. 🎙️ **Speaking Practice** — Complete an interactive speaking session to polish your pronunciation and fluency.\n"
+					+ "2. 📚 **Lessons** — Advance through your curriculum modules to gain XP and level up.\n"
+					+ "3. 📝 **Grammar Checks** — Test tricky sentences to improve your grammar accuracy score.\n"
+					+ "4. 💡 **Vocabulary** — Practice recently added words in conversation.\n\n"
+					+ "Use the sidebar menu or the quick action buttons below to jump right in!";
+		}
+
 		List<Map<String, Object>> pages = maps(d, "pages");
 		if (pages.isEmpty()) {
 			return summaryOr(d, null);
@@ -1307,11 +1362,37 @@ public class AnswerSynthesizer {
 		}
 
 		boolean matched = false;
+		if (containsWord(m, "roll", "rool", "standard", "division", "grade") || m.contains("which class") || m.contains("what class") || m.contains("my class")) {
+			String rollNo = str(d, "rollNumber");
+			String std = str(d, "standard");
+			String div = str(d, "division");
+			String school = str(d, "schoolName");
+			if (!rollNo.isBlank()) {
+				sb.append("- **Roll Number:** ").append(rollNo).append("\n");
+				matched = true;
+			}
+			if (!std.isBlank()) {
+				sb.append("- **Standard:** ").append(std);
+				if (!div.isBlank()) {
+					sb.append(" (Division ").append(div).append(")");
+				}
+				sb.append("\n");
+				matched = true;
+			}
+			if (!school.isBlank()) {
+				sb.append("- **School:** ").append(school).append("\n");
+				matched = true;
+			}
+		}
 		if (containsWord(m, "lesson", "lessons", "completed", "complete", "finished", "finish",
 				"completion", "remaining", "pending", "done")) {
 			matched |= metric(sb, d, "Lessons Completed", "lessonsCompleted");
 			matched |= metric(sb, d, "Lessons Started", "lessonsStarted");
 			matched |= metric(sb, d, "Lessons Pending", "lessonsPending");
+			if (d.get("completedLessonTitles") instanceof List<?> titles && !titles.isEmpty()) {
+				sb.append("- **Completed Lesson Modules:** ").append(String.join(", ", titles.stream().map(String::valueOf).toList())).append("\n");
+				matched = true;
+			}
 		}
 		if (containsWord(m, "xp", "exp", "experience", "points", "level", "levels")) {
 			matched |= metric(sb, d, "XP", "xp");
@@ -1378,15 +1459,42 @@ public class AnswerSynthesizer {
 				}
 			}
 		}
-		if (containsWord(m, "grammar", "checks", "check")) {
-			matched |= metric(sb, d, "Total Grammar Checks", "totalGrammarChecks");
-			if (d.get("averageGrammarScore") != null) {
-				sb.append("- **Average Grammar Accuracy:** ").append(d.get("averageGrammarScore")).append("%\n");
-				matched = true;
-			}
-			if (d.get("speakingGrammarScore") != null && containsWord(m, "score", "speaking")) {
-				sb.append("- **Speaking Grammar Score:** ").append(d.get("speakingGrammarScore")).append("%\n");
-				matched = true;
+		if (containsWord(m, "grammar", "checks", "check", "grammer", "sentence")) {
+			if (containsWord(m, "sentence", "last", "recent", "latest") || m.contains("last check") || m.contains("sentence last check") || m.contains("last checked")) {
+				if (d.get("lastGrammarCheck") instanceof Map<?, ?> lastCheck) {
+					sb.append("\n**Latest Grammar Check**\n");
+					Object orig = lastCheck.get("originalText");
+					Object corr = lastCheck.get("correctedText");
+					Object expl = lastCheck.get("explanation");
+					Object score = lastCheck.get("grammarScore");
+					if (orig != null && !String.valueOf(orig).isBlank()) {
+						sb.append("- **Original Sentence:** \"").append(orig).append("\"\n");
+					}
+					if (corr != null && !String.valueOf(corr).isBlank()) {
+						sb.append("- **Corrected Sentence:** \"").append(corr).append("\"\n");
+					}
+					if (expl != null && !String.valueOf(expl).isBlank()) {
+						sb.append("- **Explanation:** ").append(expl).append("\n");
+					}
+					if (score != null) {
+						sb.append("- **Grammar Accuracy Score:** ").append(score).append("%\n");
+					}
+					matched = true;
+				} else {
+					sb.append("\n**Latest Grammar Check**\n");
+					sb.append("You haven't checked any sentences in the Grammar module yet. You can visit the **Grammar** section to submit sentences for instant AI grammar and phrasing analysis.\n");
+					matched = true;
+				}
+			} else {
+				matched |= metric(sb, d, "Total Grammar Checks", "totalGrammarChecks");
+				if (d.get("averageGrammarScore") != null) {
+					sb.append("- **Average Grammar Accuracy:** ").append(d.get("averageGrammarScore")).append("%\n");
+					matched = true;
+				}
+				if (d.get("speakingGrammarScore") != null && containsWord(m, "score", "speaking")) {
+					sb.append("- **Speaking Grammar Score:** ").append(d.get("speakingGrammarScore")).append("%\n");
+					matched = true;
+				}
 			}
 		}
 		if (containsWord(m, "vocabulary", "vocab", "words", "word")) {

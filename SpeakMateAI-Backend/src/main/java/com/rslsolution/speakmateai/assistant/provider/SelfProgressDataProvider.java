@@ -172,6 +172,23 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		}
 		double avgGrammarScore = scoredGrammarCount > 0 ? Math.round((totalGrammarScore / scoredGrammarCount) * 10.0) / 10.0 : 0.0;
 
+		List<String> completedLessonTitles = lessonRows.stream()
+				.filter(lp -> Boolean.TRUE.equals(lp.getCompleted()) && lp.getLesson() != null && lp.getLesson().getTitle() != null && !lp.getLesson().getTitle().isBlank())
+				.map(lp -> lp.getLesson().getTitle().trim())
+				.distinct()
+				.collect(Collectors.toList());
+		data.put("completedLessonTitles", completedLessonTitles);
+
+		if (!grammarChecks.isEmpty()) {
+			GrammarHistory latest = grammarChecks.get(0);
+			Map<String, Object> latestGrammar = new LinkedHashMap<>();
+			latestGrammar.put("originalText", latest.getOriginalText());
+			latestGrammar.put("correctedText", latest.getCorrectedText());
+			latestGrammar.put("explanation", latest.getExplanation());
+			latestGrammar.put("grammarScore", latest.getGrammarScore());
+			data.put("lastGrammarCheck", latestGrammar);
+		}
+
 		data.put("scope", "SELF (own progress only)");
 		data.put("studentName", fullName(user));
 		data.put("role", user.getRole() != null ? user.getRole().name() : "USER");

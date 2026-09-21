@@ -22,6 +22,9 @@ public class ActorContext {
 	private final String location;
 	private final String phone;
 	private final String joinedAt;
+	private final String standard;
+	private final String division;
+	private final String rollNumber;
 
 	private ActorContext(Builder b) {
 		this.email = b.email;
@@ -35,6 +38,9 @@ public class ActorContext {
 		this.location = b.location;
 		this.phone = b.phone;
 		this.joinedAt = b.joinedAt;
+		this.standard = b.standard;
+		this.division = b.division;
+		this.rollNumber = b.rollNumber;
 	}
 
 	public static Builder builder() {
@@ -52,6 +58,9 @@ public class ActorContext {
 	public String getLocation() { return location; }
 	public String getPhone() { return phone; }
 	public String getJoinedAt() { return joinedAt; }
+	public String getStandard() { return standard; }
+	public String getDivision() { return division; }
+	public String getRollNumber() { return rollNumber; }
 
 	public static class Builder {
 		private String email;
@@ -65,6 +74,9 @@ public class ActorContext {
 		private String location;
 		private String phone;
 		private String joinedAt;
+		private String standard;
+		private String division;
+		private String rollNumber;
 
 		public Builder email(String v) { this.email = v; return this; }
 		public Builder role(Role v) { this.role = v; return this; }
@@ -77,6 +89,9 @@ public class ActorContext {
 		public Builder location(String v) { this.location = v; return this; }
 		public Builder phone(String v) { this.phone = v; return this; }
 		public Builder joinedAt(String v) { this.joinedAt = v; return this; }
+		public Builder standard(String v) { this.standard = v; return this; }
+		public Builder division(String v) { this.division = v; return this; }
+		public Builder rollNumber(String v) { this.rollNumber = v; return this; }
 
 		public ActorContext build() {
 			return new ActorContext(this);

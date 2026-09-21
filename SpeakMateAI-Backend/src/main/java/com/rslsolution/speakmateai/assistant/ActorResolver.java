@@ -63,6 +63,9 @@ public class ActorResolver {
 					.location(fallback != null ? fallback.getLocation() : null)
 					.joinedAt(firstNonBlank(joinedAt(u.getCreatedAt()),
 							fallback != null ? joinedAt(fallback.getCreatedAt()) : null))
+					.standard(u.getStandard())
+					.division(u.getDivision())
+					.rollNumber(u.getRollNumber())
 					.build();
 		}
 

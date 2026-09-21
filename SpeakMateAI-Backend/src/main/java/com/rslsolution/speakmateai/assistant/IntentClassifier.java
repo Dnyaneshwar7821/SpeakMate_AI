@@ -610,7 +610,7 @@ public class IntentClassifier {
 			if (intent == AssistantIntent.CASUAL_CHAT) {
 				params = enrichCasualChatParams(message);
 			}
-			return new IntentResult(intent, params, raw);
+			return enforceRoleBoundaries(new IntentResult(intent, params, raw), role);
 		} catch (Exception e) {
 			// Groq returned prose or unusable JSON: fall back to the deterministic
 			// classifier instead of the old navigation-only "data not available" reply.
@@ -657,6 +657,14 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
 		}
 
+		// Class-level, school-wide or peer performance inquiry by a student:
+		boolean classOrSchoolPerformance = (m.contains("class") || m.contains("standard") || m.contains("grade") || m.contains("division"))
+				&& (m.contains("average") || m.contains("marks") || m.contains("score") || m.contains("scores") || m.contains("performance") || m.contains("doing") || m.contains("result") || m.contains("results") || m.contains("rank") || m.contains("ranking") || m.contains("top"));
+		boolean selfClassQuery = m.contains("my class") || m.contains("which class") || m.contains("what class") || m.contains("belong to");
+		if (classOrSchoolPerformance && !selfClassQuery) {
+			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
+		}
+
 		// Possessive or third-party entity check (e.g. "Aarav's pronunciation score", "Rahul's XP"):
 		Matcher possMatcher = Pattern.compile("\\b([A-Za-z]{3,})'s\\b", Pattern.CASE_INSENSITIVE).matcher(message);
 		while (possMatcher.find()) {
@@ -672,12 +680,34 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
 		}
 
-		// Account / Identity / Subscription queries:
+		// Account / Identity / Subscription / Roll number queries:
 		if (containsAny(m, List.of("what is my name", "who am i", "my account details", "what are my account details", "my profile details",
 				"what is my current subscription", "what is my current plan", "what is my subscription", "what is my plan",
 				"current subscription", "my current subscription", "current plan", "my current plan", "my subscription", "my plan", "subscription/plan",
-				"what is my current subscription/plan"))) {
+				"what is my current subscription/plan", "which school and class", "school and class do i belong",
+				"what school do i belong to", "which school do i belong to"))) {
 			return new IntentResult(AssistantIntent.ACCOUNT_INFO, Map.of(), null);
+		}
+
+		// Roll number, class, standard, division direct inquiries:
+		if (containsAny(m, List.of("roll number", "my roll number", "roll no", "my roll no", "my rool number", "rool number", "roll number tell",
+				"my roll", "what is my roll number", "tell my roll number", "tell me my roll number",
+				"my class", "which class", "which class do i belong", "what class am i in", "my standard", "which standard", "my division", "which division",
+				"what grade am i in", "which grade am i in", "my roll number tell", "my rool number tell"))) {
+			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
+		}
+
+		// Grammar check history / last checked sentence in grammar:
+		if (containsAny(m, List.of("last check in grammar", "last check in grammer", "last sentence in grammar", "sentence last check",
+				"sentence last check in grammer", "which sentence last check", "last checked sentence", "what sentence did i check",
+				"last grammar check", "recent grammar check", "what was my last check in grammar", "which sentence last check in grammer module by me"))) {
+			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
+		}
+
+		// Lesson modules list:
+		if (containsAny(m, List.of("which lessons", "which are they", "which lessons have i completed", "what lessons have i completed",
+				"names of completed lessons", "which lesson completed", "lesson completed and which are they"))) {
+			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
 		}
 
 		// Self-progress metrics matching representative queries, synonyms, informal language, short questions & typos:
@@ -1395,6 +1425,31 @@ public class IntentClassifier {
 	 * degrades to a neutral navigation-help answer (never a 500).
 	 */
 	private IntentResult deterministicFallback(String message, String raw, Role role, List<AssistantRequest.MessageTurn> history) {
+		return enforceRoleBoundaries(computeDeterministicFallback(message, raw, role, history), role);
+	}
+
+	private IntentResult enforceRoleBoundaries(IntentResult result, Role role) {
+		if (result == null) {
+			return null;
+		}
+		if (role == Role.STUDENT || role == Role.USER) {
+			AssistantIntent intent = result.getIntent();
+			if (intent == AssistantIntent.CLASS_PERFORMANCE
+					|| intent == AssistantIntent.SCHOOL_OVERVIEW
+					|| intent == AssistantIntent.SCHOOL_ROSTER
+					|| intent == AssistantIntent.PLATFORM_OVERVIEW
+					|| intent == AssistantIntent.PLATFORM_USERS
+					|| intent == AssistantIntent.BILLING
+					|| intent == AssistantIntent.SCHOOL_DASHBOARD
+					|| intent == AssistantIntent.RESULTS_ANALYTICS
+					|| intent == AssistantIntent.AI_INSIGHTS) {
+				return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), result.getRawJson());
+			}
+		}
+		return result;
+	}
+
+	private IntentResult computeDeterministicFallback(String message, String raw, Role role, List<AssistantRequest.MessageTurn> history) {
 		if (isCredentialOrSecretRequest(message) || isRoleOverrideOrInjectionAttempt(message)) {
 			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), raw);
 		}
@@ -2029,6 +2084,17 @@ public class IntentClassifier {
 			String single = possessiveMatcher.group(1).trim().toLowerCase(Locale.ROOT);
 			if (!NAME_METRIC_STOPWORDS.contains(single) && !ROSTER_NAME_STOPWORDS.contains(single) && !SCHOOL_NAME_TOKENS.contains(single)) {
 				return single;
+			}
+		}
+		Matcher inquiryMatcher = Pattern.compile(
+				"\\b(?:how is|how's|how about|what about|tell me about|status of|performance of|progress of)\\s+([a-zA-Z]{3,}(?:\\s+[a-zA-Z]{3,})?)(?:\\s+doing|\\s+performing|\\s+in class|\\s*$)",
+				Pattern.CASE_INSENSITIVE).matcher(sanitized);
+		if (inquiryMatcher.find()) {
+			String candidate = inquiryMatcher.group(1).trim().toLowerCase(Locale.ROOT);
+			if (!NAME_METRIC_STOPWORDS.contains(candidate) && !ROSTER_NAME_STOPWORDS.contains(candidate) && !SCHOOL_NAME_TOKENS.contains(candidate)
+					&& !candidate.equals("my class") && !candidate.equals("my student") && !candidate.equals("my students")
+					&& !candidate.equals("my learning") && !candidate.equals("my progress") && !candidate.equals("everyone")) {
+				return candidate;
 			}
 		}
 		return "";
