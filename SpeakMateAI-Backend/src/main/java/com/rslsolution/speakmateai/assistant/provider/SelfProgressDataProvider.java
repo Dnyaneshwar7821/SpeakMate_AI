@@ -189,15 +189,22 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			data.put("schoolName", user.getSchoolName());
 		}
 
+		int currentXp = p != null ? zeroIfNull(p.getXp()) : 0;
+		int currentLevel = p != null ? Math.max(1, zeroIfNull(p.getLevel())) : 1;
+		int nextLevel = currentLevel + 1;
+		int nextLevelThreshold = currentLevel * 500;
+		int xpRemaining = Math.max(0, nextLevelThreshold - currentXp);
+
+		data.put("xp", currentXp);
+		data.put("level", currentLevel);
+		data.put("nextLevel", nextLevel);
+		data.put("nextLevelThreshold", nextLevelThreshold);
+		data.put("xpRemaining", xpRemaining);
 		if (p != null) {
-			data.put("xp", zeroIfNull(p.getXp()));
-			data.put("level", Math.max(1, zeroIfNull(p.getLevel())));
 			data.put("currentStreak", zeroIfNull(p.getCurrentStreak()));
 			data.put("longestStreak", zeroIfNull(p.getLongestStreak()));
 			data.put("totalPracticeMinutes", zeroIfNull(p.getTotalPracticeMinutes()));
 		} else {
-			data.put("xp", 0);
-			data.put("level", 1);
 			data.put("currentStreak", 0);
 			data.put("longestStreak", 0);
 			data.put("totalPracticeMinutes", 0);

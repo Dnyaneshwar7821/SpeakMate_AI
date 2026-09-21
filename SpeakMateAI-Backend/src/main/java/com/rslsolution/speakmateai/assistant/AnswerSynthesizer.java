@@ -227,6 +227,15 @@ public class AnswerSynthesizer {
 			return "Give a helpful general answer.";
 		}
 		return switch (intent) {
+			case CASUAL_CHAT -> "You are greeting or interacting casually with the logged-in user. The user's name is in 'displayName', role in 'role', and school in 'schoolName'.\n"
+					+ "CRITICAL RULES:\n"
+					+ "- ALWAYS greet them personally by their name if 'displayName' is present (e.g., 'Hello [displayName]!'). Never say a generic 'I am your SpeakMate AI assistant' without acknowledging them.\n"
+					+ "- For SCHOOL_ADMIN: Welcome them to '[schoolName]'s assistant' and offer to assist with classes, teachers, students, exam results, or AI insights.\n"
+					+ "- For SUPER_ADMIN: Welcome them to SpeakMate AI platform assistant and offer to assist with platform metrics, schools, teachers, or students.\n"
+					+ "- If asked 'who are you' or what you can do: introduce yourself warmly as their dedicated SpeakMate assistant for their school/role and summarize the top capabilities (School Overview, Class Performance, Teacher Workloads, Student Progress, Exam Results).\n"
+					+ "- If asked 'who am I' or 'what is my name': state their logged-in name, role, and school.\n"
+					+ "- If they ask 'how are you' or say 'thanks': respond warmly and politely, addressing them by their name and mentioning their school if applicable.\n"
+					+ "- NEVER dump internal navigation URLs, routes, or path strings like '/school-admin/...'. Keep it conversational, warm, and professional.";
 			case PLATFORM_OVERVIEW -> "Answer questions about platform-wide statistics accurately using the provided data.\n"
 					+ "- TARGETED METRIC RULE: When the user asks for ONE specific metric or category (e.g. 'How many students are there?', 'How many teachers are there?', 'How many schools are there?', 'How many classes are there?', 'How many users are there?'): answer that specific question concisely and directly first (e.g., \"There are 6 students on the platform across all schools (all 6 are active).\"). For student questions, include the breakdown of top schools by students. Do NOT dump unrelated metrics like revenue, classes, or divisions when only asked about students or teachers. In the 'stats' array, include ONLY the stat cards relevant to the asked metric (e.g. for students: 'Total Students' and 'Active Students'; for teachers: 'Total Teachers' and 'Active Teachers'; for schools: 'Total Schools'; for users: 'Total Users' and 'Active Users').\n"
 					+ "- BROAD OVERVIEW RULE: When the user asks for a platform overview ('platform overview', 'give me a platform overview', 'summary of platform', etc.) or asks about multiple metrics simultaneously, summarize the key platform numbers across users, teachers, students, schools, and classes. In the 'stats' array, provide key cards: 'Total Users', 'Teachers' (totalTeachers), 'Students' (totalStudents), and 'School Admins' (totalSchoolAdmins).\n"
@@ -240,7 +249,8 @@ public class AnswerSynthesizer {
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats with numbers. Report the metric(s) asked about clearly: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions, completedSpeakingSessions, and speech scores (fluencyScore, pronunciationScore, speakingGrammarScore, speakingVocabularyScore, overallSpeakingScore); vocabulary -> totalVocabularyWords, masteredVocabularyWords, and recentVocabularyWords; grammar -> totalGrammarChecks and averageGrammarScore. When asked broadly ('how is my progress', 'how am I doing', 'my stats', etc.), present a comprehensive 5-pillar breakdown with clean headings or bullet points: 🎙️ Speaking Practice, 💡 Vocabulary, 📝 Grammar Checks, 📚 Lessons, and ⚡ XP & Streak. Always include stat cards for key metrics.\n"
 					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons.\n"
 					+ "CHART RULE FOR STUDENT LEARNING: When adding a chart for learning progress or performance, NEVER create a narrow 'Completed vs Remaining' chart. Always break down activity across EACH MODULE: Speaking (totalSpeakingSessions), Lessons (lessonsCompleted), Grammar (totalGrammarChecks), and Vocabulary (totalVocabularyWords). Set labels: ['Speaking', 'Lessons', 'Grammar', 'Vocabulary'], title: 'Learning Activity by Module', dataset label: 'Activities', with dynamic chart type 'bar' or 'doughnut'. If the user specifically asks for speech scores progress, use labels ['Fluency', 'Pronunciation', 'Grammar', 'Vocabulary'] with speaking evaluation scores.\n"
-					+ "A count of 0 is a valid number, so state 0 explicitly rather than saying data is unavailable. If the person is not a student (it carries a personRole field), state they are not a student and report their role EXACTLY as given in personRole.";
+					+ "A count of 0 is a valid number, so state 0 explicitly rather than saying data is unavailable. If the person is not a student (it carries a personRole field), state they are not a student and report their role EXACTLY as given in personRole."
+					+ "\n- XP REMAINING / LEVEL PROGRESS: When the user asks how much XP is remaining or needed to complete a level (e.g. 'how many xp remaining for siddhi to complete level 1'), report xp, level, nextLevel, nextLevelThreshold, and xpRemaining directly from the data (e.g. \"Siddhi Narke has 478 XP at Level 1. She needs 22 XP to reach Level 2 (500 XP threshold)\").";
 			case BILLING -> "Summarize billing/subscription/revenue numbers clearly.\n"
 					+ "When asked who has taken a subscription or who the active subscribers are (e.g. 'who has taken subscription', 'who subscribed', 'active subscribers'), list each subscriber from the subscribers array with their name, email, school, plan name, amount, and dates. If the subscribers list is empty, state clearly that there are currently 0 active subscribers.";
 			case SCHOOL_ROSTER -> "Answer ONLY from the provided teachers/students arrays, using every detail those entries contain. Never reply that a detail is unavailable when the field is present on the entry.\n"
@@ -249,6 +259,9 @@ public class AnswerSynthesizer {
 					+ "- Always use classAssignments and the teachers array. State the teacher's name directly (e.g. \"Teacher for class 7-B: Pratik Patil (assigned teacher for class 7-B)\").\n"
 					+ "- CRITICAL RULE: A class may have 0 enrolled students, but its teacher assignment exists independently! NEVER say a teacher is unavailable or not found just because the class has 0 students. If a teacher is listed in classAssignments or teachers, report them immediately.\n"
 					+ "- For multi-class inquiries (e.g. '2-A and 10-A'), list each class: report the assigned teacher for classes that have one (e.g. \"2-A: Chetan Mali\"), and state that no teacher information is available for classes where hasTeacher is false (e.g. \"10-A: No teacher information is available for this class in the current data.\").\n"
+					+ "- STUDENT'S ASSIGNED TEACHER: When studentAssignedTeacher is present, report the student's assigned teacher directly (e.g. \"Raj Varma's assigned teacher is Pratik Patil (Standard 9 - A)\").\n"
+					+ "- TEACHER WORKLOAD / MOST CLASSES: When topTeacherByClasses is present, state clearly which teacher handles the most classes, their total class count, and their list of assigned classes.\n"
+					+ "- TEACHER'S STUDENTS PROGRESS: When teacherStudentsProgress is present, summarize the teacher's students, total enrolled students, total combined XP, and provide the breakdown of each student with their XP, level, and streak.\n"
 					+ "Student entry fields: name, email, phone, studentId, rollNumber, standard, division, assignedTeacher.\n"
 					+ "When entityType is SINGLE_PERSON (or focusName is present), the arrays were narrowed to that one person: answer the specific question about them directly (e.g. \"Pratik Patil is assigned to 8 classes: 6-A, 7-A, ...\") and, when the question is a general 'details' question, list ALL of that person's fields as markdown bullets.\n"
 					+ "When the caller asked for a name (e.g., 'name of the teacher'), state it directly - for example \"The teacher is John Doe\". For a roster list, present each person as a markdown bullet including their known details (name, plus email/department/subject/experience/qualification/classes for teachers; name, plus standard/division/assignedTeacher for students), grouping under Teachers / Students headings when both are present. Use teacherCount and studentCount as the real numbers - an empty list means no one is enrolled, so say \"0 teachers\" or \"0 students\" explicitly. Keep it concise.\n"
@@ -365,6 +378,7 @@ public class AnswerSynthesizer {
 			return summaryOr(data, null);
 		}
 		return switch (intent) {
+			case CASUAL_CHAT -> renderCasualChat(data, userMessage);
 			case PLATFORM_OVERVIEW -> renderPlatform(data, userMessage);
 			case SCHOOL_OVERVIEW -> renderSchool(data, userMessage);
 			case SCHOOL_DASHBOARD -> renderDashboard(data);
@@ -742,6 +756,79 @@ public class AnswerSynthesizer {
 	}
 
 	private String renderRoster(Map<String, Object> d) {
+		Map<String, Object> studentAssignedTeacher = map(d, "studentAssignedTeacher");
+		if (studentAssignedTeacher != null && !studentAssignedTeacher.isEmpty()) {
+			StringBuilder sb = new StringBuilder();
+			String studentName = str(studentAssignedTeacher, "studentName");
+			String standard = str(studentAssignedTeacher, "standard");
+			String division = str(studentAssignedTeacher, "division");
+			boolean hasTeacher = Boolean.TRUE.equals(studentAssignedTeacher.get("hasTeacher"));
+			String teacherName = str(studentAssignedTeacher, "teacherName");
+			sb.append("**Assigned Teacher for ").append(studentName);
+			if (!standard.isBlank() || !division.isBlank()) {
+				sb.append(" (Standard ").append(standard).append(" - ").append(division).append(")");
+			}
+			sb.append(":**\n\n");
+			if (hasTeacher && !teacherName.isBlank()) {
+				sb.append("Teacher: **").append(teacherName).append("**\n");
+				String details = str(studentAssignedTeacher, "details");
+				if (!details.isBlank()) {
+					sb.append(details).append("\n");
+				}
+			} else {
+				sb.append("No assigned teacher found for this student in the current records.\n");
+			}
+			return trimOrNull(sb);
+		}
+
+		Map<String, Object> topTeacher = map(d, "topTeacherByClasses");
+		if (topTeacher != null && !topTeacher.isEmpty()) {
+			StringBuilder sb = new StringBuilder();
+			String tName = str(topTeacher, "teacherName");
+			Object cCount = topTeacher.get("classCount");
+			Object cList = topTeacher.get("classes");
+			String dept = str(topTeacher, "department");
+			sb.append("🏆 **Teacher Handling the Most Classes:**\n\n");
+			sb.append("**").append(tName).append("** handles the highest number of classes with **").append(cCount).append(" classes** assigned");
+			if (cList instanceof List<?> list && !list.isEmpty()) {
+				sb.append(":\n\n**Assigned Classes:** ").append(String.join(", ", stringify(list)));
+			} else {
+				sb.append(".\n");
+			}
+			if (!dept.isBlank()) {
+				sb.append("\n**Department / Subject:** ").append(dept);
+			}
+			sb.append("\n");
+			return trimOrNull(sb);
+		}
+
+		Map<String, Object> tsp = map(d, "teacherStudentsProgress");
+		if (tsp != null && !tsp.isEmpty()) {
+			StringBuilder sb = new StringBuilder();
+			String tName = str(tsp, "teacherName");
+			String totalStudents = num(tsp, "totalStudents");
+			String totalXp = num(tsp, "totalXp");
+			sb.append("**Progress of Students Assigned to ").append(tName).append(":**\n\n");
+			sb.append("- **Total Assigned Students:** ").append(totalStudents).append("\n");
+			sb.append("- **Total Combined XP:** ").append(totalXp).append(" XP\n\n");
+			List<Map<String, Object>> studs = maps(tsp, "students");
+			if (!studs.isEmpty()) {
+				sb.append("**Student Breakdown:**\n");
+				int rank = 1;
+				for (Map<String, Object> s : studs) {
+					sb.append(rank++).append(". **").append(str(s, "name")).append("**");
+					String st = str(s, "standard");
+					String div = str(s, "division");
+					if (!st.isBlank() || !div.isBlank()) {
+						sb.append(" (Standard ").append(st).append(" - ").append(div).append(")");
+					}
+					sb.append(" — **").append(num(s, "xp")).append(" XP** (Level ").append(num(s, "level"))
+					  .append(", ").append(num(s, "streak")).append("-day streak)\n");
+				}
+			}
+			return trimOrNull(sb);
+		}
+
 		String schoolName = str(d, "schoolName");
 		String standard = str(d, "standard");
 		String division = str(d, "division");
@@ -961,18 +1048,14 @@ public class AnswerSynthesizer {
 		if (pages.isEmpty()) {
 			return summaryOr(d, null);
 		}
-		StringBuilder sb = new StringBuilder("**Quick navigation for your role**\n");
+		StringBuilder sb = new StringBuilder("**Navigation Guide**\n\n");
+		sb.append("You can access the following sections from your sidebar menu:\n\n");
 		for (Map<String, Object> page : pages) {
 			String label = str(page, "label");
 			if (label.isBlank()) {
 				continue;
 			}
-			sb.append("- **").append(label).append("**");
-			String route = str(page, "route");
-			if (!route.isBlank()) {
-				sb.append(" — `").append(route).append('`');
-			}
-			sb.append('\n');
+			sb.append("- **").append(label).append("**: available in the sidebar menu under **").append(label).append("**\n");
 		}
 		return trimOrNull(sb);
 	}
@@ -1020,6 +1103,23 @@ public class AnswerSynthesizer {
 		if (containsWord(m, "xp", "exp", "experience", "points", "level", "levels")) {
 			matched |= metric(sb, d, "XP", "xp");
 			matched |= metric(sb, d, "Level", "level");
+			if (d.get("xpRemaining") != null && containsWord(m, "remaining", "need", "needs", "needed", "left", "complete", "completion", "finish", "reach")) {
+				Object rem = d.get("xpRemaining");
+				Object nxtLvl = d.get("nextLevel") != null ? d.get("nextLevel") : 2;
+				Object thresh = d.get("nextLevelThreshold") != null ? d.get("nextLevelThreshold") : 500;
+				sb.append("- **XP Needed for Level ").append(nxtLvl).append(":** ")
+				  .append(rem).append(" XP (needs ").append(rem).append(" more XP to reach Level ").append(nxtLvl).append(" at ").append(thresh).append(" XP threshold)\n");
+				matched = true;
+			}
+		} else if (d.get("xpRemaining") != null && containsWord(m, "remaining", "need", "needs", "needed", "left", "complete", "completion", "finish", "reach")) {
+			matched |= metric(sb, d, "XP", "xp");
+			matched |= metric(sb, d, "Level", "level");
+			Object rem = d.get("xpRemaining");
+			Object nxtLvl = d.get("nextLevel") != null ? d.get("nextLevel") : 2;
+			Object thresh = d.get("nextLevelThreshold") != null ? d.get("nextLevelThreshold") : 500;
+			sb.append("- **XP Needed for Level ").append(nxtLvl).append(":** ")
+			  .append(rem).append(" XP (needs ").append(rem).append(" more XP to reach Level ").append(nxtLvl).append(" at ").append(thresh).append(" XP threshold)\n");
+			matched = true;
 		}
 		if (containsWord(m, "streak", "streaks")) {
 			matched |= metric(sb, d, "Current Streak", "currentStreak");
@@ -1766,6 +1866,119 @@ public class AnswerSynthesizer {
 			return Double.parseDouble(String.valueOf(obj).trim());
 		} catch (Exception e) {
 			return 0.0;
+		}
+	}
+
+	private String renderCasualChat(Map<String, Object> d, String userMessage) {
+		String displayName = str(d, "displayName");
+		String role = str(d, "role");
+		String schoolName = str(d, "schoolName");
+		String chatType = str(d, "chatType");
+		if (chatType.isBlank()) {
+			chatType = "GREETING";
+		}
+		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();
+
+		// "who am I" or "what is my name"
+		if (m.contains("who am i") || m.contains("what is my name") || m.contains("my name")) {
+			StringBuilder sb = new StringBuilder();
+			if (!displayName.isBlank()) {
+				sb.append("You are logged in as **").append(displayName).append("**");
+			} else {
+				sb.append("You are logged in");
+			}
+			if (!role.isBlank()) {
+				sb.append(", **").append(formatRoleName(role)).append("**");
+			}
+			if (!schoolName.isBlank()) {
+				sb.append(" at **").append(schoolName).append("**");
+			}
+			sb.append(".\n\nHow can I assist you today?");
+			return sb.toString();
+		}
+
+		// Capabilities / "who are you" / "what can you do" / "help"
+		if ("CAPABILITIES".equalsIgnoreCase(chatType) || m.contains("who are you") || m.contains("what can you do") || m.contains("help")) {
+			if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
+				return "I'm your **SpeakMate Super Admin Assistant** 🎓\n\n"
+						+ "I can help you with:\n"
+						+ "- **Platform Overview** — total registered schools, students, teachers, and platform users\n"
+						+ "- **User Directory** — search and filter platform administrators, teachers, and learners\n"
+						+ "- **School Metrics** — explore individual school performance, enrollments, and top performers\n"
+						+ "- **Subscriptions & Billing** — active plans, renewals, and revenue trends\n\n"
+						+ "Feel free to ask a question or explore platform analytics!";
+			} else if ("SCHOOL_ADMIN".equalsIgnoreCase(role)) {
+				String prefix = !schoolName.isBlank() ? " for **" + schoolName + "**" : "";
+				return "I'm your **SpeakMate School Admin Assistant**" + prefix + " 🎓\n\n"
+						+ "I can help you with:\n"
+						+ "- **School Overview** — total student & teacher counts, active ratios, and class distributions\n"
+						+ "- **Class & Section Performance** — division analytics, student enrollments, and assigned teachers\n"
+						+ "- **Teacher Workloads** — assigned classrooms, subjects, and department details\n"
+						+ "- **Student Progress** — XP points, levels, learning streaks, and speech practice metrics\n"
+						+ "- **Exam Results & AI Insights** — pass/fail rates, average scores, and top performers\n\n"
+						+ "Feel free to ask a question or tap a suggestion below!";
+			} else if ("TEACHER".equalsIgnoreCase(role)) {
+				return "I'm your **SpeakMate Teacher Assistant** 🎓\n\n"
+						+ "I can help you monitor your assigned classes, track student speech practice, inspect vocabulary & grammar progress, and view class exam performance.\n\n"
+						+ "What would you like to review today?";
+			} else {
+				return "I'm your **SpeakMate AI Learning Assistant** 🎓\n\n"
+						+ "I can help you track your lessons, speaking practice scores, vocabulary words, grammar exercises, and XP streak.\n\n"
+						+ "Keep up the great work and let me know how I can help!";
+			}
+		}
+
+		// Well-being / small talk ("how are you", "how's it going")
+		if ("WELL_BEING".equalsIgnoreCase(chatType) || m.contains("how are you") || m.contains("how do you do") || m.contains("how's it going")) {
+			String nameSuffix = !displayName.isBlank() ? ", " + displayName : "";
+			if ("SCHOOL_ADMIN".equalsIgnoreCase(role)) {
+				String sName = !schoolName.isBlank() ? "manage **" + schoolName + "**" : "manage your school";
+				return "I'm doing well, thank you" + nameSuffix + "! 😊\n\n"
+						+ "I'm ready to help you " + sName + ". Would you like to check today's student engagement, teacher workloads, or recent exam results?";
+			} else if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
+				return "I'm doing well, thank you" + nameSuffix + "! 😊\n\n"
+						+ "I'm ready to help you oversee the SpeakMate platform. Would you like to review overall school statistics, active users, or subscription trends?";
+			} else {
+				return "I'm doing great, thank you" + nameSuffix + "! 😊 How can I assist you with your SpeakMate activities today?";
+			}
+		}
+
+		// Gratitude ("thanks", "thank you")
+		if ("GRATITUDE".equalsIgnoreCase(chatType) || m.startsWith("thank") || m.startsWith("thx")) {
+			String nameSuffix = !displayName.isBlank() ? ", " + displayName : "";
+			if (!schoolName.isBlank()) {
+				return "You're very welcome" + nameSuffix + "! Let me know if you need any more insights for **" + schoolName + "**.";
+			}
+			return "You're very welcome" + nameSuffix + "! Let me know if you need any further assistance.";
+		}
+
+		// Default Greeting ("hi", "hello", "hey", "good morning", etc.)
+		String greetingTarget = !displayName.isBlank() ? " **" + displayName + "**" : "";
+		if ("SCHOOL_ADMIN".equalsIgnoreCase(role)) {
+			String welcome = !schoolName.isBlank() ? "Welcome to **" + schoolName + "**'s assistant." : "Welcome to SpeakMate AI.";
+			return "Hello" + greetingTarget + "! 👋\n\n"
+					+ welcome + " How can I assist you with your classes, teachers, or students today?";
+		} else if ("SUPER_ADMIN".equalsIgnoreCase(role)) {
+			return "Hello" + greetingTarget + "! 👋\n\n"
+					+ "Welcome to SpeakMate AI platform assistant. How can I assist you with platform metrics, schools, teachers, or students today?";
+		} else if ("TEACHER".equalsIgnoreCase(role)) {
+			String welcome = !schoolName.isBlank() ? "Welcome to **" + schoolName + "**'s teacher assistant." : "Welcome to SpeakMate AI.";
+			return "Hello" + greetingTarget + "! 👋\n\n"
+					+ welcome + " How can I help you with your classes and students today?";
+		} else {
+			return "Hello" + greetingTarget + "! 👋\n\n"
+					+ "Welcome to SpeakMate AI! How can I assist you with your learning journey today?";
+		}
+	}
+
+	private String formatRoleName(String role) {
+		if (role == null) return "User";
+		switch (role.toUpperCase(Locale.ROOT)) {
+			case "SUPER_ADMIN": return "Super Admin";
+			case "SCHOOL_ADMIN": return "School Admin";
+			case "TEACHER": return "Teacher";
+			case "STUDENT": return "Student";
+			default: return "User";
 		}
 	}
 }

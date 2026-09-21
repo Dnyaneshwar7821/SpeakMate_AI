@@ -367,4 +367,230 @@ public class AnswerSynthesizerChatTest {
 		assertTrue(answer.getMarkdown().contains("409"));
 		assertTrue(answer.getMarkdown().contains("Vijay Patil"));
 	}
+
+	@Test
+	void testCasualChatGreetingSchoolAdmin() throws Exception {
+		Map<String, Object> data = Map.of(
+				"scope", "CASUAL_CHAT",
+				"displayName", "Adinath",
+				"role", "SCHOOL_ADMIN",
+				"schoolName", "DY Patil University",
+				"chatType", "GREETING"
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CASUAL_CHAT,
+				null,
+				"hi",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Adinath"));
+		assertTrue(answer.getMarkdown().contains("DY Patil University"));
+		assertFalse(answer.getMarkdown().contains("/school-admin/"));
+	}
+
+	@Test
+	void testCasualChatWhoAmI() throws Exception {
+		Map<String, Object> data = Map.of(
+				"scope", "CASUAL_CHAT",
+				"displayName", "Adinath",
+				"role", "SCHOOL_ADMIN",
+				"schoolName", "DY Patil University",
+				"chatType", "GREETING"
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CASUAL_CHAT,
+				null,
+				"who am I?",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Adinath"));
+		assertTrue(answer.getMarkdown().contains("School Admin"));
+		assertTrue(answer.getMarkdown().contains("DY Patil University"));
+	}
+
+	@Test
+	void testCasualChatCapabilities() throws Exception {
+		Map<String, Object> data = Map.of(
+				"scope", "CASUAL_CHAT",
+				"displayName", "Adinath",
+				"role", "SCHOOL_ADMIN",
+				"schoolName", "DY Patil University",
+				"chatType", "CAPABILITIES"
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CASUAL_CHAT,
+				null,
+				"what can you do?",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("School Overview"));
+		assertTrue(answer.getMarkdown().contains("Teacher Workloads"));
+		assertTrue(answer.getMarkdown().contains("Student Progress"));
+	}
+
+	@Test
+	void testCleanNavigationGuide() throws Exception {
+		Map<String, Object> data = Map.of(
+				"role", "SCHOOL_ADMIN",
+				"pages", java.util.List.of(
+						Map.of("label", "Results", "route", "/school-admin/results"),
+						Map.of("label", "Students", "route", "/school-admin/students")
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.NAVIGATION_HELP,
+				null,
+				"Where can I see results?",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Navigation Guide"));
+		assertTrue(answer.getMarkdown().contains("Results"));
+		assertFalse(answer.getMarkdown().contains("`/school-admin/results`"));
+	}
+
+	@Test
+	void testXpRemainingSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"studentName", "Siddhi Narke",
+				"standard", "9",
+				"division", "A",
+				"xp", 478,
+				"level", 1,
+				"nextLevel", 2,
+				"nextLevelThreshold", 500,
+				"xpRemaining", 22
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.STUDENT_PERFORMANCE,
+				null,
+				"How many xp remaining for siddhi to complete level 1",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
+		assertTrue(answer.getMarkdown().contains("22"));
+		assertTrue(answer.getMarkdown().contains("500"));
+	}
+
+	@Test
+	void testStudentAssignedTeacherSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"studentAssignedTeacher", Map.of(
+						"studentName", "Raj Varma",
+						"standard", "9",
+						"division", "A",
+						"hasTeacher", true,
+						"teacherName", "Pratik Patil",
+						"details", "Assigned via Standard 9 Division A"
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.SCHOOL_ROSTER,
+				null,
+				"who is teacher of Raj varma",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Raj Varma"));
+		assertTrue(answer.getMarkdown().contains("Pratik Patil"));
+	}
+
+	@Test
+	void testTeacherHandlingMostClassesSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"topTeacherByClasses", Map.of(
+						"teacherName", "Pratik Patil",
+						"classCount", 8,
+						"classes", java.util.List.of("6-A", "7-A", "7-B", "8-A", "8-B", "9-A", "9-B", "10-B"),
+						"department", "English"
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.SCHOOL_ROSTER,
+				null,
+				"which teacher has many classes to handle",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Pratik Patil"));
+		assertTrue(answer.getMarkdown().contains("8"));
+	}
+
+	@Test
+	void testTeacherStudentsProgressSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"teacherStudentsProgress", Map.of(
+						"teacherName", "Pratik Patil",
+						"totalStudents", 4,
+						"totalXp", 478,
+						"students", java.util.List.of(
+								Map.of("name", "Siddhi Narke", "standard", "9", "division", "A", "xp", 478, "level", 1, "streak", 1),
+								Map.of("name", "Raj Varma", "standard", "9", "division", "A", "xp", 0, "level", 1, "streak", 0)
+						)
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.SCHOOL_ROSTER,
+				null,
+				"give me progress of pratik patil's students",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Pratik Patil"));
+		assertTrue(answer.getMarkdown().contains("478 XP"));
+		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
+		assertTrue(answer.getMarkdown().contains("Raj Varma"));
+	}
 }

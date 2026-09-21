@@ -28,5 +28,7 @@ public enum AssistantIntent {
 	 * (names + role/school/status). Maps to the All Users page at /admin/users.
 	 */
 	PLATFORM_USERS,
+	/** Casual conversation, greetings, well-being questions, capabilities, and gratitude. */
+	CASUAL_CHAT,
 	ACCESS_DENIED
 }

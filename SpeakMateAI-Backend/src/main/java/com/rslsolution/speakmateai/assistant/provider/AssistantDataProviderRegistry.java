@@ -61,6 +61,7 @@ public class AssistantDataProviderRegistry {
 			case PLATFORM_USERS -> role == Role.SUPER_ADMIN;
 			case NAVIGATION_HELP -> role == Role.SUPER_ADMIN || role == Role.SCHOOL_ADMIN
 					|| role == Role.TEACHER || role == Role.STUDENT || role == Role.USER;
+			case CASUAL_CHAT -> true; // friendly greetings and casual chat available to all roles
 			case ACCESS_DENIED -> false;
 		};
 	}

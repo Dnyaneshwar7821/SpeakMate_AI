@@ -24,6 +24,7 @@ import com.rslsolution.speakmateai.entity.Student;
 import com.rslsolution.speakmateai.entity.TeacherStandardDivision;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.SchoolRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.TeacherRepository;
@@ -38,6 +39,7 @@ class SchoolRosterDataProviderTest {
 	private TeacherRepository teacherRepository;
 	private TeacherStandardDivisionRepository teacherStandardDivisionRepository;
 	private TeacherAssignmentResolver teacherAssignmentResolver;
+	private ProgressRepository progressRepository;
 	private ObjectMapper objectMapper;
 	private SchoolRosterDataProvider provider;
 
@@ -49,6 +51,7 @@ class SchoolRosterDataProviderTest {
 		teacherRepository = mock(TeacherRepository.class);
 		teacherStandardDivisionRepository = mock(TeacherStandardDivisionRepository.class);
 		teacherAssignmentResolver = mock(TeacherAssignmentResolver.class);
+		progressRepository = mock(ProgressRepository.class);
 		objectMapper = new ObjectMapper();
 
 		provider = new SchoolRosterDataProvider(
@@ -58,6 +61,7 @@ class SchoolRosterDataProviderTest {
 				teacherRepository,
 				teacherStandardDivisionRepository,
 				teacherAssignmentResolver,
+				progressRepository,
 				objectMapper
 		);
 	}

@@ -2,6 +2,7 @@ package com.rslsolution.speakmateai.assistant;
 
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -301,6 +302,74 @@ public class MasterRoleScopedChatbotTest {
 			assertEquals("TEACHERS", r7B.getParams().get("entityType"));
 			assertEquals("7", r7B.getParams().get("standard"));
 			assertEquals("B", r7B.getParams().get("division"));
+		}
+
+		@Test
+		@DisplayName("School Admin: Casual Chat & Greetings")
+		void testSchoolAdminCasualChat() {
+			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("hi", Role.SCHOOL_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("hello", Role.SCHOOL_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("hey", Role.SCHOOL_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("good morning", Role.SCHOOL_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("how are you", Role.SCHOOL_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.ACCOUNT_INFO, classifier.classify("who are you", Role.SCHOOL_ADMIN, null).getIntent());
+			assertEquals(Boolean.TRUE, classifier.classify("who are you", Role.SCHOOL_ADMIN, null).getParams().get("botIdentity"));
+			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("what can you do", Role.SCHOOL_ADMIN, null).getIntent());
+			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("thank you", Role.SCHOOL_ADMIN, null).getIntent());
+		}
+
+		@Test
+		@DisplayName("School Admin: Advanced Teacher & Student queries")
+		void testSchoolAdminAdvancedQueries() {
+			// Student's teacher lookup:
+			IntentResult rTeacherOfStudent = classifier.classify("who is teacher of Raj varma", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rTeacherOfStudent.getIntent());
+			assertEquals("TEACHER_OF_STUDENT", rTeacherOfStudent.getParams().get("queryType"));
+			assertEquals("raj varma", rTeacherOfStudent.getParams().get("studentName"));
+
+			// Teacher department query:
+			IntentResult rDept = classifier.classify("who is from English department", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rDept.getIntent());
+			assertEquals("english", rDept.getParams().get("department"));
+
+			// XP Remaining query:
+			IntentResult rXpRem = classifier.classify("How many xp remaining for siddhi to complete level 1", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.STUDENT_PERFORMANCE, rXpRem.getIntent());
+			assertEquals("siddhi", rXpRem.getParams().get("studentName"));
+
+			// Teacher's assigned students progress:
+			IntentResult rTeacherStudents = classifier.classify("give me progress of pratik patil's students", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rTeacherStudents.getIntent());
+			assertEquals("TEACHER_STUDENTS_PROGRESS", rTeacherStudents.getParams().get("queryType"));
+			assertEquals("pratik patil", rTeacherStudents.getParams().get("teacherName"));
+
+			// Teacher workload / most classes:
+			IntentResult rMaxClasses = classifier.classify("which teacher has many classes to handle", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rMaxClasses.getIntent());
+			assertEquals("TEACHER_MAX_CLASSES", rMaxClasses.getParams().get("queryType"));
+
+			// Lookup student by roll number:
+			IntentResult rRoll = classifier.classify("which student has roll number 15", Role.SCHOOL_ADMIN, null);
+			assertEquals(AssistantIntent.SCHOOL_ROSTER, rRoll.getIntent());
+			assertEquals("15", rRoll.getParams().get("rollNumber"));
+
+			// Intra-school superlatives should NOT be ACCESS_DENIED:
+			IntentResult rTopSchool = classifier.classify("Who is the top performing student in our school?", Role.SCHOOL_ADMIN, null);
+			assertNotNull(rTopSchool);
+			assertEquals(AssistantIntent.SCHOOL_OVERVIEW, rTopSchool.getIntent());
+
+			IntentResult rStreakSchool = classifier.classify("Which student has the highest learning streak in our school?", Role.SCHOOL_ADMIN, null);
+			assertNotNull(rStreakSchool);
+			assertEquals(AssistantIntent.SCHOOL_OVERVIEW, rStreakSchool.getIntent());
+
+			// Multi-turn anti-pollution test:
+			List<com.rslsolution.speakmateai.dto.assistant.AssistantRequest.MessageTurn> history = List.of(
+					new com.rslsolution.speakmateai.dto.assistant.AssistantRequest.MessageTurn("user", "who is from English department"),
+					new com.rslsolution.speakmateai.dto.assistant.AssistantRequest.MessageTurn("assistant", "Digvijay Patil teaches English")
+			);
+			IntentResult rChart = classifier.classify("give progress chart", Role.SCHOOL_ADMIN, history);
+			assertFalse("english".equalsIgnoreCase(String.valueOf(rChart.getParams().get("studentName"))),
+					"Department 'English' should not pollute context as student name");
 		}
 
 		@Test

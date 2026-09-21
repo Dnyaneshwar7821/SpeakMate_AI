@@ -2,6 +2,7 @@ package com.rslsolution.speakmateai.assistant.provider;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -16,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
 import com.rslsolution.speakmateai.dto.assistant.AssistantIntent;
+import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.entity.School;
 import com.rslsolution.speakmateai.entity.SchoolStandard;
 import com.rslsolution.speakmateai.entity.Student;
@@ -23,6 +25,7 @@ import com.rslsolution.speakmateai.entity.Teacher;
 import com.rslsolution.speakmateai.entity.TeacherStandardDivision;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.SchoolRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.TeacherRepository;
@@ -56,12 +59,14 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 	private final TeacherRepository teacherRepository;
 	private final TeacherStandardDivisionRepository teacherStandardDivisionRepository;
 	private final TeacherAssignmentResolver teacherAssignmentResolver;
+	private final ProgressRepository progressRepository;
 	private final ObjectMapper objectMapper;
 
 	public SchoolRosterDataProvider(SchoolRepository schoolRepository, UserRepository userRepository,
 			StudentRepository studentRepository, TeacherRepository teacherRepository,
 			TeacherStandardDivisionRepository teacherStandardDivisionRepository,
 			TeacherAssignmentResolver teacherAssignmentResolver,
+			ProgressRepository progressRepository,
 			ObjectMapper objectMapper) {
 		this.schoolRepository = schoolRepository;
 		this.userRepository = userRepository;
@@ -69,6 +74,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		this.teacherRepository = teacherRepository;
 		this.teacherStandardDivisionRepository = teacherStandardDivisionRepository;
 		this.teacherAssignmentResolver = teacherAssignmentResolver;
+		this.progressRepository = progressRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -175,12 +181,64 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 				? others.stream().map(this::otherUserView).collect(Collectors.toList())
 				: List.of();
 
+		// Ensure assignedTeacher is populated for each student (from class teacher if student.teacherId was null)
+		for (Map<String, Object> sv : studentViews) {
+			if (sv.get("assignedTeacher") == null) {
+				String sStd = String.valueOf(sv.getOrDefault("standard", "")).trim();
+				String sDiv = String.valueOf(sv.getOrDefault("division", "")).trim();
+				String sClass = sStd + "-" + sDiv;
+				for (User t : teachers) {
+					List<String> tClasses = classesByTeacher.getOrDefault(t.getId(), List.of());
+					if (tClasses.stream().anyMatch(c -> classEquals(c, sClass))) {
+						sv.put("assignedTeacher", fullName(t.getFirstName(), t.getLastName()));
+						break;
+					}
+				}
+			}
+		}
+
+		String queryType = strParam(params, "queryType").trim();
+		String requestedDepartment = strParam(params, "department").trim();
+		if (!requestedDepartment.isEmpty()) {
+			String q = requestedDepartment.toLowerCase(Locale.ROOT);
+			teacherViews = teacherViews.stream().filter(tv -> {
+				String dept = String.valueOf(tv.getOrDefault("department", "")).toLowerCase(Locale.ROOT);
+				String subj = String.valueOf(tv.getOrDefault("subject", "")).toLowerCase(Locale.ROOT);
+				return dept.contains(q) || subj.contains(q);
+			}).collect(Collectors.toList());
+			wantTeachers = true;
+			wantStudents = false;
+			wantOthers = false;
+		}
+
+		String requestedRollNumber = strParam(params, "rollNumber").trim();
+		if (!requestedRollNumber.isEmpty()) {
+			studentViews = studentViews.stream().filter(sv -> {
+				String roll = String.valueOf(sv.getOrDefault("rollNumber", "")).trim();
+				return roll.equalsIgnoreCase(requestedRollNumber);
+			}).collect(Collectors.toList());
+			wantStudents = true;
+			wantTeachers = false;
+			wantOthers = false;
+		}
+
+		if (queryType.equals("TEACHER_MAX_CLASSES")) {
+			wantTeachers = true;
+			wantStudents = false;
+			wantOthers = false;
+			teacherViews.sort((a, b) -> {
+				int cA = Integer.parseInt(String.valueOf(a.getOrDefault("classCount", "0")));
+				int cB = Integer.parseInt(String.valueOf(b.getOrDefault("classCount", "0")));
+				return Integer.compare(cB, cA);
+			});
+		}
+
 		// Narrow to one named person when the question asks about their stored
 		// attributes ("which department is Digvijay Patil in", "which subject does
 		// he teach", "when did he join the school"). Keeps the payload focused and
 		// the answer unambiguous; falls back to the full roster when the name
 		// matches nobody so a broad list question is never emptied by accident.
-		if (!focusName.isBlank()) {
+		if (!focusName.isBlank() && !queryType.equals("TEACHER_STUDENTS_PROGRESS")) {
 			boolean teacherMatch = matchesName(teacherViews, focusName);
 			boolean studentMatch = matchesName(studentViews, focusName);
 			boolean otherMatch = matchesName(otherViews, focusName);
@@ -315,10 +373,81 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			data.put("otherUsers", otherViews);
 			data.put("otherUsersText", otherViews.size() + " other user" + (otherViews.size() == 1 ? "" : "s"));
 		}
+		if (queryType.equals("TEACHER_MAX_CLASSES")) {
+			Map<String, Object> topTeacher = teacherViews.stream()
+					.max(Comparator.comparingInt(tv -> Integer.parseInt(String.valueOf(tv.getOrDefault("classCount", "0")))))
+					.orElse(null);
+			if (topTeacher != null) {
+				data.put("topTeacherByClasses", topTeacher);
+			}
+		}
+
+		if (studentViews.size() == 1) {
+			Map<String, Object> sView = studentViews.get(0);
+			if (sView.get("assignedTeacher") != null) {
+				data.put("studentAssignedTeacher", sView.get("assignedTeacher"));
+			}
+		}
+
+		if (queryType.equals("TEACHER_STUDENTS_PROGRESS") && !focusName.isBlank()) {
+			User teacher = teachers.stream()
+					.filter(t -> fullName(t.getFirstName(), t.getLastName()).toLowerCase(Locale.ROOT).contains(focusName.toLowerCase(Locale.ROOT)))
+					.findFirst().orElse(null);
+			if (teacher != null) {
+				List<String> tClasses = classesByTeacher.getOrDefault(teacher.getId(), List.of());
+				List<Student> assignedStudents = students.stream().filter(st -> {
+					if (teacher.getId().equals(st.getTeacherId())) return true;
+					String stClass = (st.getStandard() != null ? st.getStandard().trim() : "") + "-" + (st.getDivision() != null ? st.getDivision().trim() : "");
+					return tClasses.stream().anyMatch(tc -> classEquals(tc, stClass));
+				}).collect(Collectors.toList());
+
+				List<Map<String, Object>> progressList = new ArrayList<>();
+				long totalXp = 0;
+				int activeCount = 0;
+				for (Student st : assignedStudents) {
+					Map<String, Object> item = new LinkedHashMap<>();
+					item.put("name", fullName(st.getFirstName(), st.getLastName()));
+					item.put("standard", st.getStandard() != null ? st.getStandard() : "");
+					item.put("division", st.getDivision() != null ? st.getDivision() : "");
+					Progress prog = progressRepository.findByStudent(st).orElse(null);
+					int xp = prog != null && prog.getXp() != null ? prog.getXp() : 0;
+					int level = prog != null && prog.getLevel() != null ? prog.getLevel() : 1;
+					int streak = prog != null && prog.getCurrentStreak() != null ? prog.getCurrentStreak() : 0;
+					item.put("xp", xp);
+					item.put("level", level);
+					item.put("streak", streak);
+					totalXp += xp;
+					if (xp > 0 || streak > 0) activeCount++;
+					progressList.add(item);
+				}
+				Map<String, Object> tsp = new LinkedHashMap<>();
+				String tName = fullName(teacher.getFirstName(), teacher.getLastName());
+				tsp.put("teacherName", tName);
+				tsp.put("studentCount", assignedStudents.size());
+				tsp.put("activeStudents", activeCount);
+				tsp.put("totalXp", totalXp);
+				tsp.put("students", progressList);
+				data.put("teacherStudentsProgress", tsp);
+			}
+		}
 		int shownTeachers = wantTeachers ? teacherViews.size() : 0;
 		int shownStudents = wantStudents ? studentViews.size() : 0;
 		int shownOthers = wantOthers ? otherViews.size() : 0;
 		String summary;
+		if (data.containsKey("teacherStudentsProgress")) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> tsp = (Map<String, Object>) data.get("teacherStudentsProgress");
+			summary = tsp.get("teacherName") + "'s assigned students: " + tsp.get("studentCount")
+					+ " students, total XP: " + tsp.get("totalXp") + " (" + tsp.get("activeStudents") + " active).";
+		} else if (data.containsKey("studentAssignedTeacher") && !studentViews.isEmpty()) {
+			String sName = String.valueOf(studentViews.get(0).get("name"));
+			String tName = String.valueOf(data.get("studentAssignedTeacher"));
+			summary = "Teacher for student " + sName + ": " + tName + " (assigned teacher).";
+		} else if (data.containsKey("topTeacherByClasses")) {
+			@SuppressWarnings("unchecked")
+			Map<String, Object> tt = (Map<String, Object>) data.get("topTeacherByClasses");
+			summary = tt.get("name") + " has the most classes to handle, with " + tt.get("classCount") + " assigned classes.";
+		} else
 		if (!classAssignments.isEmpty()) {
 			if (classAssignments.size() == 1) {
 				Map<String, Object> ca = classAssignments.get(0);

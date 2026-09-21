@@ -425,6 +425,21 @@ public class AssistantService {
 						candidates.add(suggestion("Open profile", "/profile", role.name()));
 					}
 				}
+				case CASUAL_CHAT -> {
+					if (role == Role.SCHOOL_ADMIN) {
+						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
+						candidates.add(suggestion("View students", "/school-admin/students", "SCHOOL_ADMIN"));
+					} else if (role == Role.SUPER_ADMIN) {
+						candidates.add(suggestion("View platform insights", "/admin/insights", "SUPER_ADMIN"));
+						candidates.add(suggestion("View all users", "/admin/users", "SUPER_ADMIN"));
+					} else if (role == Role.TEACHER) {
+						candidates.add(suggestion("View my students", "/teacher/students", "TEACHER"));
+						candidates.add(suggestion("Go to dashboard", "/teacher/dashboard", "TEACHER"));
+					} else {
+						candidates.add(suggestion("View my progress", "/progress", role.name()));
+						candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+					}
+				}
 				default -> {
 				}
 			}
