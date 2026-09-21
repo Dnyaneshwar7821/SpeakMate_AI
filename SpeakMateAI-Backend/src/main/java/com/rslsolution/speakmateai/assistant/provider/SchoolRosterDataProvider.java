@@ -115,6 +115,27 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			schoolLabel = displayName(school);
 			teachers = userRepository.findBySchoolIdAndRole(schoolId, Role.TEACHER);
 			students = studentRepository.findBySchoolId(schoolId);
+			if (students.isEmpty()) {
+				List<User> studentUsers = userRepository.findBySchoolIdAndRole(schoolId, Role.STUDENT);
+				if (!studentUsers.isEmpty()) {
+					students = studentUsers.stream().map(u -> {
+						Student s = new Student();
+						s.setId(u.getId());
+						s.setFirstName(u.getFirstName());
+						s.setLastName(u.getLastName());
+						s.setEmail(u.getEmail());
+						s.setPhone(u.getPhone());
+						s.setStandard(u.getStandard());
+						s.setDivision(u.getDivision());
+						s.setRollNumber(u.getRollNumber());
+						s.setSchoolId(u.getSchoolId());
+						s.setSchoolName(u.getSchoolName());
+						s.setRole(u.getRole());
+						s.setStatus(u.getStatus());
+						return s;
+					}).collect(Collectors.toList());
+				}
+			}
 			others = nonStudentNonTeacherUsers(schoolId);
 		} else if (actor.getRole() == Role.SUPER_ADMIN) {
 			// Super-Admin question that names no school ("list of all students", "give me list student name",
@@ -124,6 +145,27 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			schoolLabel = "All schools";
 			teachers = userRepository.findByRole(Role.TEACHER);
 			students = studentRepository.findAll();
+			if (students.isEmpty()) {
+				List<User> studentUsers = userRepository.findByRole(Role.STUDENT);
+				if (!studentUsers.isEmpty()) {
+					students = studentUsers.stream().map(u -> {
+						Student s = new Student();
+						s.setId(u.getId());
+						s.setFirstName(u.getFirstName());
+						s.setLastName(u.getLastName());
+						s.setEmail(u.getEmail());
+						s.setPhone(u.getPhone());
+						s.setStandard(u.getStandard());
+						s.setDivision(u.getDivision());
+						s.setRollNumber(u.getRollNumber());
+						s.setSchoolId(u.getSchoolId());
+						s.setSchoolName(u.getSchoolName());
+						s.setRole(u.getRole());
+						s.setStatus(u.getStatus());
+						return s;
+					}).collect(Collectors.toList());
+				}
+			}
 			others = nonStudentNonTeacherUsers(null);
 		} else {
 			Map<String, Object> empty = new LinkedHashMap<>();
@@ -312,7 +354,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		}
 
 		List<Map<String, Object>> classAssignments = new ArrayList<>();
-		if (!targetClasses.isEmpty()) {
+		if (wantTeachers && !targetClasses.isEmpty()) {
 			for (String target : targetClasses) {
 				Map<String, Object> ca = new LinkedHashMap<>();
 				ca.put("class", target);
@@ -448,7 +490,7 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			Map<String, Object> tt = (Map<String, Object>) data.get("topTeacherByClasses");
 			summary = tt.get("name") + " has the most classes to handle, with " + tt.get("classCount") + " assigned classes.";
 		} else
-		if (!classAssignments.isEmpty()) {
+		if (!classAssignments.isEmpty() && wantTeachers) {
 			if (classAssignments.size() == 1) {
 				Map<String, Object> ca = classAssignments.get(0);
 				String cName = String.valueOf(ca.get("class"));

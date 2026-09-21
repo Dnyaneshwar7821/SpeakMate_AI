@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,5 +99,65 @@ public class IntentClassifierChatTest {
 		IntentResult r3 = classifier.classify("how many students are", Role.SUPER_ADMIN, history);
 		assertNotNull(r3);
 		assertEquals(AssistantIntent.PLATFORM_OVERVIEW, r3.getIntent());
+	}
+
+	@Test
+	void testGeneralStudentRosterQueriesWithTypoAndSingular() {
+		// School Admin queries
+		IntentResult r1 = classifier.classify("give me lsit of student", Role.SCHOOL_ADMIN, null);
+		assertNotNull(r1);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r1.getIntent());
+		assertEquals("students", r1.getParams().get("entityType"));
+		assertFalse(r1.getParams().containsKey("standard"), "Should not contain standard");
+		assertFalse(r1.getParams().containsKey("division"), "Should not contain division");
+
+		IntentResult r2 = classifier.classify("give me list of student", Role.SCHOOL_ADMIN, null);
+		assertNotNull(r2);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r2.getIntent());
+		assertEquals("students", r2.getParams().get("entityType"));
+
+		IntentResult r3 = classifier.classify("list of students", Role.SCHOOL_ADMIN, null);
+		assertNotNull(r3);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r3.getIntent());
+		assertEquals("students", r3.getParams().get("entityType"));
+
+		IntentResult r4 = classifier.classify("students list", Role.SCHOOL_ADMIN, null);
+		assertNotNull(r4);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r4.getIntent());
+		assertEquals("students", r4.getParams().get("entityType"));
+
+		IntentResult r5 = classifier.classify("show students", Role.SCHOOL_ADMIN, null);
+		assertNotNull(r5);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r5.getIntent());
+		assertEquals("students", r5.getParams().get("entityType"));
+
+		// Teacher query
+		IntentResult r6 = classifier.classify("give me lsit of teacher", Role.SCHOOL_ADMIN, null);
+		assertNotNull(r6);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r6.getIntent());
+		assertEquals("teachers", r6.getParams().get("entityType"));
+	}
+
+	@Test
+	void testHistoryClassDoesNotBleedIntoGeneralStudentList() {
+		List<AssistantRequest.MessageTurn> history = new ArrayList<>();
+		AssistantRequest.MessageTurn userTurn = new AssistantRequest.MessageTurn();
+		userTurn.setRole("user");
+		userTurn.setContent("which teacher is assigned to 9-A");
+		history.add(userTurn);
+
+		AssistantRequest.MessageTurn botTurn = new AssistantRequest.MessageTurn();
+		botTurn.setRole("assistant");
+		botTurn.setContent("Teacher for class 9-A: Pratik Patil");
+		history.add(botTurn);
+
+		// Now user asks "give me lsit of student"
+		IntentResult r = classifier.classify("give me lsit of student", Role.SCHOOL_ADMIN, history);
+		assertNotNull(r);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r.getIntent());
+		assertEquals("students", r.getParams().get("entityType"));
+		assertFalse(r.getParams().containsKey("standard"), "Must not inherit standard from previous 9-A turn");
+		assertFalse(r.getParams().containsKey("division"), "Must not inherit division from previous 9-A turn");
+		assertFalse(r.getParams().containsKey("classes"), "Must not inherit classes from previous 9-A turn");
 	}
 }

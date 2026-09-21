@@ -836,7 +836,7 @@ public class AnswerSynthesizer {
 		List<Map<String, Object>> classAssignments = maps(d, "classAssignments");
 		StringBuilder sb = new StringBuilder();
 
-		if (!classAssignments.isEmpty()) {
+		if (!classAssignments.isEmpty() && !"STUDENTS".equalsIgnoreCase(entityType)) {
 			if (classAssignments.size() == 1) {
 				Map<String, Object> ca = classAssignments.get(0);
 				String cName = str(ca, "class");
@@ -928,6 +928,8 @@ public class AnswerSynthesizer {
 			if (!"TEACHERS".equalsIgnoreCase(entityType)) {
 				sb.append("\nNo students were found currently enrolled in ").append(classLabel).append(".\n");
 			}
+		} else if (!"TEACHERS".equalsIgnoreCase(entityType)) {
+			sb.append("\nNo students were found registered in ").append(schoolName.isBlank() ? "your school" : schoolName).append(".\n");
 		}
 
 		String summary = str(d, "summary");

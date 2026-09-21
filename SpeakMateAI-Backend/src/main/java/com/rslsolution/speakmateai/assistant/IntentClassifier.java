@@ -273,6 +273,76 @@ public class IntentClassifier {
 		));
 	}
 
+	private boolean isGeneralStudentRosterQuery(String message) {
+		if (message == null || message.isBlank()) return false;
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		String norm = m.replaceAll("\\blsit\\b", "list")
+				.replaceAll("\\bstudnet\\b", "student")
+				.replaceAll("\\bstudnets\\b", "students")
+				.replaceAll("\\blst\\b", "list");
+
+		// Exclude person-specific queries: "who is teacher of Raj", "siddhi's xp", "details for Siddhi"
+		if (!extractAnyPersonFocusName(message).isBlank()) {
+			return false;
+		}
+		// Exclude count/metric queries: "how many students", "total students", "best student", "xp", "streak"
+		if (containsAny(norm, List.of(
+				"how many", "how much", "total students", "count", "number of", "most xp",
+				"highest xp", "top student", "top students", "best student", "best performer",
+				"leaderboard", "ranking", "progress of", "xp", "streak", "level", "average score",
+				"inactive", "active learners", "active students"))) {
+			return false;
+		}
+		// Exclude teacher-focused queries
+		if (containsAny(norm, List.of("teacher", "teachers", "educator", "staff", "faculty", "admin", "overview"))) {
+			return false;
+		}
+
+		boolean hasStudent = norm.contains("student") || norm.contains("learner");
+		if (!hasStudent) return false;
+
+		boolean hasRosterMarker = containsAny(norm, List.of(
+				"list", "roster", "show", "give", "get", "display", "view", "names", "who are", "tell me",
+				"all students", "all student", "all learners", "all learner"
+		)) || norm.equals("students") || norm.equals("student");
+
+		return hasRosterMarker;
+	}
+
+	private boolean isGeneralTeacherRosterQuery(String message) {
+		if (message == null || message.isBlank()) return false;
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		String norm = m.replaceAll("\\blsit\\b", "list")
+				.replaceAll("\\btecher\\b", "teacher")
+				.replaceAll("\\btechers\\b", "teachers")
+				.replaceAll("\\blst\\b", "list");
+
+		// Exclude person-specific queries: "who is Digvijay", "classes of Pratik Patil"
+		if (!extractAnyPersonFocusName(message).isBlank()) {
+			return false;
+		}
+		// Exclude count/metric/workload queries: "how many teachers", "total teachers", "which teacher has most classes"
+		if (containsAny(norm, List.of(
+				"how many", "how much", "total teachers", "count", "number of", "most classes",
+				"many classes", "highest classes", "handle many", "department", "progress", "assigned to each class"))) {
+			return false;
+		}
+		// Exclude student-focused queries
+		if (containsAny(norm, List.of("student", "students", "learner", "learners", "overview"))) {
+			return false;
+		}
+
+		boolean hasTeacher = norm.contains("teacher") || norm.contains("educator") || norm.contains("faculty");
+		if (!hasTeacher) return false;
+
+		boolean hasRosterMarker = containsAny(norm, List.of(
+				"list", "roster", "show", "give", "get", "display", "view", "names", "who are", "tell me",
+				"all teachers", "all teacher"
+		)) || norm.equals("teachers") || norm.equals("teacher");
+
+		return hasRosterMarker;
+	}
+
 	/**
 		* Words that can never be part of a student's NAME in a per-student
 		* metric question ("what is total xp of onkar awate"). Used to peel the
@@ -287,7 +357,7 @@ public class IntentClassifier {
 			"what", "whats", "which", "who", "whos", "whose", "whom", "when",
 			"where", "how", "hows", "is", "are", "was", "were", "am", "be", "been",
 			"the", "a", "an", "of", "for", "to", "in", "on", "at", "by", "with",
-			"and", "or", "please", "tell", "me", "give", "show", "list", "find",
+			"and", "or", "please", "tell", "me", "give", "show", "list", "lsit", "lst", "find",
 			"get", "search", "about", "do", "does", "did", "can", "could",
 			"would", "should", "has", "have", "like", "going", "doing",
 			// domain nouns that are never a name
@@ -296,6 +366,7 @@ public class IntentClassifier {
 			"roll", "number", "name", "names", "email", "mail", "user", "users",
 			"account", "accounts", "profile", "profiles", "detail", "details",
 			"info", "information", "report", "reports", "subscription", "subscriptions", "plan", "plans",
+			"roster", "rosters",
 			// pronouns / determiners
 			"his", "her", "their", "him", "she", "he", "they", "them", "this",
 			"that", "these", "those", "my", "mine", "i", "myself", "our", "ours", "us", "own", "self",
@@ -334,7 +405,8 @@ public class IntentClassifier {
 			"departments", "subject", "subjects", "qualification",
 			"qualifications", "experience", "designation", "designations",
 			"id", "ids", "employee", "employeeid", "phone", "contact",
-			"handle", "handles", "handling", "belong", "belongs", "allocated", "allocation");
+			"handle", "handles", "handling", "belong", "belongs", "allocated", "allocation",
+			"roster", "rosters");
 
 	public IntentClassifier(GroqChatClient groqChatClient, ObjectMapper objectMapper) {
 		this.groqChatClient = groqChatClient;
@@ -747,7 +819,37 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.SCHOOL_OVERVIEW, p, null);
 		}
 
-		// Teachers / Roster (checked before overview so "show all teachers" is never matched as overview):
+		// Teachers / Students Roster (checked before overview so "show all teachers" / "give me list of student" is never matched as overview):
+		if (isGeneralStudentRosterQuery(message)) {
+			List<ClassSpec> classSpecs = extractAllClassSpecs(message);
+			Map<String, Object> p = new java.util.LinkedHashMap<>();
+			p.put("entityType", "students");
+			if (!classSpecs.isEmpty()) {
+				ClassSpec cs = classSpecs.get(0);
+				if (!cs.standard.isEmpty()) p.put("standard", cs.standard);
+				if (!cs.division.isEmpty()) {
+					p.put("division", cs.division);
+					p.put("classes", List.of(cs.standard + "-" + cs.division));
+				}
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, p, null);
+		}
+
+		if (isGeneralTeacherRosterQuery(message)) {
+			List<ClassSpec> classSpecs = extractAllClassSpecs(message);
+			Map<String, Object> p = new java.util.LinkedHashMap<>();
+			p.put("entityType", "teachers");
+			if (!classSpecs.isEmpty()) {
+				ClassSpec cs = classSpecs.get(0);
+				if (!cs.standard.isEmpty()) p.put("standard", cs.standard);
+				if (!cs.division.isEmpty()) {
+					p.put("division", cs.division);
+					p.put("classes", List.of(cs.standard + "-" + cs.division));
+				}
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, p, null);
+		}
+
 		if (containsAny(m, List.of(
 				"all teachers in my school", "show me all teachers", "show all teachers in my school", "show all teachers",
 				"teachers are assigned to each class", "which classes are assigned to each teacher", "classes are assigned to each teacher",
@@ -1140,6 +1242,30 @@ public class IntentClassifier {
 				}
 				return new IntentResult(AssistantIntent.SCHOOL_ROSTER, rp, null);
 			}
+		}
+
+		if (isGeneralStudentRosterQuery(message)) {
+			Map<String, Object> rp = new java.util.LinkedHashMap<>();
+			rp.put("entityType", "students");
+			if (role == Role.SUPER_ADMIN) {
+				String school = extractSchoolName(message);
+				if (!school.isEmpty()) {
+					rp.put("schoolName", school);
+				}
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, rp, null);
+		}
+
+		if (isGeneralTeacherRosterQuery(message)) {
+			Map<String, Object> rp = new java.util.LinkedHashMap<>();
+			rp.put("entityType", "teachers");
+			if (role == Role.SUPER_ADMIN) {
+				String school = extractSchoolName(message);
+				if (!school.isEmpty()) {
+					rp.put("schoolName", school);
+				}
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, rp, null);
 		}
 
 		// 3. Contextual follow-up check (pronouns, charts, referential continuations)
@@ -1621,6 +1747,10 @@ public class IntentClassifier {
 			return AssistantIntent.SCHOOL_ROSTER;
 		}
 
+		if (isGeneralStudentRosterQuery(message) || isGeneralTeacherRosterQuery(message)) {
+			return AssistantIntent.SCHOOL_ROSTER;
+		}
+
 		// A count/stats question is a data question, not a name-list question:
 		// "how many teachers", "which teacher has the most students".
 		boolean countMarker = containsAny(m, List.of(
@@ -2020,6 +2150,13 @@ public class IntentClassifier {
 					enriched.put("entityType", "both");
 				}
 			}
+		} else {
+			// Current question does NOT specify any class!
+			// Prevent stale class context from leaking in from Groq JSON / previous turns:
+			enriched.remove("standard");
+			enriched.remove("division");
+			enriched.remove("classes");
+			enriched.remove("className");
 		}
 		if (role == Role.SUPER_ADMIN) {
 			// A person-detail question ("standard of Vijay Patil") leaves the school

@@ -593,4 +593,71 @@ public class AnswerSynthesizerChatTest {
 		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
 		assertTrue(answer.getMarkdown().contains("Raj Varma"));
 	}
+
+	@Test
+	void testSchoolAdminStudentListRosterSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"schoolName", "DY Patil University",
+				"entityType", "STUDENTS",
+				"studentCount", 4,
+				"students", java.util.List.of(
+						Map.of("name", "Siddhi Narke", "standard", "9", "division", "A", "rollNumber", "23", "email", "siddhi.narke@gmail.com", "assignedTeacher", "Pratik Patil"),
+						Map.of("name", "Vijay Patil", "standard", "4", "division", "A", "rollNumber", "1", "email", "vijay@gmail.com"),
+						Map.of("name", "Kaustubh Salunkhe", "standard", "10", "division", "A", "rollNumber", "2", "email", "kaustubh@gmail.com"),
+						Map.of("name", "Raj Varma", "standard", "10", "division", "A", "rollNumber", "1", "email", "raj@gmail.com", "assignedTeacher", "Pratik Patil")
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.SCHOOL_ROSTER,
+				null,
+				"give me lsit of student",
+				Map.of("entityType", "students"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("DY Patil University"));
+		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
+		assertTrue(answer.getMarkdown().contains("Vijay Patil"));
+		assertTrue(answer.getMarkdown().contains("Kaustubh Salunkhe"));
+		assertTrue(answer.getMarkdown().contains("Raj Varma"));
+		assertTrue(answer.getMarkdown().contains("Pratik Patil"));
+	}
+
+	@Test
+	void testClassSpecificStudentListRosterNotHijackedByTeacherAssignment() throws Exception {
+		Map<String, Object> data = Map.of(
+				"schoolName", "DY Patil University",
+				"entityType", "STUDENTS",
+				"standard", "9",
+				"division", "A",
+				"classes", java.util.List.of("9-A"),
+				"classAssignments", java.util.List.of(
+						Map.of("class", "9-A", "hasTeacher", true, "teacher", "Pratik Patil", "studentCount", 1)
+				),
+				"studentCount", 1,
+				"students", java.util.List.of(
+						Map.of("name", "Siddhi Narke", "standard", "9", "division", "A", "rollNumber", "23", "email", "siddhi.narke@gmail.com", "assignedTeacher", "Pratik Patil")
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.SCHOOL_ROSTER,
+				null,
+				"give list of 9-A students",
+				Map.of("entityType", "students", "standard", "9", "division", "A"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
+		assertTrue(answer.getMarkdown().contains("Students in Standard 9-A"));
+	}
 }
