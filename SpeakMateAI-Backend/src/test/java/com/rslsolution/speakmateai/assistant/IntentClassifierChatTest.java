@@ -160,4 +160,55 @@ public class IntentClassifierChatTest {
 		assertFalse(r.getParams().containsKey("division"), "Must not inherit division from previous 9-A turn");
 		assertFalse(r.getParams().containsKey("classes"), "Must not inherit classes from previous 9-A turn");
 	}
+
+	@Test
+	void testTeacherRoleFastPathQueries() {
+		// 1. Who are my assigned students
+		IntentResult r1 = classifier.classify("Who are my assigned students?", Role.TEACHER, null);
+		assertNotNull(r1);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r1.getIntent());
+		assertEquals("students", r1.getParams().get("entityType"));
+
+		// 2. Show roster for 9-A
+		IntentResult r2 = classifier.classify("Show roster for 9-A", Role.TEACHER, null);
+		assertNotNull(r2);
+		assertEquals(AssistantIntent.SCHOOL_ROSTER, r2.getIntent());
+		assertEquals("students", r2.getParams().get("entityType"));
+		assertEquals("9", r2.getParams().get("standard"));
+		assertEquals("A", r2.getParams().get("division"));
+
+		// 3. Which classes are assigned to me
+		IntentResult r3 = classifier.classify("Which classes are assigned to me?", Role.TEACHER, null);
+		assertNotNull(r3);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r3.getIntent());
+		assertEquals(true, r3.getParams().get("myClasses"));
+
+		// 4. How many students are in my classes
+		IntentResult r4 = classifier.classify("How many students are in my classes?", Role.TEACHER, null);
+		assertNotNull(r4);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r4.getIntent());
+
+		// 5. Which learners need the most help
+		IntentResult r5 = classifier.classify("Which learners need the most help?", Role.TEACHER, null);
+		assertNotNull(r5);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r5.getIntent());
+		assertEquals("struggling", r5.getParams().get("filter"));
+
+		// 6. Show students who are struggling
+		IntentResult r6 = classifier.classify("Show students who are struggling", Role.TEACHER, null);
+		assertNotNull(r6);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r6.getIntent());
+		assertEquals("struggling", r6.getParams().get("filter"));
+
+		// 7. Which students have low speaking scores
+		IntentResult r7 = classifier.classify("Which students have low speaking scores?", Role.TEACHER, null);
+		assertNotNull(r7);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r7.getIntent());
+		assertEquals("struggling", r7.getParams().get("filter"));
+
+		// 8. Show my class performance summary
+		IntentResult r8 = classifier.classify("Show my class performance summary", Role.TEACHER, null);
+		assertNotNull(r8);
+		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r8.getIntent());
+	}
 }

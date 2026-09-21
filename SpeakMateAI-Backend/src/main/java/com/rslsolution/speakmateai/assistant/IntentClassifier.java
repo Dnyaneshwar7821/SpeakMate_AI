@@ -743,18 +743,30 @@ public class IntentClassifier {
 		// Assigned classes & class roster:
 		if (containsAny(m, List.of(
 				"which classes are assigned to me", "classes assigned to me", "my assigned classes",
-				"classes do i teach", "what classes are assigned", "my classes?", "my classes", "classes assigned"))) {
+				"classes do i teach", "what classes are assigned", "my classes?", "my classes", "classes assigned",
+				"what classes do i teach", "which classes do i have"))) {
 			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("myClasses", true), null);
 		}
 		if (containsAny(m, List.of(
 				"how many students are in my classes", "how many students do i have",
-				"total students in my class", "students in my classes"))) {
+				"total students in my class", "students in my classes", "total students in my classes", "count of students"))) {
 			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of(), null);
 		}
 		if (containsAny(m, List.of(
 				"show me my students", "who are my students", "list of my students",
-				"list my students", "show my students", "my students list", "names of my students", "my students?", "my students"))) {
-			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, Map.of("entityType", "students"), null);
+				"list my students", "show my students", "my students list", "names of my students", "my students?", "my students",
+				"assigned students", "my assigned students", "who are my assigned students", "list assigned students",
+				"who are assigned students", "roster for", "students in"))) {
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			params.put("entityType", "students");
+			List<ClassSpec> classSpecs = extractAllClassSpecs(message);
+			if (!classSpecs.isEmpty()) {
+				ClassSpec cs = classSpecs.get(0);
+				if (!cs.standard.isEmpty()) params.put("standard", cs.standard);
+				if (!cs.division.isEmpty()) params.put("division", cs.division);
+				if (!cs.division.isEmpty()) params.put("classes", List.of(cs.standard + "-" + cs.division));
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, params, null);
 		}
 		// Class performance, struggling students, score rankings:
 		if (containsAny(m, List.of(
@@ -773,7 +785,14 @@ public class IntentClassifier {
 				"average pronunciation score", "average pronunciation score of my students",
 				"vocabulary progress of my class", "show vocabulary progress of my class",
 				"exam results for my class", "show exam results for my class", "performance of my class", "class performance"))) {
-			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of(), null);
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			List<ClassSpec> classSpecs = extractAllClassSpecs(message);
+			if (!classSpecs.isEmpty()) {
+				ClassSpec cs = classSpecs.get(0);
+				if (!cs.standard.isEmpty()) params.put("standard", cs.standard);
+				if (!cs.division.isEmpty()) params.put("division", cs.division);
+			}
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, params, null);
 		}
 
 		return null;

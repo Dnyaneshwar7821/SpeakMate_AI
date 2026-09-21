@@ -131,6 +131,7 @@ public class AnswerSynthesizer {
 		try {
 			SynthesizedAnswer answer = objectMapper.readValue(extractJson(raw), SynthesizedAnswer.class);
 			enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
+			enrichClassStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 			return answer;
@@ -141,6 +142,7 @@ public class AnswerSynthesizer {
 							: stripFences(raw))
 					.build();
 			enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
+			enrichClassStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 			return answer;
@@ -245,7 +247,12 @@ public class AnswerSynthesizer {
 					+ "Never say data is unavailable when the fields are present.";
 			case SCHOOL_OVERVIEW -> "Summarize the specific school's statistics from the provided fields (totalStudents, totalTeachers, totalSchoolAdmins, activeStudents, activeTeachers, totalClasses, totalStandards, totalDivisions, standards). Answer count questions directly from those numbers — never say the data is unavailable when the fields are present. IMPORTANT: a count of 0 is a valid, real number — when the school exists but has no students or teachers, explicitly state that it has 0 students and 0 teachers (e.g., \"Greenwood High currently has 0 students and 0 teachers enrolled\"). Never reply that information is unavailable or not provided for an existing school just because a count is zero. Highlight strengths and one improvement area. "
 					+ "TOP / BEST STUDENTS & LEADERBOARDS: When asked about the best student, top students, highest XP, or student leaderboard for the school, report the top student from bestStudent and list the top students from topStudents with their name, standard, division, XP, level, and streak.";
-			case CLASS_PERFORMANCE -> "Summarize the class/grade/division performance clearly from the provided fields (className, grade, division, studentCount, totalXp, averageXpPerStudent, studentsWithActiveStreak, averagePracticeMinutesPerStudent, assignedTeacher). State the enrolled student count, assigned teacher, and learning metrics. Highlight strengths and areas to improve.";
+			case CLASS_PERFORMANCE -> "Answer questions about class performance, teacher's assigned classes, struggling students, and speech learning metrics.\n"
+					+ "- ASSIGNED CLASSES RULE: When asked which classes are assigned to the teacher (e.g. 'which classes are assigned to me', 'classes do I teach', 'my classes', 'what classes are assigned'): list ALL classes from assignedClassesList (or availableClasses) with totalAssignedClasses, stating each class name and enrolled student count. Include stat card 'Total Assigned Classes'.\n"
+					+ "- STRUGGLING STUDENTS RULE: When asked which learners need help or are struggling (e.g. 'which learners need the most help', 'show students who are struggling', 'low speaking scores', 'weak students', 'who is struggling'): report each student from strugglingStudents with their name, class, speaking score, lessons completed, XP, and specific reason they need attention. If strugglingStudents is empty, state that all students have healthy practice activity.\n"
+					+ "- TOTAL STUDENTS IN CLASSES: When asked how many students are in classes (e.g. 'how many students are in my classes', 'how many students do I have'): state totalStudentsAcrossClasses and provide the per-class student enrollment breakdown from assignedClassesList.\n"
+					+ "- CLASS PERFORMANCE SUMMARY: When asked for class performance summary, report enrolled student count, assigned teacher, total XP, average XP, average practice minutes, average speaking scores (classAverageSpeakingScore, classAverageFluencyScore, classAveragePronunciationScore), and highlight top students.\n"
+					+ "- TOP STUDENTS / HIGHEST XP / MOST LESSONS: When asked for top students or highest XP in class, rank students from topStudents with their name, XP, streak, and lessons completed.";
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress): greet them warmly and report their real learning stats with numbers. Report the metric(s) asked about clearly: lessons -> lessonsCompleted (plus lessonsStarted/lessonsPending); XP/level -> xp and level; streak -> currentStreak/longestStreak; practice time -> totalPracticeMinutes; speaking -> totalSpeakingSessions, completedSpeakingSessions, and speech scores (fluencyScore, pronunciationScore, speakingGrammarScore, speakingVocabularyScore, overallSpeakingScore); vocabulary -> totalVocabularyWords, masteredVocabularyWords, and recentVocabularyWords; grammar -> totalGrammarChecks and averageGrammarScore. When asked broadly ('how is my progress', 'how am I doing', 'my stats', etc.), present a comprehensive 5-pillar breakdown with clean headings or bullet points: 🎙️ Speaking Practice, 💡 Vocabulary, 📝 Grammar Checks, 📚 Lessons, and ⚡ XP & Streak. Always include stat cards for key metrics.\n"
 					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same 5-pillar structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown (total sessions, completed sessions with AI evaluations, and average speaking scores), vocabulary words added (and recent words if asked), grammar checks completed (and average accuracy), and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons.\n"
 					+ "CHART RULE FOR STUDENT LEARNING: When adding a chart for learning progress or performance, NEVER create a narrow 'Completed vs Remaining' chart. Always break down activity across EACH MODULE: Speaking (totalSpeakingSessions), Lessons (lessonsCompleted), Grammar (totalGrammarChecks), and Vocabulary (totalVocabularyWords). Set labels: ['Speaking', 'Lessons', 'Grammar', 'Vocabulary'], title: 'Learning Activity by Module', dataset label: 'Activities', with dynamic chart type 'bar' or 'doughnut'. If the user specifically asks for speech scores progress, use labels ['Fluency', 'Pronunciation', 'Grammar', 'Vocabulary'] with speaking evaluation scores.\n"
@@ -298,6 +305,7 @@ public class AnswerSynthesizer {
 		}
 		SynthesizedAnswer answer = SynthesizedAnswer.builder().markdown(markdown).build();
 		enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
+		enrichClassStatsIfMissing(answer, intent, userMessage, dataJson);
 		enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 		enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 		return answer;
@@ -629,7 +637,161 @@ public class AnswerSynthesizer {
 	}
 
 	private String renderClassPerformance(Map<String, Object> d, String userMessage) {
+		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT).trim() : "");
 		StringBuilder sb = new StringBuilder();
+
+		// 1. Inquiries about assigned classes ("which classes are assigned to me", "my classes", "classes do i teach")
+		boolean isAssignedClassesQuery = msg.contains("which classes") || msg.contains("assigned classes")
+				|| msg.contains("classes are assigned") || msg.contains("classes assigned")
+				|| msg.contains("classes do i teach") || msg.contains("what classes are assigned")
+				|| msg.equals("my classes") || msg.equals("my classes?") || msg.contains("list of classes")
+				|| msg.contains("list my classes") || msg.contains("show my classes")
+				|| Boolean.TRUE.equals(d.get("myClasses"));
+		if (isAssignedClassesQuery && (d.containsKey("assignedClassesList") || d.containsKey("availableClasses") || d.containsKey("assignedClasses"))) {
+			List<Map<String, Object>> classList = maps(d, "assignedClassesList");
+			int total = d.containsKey("totalAssignedClasses") ? Integer.parseInt(num(d, "totalAssignedClasses")) : classList.size();
+			sb.append("**Assigned Classes (").append(total).append(")**\n\n");
+			sb.append("You are currently assigned to **").append(total).append(" classes**:\n\n");
+			if (!classList.isEmpty()) {
+				for (Map<String, Object> c : classList) {
+					sb.append("- **").append(str(c, "name")).append("**");
+					String sc = num(c, "studentCount");
+					if (!sc.isBlank()) {
+						sb.append(" (").append(sc).append(" enrolled student").append("1".equals(sc) ? "" : "s").append(")");
+					}
+					sb.append('\n');
+				}
+			} else {
+				List<String> rawList = strings(d, "assignedClasses");
+				if (rawList.isEmpty()) rawList = strings(d, "availableClasses");
+				for (String cName : rawList) {
+					sb.append("- **").append(cName).append("**\n");
+				}
+			}
+			String totStuds = num(d, "totalStudentsAcrossClasses");
+			if (!totStuds.isBlank() && !"0".equals(totStuds)) {
+				sb.append("\n**Total Enrolled Students Across Your Classes:** ").append(totStuds).append('\n');
+			}
+			return trimOrNull(sb);
+		}
+
+		// 2. Inquiries about total student count across classes ("how many students are in my classes", "how many students do i have")
+		boolean isTotalStudentCountQuery = (msg.contains("how many students") || msg.contains("total students") || msg.contains("count of students") || msg.contains("students do i have"))
+				&& (msg.contains("my class") || msg.contains("my classes") || msg.contains("assigned") || msg.contains("do i have"));
+		if (isTotalStudentCountQuery) {
+			String totalAcross = num(d, "totalStudentsAcrossClasses");
+			if (totalAcross.isBlank()) totalAcross = num(d, "studentCount");
+			sb.append("**Class Enrollment Summary**\n\n");
+			sb.append("You currently have **").append(zeroIfBlank(totalAcross)).append(" students** enrolled across your assigned classes.\n\n");
+			List<Map<String, Object>> classList = maps(d, "assignedClassesList");
+			if (!classList.isEmpty()) {
+				sb.append("**Breakdown by Class:**\n");
+				for (Map<String, Object> c : classList) {
+					sb.append("- **").append(str(c, "name")).append(":** ")
+					  .append(zeroIfBlank(num(c, "studentCount"))).append(" students\n");
+				}
+			}
+			return trimOrNull(sb);
+		}
+
+		// 3. Inquiries about struggling / weak / learners needing help
+		boolean isStrugglingQuery = msg.contains("struggling") || msg.contains("need help") || msg.contains("need the most help")
+				|| msg.contains("needing help") || msg.contains("needing attention") || msg.contains("weak")
+				|| msg.contains("at risk") || msg.contains("low performance") || msg.contains("low-performing");
+		if (isStrugglingQuery) {
+			List<Map<String, Object>> struggling = maps(d, "strugglingStudents");
+			sb.append("**Learners Needing Support & Attention**\n\n");
+			if (!struggling.isEmpty()) {
+				sb.append("Here are the students who may need additional practice, coaching, or attention:\n\n");
+				for (Map<String, Object> s : struggling) {
+					sb.append("- **").append(str(s, "name")).append("**");
+					String std = str(s, "standard");
+					String div = str(s, "division");
+					if (!std.isBlank() || !div.isBlank()) {
+						sb.append(" (Class ").append(std).append(!div.isBlank() ? "-" + div : "").append(")");
+					}
+					String reason = str(s, "reason");
+					if (!reason.isBlank()) {
+						sb.append(" — ").append(reason);
+					}
+					String spScore = num(s, "speakingScore");
+					if (!spScore.isBlank() && !"0".equals(spScore)) {
+						sb.append(" | Speaking Score: ").append(spScore).append("%");
+					}
+					String xp = num(s, "xp");
+					if (!xp.isBlank()) {
+						sb.append(" | ").append(xp).append(" XP");
+					}
+					sb.append('\n');
+				}
+			} else {
+				sb.append("Great news! None of your students are currently flagged as struggling. All enrolled students are maintaining regular practice activity.\n");
+			}
+			return trimOrNull(sb);
+		}
+
+		// 4. Inquiries about low speaking scores / pronunciation / fluency
+		boolean isLowSpeakingQuery = msg.contains("low speaking") || msg.contains("low pronunciation") || msg.contains("lowest speaking")
+				|| msg.contains("struggling in speaking") || msg.contains("poor speaking");
+		if (isLowSpeakingQuery) {
+			List<Map<String, Object>> lowSpeaking = maps(d, "lowSpeakingStudents");
+			if (lowSpeaking.isEmpty()) lowSpeaking = maps(d, "strugglingStudents");
+			sb.append("**Students with Lowest Speaking Scores**\n\n");
+			if (!lowSpeaking.isEmpty()) {
+				for (Map<String, Object> s : lowSpeaking) {
+					sb.append("- **").append(str(s, "name")).append("**");
+					String std = str(s, "standard");
+					String div = str(s, "division");
+					if (!std.isBlank() || !div.isBlank()) {
+						sb.append(" (Class ").append(std).append(!div.isBlank() ? "-" + div : "").append(")");
+					}
+					String spk = num(s, "speakingScore");
+					if (!spk.isBlank()) {
+						sb.append(" — Speaking Score: **").append(spk).append("%**");
+					}
+					String flu = num(s, "fluencyScore");
+					String pro = num(s, "pronunciationScore");
+					if (!flu.isBlank() || !pro.isBlank()) {
+						sb.append(" (Fluency: ").append(zeroIfBlank(flu)).append("% | Pronunciation: ").append(zeroIfBlank(pro)).append("%)");
+					}
+					sb.append('\n');
+				}
+			} else {
+				sb.append("All students have satisfactory speaking evaluation scores.\n");
+			}
+			return trimOrNull(sb);
+		}
+
+		// 5. Inquiries about top students / highest XP / most lessons in class
+		boolean isTopQuery = msg.contains("highest xp") || msg.contains("top student") || msg.contains("best student")
+				|| msg.contains("most lessons") || msg.contains("leaderboard") || msg.contains("top students");
+		if (isTopQuery) {
+			List<Map<String, Object>> topList = maps(d, "topStudents");
+			if (topList.isEmpty()) topList = maps(d, "students");
+			sb.append("**Top Students Leaderboard**\n\n");
+			if (!topList.isEmpty()) {
+				int rank = 1;
+				for (Map<String, Object> s : topList) {
+					sb.append(rank).append(". **").append(str(s, "name")).append("** — ")
+					  .append(zeroIfBlank(num(s, "xp"))).append(" XP");
+					String streak = num(s, "streak");
+					if (!streak.isBlank() && !"0".equals(streak)) {
+						sb.append(" (Streak: ").append(streak).append(" days)");
+					}
+					String lessons = num(s, "lessonsCompleted");
+					if (!lessons.isBlank()) {
+						sb.append(" | ").append(lessons).append(" lessons completed");
+					}
+					sb.append('\n');
+					rank++;
+				}
+			} else {
+				sb.append("No student activity recorded yet for this class.\n");
+			}
+			return trimOrNull(sb);
+		}
+
+		// 6. General class performance summary or specific class card
 		String summary = str(d, "summary");
 		if (!summary.isBlank()) {
 			sb.append(summary).append("\n\n");
@@ -644,6 +806,20 @@ public class AnswerSynthesizer {
 		addLine(sb, "Total XP", zeroIfBlank(num(d, "totalXp")));
 		addLine(sb, "Average XP per Student", zeroIfBlank(num(d, "averageXpPerStudent")));
 		addLine(sb, "Average Practice Minutes", zeroIfBlank(num(d, "averagePracticeMinutesPerStudent")));
+
+		String avgSpk = num(d, "classAverageSpeakingScore");
+		if (!avgSpk.isBlank() && !"0".equals(avgSpk)) {
+			addLine(sb, "Average Speaking Score", avgSpk + "%");
+		}
+		String avgFlu = num(d, "classAverageFluencyScore");
+		if (!avgFlu.isBlank() && !"0".equals(avgFlu)) {
+			addLine(sb, "Average Fluency", avgFlu + "%");
+		}
+		String avgPro = num(d, "classAveragePronunciationScore");
+		if (!avgPro.isBlank() && !"0".equals(avgPro)) {
+			addLine(sb, "Average Pronunciation", avgPro + "%");
+		}
+
 		return trimOrNull(sb);
 	}
 
@@ -1672,6 +1848,61 @@ public class AnswerSynthesizer {
 					return;
 				}
 			}
+		}
+	}
+
+	private void enrichClassStatsIfMissing(SynthesizedAnswer answer, AssistantIntent intent, String userMessage, String dataJson) {
+		if (answer == null || intent != AssistantIntent.CLASS_PERFORMANCE) {
+			return;
+		}
+		Map<String, Object> data = parseData(dataJson);
+		if (data.isEmpty()) {
+			return;
+		}
+
+		List<AssistantResponse.StatCard> stats = answer.getStats();
+		if (stats == null) {
+			stats = new ArrayList<>();
+			answer.setStats(stats);
+		} else if (!(stats instanceof ArrayList)) {
+			stats = new ArrayList<>(stats);
+			answer.setStats(stats);
+		}
+
+		if (!stats.isEmpty()) {
+			return; // Stat cards already supplied
+		}
+
+		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT).trim() : "");
+		boolean isAssignedClassesQuery = msg.contains("which classes") || msg.contains("assigned classes")
+				|| msg.contains("classes are assigned") || msg.contains("classes assigned")
+				|| msg.contains("classes do i teach") || msg.contains("what classes are assigned")
+				|| msg.equals("my classes") || msg.equals("my classes?");
+
+		if (isAssignedClassesQuery) {
+			String totalClasses = num(data, "totalAssignedClasses");
+			String totalStuds = num(data, "totalStudentsAcrossClasses");
+			if (!totalClasses.isBlank()) {
+				stats.add(new AssistantResponse.StatCard("Total Assigned Classes", totalClasses, null));
+			}
+			if (!totalStuds.isBlank() && !"0".equals(totalStuds)) {
+				stats.add(new AssistantResponse.StatCard("Enrolled Students", totalStuds, null));
+			}
+		} else if (msg.contains("struggling") || msg.contains("need help") || msg.contains("needing help")) {
+			List<Map<String, Object>> struggling = maps(data, "strugglingStudents");
+			stats.add(new AssistantResponse.StatCard("Struggling Learners", String.valueOf(struggling.size()), null));
+			String totalStuds = num(data, "totalStudentsAcrossClasses");
+			if (totalStuds.isBlank()) totalStuds = num(data, "studentCount");
+			stats.add(new AssistantResponse.StatCard("Total Students", totalStuds, null));
+		} else {
+			String studs = num(data, "studentCount");
+			String totalXp = num(data, "totalXp");
+			String avgXp = num(data, "averageXpPerStudent");
+			String streaks = num(data, "studentsWithActiveStreak");
+			if (!studs.isBlank()) stats.add(new AssistantResponse.StatCard("Enrolled Students", studs, null));
+			if (!totalXp.isBlank() && !"0".equals(totalXp)) stats.add(new AssistantResponse.StatCard("Total XP", totalXp, null));
+			if (!avgXp.isBlank() && !"0".equals(avgXp)) stats.add(new AssistantResponse.StatCard("Average XP per Student", avgXp, null));
+			if (!streaks.isBlank() && !"0".equals(streaks)) stats.add(new AssistantResponse.StatCard("Students with Active Streak", streaks, null));
 		}
 	}
 

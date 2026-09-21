@@ -88,14 +88,40 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		// Teachers see ONLY their own assigned students.
 		if (actor.getRole() == Role.TEACHER && actor.getTeacherId() != null) {
 			List<Student> assigned = teacherAssignmentResolver.resolveAssignedStudents(actor.getTeacherId(), actor.getSchoolId());
+			String filterStd = strParam(params, "standard");
+			String filterDiv = strParam(params, "division");
+			if (filterStd.isEmpty() && params.containsKey("grade")) {
+				filterStd = strParam(params, "grade");
+			}
+			if (!filterStd.isEmpty() || !filterDiv.isEmpty()) {
+				String normStd = normalizeStandard(filterStd);
+				String normDiv = filterDiv.trim().toUpperCase(Locale.ROOT);
+				assigned = assigned.stream().filter(s -> {
+					String sStd = s.getStandard() != null ? normalizeStandard(s.getStandard()) : "";
+					String sDiv = s.getDivision() != null ? s.getDivision().trim().toUpperCase(Locale.ROOT) : "";
+					boolean matchStd = normStd.isEmpty() || normStd.equalsIgnoreCase(sStd);
+					boolean matchDiv = normDiv.isEmpty() || normDiv.equalsIgnoreCase(sDiv);
+					return matchStd && matchDiv;
+				}).collect(Collectors.toList());
+			}
 			Map<String, Object> data = new LinkedHashMap<>();
 			data.put("scope", "SELF (assigned students only)");
 			data.put("entityType", "STUDENTS");
 			data.put("studentCount", assigned.size());
 			data.put("students", assigned.stream().map(this::studentView).collect(Collectors.toList()));
-			data.put("studentsText", assigned.size() + " student" + (assigned.size() == 1 ? "" : "s") + " assigned to you");
-			data.put("summary", "You are currently assigned " + assigned.size() + " student"
-					+ (assigned.size() == 1 ? "" : "s") + ".");
+			String classLabel = (!filterStd.isEmpty() ? "Standard " + filterStd : "")
+					+ (!filterDiv.isEmpty() ? (!filterStd.isEmpty() ? "-" : "Division ") + filterDiv : "");
+			if (!classLabel.isEmpty()) {
+				data.put("standard", filterStd);
+				data.put("division", filterDiv);
+				data.put("studentsText", assigned.size() + " student" + (assigned.size() == 1 ? "" : "s") + " assigned to you in " + classLabel);
+				data.put("summary", "You have " + assigned.size() + " student"
+						+ (assigned.size() == 1 ? "" : "s") + " assigned to you in " + classLabel + ".");
+			} else {
+				data.put("studentsText", assigned.size() + " student" + (assigned.size() == 1 ? "" : "s") + " assigned to you");
+				data.put("summary", "You are currently assigned " + assigned.size() + " student"
+						+ (assigned.size() == 1 ? "" : "s") + ".");
+			}
 			return toJson(data);
 		}
 
@@ -941,6 +967,24 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		}
 		Object value = params.get(key);
 		return value == null ? "" : value.toString();
+	}
+
+	private static String normalizeStandard(String value) {
+		if (value == null) {
+			return "";
+		}
+		String trimmed = value.trim();
+		if (trimmed.isEmpty()) {
+			return "";
+		}
+		java.util.regex.Matcher digits = java.util.regex.Pattern.compile("\\d+").matcher(trimmed);
+		if (digits.find()) {
+			return digits.group();
+		}
+		return trimmed.toLowerCase(Locale.ROOT)
+				.replaceAll("(?i)standard|grade|class", "")
+				.replaceAll("(?i)th|st|nd|rd", "")
+				.replaceAll("\\s+", "");
 	}
 
 	private String toJson(Map<String, Object> data) {

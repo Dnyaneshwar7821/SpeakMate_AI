@@ -660,4 +660,128 @@ public class AnswerSynthesizerChatTest {
 		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
 		assertTrue(answer.getMarkdown().contains("Students in Standard 9-A"));
 	}
+
+	@Test
+	void testTeacherAssignedClassesSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"totalAssignedClasses", 8,
+				"totalStudentsAcrossClasses", 4,
+				"assignedClassesList", java.util.List.of(
+						Map.of("name", "Grade 9 - A", "studentCount", 4),
+						Map.of("name", "Grade 6 - A", "studentCount", 0),
+						Map.of("name", "Grade 8 - D", "studentCount", 0),
+						Map.of("name", "Grade 7 - A", "studentCount", 0)
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"Which classes are assigned to me?",
+				Map.of("myClasses", true),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Assigned Classes (8)"));
+		assertTrue(answer.getMarkdown().contains("Grade 9 - A"));
+		assertTrue(answer.getMarkdown().contains("Grade 6 - A"));
+		assertTrue(answer.getMarkdown().contains("Total Enrolled Students Across Your Classes"));
+		assertTrue(answer.getMarkdown().contains("4"));
+	}
+
+	@Test
+	void testTeacherStrugglingStudentsSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"strugglingStudents", java.util.List.of(
+						Map.of(
+								"name", "Siddhi Narke",
+								"standard", "9",
+								"division", "A",
+								"speakingScore", 8.9,
+								"xp", 1229,
+								"reason", "Low speaking score (8.9%), Only 2 lessons completed"
+						)
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"Which learners need the most help?",
+				Map.of("filter", "struggling"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Learners Needing Support & Attention"));
+		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
+		assertTrue(answer.getMarkdown().contains("Low speaking score (8.9%)"));
+	}
+
+	@Test
+	void testTeacherLowestSpeakingScoresSynthesis() throws Exception {
+		Map<String, Object> data = Map.of(
+				"lowSpeakingStudents", java.util.List.of(
+						Map.of(
+								"name", "Siddhi Narke",
+								"standard", "9",
+								"division", "A",
+								"speakingScore", 8.9,
+								"fluencyScore", 8.5,
+								"pronunciationScore", 9.0
+						)
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"Which students have low speaking scores?",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Students with Lowest Speaking Scores"));
+		assertTrue(answer.getMarkdown().contains("Siddhi Narke"));
+		assertTrue(answer.getMarkdown().contains("Speaking Score: **8.9%**"));
+		assertTrue(answer.getMarkdown().contains("Fluency: 8.5%"));
+	}
+
+	@Test
+	void testTeacherClassEnrollmentSummary() throws Exception {
+		Map<String, Object> data = Map.of(
+				"totalStudentsAcrossClasses", 4,
+				"assignedClassesList", java.util.List.of(
+						Map.of("name", "Grade 9 - A", "studentCount", 4),
+						Map.of("name", "Grade 6 - A", "studentCount", 0)
+				)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"How many students are in my classes?",
+				Map.of(),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Class Enrollment Summary"));
+		assertTrue(answer.getMarkdown().contains("4 students"));
+		assertTrue(answer.getMarkdown().contains("Grade 9 - A"));
+	}
 }
