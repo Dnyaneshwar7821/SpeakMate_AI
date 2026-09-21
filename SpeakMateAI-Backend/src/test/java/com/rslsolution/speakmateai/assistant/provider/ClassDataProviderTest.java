@@ -177,4 +177,79 @@ class ClassDataProviderTest {
 		assertEquals(409, data.get("totalXp"));
 		assertEquals(204, data.get("averageXpPerStudent"));
 	}
+
+	@Test
+	@DisplayName("Teacher with multiple classes only counts students matching each class's grade and division")
+	void testTeacherPerClassStudentCountsIsolation() throws Exception {
+		ActorContext teacherActor = ActorContext.builder()
+				.userId(88L)
+				.displayName("John Doe")
+				.email("john@dypatil.edu")
+				.role(Role.TEACHER)
+				.schoolId(24L)
+				.teacherId(88L)
+				.build();
+
+		ClassRoom c9A = ClassRoom.builder().id(11L).schoolId(24L).name("Grade 9 - A").grade("9").division("A").status(Status.ACTIVE).teacherId(88L).build();
+		ClassRoom c6A = ClassRoom.builder().id(13L).schoolId(24L).name("Grade 6 - A").grade("6").division("A").status(Status.ACTIVE).teacherId(88L).build();
+		ClassRoom c8D = ClassRoom.builder().id(37L).schoolId(24L).name("Grade 8 - D").grade("8").division("D").status(Status.ACTIVE).teacherId(88L).build();
+		ClassRoom c7A = ClassRoom.builder().id(39L).schoolId(24L).name("Grade 7 - A").grade("7").division("A").status(Status.ACTIVE).teacherId(88L).build();
+
+		when(classRoomRepository.findByTeacherId(88L)).thenReturn(List.of(c9A, c6A, c8D, c7A));
+		when(classStudentRepository.findByClassId(11L)).thenReturn(List.of());
+		when(classStudentRepository.findByClassId(13L)).thenReturn(List.of());
+		when(classStudentRepository.findByClassId(37L)).thenReturn(List.of());
+		when(classStudentRepository.findByClassId(39L)).thenReturn(List.of());
+
+		Student s1 = new Student();
+		s1.setId(94L);
+		s1.setFirstName("Siddhi");
+		s1.setLastName("Narke");
+		s1.setStandard("9");
+		s1.setDivision("A");
+		s1.setTeacherId(88L);
+
+		Student s2 = new Student();
+		s2.setId(99L);
+		s2.setFirstName("Onkar");
+		s2.setLastName("Awate");
+		s2.setStandard("9");
+		s2.setDivision("A");
+		s2.setTeacherId(88L);
+
+		// Two 10th graders assigned to John Doe
+		Student s3 = new Student();
+		s3.setId(101L);
+		s3.setFirstName("Kaustubh");
+		s3.setLastName("Salunkhe");
+		s3.setStandard("10");
+		s3.setDivision("A");
+		s3.setTeacherId(88L);
+
+		when(studentRepository.findBySchoolId(24L)).thenReturn(List.of(s1, s2, s3));
+
+		String json = provider.provide(teacherActor, Map.of("myClasses", true));
+		assertNotNull(json);
+
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<>() {});
+		assertEquals(4, data.get("totalAssignedClasses"));
+		assertEquals(2, data.get("totalStudentsAcrossClasses"));
+
+		@SuppressWarnings("unchecked")
+		List<Map<String, Object>> classList = (List<Map<String, Object>>) data.get("assignedClassesList");
+		assertNotNull(classList);
+		assertEquals(4, classList.size());
+
+		Map<String, Object> c9 = classList.stream().filter(c -> "Grade 9 - A".equals(c.get("name"))).findFirst().orElseThrow();
+		assertEquals(2, ((Number) c9.get("studentCount")).intValue(), "Grade 9 - A must have 2 students (Siddhi & Onkar)");
+
+		Map<String, Object> c6 = classList.stream().filter(c -> "Grade 6 - A".equals(c.get("name"))).findFirst().orElseThrow();
+		assertEquals(0, ((Number) c6.get("studentCount")).intValue(), "Grade 6 - A must have 0 students");
+
+		Map<String, Object> c8 = classList.stream().filter(c -> "Grade 8 - D".equals(c.get("name"))).findFirst().orElseThrow();
+		assertEquals(0, ((Number) c8.get("studentCount")).intValue(), "Grade 8 - D must have 0 students");
+
+		Map<String, Object> c7 = classList.stream().filter(c -> "Grade 7 - A".equals(c.get("name"))).findFirst().orElseThrow();
+		assertEquals(0, ((Number) c7.get("studentCount")).intValue(), "Grade 7 - A must have 0 students");
+	}
 }

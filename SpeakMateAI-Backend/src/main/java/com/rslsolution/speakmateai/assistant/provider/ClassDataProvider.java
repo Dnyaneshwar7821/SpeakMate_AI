@@ -108,8 +108,20 @@ public class ClassDataProvider implements AssistantDataProvider {
 		Long schoolId = actor != null ? actor.getSchoolId() : null;
 		List<Student> schoolStudents = schoolId != null ? studentRepository.findBySchoolId(schoolId) : List.of();
 
+		// Teacher's all assigned students across all classes
+		List<Student> allAssigned = (actor != null && actor.getRole() == Role.TEACHER && teacherAssignmentResolver != null && actor.getTeacherId() != null)
+				? teacherAssignmentResolver.resolveAssignedStudents(actor.getTeacherId(), actor.getSchoolId())
+				: List.of();
+
+		// Candidate students for enrollment matching: for a teacher, consider their assigned students; fallback to school students
+		List<Student> candidateStudents = (actor != null && actor.getRole() == Role.TEACHER && !allAssigned.isEmpty())
+				? allAssigned
+				: schoolStudents;
+
 		// Compute per-class enrollment counts for all available/assigned classes
 		List<Map<String, Object>> assignedClassesList = new java.util.ArrayList<>();
+		Set<Long> uniqueEnrolledStudentIds = new java.util.HashSet<>();
+
 		for (ClassRoom cr : classes) {
 			Map<String, Object> cMap = new LinkedHashMap<>();
 			cMap.put("id", cr.getId());
@@ -121,26 +133,39 @@ public class ClassDataProvider implements AssistantDataProvider {
 			long count;
 			if (!cm.isEmpty()) {
 				count = cm.size();
+				for (ClassStudent cs : cm) {
+					if (cs.getStudentId() != null) uniqueEnrolledStudentIds.add(cs.getStudentId());
+				}
 			} else {
 				String gNorm = normalizeStandard(cr.getGrade());
+				if (gNorm.isEmpty()) {
+					gNorm = normalizeStandard(cr.getName());
+				}
 				String dNorm = cr.getDivision() != null ? cr.getDivision().trim() : "";
-				count = schoolStudents.stream().filter(s -> {
+				if (dNorm.isEmpty() && cr.getName() != null) {
+					Matcher dm = Pattern.compile("[-/\\s]([A-Za-z])\\b").matcher(cr.getName());
+					if (dm.find()) {
+						dNorm = dm.group(1);
+					}
+				}
+				final String finalGNorm = gNorm;
+				final String finalDNorm = dNorm;
+				List<Student> matched = candidateStudents.stream().filter(s -> {
 					String sStd = s.getStandard() != null ? normalizeStandard(s.getStandard()) : "";
 					String sDiv = s.getDivision() != null ? s.getDivision().trim() : "";
-					boolean matchGrade = !gNorm.isEmpty() && sStd.equalsIgnoreCase(gNorm);
-					boolean matchDiv = dNorm.isEmpty() || sDiv.equalsIgnoreCase(dNorm);
-					boolean matchTeacher = cr.getTeacherId() != null && cr.getTeacherId().equals(s.getTeacherId());
-					return (matchGrade && matchDiv) || matchTeacher;
-				}).count();
+					boolean matchGrade = !finalGNorm.isEmpty() && sStd.equalsIgnoreCase(finalGNorm);
+					boolean matchDiv = finalDNorm.isEmpty() || sDiv.equalsIgnoreCase(finalDNorm);
+					return matchGrade && matchDiv;
+				}).collect(Collectors.toList());
+
+				count = matched.size();
+				for (Student s : matched) {
+					if (s.getId() != null) uniqueEnrolledStudentIds.add(s.getId());
+				}
 			}
 			cMap.put("studentCount", count);
 			assignedClassesList.add(cMap);
 		}
-
-		// Teacher's all assigned students across all classes
-		List<Student> allAssigned = (actor != null && actor.getRole() == Role.TEACHER && teacherAssignmentResolver != null && actor.getTeacherId() != null)
-				? teacherAssignmentResolver.resolveAssignedStudents(actor.getTeacherId(), actor.getSchoolId())
-				: List.of();
 
 		boolean specificClassRequested = hasSpecificClassFilter(params);
 		ClassRoom target = pickClass(classes, params);
@@ -153,20 +178,34 @@ public class ClassDataProvider implements AssistantDataProvider {
 		if (!studentIds.isEmpty()) {
 			students = studentRepository.findAllById(studentIds);
 		} else {
-			// In SpeakMate AI, students are primarily assigned by standard and division or teacher
+			// In SpeakMate AI, students are primarily assigned by standard and division
 			Long targetSchoolId = target.getSchoolId() != null ? target.getSchoolId() : (actor != null ? actor.getSchoolId() : null);
 			List<Student> targetSchoolStudents = targetSchoolId != null ? studentRepository.findBySchoolId(targetSchoolId) : List.of();
-			String targetNormGrade = normalizeStandard(target.getGrade());
-			String targetNormDiv = target.getDivision() != null ? target.getDivision().trim() : "";
+			List<Student> targetCandidateStudents = (actor != null && actor.getRole() == Role.TEACHER && !allAssigned.isEmpty())
+					? allAssigned
+					: targetSchoolStudents;
 
-			students = targetSchoolStudents.stream()
+			String targetNormGrade = normalizeStandard(target.getGrade());
+			if (targetNormGrade.isEmpty()) {
+				targetNormGrade = normalizeStandard(target.getName());
+			}
+			String targetNormDiv = target.getDivision() != null ? target.getDivision().trim() : "";
+			if (targetNormDiv.isEmpty() && target.getName() != null) {
+				Matcher dm = Pattern.compile("[-/\\s]([A-Za-z])\\b").matcher(target.getName());
+				if (dm.find()) {
+					targetNormDiv = dm.group(1);
+				}
+			}
+
+			final String fTargetNormGrade = targetNormGrade;
+			final String fTargetNormDiv = targetNormDiv;
+			students = targetCandidateStudents.stream()
 					.filter(s -> {
 						String sStd = s.getStandard() != null ? normalizeStandard(s.getStandard()) : "";
 						String sDiv = s.getDivision() != null ? s.getDivision().trim() : "";
-						boolean matchGrade = !targetNormGrade.isEmpty() && sStd.equalsIgnoreCase(targetNormGrade);
-						boolean matchDiv = targetNormDiv.isEmpty() || sDiv.equalsIgnoreCase(targetNormDiv);
-						boolean matchTeacher = target.getTeacherId() != null && target.getTeacherId().equals(s.getTeacherId());
-						return (matchGrade && matchDiv) || matchTeacher;
+						boolean matchGrade = !fTargetNormGrade.isEmpty() && sStd.equalsIgnoreCase(fTargetNormGrade);
+						boolean matchDiv = fTargetNormDiv.isEmpty() || sDiv.equalsIgnoreCase(fTargetNormDiv);
+						return matchGrade && matchDiv;
 					})
 					.collect(Collectors.toList());
 		}
@@ -184,7 +223,7 @@ public class ClassDataProvider implements AssistantDataProvider {
 		data.put("academicYear", target.getAcademicYear());
 		data.put("status", target.getStatus() != null ? target.getStatus().name() : "UNKNOWN");
 		data.put("studentCount", students.size());
-		data.put("totalStudentsAcrossClasses", !allAssigned.isEmpty() ? allAssigned.size() : students.size());
+		data.put("totalStudentsAcrossClasses", !uniqueEnrolledStudentIds.isEmpty() ? uniqueEnrolledStudentIds.size() : students.size());
 		data.put("assignedClassesList", assignedClassesList);
 		data.put("totalAssignedClasses", classes.size());
 
