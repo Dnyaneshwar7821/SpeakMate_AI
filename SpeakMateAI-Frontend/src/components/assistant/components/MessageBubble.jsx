@@ -13,40 +13,40 @@ const markdownComponents = {
             {...props}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[var(--color-primary)] underline underline-offset-2"
+            className="font-medium text-indigo-600 dark:text-indigo-400 underline underline-offset-2 hover:text-indigo-700 dark:hover:text-indigo-300"
         />
     ),
     table: (props) => (
-        <div className="my-2 overflow-x-auto rounded-lg border border-[var(--border-default)]">
+        <div className="my-2.5 overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-700/80 bg-white/60 dark:bg-slate-900/50 shadow-xs">
             <table className="w-full min-w-max border-collapse text-xs" {...props} />
         </div>
     ),
     th: (props) => (
         <th
-            className="border-b border-[var(--border-default)] bg-[var(--bg-hover)] px-2.5 py-1.5 text-left font-semibold text-[var(--text-secondary)]"
+            className="border-b border-slate-200/80 dark:border-slate-700/80 bg-slate-100/80 dark:bg-slate-800/80 px-3 py-2 text-left text-[11px] font-semibold tracking-wider text-slate-600 dark:text-slate-300 uppercase"
             {...props}
         />
     ),
     td: (props) => (
         <td
-            className="border-b border-[var(--border-default)] px-2.5 py-1.5 text-[var(--text-primary)]"
+            className="border-b border-slate-100 dark:border-slate-800 px-3 py-2 text-slate-800 dark:text-slate-200"
             {...props}
         />
     ),
-    p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
-    ul: ({ children }) => <ul className="my-1.5 ml-4 list-disc space-y-0.5">{children}</ul>,
-    ol: ({ children }) => <ol className="my-1.5 ml-4 list-decimal space-y-0.5">{children}</ol>,
-    li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+    p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed text-slate-800 dark:text-slate-100">{children}</p>,
+    ul: ({ children }) => <ul className="my-2 ml-4 list-disc space-y-1 text-slate-800 dark:text-slate-100">{children}</ul>,
+    ol: ({ children }) => <ol className="my-2 ml-4 list-decimal space-y-1 text-slate-800 dark:text-slate-100">{children}</ol>,
+    li: ({ children }) => <li className="leading-relaxed pl-0.5">{children}</li>,
     code: ({ inline, children, ...props }) =>
         inline ? (
             <code
-                className="rounded bg-[var(--bg-hover)] px-1 py-0.5 font-mono text-[11px] text-[var(--color-primary)]"
+                className="rounded-md bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 font-mono text-[11px] font-medium text-indigo-600 dark:text-indigo-400 border border-indigo-200/40 dark:border-indigo-800/40"
                 {...props}
             >
                 {children}
             </code>
         ) : (
-            <pre className="my-2 overflow-x-auto rounded-lg bg-[var(--bg-hover)] p-2 font-mono text-[11px] text-[var(--text-primary)]">
+            <pre className="my-2.5 overflow-x-auto rounded-xl bg-slate-900 text-slate-100 p-3 font-mono text-[11px] shadow-sm">
                 <code {...props}>{children}</code>
             </pre>
         ),
@@ -452,7 +452,7 @@ export function MessageBubble({ message, role, onClose }) {
     if (isUser) {
         return (
             <div className="flex justify-end">
-                <div className="max-w-[82%] rounded-2xl rounded-tr-sm bg-[var(--color-primary)] px-3.5 py-2 text-sm text-white shadow-sm">
+                <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-gradient-to-tr from-[#5243F5] to-[#7B61FF] px-4 py-2.5 text-xs text-white shadow-md shadow-indigo-500/15 font-normal">
                     <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
                 </div>
             </div>
@@ -462,26 +462,31 @@ export function MessageBubble({ message, role, onClose }) {
     return (
         <div className="flex justify-start">
             <div
-                className={`max-w-[92%] rounded-2xl rounded-tl-sm border px-3.5 py-2.5 text-sm shadow-sm ${
+                className={`max-w-[94%] rounded-2xl rounded-tl-xs border p-3.5 text-xs shadow-xs transition-all ${
                     accessDenied
-                        ? "border-amber-500/40 bg-amber-500/10 text-[var(--text-primary)]"
-                        : "border-[var(--border-default)] bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                        ? "border-amber-500/40 bg-amber-50/70 dark:bg-amber-950/30 text-slate-900 dark:text-slate-100"
+                        : "border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-800/80 text-slate-800 dark:text-slate-100"
                 }`}
             >
                 {content ? (
-                    <div className="mb-2 flex items-center justify-between border-b border-[var(--border-default)]/40 pb-1.5">
-                        <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--text-muted)]">
-                            Assistant
-                        </span>
+                    <div className="mb-2.5 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
+                        <div className="flex items-center gap-1.5">
+                            <span className="grid h-4.5 w-4.5 place-items-center rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                                <Sparkles className="h-3 w-3" aria-hidden="true" />
+                            </span>
+                            <span className="text-[11px] font-bold tracking-tight text-slate-700 dark:text-slate-200">
+                                SpeakMate AI
+                            </span>
+                        </div>
                         <button
                             type="button"
                             onClick={handleToggleSpeech}
-                            title={speaking ? "Stop reading" : "Read aloud"}
+                            title={speaking ? "Stop reading aloud" : "Read aloud with natural voice"}
                             aria-label={speaking ? "Stop reading" : "Read aloud"}
-                            className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer ${
                                 speaking
-                                    ? "bg-red-500 text-white animate-pulse"
-                                    : "text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--color-primary)]"
+                                    ? "bg-red-500 text-white shadow-sm shadow-red-500/30 animate-pulse"
+                                    : "bg-indigo-50/80 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60"
                             }`}
                         >
                             {speaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
@@ -491,7 +496,7 @@ export function MessageBubble({ message, role, onClose }) {
                 ) : null}
 
                 {content ? (
-                    <div className="prose-xs max-w-none break-words text-[var(--text-primary)]">
+                    <div className="prose-xs max-w-none break-words text-slate-800 dark:text-slate-100">
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={markdownComponents}
@@ -508,7 +513,7 @@ export function MessageBubble({ message, role, onClose }) {
                 {chart ? <MiniChart chart={chart} /> : null}
 
                 {Array.isArray(suggestions) && suggestions.length > 0 ? (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
                         {suggestions.slice(0, 2).map((suggestion, index) => (
                             <DeepLinkChip
                                 key={`${suggestion.route}-${index}`}

@@ -130,43 +130,63 @@ export function AssistantPanel() {
     };
 
     return (
-        <div className="fixed bottom-24 right-5 z-[9999] flex h-[min(580px,calc(100dvh-8rem))] w-[min(420px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-2xl border border-[var(--border-default,#e2e8f0)] bg-[var(--bg-base,#ffffff)] shadow-2xl shadow-black/30">
-            {/* Header */}
-            <div className="flex items-center gap-3 border-b border-[var(--border-default,#e2e8f0)] bg-[var(--bg-surface,#f8fafc)] px-4 py-3">
-                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--color-primary,#6C63FF)] text-white shadow-sm">
-                    <Sparkles className="h-4.5 w-4.5" aria-hidden="true" />
-                </div>
-                <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-[var(--text-primary,#0f172a)]">
-                        SpeakMate Assistant
-                    </p>
-                    <span className="mt-0.5 inline-flex items-center rounded-full bg-[var(--color-primary,#6C63FF)]/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-primary,#6C63FF)]">
-                        {roleLabel}
+        <div className="fixed bottom-24 right-5 z-[9999] flex h-[min(620px,calc(100dvh-7.5rem))] w-[min(430px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-[26px] border border-slate-200/90 dark:border-slate-800/90 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] ring-1 ring-black/5 dark:ring-white/10">
+            {/* Top Gradient Accent Bar */}
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#5243F5] via-[#7B61FF] to-[#00D2FF]" />
+
+            {/* Modern Chatbot Header */}
+            <div className="flex items-center gap-3 border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-900/80 px-4 py-3 backdrop-blur-md">
+                {/* AI Avatar with Online Pulse */}
+                <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr from-[#5243F5] to-[#8F4FFF] text-white shadow-md shadow-indigo-500/20">
+                    <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
+                    <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white dark:bg-slate-900">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                     </span>
                 </div>
-                <button
-                    type="button"
-                    onClick={startNewChat}
-                    title="Delete chat"
-                    aria-label="Delete chat and start fresh"
-                    className="grid h-8 w-8 place-items-center rounded-lg text-[var(--text-secondary,#64748b)] transition-colors duration-200 hover:bg-red-500/10 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 cursor-pointer"
-                >
-                    <Trash2 className="h-4 w-4" aria-hidden="true" />
-                </button>
-                <button
-                    type="button"
-                    onClick={closeWidget}
-                    title="Close"
-                    aria-label="Close SpeakMate Assistant"
-                    className="grid h-8 w-8 place-items-center rounded-lg text-[var(--text-secondary,#64748b)] transition-colors duration-200 hover:bg-[var(--bg-hover,#f1f5f9)] hover:text-[var(--text-primary,#0f172a)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary,#6C63FF)] cursor-pointer"
-                >
-                    <X className="h-4 w-4" aria-hidden="true" />
-                </button>
+
+                {/* Title & Role Metadata */}
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-bold tracking-tight text-slate-900 dark:text-white">
+                            SpeakMate Assistant
+                        </p>
+                        <span className="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50">
+                            AI
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
+                        <span className="truncate font-medium">{roleLabel}</span>
+                        <span>•</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">Online</span>
+                    </div>
+                </div>
+
+                {/* Header Actions */}
+                <div className="flex items-center gap-1">
+                    <button
+                        type="button"
+                        onClick={startNewChat}
+                        title="Start New Chat"
+                        aria-label="Start new chat and reset conversation"
+                        className="grid h-8 w-8 place-items-center rounded-xl text-slate-500 dark:text-slate-400 transition-all duration-200 hover:bg-red-500/10 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 cursor-pointer"
+                    >
+                        <Trash2 className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={closeWidget}
+                        title="Close Chat"
+                        aria-label="Close SpeakMate Assistant"
+                        className="grid h-8 w-8 place-items-center rounded-xl text-slate-500 dark:text-slate-400 transition-all duration-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+                    >
+                        <X className="h-4.5 w-4.5" aria-hidden="true" />
+                    </button>
+                </div>
             </div>
 
-            {/* Error Banner */}
+            {/* Error Notification Banner */}
             {error ? (
-                <div className="flex items-start gap-2 border-b border-red-500/30 bg-red-500/10 px-4 py-2 text-xs text-red-600 dark:text-red-400">
+                <div className="flex items-start gap-2 border-b border-red-500/30 bg-red-500/10 px-4 py-2.5 text-xs text-red-600 dark:text-red-400 backdrop-blur-sm">
                     <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span className="flex-1 leading-snug">{error}</span>
                     <button
@@ -180,13 +200,13 @@ export function AssistantPanel() {
                 </div>
             ) : null}
 
-            {/* Messages Scroll Area */}
+            {/* Conversation Stream Scroll Area */}
             <div
                 ref={scrollRef}
-                className="flex-1 space-y-3 overflow-y-auto p-4 text-xs leading-relaxed"
+                className="flex-1 space-y-3.5 overflow-y-auto p-4 text-xs leading-relaxed scroll-smooth"
             >
                 {isEmpty ? (
-                    <div className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3.5">
                         <MessageBubble
                             message={{
                                 id: "welcome",
@@ -199,19 +219,23 @@ export function AssistantPanel() {
 
                         {suggestions.length > 0 ? (
                             <div className="pt-2">
-                                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-[var(--text-muted,#94a3b8)]">
-                                    Suggested questions
+                                <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                                    <Sparkles className="h-3 w-3 text-amber-500" />
+                                    <span>Suggested questions</span>
                                 </p>
-                                <div className="flex flex-col gap-1.5">
+                                <div className="flex flex-col gap-2">
                                     {suggestions.map((suggestion) => (
                                         <button
                                             key={suggestion}
                                             type="button"
                                             onClick={() => handleSuggestion(suggestion)}
                                             disabled={loading}
-                                            className="rounded-xl border border-[var(--border-default,#e2e8f0)] bg-[var(--bg-surface,#f8fafc)] px-3 py-2 text-left text-xs text-[var(--text-secondary,#475569)] transition-colors duration-200 hover:border-[var(--color-primary,#6C63FF)] hover:bg-[var(--bg-hover,#f1f5f9)] hover:text-[var(--text-primary,#0f172a)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary,#6C63FF)] disabled:opacity-50 cursor-pointer"
+                                            className="group flex items-center justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-2.5 text-left text-xs font-medium text-slate-700 dark:text-slate-300 transition-all duration-200 hover:border-indigo-500/80 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-300 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 cursor-pointer"
                                         >
-                                            {suggestion}
+                                            <span className="truncate pr-2">{suggestion}</span>
+                                            <span className="text-slate-400 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-transform duration-200 shrink-0">
+                                                →
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
@@ -234,58 +258,65 @@ export function AssistantPanel() {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Bar */}
-            <form
-                onSubmit={handleSubmit}
-                className="flex items-center gap-2 border-t border-[var(--border-default,#e2e8f0)] bg-[var(--bg-surface,#f8fafc)] p-3"
-            >
-                <input
-                    ref={inputRef}
-                    type="text"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    placeholder={
-                        isListening
-                            ? "Listening... Speak now..."
-                            : loading
-                            ? "Assistant is answering..."
-                            : "Ask SpeakMate Assistant..."
-                    }
-                    disabled={loading}
-                    className={`min-w-0 flex-1 rounded-xl border bg-[var(--bg-base,#ffffff)] px-3.5 py-2 text-xs text-[var(--text-primary,#0f172a)] placeholder-[var(--text-muted,#94a3b8)] transition-colors duration-200 focus:outline-none focus:ring-1 disabled:opacity-50 ${
-                        isListening
-                            ? "border-red-400 focus:border-red-500 focus:ring-red-400"
-                            : "border-[var(--border-default,#e2e8f0)] focus:border-[var(--color-primary,#6C63FF)] focus:ring-[var(--color-primary,#6C63FF)]"
-                    }`}
-                />
-                <button
-                    type="button"
-                    onClick={toggleListening}
-                    disabled={loading}
-                    aria-label={isListening ? "Stop listening" : "Voice input"}
-                    title={isListening ? "Listening... Click to stop" : "Speak your question"}
-                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary,#6C63FF)] disabled:opacity-40 cursor-pointer ${
-                        isListening
-                            ? "bg-red-500 text-white animate-pulse shadow-md shadow-red-500/30"
-                            : "border border-[var(--border-default,#e2e8f0)] bg-[var(--bg-base,#ffffff)] text-[var(--text-secondary,#64748b)] hover:border-[var(--color-primary,#6C63FF)] hover:text-[var(--color-primary,#6C63FF)]"
-                    }`}
+            {/* Modern Floating Chat Input Dock */}
+            <div className="border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-900/80 p-3 backdrop-blur-md">
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex items-center gap-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 p-1.5 pl-3.5 shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all duration-200"
                 >
-                    {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                </button>
-                <button
-                    type="submit"
-                    disabled={loading || !draft.trim()}
-                    aria-label={loading ? "Generating response..." : "Send message"}
-                    title={loading ? "Assistant is thinking..." : "Send"}
-                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--color-primary,#6C63FF)] text-white transition-all duration-200 hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary,#6C63FF)] disabled:opacity-50 cursor-pointer"
-                >
-                    {loading ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-white" aria-hidden="true" />
-                    ) : (
-                        <Send className="h-4 w-4" aria-hidden="true" />
-                    )}
-                </button>
-            </form>
+                    <input
+                        ref={inputRef}
+                        type="text"
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        placeholder={
+                            isListening
+                                ? "Listening... Speak now..."
+                                : loading
+                                ? "Thinking..."
+                                : "Ask SpeakMate Assistant..."
+                        }
+                        disabled={loading}
+                        className="min-w-0 flex-1 bg-transparent py-1.5 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none disabled:opacity-50"
+                    />
+
+                    {/* Speech-to-Text Microphone Button */}
+                    <button
+                        type="button"
+                        onClick={toggleListening}
+                        disabled={loading}
+                        aria-label={isListening ? "Stop listening" : "Voice input"}
+                        title={isListening ? "Listening... Click to stop" : "Speak your question"}
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-40 cursor-pointer ${
+                            isListening
+                                ? "bg-red-500 text-white animate-pulse shadow-md shadow-red-500/30"
+                                : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/70 hover:text-indigo-600 dark:hover:text-indigo-400"
+                        }`}
+                    >
+                        {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    </button>
+
+                    {/* Send Button */}
+                    <button
+                        type="submit"
+                        disabled={loading || !draft.trim()}
+                        aria-label={loading ? "Generating response..." : "Send message"}
+                        title={loading ? "Assistant is thinking..." : "Send"}
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-[#5243F5] to-[#7B61FF] text-white shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md hover:shadow-indigo-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-40 disabled:hover:scale-100 cursor-pointer"
+                    >
+                        {loading ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin text-white" aria-hidden="true" />
+                        ) : (
+                            <Send className="h-3.5 w-3.5" aria-hidden="true" />
+                        )}
+                    </button>
+                </form>
+
+                {/* Micro AI Disclaimer */}
+                <p className="mt-1.5 text-center text-[10px] text-slate-400 dark:text-slate-500 select-none">
+                    Powered by SpeakMate AI • Grounded Academic Assistant
+                </p>
+            </div>
         </div>
     );
 }

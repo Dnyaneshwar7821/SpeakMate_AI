@@ -38,20 +38,21 @@ export function StatRow({ stats = [] }) {
                 return (
                     <div
                         key={`${stat.label}-${index}`}
-                        className={`rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-2.5 shadow-sm ${
+                        className={`group relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-slate-50/70 dark:bg-slate-800/60 p-3 shadow-xs transition-all duration-200 hover:border-indigo-500/50 hover:bg-white dark:hover:bg-slate-800 ${
                             isFullWidth ? "col-span-2 sm:col-span-2" : ""
                         }`}
                     >
-                        <p className="truncate text-[11px] font-medium uppercase tracking-wide text-[var(--text-muted)]">
+                        <div className="absolute top-0 right-0 h-10 w-10 bg-gradient-to-bl from-indigo-500/10 to-transparent rounded-bl-2xl pointer-events-none" />
+                        <p className="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-400">
                             {stat.label}
                         </p>
                         <div className="mt-1 flex items-baseline gap-1.5">
-                            <p className="text-base font-bold text-[var(--text-primary)]">
+                            <p className="text-base font-extrabold tracking-tight text-slate-900 dark:text-white">
                                 {stat.value}
                             </p>
                             {DeltaIcon && stat.delta ? (
                                 <span
-                                    className={`inline-flex items-center gap-0.5 text-xs font-semibold ${deltaClass}`}
+                                    className={`inline-flex items-center gap-0.5 text-[11px] font-bold ${deltaClass}`}
                                 >
                                     <DeltaIcon className="h-3 w-3" aria-hidden="true" />
                                     {String(stat.delta).replace(/^[+-]/, "")}
