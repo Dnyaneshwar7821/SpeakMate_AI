@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Volume2, VolumeX } from "lucide-react";
+import { Sparkles, Volume2, VolumeX } from "lucide-react";
 
 import StatRow from "./StatRow";
 import MiniChart from "./MiniChart";

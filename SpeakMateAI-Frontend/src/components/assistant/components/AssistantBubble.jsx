@@ -1,5 +1,5 @@
 import React from "react";
-import { MessageSquare, Sparkles, X, Bot } from "lucide-react";
+import { Sparkles, X, Bot } from "lucide-react";
 
 /**
  * Modern floating AI Assistant launcher button (bottom-right).
