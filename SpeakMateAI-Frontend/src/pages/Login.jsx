@@ -53,7 +53,16 @@ export function Login() {
       }
     } catch (err) {
       console.error("Login failed:", err);
-      setError(err.userMessage || err.response?.data?.message || "Invalid credentials. Please check your details and try again.");
+      const serverMsg = err.userMessage || err.response?.data?.message || err.message;
+      let displayMsg = serverMsg;
+      if (!serverMsg || serverMsg.toLowerCase() === "invalid email" || serverMsg.toLowerCase().includes("user not found") || serverMsg.toLowerCase().includes("no account found")) {
+        displayMsg = "No account found with this email address. Please check your email or register.";
+      } else if (serverMsg.toLowerCase() === "incorrect password") {
+        displayMsg = "Incorrect password. Please try again or use 'Forgot password?'.";
+      } else if (serverMsg.toLowerCase().includes("invalid credentials")) {
+        displayMsg = "Invalid credentials. Please check your details and try again.";
+      }
+      setError(displayMsg);
     } finally {
       setLoading(false);
     }

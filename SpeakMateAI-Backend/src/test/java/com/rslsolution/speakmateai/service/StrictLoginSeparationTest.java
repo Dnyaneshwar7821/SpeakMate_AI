@@ -365,7 +365,7 @@ public class StrictLoginSeparationTest {
 				.build();
 
 		InvalidCredentialsException ex = assertThrows(InvalidCredentialsException.class, () -> userService.login(request));
-		assertEquals("Invalid email", ex.getMessage());
+		assertEquals("No account found with this email address. Please check your email or register.", ex.getMessage());
 	}
 
 	@Test

@@ -122,7 +122,15 @@ export default function LoginScreen({ navigation }) {
       }
     } catch (err) {
       const serverMsg = err.response?.data?.message || err.userMessage || 'Invalid login details. Please check your credentials and try again.';
-      setError(serverMsg);
+      let displayMsg = serverMsg;
+      if (!serverMsg || serverMsg.toLowerCase() === 'invalid email' || serverMsg.toLowerCase().includes('user not found') || serverMsg.toLowerCase().includes('no account found')) {
+        displayMsg = 'No account found with this email address. Please check your email or register.';
+      } else if (serverMsg.toLowerCase() === 'incorrect password') {
+        displayMsg = "Incorrect password. Please try again or use 'Forgot password?'.";
+      } else if (serverMsg.toLowerCase().includes('invalid login details') || serverMsg.toLowerCase().includes('invalid credentials')) {
+        displayMsg = 'Invalid login details. Please check your credentials and try again.';
+      }
+      setError(displayMsg);
     } finally {
       setLoading(false);
     }

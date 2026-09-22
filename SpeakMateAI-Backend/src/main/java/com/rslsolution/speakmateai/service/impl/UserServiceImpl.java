@@ -324,7 +324,7 @@ public class UserServiceImpl implements UserService {
 		String lookupEmail = cleanEmail != null ? cleanEmail : "";
 		User user = userRepository.findByEmailIgnoreCase(lookupEmail)
 				.orElseGet(() -> userRepository.findByEmail(lookupEmail)
-						.orElseThrow(() -> new InvalidCredentialsException("Invalid email")));
+						.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register.")));
 
 		if (!user.isActive()) {
 			throw new InvalidCredentialsException("Inactive account");
@@ -393,7 +393,7 @@ public class UserServiceImpl implements UserService {
 		String email = request.getEmail() != null ? request.getEmail().trim() : "";
 		User user = (schoolAdminRepository != null ? schoolAdminRepository.findByEmail(email).map(sa -> (User) sa) : java.util.Optional.<User>empty())
 				.or(() -> userRepository.findByEmail(email).filter(u -> u.getRole() == Role.SCHOOL_ADMIN))
-				.orElseThrow(() -> new InvalidCredentialsException("Invalid email"));
+				.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register."));
 
 		if (!user.isActive()) {
 			throw new InvalidCredentialsException("Inactive account");
@@ -410,7 +410,7 @@ public class UserServiceImpl implements UserService {
 		String email = request.getEmail() != null ? request.getEmail().trim() : "";
 		User user = (teacherRepository != null ? teacherRepository.findByEmail(email).map(t -> (User) t) : java.util.Optional.<User>empty())
 				.or(() -> userRepository.findByEmail(email).filter(u -> u.getRole() == Role.TEACHER))
-				.orElseThrow(() -> new InvalidCredentialsException("Invalid email"));
+				.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register."));
 
 		if (!user.isActive()) {
 			throw new InvalidCredentialsException("Inactive account");
@@ -427,7 +427,7 @@ public class UserServiceImpl implements UserService {
 		String email = request.getEmail() != null ? request.getEmail().trim() : "";
 		User user = (studentRepository != null ? studentRepository.findByEmail(email).map(s -> (User) s) : java.util.Optional.<User>empty())
 				.or(() -> userRepository.findByEmail(email).filter(u -> u.getRole() == Role.STUDENT))
-				.orElseThrow(() -> new InvalidCredentialsException("Invalid email"));
+				.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register."));
 
 		if (!user.isActive()) {
 			throw new InvalidCredentialsException("Inactive account");
@@ -443,7 +443,7 @@ public class UserServiceImpl implements UserService {
 	public AuthResponse loginUser(LoginRequest request) {
 		String email = request.getEmail() != null ? request.getEmail().trim() : "";
 		User user = userRepository.findByEmail(email)
-				.orElseThrow(() -> new InvalidCredentialsException("Invalid email"));
+				.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register."));
 
 		if (user.getRole() != Role.USER && user.getRole() != Role.STUDENT) {
 			throw new InvalidCredentialsException("This endpoint is for individual users and students only.");
