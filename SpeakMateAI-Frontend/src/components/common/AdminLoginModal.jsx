@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
-import { X, GraduationCap, School, ShieldCheck } from "lucide-react";
+import { X, GraduationCap, School } from "lucide-react";
 import ROUTES from "../../constants/routes";
 
 export function AdminLoginModal({ isOpen, onClose }) {
@@ -42,15 +42,6 @@ export function AdminLoginModal({ isOpen, onClose }) {
       badge: "Institution Portal",
       accent: "from-purple-500/10 to-violet-500/10 border-purple-500/20 text-purple-600 dark:text-purple-400",
       hoverRing: "hover:border-purple-500/40 hover:shadow-purple-500/5",
-    },
-    {
-      title: "Super Admin",
-      subtitle: "Super admin system metrics, full platform controls & billing",
-      route: ROUTES.ADMIN_LOGIN,
-      icon: ShieldCheck,
-      badge: "Platform Portal",
-      accent: "from-rose-500/10 to-amber-500/10 border-rose-500/20 text-rose-600 dark:text-rose-400",
-      hoverRing: "hover:border-rose-500/40 hover:shadow-rose-500/5",
     },
   ];
 
@@ -94,7 +85,7 @@ export function AdminLoginModal({ isOpen, onClose }) {
           </p>
         </div>
 
-        {/* Three Separate Clickable Cards */}
+        {/* Two Separate Clickable Cards */}
         <div className="space-y-3">
           {panels.map((panel) => {
             const Icon = panel.icon;
