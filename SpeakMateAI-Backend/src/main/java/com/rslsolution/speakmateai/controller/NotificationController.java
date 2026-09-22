@@ -18,7 +18,7 @@ import com.rslsolution.speakmateai.service.NotificationService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/notification")
+@RequestMapping({ "/api/notification", "/api/v1/teacher/notifications" })
 public class NotificationController {
 
 	private final NotificationService notificationService;
@@ -57,7 +57,7 @@ public class NotificationController {
 		return notificationService.createNotification(request);
 	}
 
-	@GetMapping("/get-all-notifications")
+	@GetMapping({ "", "/get-all-notifications" })
 	public List<NotificationResponse> getAllNotifications() {
 
 		return notificationService.getAllNotifications();
@@ -75,7 +75,7 @@ public class NotificationController {
 		return notificationService.getUnreadNotifications();
 	}
 
-	@PutMapping("/mark-as-read/{id}")
+	@PutMapping({ "/mark-as-read/{id}", "/{id}/read" })
 	public NotificationResponse markAsRead(@PathVariable Long id) {
 
 		return notificationService.markAsRead(id);
@@ -101,7 +101,7 @@ public class NotificationController {
 		return "All notifications cleared.";
 	}
 
-	@GetMapping("/count-unread")
+	@GetMapping({ "/count-unread", "/unread-count" })
 	public long countUnread() {
 		return notificationService.countUnread();
 	}

@@ -1,4 +1,4 @@
-import { Edit, Trash2, UserCheck, UserX } from "lucide-react";
+import { Edit, Trash2, UserCheck, UserX, Loader2 } from "lucide-react";
 import InsigniaBadge from "@components/common/InsigniaBadge";
 
 export function TeachersTable({ 
@@ -8,6 +8,7 @@ export function TeachersTable({
     onEdit, 
     onDelete, 
     onToggleStatus,
+    togglingTeacherId,
     getStudentCount,
     filters,
     setFilters,
@@ -161,46 +162,86 @@ export function TeachersTable({
                                 </span>
                             </td>
                             <td className="px-5 py-4">
-                                <span
-                                    className={[
-                                        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold",
-                                        isActive
-                                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500"
-                                            : "bg-[var(--bg-subtle)] text-[var(--text-muted)] dark:bg-slate-800",
-                                    ].join(" ")}
-                                >
+                                {togglingTeacherId === teacher.id ? (
                                     <span
+                                        className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold bg-amber-500/15 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300 border border-amber-500/30 animate-pulse cursor-wait"
+                                        title="Updating status..."
+                                    >
+                                        <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-600 dark:text-amber-400" />
+                                        Updating...
+                                    </span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        disabled={Boolean(togglingTeacherId)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onToggleStatus && onToggleStatus(teacher);
+                                        }}
+                                        title="Click to toggle status"
                                         className={[
-                                            "h-1.5 w-1.5 rounded-full",
-                                            isActive ? "bg-emerald-500" : "bg-[var(--text-muted)]",
+                                            "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold transition",
+                                            Boolean(togglingTeacherId)
+                                                ? "opacity-60 cursor-not-allowed"
+                                                : "cursor-pointer hover:opacity-80",
+                                            isActive
+                                                ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500"
+                                                : "bg-[var(--bg-subtle)] text-[var(--text-muted)] dark:bg-slate-800",
                                         ].join(" ")}
-                                    />
-                                    {isActive ? "Active" : "Inactive"}
-                                </span>
+                                    >
+                                        <span
+                                            className={[
+                                                "h-1.5 w-1.5 rounded-full",
+                                                isActive ? "bg-emerald-500" : "bg-[var(--text-muted)]",
+                                            ].join(" ")}
+                                        />
+                                        {isActive ? "Active" : "Inactive"}
+                                    </button>
+                                )}
                             </td>
                             <td className="px-5 py-4">
                                 <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                                    {togglingTeacherId === teacher.id ? (
+                                        <button
+                                            type="button"
+                                            disabled
+                                            title="Updating status..."
+                                            className="rounded-lg p-2 text-indigo-600 cursor-wait dark:text-indigo-400"
+                                        >
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            disabled={Boolean(togglingTeacherId)}
+                                            aria-label={isActive ? `Deactivate ${teacher.name}` : `Activate ${teacher.name}`}
+                                            onClick={() => onToggleStatus && onToggleStatus(teacher)}
+                                            className={`rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] ${
+                                                Boolean(togglingTeacherId) ? "opacity-50 cursor-not-allowed" : ""
+                                            }`}
+                                        >
+                                            {isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                                        </button>
+                                    )}
                                     <button
                                         type="button"
-                                        aria-label={isActive ? `Deactivate ${teacher.name}` : `Activate ${teacher.name}`}
-                                        onClick={() => onToggleStatus && onToggleStatus(teacher)}
-                                        className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)]"
-                                    >
-                                        {isActive ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
-                                    </button>
-                                    <button
-                                        type="button"
+                                        disabled={Boolean(togglingTeacherId)}
                                         aria-label={`Edit ${teacher.name}`}
                                         onClick={() => onEdit(teacher)}
-                                        className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)]"
+                                        className={`rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-[var(--color-primary)]/10 hover:text-[var(--color-primary)] ${
+                                            Boolean(togglingTeacherId) ? "opacity-50 cursor-not-allowed" : ""
+                                        }`}
                                     >
                                         <Edit className="h-4 w-4" />
                                     </button>
                                     <button
                                         type="button"
+                                        disabled={Boolean(togglingTeacherId)}
                                         aria-label={`Delete ${teacher.name}`}
                                         onClick={() => onDelete(teacher)}
-                                        className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-rose-500/10 hover:text-rose-500"
+                                        className={`rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-rose-500/10 hover:text-rose-500 ${
+                                            Boolean(togglingTeacherId) ? "opacity-50 cursor-not-allowed" : ""
+                                        }`}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </button>
