@@ -50,6 +50,18 @@ export function AssistantModal({
   const [draft, setDraft] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const recordingRef = useRef(null);
+  const isRecordingRef = useRef(false);
+  const speechDetectedRef = useRef(false);
+  const silenceTimerRef = useRef(0);
+  const initialSilenceTimerRef = useRef(0);
+  const stoppingRef = useRef(false);
+  const recordingSessionIdRef = useRef(0);
+  const startingRef = useRef(false);
+
+  const SILENCE_THRESHOLD_MS = 3200; // 3.2s post-speech silence auto-stop
+  const INITIAL_SILENCE_THRESHOLD_MS = 8000; // 8s initial silence before user speaks
+  const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes generous hard limit
+  const METERING_SPEECH_THRESHOLD = -48; // dB volume threshold for speech detection
 
   const welcomeText = WELCOME_TEXT_BY_ROLE[role] || WELCOME_TEXT_BY_ROLE[DEFAULT_ROLE];
   const quickSuggestions = QUICK_SUGGESTIONS_BY_ROLE[role] || [];
@@ -68,13 +80,19 @@ export function AssistantModal({
 
   // Clean up any ongoing recording when modal closes
   useEffect(() => {
-    if (!isOpen && recordingRef.current) {
+    if (!isOpen && (recordingRef.current || isRecordingRef.current)) {
       (async () => {
+        stoppingRef.current = true;
+        isRecordingRef.current = false;
+        setIsRecording(false);
         try {
-          await recordingRef.current.stopAndUnloadAsync();
+          if (recordingRef.current) {
+            recordingRef.current.setOnRecordingStatusUpdate(null);
+            await recordingRef.current.stopAndUnloadAsync();
+          }
         } catch (_) {}
         recordingRef.current = null;
-        setIsRecording(false);
+        stoppingRef.current = false;
       })();
     }
   }, [isOpen]);
@@ -89,51 +107,69 @@ export function AssistantModal({
     }
   };
 
+  const stopRecordingAndSend = async () => {
+    if (stoppingRef.current) return;
+    stoppingRef.current = true;
+    isRecordingRef.current = false;
+    setIsRecording(false);
+
+    try {
+      const rec = recordingRef.current;
+      if (!rec) {
+        stoppingRef.current = false;
+        return;
+      }
+
+      try {
+        rec.setOnRecordingStatusUpdate(null);
+      } catch (_) {}
+
+      await rec.stopAndUnloadAsync();
+      const uri = rec.getURI();
+      recordingRef.current = null;
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+      });
+
+      if (!uri) throw new Error('No audio recorded');
+
+      const res = await speechService.speechToText({
+        uri,
+        name: 'assistant_voice.m4a',
+        type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mp4',
+      });
+
+      if (res && res.transcript && res.transcript.trim()) {
+        const transcribed = res.transcript.trim();
+        setDraft(transcribed);
+        handleSend(transcribed);
+      } else {
+        Alert.alert('Silence Detected', 'Could not hear any speech. Please try speaking again.');
+      }
+    } catch (err) {
+      console.warn('[AssistantModal] Speech to text error:', err);
+      Alert.alert('Voice Input Failed', 'Could not process audio. Please check your network connection.');
+    } finally {
+      stoppingRef.current = false;
+    }
+  };
+
   const handleToggleRecording = async () => {
     if (loading) return;
 
-    if (isRecording) {
-      // Stop recording and transcribe
-      setIsRecording(false);
-      try {
-        const rec = recordingRef.current;
-        if (!rec) return;
-
-        await rec.stopAndUnloadAsync();
-        const uri = rec.getURI();
-        recordingRef.current = null;
-
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          playsInSilentModeIOS: true,
-        });
-
-        if (!uri) throw new Error('No audio recorded');
-
-        const res = await speechService.speechToText({
-          uri,
-          name: 'assistant_voice.m4a',
-          type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mp4',
-        });
-
-        if (res && res.transcript && res.transcript.trim()) {
-          const transcribed = res.transcript.trim();
-          setDraft(transcribed);
-          // Auto-send voice queries
-          handleSend(transcribed);
-        } else {
-          Alert.alert('Silence Detected', 'Could not hear any speech. Please try speaking again.');
-        }
-      } catch (err) {
-        console.warn('[AssistantModal] Speech to text error:', err);
-        Alert.alert('Voice Input Failed', 'Could not process audio. Please check your network connection.');
-      }
+    if (isRecording || isRecordingRef.current) {
+      await stopRecordingAndSend();
     } else {
-      // Start recording
+      if (startingRef.current || isRecordingRef.current) return;
+      startingRef.current = true;
+
       try {
         const { status } = await Audio.requestPermissionsAsync();
         if (status !== 'granted') {
           Alert.alert('Microphone Permission', 'Please allow microphone access to speak to the assistant.');
+          startingRef.current = false;
           return;
         }
 
@@ -141,6 +177,14 @@ export function AssistantModal({
           allowsRecordingIOS: true,
           playsInSilentModeIOS: true,
         });
+
+        if (recordingRef.current) {
+          try {
+            recordingRef.current.setOnRecordingStatusUpdate(null);
+            await recordingRef.current.stopAndUnloadAsync();
+          } catch (_) {}
+          recordingRef.current = null;
+        }
 
         const newRec = new Audio.Recording();
         await newRec.prepareToRecordAsync({
@@ -169,12 +213,50 @@ export function AssistantModal({
           },
         });
 
+        const currentSessionId = ++recordingSessionIdRef.current;
+        speechDetectedRef.current = false;
+        silenceTimerRef.current = 0;
+        initialSilenceTimerRef.current = 0;
+        stoppingRef.current = false;
+
+        newRec.setProgressUpdateInterval(250);
+        newRec.setOnRecordingStatusUpdate((status) => {
+          if (!status.isRecording || stoppingRef.current || recordingSessionIdRef.current !== currentSessionId) return;
+
+          // 5-minute hard limit
+          if (status.durationMillis && status.durationMillis >= MAX_RECORDING_DURATION_MS) {
+            stopRecordingAndSend();
+            return;
+          }
+
+          const metering = status.metering ?? -100;
+          if (metering > METERING_SPEECH_THRESHOLD) {
+            speechDetectedRef.current = true;
+            silenceTimerRef.current = 0;
+          } else if (speechDetectedRef.current) {
+            silenceTimerRef.current += 250;
+            if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) { // 3.2s silence -> AUTO STOP & SEND
+              stopRecordingAndSend();
+            }
+          } else {
+            initialSilenceTimerRef.current += 250;
+            if (initialSilenceTimerRef.current >= INITIAL_SILENCE_THRESHOLD_MS) { // 8s initial silence -> AUTO STOP
+              stopRecordingAndSend();
+            }
+          }
+        });
+
         await newRec.startAsync();
         recordingRef.current = newRec;
+        isRecordingRef.current = true;
         setIsRecording(true);
       } catch (err) {
         console.warn('[AssistantModal] Start recording error:', err);
         Alert.alert('Microphone Error', 'Could not start microphone recording.');
+        isRecordingRef.current = false;
+        setIsRecording(false);
+      } finally {
+        startingRef.current = false;
       }
     }
   };
@@ -386,7 +468,7 @@ export function AssistantModal({
                 onChangeText={setDraft}
                 placeholder={
                   isRecording
-                    ? 'Listening... speak now...'
+                    ? 'Listening... Auto-sends when you finish speaking'
                     : loading
                     ? 'Thinking...'
                     : 'Ask SpeakMate Assistant...'

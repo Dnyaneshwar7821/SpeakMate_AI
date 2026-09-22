@@ -32,6 +32,17 @@ export const AssistantPanel = React.forwardRef(function AssistantPanel(props, re
     const inputRef = useRef(null);
     const messagesEndRef = useRef(null);
     const recognitionRef = useRef(null);
+    const isListeningRef = useRef(false);
+    const silenceTimerRef = useRef(null);
+    const stoppingByUserRef = useRef(false);
+    const accumulatedTranscriptRef = useRef("");
+    const interimTranscriptRef = useRef("");
+    const handleStopListeningAndSendRef = useRef(null);
+    const sendRef = useRef(send);
+
+    useEffect(() => {
+        sendRef.current = send;
+    }, [send]);
 
     const welcome = WELCOME_TEXT_BY_ROLE[role] || WELCOME_TEXT_BY_ROLE[DEFAULT_ROLE];
     const suggestions = QUICK_SUGGESTIONS_BY_ROLE[role] || [];
@@ -53,37 +64,78 @@ export const AssistantPanel = React.forwardRef(function AssistantPanel(props, re
         }
     }, [loading, isEmpty]);
 
-    // Speech-to-Text setup using browser Web Speech API
+    // Speech-to-Text setup using browser Web Speech API with Continuous VAD & Auto-Send
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
-            recognition.continuous = false;
+            recognition.continuous = true;
             recognition.interimResults = true;
             recognition.lang = "en-US";
 
-            recognition.onresult = (event) => {
-                const transcript = Array.from(event.results)
-                    .map((result) => result[0].transcript)
-                    .join("");
-                setDraft(transcript);
+            recognition.onresult = (e) => {
+                let interim = "";
+                for (let i = e.resultIndex; i < e.results.length; i++) {
+                    const textChunk = e.results[i][0].transcript;
+                    if (e.results[i].isFinal) {
+                        accumulatedTranscriptRef.current = (accumulatedTranscriptRef.current + " " + textChunk).trim();
+                    } else {
+                        interim += textChunk;
+                    }
+                }
+                interimTranscriptRef.current = interim;
+
+                const fullTranscript = (accumulatedTranscriptRef.current + " " + interim).trim();
+                setDraft(fullTranscript);
+
+                if (silenceTimerRef.current) {
+                    clearTimeout(silenceTimerRef.current);
+                    silenceTimerRef.current = null;
+                }
+
+                if (fullTranscript.length > 0) {
+                    silenceTimerRef.current = setTimeout(() => {
+                        if (handleStopListeningAndSendRef.current) {
+                            handleStopListeningAndSendRef.current();
+                        }
+                    }, 2800);
+                }
             };
 
-            recognition.onerror = () => {
-                setIsListening(false);
+            recognition.onerror = (err) => {
+                if (err?.error === "no-speech") return;
+                if (err?.error === "not-allowed" || err?.error === "service-not-allowed") {
+                    setIsListening(false);
+                    isListeningRef.current = false;
+                    if (silenceTimerRef.current) {
+                        clearTimeout(silenceTimerRef.current);
+                        silenceTimerRef.current = null;
+                    }
+                }
             };
 
             recognition.onend = () => {
-                setIsListening(false);
+                if (isListeningRef.current && !stoppingByUserRef.current) {
+                    try {
+                        recognition.start();
+                    } catch (e) {}
+                } else {
+                    setIsListening(false);
+                    isListeningRef.current = false;
+                }
             };
 
             recognitionRef.current = recognition;
         }
 
         return () => {
+            if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+                silenceTimerRef.current = null;
+            }
             if (recognitionRef.current) {
                 try {
-                    recognitionRef.current.abort();
+                    recognitionRef.current.stop();
                 } catch {
                     // Ignore abort errors on cleanup
                 }
@@ -91,30 +143,73 @@ export const AssistantPanel = React.forwardRef(function AssistantPanel(props, re
         };
     }, []);
 
+    const handleStopListeningAndSend = async () => {
+        if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+        }
+
+        stoppingByUserRef.current = true;
+        isListeningRef.current = false;
+        setIsListening(false);
+
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.stop();
+            } catch (err) {}
+        }
+
+        const finalSpoken = (
+            accumulatedTranscriptRef.current + " " + (interimTranscriptRef.current || "")
+        ).trim() || draft.trim();
+
+        accumulatedTranscriptRef.current = "";
+        interimTranscriptRef.current = "";
+        setDraft("");
+
+        if (!finalSpoken) return;
+
+        if (sendRef.current) {
+            await sendRef.current(finalSpoken);
+        }
+        inputRef.current?.focus();
+    };
+    handleStopListeningAndSendRef.current = handleStopListeningAndSend;
+
     const toggleListening = () => {
         if (!recognitionRef.current) {
             alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
             return;
         }
-        if (isListening) {
-            recognitionRef.current.stop();
-            setIsListening(false);
+        if (isListeningRef.current) {
+            handleStopListeningAndSend();
         } else {
+            if (silenceTimerRef.current) {
+                clearTimeout(silenceTimerRef.current);
+                silenceTimerRef.current = null;
+            }
+            stoppingByUserRef.current = false;
+            accumulatedTranscriptRef.current = "";
+            interimTranscriptRef.current = "";
+            setDraft("");
+
             try {
                 recognitionRef.current.start();
+                isListeningRef.current = true;
                 setIsListening(true);
             } catch (err) {
-                console.error("Speech recognition start failed:", err);
-                setIsListening(false);
+                console.warn("Speech recognition start collision:", err);
+                isListeningRef.current = true;
+                setIsListening(true);
             }
         }
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
-        if (isListening && recognitionRef.current) {
-            recognitionRef.current.stop();
-            setIsListening(false);
+        if (isListeningRef.current) {
+            handleStopListeningAndSend();
+            return;
         }
         const trimmed = draft.trim();
         if (!trimmed || loading) return;
@@ -282,7 +377,7 @@ export const AssistantPanel = React.forwardRef(function AssistantPanel(props, re
                         onChange={(e) => setDraft(e.target.value)}
                         placeholder={
                             isListening
-                                ? "Listening... Speak now..."
+                                ? "Listening... Auto-sends when you finish speaking..."
                                 : loading
                                 ? "Thinking..."
                                 : "Ask SpeakMate Assistant..."

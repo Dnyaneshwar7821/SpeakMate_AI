@@ -836,7 +836,10 @@ export default function LessonDetailScreen({ navigation, route }) {
         type: Platform.OS === 'ios' ? 'audio/x-m4a' : 'audio/mpeg',
       });
       if (res.transcript && res.transcript.trim()) {
-        setSpeakingInput(res.transcript.trim());
+        const spoken = res.transcript.trim();
+        setSpeakingInput(spoken);
+        // Automatically evaluate the spoken practice answer upon silence detection!
+        evaluateSpeakingAttempt(spoken);
       } else {
         Alert.alert('No Speech Detected', 'Could not hear anything. Please try speaking again.');
       }
@@ -854,6 +857,7 @@ export default function LessonDetailScreen({ navigation, route }) {
     silenceTimerRef.current = 0;
     initialSilenceTimerRef.current = 0;
     stoppingRef.current = false;
+    const startTimestamp = Date.now();
 
     if (vadIntervalRef.current) clearInterval(vadIntervalRef.current);
 
@@ -866,21 +870,27 @@ export default function LessonDetailScreen({ navigation, route }) {
         return;
       }
 
+      // Hard max limit 5 minutes (300,000ms)
+      if (Date.now() - startTimestamp >= 300000) {
+        stopRecordingAndTranscribe();
+        return;
+      }
+
       try {
         const status = await audioRecorder.getStatusAsync?.().catch(() => null);
         const metering = status?.metering ?? audioRecorder.metering ?? -100;
 
-        if (metering > -40) {
+        if (metering > -48) {
           speechDetectedRef.current = true;
           silenceTimerRef.current = 0;
         } else if (speechDetectedRef.current) {
           silenceTimerRef.current += 300;
-          if (silenceTimerRef.current >= 2400) { // 2.4s silence -> AUTO STOP
+          if (silenceTimerRef.current >= 3200) { // 3.2s silence -> AUTO STOP & EVALUATE
             stopRecordingAndTranscribe();
           }
         } else {
           initialSilenceTimerRef.current += 300;
-          if (initialSilenceTimerRef.current >= 6000) { // 6s initial silence -> AUTO STOP
+          if (initialSilenceTimerRef.current >= 8000) { // 8s initial silence -> AUTO STOP
             stopRecordingAndTranscribe();
           }
         }
@@ -913,12 +923,13 @@ export default function LessonDetailScreen({ navigation, route }) {
     }
   };
 
-  const evaluateSpeakingAttempt = async () => {
-    if (!speakingInput.trim()) return;
+  const evaluateSpeakingAttempt = async (overrideText = null) => {
+    const textToEvaluate = (typeof overrideText === 'string' ? overrideText : speakingInput).trim();
+    if (!textToEvaluate) return;
     setEvaluatingSpeaking(true);
     setSpeakingFeedback(null);
     try {
-      const promptText = `Lesson Title: "${lesson?.title}". Category: "${lesson?.category}". Student Spoken/Written Practice Sentence: "${speakingInput.trim()}"`;
+      const promptText = `Lesson Title: "${lesson?.title}". Category: "${lesson?.category}". Student Spoken/Written Practice Sentence: "${textToEvaluate}"`;
       const res = await aiService.speakingFeedback(promptText);
       if (res?.response) {
         setSpeakingFeedback(res.response);
@@ -1857,7 +1868,7 @@ export default function LessonDetailScreen({ navigation, route }) {
                       {isTranscribing
                         ? 'Transcribing your voice…'
                         : isVoiceRecording
-                        ? 'Recording… Tap to stop'
+                        ? 'Recording… Auto-evaluates when you finish speaking'
                         : 'Tap mic to speak'}
                     </Text>
                   </View>
