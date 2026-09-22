@@ -98,6 +98,13 @@ export function ConversationChat() {
   const [viseme, setViseme] = useState("REST");
 
   const recognitionRef = useRef(null);
+  const isListeningRef = useRef(false);
+  const silenceTimerRef = useRef(null);
+  const stoppingByUserRef = useRef(false);
+  const accumulatedTranscriptRef = useRef("");
+  const interimTranscriptRef = useRef("");
+  const handleStopListeningAndSendRef = useRef(null);
+  const handleSendMessageRef = useRef(null);
   const chatEndRef = useRef(null);
   const hasSpokenInitialRef = useRef(false);
 
@@ -217,7 +224,7 @@ export function ConversationChat() {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, hints, evaluating]);
 
-  // Web Speech API
+  // Web Speech API with Continuous VAD & Auto-Send
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -227,19 +234,79 @@ export function ConversationChat() {
       recognition.lang = "en-US";
 
       recognition.onresult = (e) => {
-        let transcript = "";
+        let interim = "";
         for (let i = e.resultIndex; i < e.results.length; i++) {
-          transcript += e.results[i][0].transcript;
+          const textChunk = e.results[i][0].transcript;
+          if (e.results[i].isFinal) {
+            accumulatedTranscriptRef.current = (accumulatedTranscriptRef.current + " " + textChunk).trim();
+          } else {
+            interim += textChunk;
+          }
         }
-        setCurrentTranscript(transcript);
-        setInputText(transcript);
+        interimTranscriptRef.current = interim;
+
+        const fullTranscript = (accumulatedTranscriptRef.current + " " + interim).trim();
+        setCurrentTranscript(fullTranscript);
+        setInputText(fullTranscript);
+
+        // Reset silence timer on every speech event
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+
+        // Arm auto-send timer when speech has been detected (2.8s pause triggers auto-stop & send)
+        if (fullTranscript.length > 0) {
+          silenceTimerRef.current = setTimeout(() => {
+            if (handleStopListeningAndSendRef.current) {
+              handleStopListeningAndSendRef.current();
+            }
+          }, 2800);
+        }
       };
 
-      recognition.onerror = () => setIsListening(false);
-      recognition.onend = () => setIsListening(false);
+      recognition.onerror = (err) => {
+        console.warn("Speech Recognition notice:", err?.error || err);
+        if (err?.error === "no-speech") {
+          return;
+        }
+        if (err?.error === "not-allowed" || err?.error === "service-not-allowed") {
+          setIsListening(false);
+          isListeningRef.current = false;
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+        }
+      };
+
+      recognition.onend = () => {
+        // If the browser session ended automatically but user is still in listening mode,
+        // restart it seamlessly so user can talk as long as they want without premature cutoff!
+        if (isListeningRef.current && !stoppingByUserRef.current) {
+          try {
+            recognition.start();
+          } catch (e) {}
+        } else {
+          setIsListening(false);
+          isListeningRef.current = false;
+        }
+      };
 
       recognitionRef.current = recognition;
     }
+
+    return () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
+      }
+    };
   }, []);
 
   const handleToggleSpeed = () => {
@@ -271,25 +338,77 @@ export function ConversationChat() {
     }
   };
 
+  const handleStopListeningAndSend = async () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    stoppingByUserRef.current = true;
+    isListeningRef.current = false;
+    setIsListening(false);
+
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (err) {}
+    }
+
+    const finalSpoken = (
+      accumulatedTranscriptRef.current + " " + (interimTranscriptRef.current || "")
+    ).trim() || currentTranscript.trim() || inputText.trim();
+
+    accumulatedTranscriptRef.current = "";
+    interimTranscriptRef.current = "";
+    setCurrentTranscript("");
+
+    if (!finalSpoken) return;
+
+    if (handleSendMessageRef.current) {
+      await handleSendMessageRef.current(finalSpoken);
+    }
+  };
+  handleStopListeningAndSendRef.current = handleStopListeningAndSend;
+
   const handleToggleRecording = () => {
-    if (isListening) {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      setIsListening(false);
+    if (isListeningRef.current) {
+      handleStopListeningAndSend();
     } else {
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
         setIsAiSpeaking(false);
         setViseme("REST");
       }
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      stoppingByUserRef.current = false;
+      accumulatedTranscriptRef.current = "";
+      interimTranscriptRef.current = "";
+      setCurrentTranscript("");
+      setInputText("");
+
       if (recognitionRef.current) {
-        setCurrentTranscript("");
-        recognitionRef.current.start();
-        setIsListening(true);
+        try {
+          recognitionRef.current.start();
+          isListeningRef.current = true;
+          setIsListening(true);
+        } catch (err) {
+          console.warn("Speech recognition start collision:", err);
+          isListeningRef.current = true;
+          setIsListening(true);
+        }
       } else {
+        isListeningRef.current = true;
         setIsListening(true);
         setTimeout(() => {
           setInputText("I want to improve my sentence structure and vocabulary.");
-          setIsListening(false);
+          silenceTimerRef.current = setTimeout(() => {
+            if (handleStopListeningAndSendRef.current) {
+              handleStopListeningAndSendRef.current();
+            }
+          }, 2000);
         }, 1500);
       }
     }
@@ -378,6 +497,7 @@ export function ConversationChat() {
       setEvaluating(false);
     }
   };
+  handleSendMessageRef.current = handleSendMessage;
 
   const handleToggleBookmark = async (msgId) => {
     try {
@@ -674,14 +794,14 @@ export function ConversationChat() {
                   <span className="w-1 bg-red-500 rounded-full h-5 animate-pulse" style={{ animationDelay: "75ms" }} />
                   <span className="w-1 bg-red-500 rounded-full h-2.5 animate-pulse" style={{ animationDelay: "225ms" }} />
                 </div>
-                <span>Speak now — SpeakMate AI is listening to your English...</span>
+                <span>Speak now — auto-sends when you finish speaking...</span>
               </div>
               <button
                 type="button"
                 onClick={handleToggleRecording}
                 className="px-2.5 py-0.5 rounded bg-red-500 text-white text-[10px] font-extrabold hover:bg-red-600 transition-all"
               >
-                Done
+                Send Now
               </button>
             </div>
           )}

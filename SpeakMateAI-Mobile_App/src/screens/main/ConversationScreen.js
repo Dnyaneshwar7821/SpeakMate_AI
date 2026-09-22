@@ -817,11 +817,11 @@ export default function ConversationScreen({ navigation, route }) {
     }
   };
 
-  // ── Recording Handling (expo-av with 2.4s Silence Auto-Stop VAD & Race-Protection) ──────
-  const SILENCE_THRESHOLD_MS = 2400; // 2.4s post-speech silence auto-stop (allows natural thinking pauses)
-  const INITIAL_SILENCE_THRESHOLD_MS = 6000; // 6s initial silence before user speaks
-  const MAX_RECORDING_DURATION_MS = 180000; // 3 minutes generous hard limit for long speech practice
-  const METERING_SPEECH_THRESHOLD = -42; // dB volume threshold for speech detection
+  // ── Recording Handling (expo-av with 3.2s Silence Auto-Stop VAD & Race-Protection) ──────
+  const SILENCE_THRESHOLD_MS = 3200; // 3.2s post-speech silence auto-stop (allows natural thinking pauses without premature cutoff)
+  const INITIAL_SILENCE_THRESHOLD_MS = 8000; // 8s initial silence before user speaks
+  const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes generous limit for uninterrupted long speech
+  const METERING_SPEECH_THRESHOLD = -48; // dB volume threshold for speech detection (higher sensitivity for soft speaking)
 
   const startRecording = async () => {
     if (startingRef.current || isRecordingRef.current) return;

@@ -126,6 +126,13 @@ export function ConversationSession() {
   const [viseme, setViseme] = useState("REST");
 
   const recognitionRef = useRef(null);
+  const isListeningRef = useRef(false);
+  const silenceTimerRef = useRef(null);
+  const stoppingByUserRef = useRef(false);
+  const accumulatedTranscriptRef = useRef("");
+  const interimTranscriptRef = useRef("");
+  const handleStopListeningAndSendRef = useRef(null);
+  const sendUserTextRef = useRef(null);
   const chatEndRef = useRef(null);
   const hasSpokenInitialRef = useRef(false);
   const hasFinishedRef = useRef(false);
@@ -247,24 +254,83 @@ export function ConversationSession() {
       recognition.lang = "en-US";
 
       recognition.onresult = (e) => {
-        let transcript = "";
+        let interim = "";
+        let finalChunk = "";
         for (let i = e.resultIndex; i < e.results.length; i++) {
-          transcript += e.results[i][0].transcript;
+          const res = e.results[i];
+          if (res.isFinal) {
+            finalChunk += res[0].transcript + " ";
+          } else {
+            interim += res[0].transcript;
+          }
         }
-        setCurrentTranscript(transcript);
+
+        if (finalChunk) {
+          accumulatedTranscriptRef.current += finalChunk;
+        }
+        interimTranscriptRef.current = interim;
+
+        const fullTranscript = (accumulatedTranscriptRef.current + " " + interim).trim();
+        setCurrentTranscript(fullTranscript);
+
+        // Reset silence timer on every speech event
+        if (silenceTimerRef.current) {
+          clearTimeout(silenceTimerRef.current);
+          silenceTimerRef.current = null;
+        }
+
+        // Arm auto-send timer when speech has been detected (2.8s pause triggers send)
+        if (fullTranscript.length > 0) {
+          silenceTimerRef.current = setTimeout(() => {
+            if (handleStopListeningAndSendRef.current) {
+              handleStopListeningAndSendRef.current();
+            }
+          }, 2800);
+        }
       };
 
       recognition.onerror = (err) => {
-        console.error("Speech Recognition Error:", err);
-        setIsListening(false);
+        console.warn("Speech Recognition notice:", err?.error || err);
+        if (err?.error === "no-speech") {
+          return;
+        }
+        if (err?.error === "not-allowed" || err?.error === "service-not-allowed") {
+          setIsListening(false);
+          isListeningRef.current = false;
+          if (silenceTimerRef.current) {
+            clearTimeout(silenceTimerRef.current);
+            silenceTimerRef.current = null;
+          }
+        }
       };
 
       recognition.onend = () => {
-        setIsListening(false);
+        // If the browser session ended automatically but user is still in listening mode,
+        // restart it seamlessly so user can talk as long as they want without premature cutoff!
+        if (isListeningRef.current && !stoppingByUserRef.current) {
+          try {
+            recognition.start();
+          } catch (e) {}
+        } else {
+          setIsListening(false);
+          isListeningRef.current = false;
+        }
       };
 
       recognitionRef.current = recognition;
     }
+
+    return () => {
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
+      }
+    };
   }, []);
 
   const formatTime = (seconds) => {
@@ -314,37 +380,71 @@ export function ConversationSession() {
       setIsAiSpeaking(false);
       setViseme("REST");
     }
+
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+
+    stoppingByUserRef.current = false;
+    accumulatedTranscriptRef.current = "";
+    interimTranscriptRef.current = "";
+    setCurrentTranscript("");
+
     if (recognitionRef.current) {
       try {
-        setCurrentTranscript("");
         recognitionRef.current.start();
+        isListeningRef.current = true;
         setIsListening(true);
       } catch (err) {
-        console.error(err);
+        console.warn("Speech recognition start collision:", err);
+        isListeningRef.current = true;
+        setIsListening(true);
       }
     } else {
+      isListeningRef.current = true;
       setIsListening(true);
       setTimeout(() => {
         setCurrentTranscript("I want to learn English fluently and improve my vocabulary.");
+        silenceTimerRef.current = setTimeout(() => {
+          if (handleStopListeningAndSendRef.current) {
+            handleStopListeningAndSendRef.current();
+          }
+        }, 2000);
       }, 1500);
     }
   };
 
   const handleStopListeningAndSend = async () => {
-    if (recognitionRef.current && isListening) {
-      try {
-        recognitionRef.current.stop();
-      } catch (err) {
-        console.error(err);
-      }
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
     }
+
+    stoppingByUserRef.current = true;
+    isListeningRef.current = false;
     setIsListening(false);
 
-    const userText = currentTranscript.trim() || "I want to improve my spoken English skills.";
-    if (!userText) return;
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (err) {}
+    }
 
-    await sendUserText(userText);
+    const finalSpoken = (
+      accumulatedTranscriptRef.current + " " + (interimTranscriptRef.current || "")
+    ).trim() || currentTranscript.trim();
+
+    accumulatedTranscriptRef.current = "";
+    interimTranscriptRef.current = "";
+
+    if (!finalSpoken) return;
+
+    if (sendUserTextRef.current) {
+      await sendUserTextRef.current(finalSpoken);
+    }
   };
+  handleStopListeningAndSendRef.current = handleStopListeningAndSend;
 
   const sendUserText = async (text) => {
     setHints([]);
@@ -826,9 +926,9 @@ export function ConversationSession() {
                   <span className="w-1 bg-rose-500 rounded-full h-5 animate-pulse" style={{ animationDelay: "75ms" }} />
                   <span className="w-1 bg-rose-500 rounded-full h-2.5 animate-pulse" style={{ animationDelay: "225ms" }} />
                 </div>
-                <span>Listening to your speech...</span>
+                <span>Listening — auto-sends when you finish speaking...</span>
               </div>
-              <span className={`text-[10px] uppercase font-black ${isDark ? "text-rose-300" : "text-rose-600"}`}>Tap Red Button To Send</span>
+              <span className={`text-[10px] uppercase font-black ${isDark ? "text-rose-300" : "text-rose-600"}`}>Auto-sends on silence</span>
             </div>
           )}
 
