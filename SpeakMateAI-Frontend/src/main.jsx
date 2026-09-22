@@ -6,23 +6,39 @@ import App from './App.jsx';
 
 // Handle dynamic module load errors when a new deployment invalidates old chunk hashes
 if (typeof window !== 'undefined') {
+  const triggerReloadForStaleChunk = () => {
+    const lastReload = sessionStorage.getItem('speakmate_chunk_reload_ts');
+    const now = Date.now();
+    if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+      sessionStorage.setItem('speakmate_chunk_reload_ts', now.toString());
+      window.location.reload();
+    }
+  };
+
   window.addEventListener('vite:preloadError', (event) => {
     event.preventDefault();
-    window.location.reload();
+    triggerReloadForStaleChunk();
   });
 
   window.addEventListener('error', (event) => {
+    const msg = event?.message || '';
     if (
-      event?.message &&
-      (event.message.includes('dynamically imported module') ||
-       event.message.includes('Expected a JavaScript-or-Wasm module script'))
+      msg.includes('dynamically imported module') ||
+      msg.includes('Expected a JavaScript-or-Wasm module script') ||
+      msg.includes('Failed to fetch dynamically imported module')
     ) {
-      const lastReload = sessionStorage.getItem('speakmate_chunk_reload_ts');
-      const now = Date.now();
-      if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
-        sessionStorage.setItem('speakmate_chunk_reload_ts', now.toString());
-        window.location.reload();
-      }
+      triggerReloadForStaleChunk();
+    }
+  });
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event?.reason?.message || String(event?.reason || '');
+    if (
+      reason.includes('dynamically imported module') ||
+      reason.includes('Expected a JavaScript-or-Wasm module script') ||
+      reason.includes('Failed to fetch dynamically imported module')
+    ) {
+      triggerReloadForStaleChunk();
     }
   });
 }
