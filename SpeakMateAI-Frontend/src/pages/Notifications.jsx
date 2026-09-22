@@ -43,6 +43,7 @@ export function Notifications() {
       ]);
       setNotifications(Array.isArray(notifs) ? notifs : []);
       setAnnouncements(Array.isArray(schoolAncs) ? schoolAncs : []);
+      window.dispatchEvent(new CustomEvent("speakmate_notifications_updated"));
     } catch (e) {
       console.error("Failed to load notifications:", e);
     } finally {
@@ -62,6 +63,7 @@ export function Notifications() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
       );
+      window.dispatchEvent(new CustomEvent("speakmate_notifications_updated"));
     } catch (e) {
       console.error("Failed to mark notification as read:", e);
     }
@@ -73,6 +75,7 @@ export function Notifications() {
     try {
       await notificationService.markAllRead();
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      window.dispatchEvent(new CustomEvent("speakmate_notifications_updated"));
     } catch (e) {
       console.error("Failed to mark all as read:", e);
     }
@@ -82,6 +85,7 @@ export function Notifications() {
     try {
       await notificationService.delete(id);
       setNotifications((prev) => prev.filter((n) => n.id !== id));
+      window.dispatchEvent(new CustomEvent("speakmate_notifications_updated"));
     } catch (e) {
       console.error("Failed to delete notification:", e);
     }
@@ -92,6 +96,7 @@ export function Notifications() {
       await notificationService.clearAll();
       setNotifications([]);
       setShowClearConfirm(false);
+      window.dispatchEvent(new CustomEvent("speakmate_notifications_updated"));
     } catch (e) {
       console.error("Failed to clear notifications:", e);
     }

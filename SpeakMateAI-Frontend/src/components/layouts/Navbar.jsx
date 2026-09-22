@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -6,6 +6,7 @@ import ROUTES from "../../constants/routes";
 import { getLiveProgressStats } from "../../utils/progressTracker";
 import { StreakModal } from "../dashboard/StreakModal";
 import { AdminLoginModal } from "../common/AdminLoginModal";
+import { notificationService } from "../../services/appServices";
 
 export function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -21,6 +22,7 @@ export function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [liveStats, setLiveStats] = useState(() => getLiveProgressStats(user));
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Searchable Quick Pages & Modules
   const SEARCHABLE_PAGES = useMemo(
@@ -133,6 +135,40 @@ export function Navbar() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [searchOpen]);
+
+  // Live Unread Notifications fetcher & listener
+  const fetchUnreadNotifications = useCallback(async () => {
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return;
+    }
+    try {
+      const res = await notificationService.countUnread().catch(() => 0);
+      const count = typeof res === "number" ? res : typeof res?.count === "number" ? res.count : 0;
+      setUnreadCount(Math.max(0, count));
+    } catch {
+      setUnreadCount(0);
+    }
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    fetchUnreadNotifications();
+    const interval = setInterval(fetchUnreadNotifications, 60000);
+    const handleUpdate = () => fetchUnreadNotifications();
+    window.addEventListener("focus", handleUpdate);
+    window.addEventListener("speakmate_notifications_updated", handleUpdate);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleUpdate);
+      window.removeEventListener("speakmate_notifications_updated", handleUpdate);
+    };
+  }, [fetchUnreadNotifications]);
+
+  useEffect(() => {
+    if (location.pathname === ROUTES.NOTIFICATIONS) {
+      fetchUnreadNotifications();
+    }
+  }, [location.pathname, fetchUnreadNotifications]);
 
   // Keyboard navigation within the dropdown
   const handleInputKeyDown = (e) => {
@@ -415,12 +451,16 @@ export function Navbar() {
                 to={ROUTES.NOTIFICATIONS}
                 className={`grid h-11 w-11 place-items-center rounded-2xl text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-[var(--bg-surface)] hover:bg-[var(--bg-elevated)] border border-[var(--border-default)] relative transition-all shadow-sm active:scale-95 ${location.pathname === ROUTES.NOTIFICATIONS ? "border-[#6C63FF] text-[#6C63FF]" : ""
                   }`}
-                title="Notifications"
+                title={unreadCount > 0 ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}` : "Notifications"}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
-                <span className="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-[var(--bg-base)] animate-pulse" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-black flex items-center justify-center shadow-md shadow-red-500/30 ring-2 ring-[var(--bg-base)] animate-in zoom-in duration-200">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
 
               {/* Streak & XP Badges */}
