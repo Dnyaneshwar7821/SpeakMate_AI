@@ -97,7 +97,19 @@ export function useStudents() {
       if ((!currentStandard || currentStandard === "All Standards") && (!currentSearch || !currentSearch.trim())) {
         studentsCache = mapped;
       }
-      setStudents(mapped);
+      let filtered = mapped;
+      if (currentStandard && currentStandard !== "All Standards") {
+        filtered = filtered.filter((s) => String(s.standard) === String(currentStandard));
+      }
+      if (currentSearch && currentSearch.trim()) {
+        const q = currentSearch.trim().toLowerCase();
+        filtered = filtered.filter((s) =>
+          (s.name && s.name.toLowerCase().includes(q)) ||
+          (s.email && s.email.toLowerCase().includes(q)) ||
+          (s.rollNo && String(s.rollNo).toLowerCase().includes(q))
+        );
+      }
+      setStudents(filtered);
     } catch (err) {
       console.error("Failed to load students:", err);
     } finally {

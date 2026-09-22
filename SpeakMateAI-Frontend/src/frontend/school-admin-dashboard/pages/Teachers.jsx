@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Briefcase, Search, Download, Filter, ChevronDown } from "lucide-react";
 
@@ -13,6 +14,7 @@ import DeleteUserDialog from "@admin/components/DeleteUserDialog";
 import { useTeachers } from "@school-admin/hooks/useSchoolData";
 
 export function Teachers() {
+    const location = useLocation();
     const {
         teachers,
         totalTeachers,
@@ -24,6 +26,12 @@ export function Teachers() {
         getStudentsForTeacher,
         isLoading
     } = useTeachers();
+
+    useEffect(() => {
+        if (location.state?.searchTerm) {
+            setSearchTerm(location.state.searchTerm);
+        }
+    }, [location.state]);
 
     const [selectedTeacher, setSelectedTeacher] = useState(null); // For viewing assigned students
     const [formModal, setFormModal] = useState({ isOpen: false, mode: "add", teacher: null });
@@ -99,7 +107,14 @@ export function Teachers() {
             }
         }
         
-        return matchesDept && matchesStatus && matchesStandard && matchesDivision;
+        const q = (searchTerm || "").trim().toLowerCase();
+        const matchesSearch = !q ||
+            (t.name && t.name.toLowerCase().includes(q)) ||
+            (t.email && t.email.toLowerCase().includes(q)) ||
+            (t.department && t.department.toLowerCase().includes(q)) ||
+            (t.phone && t.phone.toLowerCase().includes(q));
+
+        return matchesDept && matchesStatus && matchesStandard && matchesDivision && matchesSearch;
     });
 
     // Toast state
