@@ -42,9 +42,7 @@ const ACCENT_COLORS = [
 ];
 
 const TABS = [
-    { id: "general", label: "General", icon: Globe },
     { id: "account", label: "Account & Security", icon: Shield },
-    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "appearance", label: "Appearance", icon: Moon },
     { id: "integrations", label: "Integrations", icon: Cpu },
     { id: "backup", label: "Backup & Restore", icon: Database },
@@ -91,20 +89,25 @@ export function Settings() {
     const navigate = useNavigate();
     const { theme, setTheme, accent: accentColor, setAccent: setAccentColor, sidebarDensity, setSidebarDensity } = useTheme();
     const [activeTab, setActiveTab] = useState(() => {
-        return location.state?.activeTab || "general";
+        const raw = location.state?.activeTab;
+        if (raw === "password") return "account";
+        if (TABS.some((t) => t.id === raw)) return raw;
+        return "account";
     });
 
     useEffect(() => {
-        if (location.state?.activeTab) {
-            setActiveTab(location.state.activeTab);
+        const rawState = location.state?.activeTab;
+        if (rawState) {
+            setActiveTab(rawState === "password" ? "account" : (TABS.some((t) => t.id === rawState) ? rawState : "account"));
         } else {
             const params = new URLSearchParams(location.search);
             const tabParam = params.get("tab");
             if (tabParam) {
-                setActiveTab(tabParam);
+                setActiveTab(tabParam === "password" ? "account" : (TABS.some((t) => t.id === tabParam) ? tabParam : "account"));
             }
         }
     }, [location]);
+
 
     const [selectedThemeCard, setSelectedThemeCard] = useState(theme);
 
@@ -141,18 +144,6 @@ export function Settings() {
         loginAlerts: true,
     });
 
-    const [generalSettings, setGeneralSettings] = useState({
-        schoolName: "Delhi Public School",
-        contactEmail: "admin@dps.edu.in",
-        contactPhone: "+91 9876543210",
-        address: "Sector 12, Dwarka, New Delhi",
-        language: "English",
-        timezone: "Asia/Kolkata (IST)",
-        academicYear: "2025-2026",
-        dateFormat: "MM/DD/YYYY"
-    });
-
-    const [isEditingGeneral, setIsEditingGeneral] = useState(false);
     const [isEditingPassword, setIsEditingPassword] = useState(false);
 
     useEffect(() => {
@@ -336,22 +327,6 @@ export function Settings() {
         setTimeout(() => setToast(null), 3000);
     };
 
-    const handleSaveGeneral = async (e) => {
-        if (e) e.preventDefault();
-        setIsSaving(true);
-        try {
-            // Mock API Call
-            await new Promise((resolve) => setTimeout(resolve, 800));
-            setToast({ message: "General Settings saved successfully!", type: "success" });
-            setIsEditingGeneral(false);
-            setTimeout(() => setToast(null), 3000);
-        } catch (err) {
-            setToast({ message: "Failed to save General Settings", type: "error" });
-        } finally {
-            setIsSaving(false);
-        }
-    };
-
     return (
         <div className="space-y-5 sm:space-y-6">
             {/* Header */}
@@ -496,133 +471,6 @@ export function Settings() {
                                         </div>
                                     </SectionCard>
                                 )}
-                                {activeTab === "general" && (
-                                    <SectionCard
-                                        title="General Settings"
-                                        subtitle="Configure your school's core identity, contact info, and localization preferences"
-                                    >
-                                        <form onSubmit={handleSaveGeneral} className="space-y-6 max-w-3xl">
-                                            {/* School Identity */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <Input
-                                                    label="School Name"
-                                                    value={generalSettings.schoolName}
-                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, schoolName: e.target.value })}
-                                                    disabled={!isEditingGeneral}
-                                                />
-                                                <div className="space-y-1.5">
-                                                    <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Academic Year</label>
-                                                    <select
-                                                        value={generalSettings.academicYear}
-                                                        onChange={(e) => setGeneralSettings({ ...generalSettings, academicYear: e.target.value })}
-                                                        disabled={!isEditingGeneral}
-                                                        className="w-full h-10 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-primary)] disabled:opacity-60 disabled:bg-[var(--bg-muted)]"
-                                                    >
-                                                        <option value="2024-2025">2024-2025</option>
-                                                        <option value="2025-2026">2025-2026</option>
-                                                        <option value="2026-2027">2026-2027</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-
-                                            {/* Contact Details */}
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <Input
-                                                    label="Contact Email"
-                                                    type="email"
-                                                    value={generalSettings.contactEmail}
-                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, contactEmail: e.target.value })}
-                                                    disabled={!isEditingGeneral}
-                                                />
-                                                <Input
-                                                    label="Contact Phone"
-                                                    value={generalSettings.contactPhone}
-                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, contactPhone: e.target.value })}
-                                                    disabled={!isEditingGeneral}
-                                                />
-                                            </div>
-
-                                            {/* Address */}
-                                            <div className="space-y-1.5">
-                                                <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">School Address</label>
-                                                <textarea
-                                                    className="w-full rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-primary)] resize-none disabled:opacity-60 disabled:bg-[var(--bg-muted)]"
-                                                    rows={3}
-                                                    value={generalSettings.address}
-                                                    onChange={(e) => setGeneralSettings({ ...generalSettings, address: e.target.value })}
-                                                    disabled={!isEditingGeneral}
-                                                />
-                                            </div>
-
-                                            {/* Localization Settings */}
-                                            <div className="pt-4 border-t border-[var(--border-subtle)]">
-                                                <h3 className="text-sm font-semibold text-[var(--text-primary)] mb-4">Localization Preferences</h3>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div className="space-y-1.5">
-                                                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Default Language</label>
-                                                        <select
-                                                            value={generalSettings.language}
-                                                            onChange={(e) => setGeneralSettings({ ...generalSettings, language: e.target.value })}
-                                                            disabled={!isEditingGeneral}
-                                                            className="w-full h-10 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-primary)] disabled:opacity-60 disabled:bg-[var(--bg-muted)]"
-                                                        >
-                                                            <option value="English">English</option>
-                                                            <option value="Spanish">Spanish</option>
-                                                            <option value="French">French</option>
-                                                            <option value="Hindi">Hindi</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="space-y-1.5">
-                                                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Timezone</label>
-                                                        <select
-                                                            value={generalSettings.timezone}
-                                                            onChange={(e) => setGeneralSettings({ ...generalSettings, timezone: e.target.value })}
-                                                            disabled={!isEditingGeneral}
-                                                            className="w-full h-10 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-primary)] disabled:opacity-60 disabled:bg-[var(--bg-muted)]"
-                                                        >
-                                                            <option value="Asia/Kolkata (IST)">Asia/Kolkata (IST)</option>
-                                                            <option value="UTC">UTC</option>
-                                                            <option value="America/New_York (EST)">America/New_York (EST)</option>
-                                                            <option value="Europe/London (GMT)">Europe/London (GMT)</option>
-                                                        </select>
-                                                    </div>
-                                                    <div className="space-y-1.5">
-                                                        <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1">Date Format</label>
-                                                        <select
-                                                            value={generalSettings.dateFormat}
-                                                            onChange={(e) => setGeneralSettings({ ...generalSettings, dateFormat: e.target.value })}
-                                                            disabled={!isEditingGeneral}
-                                                            className="w-full h-10 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--color-primary)] disabled:opacity-60 disabled:bg-[var(--bg-muted)]"
-                                                        >
-                                                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
-                                                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
-                                                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex justify-end pt-3 gap-3">
-                                                {!isEditingGeneral ? (
-                                                    <Button type="button" onClick={() => setIsEditingGeneral(true)}>
-                                                        Edit Settings
-                                                    </Button>
-                                                ) : (
-                                                    <>
-                                                        <Button type="button" variant="secondary" onClick={() => setIsEditingGeneral(false)} disabled={isSaving}>
-                                                            Cancel
-                                                        </Button>
-                                                        <Button type="submit" disabled={isSaving}>
-                                                            {isSaving ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Save className="mr-1.5 h-4 w-4" />}
-                                                            Save Changes
-                                                        </Button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </form>
-                                    </SectionCard>
-                                )}
-
                                 {activeTab === "account" && (
                                     <div className="space-y-6">
                                         <SectionCard
@@ -855,36 +703,6 @@ export function Settings() {
                                             </div>
                                         </SectionCard>
                                     </div>
-                                )}
-
-                                {activeTab === "notifications" && (
-                                    <SectionCard
-                                        title="Notifications"
-                                        subtitle="Manage your notification and alert preferences"
-                                    >
-                                        <div className="space-y-3">
-                                            <Toggle
-                                                icon={Bell}
-                                                label="Email Notifications"
-                                                description="Receive email updates for critical activity"
-                                                checked={prefs.emailAlerts}
-                                                onChange={setPref("emailAlerts")}
-                                            />
-                                            <Toggle
-                                                icon={Bell}
-                                                label="Push Notifications"
-                                                description="Receive desktop alerts while active"
-                                                checked={prefs.pushAlerts}
-                                                onChange={setPref("pushAlerts")}
-                                            />
-                                            <div className="flex justify-end pt-3">
-                                                <Button onClick={handleSave} disabled={isSaving || isLoading}>
-                                                    {isSaving ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Save className="mr-1.5 h-4 w-4" />}
-                                                    Save Notification Settings
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </SectionCard>
                                 )}
 
                                 {activeTab === "integrations" && (
