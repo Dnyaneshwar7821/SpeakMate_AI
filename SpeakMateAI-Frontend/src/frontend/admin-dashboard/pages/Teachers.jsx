@@ -18,6 +18,7 @@ import {
     X,
     ChevronDown,
     Building2,
+    Loader2,
 } from "lucide-react";
 
 import Button from "@components/common/Button";
@@ -67,6 +68,7 @@ export function Teachers() {
     const [schools, setSchools] = useState(() => teachersCache.schools || []);
     const [students, setStudents] = useState(() => teachersCache.students || []);
     const [isLoading, setIsLoading] = useState(() => !teachersCache.teachers || teachersCache.teachers.length === 0);
+    const [togglingTeacherId, setTogglingTeacherId] = useState(null);
     const [search, setSearch] = useState("");
     const [filters, setFilters] = useState({
         school: "All",
@@ -732,6 +734,9 @@ export function Teachers() {
     };
 
     const handleToggleStatus = async (teacher) => {
+        if (!teacher || togglingTeacherId) return;
+        setTogglingTeacherId(teacher.id);
+
         const isCurrentlyActive = teacher.status === "Active";
         const nextStatus = isCurrentlyActive ? "Inactive" : "Active";
 
@@ -749,7 +754,9 @@ export function Teachers() {
             triggerToast(`Status for "${teacher.name}" changed to ${nextStatus}.`);
         } catch (err) {
             console.error("Toggle status error:", err);
-            triggerToast("Failed to change teacher status");
+            triggerToast("Failed to change teacher status", "error");
+        } finally {
+            setTogglingTeacherId(null);
         }
     };
 
@@ -1148,52 +1155,89 @@ export function Teachers() {
                                         </button>
                                     </td>
                                     <td className="px-5 py-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleToggleStatus(t)}
-                                            className={`inline-flex rounded-full px-3 py-1 text-[12px] font-semibold cursor-pointer hover:opacity-80 transition ${STATUS_STYLES[t.status] || STATUS_STYLES["Inactive"]
-                                                }`}
-                                            title="Click to toggle status"
-                                        >
-                                            {t.status}
-                                        </button>
+                                        {togglingTeacherId === t.id ? (
+                                            <button
+                                                type="button"
+                                                disabled
+                                                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-semibold bg-amber-500/15 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300 border border-amber-500/30 cursor-wait animate-pulse"
+                                                title="Updating status..."
+                                            >
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-600 dark:text-amber-400" />
+                                                <span>Updating...</span>
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                disabled={Boolean(togglingTeacherId)}
+                                                onClick={() => handleToggleStatus(t)}
+                                                className={`inline-flex rounded-full px-3 py-1 text-[12px] font-semibold transition ${
+                                                    Boolean(togglingTeacherId)
+                                                        ? "opacity-60 cursor-not-allowed"
+                                                        : "cursor-pointer hover:opacity-80"
+                                                } ${STATUS_STYLES[t.status] || STATUS_STYLES["Inactive"]}`}
+                                                title="Click to toggle status"
+                                            >
+                                                {t.status}
+                                            </button>
+                                        )}
                                     </td>
                                     <td className="px-5 py-4">
                                         <div className="flex items-center justify-end gap-2">
-                                            {t.status === "Active" ? (
+                                            {togglingTeacherId === t.id ? (
                                                 <button
                                                     type="button"
+                                                    disabled
+                                                    title="Updating status..."
+                                                    className="rounded-md border border-slate-200 bg-slate-50 p-1.5 text-indigo-600 shadow-sm cursor-wait dark:border-slate-700 dark:bg-slate-800 dark:text-indigo-400"
+                                                >
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                </button>
+                                            ) : t.status === "Active" ? (
+                                                <button
+                                                    type="button"
+                                                    disabled={Boolean(togglingTeacherId)}
                                                     title="Deactivate Teacher"
                                                     aria-label={`Deactivate ${t.name}`}
                                                     onClick={() => handleToggleStatus(t)}
-                                                    className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-500 shadow-sm transition hover:bg-amber-50 hover:text-amber-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-amber-900/30 dark:hover:text-amber-400"
+                                                    className={`rounded-md border border-slate-200 bg-white p-1.5 text-slate-500 shadow-sm transition hover:bg-amber-50 hover:text-amber-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-amber-900/30 dark:hover:text-amber-400 ${
+                                                        Boolean(togglingTeacherId) ? "opacity-50 cursor-not-allowed" : ""
+                                                    }`}
                                                 >
                                                     <UserX className="h-4 w-4" />
                                                 </button>
                                             ) : (
                                                 <button
                                                     type="button"
+                                                    disabled={Boolean(togglingTeacherId)}
                                                     title="Activate Teacher"
                                                     aria-label={`Activate ${t.name}`}
                                                     onClick={() => handleToggleStatus(t)}
-                                                    className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-500 shadow-sm transition hover:bg-emerald-50 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400"
+                                                    className={`rounded-md border border-slate-200 bg-white p-1.5 text-slate-500 shadow-sm transition hover:bg-emerald-50 hover:text-emerald-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-emerald-900/30 dark:hover:text-emerald-400 ${
+                                                        Boolean(togglingTeacherId) ? "opacity-50 cursor-not-allowed" : ""
+                                                    }`}
                                                 >
                                                     <UserCheck className="h-4 w-4" />
                                                 </button>
                                             )}
                                             <button
                                                 type="button"
+                                                disabled={Boolean(togglingTeacherId)}
                                                 onClick={() => handleEditClick(t)}
                                                 aria-label={`Edit ${t.name}`}
-                                                className="rounded-md border border-slate-200 bg-white p-1.5 text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-indigo-400"
+                                                className={`rounded-md border border-slate-200 bg-white p-1.5 text-slate-600 shadow-sm transition hover:bg-slate-50 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-indigo-400 ${
+                                                    Boolean(togglingTeacherId) ? "opacity-50 cursor-not-allowed" : ""
+                                                }`}
                                             >
                                                 <Edit2 className="h-4 w-4" />
                                             </button>
                                             <button
                                                 type="button"
+                                                disabled={Boolean(togglingTeacherId)}
                                                 onClick={() => handleDeleteClick(t)}
                                                 aria-label={`Delete ${t.name}`}
-                                                className="rounded-md border border-rose-100 bg-rose-50 p-1.5 text-rose-600 shadow-sm transition hover:bg-rose-100 dark:border-rose-900/30 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/40"
+                                                className={`rounded-md border border-rose-100 bg-rose-50 p-1.5 text-rose-600 shadow-sm transition hover:bg-rose-100 dark:border-rose-900/30 dark:bg-rose-900/20 dark:text-rose-400 dark:hover:bg-rose-900/40 ${
+                                                    Boolean(togglingTeacherId) ? "opacity-50 cursor-not-allowed" : ""
+                                                }`}
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>

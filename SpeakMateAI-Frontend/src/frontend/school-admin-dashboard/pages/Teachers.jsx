@@ -104,6 +104,7 @@ export function Teachers() {
 
     // Toast state
     const [toasts, setToasts] = useState([]);
+    const [togglingTeacherId, setTogglingTeacherId] = useState(null);
     const triggerToast = (message, type = "success") => {
         const id = Date.now();
         setToasts((prev) => [...prev, { id, message, type }]);
@@ -115,12 +116,16 @@ export function Teachers() {
     const openAddModal = () => setFormModal({ isOpen: true, mode: "add", teacher: null });
 
     const handleToggleStatus = async (teacher) => {
+        if (!teacher || togglingTeacherId) return;
+        setTogglingTeacherId(teacher.id);
         try {
             const isActive = teacher.status === "active" || teacher.active;
             await updateTeacher(teacher.id, { ...teacher, active: !isActive });
             triggerToast(`Teacher ${isActive ? "deactivated" : "activated"} successfully`, "success");
         } catch (error) {
             triggerToast(error.message || "Failed to update teacher status", "error");
+        } finally {
+            setTogglingTeacherId(null);
         }
     };
 
@@ -249,6 +254,7 @@ export function Teachers() {
                 <TeachersTable
                     teachers={filteredTeachers}
                     isLoading={isLoading}
+                    togglingTeacherId={togglingTeacherId}
                     getStudentCount={(teacher) => getStudentsForTeacher(teacher).length}
                     onRowClick={setSelectedTeacher}
                     onEdit={(teacher) => setFormModal({ isOpen: true, mode: "edit", teacher })}

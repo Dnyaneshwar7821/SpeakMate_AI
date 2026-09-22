@@ -1,0 +1,327 @@
+{
+  "info": {
+    "name": "SpeakMate Teacher Admin API",
+    "description": "Teacher and school-admin endpoints for testing in Postman.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:9091", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "teacherId", "value": "1", "type": "string" },
+    { "key": "studentId", "value": "1", "type": "string" },
+    { "key": "notificationId", "value": "1", "type": "string" },
+    { "key": "schoolId", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Teacher Auth",
+      "item": [
+        {
+          "name": "Teacher Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"teacher@example.com\",\n  \"password\": \"YourPassword123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/teacher/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "teacher", "login"] }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"teacher@example.com\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/users/forgot-password", "host": ["{{baseUrl}}"], "path": ["api", "users", "forgot-password"] }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"teacher@example.com\",\n  \"otp\": \"123456\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/users/verify-otp", "host": ["{{baseUrl}}"], "path": ["api", "users", "verify-otp"] }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"token\": \"reset-token\",\n  \"newPassword\": \"NewPassword123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/users/reset-password", "host": ["{{baseUrl}}"], "path": ["api", "users", "reset-password"] }
+          }
+        },
+        {
+          "name": "Reset with Temporary Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"teacher@example.com\",\n  \"temporaryPassword\": \"TempPass123\",\n  \"newPassword\": \"NewPassword123\",\n  \"role\": \"TEACHER\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/auth/reset-password-with-temporary", "host": ["{{baseUrl}}"], "path": ["api", "auth", "reset-password-with-temporary"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teacher Dashboard & Profile",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/dashboard", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "dashboard"] }
+          }
+        },
+        {
+          "name": "Get Students",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teacher/students?search=&status=&standard=&division=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "teacher", "students"],
+              "query": [
+                { "key": "search", "value": "" },
+                { "key": "status", "value": "" },
+                { "key": "standard", "value": "" },
+                { "key": "division", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Student Detail",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/students/{{studentId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "students", "{{studentId}}"] }
+          }
+        },
+        {
+          "name": "Get Analytics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/teacher/analytics?classId=&standard=&division=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "teacher", "analytics"],
+              "query": [
+                { "key": "classId", "value": "" },
+                { "key": "standard", "value": "" },
+                { "key": "division", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Student Analytics",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/students/{{studentId}}/analytics", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "students", "{{studentId}}", "analytics"] }
+          }
+        },
+        {
+          "name": "Get Reports",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/reports", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "reports"] }
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/profile", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "profile"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phone\": \"9876543210\",\n  \"department\": \"Science\",\n  \"designation\": \"Senior Teacher\",\n  \"qualification\": \"M.Sc\",\n  \"experience\": 5,\n  \"location\": \"Pune\",\n  \"bio\": \"Experienced teacher\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/profile", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "profile"] }
+          }
+        },
+        {
+          "name": "Update Avatar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"avatar\": \"https://example.com/avatar.png\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/profile/avatar", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "profile", "avatar"] }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"currentPassword\": \"OldPassword123\",\n  \"newPassword\": \"NewPassword123\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/change-password", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "change-password"] }
+          }
+        },
+        {
+          "name": "Download Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/profile/download", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "profile", "download"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Teacher Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/notifications", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "notifications"] }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/notifications/unread-count", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "notifications", "unread-count"] }
+          }
+        },
+        {
+          "name": "Mark Notification Read",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "notifications", "{{notificationId}}", "read"] }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/teacher/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["api", "v1", "teacher", "notifications", "read-all"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "School Teacher Management",
+      "item": [
+        {
+          "name": "Get All Teachers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/school/teachers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "school", "teachers"] }
+          }
+        },
+        {
+          "name": "Get Assigned Teacher",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/school/teachers/assigned?schoolId={{schoolId}}&standard=&division=",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "school", "teachers", "assigned"],
+              "query": [
+                { "key": "schoolId", "value": "{{schoolId}}" },
+                { "key": "standard", "value": "" },
+                { "key": "division", "value": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search Teachers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/school/teachers/search?q=teacher",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "school", "teachers", "search"],
+              "query": [ { "key": "q", "value": "teacher" } ]
+            }
+          }
+        },
+        {
+          "name": "Get Teacher By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/school/teachers/{{teacherId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "school", "teachers", "{{teacherId}}"] }
+          }
+        },
+        {
+          "name": "Create Teacher",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"New\",\n  \"lastName\": \"Teacher\",\n  \"email\": \"newteacher@example.com\",\n  \"phone\": \"9988776655\",\n  \"department\": \"Mathematics\",\n  \"designation\": \"Teacher\",\n  \"qualification\": \"B.Ed\",\n  \"status\": \"ACTIVE\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/school/teachers", "host": ["{{baseUrl}}"], "path": ["api", "v1", "school", "teachers"] }
+          }
+        },
+        {
+          "name": "Update Teacher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Updated\",\n  \"lastName\": \"Teacher\",\n  \"email\": \"updatedteacher@example.com\",\n  \"phone\": \"9988776655\",\n  \"department\": \"Mathematics\",\n  \"designation\": \"Senior Teacher\",\n  \"qualification\": \"M.Sc\",\n  \"status\": \"ACTIVE\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/v1/school/teachers/{{teacherId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "school", "teachers", "{{teacherId}}"] }
+          }
+        },
+        {
+          "name": "Activate Teacher",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/school/teachers/{{teacherId}}/activate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "school", "teachers", "{{teacherId}}", "activate"] }
+          }
+        },
+        {
+          "name": "Deactivate Teacher",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/school/teachers/{{teacherId}}/deactivate", "host": ["{{baseUrl}}"], "path": ["api", "v1", "school", "teachers", "{{teacherId}}", "deactivate"] }
+          }
+        },
+        {
+          "name": "Delete Teacher",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/school/teachers/{{teacherId}}", "host": ["{{baseUrl}}"], "path": ["api", "v1", "school", "teachers", "{{teacherId}}"] }
+          }
+        }
+      ]
+    }
+  ]
+}
