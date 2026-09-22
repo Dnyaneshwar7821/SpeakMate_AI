@@ -37,11 +37,7 @@ export default function AppNavigator() {
   // ─── Authenticated flow ──────────────────────────────────────────────────────
   const isUserOnboarded = Boolean(
     onboardingCompleted ||
-    user?.onboardingCompleted ||
-    user?.schoolGrade ||
-    user?.englishLevel ||
-    user?.ageGroup ||
-    user?.learningGoal
+    user?.onboardingCompleted
   );
 
   if (!isUserOnboarded) {

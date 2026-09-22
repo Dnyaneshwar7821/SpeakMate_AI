@@ -43,9 +43,7 @@ export function Login() {
       const userDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
       const isCompleted = Boolean(
         res?.user?.onboardingCompleted ||
-        userDone ||
-        res?.user?.schoolGrade ||
-        res?.user?.englishLevel
+        userDone
       );
 
       if (res && res.user && !isCompleted) {

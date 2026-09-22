@@ -646,17 +646,12 @@ public class UserServiceImpl implements UserService {
 		if (request.getGoal() != null) onboarding.setLearningGoal(request.getGoal());
 		if (request.getAgeGroup() != null) onboarding.setAgeGroup(request.getAgeGroup());
 		if (request.getSchoolGrade() != null && !request.getSchoolGrade().trim().isEmpty()) {
-			onboarding.setSchoolGrade(request.getSchoolGrade());
-			onboarding.setEnglishLevel(null);
-			user.setSchoolGrade(request.getSchoolGrade());
-			user.setEnglishLevel(null);
-		} else {
-			onboarding.setSchoolGrade(null);
-			user.setSchoolGrade(null);
-			if (request.getEnglishLevel() != null) {
-				onboarding.setEnglishLevel(request.getEnglishLevel());
-				user.setEnglishLevel(request.getEnglishLevel());
-			}
+			onboarding.setSchoolGrade(request.getSchoolGrade().trim());
+			user.setSchoolGrade(request.getSchoolGrade().trim());
+		}
+		if (request.getEnglishLevel() != null && !request.getEnglishLevel().trim().isEmpty()) {
+			onboarding.setEnglishLevel(request.getEnglishLevel().trim());
+			user.setEnglishLevel(request.getEnglishLevel().trim());
 		}
 		if (request.getInterests() != null) onboarding.setInterests(String.join(",", request.getInterests()));
 		if (request.getAiVoice() != null) onboarding.setAiVoice(request.getAiVoice());
@@ -796,12 +791,11 @@ public class UserServiceImpl implements UserService {
 				effectiveAge = ob.get().getAgeGroup();
 			}
 		}
-		String effectiveLevel = (effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ? null : (user.getEnglishLevel() != null && !user.getEnglishLevel().trim().isEmpty() ? user.getEnglishLevel() : (ob.isPresent() ? ob.get().getEnglishLevel() : null));
+		String effectiveLevel = (user.getEnglishLevel() != null && !user.getEnglishLevel().trim().isEmpty())
+				? user.getEnglishLevel()
+				: (ob.isPresent() ? ob.get().getEnglishLevel() : null);
 		boolean isCompleted = user.isOnboardingCompleted() || 
-				(ob.isPresent() && Boolean.TRUE.equals(ob.get().getOnboardingCompleted())) ||
-				(effectiveGrade != null && !effectiveGrade.trim().isEmpty()) ||
-				(effectiveLevel != null && !effectiveLevel.trim().isEmpty()) ||
-				(user.getLearningGoal() != null && !user.getLearningGoal().trim().isEmpty());
+				(ob.isPresent() && Boolean.TRUE.equals(ob.get().getOnboardingCompleted()));
 
 		boolean isStudent = (user.getSchoolId() != null) ||
 				(user.getRole() != null && user.getRole().name().contains("STUDENT")) ||

@@ -455,12 +455,7 @@ export default function OnboardingScreen({ navigation }) {
       }
       transitionToNext(5);
     } else if (step === 5) {
-      // Students skip Age Group (6) and go directly to Interests (7). Individual users go to Age Group (6).
-      if (isStudentMode) {
-        transitionToNext(7);
-      } else {
-        transitionToNext(6);
-      }
+      transitionToNext(6);
     } else if (step === 6) {
       transitionToNext(7);
     } else if (step === 7) {
@@ -483,9 +478,7 @@ export default function OnboardingScreen({ navigation }) {
   };
 
   const handleBack = () => {
-    if (step === 7) {
-      transitionToNext(isStudentMode ? 5 : 6);
-    } else if (step > 1) {
+    if (step > 1) {
       transitionToNext(step - 1);
     }
   };
@@ -538,7 +531,7 @@ export default function OnboardingScreen({ navigation }) {
         user?.isSchoolStudent
       );
       const finalGrade = isStudentMode ? (schoolGrade || '1st Std') : null;
-      const finalLevel = isStudentMode ? null : (level || 'Intermediate');
+      const finalLevel = level || 'Intermediate';
       const finalAgeGroup = isStudentMode ? null : (ageGroup || 'Professional');
 
       await AsyncStorage.setItem('speakmate_account_type', isStudentMode ? 'STUDENT' : 'INDIVIDUAL_USER');
@@ -819,10 +812,43 @@ export default function OnboardingScreen({ navigation }) {
               </View>
             )}
 
-            {/* Step 5: Dynamic Level / Standard Selection */}
+            {/* Step 5: English Level (For Both User and Student) */}
             {step === 5 && (
               <View style={styles.stepContent}>
-                {accountType === 'STUDENT' ? (
+                <Text style={styles.title}>Select Your English Level</Text>
+                <Text style={styles.subtitle}>Choose your current proficiency level in English.</Text>
+                <View style={styles.cardList}>
+                  {LEVELS.map((item) => (
+                    <TouchableOpacity
+                      key={item.key}
+                      onPress={() => setLevel(item.key)}
+                      style={[
+                        styles.selectCardLarge,
+                        level === item.key && styles.selectCardLargeActive,
+                      ]}
+                    >
+                      <View style={styles.levelLeft}>
+                        <View style={styles.levelRatingBox}>
+                          <Text style={styles.levelRatingText}>{item.rating}</Text>
+                        </View>
+                        <View style={styles.levelInfo}>
+                          <Text style={styles.selectCardLabel}>{item.label}</Text>
+                          <Text style={styles.levelDesc}>{item.desc}</Text>
+                        </View>
+                      </View>
+                      {level === item.key && (
+                        <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Step 6: School Standard (Student) OR Age Group (Individual User) */}
+            {step === 6 && (
+              <View style={styles.stepContent}>
+                {isStudentMode ? (
                   <>
                     <Text style={styles.title}>Select Your School Standard</Text>
                     <Text style={styles.subtitle}>Choose your current school grade. Your speaking scenarios, AI tutor conversations, and lessons will adapt to this level.</Text>
@@ -857,76 +883,43 @@ export default function OnboardingScreen({ navigation }) {
                   </>
                 ) : (
                   <>
-                    <Text style={styles.title}>Select Your English Level</Text>
-                    <Text style={styles.subtitle}>Choose your current proficiency level in English.</Text>
+                    <Text style={styles.title}>Select Your Age Group</Text>
+                    <Text style={styles.subtitle}>
+                      Helps our AI tailor conversational topics, pace, and context for your daily practice.
+                    </Text>
                     <View style={styles.cardList}>
-                      {LEVELS.map((item) => (
-                        <TouchableOpacity
-                          key={item.key}
-                          onPress={() => setLevel(item.key)}
-                          style={[
-                            styles.selectCardLarge,
-                            level === item.key && styles.selectCardLargeActive,
-                          ]}
-                        >
-                          <View style={styles.levelLeft}>
-                            <View style={styles.levelRatingBox}>
-                              <Text style={styles.levelRatingText}>{item.rating}</Text>
+                      {AGE_GROUPS.map((grp) => {
+                        const active = ageGroup === grp.key;
+                        return (
+                          <TouchableOpacity
+                            key={grp.key}
+                            onPress={() => {
+                              setAgeGroup(grp.key);
+                              AsyncStorage.setItem('speakmate_age_group', grp.key);
+                            }}
+                            style={[
+                              styles.selectCardLarge,
+                              active && styles.selectCardLargeActive,
+                            ]}
+                          >
+                            <View style={styles.levelLeft}>
+                              <View style={styles.levelRatingBox}>
+                                <Text style={{ fontSize: 22 }}>{grp.icon}</Text>
+                              </View>
+                              <View style={styles.levelInfo}>
+                                <Text style={styles.selectCardLabel}>{grp.label}</Text>
+                                <Text style={styles.levelDesc}>{grp.desc}</Text>
+                              </View>
                             </View>
-                            <View style={styles.levelInfo}>
-                              <Text style={styles.selectCardLabel}>{item.label}</Text>
-                              <Text style={styles.levelDesc}>{item.desc}</Text>
-                            </View>
-                          </View>
-                          {level === item.key && (
-                            <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
-                          )}
-                        </TouchableOpacity>
-                      ))}
+                            {active && (
+                              <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
                     </View>
                   </>
                 )}
-              </View>
-            )}
-
-            {/* Step 6: Age Group (Individual Users) */}
-            {step === 6 && (
-              <View style={styles.stepContent}>
-                <Text style={styles.title}>Select Your Age Group</Text>
-                <Text style={styles.subtitle}>
-                  Helps our AI tailor conversational topics, pace, and context for your daily practice.
-                </Text>
-                <View style={styles.cardList}>
-                  {AGE_GROUPS.map((grp) => {
-                    const active = ageGroup === grp.key;
-                    return (
-                      <TouchableOpacity
-                        key={grp.key}
-                        onPress={() => {
-                          setAgeGroup(grp.key);
-                          AsyncStorage.setItem('speakmate_age_group', grp.key);
-                        }}
-                        style={[
-                          styles.selectCardLarge,
-                          active && styles.selectCardLargeActive,
-                        ]}
-                      >
-                        <View style={styles.levelLeft}>
-                          <View style={styles.levelRatingBox}>
-                            <Text style={{ fontSize: 22 }}>{grp.icon}</Text>
-                          </View>
-                          <View style={styles.levelInfo}>
-                            <Text style={styles.selectCardLabel}>{grp.label}</Text>
-                            <Text style={styles.levelDesc}>{grp.desc}</Text>
-                          </View>
-                        </View>
-                        {active && (
-                          <Ionicons name="checkmark-circle" size={22} color="#4F46E5" />
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
               </View>
             )}
 

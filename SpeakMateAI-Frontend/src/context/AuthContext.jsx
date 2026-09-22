@@ -101,10 +101,7 @@ export function AuthProvider({ children }) {
 
         const isCompleted = Boolean(
           activeUser?.onboardingCompleted ||
-          storedOnboardingCompleted ||
-          userSpecificDone ||
-          activeUser?.schoolGrade ||
-          activeUser?.englishLevel
+          userSpecificDone
         );
 
         if (activeUser) {
@@ -253,17 +250,16 @@ export function AuthProvider({ children }) {
 
           const isDone = Boolean(
             response.user.onboardingCompleted ||
-            userSpecificDone ||
-            response.user.schoolGrade ||
-            response.user.englishLevel ||
-            response.user.ageGroup ||
-            response.user.learningGoal
+            userSpecificDone
           );
 
           setOnboardingCompleted(isDone);
           if (isDone) {
             localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
             if (userEmail) localStorage.setItem(`speakmate_onboarding_done_${userEmail}`, "true");
+          } else {
+            localStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+            if (userEmail) localStorage.removeItem(`speakmate_onboarding_done_${userEmail}`);
           }
         }
       }
@@ -286,6 +282,8 @@ export function AuthProvider({ children }) {
           setUser(response.user);
           setOnboardingCompleted(false);
           localStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+          const regEmail = (response.user?.email || userData.email || "").toLowerCase();
+          if (regEmail) localStorage.removeItem(`speakmate_onboarding_done_${regEmail}`);
         }
       }
       return response;

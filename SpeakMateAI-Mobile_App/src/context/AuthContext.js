@@ -68,12 +68,7 @@ export const AuthProvider = ({ children }) => {
         const storedUserDone = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
         const isCompleted = Boolean(
           activeUser?.onboardingCompleted === true ||
-          storedOnboarding === "true" ||
-          storedUserDone === "true" ||
-          activeUser?.schoolGrade ||
-          activeUser?.englishLevel ||
-          activeUser?.ageGroup ||
-          activeUser?.learningGoal
+          storedUserDone === "true"
         );
         const nextOnboardingCompleted = Boolean(isCompleted);
 
@@ -235,15 +230,9 @@ export const AuthProvider = ({ children }) => {
         const userEmail = (response.user?.email || credentials.email || "").toLowerCase();
         
         const storedUserDone = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
-        const storedOnboarding = await AsyncStorage.getItem(STORAGE_KEYS.onboardingCompleted);
         const isCompleted = Boolean(
           response.user?.onboardingCompleted === true ||
-          storedOnboarding === "true" ||
-          storedUserDone === "true" ||
-          response.user?.schoolGrade ||
-          response.user?.englishLevel ||
-          response.user?.ageGroup ||
-          response.user?.learningGoal
+          storedUserDone === "true"
         );
         const nextOnboardingCompleted = Boolean(isCompleted);
 
@@ -255,7 +244,7 @@ export const AuthProvider = ({ children }) => {
           AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(nextOnboardingCompleted)),
           userEmail && nextOnboardingCompleted
             ? AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true")
-            : Promise.resolve(),
+            : (userEmail && !nextOnboardingCompleted ? AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`) : Promise.resolve()),
         ]);
 
         await syncUserProfile(response.user);
@@ -282,11 +271,7 @@ export const AuthProvider = ({ children }) => {
         if (response && response.token) {
           const userEmail = (response.user?.email || payload.email || "").toLowerCase();
           const isCompleted = Boolean(
-            response.user?.onboardingCompleted === true ||
-            response.user?.schoolGrade ||
-            response.user?.englishLevel ||
-            response.user?.ageGroup ||
-            response.user?.learningGoal
+            response.user?.onboardingCompleted === true
           );
 
           await Promise.all([
@@ -294,9 +279,7 @@ export const AuthProvider = ({ children }) => {
             AsyncStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user)),
             AsyncStorage.setItem(STORAGE_KEYS.welcomeCompleted, "true"),
             AsyncStorage.setItem(STORAGE_KEYS.onboardingCompleted, String(isCompleted)),
-            userEmail && isCompleted
-              ? AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true")
-              : Promise.resolve(),
+            userEmail ? AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`) : Promise.resolve(),
           ]);
 
           setToken(response.token);

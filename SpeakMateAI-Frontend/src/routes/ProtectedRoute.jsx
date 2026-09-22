@@ -26,7 +26,7 @@ export function ProtectedRoute({ children }) {
   const userEmail = (user?.email || "").toLowerCase();
   const userSpecificDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
   const isUserCompleted = Boolean(
-    user && (user.onboardingCompleted || user.schoolGrade || user.englishLevel || user.ageGroup || user.learningGoal)
+    user && user.onboardingCompleted
   );
 
   const isCompleted = Boolean(

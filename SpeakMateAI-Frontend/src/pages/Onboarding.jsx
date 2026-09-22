@@ -51,6 +51,21 @@ const AGE_GROUPS = [
   { key: "Senior", label: "Seniors (50+)", icon: "☕", desc: "Relaxed conversations, culture & life stories" },
 ];
 
+const SCHOOL_GRADES = [
+  { key: "1st Std", label: "1st Standard", desc: "Alphabet phonics, colors, animals & simple greetings", icon: "🎨" },
+  { key: "2nd Std", label: "2nd Standard", desc: "Classroom items, daily routines, food & hobbies", icon: "🍦" },
+  { key: "3rd Std", label: "3rd Standard", desc: "Action verbs, community helpers, time & past stories", icon: "🩹" },
+  { key: "4th Std", label: "4th Standard", desc: "Describing places, canteen lunch, healthy habits & directions", icon: "🪐" },
+  { key: "5th Std", label: "5th Standard", desc: "First day in 5th grade, science projects & story reviews", icon: "🏫" },
+  { key: "6th Std", label: "6th Standard", desc: "Asking teacher questions, school clubs & sports day", icon: "✏️" },
+  { key: "7th Std", label: "7th Standard", desc: "Group discussions, environmental care & movie reviews", icon: "💧" },
+  { key: "8th Std", label: "8th Standard", desc: "School debates, student council & tech innovations", icon: "💬" },
+  { key: "9th Std", label: "9th Standard", desc: "High school admission interviews & keynote speeches", icon: "🌐" },
+  { key: "10th Std", label: "10th Standard", desc: "10th Board oral exam prep & career roadmaps", icon: "📜" },
+  { key: "11th Std", label: "11th Standard", desc: "Higher secondary stream prep & seminar presentations", icon: "📚" },
+  { key: "12th Std", label: "12th Standard", desc: "College admissions, university interviews & fluent debate", icon: "🎓" },
+];
+
 const INTERESTS = [
   { key: "Technology", label: "Technology", icon: "💻" },
   { key: "Business", label: "Business", icon: "📊" },
@@ -130,7 +145,7 @@ export function Onboarding() {
   const [aiVoice, setAiVoice] = useState("Friendly");
   const [playingVoice, setPlayingVoice] = useState(null);
   const [whyLearning, setWhyLearning] = useState(["Communication"]);
-  const schoolGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || null;
+  const [schoolGrade, setSchoolGrade] = useState(user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std");
   const [level, setLevel] = useState("Intermediate");
   const [ageGroup, setAgeGroup] = useState("Young Adult");
   const [interests, setInterests] = useState(["Technology", "Travel"]);
@@ -143,7 +158,7 @@ export function Onboarding() {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState("");
 
-  // Construct steps sequence based on user type (Students get English Level, no standard selection)
+  // Construct steps sequence: Step 4 is English Level for both; Step 5 is Standard for student, Age Group for user.
   const steps = useMemo(() => {
     if (isStudent) {
       return [
@@ -151,6 +166,7 @@ export function Onboarding() {
         { id: "voice", title: "Choose AI Voice", subtitle: "Choose your preferred tutor assistant voice with preview." },
         { id: "goals", title: "Why are you learning?", subtitle: "Select all reasons that apply to you." },
         { id: "level", title: "Select Your English Level", subtitle: "Choose your current proficiency level in English." },
+        { id: "standard", title: "Select Your School Standard", subtitle: "Choose your current school class. Your lessons will align with your curriculum." },
         { id: "interests", title: "What interests you?", subtitle: "Select topics you enjoy for AI practice sessions." },
         { id: "sources", title: "Where did you hear about us?", subtitle: "Help us understand how you discovered SpeakMate AI." },
         { id: "daily_goal", title: "Choose Daily Goal", subtitle: "Consistency is key! Set a daily learning goal to build habits." },
@@ -234,7 +250,7 @@ export function Onboarding() {
   };
 
   const handleFinish = async () => {
-    const finalGrade = isStudent ? (schoolGrade || user?.schoolGrade || null) : null;
+    const finalGrade = isStudent ? (schoolGrade || "1st Std") : null;
     const finalLevel = level || "Beginner";
 
     if (finalGrade) {
@@ -426,6 +442,31 @@ export function Onboarding() {
                   <h3 className="font-black text-sm sm:text-base text-[var(--text-primary)]">{a.label}</h3>
                   <p className="text-xs text-[var(--text-secondary)] mt-0.5 font-medium">{a.desc}</p>
                 </div>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* STEP: SCHOOL STANDARD / GRADE (FOR STUDENTS) */}
+        {currentStep.id === "standard" && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[380px] overflow-y-auto pr-1">
+            {SCHOOL_GRADES.map((grd) => (
+              <button
+                key={grd.key}
+                onClick={() => setSchoolGrade(grd.key)}
+                className={`p-4 rounded-2xl border text-left transition-all flex items-center justify-between active:scale-95 ${schoolGrade === grd.key
+                    ? "border-[#6C63FF] bg-[#6C63FF]/20 ring-2 ring-[#6C63FF]/50 shadow-md"
+                    : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/40"
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)] shadow-inner">{grd.icon}</span>
+                  <div>
+                    <h3 className="font-black text-sm text-[var(--text-primary)]">{grd.label}</h3>
+                    <p className="text-xs text-[var(--text-secondary)] mt-0.5 font-medium">{grd.desc}</p>
+                  </div>
+                </div>
+                {schoolGrade === grd.key && <span className="text-[#6C63FF] font-black text-base">✓</span>}
               </button>
             ))}
           </div>
