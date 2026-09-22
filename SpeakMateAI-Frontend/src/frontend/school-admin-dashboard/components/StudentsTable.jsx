@@ -80,11 +80,16 @@ export function StudentsTable({ students, isLoading, onRowClick, onEdit, onDelet
                                 <td className="px-4 py-3 sm:px-5">
                                     {togglingStudentId === student.id ? (
                                         <span
-                                            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold bg-amber-500/15 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300 border border-amber-500/30 animate-pulse cursor-wait"
+                                            className={[
+                                                "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold transition cursor-wait opacity-85",
+                                                isActive
+                                                    ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500 border border-emerald-300/40"
+                                                    : "bg-[var(--bg-subtle)] text-[var(--text-muted)] dark:bg-slate-800 border border-slate-300/40 dark:border-slate-700/40",
+                                            ].join(" ")}
                                             title="Updating status..."
                                         >
-                                            <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-600 dark:text-amber-400" />
-                                            Updating...
+                                            <Loader2 className="h-3 w-3 animate-spin text-current" />
+                                            {isActive ? "Active" : "Inactive"}
                                         </span>
                                     ) : (
                                         <button
@@ -115,6 +120,7 @@ export function StudentsTable({ students, isLoading, onRowClick, onEdit, onDelet
                                         </button>
                                     )}
                                 </td>
+
                                 <td className="px-4 py-3 sm:px-5">
                                     <div className="flex items-center justify-end gap-1">
                                         {togglingStudentId === student.id ? (

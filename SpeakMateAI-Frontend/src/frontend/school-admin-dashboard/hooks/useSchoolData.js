@@ -106,7 +106,7 @@ export function useStudents() {
   }, []);
 
   const refreshStudents = useCallback(() => {
-    loadStudents(standard, searchTerm);
+    return loadStudents(standard, searchTerm);
   }, [loadStudents, standard, searchTerm]);
 
   // Debounce search/filter requests to reduce API load
@@ -185,6 +185,34 @@ export function useStudents() {
       status: isActive ? "ACTIVE" : "INACTIVE"
     };
     console.log("[useSchoolData Debug] Updating student ID " + id + " with payload:", payload);
+
+    // Optimistic Update: Update students state immediately so status column changes with 0ms delay
+    setStudents((prev) =>
+      prev.map((s) => {
+        const isMatch = s.id === id || s.dbId === id || s.studentId === id;
+        if (!isMatch) return s;
+        return {
+          ...s,
+          ...data,
+          active: isActive,
+          status: isActive ? "active" : "inactive"
+        };
+      })
+    );
+
+    if (studentsCache) {
+      studentsCache = studentsCache.map((s) => {
+        const isMatch = s.id === id || s.dbId === id || s.studentId === id;
+        if (!isMatch) return s;
+        return {
+          ...s,
+          ...data,
+          active: isActive,
+          status: isActive ? "active" : "inactive"
+        };
+      });
+    }
+
     try {
       await schoolAdminDataApi.updateStudent(id, payload);
       studentsCache = null;
@@ -192,7 +220,10 @@ export function useStudents() {
       await refreshStudents();
     } catch (err) {
       console.error("Failed to update student:", err);
+      // Revert to server state on failure
+      await refreshStudents();
       alert(err?.response?.data?.message || "Failed to update student.");
+      throw err;
     }
   };
 
@@ -210,6 +241,7 @@ export function useStudents() {
   };
 
   return { students, totalStudents: students.length, searchTerm, setSearchTerm, standard, setStandard, addStudent, updateStudent, deleteStudent, isLoading };
+
 }
 
 export function useResults() {
@@ -457,17 +489,48 @@ export function useTeachers() {
   };
 
   const updateTeacher = async (id, data) => {
+    const isActive = data.active !== undefined
+      ? Boolean(data.active)
+      : (data.status ? String(data.status).toLowerCase() === "active" : true);
+
     const payload = {
       firstName: (data.firstName || "").trim(),
       lastName: (data.lastName || "").trim(),
       email: (data.email || "").trim(),
       phone: data.phone ? normalizeIndianMobile(data.phone) : "",
-      active: data.active,
+      active: isActive,
       department: (data.department || "").trim(),
       experience: (data.experience || "").trim(),
       qualification: (data.qualification || "").trim(),
       standardDivisions: data.standardDivisions || []
     };
+
+    // Optimistic Update: Update teachers state immediately so UI changes without waiting
+    setTeachers((prev) =>
+      prev.map((t) => {
+        const isMatch = t.id === id || t.dbId === id;
+        if (!isMatch) return t;
+        return {
+          ...t,
+          ...data,
+          active: isActive,
+          status: isActive ? "active" : "inactive"
+        };
+      })
+    );
+
+    if (teachersCache) {
+      teachersCache = teachersCache.map((t) => {
+        const isMatch = t.id === id || t.dbId === id;
+        if (!isMatch) return t;
+        return {
+          ...t,
+          ...data,
+          active: isActive,
+          status: isActive ? "active" : "inactive"
+        };
+      });
+    }
 
     if (data.password) payload.password = data.password;
     try {
@@ -476,6 +539,7 @@ export function useTeachers() {
       await loadTeachersData();
     } catch (err) {
       console.error("Failed to update teacher:", err);
+      await loadTeachersData();
       const validationMap = err?.response?.data?.errors;
       const detailedMsg = (validationMap && typeof validationMap === 'object')
         ? Object.values(validationMap).join(", ")
@@ -485,6 +549,7 @@ export function useTeachers() {
       throw errorObj;
     }
   };
+
 
   const deleteTeacher = async (id) => {
     try {
