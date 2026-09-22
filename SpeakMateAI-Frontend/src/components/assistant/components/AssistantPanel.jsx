@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AlertCircle, Loader2, Mic, MicOff, Send, Sparkles, Trash2, X } from "lucide-react";
 
 import { useAssistant } from "../AssistantContext";
+import { useAssistantTheme } from "../useAssistantTheme";
 import {
     WELCOME_TEXT_BY_ROLE,
     QUICK_SUGGESTIONS_BY_ROLE,
@@ -11,7 +12,7 @@ import {
 import MessageBubble from "./MessageBubble";
 import TypingIndicator from "./TypingIndicator";
 
-export function AssistantPanel() {
+export const AssistantPanel = React.forwardRef(function AssistantPanel(props, ref) {
     const {
         messages,
         loading,
@@ -22,6 +23,8 @@ export function AssistantPanel() {
         closeWidget,
         clearError,
     } = useAssistant();
+
+    const theme = useAssistantTheme();
 
     const [draft, setDraft] = useState("");
     const [isListening, setIsListening] = useState(false);
@@ -130,14 +133,22 @@ export function AssistantPanel() {
     };
 
     return (
-        <div className="fixed bottom-24 right-5 z-[9999] flex h-[min(620px,calc(100dvh-7.5rem))] w-[min(430px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-[26px] border border-slate-200/90 dark:border-slate-800/90 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] ring-1 ring-black/5 dark:ring-white/10">
+        <div
+            ref={ref}
+            className="fixed bottom-24 right-5 z-[9999] flex h-[min(620px,calc(100dvh-7.5rem))] w-[min(430px,calc(100vw-2.5rem))] flex-col overflow-hidden rounded-[26px] border border-slate-200/90 dark:border-slate-800/90 bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] ring-1 ring-black/5 dark:ring-white/10"
+        >
             {/* Top Gradient Accent Bar */}
-            <div className="h-1.5 w-full bg-gradient-to-r from-[#5243F5] via-[#7B61FF] to-[#00D2FF]" />
+            <div className={`h-1.5 w-full bg-gradient-to-r ${theme.topRibbon}`} />
 
             {/* Modern Chatbot Header */}
             <div className="flex items-center gap-3 border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-900/80 px-4 py-3 backdrop-blur-md">
                 {/* AI Avatar with Online Pulse */}
-                <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr from-[#5243F5] to-[#8F4FFF] text-white shadow-md shadow-indigo-500/20">
+                <div
+                    style={{
+                        boxShadow: `0 8px 20px -4px ${theme.glow}`,
+                    }}
+                    className={`relative grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr ${theme.avatarGradient} text-white`}
+                >
                     <Sparkles className="h-5 w-5 text-white" aria-hidden="true" />
                     <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white dark:bg-slate-900">
                         <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -150,7 +161,7 @@ export function AssistantPanel() {
                         <p className="truncate text-sm font-bold tracking-tight text-slate-900 dark:text-white">
                             SpeakMate Assistant
                         </p>
-                        <span className="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 border border-indigo-200/50 dark:border-indigo-800/50">
+                        <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-semibold border ${theme.badgeBg}`}>
                             AI
                         </span>
                     </div>
@@ -177,7 +188,7 @@ export function AssistantPanel() {
                         onClick={closeWidget}
                         title="Close Chat"
                         aria-label="Close SpeakMate Assistant"
-                        className="grid h-8 w-8 place-items-center rounded-xl text-slate-500 dark:text-slate-400 transition-all duration-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 cursor-pointer"
+                        className={`grid h-8 w-8 place-items-center rounded-xl text-slate-500 dark:text-slate-400 transition-all duration-200 hover:bg-slate-200/60 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white focus:outline-none focus-visible:ring-2 ${theme.ring} cursor-pointer`}
                     >
                         <X className="h-4.5 w-4.5" aria-hidden="true" />
                     </button>
@@ -230,10 +241,10 @@ export function AssistantPanel() {
                                             type="button"
                                             onClick={() => handleSuggestion(suggestion)}
                                             disabled={loading}
-                                            className="group flex items-center justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-2.5 text-left text-xs font-medium text-slate-700 dark:text-slate-300 transition-all duration-200 hover:border-indigo-500/80 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-300 hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50 cursor-pointer"
+                                            className={`group flex items-center justify-between rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-2.5 text-left text-xs font-medium text-slate-700 dark:text-slate-300 transition-all duration-200 ${theme.hoverBorder} hover:shadow-sm focus:outline-none focus-visible:ring-2 ${theme.ring} disabled:opacity-50 cursor-pointer`}
                                         >
                                             <span className="truncate pr-2">{suggestion}</span>
-                                            <span className="text-slate-400 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-transform duration-200 shrink-0">
+                                            <span className="text-slate-400 group-hover:translate-x-0.5 transition-transform duration-200 shrink-0">
                                                 →
                                             </span>
                                         </button>
@@ -262,7 +273,7 @@ export function AssistantPanel() {
             <div className="border-t border-slate-200/80 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-900/80 p-3 backdrop-blur-md">
                 <form
                     onSubmit={handleSubmit}
-                    className="flex items-center gap-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 p-1.5 pl-3.5 shadow-sm focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all duration-200"
+                    className={`flex items-center gap-1.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 p-1.5 pl-3.5 shadow-sm ${theme.focusBorder} focus-within:ring-2 transition-all duration-200`}
                 >
                     <input
                         ref={inputRef}
@@ -287,10 +298,10 @@ export function AssistantPanel() {
                         disabled={loading}
                         aria-label={isListening ? "Stop listening" : "Voice input"}
                         title={isListening ? "Listening... Click to stop" : "Speak your question"}
-                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-40 cursor-pointer ${
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl transition-all duration-200 focus:outline-none focus-visible:ring-2 ${theme.ring} disabled:opacity-40 cursor-pointer ${
                             isListening
                                 ? "bg-red-500 text-white animate-pulse shadow-md shadow-red-500/30"
-                                : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/70 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                : "text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/70"
                         }`}
                     >
                         {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -302,7 +313,10 @@ export function AssistantPanel() {
                         disabled={loading || !draft.trim()}
                         aria-label={loading ? "Generating response..." : "Send message"}
                         title={loading ? "Assistant is thinking..." : "Send"}
-                        className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-[#5243F5] to-[#7B61FF] text-white shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md hover:shadow-indigo-500/25 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-40 disabled:hover:scale-100 cursor-pointer"
+                        style={{
+                            boxShadow: `0 4px 14px -2px ${theme.glow}`,
+                        }}
+                        className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-gradient-to-tr ${theme.sendGradient} text-white shadow-sm transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus-visible:ring-2 ${theme.ring} disabled:opacity-40 disabled:hover:scale-100 cursor-pointer`}
                     >
                         {loading ? (
                             <Loader2 className="h-3.5 w-3.5 animate-spin text-white" aria-hidden="true" />
@@ -319,6 +333,7 @@ export function AssistantPanel() {
             </div>
         </div>
     );
-}
+});
 
 export default AssistantPanel;
+

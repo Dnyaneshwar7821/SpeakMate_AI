@@ -38,6 +38,34 @@ class AssistantErrorBoundary extends React.Component {
 
 export function AssistantWidgetInner() {
     const { isOpen, toggle, closeWidget, loading } = useAssistant();
+    const panelRef = React.useRef(null);
+    const bubbleRef = React.useRef(null);
+
+    React.useEffect(() => {
+        if (!isOpen) return;
+
+        const handleClickOutside = (event) => {
+            if (panelRef.current?.contains(event.target)) return;
+            if (bubbleRef.current?.contains(event.target)) return;
+            closeWidget();
+        };
+
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") {
+                closeWidget();
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        document.addEventListener("touchstart", handleClickOutside);
+        document.addEventListener("keydown", handleKeyDown);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("touchstart", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [isOpen, closeWidget]);
 
     return (
         <>
@@ -50,11 +78,11 @@ export function AssistantWidgetInner() {
                         exit={{ opacity: 0, y: 16, scale: 0.96 }}
                         transition={{ duration: 0.18, ease: "easeOut" }}
                     >
-                        <AssistantPanel />
+                        <AssistantPanel ref={panelRef} />
                     </motion.div>
                 ) : null}
             </AnimatePresence>
-            <AssistantBubble isOpen={isOpen} loading={loading} onClick={isOpen ? closeWidget : toggle} />
+            <AssistantBubble ref={bubbleRef} isOpen={isOpen} loading={loading} onClick={isOpen ? closeWidget : toggle} />
         </>
     );
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { School, ChevronDown, Filter, BookOpen, Activity, Award, CheckCircle2, Clock, Plus, Trash2, UserCheck, UserX, Mic, Zap, Sparkles, Quote, Lightbulb, Stethoscope } from "lucide-react";
+import { School, ChevronDown, Filter, BookOpen, Activity, Award, CheckCircle2, Clock, Plus, Trash2, UserCheck, UserX, Loader2, Mic, Zap, Sparkles, Quote, Lightbulb, Stethoscope } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 
 import Button from "@components/common/Button";
@@ -30,7 +30,7 @@ function getOrdinal(n) {
 }
 
 // Custom Table to display student details and allow row clicks
-function CustomUsersTable({ users, onRowClick, onEdit, onDelete, onToggleStatus }) {
+function CustomUsersTable({ users, onRowClick, onEdit, onDelete, onToggleStatus, togglingUserId }) {
   if (users.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center gap-1 py-16 text-center">
@@ -98,44 +98,82 @@ function CustomUsersTable({ users, onRowClick, onEdit, onDelete, onToggleStatus 
                 )}
               </td>
               <td className="px-4 py-3 sm:px-5">
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${user.status === "active"
-                      ? "bg-emerald-500/10 text-emerald-500"
-                      : "bg-[var(--bg-elevated)] text-[var(--text-muted)]"
-                    }`}
-                >
+                {togglingUserId === user.id ? (
                   <span
-                    className={`h-1.5 w-1.5 rounded-full ${user.status === "active" ? "bg-emerald-500" : "bg-[var(--text-muted)]"
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold bg-amber-500/15 text-amber-700 dark:bg-amber-500/25 dark:text-amber-300 border border-amber-500/30 animate-pulse cursor-wait"
+                    title="Updating status..."
+                  >
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-600 dark:text-amber-400" />
+                    Updating...
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={Boolean(togglingUserId)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onToggleStatus(user);
+                    }}
+                    title="Click to toggle status"
+                    className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition ${
+                      Boolean(togglingUserId)
+                        ? "opacity-60 cursor-not-allowed"
+                        : "cursor-pointer hover:opacity-80"
+                    } ${
+                      user.status === "active"
+                        ? "bg-emerald-500/10 text-emerald-500"
+                        : "bg-[var(--bg-elevated)] text-[var(--text-muted)]"
+                    }`}
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        user.status === "active" ? "bg-emerald-500" : "bg-[var(--text-muted)]"
                       }`}
-                  />
-                  {user.status === "active" ? "Active" : "Inactive"}
-                </span>
+                    />
+                    {user.status === "active" ? "Active" : "Inactive"}
+                  </button>
+                )}
               </td>
               <td className="px-4 py-3 sm:px-5">
                 <div className="flex items-center justify-end gap-1">
-                  {user.status === "active" ? (
+                  {togglingUserId === user.id ? (
                     <button
                       type="button"
+                      disabled
+                      title="Updating status..."
+                      className="rounded-lg p-2 text-indigo-600 cursor-wait dark:text-indigo-400"
+                    >
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    </button>
+                  ) : user.status === "active" ? (
+                    <button
+                      type="button"
+                      disabled={Boolean(togglingUserId)}
                       title="Deactivate Student"
                       aria-label={`Deactivate ${user.name}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleStatus(user);
                       }}
-                      className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-amber-500/10 hover:text-amber-500"
+                      className={`rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-amber-500/10 hover:text-amber-500 ${
+                        Boolean(togglingUserId) ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
                       <UserX className="h-4 w-4" />
                     </button>
                   ) : (
                     <button
                       type="button"
+                      disabled={Boolean(togglingUserId)}
                       title="Activate Student"
                       aria-label={`Activate ${user.name}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleStatus(user);
                       }}
-                      className="rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-emerald-500/10 hover:text-emerald-500"
+                      className={`rounded-lg p-2 text-[var(--text-muted)] transition hover:bg-emerald-500/10 hover:text-emerald-500 ${
+                        Boolean(togglingUserId) ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
                       <UserCheck className="h-4 w-4" />
                     </button>
@@ -217,6 +255,7 @@ export function SchoolUsers() {
 
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const [togglingUserId, setTogglingUserId] = useState(null);
 
   // Auto-open student progress / profile if navigated from notification
   useEffect(() => {
@@ -354,6 +393,8 @@ export function SchoolUsers() {
   };
 
   const handleToggleStatus = async (user) => {
+    if (!user || togglingUserId) return;
+    setTogglingUserId(user.id);
     try {
       if (user.status === "active") {
         await deactivateStudent(user.id);
@@ -365,6 +406,8 @@ export function SchoolUsers() {
     } catch (err) {
       console.error("Failed to toggle student status:", err);
       triggerToast("Failed to update status.");
+    } finally {
+      setTogglingUserId(null);
     }
   };
 
@@ -515,6 +558,7 @@ export function SchoolUsers() {
         ) : (
           <CustomUsersTable
             users={students}
+            togglingUserId={togglingUserId}
             onRowClick={(user) => viewStudent(user.id)}
             onEdit={openEditModal}
             onDelete={openDeleteModal}

@@ -57,6 +57,7 @@ export function Students() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formModal, setFormModal] = useState({ isOpen: false, mode: "add", student: null });
+    const [togglingStudentId, setTogglingStudentId] = useState(null);
 
     // Toast state
     const [toasts, setToasts] = useState([]);
@@ -102,6 +103,8 @@ export function Students() {
     };
 
     const handleToggleStatus = async (student) => {
+        if (!student || togglingStudentId) return;
+        setTogglingStudentId(student.id);
         try {
             const currentActive = student.active !== undefined ? Boolean(student.active) : student.status === "active";
             const nextActive = !currentActive;
@@ -113,6 +116,8 @@ export function Students() {
             triggerToast(`Student ${nextActive ? "activated" : "deactivated"} successfully.`, "success");
         } catch (error) {
             triggerToast(error.message || "Failed to update student status.", "error");
+        } finally {
+            setTogglingStudentId(null);
         }
     };
     const handleDelete = (student) => {
@@ -251,6 +256,7 @@ export function Students() {
                 <StudentsTable
                     students={students}
                     isLoading={isLoading}
+                    togglingStudentId={togglingStudentId}
                     onRowClick={setViewingStudent}
                     onEdit={(s) => setFormModal({ isOpen: true, mode: "edit", student: s })}
                     onDelete={handleDelete}

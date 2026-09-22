@@ -6,6 +6,7 @@ import { Sparkles, Volume2, VolumeX } from "lucide-react";
 import StatRow from "./StatRow";
 import MiniChart from "./MiniChart";
 import DeepLinkChip from "./DeepLinkChip";
+import { useAssistantTheme } from "../useAssistantTheme";
 
 const markdownComponents = {
     a: (props) => (
@@ -364,6 +365,7 @@ export function MessageBubble({ message, role, onClose }) {
     const isUser = message.sender === "user";
     const [speaking, setSpeaking] = useState(false);
     const speechQueueRef = useRef({ isPlaying: false, timer: null });
+    const theme = useAssistantTheme();
 
     const { content, stats = [], chart = null, suggestions = [], accessDenied } = message;
 
@@ -452,7 +454,12 @@ export function MessageBubble({ message, role, onClose }) {
     if (isUser) {
         return (
             <div className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-tr-xs bg-gradient-to-tr from-[#5243F5] to-[#7B61FF] px-4 py-2.5 text-xs text-white shadow-md shadow-indigo-500/15 font-normal">
+                <div
+                    style={{
+                        boxShadow: `0 6px 18px -3px ${theme.glow}`,
+                    }}
+                    className={`max-w-[85%] rounded-2xl rounded-tr-xs bg-gradient-to-tr ${theme.userBubbleGradient} px-4 py-2.5 text-xs text-white font-normal`}
+                >
                     <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
                 </div>
             </div>
@@ -471,7 +478,7 @@ export function MessageBubble({ message, role, onClose }) {
                 {content ? (
                     <div className="mb-2.5 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700/60 pb-2">
                         <div className="flex items-center gap-1.5">
-                            <span className="grid h-4.5 w-4.5 place-items-center rounded-md bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
+                            <span className={`grid h-4.5 w-4.5 place-items-center rounded-md border ${theme.badgeBg}`}>
                                 <Sparkles className="h-3 w-3" aria-hidden="true" />
                             </span>
                             <span className="text-[11px] font-bold tracking-tight text-slate-700 dark:text-slate-200">
@@ -486,7 +493,7 @@ export function MessageBubble({ message, role, onClose }) {
                             className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer ${
                                 speaking
                                     ? "bg-red-500 text-white shadow-sm shadow-red-500/30 animate-pulse"
-                                    : "bg-indigo-50/80 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200/60 dark:border-indigo-800/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60"
+                                    : `border ${theme.badgeBg} hover:opacity-90`
                             }`}
                         >
                             {speaking ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
