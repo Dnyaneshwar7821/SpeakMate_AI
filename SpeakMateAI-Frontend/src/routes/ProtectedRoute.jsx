@@ -23,15 +23,7 @@ export function ProtectedRoute({ children }) {
   }
 
   // Strictly check onboarding completion for the current authenticated user
-  const userEmail = (user?.email || "").toLowerCase();
-  const userSpecificDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
-  const isUserCompleted = Boolean(
-    user && user.onboardingCompleted
-  );
-
-  const isCompleted = Boolean(
-    onboardingCompleted || isUserCompleted || userSpecificDone
-  );
+  const isCompleted = Boolean(user && user.onboardingCompleted);
 
   if (!isCompleted && location.pathname !== ROUTES.ONBOARDING) {
     return <Navigate to={ROUTES.ONBOARDING} replace />;

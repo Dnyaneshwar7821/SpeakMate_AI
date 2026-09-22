@@ -65,12 +65,13 @@ export const AuthProvider = ({ children }) => {
         const activeUser = me || parsedUser;
         const userEmail = (activeUser?.email || "").toLowerCase();
         
-        const storedUserDone = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
-        const isCompleted = Boolean(
-          activeUser?.onboardingCompleted === true ||
-          storedUserDone === "true"
-        );
+        const isCompleted = Boolean(activeUser?.onboardingCompleted === true);
         const nextOnboardingCompleted = Boolean(isCompleted);
+
+        if (!isCompleted) {
+          await AsyncStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+          if (userEmail) await AsyncStorage.removeItem(`speakmate_onboarding_${userEmail}`);
+        }
 
         const isStudent = Boolean(
           activeUser?.isSchoolStudent ||
@@ -201,16 +202,20 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
+      const email = (user?.email || "").toLowerCase();
       await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
       await AsyncStorage.removeItem(STORAGE_KEYS.user);
       await AsyncStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+      if (email) {
+        await AsyncStorage.removeItem(`speakmate_onboarding_${email}`);
+      }
       setToken(null);
       setUser(null);
       setOnboardingCompletedState(false);
       setIsAuthenticated(false);
     } catch (error) {
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     setLogoutCallback(logout);
@@ -228,12 +233,7 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await authService.login(credentials);
         const userEmail = (response.user?.email || credentials.email || "").toLowerCase();
-        
-        const storedUserDone = userEmail ? await AsyncStorage.getItem(`speakmate_onboarding_${userEmail}`) : null;
-        const isCompleted = Boolean(
-          response.user?.onboardingCompleted === true ||
-          storedUserDone === "true"
-        );
+        const isCompleted = Boolean(response.user?.onboardingCompleted === true);
         const nextOnboardingCompleted = Boolean(isCompleted);
 
         // Await all disk writes first

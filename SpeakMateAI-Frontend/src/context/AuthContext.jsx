@@ -97,12 +97,7 @@ export function AuthProvider({ children }) {
         const me = await authService.me().catch(() => null);
         const activeUser = me || parsedUser;
         const userEmail = activeUser?.email || "";
-        const userSpecificDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
-
-        const isCompleted = Boolean(
-          activeUser?.onboardingCompleted ||
-          userSpecificDone
-        );
+        const isCompleted = Boolean(activeUser?.onboardingCompleted);
 
         if (activeUser) {
           const isStudent = Boolean(
@@ -148,6 +143,9 @@ export function AuthProvider({ children }) {
         setOnboardingCompleted(isCompleted);
         if (isCompleted) {
           localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
+        } else {
+          localStorage.removeItem(STORAGE_KEYS.onboardingCompleted);
+          if (userEmail) localStorage.removeItem(`speakmate_onboarding_done_${userEmail}`);
         }
       }
     } catch (error) {
@@ -207,8 +205,7 @@ export function AuthProvider({ children }) {
       const keysToRemove = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
-        // Do NOT delete speakmate_onboarding_done_<email> on logout so user bypasses onboarding on subsequent logins!
-        if (key && key.startsWith("speakmate_") && !key.startsWith("speakmate_onboarding_done_")) {
+        if (key && key.startsWith("speakmate_")) {
           keysToRemove.push(key);
         }
       }
@@ -245,13 +242,8 @@ export function AuthProvider({ children }) {
           localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(response.user));
           setUser(response.user);
 
-          const userEmail = response.user.email || credentials.email || "";
-          const userSpecificDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
-
-          const isDone = Boolean(
-            response.user.onboardingCompleted ||
-            userSpecificDone
-          );
+          const userEmail = (response.user?.email || credentials.email || "").toLowerCase();
+          const isDone = Boolean(response.user?.onboardingCompleted);
 
           setOnboardingCompleted(isDone);
           if (isDone) {
@@ -295,12 +287,22 @@ export function AuthProvider({ children }) {
 
   const completeOnboarding = async (onboardingData) => {
     try {
+      const updatedBackendUser = await authService.completeOnboarding(onboardingData).catch((err) => {
+        console.warn("Backend completeOnboarding call failed:", err);
+        return null;
+      });
+
       localStorage.setItem(STORAGE_KEYS.onboardingCompleted, "true");
       if (user?.email) {
-        localStorage.setItem(`speakmate_onboarding_done_${user.email}`, "true");
+        localStorage.setItem(`speakmate_onboarding_done_${user.email.toLowerCase()}`, "true");
       }
       setOnboardingCompleted(true);
-      const updatedUser = { ...(user || {}), ...onboardingData, onboardingCompleted: true };
+      const updatedUser = { 
+        ...(user || {}), 
+        ...(onboardingData || {}), 
+        ...(updatedBackendUser || {}), 
+        onboardingCompleted: true 
+      };
       setUser(updatedUser);
       syncUserProfile(updatedUser);
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updatedUser));

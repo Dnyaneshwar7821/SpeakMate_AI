@@ -191,6 +191,8 @@ export function Register() {
         otp: otp.trim(),
         accountType: "INDIVIDUAL_USER",
       });
+      localStorage.removeItem("speakmate_onboarding_completed");
+      localStorage.removeItem(`speakmate_onboarding_done_${emailLower}`);
       setOtpState("VERIFIED");
       setRegistered(true);
     } catch (err) {

@@ -39,12 +39,7 @@ export function Login() {
         schoolCode: loginType === "SCHOOL" ? schoolCode.trim().toUpperCase() : undefined,
       });
 
-      const userEmail = res?.user?.email || form.email.trim();
-      const userDone = userEmail ? localStorage.getItem(`speakmate_onboarding_done_${userEmail}`) === "true" : false;
-      const isCompleted = Boolean(
-        res?.user?.onboardingCompleted ||
-        userDone
-      );
+      const isCompleted = Boolean(res?.user?.onboardingCompleted);
 
       if (res && res.user && !isCompleted) {
         navigate(ROUTES.ONBOARDING, { replace: true });
