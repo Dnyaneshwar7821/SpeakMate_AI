@@ -4,6 +4,29 @@ import * as PIXI from 'pixi.js';
 import './index.css';
 import App from './App.jsx';
 
+// Handle dynamic module load errors when a new deployment invalidates old chunk hashes
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', (event) => {
+    event.preventDefault();
+    window.location.reload();
+  });
+
+  window.addEventListener('error', (event) => {
+    if (
+      event?.message &&
+      (event.message.includes('dynamically imported module') ||
+       event.message.includes('Expected a JavaScript-or-Wasm module script'))
+    ) {
+      const lastReload = sessionStorage.getItem('speakmate_chunk_reload_ts');
+      const now = Date.now();
+      if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+        sessionStorage.setItem('speakmate_chunk_reload_ts', now.toString());
+        window.location.reload();
+      }
+    }
+  });
+}
+
 // Make PIXI available on window for Live2D SDK integration
 if (typeof window !== 'undefined') {
   window.PIXI = PIXI;
