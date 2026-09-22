@@ -150,7 +150,7 @@ export const getLiveProgressStats = (userContext = null) => {
 
   const accuracy = stored.accuracyCount > 0
     ? Math.round(stored.accuracySum / stored.accuracyCount)
-    : 92;
+    : (stored.backendAccuracy != null && stored.backendAccuracy > 0 ? Math.round(stored.backendAccuracy) : null);
 
   const totalHours = (stored.speakingMins / 60).toFixed(1);
 
@@ -176,8 +176,8 @@ export const getLiveProgressStats = (userContext = null) => {
     const dayName = daysOfWeek[d.getDay()];
     const record = stored.streakHistory[dStr];
     const isToday = dStr === today;
-    const mins = isToday ? (stored.todayMins || 0) : (record?.mins || (i === 1 ? 25 : i === 2 ? 30 : i === 3 ? 15 : 20));
-    const status = record?.status || (mins >= 15 ? "completed" : isToday ? "active" : "completed");
+    const mins = isToday ? (stored.todayMins || 0) : (record?.mins || 0);
+    const status = record?.status || (mins >= 15 ? "completed" : isToday ? "active" : mins > 0 ? "completed" : "missed");
 
     weeklyData.push({
       dateStr: dStr,
@@ -256,12 +256,44 @@ export const syncBackendProgress = (backendData, userContext = null) => {
     ? Math.max(Number(current.speakingMins || 0), Number(rawBackendMins))
     : Number(current.speakingMins || 0);
 
+  const backendStats = backendData.statistics || {};
+  const rawBackendAvgScore = backendStats.averageScore ?? backendData.averageScore;
+  const rawBackendVocab = backendStats.vocabularyLearned ?? backendData.progress?.totalVocabularyWords ?? backendData.profile?.totalVocabularyWords;
+  const rawBackendSessions = backendStats.speakingSessions ?? backendData.progress?.totalSpeakingSessions ?? backendData.profile?.totalSpeakingSessions;
+  const rawBackendGrammar = backendStats.grammarExercises ?? backendData.progress?.totalGrammarChecks ?? backendData.profile?.totalGrammarChecks;
+  const rawBackendLessons = backendStats.completedLessons ?? backendData.completedLessons;
+
+  const backendAccuracy = rawBackendAvgScore !== undefined && rawBackendAvgScore !== null && Number(rawBackendAvgScore) > 0
+    ? Number(rawBackendAvgScore)
+    : (current.backendAccuracy || null);
+
+  const finalWords = rawBackendVocab !== undefined && rawBackendVocab !== null
+    ? Math.max(Number(current.wordsLearned || 0), Number(rawBackendVocab))
+    : Number(current.wordsLearned || 0);
+
+  const finalSessions = rawBackendSessions !== undefined && rawBackendSessions !== null
+    ? Math.max(Number(current.speakingSessions || 0), Number(rawBackendSessions))
+    : Number(current.speakingSessions || 0);
+
+  const finalGrammar = rawBackendGrammar !== undefined && rawBackendGrammar !== null
+    ? Math.max(Number(current.grammarChecks || 0), Number(rawBackendGrammar))
+    : Number(current.grammarChecks || 0);
+
+  const finalLessons = rawBackendLessons !== undefined && rawBackendLessons !== null
+    ? Math.max(Number(current.lessonsCompleted || 0), Number(rawBackendLessons))
+    : Number(current.lessonsCompleted || 0);
+
   const synced = {
     ...current,
     xp: finalXp,
     streak: finalStreak,
     speakingMins: finalMins,
     longestStreak: Math.max(current.longestStreak || 0, finalStreak),
+    wordsLearned: finalWords,
+    speakingSessions: finalSessions,
+    grammarChecks: finalGrammar,
+    lessonsCompleted: finalLessons,
+    backendAccuracy,
   };
 
   saveProgressStats(synced, userContext, false);
@@ -468,3 +500,16 @@ export const claimDailyQuoteXP = (amount = 50, userContext = null) => {
   saveProgressStats(stats, userContext);
   return { success: true, stats, message: `🎉 +${amount} XP earned! Today's goal accepted!` };
 };
+
+// 12. Record Warmup Practice (+30 XP without injecting artificial speech scores)
+export const recordWarmupSession = (durationMins = 5, xpReward = 30, userContext = null) => {
+  if (durationMins <= 0) return getLiveProgressStats(userContext);
+  const stats = getLiveProgressStats(userContext);
+  stats.speakingMins += durationMins;
+  stats.todayMins = (stats.todayMins || 0) + durationMins;
+  stats.xp = (stats.xp || 0) + xpReward;
+  checkAndUpdateDailyGoal(stats, userContext);
+  saveProgressStats(stats, userContext);
+  return stats;
+};
+

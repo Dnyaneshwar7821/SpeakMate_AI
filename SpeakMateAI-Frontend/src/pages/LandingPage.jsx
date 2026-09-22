@@ -62,7 +62,7 @@ export function LandingPage() {
       {/* HERO SECTION */}
       <section className="relative pt-6 pb-12 sm:pt-14 sm:pb-24 overflow-hidden">
         {/* Glow Background Circles */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-r from-[#6C63FF]/20 via-[#8B5CF6]/15 to-[#FF6584]/20 blur-3xl pointer-events-none rounded-full" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90vw] max-w-[700px] h-[350px] bg-gradient-to-r from-[#6C63FF]/20 via-[#8B5CF6]/15 to-[#FF6584]/20 blur-3xl pointer-events-none rounded-full" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           {/* Left Column Text */}
@@ -72,7 +72,7 @@ export function LandingPage() {
               <span>Next-Generation AI English Speaking Coach</span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black leading-[1.08] tracking-tight text-[var(--text-primary)]">
+            <h1 className="text-3xl sm:text-5xl lg:text-7xl font-black leading-[1.08] tracking-tight text-[var(--text-primary)]">
               Speak English with <span className="gradient-text">Unstoppable</span> Confidence.
             </h1>
 

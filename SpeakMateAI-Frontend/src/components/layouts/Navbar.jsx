@@ -550,24 +550,24 @@ export function Navbar() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 sm:gap-3">
+            <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
               <button
                 type="button"
                 id="navbar-admin-login-btn"
                 onClick={() => setAdminLoginModalOpen(true)}
-                className="px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all cursor-pointer"
+                className="hidden md:inline-flex px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all cursor-pointer"
               >
                 Login as Admin
               </button>
               <Link
                 to={ROUTES.LOGIN}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all"
+                className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] transition-all"
               >
                 Log In
               </Link>
               <Link
                 to={ROUTES.REGISTER}
-                className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-md shadow-[#6C63FF]/25 hover:shadow-lg hover:shadow-[#6C63FF]/35 active:scale-95 transition-all"
+                className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-md shadow-[#6C63FF]/25 hover:shadow-lg hover:shadow-[#6C63FF]/35 active:scale-95 transition-all whitespace-nowrap"
               >
                 Get Started Free
               </Link>
