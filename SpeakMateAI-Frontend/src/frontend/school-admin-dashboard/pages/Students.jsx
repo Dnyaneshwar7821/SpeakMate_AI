@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Plus, Users, Filter, ChevronDown, BookOpen, Activity, Award, CheckCircle2, Clock, Zap, Star, Download, Mic, Sparkles, Quote, Lightbulb, Stethoscope } from "lucide-react";
 import {
@@ -36,6 +37,7 @@ const STANDARD_OPTIONS = ["All Standards", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 // Uses unified UserProgressModal from @admin/components/UserProgressModal
 
 export function Students() {
+    const location = useLocation();
     const {
         students,
         totalStudents,
@@ -48,6 +50,12 @@ export function Students() {
         deleteStudent,
         isLoading
     } = useStudents();
+
+    useEffect(() => {
+        if (location.state?.searchTerm) {
+            setSearchTerm(location.state.searchTerm);
+        }
+    }, [location.state]);
     const { teachers } = useTeachers();
     const [assignedSchoolName, setAssignedSchoolName] = useState("Loading...");
     const [assignedSchoolId, setAssignedSchoolId] = useState(null);
