@@ -479,7 +479,7 @@ export function AppRoutes() {
             <Route path={ROUTES.SCHOOL_ADMIN_DASHBOARD} element={<PageTransition><SchoolDashboard /></PageTransition>} />
             <Route path={ROUTES.SCHOOL_ADMIN_STUDENTS} element={<PageTransition><SchoolStudents /></PageTransition>} />
             <Route path={ROUTES.SCHOOL_ADMIN_TEACHERS} element={<PageTransition><SchoolTeachers /></PageTransition>} />
-            <Route path={ROUTES.SCHOOL_ADMIN_RESULTS} element={<PageTransition><SchoolResults /></PageTransition>} />
+            <Route path={ROUTES.SCHOOL_ADMIN_RESULTS} element={<Navigate to={ROUTES.SCHOOL_ADMIN_DASHBOARD} replace />} />
             <Route path={ROUTES.SCHOOL_ADMIN_INSIGHTS} element={<PageTransition><SchoolInsights /></PageTransition>} />
             <Route path={ROUTES.SCHOOL_ADMIN_ADD_TEACHER} element={<PageTransition><AddTeacher /></PageTransition>} />
             <Route path={ROUTES.SCHOOL_ADMIN_PROFILE} element={<PageTransition><SchoolAdminProfile /></PageTransition>} />

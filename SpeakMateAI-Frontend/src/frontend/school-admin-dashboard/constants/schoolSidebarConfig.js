@@ -1,7 +1,6 @@
 import {
     LayoutDashboard,
     Users,
-    BarChart3,
     Briefcase,
     UserPlus,
     Bell,
@@ -16,7 +15,6 @@ export const SCHOOL_SIDEBAR_MENU = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: ROUTES.SCHOOL_ADMIN_DASHBOARD },
     { id: "students", label: "Students", icon: Users, path: ROUTES.SCHOOL_ADMIN_STUDENTS },
     { id: "teachers", label: "Teachers", icon: Briefcase, path: ROUTES.SCHOOL_ADMIN_TEACHERS },
-    { id: "results", label: "Results", icon: BarChart3, path: ROUTES.SCHOOL_ADMIN_RESULTS },
     { id: "insights", label: "AI Insights", icon: Mic, path: ROUTES.SCHOOL_ADMIN_INSIGHTS },
     { id: "notifications", label: "Notifications", icon: Bell, path: ROUTES.SCHOOL_ADMIN_NOTIFICATIONS },
 ];
