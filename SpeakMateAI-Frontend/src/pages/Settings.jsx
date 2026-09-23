@@ -149,16 +149,16 @@ export function Settings() {
 
   const handleSelectVoiceCode = (voiceCode, previewText) => {
     setSelectedVoice(voiceCode);
-    const profile = VOICE_PROFILES.find((p) => p.code.toLowerCase() === (voiceCode || "").toLowerCase());
-
-    const gender = profile?.gender || (voiceCode.toLowerCase().includes("male") && !voiceCode.toLowerCase().includes("female") ? "male" : "female");
-    const model = gender === "male" ? "chitose" : "haru";
+    const isMale = (voiceCode || "").toLowerCase().includes("male") && !(voiceCode || "").toLowerCase().includes("female");
+    const gender = isMale ? "male" : "female";
+    const model = isMale ? "chitose" : "haru";
 
     setCurrentModelKey(model);
     localStorage.setItem("speakmate_avatar_model", model);
     localStorage.setItem("speakmate_voice_gender", gender);
     localStorage.setItem("speakmate_selected_voice", voiceCode);
     localStorage.setItem("speakmate_ai_voice", voiceCode);
+    localStorage.setItem("speakmate_voice_code", voiceCode);
     EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
 
     playVoicePreview(voiceCode, previewText);
@@ -169,24 +169,17 @@ export function Settings() {
     setSaving(true);
 
     try {
-      if (isHaruOrChitose) {
-        const profile = VOICE_PROFILES.find((p) => p.code === selectedVoice);
-        const gender = profile?.gender || (selectedVoice.toLowerCase().includes("male") && !selectedVoice.toLowerCase().includes("female") ? "male" : "female");
-        const model = gender === "male" ? "chitose" : "haru";
+      const isMale = (selectedVoice || "").toLowerCase().includes("male") && !(selectedVoice || "").toLowerCase().includes("female");
+      const gender = isMale ? "male" : "female";
+      const model = isMale ? "chitose" : "haru";
 
-        localStorage.setItem("speakmate_ai_voice", selectedVoice);
-        localStorage.setItem("speakmate_voice_code", selectedVoice);
-        localStorage.setItem("speakmate_selected_voice", selectedVoice);
-        localStorage.setItem("speakmate_voice_gender", gender);
-        localStorage.setItem("speakmate_avatar_model", model);
-        EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
-      } else {
-        localStorage.setItem("speakmate_avatar_model", activeAvatar.id);
-        localStorage.setItem("speakmate_voice_gender", activeAvatar.gender);
-        localStorage.setItem("speakmate_ai_voice", activeAvatar.voiceProfile);
-        localStorage.setItem("speakmate_voice_code", activeAvatar.voiceProfile);
-        localStorage.setItem("speakmate_voice_pitch", String(activeAvatar.defaultPitch));
-      }
+      localStorage.setItem("speakmate_ai_voice", selectedVoice);
+      localStorage.setItem("speakmate_voice_code", selectedVoice);
+      localStorage.setItem("speakmate_selected_voice", selectedVoice);
+      localStorage.setItem("speakmate_voice_gender", gender);
+      localStorage.setItem("speakmate_avatar_model", model);
+      setCurrentModelKey(model);
+      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
 
       localStorage.setItem("speakmate_voice_accent", accent);
       localStorage.setItem("speakmate_age_group", selectedAgeGroup);
@@ -563,7 +556,7 @@ export function Settings() {
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
                 }`}
               >
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-2xl">✨</span>
                     <div className="flex items-center gap-1.5">
@@ -579,7 +572,12 @@ export function Settings() {
                       )}
                     </div>
                   </div>
-                  <h4 className="font-black text-base text-[var(--text-primary)]">1. System Default</h4>
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="font-black text-base text-[var(--text-primary)]">1. System Default</h4>
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-pink-500/10 text-pink-500 border border-pink-500/20">
+                      Avatar: Haru 👩
+                    </span>
+                  </div>
                   <p className="text-xs text-[var(--text-secondary)] font-medium">
                     Uses your onboarding voice persona (<strong>{onboardingVoiceStyle}</strong>) with natural system speech.
                   </p>
@@ -608,7 +606,7 @@ export function Settings() {
                         : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
                     }`}
                   >
-                    <div className="space-y-1.5">
+                    <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-2xl">
                           <span>{flag}</span>
@@ -631,12 +629,21 @@ export function Settings() {
                         <h4 className="font-black text-base text-[var(--text-primary)]">
                           {idx + 2}. {profile.label}
                         </h4>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                          {profile.accent}
-                        </span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                            {profile.accent}
+                          </span>
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${
+                            profile.gender === "female"
+                              ? "bg-pink-500/10 text-pink-500 border-pink-500/20"
+                              : "bg-blue-500/10 text-blue-500 border-blue-500/20"
+                          }`}>
+                            Avatar: {profile.gender === "female" ? "Haru 👩" : "Chitose 👨"}
+                          </span>
+                        </div>
                       </div>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium">
-                        Custom pitch tuned for {profile.accent} {profile.gender} tutor.
+                      <p className="text-xs text-[var(--text-secondary)] font-medium italic">
+                        "{profile.previewText}"
                       </p>
                     </div>
                   </div>

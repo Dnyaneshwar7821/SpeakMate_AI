@@ -4,14 +4,14 @@ import { getPrimaryVisemeForWord } from "./PhoneticVisemeEngine";
 import { getAvatarById } from "../config/AvatarCatalog";
 
 export const VOICE_PROFILES = [
-  { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male', previewText: 'Hello, I am your American Male English tutor.' },
-  { code: 'US Female', accent: 'American', locale: 'en-US', gender: 'female', label: 'American - Female', previewText: 'Hello, I am your American Female English tutor.' },
-  { code: 'UK Male', accent: 'British', locale: 'en-GB', gender: 'male', label: 'British - Male', previewText: 'Hello, I am your British Male English tutor.' },
-  { code: 'UK Female', accent: 'British', locale: 'en-GB', gender: 'female', label: 'British - Female', previewText: 'Hello, I am your British Female English tutor.' },
-  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male', previewText: 'Hello, I am your Australian Male English tutor.' },
-  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: 'Hello, I am your Australian Female English tutor.' },
-  { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male', previewText: 'Hello, I am your Indian Male English tutor.' },
-  { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female', previewText: 'Hello, I am your Indian Female English tutor.' },
+  { code: 'US Male', accent: 'American', locale: 'en-US', gender: 'male', label: 'American - Male', previewText: 'Hello! I am your American English coach. Great to meet you!' },
+  { code: 'US Female', accent: 'American', locale: 'en-US', gender: 'female', label: 'American - Female', previewText: "Hi there! I am your American English coach. Let's practice speaking together!" },
+  { code: 'UK Male', accent: 'British', locale: 'en-GB', gender: 'male', label: 'British - Male', previewText: 'Good day! I am your British English tutor. Shall we practice speaking together?' },
+  { code: 'UK Female', accent: 'British', locale: 'en-GB', gender: 'female', label: 'British - Female', previewText: 'Hello! I am your British English tutor. It is lovely to practice English with you.' },
+  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male', previewText: "G'day! I am your Australian English tutor. Ready to practice speaking together mate?" },
+  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: "G'day! I am your Australian English tutor. Let's have a wonderful speaking session today!" },
+  { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male', previewText: 'Namaste! I am your Indian English tutor. Let us practice English conversation together.' },
+  { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female', previewText: 'Namaste! I am your Indian English tutor. I am delighted to help you master English speaking.' },
   { code: 'Haru', accent: 'Anime Coach', locale: 'en-US', gender: 'female', label: 'Haru (Anime Coach)', previewText: "Hello! I'm Haru, your AI speaking coach. Let's practice speaking English together!" },
   { code: 'Shizuku', accent: 'Academic Mentor', locale: 'en-US', gender: 'female', label: 'Shizuku (Academic Mentor)', previewText: 'Hello, I am Shizuku. Together we will master English grammar and conversational fluency step by step.' },
   { code: 'Robo-Paws', accent: 'Cute Mascot', locale: 'en-US', gender: 'cartoon', label: 'Robo-Paws (Cute Robot Cat)', previewText: 'Beep-boop! Hello superstar! I am Robo-Paws, your friendly robot cat English buddy!' },
@@ -95,6 +95,16 @@ export const VOICE_PERSONAS = [
   },
 ];
 
+export const isMaleVoiceCode = (code) => {
+  const c = String(code || '').toLowerCase().trim();
+  return c.includes('male') && !c.includes('female');
+};
+
+export const isFemaleVoiceCode = (code) => {
+  const c = String(code || '').toLowerCase().trim();
+  return c.includes('female') || c === 'haru' || c === 'shizuku';
+};
+
 export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
   const currentAvatarModel = (localStorage.getItem("speakmate_avatar_model") || "haru").toLowerCase();
   const avatar = getAvatarById(currentAvatarModel);
@@ -114,11 +124,13 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     } else if (avatar.id === "shizuku") {
       aiVoice = "Shizuku";
     } else if (avatar.id === "haru") {
-      if (aiVoice === "Default" || !aiVoice || aiVoice.toLowerCase().includes("male")) {
+      // If no valid voice or a male voice was stored, fallback to Haru
+      if (aiVoice === "Default" || !aiVoice || isMaleVoiceCode(aiVoice)) {
         aiVoice = "Haru";
       }
     } else if (avatar.id === "chitose") {
-      if (aiVoice === "Default" || !aiVoice || aiVoice.toLowerCase().includes("female") || aiVoice === "Haru" || aiVoice === "Shizuku") {
+      // If no valid voice or a female voice was stored, fallback to US Male
+      if (aiVoice === "Default" || !aiVoice || isFemaleVoiceCode(aiVoice)) {
         aiVoice = "US Male";
       }
     }
@@ -140,31 +152,31 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
     if (profile.locale) targetLang = profile.locale;
     if (profile.gender) gender = profile.gender;
 
-    // Dedicated sound profiles calibrated precisely to what each avatar represents:
+    // Dedicated sound profiles calibrated precisely for each regional voice:
     if (profile.code === "US Male") {
-      pitch = 0.98;
-      baseRate = 1.02;
+      pitch = 0.94;
+      baseRate = 1.00;
     } else if (profile.code === "US Female") {
-      pitch = 1.08;
-      baseRate = 1.02;
+      pitch = 1.05;
+      baseRate = 1.01;
     } else if (profile.code === "UK Male") {
-      pitch = 0.92;
-      baseRate = 1.02;
+      pitch = 0.88; // Deep, polished British tone
+      baseRate = 0.94; // Measured British pacing
     } else if (profile.code === "UK Female") {
-      pitch = 1.08;
-      baseRate = 1.02;
+      pitch = 1.15; // Crisp, articulate British tone
+      baseRate = 0.95; // Articulate British cadence
     } else if (profile.code === "AU Male") {
-      pitch = 1.00;
-      baseRate = 1.02;
+      pitch = 1.04; // Casual Aussie lilt
+      baseRate = 1.05; // Upbeat tempo
     } else if (profile.code === "AU Female") {
-      pitch = 1.12;
-      baseRate = 1.02;
+      pitch = 1.22; // Bright Australian rising inflection
+      baseRate = 1.04; // Lively tempo
     } else if (profile.code === "IN Male") {
-      pitch = 0.96;
-      baseRate = 1.02;
+      pitch = 0.97; // Resonant Indian English tone
+      baseRate = 0.98; // Steady syllable-timed pacing
     } else if (profile.code === "IN Female") {
-      pitch = 1.10;
-      baseRate = 1.02;
+      pitch = 1.14; // Melodic Indian English cadence
+      baseRate = 0.98; // Precise syllable timing
     } else if (profile.code === "Haru") {
       pitch = 1.16; // Warm, sweet anime coach
       baseRate = 1.02;
@@ -241,49 +253,54 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   ].includes(lowerCode);
   const isMotu = lowerCode === "motu";
   const isShizuku = lowerCode === "shizuku";
-  const isHaru = lowerCode === "haru";
-  const isMaleCoach = lowerCode === "us male" || lowerCode === "uk male" || lowerCode === "au male" || lowerCode === "in male" || lowerCode === "chitose";
 
   const MALE_NAMES = [
     "guy", "david", "mark", "alex", "tom", "chris", "george", "james",
     "ryan", "oliver", "daniel", "william", "russell", "prabhat", "rishi",
-    "ravi", "male", "richard", "sean", "fred"
+    "ravi", "richard", "sean", "fred", "eric", "steffan", "thomas",
+    "alfie", "arthur", "harry", "ken", "jack", "madhav", "aravind",
+    "karan", "rohan", "amit", "brian", "mike", "stephen", "andrew"
   ];
 
   const FEMALE_NAMES = [
     "jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia",
     "hazel", "fiona", "kate", "serena", "natasha", "catherine", "libby",
-    "mia", "annette", "neerja", "veena", "heera", "female", "aria",
-    "ana", "ava", "allison", "stephanie", "tessa", "moira", "flo"
+    "mia", "annette", "neerja", "veena", "heera", "aria", "ana",
+    "ava", "allison", "stephanie", "tessa", "moira", "flo", "ananya",
+    "priya", "swara", "kalpana", "geeta", "sangeeta", "michelle", "alice",
+    "clara", "julie", "laura", "emma", "olivia", "sophia", "chloe"
   ];
 
   const CUTE_CHILD_NAMES = ["ana", "child", "kid", "junior", "flo", "sweet", "youth"];
   const INDIAN_VOICE_NAMES = ["neerja", "heera", "veena", "kalpana", "ananya", "prabhat", "rishi", "ravi", "indian", "hindi"];
 
   const isMaleVoice = (v) => {
+    if (!v) return false;
     const n = (v.name || "").toLowerCase();
+    if (/\bfemale\b/i.test(n)) return false;
+    if (/\bmale\b/i.test(n)) return true;
     return MALE_NAMES.some((k) => n.includes(k)) && !FEMALE_NAMES.some((k) => n.includes(k));
   };
 
   const isFemaleVoice = (v) => {
+    if (!v) return false;
     const n = (v.name || "").toLowerCase();
+    if (/\bfemale\b/i.test(n)) return true;
+    if (/\bmale\b/i.test(n)) return false;
     return FEMALE_NAMES.some((k) => n.includes(k)) && !MALE_NAMES.some((k) => n.includes(k));
   };
 
   let targetVoice = null;
 
   // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 1: CUTE CARTOON & KID AVATARS (Robo-Paws, Sparky, Koharu, Haruto, Mao, Puppy)
-  // Cheerful, cute, spirited voices. NEVER deep adult male voices!
+  // ARCHETYPE 1: CUTE CARTOON & KID AVATARS
   // ─────────────────────────────────────────────────────────────
   if (isCuteCartoonOrKid) {
-    // 1A: Check for dedicated child / cute voices (e.g., Microsoft Ana, Junior)
     targetVoice = voices.find((v) =>
       CUTE_CHILD_NAMES.some((k) => (v.name || "").toLowerCase().includes(k)) &&
       !isMaleVoice(v)
     );
 
-    // 1B: High-clarity sweet/cheerful natural female voices (Jenny, Aria, Google US English, Samantha, Zira)
     if (!targetVoice) {
       targetVoice = voices.find((v) => {
         const n = (v.name || "").toLowerCase();
@@ -294,7 +311,6 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
       });
     }
 
-    // 1C: Any online / natural female English voice
     if (!targetVoice) {
       targetVoice = voices.find((v) => {
         const n = (v.name || "").toLowerCase();
@@ -303,7 +319,6 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
       });
     }
 
-    // 1D: Any female English voice
     if (!targetVoice) {
       targetVoice = voices.find((v) => {
         const l = (v.lang || "").toLowerCase();
@@ -311,15 +326,6 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
       });
     }
 
-    // 1E: Any English voice that is not marked male
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase();
-        return l.startsWith("en") && !isMaleVoice(v);
-      });
-    }
-
-    // Absolute fallback: If the system only has adult male voices installed
     if (!targetVoice || isMaleVoice(targetVoice)) {
       if (!targetVoice && voices.length > 0) targetVoice = voices[0];
       utterance.pitch = Math.max(1.50, settings.pitch * 1.15);
@@ -328,7 +334,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   }
 
   // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 2: JOLLY INDIAN CARTOON FRIEND (Motu from Furfuri Nagar)
+  // ARCHETYPE 2: JOLLY INDIAN CARTOON FRIEND (Motu)
   // ─────────────────────────────────────────────────────────────
   else if (isMotu) {
     targetVoice = voices.find((v) => {
@@ -351,29 +357,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   }
 
   // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 3: ANIME COACH (Haru)
-  // ─────────────────────────────────────────────────────────────
-  else if (isHaru) {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      return (
-        (n.includes("jenny") || n.includes("aria") || n.includes("google us english") || n.includes("samantha") || n.includes("zira")) &&
-        !isMaleVoice(v)
-      );
-    });
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => {
-        const l = (v.lang || "").toLowerCase();
-        return l.startsWith("en") && isFemaleVoice(v);
-      });
-    }
-    if (!targetVoice) {
-      targetVoice = voices.find((v) => !isMaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
-    }
-  }
-
-  // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 4: ACADEMIC MENTOR (Shizuku)
+  // ARCHETYPE 3: ACADEMIC MENTOR (Shizuku)
   // ─────────────────────────────────────────────────────────────
   else if (isShizuku) {
     targetVoice = voices.find((v) => {
@@ -392,74 +376,195 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   }
 
   // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 5: PROFESSIONAL MALE COACH (Chitose / US Male)
+  // ── REGIONAL VOICE 1: US MALE (American Male / Chitose) ──
   // ─────────────────────────────────────────────────────────────
-  else if (isMaleCoach) {
+  else if (lowerCode === "us male" || lowerCode === "chitose") {
     targetVoice = voices.find((v) => {
       const n = (v.name || "").toLowerCase();
       const l = (v.lang || "").toLowerCase();
-      return (
-        l.startsWith("en") &&
-        isMaleVoice(v) &&
-        (n.includes("natural") || n.includes("online") || n.includes("google") || n.includes("guy") || n.includes("david") || n.includes("mark"))
-      );
+      return (l === "en-us" || l === "en_us") && isMaleVoice(v) &&
+        (n.includes("guy") || n.includes("david") || n.includes("mark") || n.includes("natural") || n.includes("online") || n.includes("google"));
     });
     if (!targetVoice) {
-      targetVoice = voices.find((v) => isMaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
+      targetVoice = voices.find((v) => {
+        const l = (v.lang || "").toLowerCase();
+        return (l === "en-us" || l === "en_us") && isMaleVoice(v);
+      });
+    }
+    if (!targetVoice) {
+      targetVoice = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isMaleVoice(v));
     }
   }
 
   // ─────────────────────────────────────────────────────────────
-  // ARCHETYPE 6: REGIONAL PROFILES
+  // ── REGIONAL VOICE 2: US FEMALE (American Female / Haru) ──
+  // ─────────────────────────────────────────────────────────────
+  else if (lowerCode === "us female" || lowerCode === "haru") {
+    targetVoice = voices.find((v) => {
+      const n = (v.name || "").toLowerCase();
+      const l = (v.lang || "").toLowerCase();
+      return (l === "en-us" || l === "en_us") && isFemaleVoice(v) &&
+        (n.includes("jenny") || n.includes("aria") || n.includes("zira") || n.includes("samantha") || n.includes("natural") || n.includes("online") || n.includes("google"));
+    });
+    if (!targetVoice) {
+      targetVoice = voices.find((v) => {
+        const l = (v.lang || "").toLowerCase();
+        return (l === "en-us" || l === "en_us") && isFemaleVoice(v);
+      });
+    }
+    if (!targetVoice) {
+      targetVoice = voices.find((v) => (v.lang || "").toLowerCase().startsWith("en") && isFemaleVoice(v));
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // ── REGIONAL VOICE 3: UK MALE (British Male) ──
+  // ─────────────────────────────────────────────────────────────
+  else if (lowerCode === "uk male") {
+    targetVoice = voices.find((v) => {
+      const n = (v.name || "").toLowerCase();
+      const l = (v.lang || "").toLowerCase();
+      return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isMaleVoice(v) &&
+        (n.includes("george") || n.includes("ryan") || n.includes("oliver") || n.includes("daniel") || n.includes("natural") || n.includes("online") || n.includes("google"));
+    });
+    if (!targetVoice) {
+      targetVoice = voices.find((v) => {
+        const n = (v.name || "").toLowerCase();
+        const l = (v.lang || "").toLowerCase();
+        return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isMaleVoice(v);
+      });
+    }
+    if (!targetVoice) {
+      // Fallback: Use male voice with explicit British acoustic tuning
+      targetVoice = voices.find((v) => isMaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
+      utterance.pitch = 0.88;
+      utterance.rate = 0.94 * speedMultiplier;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // ── REGIONAL VOICE 4: UK FEMALE (British Female) ──
+  // ─────────────────────────────────────────────────────────────
+  else if (lowerCode === "uk female") {
+    targetVoice = voices.find((v) => {
+      const n = (v.name || "").toLowerCase();
+      const l = (v.lang || "").toLowerCase();
+      return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isFemaleVoice(v) &&
+        (n.includes("sonia") || n.includes("hazel") || n.includes("susan") || n.includes("libby") || n.includes("mia") || n.includes("natural") || n.includes("online") || n.includes("google"));
+    });
+    if (!targetVoice) {
+      targetVoice = voices.find((v) => {
+        const n = (v.name || "").toLowerCase();
+        const l = (v.lang || "").toLowerCase();
+        return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isFemaleVoice(v);
+      });
+    }
+    if (!targetVoice) {
+      // Fallback: Use female voice with explicit British acoustic tuning
+      targetVoice = voices.find((v) => isFemaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
+      utterance.pitch = 1.15;
+      utterance.rate = 0.95 * speedMultiplier;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // ── REGIONAL VOICE 5: AU MALE (Australian Male) ──
+  // ─────────────────────────────────────────────────────────────
+  else if (lowerCode === "au male") {
+    targetVoice = voices.find((v) => {
+      const n = (v.name || "").toLowerCase();
+      const l = (v.lang || "").toLowerCase();
+      return (l.includes("au") || n.includes("australia") || n.includes("australian")) && isMaleVoice(v) &&
+        (n.includes("james") || n.includes("william") || n.includes("russell") || n.includes("natural") || n.includes("online") || n.includes("google"));
+    });
+    if (!targetVoice) {
+      targetVoice = voices.find((v) => {
+        const n = (v.name || "").toLowerCase();
+        const l = (v.lang || "").toLowerCase();
+        return (l.includes("au") || n.includes("australia") || n.includes("australian")) && isMaleVoice(v);
+      });
+    }
+    if (!targetVoice) {
+      // Fallback: Use male voice with explicit Australian acoustic tuning
+      targetVoice = voices.find((v) => isMaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
+      utterance.pitch = 1.04;
+      utterance.rate = 1.05 * speedMultiplier;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // ── REGIONAL VOICE 6: AU FEMALE (Australian Female) ──
   // ─────────────────────────────────────────────────────────────
   else if (lowerCode === "au female") {
     targetVoice = voices.find((v) => {
       const n = (v.name || "").toLowerCase();
       const l = (v.lang || "").toLowerCase();
-      return (l.includes("au") || n.includes("australia")) && isFemaleVoice(v);
+      return (l.includes("au") || n.includes("australia") || n.includes("australian")) && isFemaleVoice(v) &&
+        (n.includes("catherine") || n.includes("natasha") || n.includes("annette") || n.includes("karen") || n.includes("natural") || n.includes("online") || n.includes("google"));
     });
     if (!targetVoice) {
-      targetVoice = voices.find((v) => (v.lang || "").toLowerCase().includes("au") && !isMaleVoice(v));
+      targetVoice = voices.find((v) => {
+        const n = (v.name || "").toLowerCase();
+        const l = (v.lang || "").toLowerCase();
+        return (l.includes("au") || n.includes("australia") || n.includes("australian")) && isFemaleVoice(v);
+      });
     }
     if (!targetVoice) {
-      targetVoice = voices.find((v) => isFemaleVoice(v) && !((v.name || "").toLowerCase().includes("indian")));
+      // Fallback: Use female voice with explicit Australian acoustic tuning
+      targetVoice = voices.find((v) => isFemaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
+      utterance.pitch = 1.22;
+      utterance.rate = 1.04 * speedMultiplier;
     }
-  } else if (lowerCode === "in female") {
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // ── REGIONAL VOICE 7: IN MALE (Indian Male) ──
+  // ─────────────────────────────────────────────────────────────
+  else if (lowerCode === "in male") {
     targetVoice = voices.find((v) => {
       const n = (v.name || "").toLowerCase();
       const l = (v.lang || "").toLowerCase();
-      return (l.includes("in") || n.includes("indian") || n.includes("hindi") || INDIAN_VOICE_NAMES.some((k) => n.includes(k))) && isFemaleVoice(v);
+      return (l.includes("in") || n.includes("indian") || n.includes("hindi") || INDIAN_VOICE_NAMES.some((k) => n.includes(k))) && isMaleVoice(v) &&
+        (n.includes("prabhat") || n.includes("ravi") || n.includes("rishi") || n.includes("natural") || n.includes("online") || n.includes("google"));
     });
     if (!targetVoice) {
-      targetVoice = voices.find((v) => isFemaleVoice(v));
+      targetVoice = voices.find((v) => {
+        const n = (v.name || "").toLowerCase();
+        const l = (v.lang || "").toLowerCase();
+        return (l.includes("in") || n.includes("indian") || n.includes("hindi") || INDIAN_VOICE_NAMES.some((k) => n.includes(k))) && isMaleVoice(v);
+      });
     }
-  } else if (lowerCode === "uk female") {
+    if (!targetVoice) {
+      // Fallback: Use male voice with explicit Indian acoustic tuning
+      targetVoice = voices.find((v) => isMaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
+      utterance.pitch = 0.97;
+      utterance.rate = 0.98 * speedMultiplier;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // ── REGIONAL VOICE 8: IN FEMALE (Indian Female) ──
+  // ─────────────────────────────────────────────────────────────
+  else if (lowerCode === "in female") {
     targetVoice = voices.find((v) => {
       const n = (v.name || "").toLowerCase();
       const l = (v.lang || "").toLowerCase();
-      return (l.includes("gb") || l.includes("uk") || n.includes("british") || n.includes("united kingdom")) && isFemaleVoice(v);
+      return (l.includes("in") || n.includes("indian") || n.includes("hindi") || INDIAN_VOICE_NAMES.some((k) => n.includes(k))) && isFemaleVoice(v) &&
+        (n.includes("neerja") || n.includes("heera") || n.includes("veena") || n.includes("ananya") || n.includes("natural") || n.includes("online") || n.includes("google"));
     });
     if (!targetVoice) {
-      targetVoice = voices.find((v) => isFemaleVoice(v));
+      targetVoice = voices.find((v) => {
+        const n = (v.name || "").toLowerCase();
+        const l = (v.lang || "").toLowerCase();
+        return (l.includes("in") || n.includes("indian") || n.includes("hindi") || INDIAN_VOICE_NAMES.some((k) => n.includes(k))) && isFemaleVoice(v);
+      });
     }
-  } else if (lowerCode === "uk male") {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l.includes("gb") || l.includes("uk") || n.includes("british")) && isMaleVoice(v);
-    });
-  } else if (lowerCode === "au male") {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l.includes("au") || n.includes("australia")) && isMaleVoice(v);
-    });
-  } else if (lowerCode === "in male") {
-    targetVoice = voices.find((v) => {
-      const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l.includes("in") || n.includes("indian") || n.includes("hindi") || INDIAN_VOICE_NAMES.some((k) => n.includes(k))) && isMaleVoice(v);
-    });
+    if (!targetVoice) {
+      // Fallback: Use female voice with explicit Indian acoustic tuning
+      targetVoice = voices.find((v) => isFemaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
+      utterance.pitch = 1.14;
+      utterance.rate = 0.98 * speedMultiplier;
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -472,7 +577,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
 
     targetVoice = voices.find((v) => {
       const l = (v.lang || "").toLowerCase().replace("_", "-");
-      const matchG = isTargetMale ? isMaleVoice(v) : !isMaleVoice(v);
+      const matchG = isTargetMale ? isMaleVoice(v) : isFemaleVoice(v);
       return l === targetLangPrefix && matchG;
     });
 
@@ -486,16 +591,16 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
     if (!targetVoice) {
       targetVoice = voices.find((v) => {
         const l = (v.lang || "").toLowerCase();
-        const matchG = isTargetMale ? isMaleVoice(v) : !isMaleVoice(v);
+        const matchG = isTargetMale ? isMaleVoice(v) : isFemaleVoice(v);
         return l.startsWith(langBase) && matchG;
       });
     }
 
     if (!targetVoice && voices.length > 0) {
       if (!isTargetMale) {
-        targetVoice = voices.find((v) => !isMaleVoice(v)) || voices[0];
+        targetVoice = voices.find((v) => isFemaleVoice(v)) || voices[0];
       } else {
-        targetVoice = voices[0];
+        targetVoice = voices.find((v) => isMaleVoice(v)) || voices[0];
       }
     }
   }
