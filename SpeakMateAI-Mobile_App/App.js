@@ -1,6 +1,7 @@
 import './global.css';
 import React, { useEffect } from 'react';
 import { ScrollView, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as Linking from 'expo-linking';
@@ -8,8 +9,11 @@ import { AuthProvider } from './src/context/AuthContext';
 import { DrawerProvider } from './src/context/DrawerContext';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { NotificationProvider } from './src/context/NotificationContext';
+import { ToastProvider } from './src/context/ToastContext';
 import { usePushNotifications } from './src/hooks/usePushNotifications';
 import AppNavigator from './src/navigation/AppNavigator';
+import { navigationRef } from './src/navigation/navigationRef';
+import { LearnerAssistantWidget } from './src/components/assistant/LearnerAssistantWidget';
 import api from './src/api/api';
 
 // ─── Error Boundary ──────────────────────────────────────────────────────────
@@ -64,11 +68,6 @@ const linking = {
     },
   },
 };
-
-import { StatusBar } from 'expo-status-bar';
-import { ToastProvider } from './src/context/ToastContext';
-import { navigationRef } from './src/navigation/navigationRef';
-import LearnerAssistantWidget from './src/components/assistant/LearnerAssistantWidget';
 
 // Inner component so hooks work inside providers
 function AppContent() {

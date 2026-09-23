@@ -49,7 +49,7 @@ import {
 } from '../../components/dashboard';
 import { StateView } from '../../components/ui';
 import { COLORS } from '../../constants/colors';
-import { openLearnerAssistant } from '../../components/assistant';
+import { openLearnerAssistant } from '../../components/assistant/assistantEvents';
 
 // Simple in-memory cache to make page transitions instant
 let cachedDashboardData = null;

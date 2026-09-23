@@ -4,14 +4,9 @@ import { navigationRef } from '../../navigation/navigationRef';
 import assistantApi from './assistantApi';
 import AssistantFAB from './AssistantFAB';
 import AssistantModal from './AssistantModal';
+import { subscribeLearnerAssistant, openLearnerAssistant } from './assistantEvents';
 
-let openAssistantHandler = null;
-
-export const openLearnerAssistant = () => {
-  if (typeof openAssistantHandler === 'function') {
-    openAssistantHandler();
-  }
-};
+export { openLearnerAssistant };
 
 const generateSessionId = () => `mob_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
@@ -25,10 +20,7 @@ export function LearnerAssistantWidget() {
   const sessionIdRef = useRef(generateSessionId());
 
   React.useEffect(() => {
-    openAssistantHandler = () => setIsOpen(true);
-    return () => {
-      openAssistantHandler = null;
-    };
+    return subscribeLearnerAssistant(() => setIsOpen(true));
   }, []);
 
   // Determine role: school student gets syllabus/grade persona, general user gets conversational fluency persona
