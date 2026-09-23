@@ -198,7 +198,7 @@ export function Profile() {
       return;
     }
     setPlayingTutor(av.id);
-    const greetingText = `Hello! I'm ${av.name}, your AI speaking coach. Let's practice English together!`;
+    const greetingText = av.previewGreeting || `Hello! I'm ${av.name}, your AI speaking coach. Let's practice English together!`;
     speakGlobalText(greetingText, 1.0, {
       overrideVoiceCode: av.voiceProfile,
       onend: () => setPlayingTutor(null),
@@ -1464,88 +1464,107 @@ export function Profile() {
       )}
       {/* ── 10 AI AVATAR OPTIONS POPUP MODAL ── */}
       {showTutorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="max-w-4xl w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-6 max-h-[90vh] overflow-y-auto bg-[var(--bg-surface)]">
-            <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
-              <div>
-                <h3 className="font-black text-xl text-[var(--text-primary)]">Choose AI Speaking Partner 🎭</h3>
-                <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                  Select your tutor character — click <strong>Test Voice</strong> to preview their speech and personality!
-                </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="max-w-4xl w-full glass-card rounded-3xl shadow-2xl border border-[var(--border-default)] dark:border-white/10 flex flex-col max-h-[88vh] sm:max-h-[84vh] overflow-hidden bg-[var(--bg-surface)]">
+            <div className="px-6 py-5 sm:px-8 sm:py-6 border-b border-[var(--border-default)] dark:border-white/10 flex items-center justify-between bg-[var(--bg-surface)] shrink-0">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#8B5CF6] text-white flex items-center justify-center text-2xl shadow-lg shadow-[#6C63FF]/25 shrink-0">
+                  🎭
+                </div>
+                <div>
+                  <h3 className="font-black text-lg sm:text-xl text-[var(--text-primary)] tracking-tight">
+                    Choose AI Speaking Partner
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                    Select your tutor character or click <strong>Test Voice</strong> to preview their speech & personality!
+                  </p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setShowTutorModal(false)}
-                className="px-3.5 py-1.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
+                className="w-9 h-9 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all flex items-center justify-center text-xs font-black text-[var(--text-secondary)] cursor-pointer active:scale-90 shadow-sm shrink-0"
+                title="Close"
               >
-                ✕ Close
+                ✕
               </button>
             </div>
 
-            {/* AVATAR OPTIONS GRID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {AVATAR_LIST.map((av) => {
-                const isSelected = activeAvatarId === av.id;
-                return (
-                  <div
-                    key={av.id}
-                    onClick={() => {
-                      handleSelectTutor(av);
-                      playAvatarPreview(av);
-                      setShowTutorModal(false);
-                    }}
-                    className={`p-5 rounded-3xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between group ${isSelected
-                        ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102 ring-2 ring-[#6C63FF]/30"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
+            {/* AVATAR OPTIONS GRID (SCROLLABLE) */}
+            <div className="p-5 sm:p-7 overflow-y-auto space-y-4 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {AVATAR_LIST.map((av) => {
+                  const isSelected = activeAvatarId === av.id;
+                  const isPlaying = playingTutor === av.id;
+                  return (
+                    <div
+                      key={av.id}
+                      onClick={() => {
+                        handleSelectTutor(av);
+                        playAvatarPreview(av);
+                        setShowTutorModal(false);
+                      }}
+                      className={`p-5 rounded-3xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between group relative overflow-hidden ${
+                        isSelected
+                          ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 via-[#8B5CF6]/10 to-[var(--bg-elevated)] shadow-xl shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30 scale-[1.01]"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 hover:bg-[var(--bg-surface)] hover:shadow-lg hover:-translate-y-0.5"
                       }`}
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] grid place-items-center text-3xl shadow-inner shrink-0 group-hover:scale-105 transition-transform">
-                          {av.emoji}
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          {isSelected && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
-                              ✓ Active
-                            </span>
-                          )}
-                          <span
-                            className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${av.category === "cartoon"
-                                ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
-                                : "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${av.themeColor || "from-indigo-500/20 to-purple-500/20 border-indigo-500/30 text-indigo-500"} border flex items-center justify-center text-3xl shadow-inner shrink-0 group-hover:scale-105 transition-transform`}>
+                            {av.emoji}
+                          </div>
+                          <div className="flex flex-col items-end gap-1.5">
+                            {isSelected && (
+                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm shadow-[#6C63FF]/30">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                Active
+                              </span>
+                            )}
+                            <span
+                              className={`text-[9px] font-black px-2.5 py-0.5 rounded-full border ${
+                                av.category === "cartoon"
+                                  ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                                  : "bg-purple-500/15 text-purple-400 border-purple-500/30"
                               }`}
-                          >
-                            {av.badge}
-                          </span>
+                            >
+                              {av.badge}
+                            </span>
+                          </div>
                         </div>
+
+                        <h4 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors mt-3 flex items-center gap-1.5">
+                          {av.name}
+                        </h4>
+                        <p className="text-xs text-[var(--text-secondary)] font-medium line-clamp-2 mt-1 leading-relaxed">
+                          {av.subtitle}
+                        </p>
                       </div>
 
-                      <h4 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors mt-3">
-                        {av.name}
-                      </h4>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium line-clamp-2 mt-0.5">
-                        {av.subtitle}
-                      </p>
+                      <div className="pt-3.5 mt-3 border-t border-[var(--border-default)] flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-bold text-[var(--text-secondary)] bg-[var(--bg-surface)] px-2 py-1 rounded-lg border border-[var(--border-default)] truncate max-w-[140px]">
+                          🎙️ {av.voiceLabel}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playAvatarPreview(av);
+                          }}
+                          className={`px-3 py-1.5 rounded-xl border text-[10px] font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center gap-1.5 ${
+                            isPlaying
+                              ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
+                              : "bg-[var(--bg-surface)] border-[var(--border-default)] text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white"
+                          }`}
+                        >
+                          <span>{isPlaying ? "🔊 Playing" : "▶ Test Voice"}</span>
+                        </button>
+                      </div>
                     </div>
-
-                    <div className="pt-2 border-t border-[var(--border-default)] flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-black text-[var(--text-secondary)]">
-                        🎙️ {av.voiceLabel}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          playAvatarPreview(av);
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-[var(--bg-surface)] border border-[var(--border-default)] text-[10px] font-black text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white transition-all shrink-0 cursor-pointer"
-                      >
-                        {playingTutor === av.id ? "🔊 Playing" : "▶ Test"}
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
