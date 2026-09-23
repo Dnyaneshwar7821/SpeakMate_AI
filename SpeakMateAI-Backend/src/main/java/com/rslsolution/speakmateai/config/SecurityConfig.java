@@ -51,6 +51,12 @@ public class SecurityConfig {
 						.permitAll()
 						.requestMatchers("/api/admin/**").hasAnyAuthority("ROLE_SUPER_ADMIN", "ROLE_ADMIN")
 
+						// Announcements & Student Assignments (accessible by student and learner roles)
+						.requestMatchers("/api/v1/school/announcements", "/api/v1/announcements")
+						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+						.requestMatchers("/api/v1/student/**")
+						.hasAnyAuthority("ROLE_USER", "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_SCHOOL_ADMIN", "ROLE_ADMIN", "ROLE_SUPER_ADMIN")
+
 						// School Portal Auth and Features
 						.requestMatchers("/api/auth/**").permitAll()
 						.requestMatchers("/api/school/**", "/api/v1/school/**")

@@ -4,12 +4,7 @@ const optionalGet = (url, fallback) =>
   api
     .get(url)
     .then((res) => res.data)
-    .catch((error) => {
-      if (error.response?.status === 404 || error.response?.status === 401) {
-        return fallback;
-      }
-      throw error;
-    });
+    .catch(() => fallback);
 
 export const profileService = {
   get: () => api.get("/api/profile/get-profile").then((res) => res.data),

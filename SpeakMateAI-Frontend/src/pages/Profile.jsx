@@ -113,7 +113,9 @@ export function Profile() {
   const [ageGroup, setAgeGroup] = useState(
     () => normalizeAgeGroup(user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional")
   );
-  const [cefrLevel, setCefrLevel] = useState(user?.level || user?.englishLevel || "Intermediate (B1)");
+  const [cefrLevel, setCefrLevel] = useState(
+    () => (typeof user?.englishLevel === "string" ? user.englishLevel : (typeof user?.level === "string" ? user.level : "Intermediate (B1)"))
+  );
 
   // Preferences State
   const [dailyGoal, setDailyGoal] = useState(
@@ -167,6 +169,10 @@ export function Profile() {
           setForm(fetchedForm);
           setOriginalForm(fetchedForm);
           if (profile.avatar) setSelectedAvatar(profile.avatar);
+          if (profile.englishLevel && typeof profile.englishLevel === "string") {
+            setCefrLevel(profile.englishLevel);
+            localStorage.setItem("speakmate_english_level", profile.englishLevel);
+          }
           if (profile.ageGroup) {
             const norm = normalizeAgeGroup(profile.ageGroup);
             setAgeGroup(norm);
@@ -622,9 +628,9 @@ export function Profile() {
                 {rank.icon} {rank.name}
               </span>
               <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 inline-flex items-center gap-1.5">
-                {isStudent ? `🎓 ${schoolGrade || (user?.standard ? `${user.standard}th Standard` : "School Student")}` : `👤 ${cefrLevel}`}
+                {isStudent ? `🎓 ${schoolGrade || (user?.standard ? `${user.standard}th Standard` : "School Student")}` : `👤 ${typeof cefrLevel === "string" ? cefrLevel : "Intermediate"}`}
               </span>
-              {isStudent && cefrLevel && (
+              {isStudent && typeof cefrLevel === "string" && cefrLevel && (
                 <span className="text-[10px] font-black px-3.5 py-1.5 rounded-full bg-white/20 uppercase tracking-wider border border-white/30 inline-flex items-center gap-1.5">
                   🎯 {cefrLevel}
                 </span>
@@ -744,7 +750,7 @@ export function Profile() {
                 { level: "Intermediate", icon: "🚀", desc: "Fluent conversations & daily situations" },
                 { level: "Advanced", icon: "👑", desc: "Complex vocabulary & executive tone" },
               ].map((item) => {
-                const active = (cefrLevel || "").toLowerCase().includes(item.level.toLowerCase());
+                const active = String(cefrLevel || "").toLowerCase().includes(item.level.toLowerCase());
                 return (
                   <button
                     key={item.level}

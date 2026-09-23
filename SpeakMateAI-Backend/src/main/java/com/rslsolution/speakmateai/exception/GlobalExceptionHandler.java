@@ -278,6 +278,19 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(response, HttpStatus.CONFLICT);
 	}
 
+	@ExceptionHandler({
+		org.springframework.web.servlet.resource.NoResourceFoundException.class,
+		org.springframework.web.servlet.NoHandlerFoundException.class
+	})
+	public ResponseEntity<Map<String, Object>> handleNoResourceFound(Exception ex) {
+		Map<String, Object> response = new HashMap<>();
+		response.put("timestamp", LocalDateTime.now());
+		response.put("status", HttpStatus.NOT_FOUND.value());
+		response.put("message", ex.getMessage());
+
+		return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Map<String, Object>> handleException(Exception ex) {
 		logException("handleException", ex);
