@@ -249,14 +249,11 @@ export function Settings() {
 
   return (
     <div className="w-full max-w-5xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
-      {/* Header Banner */}
-      <div className="p-6 sm:p-10 rounded-3xl bg-gradient-to-r from-[#6C63FF] via-[#4F46E5] to-[#312E81] text-white shadow-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border border-white/10">
-        <div className="max-w-xl">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-[10px] sm:text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm mb-3.5 sm:mb-4">
-            ⚙️ System & Voice Preferences
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight leading-tight mb-2.5">Application Settings</h1>
-          <p className="text-xs sm:text-sm font-medium text-indigo-100 leading-relaxed">
+      {/* Page Header Title */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[var(--border-default)]">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[var(--text-primary)]">Application Settings</h1>
+          <p className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] mt-0.5">
             Customize target accents, AI tutor voice pitch profiles, themes, pace, and notifications.
           </p>
         </div>
@@ -535,7 +532,7 @@ export function Settings() {
               <div>
                 <h3 className="font-black text-xl text-[var(--text-primary)]">Select AI Tutor Regional Voice 🎙️</h3>
                 <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                  Choose a regional English voice. Previews play automatically when clicked!
+                  Click any voice to test. Audio preview plays automatically!
                 </p>
               </div>
               <button
@@ -550,13 +547,13 @@ export function Settings() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div
                 onClick={() => handleSelectVoiceCode("Default")}
-                className={`p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between ${
+                className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
                   selectedVoice === "Default" || !selectedVoice
                     ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102"
                     : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
                 }`}
               >
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-2xl">✨</span>
                     <div className="flex items-center gap-1.5">
@@ -574,13 +571,10 @@ export function Settings() {
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <h4 className="font-black text-base text-[var(--text-primary)]">1. System Default</h4>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-pink-500/10 text-pink-500 border border-pink-500/20">
-                      Avatar: Haru 👩
+                    <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                      {onboardingVoiceStyle}
                     </span>
                   </div>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium">
-                    Uses your onboarding voice persona (<strong>{onboardingVoiceStyle}</strong>) with natural system speech.
-                  </p>
                 </div>
               </div>
 
@@ -599,14 +593,14 @@ export function Settings() {
                 return (
                   <div
                     key={profile.code}
-                    onClick={() => handleSelectVoiceCode(profile.code, profile.previewText)}
-                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between ${
+                    onClick={() => handleSelectVoiceCode(profile.code)}
+                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
                       isSelected
                         ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102"
                         : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
                     }`}
                   >
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-2xl">
                           <span>{flag}</span>
@@ -629,22 +623,10 @@ export function Settings() {
                         <h4 className="font-black text-base text-[var(--text-primary)]">
                           {idx + 2}. {profile.label}
                         </h4>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                            {profile.accent}
-                          </span>
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${
-                            profile.gender === "female"
-                              ? "bg-pink-500/10 text-pink-500 border-pink-500/20"
-                              : "bg-blue-500/10 text-blue-500 border-blue-500/20"
-                          }`}>
-                            Avatar: {profile.gender === "female" ? "Haru 👩" : "Chitose 👨"}
-                          </span>
-                        </div>
+                        <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                          {profile.accent}
+                        </span>
                       </div>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium italic">
-                        "{profile.previewText}"
-                      </p>
                     </div>
                   </div>
                 );

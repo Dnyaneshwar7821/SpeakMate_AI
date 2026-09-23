@@ -8,8 +8,8 @@ export const VOICE_PROFILES = [
   { code: 'US Female', accent: 'American', locale: 'en-US', gender: 'female', label: 'American - Female', previewText: "Hi there! I am your American English coach. Let's practice speaking together!" },
   { code: 'UK Male', accent: 'British', locale: 'en-GB', gender: 'male', label: 'British - Male', previewText: 'Good day! I am your British English tutor. Shall we practice speaking together?' },
   { code: 'UK Female', accent: 'British', locale: 'en-GB', gender: 'female', label: 'British - Female', previewText: 'Hello! I am your British English tutor. It is lovely to practice English with you.' },
-  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male', previewText: "G'day! I am your Australian English tutor. Ready to practice speaking together mate?" },
-  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: "G'day! I am your Australian English tutor. Let's have a wonderful speaking session today!" },
+  { code: 'AU Male', accent: 'Australian', locale: 'en-AU', gender: 'male', label: 'Australian - Male', previewText: "Good day! I am your Australian English tutor. Ready to practice speaking together mate?" },
+  { code: 'AU Female', accent: 'Australian', locale: 'en-AU', gender: 'female', label: 'Australian - Female', previewText: "Good day! I am your Australian English tutor. Let's have a wonderful speaking session today!" },
   { code: 'IN Male', accent: 'Indian', locale: 'en-IN', gender: 'male', label: 'Indian - Male', previewText: 'Namaste! I am your Indian English tutor. Let us practice English conversation together.' },
   { code: 'IN Female', accent: 'Indian', locale: 'en-IN', gender: 'female', label: 'Indian - Female', previewText: 'Namaste! I am your Indian English tutor. I am delighted to help you master English speaking.' },
   { code: 'Haru', accent: 'Anime Coach', locale: 'en-US', gender: 'female', label: 'Haru (Anime Coach)', previewText: "Hello! I'm Haru, your AI speaking coach. Let's practice speaking English together!" },
@@ -166,7 +166,7 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
       pitch = 1.15; // Crisp, articulate British tone
       baseRate = 0.95; // Articulate British cadence
     } else if (profile.code === "AU Male") {
-      pitch = 1.04; // Casual Aussie lilt
+      pitch = 1.08; // Casual upbeat Aussie tone
       baseRate = 1.05; // Upbeat tempo
     } else if (profile.code === "AU Female") {
       pitch = 1.22; // Bright Australian rising inflection
@@ -175,8 +175,8 @@ export const getSavedVoiceSettings = (overrideVoiceCode = null) => {
       pitch = 0.97; // Resonant Indian English tone
       baseRate = 0.98; // Steady syllable-timed pacing
     } else if (profile.code === "IN Female") {
-      pitch = 1.14; // Melodic Indian English cadence
-      baseRate = 0.98; // Precise syllable timing
+      pitch = 1.08; // Melodic Indian English cadence
+      baseRate = 0.94; // Steady syllable-timed rhythm
     } else if (profile.code === "Haru") {
       pitch = 1.16; // Warm, sweet anime coach
       baseRate = 1.02;
@@ -272,7 +272,11 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   ];
 
   const CUTE_CHILD_NAMES = ["ana", "child", "kid", "junior", "flo", "sweet", "youth"];
-  const INDIAN_VOICE_NAMES = ["neerja", "heera", "veena", "kalpana", "ananya", "prabhat", "rishi", "ravi", "indian", "hindi"];
+  const INDIAN_VOICE_NAMES = [
+    "neerja", "heera", "veena", "kalpana", "ananya", "swara", "geeta",
+    "sangeeta", "priya", "aditi", "lekha", "shruthi", "dharini",
+    "prabhat", "rishi", "ravi", "indian", "hindi", "हिन्दी"
+  ];
 
   const isMaleVoice = (v) => {
     if (!v) return false;
@@ -287,6 +291,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
     const n = (v.name || "").toLowerCase();
     if (/\bfemale\b/i.test(n)) return true;
     if (/\bmale\b/i.test(n)) return false;
+    if (n.includes("हिन्दी") || n.includes("swara")) return true;
     return FEMALE_NAMES.some((k) => n.includes(k)) && !MALE_NAMES.some((k) => n.includes(k));
   };
 
@@ -471,23 +476,37 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   // ── REGIONAL VOICE 5: AU MALE (Australian Male) ──
   // ─────────────────────────────────────────────────────────────
   else if (lowerCode === "au male") {
+    utterance.lang = "en-AU";
     targetVoice = voices.find((v) => {
       const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l.includes("au") || n.includes("australia") || n.includes("australian")) && isMaleVoice(v) &&
-        (n.includes("james") || n.includes("william") || n.includes("russell") || n.includes("natural") || n.includes("online") || n.includes("google"));
+      const l = (v.lang || "").toLowerCase().replace("_", "-");
+      const isAu = l === "en-au" || l.includes("-au") || n.includes("australia") || n.includes("australian");
+      return isAu && isMaleVoice(v) &&
+        (n.includes("james") || n.includes("william") || n.includes("russell") || n.includes("wayne") || n.includes("jack") || n.includes("darren") || n.includes("natural") || n.includes("online") || n.includes("google"));
     });
     if (!targetVoice) {
       targetVoice = voices.find((v) => {
         const n = (v.name || "").toLowerCase();
-        const l = (v.lang || "").toLowerCase();
-        return (l.includes("au") || n.includes("australia") || n.includes("australian")) && isMaleVoice(v);
+        const l = (v.lang || "").toLowerCase().replace("_", "-");
+        const isAu = l === "en-au" || l.includes("-au") || n.includes("australia") || n.includes("australian");
+        return isAu && isMaleVoice(v);
       });
     }
     if (!targetVoice) {
-      // Fallback: Use male voice with explicit Australian acoustic tuning
+      // If no native en-AU male voice exists on OS, avoid reusing the primary US Male voice (Microsoft David)
+      targetVoice = voices.find((v) => {
+        const n = (v.name || "").toLowerCase();
+        const l = (v.lang || "").toLowerCase();
+        return l.startsWith("en") && isMaleVoice(v) && !n.includes("david");
+      });
+    }
+    if (!targetVoice) {
+      // If only David exists on the OS, apply distinctive acoustic pitch & tempo shift
       targetVoice = voices.find((v) => isMaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
-      utterance.pitch = 1.04;
+      utterance.pitch = 1.12;
+      utterance.rate = 1.06 * speedMultiplier;
+    } else {
+      utterance.pitch = 1.08;
       utterance.rate = 1.05 * speedMultiplier;
     }
   }
@@ -496,17 +515,20 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   // ── REGIONAL VOICE 6: AU FEMALE (Australian Female) ──
   // ─────────────────────────────────────────────────────────────
   else if (lowerCode === "au female") {
+    utterance.lang = "en-AU";
     targetVoice = voices.find((v) => {
       const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l.includes("au") || n.includes("australia") || n.includes("australian")) && isFemaleVoice(v) &&
+      const l = (v.lang || "").toLowerCase().replace("_", "-");
+      const isAu = l === "en-au" || l.includes("-au") || n.includes("australia") || n.includes("australian");
+      return isAu && isFemaleVoice(v) &&
         (n.includes("catherine") || n.includes("natasha") || n.includes("annette") || n.includes("karen") || n.includes("natural") || n.includes("online") || n.includes("google"));
     });
     if (!targetVoice) {
       targetVoice = voices.find((v) => {
         const n = (v.name || "").toLowerCase();
-        const l = (v.lang || "").toLowerCase();
-        return (l.includes("au") || n.includes("australia") || n.includes("australian")) && isFemaleVoice(v);
+        const l = (v.lang || "").toLowerCase().replace("_", "-");
+        const isAu = l === "en-au" || l.includes("-au") || n.includes("australia") || n.includes("australian");
+        return isAu && isFemaleVoice(v);
       });
     }
     if (!targetVoice) {
@@ -546,25 +568,41 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   // ── REGIONAL VOICE 8: IN FEMALE (Indian Female) ──
   // ─────────────────────────────────────────────────────────────
   else if (lowerCode === "in female") {
+    utterance.lang = "en-IN";
     targetVoice = voices.find((v) => {
       const n = (v.name || "").toLowerCase();
-      const l = (v.lang || "").toLowerCase();
-      return (l.includes("in") || n.includes("indian") || n.includes("hindi") || INDIAN_VOICE_NAMES.some((k) => n.includes(k))) && isFemaleVoice(v) &&
-        (n.includes("neerja") || n.includes("heera") || n.includes("veena") || n.includes("ananya") || n.includes("natural") || n.includes("online") || n.includes("google"));
+      const l = (v.lang || "").toLowerCase().replace("_", "-");
+      const isIndian = l === "en-in" || l === "hi-in" || l.includes("-in") || n.includes("india") || n.includes("hindi") || n.includes("हिन्दी");
+      if (!isIndian) return false;
+      if (isMaleVoice(v)) return false;
+      return (
+        n.includes("neerja") || n.includes("heera") || n.includes("veena") ||
+        n.includes("swara") || n.includes("kalpana") || n.includes("ananya") ||
+        n.includes("geeta") || n.includes("priya") || n.includes("aditi") ||
+        n.includes("हिन्दी") || n.includes("hindi") || n.includes("google")
+      );
     });
     if (!targetVoice) {
       targetVoice = voices.find((v) => {
         const n = (v.name || "").toLowerCase();
-        const l = (v.lang || "").toLowerCase();
-        return (l.includes("in") || n.includes("indian") || n.includes("hindi") || INDIAN_VOICE_NAMES.some((k) => n.includes(k))) && isFemaleVoice(v);
+        const l = (v.lang || "").toLowerCase().replace("_", "-");
+        const isIndian = l === "en-in" || l === "hi-in" || l.includes("-in") || n.includes("india") || n.includes("hindi") || n.includes("हिन्दी");
+        return isIndian && !isMaleVoice(v);
       });
     }
     if (!targetVoice) {
-      // Fallback: Use female voice with explicit Indian acoustic tuning
-      targetVoice = voices.find((v) => isFemaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
-      utterance.pitch = 1.14;
-      utterance.rate = 0.98 * speedMultiplier;
+      // If no native Indian voice installed on OS, avoid US Zira to avoid sounding American
+      targetVoice = voices.find((v) => {
+        const n = (v.name || "").toLowerCase();
+        const l = (v.lang || "").toLowerCase();
+        return l.startsWith("en") && isFemaleVoice(v) && !n.includes("zira");
+      });
     }
+    if (!targetVoice) {
+      targetVoice = voices.find((v) => isFemaleVoice(v) && (v.lang || "").toLowerCase().startsWith("en"));
+    }
+    utterance.pitch = 1.08;
+    utterance.rate = 0.94 * speedMultiplier;
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -657,7 +695,10 @@ export const speakGlobalText = (text, speedMultiplier = 1.0, options = {}) => {
     }
   } catch (e) {}
 
-  const cleanText = text.replace(/[*_#`~]/g, "").trim();
+  const cleanText = text
+    .replace(/[*_#`~]/g, "")
+    .replace(/\bg['’]day\b/gi, "Good day")
+    .trim();
   if (!cleanText) return null;
 
   // Global Speech Lock flag
