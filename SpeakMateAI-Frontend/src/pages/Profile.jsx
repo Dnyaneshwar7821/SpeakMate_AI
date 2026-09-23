@@ -80,7 +80,7 @@ const isImageAvatar = (avatar) => {
 };
 
 const NAME_REGEX = /^[a-zA-Z\s'-]{2,40}$/;
-const NAME_ERROR_MESSAGE = "Names can only contain letters and must be between 2 and 40 characters.";
+const NAME_ERROR_MESSAGE = "Names can only contain letters.";
 const EMAIL_REGEX = /^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$/;
 
 export function Profile() {
@@ -290,12 +290,16 @@ export function Profile() {
   };
 
   const validateField = (fieldName, value) => {
-    const trimmed = (value || "").trim();
+    const val = value || "";
+    const trimmed = val.trim();
     if (fieldName === "firstName" || fieldName === "lastName") {
       const label = fieldName === "firstName" ? "First name" : "Last name";
       if (!trimmed) return `${label} is required.`;
-      if (trimmed.length < 2 || trimmed.length > 40 || !NAME_REGEX.test(trimmed) || !/[a-zA-Z]/.test(trimmed)) {
-        return NAME_ERROR_MESSAGE;
+      if (/[^a-zA-Z\s'-]/.test(val)) {
+        return "Names can only contain letters.";
+      }
+      if (trimmed.length < 2) {
+        return `${label} must be at least 2 characters.`;
       }
       return null;
     }
@@ -305,6 +309,34 @@ export function Profile() {
       return null;
     }
     return null;
+  };
+
+  const handleNameChange = (fieldName, val) => {
+    setForm((prev) => ({ ...prev, [fieldName]: val }));
+    if (/[^a-zA-Z\s'-]/.test(val)) {
+      setFieldErrors((prev) => ({ ...prev, [fieldName]: "Names can only contain letters." }));
+    } else {
+      setFieldErrors((prev) => ({ ...prev, [fieldName]: null }));
+    }
+  };
+
+  const handleEmailChange = (val) => {
+    setForm((prev) => ({ ...prev, email: val }));
+    const trimmed = (val || "").trim();
+    if (fieldErrors.email && EMAIL_REGEX.test(trimmed)) {
+      setFieldErrors((prev) => ({ ...prev, email: null }));
+    }
+  };
+
+  const handleEmailBlur = (val) => {
+    const trimmed = (val || "").trim();
+    if (!trimmed) {
+      setFieldErrors((prev) => ({ ...prev, email: "Email address is required." }));
+    } else if (!EMAIL_REGEX.test(trimmed)) {
+      setFieldErrors((prev) => ({ ...prev, email: "Please enter a valid email address." }));
+    } else {
+      setFieldErrors((prev) => ({ ...prev, email: null }));
+    }
   };
 
   const handleCancelEdit = () => {
@@ -824,7 +856,7 @@ export function Profile() {
                   )}
                 </div>
                 <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
-                  Manage your personal identity, contact email, and native language.
+                  Manage your personal identity, contact email, and language.
                 </p>
               </div>
 
@@ -867,31 +899,28 @@ export function Profile() {
             <form onSubmit={handleSaveProfile} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">First Name</label>
-                    {isEditingProfile && <span className="text-[10px] text-[var(--text-secondary)] font-medium">Letters only (min 2)</span>}
+                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">First Name</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={form.firstName}
+                      disabled={!isEditingProfile || saving}
+                      onChange={(e) => handleNameChange("firstName", e.target.value)}
+                      placeholder="Enter your first name"
+                      className={`w-full pl-11 pr-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
+                        !isEditingProfile
+                          ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-85 cursor-not-allowed"
+                          : fieldErrors.firstName
+                          ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
+                          : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
+                      }`}
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={form.firstName}
-                    disabled={!isEditingProfile || saving}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setForm({ ...form, firstName: val });
-                      if (fieldErrors.firstName) {
-                        const err = validateField("firstName", val);
-                        setFieldErrors((prev) => ({ ...prev, firstName: err }));
-                      }
-                    }}
-                    placeholder="Enter your first name"
-                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
-                      !isEditingProfile
-                        ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-80 cursor-not-allowed"
-                        : fieldErrors.firstName
-                        ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
-                        : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
-                    }`}
-                  />
                   {isEditingProfile && fieldErrors.firstName && (
                     <p className="text-xs text-rose-500 font-bold mt-1.5 flex items-center gap-1">
                       <span>⚠️</span> {fieldErrors.firstName}
@@ -900,31 +929,28 @@ export function Profile() {
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">Last Name</label>
-                    {isEditingProfile && <span className="text-[10px] text-[var(--text-secondary)] font-medium">Letters only (min 2)</span>}
+                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Last Name</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={form.lastName}
+                      disabled={!isEditingProfile || saving}
+                      onChange={(e) => handleNameChange("lastName", e.target.value)}
+                      placeholder="Enter your last name"
+                      className={`w-full pl-11 pr-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
+                        !isEditingProfile
+                          ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-85 cursor-not-allowed"
+                          : fieldErrors.lastName
+                          ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
+                          : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
+                      }`}
+                    />
                   </div>
-                  <input
-                    type="text"
-                    value={form.lastName}
-                    disabled={!isEditingProfile || saving}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setForm({ ...form, lastName: val });
-                      if (fieldErrors.lastName) {
-                        const err = validateField("lastName", val);
-                        setFieldErrors((prev) => ({ ...prev, lastName: err }));
-                      }
-                    }}
-                    placeholder="Enter your last name"
-                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
-                      !isEditingProfile
-                        ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-80 cursor-not-allowed"
-                        : fieldErrors.lastName
-                        ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
-                        : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
-                    }`}
-                  />
                   {isEditingProfile && fieldErrors.lastName && (
                     <p className="text-xs text-rose-500 font-bold mt-1.5 flex items-center gap-1">
                       <span>⚠️</span> {fieldErrors.lastName}
@@ -939,27 +965,28 @@ export function Profile() {
                     <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">Email Address</label>
                     {!isEditingProfile && <span className="text-[10px] text-[var(--text-secondary)] font-medium">Account ID</span>}
                   </div>
-                  <input
-                    type="email"
-                    value={form.email}
-                    disabled={!isEditingProfile || saving}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setForm({ ...form, email: val });
-                      if (fieldErrors.email) {
-                        const err = validateField("email", val);
-                        setFieldErrors((prev) => ({ ...prev, email: err }));
-                      }
-                    }}
-                    placeholder="your.email@example.com"
-                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
-                      !isEditingProfile
-                        ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-80 cursor-not-allowed"
-                        : fieldErrors.email
-                        ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
-                        : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
-                    }`}
-                  />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="email"
+                      value={form.email}
+                      disabled={!isEditingProfile || saving}
+                      onChange={(e) => handleEmailChange(e.target.value)}
+                      onBlur={(e) => handleEmailBlur(e.target.value)}
+                      placeholder="your.email@example.com"
+                      className={`w-full pl-11 pr-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
+                        !isEditingProfile
+                          ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-85 cursor-not-allowed"
+                          : fieldErrors.email
+                          ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
+                          : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
+                      }`}
+                    />
+                  </div>
                   {isEditingProfile && fieldErrors.email && (
                     <p className="text-xs text-rose-500 font-bold mt-1.5 flex items-center gap-1">
                       <span>⚠️</span> {fieldErrors.email}
@@ -968,19 +995,26 @@ export function Profile() {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Native Language</label>
-                  <input
-                    type="text"
-                    value={form.nativeLanguage}
-                    disabled={!isEditingProfile || saving}
-                    onChange={(e) => setForm({ ...form, nativeLanguage: e.target.value })}
-                    placeholder="e.g. English, Hindi, Spanish"
-                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
-                      !isEditingProfile
-                        ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-80 cursor-not-allowed"
-                        : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
-                    }`}
-                  />
+                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Language</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={form.nativeLanguage}
+                      disabled={!isEditingProfile || saving}
+                      onChange={(e) => setForm({ ...form, nativeLanguage: e.target.value })}
+                      placeholder="e.g. English, Hindi, Spanish"
+                      className={`w-full pl-11 pr-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
+                        !isEditingProfile
+                          ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-85 cursor-not-allowed"
+                          : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
+                      }`}
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -1024,11 +1024,10 @@ export default function ProfileScreen({ navigation }) {
             editable={isEditingInfo && !saving}
             onChangeText={(value) => {
               setForm((current) => ({ ...current, firstName: value }));
-              if (infoErrors.firstName) {
-                setInfoErrors((prev) => ({
-                  ...prev,
-                  firstName: !value.trim() ? 'First name is required.' : (!validateName(value.trim()) ? NAME_VALIDATION_ERROR : null),
-                }));
+              if (/[^a-zA-Z\s'-]/.test(value)) {
+                setInfoErrors((prev) => ({ ...prev, firstName: 'Names can only contain letters.' }));
+              } else {
+                setInfoErrors((prev) => ({ ...prev, firstName: null }));
               }
             }}
             maxLength={40}
@@ -1042,11 +1041,10 @@ export default function ProfileScreen({ navigation }) {
             editable={isEditingInfo && !saving}
             onChangeText={(value) => {
               setForm((current) => ({ ...current, lastName: value }));
-              if (infoErrors.lastName) {
-                setInfoErrors((prev) => ({
-                  ...prev,
-                  lastName: !value.trim() ? 'Last name is required.' : (!validateName(value.trim()) ? NAME_VALIDATION_ERROR : null),
-                }));
+              if (/[^a-zA-Z\s'-]/.test(value)) {
+                setInfoErrors((prev) => ({ ...prev, lastName: 'Names can only contain letters.' }));
+              } else {
+                setInfoErrors((prev) => ({ ...prev, lastName: null }));
               }
             }}
             maxLength={40}
@@ -1060,11 +1058,18 @@ export default function ProfileScreen({ navigation }) {
             editable={isEditingInfo && !saving}
             onChangeText={(value) => {
               setForm((current) => ({ ...current, email: value }));
-              if (infoErrors.email) {
-                setInfoErrors((prev) => ({
-                  ...prev,
-                  email: !value.trim() ? 'Email cannot be empty.' : (!isValidEmail(value.trim()) ? 'Please enter a valid email address.' : null),
-                }));
+              if (infoErrors.email && isValidEmail(value.trim())) {
+                setInfoErrors((prev) => ({ ...prev, email: null }));
+              }
+            }}
+            onBlur={() => {
+              const trimmed = form.email.trim();
+              if (!trimmed) {
+                setInfoErrors((prev) => ({ ...prev, email: 'Email address is required.' }));
+              } else if (!isValidEmail(trimmed)) {
+                setInfoErrors((prev) => ({ ...prev, email: 'Please enter a valid email address.' }));
+              } else {
+                setInfoErrors((prev) => ({ ...prev, email: null }));
               }
             }}
             keyboardType="email-address"
