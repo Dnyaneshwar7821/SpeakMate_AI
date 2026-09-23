@@ -274,7 +274,7 @@ export function AssistantModal({
     <Modal
       visible={isOpen}
       transparent={true}
-      animationType="slide"
+      animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
       onRequestClose={onClose}
       statusBarTranslucent={true}
     >
@@ -283,7 +283,7 @@ export function AssistantModal({
         <TouchableOpacity
           activeOpacity={1}
           onPress={onClose}
-          style={StyleSheet.absoluteFill}
+          style={styles.backdropTouchArea}
         >
           <BlurredBackdrop />
         </TouchableOpacity>
@@ -382,6 +382,7 @@ export function AssistantModal({
           {/* Conversation Stream Scroll Area */}
           <ScrollView
             ref={scrollRef}
+            style={styles.scrollArea}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
@@ -531,25 +532,34 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
+    backgroundColor: 'transparent',
+  },
+  backdropTouchArea: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
   },
   sheetContainer: {
-    height: Math.min(SCREEN_HEIGHT * 0.82, 640),
-    maxHeight: '85%',
+    height: Math.min(SCREEN_HEIGHT * 0.85, 660),
     width: '100%',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderWidth: 1,
     borderBottomWidth: 0,
-    overflow: 'hidden',
+    zIndex: 10,
+    elevation: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.18,
     shadowRadius: 16,
-    elevation: 20,
+  },
+  scrollArea: {
+    flex: 1,
   },
   topAccentBar: {
     height: 4,
     width: '100%',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   handleRow: {
     alignItems: 'center',
