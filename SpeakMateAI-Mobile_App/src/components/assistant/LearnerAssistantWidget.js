@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { navigationRef } from '../../navigation/navigationRef';
 import assistantApi from './assistantApi';
 import AssistantFAB from './AssistantFAB';
 import AssistantModal from './AssistantModal';
@@ -58,10 +59,18 @@ export function LearnerAssistantWidget() {
         content: m.content || '',
       }));
 
+      let activeRoute = '/dashboard';
+      if (navigationRef.isReady()) {
+        const cur = navigationRef.getCurrentRoute();
+        if (cur?.name) {
+          activeRoute = '/' + cur.name.toLowerCase();
+        }
+      }
+
       const res = await assistantApi.sendMessage({
         sessionId: sessionIdRef.current,
         message: trimmed,
-        currentRoute: '/dashboard',
+        currentRoute: activeRoute,
         history,
         role,
       });

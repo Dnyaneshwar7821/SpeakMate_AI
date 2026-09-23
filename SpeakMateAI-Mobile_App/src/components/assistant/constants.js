@@ -33,17 +33,18 @@ Ask me a question or tap a suggestion below to get started.
 
 export const QUICK_SUGGESTIONS_BY_ROLE = Object.freeze({
   STUDENT: [
-    'Show me my progress and learning streak',
-    'How many lessons have I completed?',
+    'What have I done across all modules?',
+    'What homework do I have due?',
+    'What lessons can I do next?',
+    'How many achievements have I unlocked?',
     'How is my speaking fluency and pronunciation?',
-    'What should I practice next?',
   ],
   USER: [
-    'Show me my progress and learning streak',
-    'How many lessons have I completed?',
-    'How is my speaking fluency and pronunciation?',
-    'Recommend a conversation topic to practice',
-    'What is my subscription plan?',
+    'What have I done across all modules?',
+    'What lessons can I do next?',
+    'How many achievements have I unlocked?',
+    'What AI avatars and scenarios can I chat with?',
+    'Where should I focus to improve?',
   ],
 });
 

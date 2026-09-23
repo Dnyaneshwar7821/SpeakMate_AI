@@ -240,4 +240,57 @@ public class IntentClassifierChatTest {
 		assertNotNull(r14);
 		assertEquals(AssistantIntent.CLASS_PERFORMANCE, r14.getIntent());
 	}
+
+	@Test
+	void testLearnerAppChatbotQueries() {
+		// 1. Practice grammar checks for sentences
+		IntentResult r1 = classifier.classify("how do I practice grammar checks for sentences", Role.STUDENT, null);
+		assertNotNull(r1);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r1.getIntent());
+
+		// 2. How many achievements I have unlocked
+		IntentResult r2 = classifier.classify("How many achievements I have unlocked", Role.STUDENT, null);
+		assertNotNull(r2);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r2.getIntent());
+
+		// 3. What lessons I can do
+		IntentResult r3 = classifier.classify("what lessons I can do", Role.STUDENT, null);
+		assertNotNull(r3);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r3.getIntent());
+
+		// 4. How many words I added
+		IntentResult r4 = classifier.classify("how many words I added", Role.STUDENT, null);
+		assertNotNull(r4);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r4.getIntent());
+
+		// 5. Speaking sessions and conversation scenarios
+		IntentResult r5 = classifier.classify("how many speaking sessions done ans what are those conversation scenarios", Role.STUDENT, null);
+		assertNotNull(r5);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r5.getIntent());
+
+		// 6. Available AI avatars
+		IntentResult r6 = classifier.classify("what ai avatars currently I have to use?", Role.STUDENT, null);
+		assertNotNull(r6);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r6.getIntent());
+
+		// 7. Fluency in speaking sessions and scenarios
+		IntentResult r7 = classifier.classify("tell me about fluency in speaking sessions what are scenarios for chatting", Role.USER, null);
+		assertNotNull(r7);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r7.getIntent());
+
+		// 8. Multi-module app summary: "what have I done in the app across all modules"
+		IntentResult r8 = classifier.classify("what have I done in the app across all modules", Role.STUDENT, null);
+		assertNotNull(r8);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r8.getIntent());
+
+		// 9. Homework inquiry for student
+		IntentResult r9 = classifier.classify("what homework do I have due?", Role.STUDENT, null);
+		assertNotNull(r9);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r9.getIntent());
+
+		// 10. Strict privacy: cross-student inquiry MUST be ACCESS_DENIED
+		IntentResult r10 = classifier.classify("show me Rahul's progress and scores", Role.STUDENT, null);
+		assertNotNull(r10);
+		assertEquals(AssistantIntent.ACCESS_DENIED, r10.getIntent());
+	}
 }

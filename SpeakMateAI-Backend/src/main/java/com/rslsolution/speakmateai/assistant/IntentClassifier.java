@@ -385,6 +385,9 @@ public class IntentClassifier {
 			"completing", "completion", "finished", "finish", "remaining",
 			"pending", "done", "accuracy", "average", "stats", "statistics", "summary",
 			"perform", "performing", "performance", "health", "system",
+			"sentence", "sentences", "achievement", "achievements", "avatar", "avatars",
+			"scenario", "scenarios", "homework", "assignment", "assignments",
+			"fluency", "pronunciation", "pronounciation", "chat", "chatting", "conversation", "conversations",
 			// visualizations and charts
 			"chart", "charts", "graph", "graphs", "pie", "donut", "doughnut", "bar",
 			"line", "plot", "plots", "table", "tables", "diagram", "diagrams", "visualize", "visualization", "overview",
@@ -559,6 +562,13 @@ public class IntentClassifier {
 			if (page != null) {
 				intent = page;
 			}
+			// Learner safety net: STUDENT and USER roles asking about speech insights,
+			// fluency, pronunciation, grammar, or performance must reach their own self-progress
+			// provider rather than degrading to a false ACCESS_DENIED.
+			if ((role == Role.STUDENT || role == Role.USER)
+					&& (intent == AssistantIntent.AI_INSIGHTS || intent == AssistantIntent.CLASS_PERFORMANCE)) {
+				intent = AssistantIntent.STUDENT_PERFORMANCE;
+			}
 			// Deterministic safety net for a named-SCHOOL info question that
 			// carries no count/statistic marker ("info of Ekvira Highschool",
 			// "details about St.Vincent High School", "tell me about Greenwood
@@ -700,13 +710,49 @@ public class IntentClassifier {
 		// Grammar check history / last checked sentence in grammar:
 		if (containsAny(m, List.of("last check in grammar", "last check in grammer", "last sentence in grammar", "sentence last check",
 				"sentence last check in grammer", "which sentence last check", "last checked sentence", "what sentence did i check",
-				"last grammar check", "recent grammar check", "what was my last check in grammar", "which sentence last check in grammer module by me"))) {
+				"last grammar check", "recent grammar check", "what was my last check in grammar", "which sentence last check in grammer module by me",
+				"how do i practice grammar", "grammar checks for sentences", "practice grammar checks", "check grammar", "grammar checks",
+				"practice grammar", "sentences check", "how to practice grammar", "check sentences", "grammar check"))) {
 			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
 		}
 
-		// Lesson modules list:
+		// Lesson modules & available catalog:
 		if (containsAny(m, List.of("which lessons", "which are they", "which lessons have i completed", "what lessons have i completed",
-				"names of completed lessons", "which lesson completed", "lesson completed and which are they"))) {
+				"names of completed lessons", "which lesson completed", "lesson completed and which are they",
+				"what lessons i can do", "what lessons can i do", "which lessons can i do", "what lessons are available", "available lessons",
+				"which lessons can i take", "what can i learn", "what lesson can i start", "what lessons should i do", "lessons to do", "lessons i can do"))) {
+			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
+		}
+
+		// Achievements inquiries:
+		if (containsAny(m, List.of("how many achievements", "achievements unlocked", "unlocked achievements",
+				"achievements i have unlocked", "achievements have i unlocked", "my achievements", "what achievements",
+				"achievement milestones", "achievements", "achievement", "how many achievement"))) {
+			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
+		}
+
+		// AI Avatars & Speaking Scenarios:
+		if (containsAny(m, List.of("ai avatars", "what ai avatars", "avatars currently i have to use", "what avatars do i have",
+				"which avatars", "available avatars", "avatars for chatting", "what avatar can i use", "avatars", "ai avatar",
+				"conversation scenarios", "scenarios for chatting", "speaking sessions done", "how many speaking sessions done",
+				"what are those conversation scenarios", "tell me about fluency in speaking sessions", "speaking scenarios",
+				"scenarios", "fluency in speaking", "fluency in speaking sessions"))) {
+			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
+		}
+
+		// Homework & Assignments (Student role):
+		if (containsAny(m, List.of("what homework do i have", "homework due", "pending homework", "homework tasks",
+				"my assignments", "assigned homework", "what assignments do i have", "due assignments", "homework",
+				"my homework", "homework pending", "assignments pending"))) {
+			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
+		}
+
+		// Comprehensive Multi-Module App Overview & Guidance:
+		if (containsAny(m, List.of("what have i done", "what have i done in the app", "what have i done across all modules",
+				"what have i done across the app", "summary of all my work", "what is my status across modules", "what is my status",
+				"tell me everything i finished", "tell me everything i've done", "overview of all modules", "all module progress",
+				"what has done", "everything about app modules", "what should i do today", "what should i focus on",
+				"what should i practice next", "where should i focus", "what to focus on", "all my progress across modules"))) {
 			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
 		}
 
@@ -716,7 +762,7 @@ public class IntentClassifier {
 				"current xp", "what is my xp", "how much xp", "what if i have 0 xp", "my xp", "0 xp",
 				"xp?", "my xp?", "points earned", "how many points have i earned", "experience points", "experience score",
 				"what's my experience score", "how many experience points have i earned", "tell me my current xp",
-				"what is my current xp", "points have i earned", "earned points",
+				"what is my current xp", "points have i earned", "earned points", "how is my xp total", "my xp total", "total xp",
 				// Level & Streak:
 				"current level", "what is my current level", "my level", "level?",
 				"current streak", "longest streak", "what is my current streak", "what is my longest streak", "what is my streak", "my streak", "streak?", "practiced today",
@@ -727,6 +773,7 @@ public class IntentClassifier {
 				// Grammar & Vocabulary:
 				"grammar accuracy", "my grammar accuracy", "average grammar score", "my grammar score", "grammar score", "what is my grammar accuracy",
 				"vocabulary words have i added", "words have i added", "vocabulary added", "words added", "how many vocabulary words have i added",
+				"how many words i added", "words i added", "how many words have i added", "how many words added",
 				"vocabulary words have i mastered", "words have i mastered", "vocabulary mastered", "words mastered", "how many vocabulary words have i mastered",
 				"average vocabulary score", "my vocabulary score", "vocabulary score", "vocab", "my vocab", "vocab score", "vocab progress",
 				// Speaking & Skills:
@@ -2677,14 +2724,20 @@ public class IntentClassifier {
 				// STUDENT_PERFORMANCE here.
 				"how well", "progressing", "progress", "strength", "staff", "teaching staff",
 				"how are", "how is", "doing"));
-		boolean platformWide = m.contains("platform") || m.contains("across all")
+		boolean isLearnerRole = (role == Role.STUDENT || role == Role.USER);
+		boolean learnerAppQuestion = isLearnerRole && containsAny(m, List.of(
+				"across all modules", "across modules", "on the app", "in the app", "app modules",
+				"all modules", "what have i done", "my work", "my status", "achievements", "achievement",
+				"what lessons", "available lessons", "scenarios", "avatars", "grammar checks"));
+
+		boolean platformWide = !learnerAppQuestion && (m.contains("platform") || m.contains("across all")
 				|| m.contains("all schools") || m.contains("all the schools")
 				|| m.contains("on the app") || m.contains("whole platform") || m.contains("entire platform")
 				|| m.contains("every school") || m.contains("from all schools") || m.contains("from every school")
 				|| m.contains("other school") || m.contains("other schools") || m.contains("another school")
 				|| m.contains("across schools") || m.contains("across the schools")
-				|| m.contains("different school") || m.contains("different schools");
-		boolean crossSchool = containsAny(m, List.of("schools", "each school", "per school",
+				|| m.contains("different school") || m.contains("different schools"));
+		boolean crossSchool = !learnerAppQuestion && containsAny(m, List.of("schools", "each school", "per school",
 				"compare", "comparison", "which school", "which schools", "ranking", "ranked",
 				"most ", "top ", "highest", "largest", "smallest",
 				"every school", "other school", "other schools", "another school", "all schools"));
@@ -2811,7 +2864,10 @@ public class IntentClassifier {
 				boolean selfEntity = containsAny(m, List.of("progress", "streak", "xp", "lesson", "lessons",
 						"score", "mark", "marks", "performance", "practice", "practice minutes", "speaking", "session",
 						"sessions", "fluency", "pronunciation", "grammar", "vocabulary", "words", "how am i doing",
-						"i have completed", "my stats", "performing", "progressing", "doing", "daily goal", "tips", "level", "learning"));
+						"i have completed", "my stats", "performing", "progressing", "doing", "daily goal", "tips", "level", "learning",
+						"achievement", "achievements", "avatar", "avatars", "scenario", "scenarios", "homework", "assignment", "assignments",
+						"done", "finished", "completed", "module", "modules", "app", "all modules", "across all", "focus on", "practice next",
+						"what lessons", "available lessons", "checks for sentences", "grammar checks", "sentence", "sentences", "what have i done"));
 				if (selfEntity) {
 					return AssistantIntent.STUDENT_PERFORMANCE;
 				}

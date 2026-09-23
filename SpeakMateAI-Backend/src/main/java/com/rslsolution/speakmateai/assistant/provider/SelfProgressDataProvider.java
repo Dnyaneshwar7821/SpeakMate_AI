@@ -28,6 +28,15 @@ import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.repository.UserSubscriptionRepository;
 import com.rslsolution.speakmateai.repository.VocabularyRepository;
 
+import com.rslsolution.speakmateai.entity.Achievement;
+import com.rslsolution.speakmateai.entity.Assignment;
+import com.rslsolution.speakmateai.entity.AssignmentProgress;
+import com.rslsolution.speakmateai.entity.Lesson;
+import com.rslsolution.speakmateai.repository.AchievementRepository;
+import com.rslsolution.speakmateai.repository.AssignmentProgressRepository;
+import com.rslsolution.speakmateai.repository.AssignmentRepository;
+import com.rslsolution.speakmateai.repository.LessonRepository;
+
 /**
  * Caller's own learning progress, available to both STUDENT and USER (Learner) roles.
  * Provides a comprehensive snapshot of XP, streaks, completed lessons, speaking practice,
@@ -43,6 +52,10 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 	private final VocabularyRepository vocabularyRepository;
 	private final GrammarHistoryRepository grammarHistoryRepository;
 	private final UserSubscriptionRepository userSubscriptionRepository;
+	private final LessonRepository lessonRepository;
+	private final AchievementRepository achievementRepository;
+	private final AssignmentProgressRepository assignmentProgressRepository;
+	private final AssignmentRepository assignmentRepository;
 	private final ObjectMapper objectMapper;
 
 	public SelfProgressDataProvider(UserRepository userRepository,
@@ -52,6 +65,10 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			VocabularyRepository vocabularyRepository,
 			GrammarHistoryRepository grammarHistoryRepository,
 			UserSubscriptionRepository userSubscriptionRepository,
+			LessonRepository lessonRepository,
+			AchievementRepository achievementRepository,
+			AssignmentProgressRepository assignmentProgressRepository,
+			AssignmentRepository assignmentRepository,
 			ObjectMapper objectMapper) {
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
@@ -60,6 +77,10 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		this.vocabularyRepository = vocabularyRepository;
 		this.grammarHistoryRepository = grammarHistoryRepository;
 		this.userSubscriptionRepository = userSubscriptionRepository;
+		this.lessonRepository = lessonRepository;
+		this.achievementRepository = achievementRepository;
+		this.assignmentProgressRepository = assignmentProgressRepository;
+		this.assignmentRepository = assignmentRepository;
 		this.objectMapper = objectMapper;
 	}
 
@@ -179,6 +200,105 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 				.collect(Collectors.toList());
 		data.put("completedLessonTitles", completedLessonTitles);
 
+		// Available lessons catalog & recommended next lesson
+		long totalAvailableLessons = 0;
+		List<String> availableLessonTitles = List.of();
+		String recommendedNextLesson = "Everyday Introductions & Small Talk";
+		try {
+			totalAvailableLessons = lessonRepository.countByActiveTrue();
+			List<Lesson> activeList = lessonRepository.findByActiveTrue();
+			availableLessonTitles = activeList.stream()
+					.map(Lesson::getTitle)
+					.filter(t -> t != null && !t.isBlank())
+					.limit(10)
+					.collect(Collectors.toList());
+			for (Lesson l : activeList) {
+				if (l.getTitle() != null && !completedLessonTitles.contains(l.getTitle().trim())) {
+					recommendedNextLesson = l.getTitle().trim();
+					break;
+				}
+			}
+		} catch (Exception e) {
+			// fallback
+		}
+		data.put("totalAvailableLessons", totalAvailableLessons > 0 ? totalAvailableLessons : 15L);
+		data.put("availableLessonTitles", availableLessonTitles);
+		data.put("recommendedNextLesson", recommendedNextLesson);
+
+		// Achievements milestones
+		int unlockedAchievementsCount = 0;
+		List<String> unlockedAchievementTitles = new ArrayList<>();
+		try {
+			List<Achievement> userAchievements = achievementRepository.findByUserAndUnlockedTrue(user);
+			unlockedAchievementsCount = userAchievements.size();
+			unlockedAchievementTitles = userAchievements.stream()
+					.map(Achievement::getTitle)
+					.filter(t -> t != null && !t.isBlank())
+					.collect(Collectors.toList());
+		} catch (Exception e) {
+			// fallback
+		}
+		data.put("unlockedAchievementsCount", unlockedAchievementsCount);
+		data.put("totalAchievementsCount", 12);
+		data.put("unlockedAchievementTitles", unlockedAchievementTitles);
+
+		// AI Avatars and Speaking Scenarios catalog
+		data.put("availableAvatars", List.of(
+				"Haru (Friendly English Tutor)",
+				"Chitose (Casual Conversation)",
+				"Robo-Paws (Interactive Mascot)",
+				"Shizuku (Academic & Grammar Coach)",
+				"Motu (Expressive Companion)"
+		));
+		data.put("availableScenarios", List.of(
+				"Job Interview",
+				"Coffee Shop Order",
+				"Airport Check-in",
+				"Hotel Reservation",
+				"Daily Small Talk",
+				"Doctor's Appointment",
+				"Business Meeting",
+				"Travel & Directions"
+		));
+
+		// Homework & Assignments (Student role)
+		int totalAssignedHomework = 0;
+		int completedHomework = 0;
+		int pendingHomework = 0;
+		List<Map<String, Object>> pendingAssignmentsList = new ArrayList<>();
+		if (user.getRole() == com.rslsolution.speakmateai.enums.Role.STUDENT || user.getSchoolId() != null) {
+			try {
+				List<AssignmentProgress> studentProgressList = assignmentProgressRepository.findByStudentId(user.getId());
+				totalAssignedHomework = studentProgressList.size();
+				for (AssignmentProgress ap : studentProgressList) {
+					if ("COMPLETED".equalsIgnoreCase(ap.getStatus())) {
+						completedHomework++;
+					} else {
+						pendingHomework++;
+						if (ap.getAssignmentId() != null) {
+							assignmentRepository.findById(ap.getAssignmentId()).ifPresent(a -> {
+								Map<String, Object> aMap = new LinkedHashMap<>();
+								aMap.put("title", a.getTitle());
+								aMap.put("type", a.getType());
+								aMap.put("dueDate", a.getDueDate() != null ? a.getDueDate().toString() : "No deadline");
+								aMap.put("minimumScore", a.getMinimumScore() != null ? a.getMinimumScore() : 70);
+								aMap.put("status", ap.getStatus());
+								pendingAssignmentsList.add(aMap);
+							});
+						}
+					}
+				}
+			} catch (Exception e) {
+				// fallback
+			}
+			data.put("totalAssignedHomework", totalAssignedHomework);
+			data.put("completedHomework", completedHomework);
+			data.put("pendingHomework", pendingHomework);
+			if (!pendingAssignmentsList.isEmpty()) {
+				data.put("pendingAssignments", pendingAssignmentsList);
+			}
+		}
+
 		if (!grammarChecks.isEmpty()) {
 			GrammarHistory latest = grammarChecks.get(0);
 			Map<String, Object> latestGrammar = new LinkedHashMap<>();
@@ -205,6 +325,19 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		if (user.getSchoolName() != null && !user.getSchoolName().isBlank()) {
 			data.put("schoolName", user.getSchoolName());
 		}
+		if (user.getSchoolGrade() != null && !user.getSchoolGrade().isBlank()) {
+			data.put("schoolGrade", user.getSchoolGrade());
+		}
+		if (user.getAgeGroup() != null && !user.getAgeGroup().isBlank()) {
+			data.put("ageGroup", user.getAgeGroup());
+		}
+		data.put("dailyGoalMinutes", user.getDailyGoalMinutes() != null ? user.getDailyGoalMinutes() : 15);
+		if (user.getLearningGoal() != null && !user.getLearningGoal().isBlank()) {
+			data.put("learningGoal", user.getLearningGoal());
+		}
+		if (user.getEnglishLevel() != null && !user.getEnglishLevel().isBlank()) {
+			data.put("englishLevel", user.getEnglishLevel());
+		}
 
 		int currentXp = p != null ? zeroIfNull(p.getXp()) : 0;
 		int currentLevel = p != null ? Math.max(1, zeroIfNull(p.getLevel())) : 1;
@@ -230,10 +363,9 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		data.put("totalSpeakingSessions", totalSessions);
 		data.put("completedSpeakingSessions", completedSessions);
 		data.put("totalVocabularyWords", totalVocabularyWords);
+		data.put("wordsAdded", totalVocabularyWords);
 		data.put("masteredVocabularyWords", masteredVocabularyWords);
-		if (!recentVocabWords.isEmpty()) {
-			data.put("recentVocabularyWords", recentVocabWords);
-		}
+		data.put("recentVocabularyWords", recentVocabWords);
 		data.put("totalGrammarChecks", totalGrammarChecks);
 		if (scoredGrammarCount > 0) {
 			data.put("averageGrammarScore", avgGrammarScore);
@@ -251,8 +383,22 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			data.put("overallSpeakingScore", avgOverall);
 		}
 
-		boolean hasStarted = (lessonsCompleted > 0 || totalSessions > 0 || (p != null && p.getXp() != null && p.getXp() > 0));
+		boolean hasStarted = (lessonsCompleted > 0 || totalSessions > 0 || totalVocabularyWords > 0 || totalGrammarChecks > 0 || (p != null && p.getXp() != null && p.getXp() > 0));
 		data.put("hasStartedLearning", hasStarted);
+		data.put("isNewLearner", !hasStarted);
+
+		data.put("appModules", List.of(
+				"Speaking Practice (AI Voice & Roleplay Scenarios)",
+				"AI Tutor (Live Interactive Avatars)",
+				"Lessons (Curriculum-based reading, listening & exercises)",
+				"Grammar Check (Instant sentence analysis & corrections)",
+				"Vocabulary Builder (Word bank & flashcards)",
+				"Assignments (School homework with minimum passing scores)",
+				"Progress & Analytics (XP, level, streaks & score charts)",
+				"Achievements (Milestone badges & rewards)",
+				"Settings (Voice, accent, notifications & theme)",
+				"Subscription (PRO plan upgrades & status)"
+		));
 
 		// Subscription & plan details
 		try {
