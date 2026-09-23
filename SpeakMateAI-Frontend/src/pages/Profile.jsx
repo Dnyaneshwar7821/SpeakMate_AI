@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
@@ -136,7 +137,32 @@ export function Profile() {
   const [subInfo, setSubInfo] = useState(null);
   const [showTutorModal, setShowTutorModal] = useState(false);
   const [playingTutor, setPlayingTutor] = useState(null);
-  const [tutorCategoryFilter, setTutorCategoryFilter] = useState("all");
+
+  // Lock body scroll when modal is active
+  useEffect(() => {
+    if (showTutorModal || showAvatarModal || showDeleteModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showTutorModal, showAvatarModal, showDeleteModal]);
+
+  // Close modals on Escape key
+  useEffect(() => {
+    if (!showTutorModal && !showAvatarModal && !showDeleteModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowTutorModal(false);
+        setShowAvatarModal(false);
+        setShowDeleteModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showTutorModal, showAvatarModal, showDeleteModal]);
 
   // Delete account state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -1299,9 +1325,15 @@ export function Profile() {
       )}
 
       {/* ── PRESET AVATAR SELECTOR MODAL ── */}
-      {showAvatarModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-5 bg-[var(--bg-surface)]">
+      {showAvatarModal && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowAvatarModal(false)}
+        >
+          <div
+            className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-5 bg-[var(--bg-surface)]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
               <h3 className="font-black text-lg text-[var(--text-primary)]">Choose Profile Avatar</h3>
               <button
@@ -1356,13 +1388,20 @@ export function Profile() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── DELETE ACCOUNT WITH OTP MODAL ── */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border-2 border-rose-500/40 space-y-6 relative overflow-hidden bg-[var(--bg-surface)]">
+      {showDeleteModal && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setShowDeleteModal(false)}
+        >
+          <div
+            className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border-2 border-rose-500/40 space-y-6 relative overflow-hidden bg-[var(--bg-surface)]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
               <div className="flex items-center gap-2 text-rose-500 font-black text-lg sm:text-xl">
                 <span>🗑️</span>
@@ -1461,93 +1500,54 @@ export function Profile() {
               </form>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
+
       {/* ── 10 AI AVATAR OPTIONS POPUP MODAL ── */}
-      {showTutorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="max-w-5xl w-full rounded-3xl shadow-2xl border border-slate-200/90 dark:border-white/10 flex flex-col max-h-[90vh] sm:max-h-[86vh] overflow-hidden bg-white dark:bg-[#111625] transition-all">
+      {showTutorModal && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setShowTutorModal(false)}
+        >
+          <div
+            className="max-w-5xl w-full rounded-3xl shadow-2xl border border-slate-200/90 dark:border-white/10 flex flex-col max-h-[90vh] sm:max-h-[86vh] overflow-hidden bg-white dark:bg-[#111625] transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
-            <div className="px-6 py-5 sm:px-8 sm:py-6 border-b border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-[#111625]/95 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
-              <div className="flex items-center gap-4">
+            <div className="px-6 py-5 sm:px-8 sm:py-6 border-b border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-[#111625]/95 backdrop-blur-md flex items-center justify-between gap-4 shrink-0">
+              <div className="flex items-center gap-4 min-w-0">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6C63FF] via-[#7C3AED] to-[#EC4899] text-white flex items-center justify-center text-2xl shadow-lg shadow-[#6C63FF]/30 shrink-0">
                   🎭
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-black text-xl text-slate-900 dark:text-white tracking-tight">
-                      Choose AI Speaking Partner
-                    </h3>
-                    <span className="hidden sm:inline-flex items-center text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30">
-                      10 Characters
-                    </span>
-                  </div>
+                <div className="min-w-0">
+                  <h3 className="font-black text-xl text-slate-900 dark:text-white tracking-tight">
+                    Choose AI Speaking Partner
+                  </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                    Click <strong>Test Voice</strong> to preview their distinct accent & tone, or select your partner.
+                    Select your tutor character or click <strong>Test Voice</strong> to preview their speech & personality!
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 self-end sm:self-auto">
-                {/* Category Filter Tabs */}
-                <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-xs">
-                  <button
-                    type="button"
-                    onClick={() => setTutorCategoryFilter("all")}
-                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold ${
-                      tutorCategoryFilter === "all"
-                        ? "bg-white dark:bg-white/15 text-[#6C63FF] dark:text-white shadow-sm font-black"
-                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-                    }`}
-                  >
-                    All (10)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTutorCategoryFilter("human")}
-                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold ${
-                      tutorCategoryFilter === "human"
-                        ? "bg-white dark:bg-white/15 text-[#6C63FF] dark:text-white shadow-sm font-black"
-                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-                    }`}
-                  >
-                    Adults (3)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTutorCategoryFilter("cartoon")}
-                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold ${
-                      tutorCategoryFilter === "cartoon"
-                        ? "bg-white dark:bg-white/15 text-[#6C63FF] dark:text-white shadow-sm font-black"
-                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
-                    }`}
-                  >
-                    Kids / Cartoons (7)
-                  </button>
-                </div>
-
-                {/* Close Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowTutorModal(false)}
-                  className="w-10 h-10 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all flex items-center justify-center text-xs font-black text-slate-600 dark:text-slate-300 cursor-pointer active:scale-90 shadow-sm shrink-0"
-                  title="Close"
-                >
-                  ✕
-                </button>
-              </div>
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setShowTutorModal(false)}
+                className="w-10 h-10 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all flex items-center justify-center text-xs font-black text-slate-600 dark:text-slate-300 cursor-pointer active:scale-90 shadow-sm shrink-0"
+                title="Close"
+              >
+                ✕
+              </button>
             </div>
 
             {/* Scrollable Tutor Cards Grid */}
             <div className="p-5 sm:p-8 overflow-y-auto space-y-4 flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {AVATAR_LIST.filter((av) => {
-                  if (tutorCategoryFilter === "human") return av.category === "human";
-                  if (tutorCategoryFilter === "cartoon") return av.category === "cartoon";
-                  return true;
-                }).map((av) => {
+                {AVATAR_LIST.map((av) => {
                   const isSelected = activeAvatarId === av.id;
                   const isPlaying = playingTutor === av.id;
+                  const displayVoice = av.voiceLabel.replace(/\s+Voice$/i, "");
                   return (
                     <div
                       key={av.id}
@@ -1596,47 +1596,31 @@ export function Profile() {
                         </p>
                       </div>
 
-                      {/* Bottom: Voice Info Tag + Action Buttons */}
-                      <div className="pt-3.5 mt-4 border-t border-slate-200/80 dark:border-white/10 space-y-2.5">
-                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                          <span className="text-xs">🎙️</span>
-                          <span className="truncate flex-1">{av.voiceLabel}</span>
-                          <span className="text-[10px] text-slate-400 font-semibold shrink-0">
-                            {av.defaultPitch ? `${av.defaultPitch}x pitch` : ""}
-                          </span>
+                      {/* Bottom: Voice Info Tag + Action Button (NO Choose button) */}
+                      <div className="pt-3.5 mt-4 border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-2">
+                        <div
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-300 min-w-0 flex-1"
+                          title={av.voiceLabel}
+                        >
+                          <span className="text-xs shrink-0">🎙️</span>
+                          <span className="truncate">{displayVoice}</span>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              playAvatarPreview(av);
-                            }}
-                            className={`flex-1 py-2 px-3 rounded-xl border text-xs font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 ${
-                              isPlaying
-                                ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
-                                : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white border-[#6C63FF]/25 shadow-sm"
-                            }`}
-                          >
-                            <span>{isPlaying ? "🔊 Speaking..." : "▶ Test Voice"}</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              handleSelectTutor(av);
-                              playAvatarPreview(av);
-                              setShowTutorModal(false);
-                            }}
-                            className={`py-2 px-3.5 rounded-xl text-xs font-black transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-1 ${
-                              isSelected
-                                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
-                                : "bg-slate-200 dark:bg-white/10 hover:bg-[#6C63FF] hover:text-white text-slate-700 dark:text-slate-200"
-                            }`}
-                          >
-                            <span>{isSelected ? "Selected" : "Choose"}</span>
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            playAvatarPreview(av);
+                          }}
+                          className={`py-1.5 px-3 rounded-xl border text-xs font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 ${
+                            isPlaying
+                              ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
+                              : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white border-[#6C63FF]/25 shadow-sm"
+                          }`}
+                          title={`Test voice preview for ${av.name}`}
+                        >
+                          <span>{isPlaying ? "🔊 Speaking..." : "▶ Test Voice"}</span>
+                        </button>
                       </div>
                     </div>
                   );
@@ -1644,7 +1628,8 @@ export function Profile() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
