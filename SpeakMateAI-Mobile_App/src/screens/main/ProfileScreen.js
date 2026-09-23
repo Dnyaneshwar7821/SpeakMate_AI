@@ -63,6 +63,9 @@ export default function ProfileScreen({ navigation }) {
   
   const [state, setState] = useState({ loading: true, error: '', profile: null });
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '' });
+  const [originalForm, setOriginalForm] = useState(null);
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+  const [infoErrors, setInfoErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -327,11 +330,13 @@ export default function ProfileScreen({ navigation }) {
         AsyncStorage.getItem('speakmate_age_group'),
         AsyncStorage.getItem('speakmate_school_grade'),
       ]);
-      setForm({
+      const loadedForm = {
         firstName: profile?.firstName || user?.firstName || '',
         lastName: profile?.lastName || user?.lastName || '',
         email: profile?.email || user?.email || '',
-      });
+      };
+      setForm(loadedForm);
+      setOriginalForm(loadedForm);
       const effectiveAccType = savedAccType || profile?.accountType || user?.accountType || (user?.role === 'STUDENT' ? 'STUDENT' : 'INDIVIDUAL_USER');
       setAccountType(effectiveAccType);
       const isStudentUser = Boolean(
@@ -431,27 +436,52 @@ export default function ProfileScreen({ navigation }) {
     }, [])
   );
 
+  const handleCancelEditInfo = () => {
+    if (originalForm) {
+      setForm({ ...originalForm });
+    } else {
+      setForm({
+        firstName: state.profile?.firstName || user?.firstName || '',
+        lastName: state.profile?.lastName || user?.lastName || '',
+        email: state.profile?.email || user?.email || '',
+      });
+    }
+    setInfoErrors({});
+    setIsEditingInfo(false);
+  };
+
   const save = async () => {
     const cleanFirstName = form.firstName.trim();
     const cleanLastName = form.lastName.trim();
     const cleanEmail = normalizeEmail(form.email);
 
-    if (!validateName(cleanFirstName)) {
-      Alert.alert('Validation Error', NAME_VALIDATION_ERROR);
-      return;
+    const errors = {};
+    if (!cleanFirstName) {
+      errors.firstName = 'First name is required.';
+    } else if (!validateName(cleanFirstName)) {
+      errors.firstName = NAME_VALIDATION_ERROR;
     }
-    if (!validateName(cleanLastName)) {
-      Alert.alert('Validation Error', NAME_VALIDATION_ERROR);
-      return;
+
+    if (!cleanLastName) {
+      errors.lastName = 'Last name is required.';
+    } else if (!validateName(cleanLastName)) {
+      errors.lastName = NAME_VALIDATION_ERROR;
     }
+
     if (!cleanEmail) {
-      Alert.alert('Validation Error', 'Email cannot be empty.');
+      errors.email = 'Email cannot be empty.';
+    } else if (!isValidEmail(form.email)) {
+      errors.email = 'Please enter a valid email address.';
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setInfoErrors(errors);
+      const firstError = Object.values(errors)[0];
+      Alert.alert('Validation Error', firstError);
       return;
     }
-    if (!isValidEmail(form.email)) {
-      Alert.alert('Validation Error', 'Please enter a valid email address.');
-      return;
-    }
+
+    setInfoErrors({});
 
     // Check if email has changed
     const emailChanged = state.profile && state.profile.email && state.profile.email.toLowerCase() !== cleanEmail;
@@ -464,8 +494,17 @@ export default function ProfileScreen({ navigation }) {
           lastName: cleanLastName,
           email: cleanEmail,
         });
+        const savedForm = {
+          firstName: cleanFirstName,
+          lastName: cleanLastName,
+          email: cleanEmail,
+        };
         setState({ loading: false, error: '', profile });
         if (updateUser) updateUser(profile);
+        setOriginalForm(savedForm);
+        setForm(savedForm);
+        setIsEditingInfo(false);
+        setInfoErrors({});
         showToast('Profile Updated ✓', 'success', 'Your personal details were saved successfully');
       } catch (error) {
         const data = error.response?.data;
@@ -919,37 +958,150 @@ export default function ProfileScreen({ navigation }) {
 
         {/* Edit Info Form - Modern layout with full fields */}
         <Card style={{ backgroundColor: cardBg }}>
-          <Text style={[styles.cardHeaderTitle, { color: labelColor }]}>Personal Information</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: isDark ? '#334155' : '#E2E8F0' }}>
+            <View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 0 }]}>Personal Information</Text>
+                {isEditingInfo ? (
+                  <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, backgroundColor: isDark ? '#451A03' : '#FEF3C7', borderWidth: 1, borderColor: '#F59E0B' }}>
+                    <Text style={{ fontSize: 9, fontWeight: '800', color: '#D97706' }}>Editing</Text>
+                  </View>
+                ) : (
+                  <View style={{ paddingHorizontal: 7, paddingVertical: 2, borderRadius: 8, backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderWidth: 1, borderColor: '#10B981' }}>
+                    <Text style={{ fontSize: 9, fontWeight: '800', color: '#059669' }}>Active</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={{ fontSize: 12, color: sublabelColor, marginTop: 2 }}>
+                Manage your identity and email
+              </Text>
+            </View>
+
+            {!isEditingInfo ? (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  setInfoErrors({});
+                  setIsEditingInfo(true);
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  backgroundColor: isDark ? '#312E81' : '#EEF2FF',
+                  borderWidth: 1,
+                  borderColor: '#6366F1'
+                }}
+              >
+                <Ionicons name="create-outline" size={14} color="#6366F1" style={{ marginRight: 4 }} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#6366F1' }}>Edit Profile</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleCancelEditInfo}
+                disabled={saving}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 12,
+                  backgroundColor: isDark ? '#334155' : '#F1F5F9'
+                }}
+              >
+                <Ionicons name="close-circle-outline" size={14} color={sublabelColor} style={{ marginRight: 4 }} />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: sublabelColor }}>Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           
           <AppInput
             label="First Name"
             value={form.firstName}
-            onChangeText={(value) => setForm((current) => ({ ...current, firstName: value }))}
+            editable={isEditingInfo && !saving}
+            onChangeText={(value) => {
+              setForm((current) => ({ ...current, firstName: value }));
+              if (infoErrors.firstName) {
+                setInfoErrors((prev) => ({
+                  ...prev,
+                  firstName: !value.trim() ? 'First name is required.' : (!validateName(value.trim()) ? NAME_VALIDATION_ERROR : null),
+                }));
+              }
+            }}
             maxLength={40}
-            error={form.firstName && !validateName(form.firstName) ? NAME_VALIDATION_ERROR : null}
+            error={isEditingInfo && infoErrors.firstName ? infoErrors.firstName : null}
+            style={!isEditingInfo && { opacity: 0.85 }}
           />
 
           <AppInput
             label="Last Name"
             value={form.lastName}
-            onChangeText={(value) => setForm((current) => ({ ...current, lastName: value }))}
+            editable={isEditingInfo && !saving}
+            onChangeText={(value) => {
+              setForm((current) => ({ ...current, lastName: value }));
+              if (infoErrors.lastName) {
+                setInfoErrors((prev) => ({
+                  ...prev,
+                  lastName: !value.trim() ? 'Last name is required.' : (!validateName(value.trim()) ? NAME_VALIDATION_ERROR : null),
+                }));
+              }
+            }}
             maxLength={40}
-            error={form.lastName && !validateName(form.lastName) ? NAME_VALIDATION_ERROR : null}
+            error={isEditingInfo && infoErrors.lastName ? infoErrors.lastName : null}
+            style={!isEditingInfo && { opacity: 0.85 }}
           />
 
           <AppInput
             label="Email Address"
             value={form.email}
-            onChangeText={(value) => setForm((current) => ({ ...current, email: value }))}
+            editable={isEditingInfo && !saving}
+            onChangeText={(value) => {
+              setForm((current) => ({ ...current, email: value }));
+              if (infoErrors.email) {
+                setInfoErrors((prev) => ({
+                  ...prev,
+                  email: !value.trim() ? 'Email cannot be empty.' : (!isValidEmail(value.trim()) ? 'Please enter a valid email address.' : null),
+                }));
+              }
+            }}
             keyboardType="email-address"
+            error={isEditingInfo && infoErrors.email ? infoErrors.email : null}
+            style={!isEditingInfo && { opacity: 0.85 }}
           />
 
-          <AppButton
-            title="Save Changes"
-            onPress={save}
-            loading={saving}
-            style={styles.saveBtn}
-          />
+          {isEditingInfo && (
+            <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleCancelEditInfo}
+                disabled={saving}
+                style={{
+                  flex: 1,
+                  paddingVertical: 14,
+                  borderRadius: 14,
+                  backgroundColor: isDark ? '#334155' : '#E2E8F0',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '700', color: isDark ? '#E2E8F0' : '#475569' }}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+
+              <View style={{ flex: 1 }}>
+                <AppButton
+                  title="Save Changes"
+                  onPress={save}
+                  loading={saving}
+                  style={[styles.saveBtn, { marginTop: 0 }]}
+                />
+              </View>
+            </View>
+          )}
         </Card>
 
         {/* Account Utilities Options */}

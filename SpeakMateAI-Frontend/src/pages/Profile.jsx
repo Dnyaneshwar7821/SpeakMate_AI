@@ -79,6 +79,10 @@ const isImageAvatar = (avatar) => {
   );
 };
 
+const NAME_REGEX = /^[a-zA-Z\s'-]{2,40}$/;
+const NAME_ERROR_MESSAGE = "Names can only contain letters and must be between 2 and 40 characters.";
+const EMAIL_REGEX = /^[a-zA-Z0-9_+&*-]+(?:\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,7}$/;
+
 export function Profile() {
   const { user, updateUser, logout } = useAuth();
   const toast = useToast();
@@ -96,6 +100,9 @@ export function Profile() {
     email: user?.email || "",
     nativeLanguage: user?.nativeLanguage || user?.nativeLang || "English",
   });
+  const [originalForm, setOriginalForm] = useState(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const [selectedAvatar, setSelectedAvatar] = useState(user?.avatar || "🎓");
   const [showAvatarModal, setShowAvatarModal] = useState(false);
@@ -151,12 +158,14 @@ export function Profile() {
         if (profile) {
           syncBackendProgress(profile, user);
           setLiveStats(getLiveProgressStats(user));
-          setForm({
+          const fetchedForm = {
             firstName: profile.firstName || user?.firstName || "",
             lastName: profile.lastName || user?.lastName || "",
             email: profile.email || user?.email || "",
             nativeLanguage: profile.nativeLanguage || "English",
-          });
+          };
+          setForm(fetchedForm);
+          setOriginalForm(fetchedForm);
           if (profile.avatar) setSelectedAvatar(profile.avatar);
           if (profile.ageGroup) {
             const norm = normalizeAgeGroup(profile.ageGroup);
@@ -280,18 +289,64 @@ export function Profile() {
     }
   };
 
+  const validateField = (fieldName, value) => {
+    const trimmed = (value || "").trim();
+    if (fieldName === "firstName" || fieldName === "lastName") {
+      const label = fieldName === "firstName" ? "First name" : "Last name";
+      if (!trimmed) return `${label} is required.`;
+      if (trimmed.length < 2 || trimmed.length > 40 || !NAME_REGEX.test(trimmed) || !/[a-zA-Z]/.test(trimmed)) {
+        return NAME_ERROR_MESSAGE;
+      }
+      return null;
+    }
+    if (fieldName === "email") {
+      if (!trimmed) return "Email address is required.";
+      if (!EMAIL_REGEX.test(trimmed)) return "Please enter a valid email address.";
+      return null;
+    }
+    return null;
+  };
+
+  const handleCancelEdit = () => {
+    if (originalForm) {
+      setForm({ ...originalForm });
+    } else {
+      setForm({
+        firstName: user?.firstName || user?.name?.split(" ")[0] || "",
+        lastName: user?.lastName || user?.name?.split(" ").slice(1).join(" ") || "",
+        email: user?.email || "",
+        nativeLanguage: user?.nativeLanguage || user?.nativeLang || "English",
+      });
+    }
+    setFieldErrors({});
+    setIsEditingProfile(false);
+  };
+
   const handleSaveProfile = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
+
+    const firstNameErr = validateField("firstName", form.firstName);
+    const lastNameErr = validateField("lastName", form.lastName);
+    const emailErr = validateField("email", form.email);
+
+    const errors = {};
+    if (firstNameErr) errors.firstName = firstNameErr;
+    if (lastNameErr) errors.lastName = lastNameErr;
+    if (emailErr) errors.email = emailErr;
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      const firstError = Object.values(errors)[0];
+      toast.error(firstError);
+      return;
+    }
+
+    setFieldErrors({});
+    setSaving(true);
     const cleanFirstName = form.firstName.trim();
     const cleanLastName = form.lastName.trim();
     const cleanEmail = form.email.trim().toLowerCase();
 
-    if (!cleanFirstName || !cleanLastName || !cleanEmail) {
-      toast.error("First name, last name, and email cannot be empty.");
-      return;
-    }
-
-    setSaving(true);
     try {
       if (isStudent && schoolGrade) {
         localStorage.setItem("speakmate_school_grade", schoolGrade);
@@ -307,36 +362,47 @@ export function Profile() {
 
       EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender: preferredVoice, model: activeAvatarId });
 
-      const [updatedProfile] = await Promise.all([
-        profileService.update({
-          firstName: cleanFirstName,
-          lastName: cleanLastName,
-          email: cleanEmail,
-          nativeLanguage: form.nativeLanguage,
-          avatar: selectedAvatar,
-          ageGroup: isStudent ? undefined : ageGroup,
-          englishLevel: cefrLevel,
-          schoolGrade: isStudent ? schoolGrade : undefined,
-        }).catch(() => null),
-        onboardingService.update({
-          ageGroup: isStudent ? undefined : ageGroup,
-          englishLevel: cefrLevel,
-          schoolGrade: isStudent ? schoolGrade : undefined,
-          nativeLanguage: form.nativeLanguage,
-        }).catch(() => null),
-      ]);
+      // Directly update backend profile and surface any errors
+      const updatedProfile = await profileService.update({
+        firstName: cleanFirstName,
+        lastName: cleanLastName,
+        email: cleanEmail,
+        nativeLanguage: form.nativeLanguage,
+        avatar: selectedAvatar,
+        ageGroup: isStudent ? undefined : ageGroup,
+        englishLevel: cefrLevel,
+        schoolGrade: isStudent ? schoolGrade : undefined,
+      });
 
-      updateUser({
+      // Background sync onboarding preferences
+      onboardingService.update({
+        ageGroup: isStudent ? undefined : ageGroup,
+        englishLevel: cefrLevel,
+        schoolGrade: isStudent ? schoolGrade : undefined,
+        nativeLanguage: form.nativeLanguage,
+      }).catch(() => null);
+
+      const savedData = {
         ...(updatedProfile || {}),
         name: `${cleanFirstName} ${cleanLastName}`.trim(),
         firstName: cleanFirstName,
         lastName: cleanLastName,
         email: cleanEmail,
+        nativeLanguage: form.nativeLanguage,
         avatar: selectedAvatar,
         schoolGrade: isStudent ? schoolGrade : null,
         ageGroup: isStudent ? null : ageGroup,
         englishLevel: cefrLevel,
+      };
+
+      setOriginalForm({
+        firstName: cleanFirstName,
+        lastName: cleanLastName,
+        email: cleanEmail,
+        nativeLanguage: form.nativeLanguage,
       });
+
+      if (updateUser) updateUser(savedData);
 
       window.dispatchEvent(new CustomEvent("speakmate_settings_updated", {
         detail: {
@@ -349,10 +415,17 @@ export function Profile() {
       }));
 
       setSaved(true);
-      toast.success("Profile preferences updated successfully!");
+      setIsEditingProfile(false);
+      toast.success("Profile details saved successfully! ✓");
       setTimeout(() => setSaved(false), 2500);
     } catch (err) {
-      toast.error("Failed to update profile details.");
+      const serverMsg = err.response?.data?.message ||
+        (err.response?.data && typeof err.response.data === "object" && !err.response.data.message
+          ? (err.response.data.firstName || err.response.data.lastName || err.response.data.email || Object.values(err.response.data)[0])
+          : null) ||
+        err.message ||
+        "Failed to update profile details.";
+      toast.error(serverMsg);
     } finally {
       setSaving(false);
     }
@@ -736,48 +809,162 @@ export function Profile() {
 
           {/* ── SECTION 3: PERSONAL INFORMATION CARD ── */}
           <div className="glass-card p-6 sm:p-10 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-6">
-            <div>
-              <h2 className="text-xl font-black text-[var(--text-primary)]">Personal Details</h2>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
-                Manage your personal identity, contact email, and native language.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[var(--border-default)]">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-black text-[var(--text-primary)]">Personal Details</h2>
+                  {isEditingProfile ? (
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 animate-pulse">
+                      ✏️ Editing Mode
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                      ✓ Active
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1 font-medium">
+                  Manage your personal identity, contact email, and native language.
+                </p>
+              </div>
+
+              {!isEditingProfile ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFieldErrors({});
+                    setIsEditingProfile(true);
+                  }}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-lg shadow-[#6C63FF]/25 hover:opacity-95 transition-all cursor-pointer active:scale-95 self-start sm:self-auto"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                  <span>Edit Profile</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    disabled={saving}
+                    className="px-4 py-2 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-slate-400 text-xs sm:text-sm font-bold text-[var(--text-secondary)] transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    className="px-5 py-2 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs sm:text-sm font-black shadow-md shadow-[#6C63FF]/25 hover:opacity-95 transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                  >
+                    {saving ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              )}
             </div>
 
             <form onSubmit={handleSaveProfile} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">First Name</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">First Name</label>
+                    {isEditingProfile && <span className="text-[10px] text-[var(--text-secondary)] font-medium">Letters only (min 2)</span>}
+                  </div>
                   <input
                     type="text"
                     value={form.firstName}
-                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                    required
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
+                    disabled={!isEditingProfile || saving}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm({ ...form, firstName: val });
+                      if (fieldErrors.firstName) {
+                        const err = validateField("firstName", val);
+                        setFieldErrors((prev) => ({ ...prev, firstName: err }));
+                      }
+                    }}
+                    placeholder="Enter your first name"
+                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
+                      !isEditingProfile
+                        ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-80 cursor-not-allowed"
+                        : fieldErrors.firstName
+                        ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
+                        : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
+                    }`}
                   />
+                  {isEditingProfile && fieldErrors.firstName && (
+                    <p className="text-xs text-rose-500 font-bold mt-1.5 flex items-center gap-1">
+                      <span>⚠️</span> {fieldErrors.firstName}
+                    </p>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Last Name</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">Last Name</label>
+                    {isEditingProfile && <span className="text-[10px] text-[var(--text-secondary)] font-medium">Letters only (min 2)</span>}
+                  </div>
                   <input
                     type="text"
                     value={form.lastName}
-                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                    required
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
+                    disabled={!isEditingProfile || saving}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm({ ...form, lastName: val });
+                      if (fieldErrors.lastName) {
+                        const err = validateField("lastName", val);
+                        setFieldErrors((prev) => ({ ...prev, lastName: err }));
+                      }
+                    }}
+                    placeholder="Enter your last name"
+                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
+                      !isEditingProfile
+                        ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-80 cursor-not-allowed"
+                        : fieldErrors.lastName
+                        ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
+                        : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
+                    }`}
                   />
+                  {isEditingProfile && fieldErrors.lastName && (
+                    <p className="text-xs text-rose-500 font-bold mt-1.5 flex items-center gap-1">
+                      <span>⚠️</span> {fieldErrors.lastName}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)] mb-2">Email Address</label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs sm:text-sm font-black text-[var(--text-primary)]">Email Address</label>
+                    {!isEditingProfile && <span className="text-[10px] text-[var(--text-secondary)] font-medium">Account ID</span>}
+                  </div>
                   <input
                     type="email"
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    required
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
+                    disabled={!isEditingProfile || saving}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setForm({ ...form, email: val });
+                      if (fieldErrors.email) {
+                        const err = validateField("email", val);
+                        setFieldErrors((prev) => ({ ...prev, email: err }));
+                      }
+                    }}
+                    placeholder="your.email@example.com"
+                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
+                      !isEditingProfile
+                        ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-80 cursor-not-allowed"
+                        : fieldErrors.email
+                        ? "bg-[var(--bg-elevated)] border-rose-500 ring-2 ring-rose-500/20"
+                        : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
+                    }`}
                   />
+                  {isEditingProfile && fieldErrors.email && (
+                    <p className="text-xs text-rose-500 font-bold mt-1.5 flex items-center gap-1">
+                      <span>⚠️</span> {fieldErrors.email}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -785,21 +972,37 @@ export function Profile() {
                   <input
                     type="text"
                     value={form.nativeLanguage}
+                    disabled={!isEditingProfile || saving}
                     onChange={(e) => setForm({ ...form, nativeLanguage: e.target.value })}
-                    className="w-full px-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-inner"
+                    placeholder="e.g. English, Hindi, Spanish"
+                    className={`w-full px-4 py-3.5 rounded-2xl border text-sm font-bold text-[var(--text-primary)] focus:outline-none transition-all shadow-inner ${
+                      !isEditingProfile
+                        ? "bg-[var(--bg-card)] border-[var(--border-default)] opacity-80 cursor-not-allowed"
+                        : "bg-[var(--bg-elevated)] border-[var(--border-default)] focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20"
+                    }`}
                   />
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6C63FF]/25 transition-all cursor-pointer active:scale-95"
-                >
-                  {saving ? "Saving Changes..." : "Save Profile Details"}
-                </button>
-              </div>
+              {isEditingProfile && (
+                <div className="pt-4 border-t border-[var(--border-default)] flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    disabled={saving}
+                    className="py-3 px-6 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-slate-400 text-xs sm:text-sm font-bold text-[var(--text-secondary)] transition-all cursor-pointer active:scale-95 disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6C63FF]/25 transition-all cursor-pointer active:scale-95"
+                  >
+                    {saving ? "Saving Changes..." : "Save Profile Details"}
+                  </button>
+                </div>
+              )}
             </form>
           </div>
         </div>
