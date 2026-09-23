@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -8,7 +8,7 @@ import { StreakModal } from "../dashboard/StreakModal";
 import { AdminLoginModal } from "../common/AdminLoginModal";
 import { notificationService } from "../../services/appServices";
 
-export function Navbar() {
+export const Navbar = memo(function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -629,6 +629,6 @@ export function Navbar() {
       />
     </header>
   );
-}
+});
 
 export default Navbar;

@@ -158,22 +158,9 @@ export function useAssistantTheme() {
         window.addEventListener("storage", updateFromEnvironment);
         window.addEventListener("speakmate-accent-change", updateFromEnvironment);
 
-        // Immediate reaction to same-window setting changes via style/data-theme changes
-        let observer = null;
-        if (typeof document !== "undefined" && document.documentElement) {
-            observer = new MutationObserver(() => {
-                updateFromEnvironment();
-            });
-            observer.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ["style", "data-theme", "class"],
-            });
-        }
-
         return () => {
             window.removeEventListener("storage", updateFromEnvironment);
             window.removeEventListener("speakmate-accent-change", updateFromEnvironment);
-            if (observer) observer.disconnect();
         };
     }, []);
 

@@ -52,19 +52,12 @@ export function Settings() {
   const { isDark, setTheme } = useTheme();
   const { user, updateUser, completeOnboarding } = useAuth();
 
-  const savedAccent = localStorage.getItem("speakmate_voice_accent") || "US";
-  const savedVoice = localStorage.getItem("speakmate_ai_voice") || "Default";
-  const savedAgeGroup = normalizeAgeGroup(user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional");
-  const savedDailyGoal = localStorage.getItem("speakmate_daily_goal") || "15 min";
-  const savedLang = localStorage.getItem("speakmate_app_language") || "English";
-  const savedSpeed = parseFloat(localStorage.getItem("speakmate_voice_speed") || "1.0");
-
-  const [accent, setAccent] = useState(savedAccent);
-  const [selectedVoice, setSelectedVoice] = useState(savedVoice);
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState(savedAgeGroup);
-  const [dailyGoal, setDailyGoal] = useState(savedDailyGoal);
-  const [selectedLang, setSelectedLang] = useState(savedLang);
-  const [speechSpeed, setSpeechSpeed] = useState(savedSpeed);
+  const [accent, setAccent] = useState(() => localStorage.getItem("speakmate_voice_accent") || "US");
+  const [selectedVoice, setSelectedVoice] = useState(() => localStorage.getItem("speakmate_ai_voice") || "Default");
+  const [selectedAgeGroup, setSelectedAgeGroup] = useState(() => normalizeAgeGroup(user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional"));
+  const [dailyGoal, setDailyGoal] = useState(() => localStorage.getItem("speakmate_daily_goal") || "15 min");
+  const [selectedLang, setSelectedLang] = useState(() => localStorage.getItem("speakmate_app_language") || "English");
+  const [speechSpeed, setSpeechSpeed] = useState(() => parseFloat(localStorage.getItem("speakmate_voice_speed") || "1.0"));
 
   useEffect(() => {
     if (user?.ageGroup) {

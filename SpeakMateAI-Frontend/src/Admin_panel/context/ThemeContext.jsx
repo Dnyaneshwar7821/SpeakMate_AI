@@ -54,6 +54,7 @@ export function ThemeProvider({ children }) {
     root.style.setProperty("--color-primary", colors.primary);
     root.style.setProperty("--color-primary-hover", colors.hover);
     localStorage.setItem("speakmate_admin_accent", accent);
+    window.dispatchEvent(new CustomEvent("speakmate-accent-change", { detail: accent }));
   }, [accent]);
 
   const [sidebarDensity, setSidebarDensity] = useState(() => {

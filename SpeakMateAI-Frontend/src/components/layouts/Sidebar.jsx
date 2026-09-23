@@ -1,6 +1,32 @@
+import React, { memo } from "react";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import ROUTES from "../../constants/routes";
+
+const SidebarItem = memo(function SidebarItem({ item }) {
+  return (
+    <NavLink
+      to={item.path}
+      className={({ isActive }) =>
+        `flex items-center justify-between px-4 py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-150 ${
+          isActive
+            ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/30 scale-[1.02]"
+            : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1"
+        }`
+      }
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="shrink-0">{item.icon}</span>
+        <span className="truncate">{item.label}</span>
+      </div>
+      {item.badge && (
+        <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+          {item.badge}
+        </span>
+      )}
+    </NavLink>
+  );
+});
 
 const MAIN_ITEMS = [
   {
@@ -102,7 +128,7 @@ const ACCOUNT_ITEMS = [
   },
 ];
 
-export function Sidebar() {
+export const Sidebar = memo(function Sidebar() {
   const { user } = useAuth();
   const isStudent =
     user?.accountType === "STUDENT" ||
@@ -111,7 +137,7 @@ export function Sidebar() {
     localStorage.getItem("speakmate_account_type") === "STUDENT";
 
   return (
-    <aside className="w-64 lg:w-72 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] h-[calc(100vh-80px)] sticky top-20 flex flex-col justify-between p-4 overflow-y-auto z-30 transition-colors duration-200">
+    <aside className="w-64 lg:w-72 shrink-0 border-r border-[var(--border-default)] bg-[var(--bg-surface)] h-[calc(100vh-80px)] sticky top-20 flex flex-col justify-between p-4 overflow-y-auto z-30 transition-colors duration-200 contain-layout">
       <div className="space-y-6">
         {/* SECTION 1: MAIN WORKSPACE */}
         <div className="space-y-1.5">
@@ -119,27 +145,7 @@ export function Sidebar() {
             Main Practice Hub
           </p>
           {MAIN_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center justify-between px-4 py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 ${
-                  isActive
-                    ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/30 scale-[1.02]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1"
-                }`
-              }
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="shrink-0">{item.icon}</span>
-                <span className="truncate">{item.label}</span>
-              </div>
-              {item.badge && (
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider animate-pulse">
-                  {item.badge}
-                </span>
-              )}
-            </NavLink>
+            <SidebarItem key={item.path} item={item} />
           ))}
         </div>
 
@@ -149,20 +155,7 @@ export function Sidebar() {
             Curriculum & Drills
           </p>
           {MODULE_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 ${
-                  isActive
-                    ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/30 scale-[1.02]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1"
-                }`
-              }
-            >
-              <span className="shrink-0">{item.icon}</span>
-              <span className="truncate">{item.label}</span>
-            </NavLink>
+            <SidebarItem key={item.path} item={item} />
           ))}
         </div>
 
@@ -172,20 +165,7 @@ export function Sidebar() {
             Preferences & Account
           </p>
           {ACCOUNT_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-2xl text-xs sm:text-sm font-extrabold transition-all duration-200 ${
-                  isActive
-                    ? "bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-lg shadow-[#6C63FF]/30 scale-[1.02]"
-                    : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-elevated)] hover:translate-x-1"
-                }`
-              }
-            >
-              <span className="shrink-0">{item.icon}</span>
-              <span className="truncate">{item.label}</span>
-            </NavLink>
+            <SidebarItem key={item.path} item={item} />
           ))}
         </div>
       </div>
@@ -245,6 +225,6 @@ export function Sidebar() {
       </div>
     </aside>
   );
-}
+});
 
 export default Sidebar;

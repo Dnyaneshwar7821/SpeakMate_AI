@@ -1,6 +1,6 @@
 import { Suspense, lazy } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Navigate, Route, Routes, useLocation, Outlet } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 
 import AppLayout from "../components/layouts/Layout";
 import AuthLayout from "../components/layout/AuthLayout";
@@ -125,12 +125,9 @@ function PageTransition({ children }) {
 }
 
 export function AppRoutes() {
-  const location = useLocation();
-
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        {/* Standalone Live2D Avatar Embed for Mobile App WebView */}
+    <Routes>
+      {/* Standalone Live2D Avatar Embed for Mobile App WebView */}
         <Route
           path="/avatar-embed"
           element={
@@ -518,7 +515,6 @@ export function AppRoutes() {
 
         <Route path="*" element={<Navigate to={ROUTES.NOT_FOUND} replace />} />
       </Routes>
-    </AnimatePresence>
   );
 }
 
