@@ -138,6 +138,15 @@ export function Profile() {
   const [showTutorModal, setShowTutorModal] = useState(false);
   const [playingTutor, setPlayingTutor] = useState(null);
 
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState("");
+  const [deleteOtp, setDeleteOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
   // Lock body scroll when modal is active
   useEffect(() => {
     if (showTutorModal || showAvatarModal || showDeleteModal) {
@@ -163,15 +172,6 @@ export function Profile() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showTutorModal, showAvatarModal, showDeleteModal]);
-
-  // Delete account state
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteEmail, setDeleteEmail] = useState("");
-  const [deleteOtp, setDeleteOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [deletingAccount, setDeletingAccount] = useState(false);
-  const [deleteError, setDeleteError] = useState("");
 
   const rank = getRankTier(liveStats.xp || user?.xp || 0);
 
