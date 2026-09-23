@@ -136,6 +136,7 @@ export function Profile() {
   const [subInfo, setSubInfo] = useState(null);
   const [showTutorModal, setShowTutorModal] = useState(false);
   const [playingTutor, setPlayingTutor] = useState(null);
+  const [tutorCategoryFilter, setTutorCategoryFilter] = useState("all");
 
   // Delete account state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -1464,36 +1465,87 @@ export function Profile() {
       )}
       {/* ── 10 AI AVATAR OPTIONS POPUP MODAL ── */}
       {showTutorModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="max-w-4xl w-full glass-card rounded-3xl shadow-2xl border border-[var(--border-default)] dark:border-white/10 flex flex-col max-h-[88vh] sm:max-h-[84vh] overflow-hidden bg-[var(--bg-surface)]">
-            <div className="px-6 py-5 sm:px-8 sm:py-6 border-b border-[var(--border-default)] dark:border-white/10 flex items-center justify-between bg-[var(--bg-surface)] shrink-0">
-              <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#8B5CF6] text-white flex items-center justify-center text-2xl shadow-lg shadow-[#6C63FF]/25 shrink-0">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="max-w-5xl w-full rounded-3xl shadow-2xl border border-slate-200/90 dark:border-white/10 flex flex-col max-h-[90vh] sm:max-h-[86vh] overflow-hidden bg-white dark:bg-[#111625] transition-all">
+            {/* Modal Header */}
+            <div className="px-6 py-5 sm:px-8 sm:py-6 border-b border-slate-200/80 dark:border-white/10 bg-white/95 dark:bg-[#111625]/95 backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6C63FF] via-[#7C3AED] to-[#EC4899] text-white flex items-center justify-center text-2xl shadow-lg shadow-[#6C63FF]/30 shrink-0">
                   🎭
                 </div>
                 <div>
-                  <h3 className="font-black text-lg sm:text-xl text-[var(--text-primary)] tracking-tight">
-                    Choose AI Speaking Partner
-                  </h3>
-                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                    Select your tutor character or click <strong>Test Voice</strong> to preview their speech & personality!
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-xl text-slate-900 dark:text-white tracking-tight">
+                      Choose AI Speaking Partner
+                    </h3>
+                    <span className="hidden sm:inline-flex items-center text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15 text-[#6C63FF] border border-[#6C63FF]/30">
+                      10 Characters
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                    Click <strong>Test Voice</strong> to preview their distinct accent & tone, or select your partner.
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setShowTutorModal(false)}
-                className="w-9 h-9 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all flex items-center justify-center text-xs font-black text-[var(--text-secondary)] cursor-pointer active:scale-90 shadow-sm shrink-0"
-                title="Close"
-              >
-                ✕
-              </button>
+
+              <div className="flex items-center gap-3 self-end sm:self-auto">
+                {/* Category Filter Tabs */}
+                <div className="flex items-center p-1 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setTutorCategoryFilter("all")}
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold ${
+                      tutorCategoryFilter === "all"
+                        ? "bg-white dark:bg-white/15 text-[#6C63FF] dark:text-white shadow-sm font-black"
+                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    All (10)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTutorCategoryFilter("human")}
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold ${
+                      tutorCategoryFilter === "human"
+                        ? "bg-white dark:bg-white/15 text-[#6C63FF] dark:text-white shadow-sm font-black"
+                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    Adults (3)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTutorCategoryFilter("cartoon")}
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer font-bold ${
+                      tutorCategoryFilter === "cartoon"
+                        ? "bg-white dark:bg-white/15 text-[#6C63FF] dark:text-white shadow-sm font-black"
+                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white"
+                    }`}
+                  >
+                    Kids / Cartoons (7)
+                  </button>
+                </div>
+
+                {/* Close Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowTutorModal(false)}
+                  className="w-10 h-10 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all flex items-center justify-center text-xs font-black text-slate-600 dark:text-slate-300 cursor-pointer active:scale-90 shadow-sm shrink-0"
+                  title="Close"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
-            {/* AVATAR OPTIONS GRID (SCROLLABLE) */}
-            <div className="p-5 sm:p-7 overflow-y-auto space-y-4 flex-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {AVATAR_LIST.map((av) => {
+            {/* Scrollable Tutor Cards Grid */}
+            <div className="p-5 sm:p-8 overflow-y-auto space-y-4 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {AVATAR_LIST.filter((av) => {
+                  if (tutorCategoryFilter === "human") return av.category === "human";
+                  if (tutorCategoryFilter === "cartoon") return av.category === "cartoon";
+                  return true;
+                }).map((av) => {
                   const isSelected = activeAvatarId === av.id;
                   const isPlaying = playingTutor === av.id;
                   return (
@@ -1506,27 +1558,28 @@ export function Profile() {
                       }}
                       className={`p-5 rounded-3xl border-2 cursor-pointer transition-all duration-200 flex flex-col justify-between group relative overflow-hidden ${
                         isSelected
-                          ? "border-[#6C63FF] bg-gradient-to-br from-[#6C63FF]/15 via-[#8B5CF6]/10 to-[var(--bg-elevated)] shadow-xl shadow-[#6C63FF]/20 ring-2 ring-[#6C63FF]/30 scale-[1.01]"
-                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50 hover:bg-[var(--bg-surface)] hover:shadow-lg hover:-translate-y-0.5"
+                          ? "border-[#6C63FF] bg-gradient-to-b from-[#6C63FF]/15 via-[#8B5CF6]/5 to-transparent dark:from-[#6C63FF]/25 dark:via-[#8B5CF6]/10 dark:to-transparent ring-4 ring-[#6C63FF]/20 shadow-xl shadow-[#6C63FF]/20 scale-[1.01]"
+                          : "border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-slate-900/60 hover:border-[#6C63FF]/60 hover:bg-white dark:hover:bg-slate-900 hover:shadow-xl hover:-translate-y-1"
                       }`}
                     >
                       <div>
+                        {/* Top: Avatar Icon + Badges */}
                         <div className="flex items-start justify-between gap-3">
-                          <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${av.themeColor || "from-indigo-500/20 to-purple-500/20 border-indigo-500/30 text-indigo-500"} border flex items-center justify-center text-3xl shadow-inner shrink-0 group-hover:scale-105 transition-transform`}>
+                          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${av.themeColor || "from-indigo-500/20 to-purple-500/20 border-indigo-500/30 text-indigo-500"} border flex items-center justify-center text-3xl shadow-sm shrink-0 group-hover:scale-105 transition-transform duration-200`}>
                             {av.emoji}
                           </div>
                           <div className="flex flex-col items-end gap-1.5">
                             {isSelected && (
-                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm shadow-[#6C63FF]/30">
+                              <span className="inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white shadow-md shadow-[#6C63FF]/30">
                                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                                 Active
                               </span>
                             )}
                             <span
-                              className={`text-[9px] font-black px-2.5 py-0.5 rounded-full border ${
+                              className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${
                                 av.category === "cartoon"
-                                  ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
-                                  : "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                                  ? "bg-sky-500/15 text-sky-600 dark:text-sky-400 border-sky-500/30"
+                                  : "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30"
                               }`}
                             >
                               {av.badge}
@@ -1534,32 +1587,56 @@ export function Profile() {
                           </div>
                         </div>
 
-                        <h4 className="font-black text-base text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors mt-3 flex items-center gap-1.5">
+                        {/* Middle: Character Name + Subtitle */}
+                        <h4 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-[#6C63FF] transition-colors mt-3.5 flex items-center gap-2">
                           {av.name}
                         </h4>
-                        <p className="text-xs text-[var(--text-secondary)] font-medium line-clamp-2 mt-1 leading-relaxed">
+                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-2 mt-1 min-h-[32px] leading-relaxed">
                           {av.subtitle}
                         </p>
                       </div>
 
-                      <div className="pt-3.5 mt-3 border-t border-[var(--border-default)] flex items-center justify-between gap-2">
-                        <span className="text-[10px] font-bold text-[var(--text-secondary)] bg-[var(--bg-surface)] px-2 py-1 rounded-lg border border-[var(--border-default)] truncate max-w-[140px]">
-                          🎙️ {av.voiceLabel}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playAvatarPreview(av);
-                          }}
-                          className={`px-3 py-1.5 rounded-xl border text-[10px] font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center gap-1.5 ${
-                            isPlaying
-                              ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
-                              : "bg-[var(--bg-surface)] border-[var(--border-default)] text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white"
-                          }`}
-                        >
-                          <span>{isPlaying ? "🔊 Playing" : "▶ Test Voice"}</span>
-                        </button>
+                      {/* Bottom: Voice Info Tag + Action Buttons */}
+                      <div className="pt-3.5 mt-4 border-t border-slate-200/80 dark:border-white/10 space-y-2.5">
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                          <span className="text-xs">🎙️</span>
+                          <span className="truncate flex-1">{av.voiceLabel}</span>
+                          <span className="text-[10px] text-slate-400 font-semibold shrink-0">
+                            {av.defaultPitch ? `${av.defaultPitch}x pitch` : ""}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAvatarPreview(av);
+                            }}
+                            className={`flex-1 py-2 px-3 rounded-xl border text-xs font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 ${
+                              isPlaying
+                                ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
+                                : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white border-[#6C63FF]/25 shadow-sm"
+                            }`}
+                          >
+                            <span>{isPlaying ? "🔊 Speaking..." : "▶ Test Voice"}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleSelectTutor(av);
+                              playAvatarPreview(av);
+                              setShowTutorModal(false);
+                            }}
+                            className={`py-2 px-3.5 rounded-xl text-xs font-black transition-all cursor-pointer active:scale-95 flex items-center justify-center gap-1 ${
+                              isSelected
+                                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                : "bg-slate-200 dark:bg-white/10 hover:bg-[#6C63FF] hover:text-white text-slate-700 dark:text-slate-200"
+                            }`}
+                          >
+                            <span>{isSelected ? "Selected" : "Choose"}</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
