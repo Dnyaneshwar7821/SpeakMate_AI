@@ -158,6 +158,7 @@ export const DashboardHeader = memo(function DashboardHeader({
   onNotificationPress,
   onProfilePress,
   onMenuPress,
+  onChatbotPress,
 }) {
   const entrance = useRef(new Animated.Value(0)).current;
   const bellScale = useRef(new Animated.Value(1)).current;
@@ -194,10 +195,16 @@ export const DashboardHeader = memo(function DashboardHeader({
             >
               <Ionicons name="menu" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-            <View style={styles.brandPill}>
+            <TouchableOpacity
+              style={styles.brandPill}
+              onPress={onChatbotPress}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Open SpeakMate AI Assistant"
+            >
               <Ionicons name="sparkles" size={14} color="#818CF8" />
               <Text style={styles.brandPillText}>SpeakMate AI</Text>
-            </View>
+            </TouchableOpacity>
           </View>
           <Animated.View style={{ transform: [{ scale: bellScale }] }}>
             <TouchableOpacity style={styles.iconButtonLight} onPress={onNotificationPress} activeOpacity={0.85}>

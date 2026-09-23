@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
 
 /**
@@ -266,9 +266,9 @@ const styles = StyleSheet.create({
   inlineCode: {
     fontSize: 11.5,
     fontWeight: '600',
-    fontFamily: 'monospace',
+    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     borderRadius: 4,
-    borderWidth: 0.5,
+    paddingHorizontal: 4,
     overflow: 'hidden',
   },
 });

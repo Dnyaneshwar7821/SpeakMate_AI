@@ -279,15 +279,14 @@ export function AssistantModal({
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
-        {/* Fullscreen Blurred Backdrop */}
-        <BlurredBackdrop />
-
-        {/* Backdrop dismiss touch area */}
+        {/* Fullscreen Blurred Backdrop & Dismiss Area */}
         <TouchableOpacity
           activeOpacity={1}
           onPress={onClose}
-          style={styles.backdropDismissArea}
-        />
+          style={StyleSheet.absoluteFill}
+        >
+          <BlurredBackdrop />
+        </TouchableOpacity>
 
         {/* Elevated Assistant Sheet Container */}
         <KeyboardAvoidingView
@@ -533,11 +532,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
   },
-  backdropDismissArea: {
-    flex: 1,
-  },
   sheetContainer: {
-    height: Math.min(SCREEN_HEIGHT * 0.85, 680),
+    height: Math.min(SCREEN_HEIGHT * 0.82, 640),
+    maxHeight: '85%',
+    width: '100%',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderWidth: 1,

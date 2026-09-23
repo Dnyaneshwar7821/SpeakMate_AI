@@ -49,6 +49,7 @@ import {
 } from '../../components/dashboard';
 import { StateView } from '../../components/ui';
 import { COLORS } from '../../constants/colors';
+import { openLearnerAssistant } from '../../components/assistant';
 
 // Simple in-memory cache to make page transitions instant
 let cachedDashboardData = null;
@@ -420,6 +421,7 @@ export default function DashboardScreen({ navigation }) {
           onMenuPress={handleOpenMenu}
           onNotificationPress={handleNotificationsNav}
           onProfilePress={() => navigation.navigate('BottomTabs', { screen: 'Profile' })}
+          onChatbotPress={openLearnerAssistant}
           isDark={isDark}
         />
 

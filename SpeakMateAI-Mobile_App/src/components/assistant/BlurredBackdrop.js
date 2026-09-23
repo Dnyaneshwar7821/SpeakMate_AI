@@ -1,12 +1,13 @@
 import React from 'react';
-import { StyleSheet, UIManager, View } from 'react-native';
+import { Platform, StyleSheet, UIManager, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 
 let NativeBlurView = null;
 try {
-  // Only attempt to load expo-blur if the native dev client actually exports ExpoBlurView
+  // Only attempt to load expo-blur on iOS where native blur is robust and performant
   if (
+    Platform.OS === 'ios' &&
     typeof UIManager !== 'undefined' &&
     UIManager.getViewManagerConfig &&
     Boolean(UIManager.getViewManagerConfig('ExpoBlurView'))
@@ -19,16 +20,16 @@ try {
 
 /**
  * Universal Blurred Backdrop for Mobile Assistant.
- * If ExpoBlurView is compiled into the native binary, it renders native BlurView.
- * Otherwise, it renders a stunning frosted glassmorphic gradient overlay that
- * never throws native warnings in existing Dev Client or Expo Go builds.
+ * On iOS, uses native BlurView if available.
+ * On Android, uses a buttery-smooth 60fps translucent gradient overlay
+ * that never freezes, never drops frames, and never intercepts touches unintentionally.
  */
 export function BlurredBackdrop() {
   const { isDark } = useTheme();
 
-  if (NativeBlurView) {
+  if (Platform.OS === 'ios' && NativeBlurView) {
     return (
-      <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(15, 23, 42, 0.45)' }]}>
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(15, 23, 42, 0.65)' : 'rgba(15, 23, 42, 0.45)' }]}>
         <NativeBlurView
           intensity={55}
           tint={isDark ? 'dark' : 'light'}
@@ -40,10 +41,11 @@ export function BlurredBackdrop() {
 
   return (
     <View
+      pointerEvents="none"
       style={[
         StyleSheet.absoluteFill,
         {
-          backgroundColor: isDark ? 'rgba(11, 15, 25, 0.82)' : 'rgba(241, 245, 249, 0.85)',
+          backgroundColor: isDark ? 'rgba(11, 15, 25, 0.78)' : 'rgba(15, 23, 42, 0.55)',
         },
       ]}
     >
@@ -51,8 +53,8 @@ export function BlurredBackdrop() {
       <LinearGradient
         colors={
           isDark
-            ? ['rgba(99, 102, 241, 0.12)', 'rgba(15, 23, 42, 0.60)', 'rgba(11, 15, 25, 0.90)']
-            : ['rgba(255, 255, 255, 0.60)', 'rgba(241, 245, 249, 0.82)', 'rgba(226, 232, 240, 0.92)']
+            ? ['rgba(99, 102, 241, 0.15)', 'rgba(15, 23, 42, 0.70)', 'rgba(11, 15, 25, 0.88)']
+            : ['rgba(255, 255, 255, 0.40)', 'rgba(241, 245, 249, 0.75)', 'rgba(15, 23, 42, 0.60)']
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 0, y: 1 }}

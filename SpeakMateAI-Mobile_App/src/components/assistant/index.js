@@ -1,4 +1,4 @@
-export { LearnerAssistantWidget } from './LearnerAssistantWidget';
+export { LearnerAssistantWidget, openLearnerAssistant } from './LearnerAssistantWidget';
 export { AssistantFAB } from './AssistantFAB';
 export { AssistantModal } from './AssistantModal';
 export { MessageBubble } from './MessageBubble';

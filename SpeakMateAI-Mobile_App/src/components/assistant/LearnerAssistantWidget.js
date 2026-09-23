@@ -5,6 +5,14 @@ import assistantApi from './assistantApi';
 import AssistantFAB from './AssistantFAB';
 import AssistantModal from './AssistantModal';
 
+let openAssistantHandler = null;
+
+export const openLearnerAssistant = () => {
+  if (typeof openAssistantHandler === 'function') {
+    openAssistantHandler();
+  }
+};
+
 const generateSessionId = () => `mob_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
 export function LearnerAssistantWidget() {
@@ -15,6 +23,13 @@ export function LearnerAssistantWidget() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const sessionIdRef = useRef(generateSessionId());
+
+  React.useEffect(() => {
+    openAssistantHandler = () => setIsOpen(true);
+    return () => {
+      openAssistantHandler = null;
+    };
+  }, []);
 
   // Determine role: school student gets syllabus/grade persona, general user gets conversational fluency persona
   const role = useMemo(() => {

@@ -87,11 +87,11 @@ export function AssistantFAB({ onPress, loading = false }) {
       style={[
         styles.wrapper,
         {
-          transform: [{ translateX: pan.x }, { translateY: pan.y }],
+          left: pan.x,
+          top: pan.y,
         },
       ]}
       {...panResponder.panHandlers}
-      pointerEvents="box-none"
     >
       <View
         style={styles.touchable}
@@ -126,9 +126,10 @@ export function AssistantFAB({ onPress, loading = false }) {
 const styles = StyleSheet.create({
   wrapper: {
     position: 'absolute',
-    top: 0,
-    left: 0,
+    width: FAB_SIZE,
+    height: FAB_SIZE,
     zIndex: 998,
+    elevation: 12,
   },
   touchable: {
     width: FAB_SIZE,
