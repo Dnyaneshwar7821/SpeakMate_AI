@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { useTheme } from "../context/ThemeContext";
@@ -524,136 +525,154 @@ export function Settings() {
         </button>
       </div>
 
-      {/* ── REGIONAL VOICE OPTIONS POPUP MODAL ── */}
-      {showVoiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="max-w-4xl w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-6 max-h-[90vh] overflow-y-auto bg-[var(--bg-surface)]">
-            <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-4">
-              <div>
-                <h3 className="font-black text-xl text-[var(--text-primary)]">Select AI Tutor Regional Voice 🎙️</h3>
-                <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                  Click any voice to test. Audio preview plays automatically!
-                </p>
-              </div>
-              <button
-                onClick={() => setShowVoiceModal(false)}
-                className="px-3.5 py-1.5 rounded-xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
-              >
-                ✕ Close
-              </button>
-            </div>
-
-            {/* REGIONAL VOICES GRID (System Default + 8 Regional English Voices) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <div
-                onClick={() => handleSelectVoiceCode("Default")}
-                className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                  selectedVoice === "Default" || !selectedVoice
-                    ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102"
-                    : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
-                }`}
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-2xl">✨</span>
-                    <div className="flex items-center gap-1.5">
-                      {playingVoice === "Default" && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase animate-pulse">
-                          🔊 Playing...
-                        </span>
-                      )}
-                      {(selectedVoice === "Default" || !selectedVoice) && (
-                        <span className="px-2.5 py-0.5 rounded-full bg-[#6C63FF] text-white text-[10px] font-black uppercase">
-                          Selected
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <h4 className="font-black text-base text-[var(--text-primary)]">1. System Default</h4>
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                      {onboardingVoiceStyle}
-                    </span>
-                  </div>
+      {/* ── REGIONAL VOICE OPTIONS POPUP MODAL (PORTALED TO BODY TO PREVENT NAVBAR OVERLAP) ── */}
+      {showVoiceModal && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setShowVoiceModal(false)}
+        >
+          <div
+            className="max-w-4xl w-full rounded-3xl shadow-2xl border border-[var(--border-default)] dark:border-white/10 flex flex-col max-h-[90vh] sm:max-h-[86vh] overflow-hidden bg-[var(--bg-surface)] transition-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="px-6 py-5 sm:px-8 sm:py-6 border-b border-[var(--border-default)] dark:border-white/10 bg-[var(--bg-surface)]/95 backdrop-blur-md flex items-center justify-between gap-4 shrink-0">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6C63FF] via-[#7C3AED] to-[#EC4899] text-white flex items-center justify-center text-2xl shadow-lg shadow-[#6C63FF]/30 shrink-0">
+                  🎙️
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-black text-xl text-[var(--text-primary)] tracking-tight">
+                    Select AI Tutor Regional Voice
+                  </h3>
+                  <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
+                    Click any voice to select and test. Audio preview plays automatically!
+                  </p>
                 </div>
               </div>
 
-              {VOICE_PROFILES.filter((vp) => {
-                const HUMAN_VOICES = ["US Male", "US Female", "UK Male", "UK Female", "AU Male", "AU Female", "IN Male", "IN Female"];
-                return HUMAN_VOICES.includes(vp.code);
-              }).map((profile, idx) => {
-                const isSelected = selectedVoice === profile.code;
-                const flagMap = {
-                  American: "🇺🇸",
-                  British: "🇬🇧",
-                  Australian: "🇦🇺",
-                  Indian: "🇮🇳",
-                };
-                const flag = flagMap[profile.accent] || "🌐";
-                return (
-                  <div
-                    key={profile.code}
-                    onClick={() => handleSelectVoiceCode(profile.code)}
-                    className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
-                      isSelected
-                        ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
-                    }`}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-2xl">
-                          <span>{flag}</span>
-                          <span>{profile.gender === "female" ? "👩‍🏫" : "👨‍🏫"}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          {playingVoice === profile.code && (
-                            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase animate-pulse">
-                              🔊 Playing...
-                            </span>
-                          )}
-                          {isSelected && (
-                            <span className="px-2.5 py-0.5 rounded-full bg-[#6C63FF] text-white text-[10px] font-black uppercase">
-                              Selected
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <h4 className="font-black text-base text-[var(--text-primary)]">
-                          {idx + 2}. {profile.label}
-                        </h4>
-                        <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
-                          {profile.accent}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="pt-4 border-t border-[var(--border-default)] flex justify-end">
+              {/* Close Button */}
               <button
+                type="button"
                 onClick={() => setShowVoiceModal(false)}
-                className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs font-black shadow-lg shadow-[#6C63FF]/25 active:scale-95 cursor-pointer"
+                className="w-10 h-10 rounded-2xl border border-[var(--border-default)] dark:border-white/10 bg-[var(--bg-elevated)] hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all flex items-center justify-center text-xs font-black text-[var(--text-secondary)] cursor-pointer active:scale-90 shadow-sm shrink-0"
+                title="Close"
               >
-                ✓ Done / Apply Selection
+                ✕
               </button>
             </div>
+
+            {/* Scrollable Voices Grid */}
+            <div className="p-5 sm:p-8 overflow-y-auto space-y-4 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div
+                  onClick={() => handleSelectVoiceCode("Default")}
+                  className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                    selectedVoice === "Default" || !selectedVoice
+                      ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102"
+                      : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
+                  }`}
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-2xl">✨</span>
+                      <div className="flex items-center gap-1.5">
+                        {playingVoice === "Default" && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase animate-pulse">
+                            🔊 Playing...
+                          </span>
+                        )}
+                        {(selectedVoice === "Default" || !selectedVoice) && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-[#6C63FF] text-white text-[10px] font-black uppercase">
+                            Selected
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <h4 className="font-black text-base text-[var(--text-primary)]">1. System Default</h4>
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                        {onboardingVoiceStyle}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {VOICE_PROFILES.filter((vp) => {
+                  const HUMAN_VOICES = ["US Male", "US Female", "UK Male", "UK Female", "AU Male", "AU Female", "IN Male", "IN Female"];
+                  return HUMAN_VOICES.includes(vp.code);
+                }).map((profile, idx) => {
+                  const isSelected = selectedVoice === profile.code;
+                  const flagMap = {
+                    American: "🇺🇸",
+                    British: "🇬🇧",
+                    Australian: "🇦🇺",
+                    Indian: "🇮🇳",
+                  };
+                  const flag = flagMap[profile.accent] || "🌐";
+                  return (
+                    <div
+                      key={profile.code}
+                      onClick={() => handleSelectVoiceCode(profile.code)}
+                      className={`p-5 rounded-2xl border-2 cursor-pointer transition-all flex flex-col justify-between ${
+                        isSelected
+                          ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
+                      }`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-2xl">
+                            <span>{flag}</span>
+                            <span>{profile.gender === "female" ? "👩‍🏫" : "👨‍🏫"}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            {playingVoice === profile.code && (
+                              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500 text-white text-[10px] font-black uppercase animate-pulse">
+                                🔊 Playing...
+                              </span>
+                            )}
+                            {isSelected && (
+                              <span className="px-2.5 py-0.5 rounded-full bg-[#6C63FF] text-white text-[10px] font-black uppercase">
+                                Selected
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="font-black text-base text-[var(--text-primary)]">
+                            {idx + 2}. {profile.label}
+                          </h4>
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-[var(--bg-surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)]">
+                            {profile.accent}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* ── 17 APP LANGUAGES MODAL ── */}
-      {showLangModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="max-w-2xl w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-4 max-h-[85vh] overflow-y-auto bg-[var(--bg-surface)]">
+      {/* ── 17 APP LANGUAGES MODAL (PORTALED TO BODY) ── */}
+      {showLangModal && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setShowLangModal(false)}
+        >
+          <div
+            className="max-w-2xl w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-4 max-h-[85vh] overflow-y-auto bg-[var(--bg-surface)]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center justify-between border-b border-[var(--border-default)] pb-3">
               <h3 className="font-black text-lg text-[var(--text-primary)]">Select App Language 🌐</h3>
               <button
                 onClick={() => setShowLangModal(false)}
-                className="px-3 py-1 rounded-xl bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)]"
+                className="px-3 py-1 rounded-xl bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] hover:bg-rose-500 hover:text-white transition-all cursor-pointer"
               >
                 ✕ Close
               </button>
@@ -690,13 +709,20 @@ export function Settings() {
               ))}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* ── RESET CACHE CONFIRM MODAL ── */}
-      {showResetModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-4 bg-[var(--bg-surface)]">
+      {/* ── RESET CACHE CONFIRM MODAL (PORTALED TO BODY) ── */}
+      {showResetModal && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setShowResetModal(false)}
+        >
+          <div
+            className="max-w-md w-full glass-card p-6 sm:p-8 rounded-3xl shadow-2xl border border-[var(--border-default)] space-y-4 bg-[var(--bg-surface)]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <h3 className="font-black text-lg text-[var(--text-primary)]">Clear Learning Cache? 🧹</h3>
             <p className="text-xs text-[var(--text-secondary)] font-medium">
               This will refresh all temporarily cached dashboard statistics and force fresh synchronization with the backend server.
@@ -704,19 +730,20 @@ export function Settings() {
             <div className="flex justify-end gap-3 pt-2">
               <button
                 onClick={() => setShowResetModal(false)}
-                className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] text-xs font-bold text-[var(--text-secondary)]"
+                className="px-4 py-2 rounded-xl bg-[var(--bg-elevated)] text-xs font-bold text-[var(--text-secondary)] hover:opacity-80 transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleClearCache}
-                className="px-5 py-2 rounded-xl bg-rose-500 text-white text-xs font-black shadow-md"
+                className="px-5 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white text-xs font-black shadow-md transition-all cursor-pointer active:scale-95"
               >
                 Clear Cache
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
