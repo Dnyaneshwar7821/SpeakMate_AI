@@ -12,6 +12,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -44,6 +45,7 @@ export function AssistantModal({
 }) {
   const { isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -294,6 +296,7 @@ export function AssistantModal({
           style={[
             styles.sheetContainer,
             {
+              height: Math.min((windowHeight || SCREEN_HEIGHT) * 0.85, 660),
               backgroundColor: panelBg,
               borderColor: panelBorder,
               paddingBottom: Math.max(insets.bottom, 12),

@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Animated,
-  Dimensions,
   PanResponder,
   Platform,
   StyleSheet,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,21 +17,30 @@ const MARGIN = 16;
 
 export function AssistantFAB({ onPress, loading = false }) {
   const insets = useSafeAreaInsets();
-  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+  const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
 
   // Boundaries to prevent dragging off-screen or over bottom tabs/system pills
   const minX = MARGIN;
-  const maxX = SCREEN_WIDTH - FAB_SIZE - MARGIN;
-  const minY = Math.max(insets.top, 24) + 8;
-  const bottomOffset = Math.max(insets.bottom, Platform.OS === 'android' ? 12 : 0) + 72;
-  const maxY = SCREEN_HEIGHT - bottomOffset - FAB_SIZE;
+  const maxX = Math.max(minX, (SCREEN_WIDTH || 360) - FAB_SIZE - MARGIN);
+  const minY = Math.max(insets.top, Platform.OS === 'android' ? 36 : 44) + 12;
+  const bottomOffset = Math.max(insets.bottom, Platform.OS === 'android' ? 16 : 0) + 76;
+  const maxY = Math.max(minY, (SCREEN_HEIGHT || 640) - bottomOffset - FAB_SIZE);
 
   // Default starting position: pinned near the bottom-right
-  const initialX = maxX;
-  const initialY = Math.max(minY, Math.min(maxY, SCREEN_HEIGHT - bottomOffset - FAB_SIZE));
+  const defaultX = maxX;
+  const defaultY = maxY;
 
-  const pan = useRef(new Animated.ValueXY({ x: initialX, y: initialY })).current;
-  const currentPos = useRef({ x: initialX, y: initialY });
+  const pan = useRef(new Animated.ValueXY({ x: defaultX, y: defaultY })).current;
+  const currentPos = useRef({ x: defaultX, y: defaultY });
+  const hasUserMoved = useRef(false);
+
+  // Sync to bottom-right whenever screen dimensions or insets become available (prevents top-left (0,0) bug)
+  useEffect(() => {
+    if (!hasUserMoved.current && SCREEN_WIDTH > 0 && SCREEN_HEIGHT > 0) {
+      pan.setValue({ x: defaultX, y: defaultY });
+      currentPos.current = { x: defaultX, y: defaultY };
+    }
+  }, [SCREEN_WIDTH, SCREEN_HEIGHT, defaultX, defaultY, pan]);
 
   useEffect(() => {
     const id = pan.addListener((value) => {
@@ -49,6 +58,7 @@ export function AssistantFAB({ onPress, loading = false }) {
         return Math.abs(gestureState.dx) > 4 || Math.abs(gestureState.dy) > 4;
       },
       onPanResponderGrant: () => {
+        hasUserMoved.current = true;
         pan.setOffset({
           x: currentPos.current.x,
           y: currentPos.current.y,
