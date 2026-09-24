@@ -426,12 +426,13 @@ export function AssistantModal({
           }}
           onLayout={(event) => {
             const { width, height, x, y } = event.nativeEvent.layout;
-            console.log('[AssistantModal] ROOT MODAL VIEW LAYOUT', {
+            console.log('[AssistantModal] ROOT MODAL VIEW LAYOUT: width=' + width + ', height=' + height + ', x=' + x + ', y=' + y);
+            console.log('[AssistantModal] ROOT MODAL VIEW LAYOUT', JSON.stringify({
               width,
               height,
               x,
               y,
-            });
+            }));
           }}
         >
           <Text
