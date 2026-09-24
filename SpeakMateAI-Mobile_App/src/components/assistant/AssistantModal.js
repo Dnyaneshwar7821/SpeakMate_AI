@@ -384,15 +384,125 @@ export function AssistantModal({
   const textColor = isDark ? '#F1F5F9' : '#0F172A';
   const subtextColor = isDark ? '#94A3B8' : '#64748B';
 
+  const [showTestView, setShowTestView] = useState(true);
+
+  useEffect(() => {
+    if (isOpen) {
+      setShowTestView(true);
+      console.log('[AssistantModal] OPEN');
+    } else {
+      console.log('[AssistantModal] CLOSE');
+    }
+  }, [isOpen]);
+
+  const visible = Boolean(isOpen);
   const sheetHeight = Math.min(Math.round((windowHeight || SCREEN_HEIGHT) * 0.85), 720);
+
+  console.log('[AssistantModal] RENDER');
+  console.log('[AssistantModal] visible:', visible);
+  console.log('[AssistantModal] windowHeight:', windowHeight);
+  console.log('[AssistantModal] SCREEN_HEIGHT:', SCREEN_HEIGHT);
+  console.log('[AssistantModal] sheetHeight:', sheetHeight);
+
+  // ─── DEFINITIVE VISUAL TEST VIEW (Section 3 of Master Prompt) ────────────────
+  if (showTestView) {
+    return (
+      <Modal
+        visible={visible}
+        transparent={true}
+        animationType="none"
+        onRequestClose={handleClose}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: '#DC2626',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 24,
+          }}
+        >
+          <Text
+            style={{
+              color: '#FFFFFF',
+              fontSize: 28,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              marginBottom: 16,
+            }}
+          >
+            ASSISTANT MODAL TEST
+          </Text>
+
+          <View
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.3)',
+              padding: 16,
+              borderRadius: 12,
+              marginBottom: 24,
+              width: '100%',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 16, marginVertical: 3 }}>
+              visible: {String(visible)}
+            </Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 16, marginVertical: 3 }}>
+              windowHeight: {windowHeight}
+            </Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 16, marginVertical: 3 }}>
+              SCREEN_HEIGHT: {SCREEN_HEIGHT}
+            </Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 16, marginVertical: 3 }}>
+              sheetHeight: {sheetHeight}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setShowTestView(false)}
+            style={{
+              backgroundColor: '#FFFFFF',
+              paddingHorizontal: 20,
+              paddingVertical: 14,
+              borderRadius: 12,
+              marginBottom: 14,
+              width: '100%',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#DC2626', fontSize: 16, fontWeight: 'bold' }}>
+              👉 SWITCH TO CHATBOT SHEET UI
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={handleClose}
+            style={{
+              backgroundColor: 'rgba(0,0,0,0.5)',
+              paddingHorizontal: 20,
+              paddingVertical: 14,
+              borderRadius: 12,
+              width: '100%',
+              alignItems: 'center',
+            }}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' }}>
+              ✕ CLOSE MODAL (RESTORE FAB)
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
-      visible={isOpen}
+      visible={visible}
       transparent={true}
-      animationType="slide"
+      animationType="none"
       onRequestClose={handleClose}
-      statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
         {/* Fullscreen Blurred Backdrop & Dismiss Area */}
@@ -489,6 +599,15 @@ export function AssistantModal({
 
               {/* Header Action Buttons */}
               <View style={styles.headerActions}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => setShowTestView(true)}
+                  style={[styles.actionBtn, { backgroundColor: '#FEE2E2', width: 'auto', paddingHorizontal: 8 }]}
+                  accessibilityLabel="Switch to red test view"
+                >
+                  <Text style={{ color: '#DC2626', fontSize: 10, fontWeight: 'bold' }}>RED TEST</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={onResetChat}

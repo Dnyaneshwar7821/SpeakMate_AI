@@ -42,6 +42,10 @@ export function LearnerAssistantWidget() {
     return subscribeLearnerAssistant(() => setIsOpen(true));
   }, []);
 
+  useEffect(() => {
+    console.log('[LearnerAssistantWidget] isOpen:', isOpen);
+  }, [isOpen]);
+
   // Listen to navigation transitions for route-aware visibility & bottom tab bounds
   useEffect(() => {
     const handleRouteSync = () => {
