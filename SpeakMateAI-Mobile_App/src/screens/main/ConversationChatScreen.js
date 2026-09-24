@@ -27,7 +27,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Audio } from 'expo-av';
+import { VoiceRecorder } from '../../utils/audioRecorder';
 import { COLORS } from '../../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { chatService, speechService, settingsService, profileService } from '../../services/appServices';
@@ -441,8 +441,7 @@ export default function ConversationChatScreen({ navigation, route }) {
       VoiceService.stop();
       if (recordingRef.current) {
         try {
-          recordingRef.current.setOnRecordingStatusUpdate(null);
-          recordingRef.current.stopAndUnloadAsync().catch(() => {});
+          recordingRef.current.stop().catch(() => {});
         } catch (_) {}
         recordingRef.current = null;
       }
@@ -706,50 +705,18 @@ export default function ConversationChatScreen({ navigation, route }) {
       VoiceService.stop();
       setIsSpeaking(false);
 
-      const permission = await Audio.requestPermissionsAsync();
-      if (permission.status !== 'granted') {
+      const granted = await VoiceRecorder.requestPermissions();
+      if (!granted) {
         Alert.alert('Microphone Access Denied', 'Please allow microphone access to use voice chat.');
         return;
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
       if (recordingRef.current) {
         try {
-          await recordingRef.current.stopAndUnloadAsync();
+          await recordingRef.current.stop();
         } catch (_) {}
         recordingRef.current = null;
       }
-
-      const recordingInstance = new Audio.Recording();
-      await recordingInstance.prepareToRecordAsync({
-        android: {
-          extension: '.m4a',
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
-          sampleRate: 44100,
-          numberOfChannels: 1,
-          bitRate: 128000,
-        },
-        ios: {
-          extension: '.m4a',
-          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 44100,
-          numberOfChannels: 1,
-          bitRate: 128000,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
-        },
-        web: {
-          mimeType: 'audio/webm',
-          bitsPerSecond: 128000,
-        },
-      });
 
       const currentSessionId = ++recordingSessionIdRef.current;
       speechDetectedRef.current = false;
@@ -762,11 +729,10 @@ export default function ConversationChatScreen({ navigation, route }) {
       const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes generous hard limit for long speech
       const METERING_SPEECH_THRESHOLD = -48; // dB volume threshold for speech detection (higher sensitivity for soft speaking)
 
-      recordingInstance.setProgressUpdateInterval(250);
-      recordingInstance.setOnRecordingStatusUpdate((status) => {
+      const recorder = new VoiceRecorder((status) => {
         if (!status.isRecording || stoppingRef.current || recordingSessionIdRef.current !== currentSessionId) return;
 
-        // Hard maximum duration enforcement (3 minutes)
+        // Hard maximum duration enforcement (5 minutes)
         if (status.durationMillis && status.durationMillis >= MAX_RECORDING_DURATION_MS) {
           stopRecordingAndSend();
           return;
@@ -778,7 +744,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           silenceTimerRef.current = 0;
         } else if (speechDetectedRef.current) {
           silenceTimerRef.current += 250;
-          if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) { // 2.4s silence auto stop
+          if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) { // 3.2s silence auto stop
             stopRecordingAndSend();
           }
         } else {
@@ -789,8 +755,8 @@ export default function ConversationChatScreen({ navigation, route }) {
         }
       });
 
-      await recordingInstance.startAsync();
-      recordingRef.current = recordingInstance;
+      await recorder.start();
+      recordingRef.current = recorder;
       isRecordingRef.current = true;
       setRecording(true);
       setStatusText('Listening');
@@ -823,19 +789,10 @@ export default function ConversationChatScreen({ navigation, route }) {
         return;
       }
 
-      // Detach status update listener immediately to prevent trailing bridge events
-      try {
-        rec.setOnRecordingStatusUpdate(null);
-      } catch (_) {}
-
-      await rec.stopAndUnloadAsync();
-      const uri = rec.getURI();
+      const uri = await rec.stop();
       recordingRef.current = null;
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-      });
+      await VoiceRecorder.resetAudioMode();
 
       if (!uri) throw new Error('Recording URI not found');
 

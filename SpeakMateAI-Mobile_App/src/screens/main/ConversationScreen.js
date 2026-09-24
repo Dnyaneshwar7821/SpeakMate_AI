@@ -26,7 +26,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Speech from 'expo-speech';
-import { Audio } from 'expo-av';
+import { VoiceRecorder } from '../../utils/audioRecorder';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { speechService, speakingService, settingsService, profileService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
@@ -415,8 +415,7 @@ export default function ConversationScreen({ navigation, route }) {
       VoiceService.stop();
       if (recordingRef.current) {
         try {
-          recordingRef.current.setOnRecordingStatusUpdate(null);
-          recordingRef.current.stopAndUnloadAsync().catch(() => {});
+          recordingRef.current.stop().catch(() => {});
         } catch (_) {}
         recordingRef.current = null;
       }
@@ -641,8 +640,7 @@ export default function ConversationScreen({ navigation, route }) {
       // 1. Immediately stop recording if active
       if (isRecording || isRecordingRef.current) {
         try {
-          recordingRef.current?.setOnRecordingStatusUpdate(null);
-          recordingRef.current?.stopAndUnloadAsync();
+          recordingRef.current?.stop().catch(() => {});
         } catch (_) {}
         recordingRef.current = null;
         isRecordingRef.current = false;
@@ -817,7 +815,7 @@ export default function ConversationScreen({ navigation, route }) {
     }
   };
 
-  // ── Recording Handling (expo-av with 3.2s Silence Auto-Stop VAD & Race-Protection) ──────
+  // ── Recording Handling (expo-audio with 3.2s Silence Auto-Stop VAD & Race-Protection) ──────
   const SILENCE_THRESHOLD_MS = 3200; // 3.2s post-speech silence auto-stop (allows natural thinking pauses without premature cutoff)
   const INITIAL_SILENCE_THRESHOLD_MS = 8000; // 8s initial silence before user speaks
   const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes generous limit for uninterrupted long speech
@@ -832,52 +830,19 @@ export default function ConversationScreen({ navigation, route }) {
       VoiceService.stop();
       setIsSpeaking(false);
 
-      const permission = await Audio.requestPermissionsAsync();
-      if (permission.status !== 'granted') {
+      const granted = await VoiceRecorder.requestPermissions();
+      if (!granted) {
         Alert.alert('Microphone Access Denied', 'Please grant microphone permissions to speak with your AI tutor.');
         startingRef.current = false;
         return;
       }
 
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
-      });
-
       if (recordingRef.current) {
         try {
-          recordingRef.current.setOnRecordingStatusUpdate(null);
-          await recordingRef.current.stopAndUnloadAsync();
+          await recordingRef.current.stop();
         } catch (_) {}
         recordingRef.current = null;
       }
-
-      const recording = new Audio.Recording();
-      await recording.prepareToRecordAsync({
-        android: {
-          extension: '.m4a',
-          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-          audioEncoder: Audio.AndroidAudioEncoder.AAC,
-          sampleRate: 44100,
-          numberOfChannels: 1,
-          bitRate: 128000,
-        },
-        ios: {
-          extension: '.m4a',
-          outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-          audioQuality: Audio.IOSAudioQuality.HIGH,
-          sampleRate: 44100,
-          numberOfChannels: 1,
-          bitRate: 128000,
-          linearPCMBitDepth: 16,
-          linearPCMIsBigEndian: false,
-          linearPCMIsFloat: false,
-        },
-        web: {
-          mimeType: 'audio/webm',
-          bitsPerSecond: 128000,
-        },
-      });
 
       const currentSessionId = ++recordingSessionIdRef.current;
       speechDetectedRef.current = false;
@@ -887,18 +852,17 @@ export default function ConversationScreen({ navigation, route }) {
       isUserPausingRef.current = false;
       setIsUserPausing(false);
 
-      recording.setProgressUpdateInterval(250);
-      recording.setOnRecordingStatusUpdate((status) => {
+      const recorder = new VoiceRecorder((status) => {
         if (!status.isRecording || stoppingRef.current || recordingSessionIdRef.current !== currentSessionId) return;
 
-        // Hard maximum duration enforcement (3 minutes)
+        // Hard maximum duration enforcement (5 minutes)
         if (status.durationMillis && status.durationMillis >= MAX_RECORDING_DURATION_MS) {
           stopRecordingAndSend();
           return;
         }
 
         const metering = status.metering ?? -100;
-        // User speaking detected if metering > METERING_SPEECH_THRESHOLD (-42 dB)
+        // User speaking detected if metering > METERING_SPEECH_THRESHOLD (-48 dB)
         if (metering > METERING_SPEECH_THRESHOLD) {
           speechDetectedRef.current = true;
           silenceTimerRef.current = 0;
@@ -914,21 +878,21 @@ export default function ConversationScreen({ navigation, route }) {
           }
           silenceTimerRef.current += 250;
           if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) {
-            // 2.4s sustained silence after speaking -> user is done speaking -> auto stop and send
+            // sustained silence after speaking -> user is done speaking -> auto stop and send
             stopRecordingAndSend();
           }
         } else {
           // Initial silence before speaking
           initialSilenceTimerRef.current += 250;
           if (initialSilenceTimerRef.current >= INITIAL_SILENCE_THRESHOLD_MS) {
-            // 6s initial silence -> Auto stop
+            // 8s initial silence -> Auto stop
             stopRecordingAndSend();
           }
         }
       });
 
-      await recording.startAsync();
-      recordingRef.current = recording;
+      await recorder.start();
+      recordingRef.current = recorder;
       isRecordingRef.current = true;
       setIsRecording(true);
       setStatusText('Listening');
@@ -963,20 +927,11 @@ export default function ConversationScreen({ navigation, route }) {
         return;
       }
 
-      // Detach status update listener immediately to prevent trailing bridge events
-      try {
-        recording.setOnRecordingStatusUpdate(null);
-      } catch (_) {}
-
-      await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
+      const uri = await recording.stop();
       recordingRef.current = null;
 
       // Reset audio mode for normal speaker playback
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-      });
+      await VoiceRecorder.resetAudioMode();
 
       if (!uri) throw new Error('Recording URI missing');
 

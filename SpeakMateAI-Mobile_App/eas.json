@@ -15,6 +15,7 @@
       }
     },
     "preview": {
+      "developmentClient": true,
       "channel": "preview",
       "distribution": "internal",
       "android": {

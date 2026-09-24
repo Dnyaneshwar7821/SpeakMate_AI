@@ -15,8 +15,7 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
-import { Audio } from 'expo-av';
+import { VoiceRecorder } from '../../utils/audioRecorder';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -227,18 +226,8 @@ export function AssistantModal({
         return;
       }
 
-      try {
-        rec.setOnRecordingStatusUpdate(null);
-      } catch (_) {}
-
-      await rec.stopAndUnloadAsync();
-      const uri = rec.getURI();
+      const uri = await rec.stop();
       recordingRef.current = null;
-
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-      });
 
       if (!uri) throw new Error('No audio recorded');
 
@@ -277,52 +266,19 @@ export function AssistantModal({
         VoiceService.stop();
         setSpeakingMessageId(null);
 
-        const { status } = await Audio.requestPermissionsAsync();
-        if (status !== 'granted') {
+        const granted = await VoiceRecorder.requestPermissions();
+        if (!granted) {
           Alert.alert('Microphone Permission', 'Please allow microphone access to speak to the assistant.');
           startingRef.current = false;
           return;
         }
 
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,
-          playsInSilentModeIOS: true,
-        });
-
         if (recordingRef.current) {
           try {
-            recordingRef.current.setOnRecordingStatusUpdate(null);
-            await recordingRef.current.stopAndUnloadAsync();
+            await recordingRef.current.stop();
           } catch (_) {}
           recordingRef.current = null;
         }
-
-        const newRec = new Audio.Recording();
-        await newRec.prepareToRecordAsync({
-          android: {
-            extension: '.m4a',
-            outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-            audioEncoder: Audio.AndroidAudioEncoder.AAC,
-            sampleRate: 44100,
-            numberOfChannels: 1,
-            bitRate: 128000,
-          },
-          ios: {
-            extension: '.m4a',
-            outputFormat: Audio.IOSOutputFormat.MPEG4AAC,
-            audioQuality: Audio.IOSAudioQuality.HIGH,
-            sampleRate: 44100,
-            numberOfChannels: 1,
-            bitRate: 128000,
-            linearPCMBitDepth: 16,
-            linearPCMIsBigEndian: false,
-            linearPCMIsFloat: false,
-          },
-          web: {
-            mimeType: 'audio/webm',
-            bitsPerSecond: 128000,
-          },
-        });
 
         const currentSessionId = ++recordingSessionIdRef.current;
         speechDetectedRef.current = false;
@@ -330,8 +286,7 @@ export function AssistantModal({
         initialSilenceTimerRef.current = 0;
         stoppingRef.current = false;
 
-        newRec.setProgressUpdateInterval(250);
-        newRec.setOnRecordingStatusUpdate((status) => {
+        const newRec = new VoiceRecorder((status) => {
           if (!status.isRecording || stoppingRef.current || recordingSessionIdRef.current !== currentSessionId) return;
 
           // 5-minute hard limit
@@ -340,7 +295,7 @@ export function AssistantModal({
             return;
           }
 
-          // Voice Activity Detection with fallback if device does not support metering
+          // Voice Activity Detection
           const metering = status.metering;
           if (metering !== undefined && metering !== null) {
             if (metering > METERING_SPEECH_THRESHOLD) {
@@ -360,7 +315,7 @@ export function AssistantModal({
           }
         });
 
-        await newRec.startAsync();
+        await newRec.start();
         recordingRef.current = newRec;
         isRecordingRef.current = true;
         setIsRecording(true);
