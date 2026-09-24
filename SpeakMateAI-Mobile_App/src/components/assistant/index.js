@@ -9,4 +9,6 @@ export { MarkdownText } from './MarkdownText';
 export { BlurredBackdrop } from './BlurredBackdrop';
 export { assistantApi } from './assistantApi';
 
+export { MiniChart } from './MiniChart';
+
 export default LearnerAssistantWidget;

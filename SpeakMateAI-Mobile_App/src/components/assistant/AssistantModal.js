@@ -18,9 +18,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio } from 'expo-av';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { useTheme } from '../../context/ThemeContext';
-import { speechService } from '../../services/appServices';
+import { speechService, settingsService } from '../../services/appServices';
+import { VoiceService } from '../../services/VoiceService';
 import { BlurredBackdrop } from './BlurredBackdrop';
 import {
   DEFAULT_ROLE,
@@ -31,6 +33,22 @@ import {
 import MessageBubble from './MessageBubble';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+function cleanTextForSpeech(text) {
+  if (!text) return '';
+  return text
+    .replace(/\bStd\.?\b/gi, 'Standard')
+    .replace(/\bDiv\.?\b/gi, 'Division')
+    .replace(/\bXP\b/g, 'X P')
+    .replace(/\bNo\.\b/gi, 'Number')
+    .replace(/\bno\.\b/gi, 'number')
+    .replace(/https?:\/\/\S+/g, '')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`~#|]/g, ' ')
+    .replace(/^[-*•]\s+/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 export function AssistantModal({
   isOpen,
@@ -51,6 +69,12 @@ export function AssistantModal({
 
   const [draft, setDraft] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [speakingMessageId, setSpeakingMessageId] = useState(null);
+  const [userVoiceSettings, setUserVoiceSettings] = useState({
+    voice: 'IN Female',
+    speed: 1.0,
+  });
+
   const recordingRef = useRef(null);
   const isRecordingRef = useRef(false);
   const speechDetectedRef = useRef(false);
@@ -62,7 +86,7 @@ export function AssistantModal({
 
   const SILENCE_THRESHOLD_MS = 3200; // 3.2s post-speech silence auto-stop
   const INITIAL_SILENCE_THRESHOLD_MS = 8000; // 8s initial silence before user speaks
-  const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes generous hard limit
+  const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes hard limit
   const METERING_SPEECH_THRESHOLD = -48; // dB volume threshold for speech detection
 
   const welcomeText = WELCOME_TEXT_BY_ROLE[role] || WELCOME_TEXT_BY_ROLE[DEFAULT_ROLE];
@@ -71,7 +95,7 @@ export function AssistantModal({
 
   const isEmpty = messages.length === 0;
 
-  // Auto-scroll to bottom on new messages or loading
+  // Auto-scroll to bottom on new messages or loading state change
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
@@ -80,24 +104,105 @@ export function AssistantModal({
     }
   }, [isOpen, messages, loading]);
 
-  // Clean up any ongoing recording when modal closes
+  // Load user voice preferences whenever modal opens
   useEffect(() => {
-    if (!isOpen && (recordingRef.current || isRecordingRef.current)) {
+    if (isOpen) {
       (async () => {
+        try {
+          const [savedVoice, savedGender, savedSpeed, settings] = await Promise.all([
+            AsyncStorage.getItem('speakmate_selected_voice'),
+            AsyncStorage.getItem('speakmate_voice_gender'),
+            AsyncStorage.getItem('speakmate_voice_speed'),
+            settingsService.get().catch(() => null),
+          ]);
+          const effectiveVoice =
+            savedVoice || settings?.aiVoice || (savedGender === 'male' ? 'IN Male' : 'IN Female');
+          const effectiveSpeed = savedSpeed ? parseFloat(savedSpeed) : 1.0;
+          setUserVoiceSettings({
+            voice: effectiveVoice || 'IN Female',
+            speed: effectiveSpeed || 1.0,
+          });
+        } catch (_) {}
+      })();
+    }
+  }, [isOpen]);
+
+  // Master cleanup whenever modal closes or unmounts: stop STT and TTS completely
+  const handleClose = () => {
+    VoiceService.stop();
+    setSpeakingMessageId(null);
+
+    if (recordingRef.current || isRecordingRef.current) {
+      stoppingRef.current = true;
+      isRecordingRef.current = false;
+      setIsRecording(false);
+      try {
+        if (recordingRef.current) {
+          recordingRef.current.setOnRecordingStatusUpdate(null);
+          recordingRef.current.stopAndUnloadAsync().catch(() => {});
+        }
+      } catch (_) {}
+      recordingRef.current = null;
+      stoppingRef.current = false;
+    }
+
+    onClose?.();
+  };
+
+  useEffect(() => {
+    if (!isOpen) {
+      VoiceService.stop();
+      setSpeakingMessageId(null);
+
+      if (recordingRef.current || isRecordingRef.current) {
         stoppingRef.current = true;
         isRecordingRef.current = false;
         setIsRecording(false);
         try {
           if (recordingRef.current) {
             recordingRef.current.setOnRecordingStatusUpdate(null);
-            await recordingRef.current.stopAndUnloadAsync();
+            recordingRef.current.stopAndUnloadAsync().catch(() => {});
           }
         } catch (_) {}
         recordingRef.current = null;
         stoppingRef.current = false;
-      })();
+      }
     }
+    return () => {
+      VoiceService.stop();
+    };
   }, [isOpen]);
+
+  // Hoisted, exclusive speech playback handler: only 1 message speaks at a time
+  const handleToggleSpeech = (messageId, rawText) => {
+    if (speakingMessageId === messageId) {
+      VoiceService.stop();
+      setSpeakingMessageId(null);
+    } else {
+      VoiceService.stop();
+      setSpeakingMessageId(messageId);
+
+      const cleanText = cleanTextForSpeech(rawText || '');
+      if (!cleanText) {
+        setSpeakingMessageId(null);
+        return;
+      }
+
+      VoiceService.speak(cleanText, {
+        voiceType: userVoiceSettings.voice,
+        speechSpeed: userVoiceSettings.speed,
+        onStart: () => {
+          setSpeakingMessageId(messageId);
+        },
+        onDone: () => {
+          setSpeakingMessageId((cur) => (cur === messageId ? null : cur));
+        },
+        onError: () => {
+          setSpeakingMessageId((cur) => (cur === messageId ? null : cur));
+        },
+      });
+    }
+  };
 
   const handleSend = async (textToSend) => {
     const text = String(textToSend || draft).trim();
@@ -168,6 +273,10 @@ export function AssistantModal({
       startingRef.current = true;
 
       try {
+        // Stop any active speech playback before starting microphone recording
+        VoiceService.stop();
+        setSpeakingMessageId(null);
+
         const { status } = await Audio.requestPermissionsAsync();
         if (status !== 'granted') {
           Alert.alert('Microphone Permission', 'Please allow microphone access to speak to the assistant.');
@@ -231,19 +340,22 @@ export function AssistantModal({
             return;
           }
 
-          const metering = status.metering ?? -100;
-          if (metering > METERING_SPEECH_THRESHOLD) {
-            speechDetectedRef.current = true;
-            silenceTimerRef.current = 0;
-          } else if (speechDetectedRef.current) {
-            silenceTimerRef.current += 250;
-            if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) { // 3.2s silence -> AUTO STOP & SEND
-              stopRecordingAndSend();
-            }
-          } else {
-            initialSilenceTimerRef.current += 250;
-            if (initialSilenceTimerRef.current >= INITIAL_SILENCE_THRESHOLD_MS) { // 8s initial silence -> AUTO STOP
-              stopRecordingAndSend();
+          // Voice Activity Detection with fallback if device does not support metering
+          const metering = status.metering;
+          if (metering !== undefined && metering !== null) {
+            if (metering > METERING_SPEECH_THRESHOLD) {
+              speechDetectedRef.current = true;
+              silenceTimerRef.current = 0;
+            } else if (speechDetectedRef.current) {
+              silenceTimerRef.current += 250;
+              if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) {
+                stopRecordingAndSend();
+              }
+            } else {
+              initialSilenceTimerRef.current += 250;
+              if (initialSilenceTimerRef.current >= INITIAL_SILENCE_THRESHOLD_MS) {
+                stopRecordingAndSend();
+              }
             }
           }
         });
@@ -277,253 +389,277 @@ export function AssistantModal({
       visible={isOpen}
       transparent={true}
       animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
-      onRequestClose={onClose}
+      onRequestClose={handleClose}
       statusBarTranslucent={true}
     >
       <View style={styles.modalOverlay}>
         {/* Fullscreen Blurred Backdrop & Dismiss Area */}
         <TouchableOpacity
           activeOpacity={1}
-          onPress={onClose}
+          onPress={handleClose}
           style={styles.backdropTouchArea}
         >
           <BlurredBackdrop />
         </TouchableOpacity>
 
-        {/* Elevated Assistant Sheet Container */}
+        {/* Dynamic Keyboard-Safe Bottom Sheet Container */}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={[
-            styles.sheetContainer,
-            {
-              height: Math.min((windowHeight || SCREEN_HEIGHT) * 0.85, 660),
-              backgroundColor: panelBg,
-              borderColor: panelBorder,
-              paddingBottom: Math.max(insets.bottom, 12),
-            },
-          ]}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+          style={styles.sheetWrapper}
+          pointerEvents="box-none"
         >
-          {/* Top Accent Gradient Bar */}
-          <LinearGradient
-            colors={['#5243F5', '#7B61FF', '#00D2FF']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.topAccentBar}
-          />
+          <View
+            style={[
+              styles.sheetContainer,
+              {
+                maxHeight: Math.min((windowHeight || SCREEN_HEIGHT) * 0.88, 720),
+                backgroundColor: panelBg,
+                borderColor: panelBorder,
+                paddingBottom: Math.max(insets.bottom, 12),
+              },
+            ]}
+          >
+            {/* Top Accent Gradient Bar */}
+            <LinearGradient
+              colors={['#5243F5', '#7B61FF', '#00D2FF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.topAccentBar}
+            />
 
-          {/* Sheet Handle */}
-          <View style={styles.handleRow}>
-            <View style={[styles.handlePill, { backgroundColor: isDark ? '#334155' : '#CBD5E1' }]} />
-          </View>
-
-          {/* Assistant Header */}
-          <View style={[styles.header, { backgroundColor: headerBg, borderBottomColor: headerBorder }]}>
-            {/* AI Avatar with Pulsing Green Dot */}
-            <View style={styles.avatarBox}>
-              <LinearGradient
-                colors={['#5243F5', '#8F4FFF']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.avatarGradient}
-              >
-                <Ionicons name="sparkles" size={18} color="#FFFFFF" />
-              </LinearGradient>
-              <View style={[styles.liveBadge, { borderColor: headerBg }]}>
-                <View style={styles.liveDot} />
-              </View>
+            {/* Sheet Handle */}
+            <View style={styles.handleRow}>
+              <View style={[styles.handlePill, { backgroundColor: isDark ? '#334155' : '#CBD5E1' }]} />
             </View>
 
-            {/* Title & Role Info */}
-            <View style={styles.headerInfo}>
-              <View style={styles.titleRow}>
-                <Text style={[styles.headerTitle, { color: textColor }]}>SpeakMate Assistant</Text>
-                <View style={[styles.aiPill, { backgroundColor: isDark ? '#312E81' : '#EEF2FF', borderColor: isDark ? '#4338CA' : '#C7D2FE' }]}>
-                  <Text style={[styles.aiPillText, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>AI</Text>
+            {/* Assistant Header */}
+            <View style={[styles.header, { backgroundColor: headerBg, borderBottomColor: headerBorder }]}>
+              {/* AI Avatar with Live Dot */}
+              <View style={styles.avatarBox}>
+                <LinearGradient
+                  colors={['#5243F5', '#8F4FFF']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={styles.avatarGradient}
+                >
+                  <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+                </LinearGradient>
+                <View style={[styles.liveBadge, { borderColor: headerBg }]}>
+                  <View style={styles.liveDot} />
                 </View>
               </View>
 
-              <View style={styles.statusRow}>
-                <Text style={[styles.roleText, { color: subtextColor }]}>{roleTitle}</Text>
-                <Text style={[styles.dotDivider, { color: subtextColor }]}>•</Text>
-                <Text style={styles.onlineText}>Online</Text>
-              </View>
-            </View>
-
-            {/* Header Action Buttons */}
-            <View style={styles.headerActions}>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={onResetChat}
-                style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-                accessibilityLabel="Reset conversation"
-              >
-                <Ionicons name="trash-outline" size={18} color={isDark ? '#94A3B8' : '#64748B'} />
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={onClose}
-                style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-                accessibilityLabel="Close assistant"
-              >
-                <Ionicons name="close" size={20} color={isDark ? '#F1F5F9' : '#1E293B'} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Error Banner */}
-          {error ? (
-            <View style={styles.errorBanner}>
-              <Ionicons name="alert-circle" size={16} color="#EF4444" style={{ marginRight: 6 }} />
-              <Text style={styles.errorText} numberOfLines={2}>{error}</Text>
-              <TouchableOpacity activeOpacity={0.7} onPress={onClearError}>
-                <Ionicons name="close" size={16} color="#EF4444" />
-              </TouchableOpacity>
-            </View>
-          ) : null}
-
-          {/* Conversation Stream Scroll Area */}
-          <ScrollView
-            ref={scrollRef}
-            style={styles.scrollArea}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-          >
-            {isEmpty ? (
-              <View style={styles.emptyContainer}>
-                {/* Welcome Message Card */}
-                <MessageBubble
-                  message={{
-                    id: 'welcome',
-                    sender: 'assistant',
-                    content: welcomeText,
-                  }}
-                  role={role}
-                  onClose={onClose}
-                />
-
-                {/* Suggested Questions */}
-                {quickSuggestions.length > 0 ? (
-                  <View style={styles.suggestionsWrapper}>
-                    <View style={styles.suggestionsHeader}>
-                      <Ionicons name="sparkles" size={12} color="#F59E0B" style={{ marginRight: 5 }} />
-                      <Text style={[styles.suggestionsTitle, { color: subtextColor }]}>
-                        SUGGESTED QUESTIONS
-                      </Text>
-                    </View>
-
-                    <View style={styles.suggestionsList}>
-                      {quickSuggestions.map((question, index) => (
-                        <TouchableOpacity
-                          key={`${question}-${index}`}
-                          activeOpacity={0.7}
-                          onPress={() => handleSend(question)}
-                          disabled={loading}
-                          style={[
-                            styles.suggestionButton,
-                            {
-                              backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
-                              borderColor: isDark ? '#334155' : '#E2E8F0',
-                            },
-                          ]}
-                        >
-                          <Text style={[styles.suggestionText, { color: textColor }]} numberOfLines={2}>
-                            {question}
-                          </Text>
-                          <Ionicons name="arrow-forward" size={14} color="#6366F1" />
-                        </TouchableOpacity>
-                      ))}
-                    </View>
+              {/* Title & Role Info */}
+              <View style={styles.headerInfo}>
+                <View style={styles.titleRow}>
+                  <Text style={[styles.headerTitle, { color: textColor }]}>SpeakMate Assistant</Text>
+                  <View
+                    style={[
+                      styles.aiPill,
+                      {
+                        backgroundColor: isDark ? '#312E81' : '#EEF2FF',
+                        borderColor: isDark ? '#4338CA' : '#C7D2FE',
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.aiPillText, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>AI</Text>
                   </View>
-                ) : null}
+                </View>
+
+                <View style={styles.statusRow}>
+                  <Text style={[styles.roleText, { color: subtextColor }]}>{roleTitle}</Text>
+                  <Text style={[styles.dotDivider, { color: subtextColor }]}>•</Text>
+                  <Text style={styles.onlineText}>Online</Text>
+                </View>
               </View>
-            ) : (
-              <>
-                {messages.map((msg) => (
+
+              {/* Header Action Buttons */}
+              <View style={styles.headerActions}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={onResetChat}
+                  style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+                  accessibilityLabel="Reset conversation"
+                >
+                  <Ionicons name="trash-outline" size={18} color={isDark ? '#94A3B8' : '#64748B'} />
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={handleClose}
+                  style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+                  accessibilityLabel="Close assistant"
+                >
+                  <Ionicons name="close" size={20} color={isDark ? '#F1F5F9' : '#1E293B'} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Error Banner */}
+            {error ? (
+              <View style={styles.errorBanner}>
+                <Ionicons name="alert-circle" size={16} color="#EF4444" style={{ marginRight: 6 }} />
+                <Text style={styles.errorText} numberOfLines={2}>
+                  {error}
+                </Text>
+                <TouchableOpacity activeOpacity={0.7} onPress={onClearError}>
+                  <Ionicons name="close" size={16} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
+            {/* Flexible Message Stream Scroll Area */}
+            <ScrollView
+              ref={scrollRef}
+              style={styles.scrollArea}
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+            >
+              {isEmpty ? (
+                <View style={styles.emptyContainer}>
+                  {/* Welcome Message Card */}
                   <MessageBubble
-                    key={msg.id}
-                    message={msg}
+                    message={{
+                      id: 'welcome',
+                      sender: 'assistant',
+                      content: welcomeText,
+                    }}
                     role={role}
-                    onClose={onClose}
+                    onClose={handleClose}
+                    isSpeaking={speakingMessageId === 'welcome'}
+                    onToggleSpeech={() => handleToggleSpeech('welcome', welcomeText)}
                   />
-                ))}
 
-                {/* Thinking / Typing Indicator */}
-                {loading ? (
-                  <View style={styles.thinkingContainer}>
-                    <View style={[styles.thinkingCard, { backgroundColor: isDark ? '#1E293B' : '#FFFFFF', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
-                      <ActivityIndicator size="small" color="#6366F1" style={{ marginRight: 8 }} />
-                      <Text style={[styles.thinkingText, { color: subtextColor }]}>SpeakMate AI is thinking...</Text>
+                  {/* Suggested Questions */}
+                  {quickSuggestions.length > 0 ? (
+                    <View style={styles.suggestionsWrapper}>
+                      <View style={styles.suggestionsHeader}>
+                        <Ionicons name="sparkles" size={12} color="#F59E0B" style={{ marginRight: 5 }} />
+                        <Text style={[styles.suggestionsTitle, { color: subtextColor }]}>
+                          SUGGESTED QUESTIONS
+                        </Text>
+                      </View>
+
+                      <View style={styles.suggestionsList}>
+                        {quickSuggestions.map((question, index) => (
+                          <TouchableOpacity
+                            key={`${question}-${index}`}
+                            activeOpacity={0.7}
+                            onPress={() => handleSend(question)}
+                            disabled={loading}
+                            style={[
+                              styles.suggestionButton,
+                              {
+                                backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
+                                borderColor: isDark ? '#334155' : '#E2E8F0',
+                              },
+                            ]}
+                          >
+                            <Text style={[styles.suggestionText, { color: textColor }]} numberOfLines={2}>
+                              {question}
+                            </Text>
+                            <Ionicons name="arrow-forward" size={14} color="#6366F1" />
+                          </TouchableOpacity>
+                        ))}
+                      </View>
                     </View>
-                  </View>
-                ) : null}
-              </>
-            )}
-          </ScrollView>
+                  ) : null}
+                </View>
+              ) : (
+                <>
+                  {messages.map((msg) => (
+                    <MessageBubble
+                      key={msg.id}
+                      message={msg}
+                      role={role}
+                      onClose={handleClose}
+                      isSpeaking={speakingMessageId === msg.id}
+                      onToggleSpeech={() => handleToggleSpeech(msg.id, msg.content)}
+                    />
+                  ))}
 
-          {/* Bottom Chat Input Dock */}
-          <View style={[styles.inputDock, { backgroundColor: headerBg, borderTopColor: headerBorder }]}>
-            <View style={[styles.inputBar, { backgroundColor: inputBg, borderColor: inputBorder }]}>
-              <TextInput
-                ref={inputRef}
-                value={draft}
-                onChangeText={setDraft}
-                placeholder={
-                  isRecording
-                    ? 'Listening... Auto-sends when you finish speaking'
-                    : loading
-                    ? 'Thinking...'
-                    : 'Ask SpeakMate Assistant...'
-                }
-                placeholderTextColor={subtextColor}
-                style={[styles.textInput, { color: textColor }]}
-                editable={!loading}
-                returnKeyType="send"
-                onSubmitEditing={() => handleSend()}
-              />
+                  {/* Thinking / Typing Indicator */}
+                  {loading ? (
+                    <View style={styles.thinkingContainer}>
+                      <View
+                        style={[
+                          styles.thinkingCard,
+                          {
+                            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                            borderColor: isDark ? '#334155' : '#E2E8F0',
+                          },
+                        ]}
+                      >
+                        <ActivityIndicator size="small" color="#6366F1" style={{ marginRight: 8 }} />
+                        <Text style={[styles.thinkingText, { color: subtextColor }]}>
+                          SpeakMate AI is thinking...
+                        </Text>
+                      </View>
+                    </View>
+                  ) : null}
+                </>
+              )}
+            </ScrollView>
 
-              {/* Speech-to-text Microphone Button */}
-              <TouchableOpacity
-                activeOpacity={0.75}
-                onPress={handleToggleRecording}
-                disabled={loading}
-                style={[
-                  styles.micBtn,
-                  isRecording && styles.micBtnActive,
-                ]}
-                accessibilityLabel={isRecording ? 'Stop voice recording' : 'Voice input'}
-              >
-                <Ionicons
-                  name={isRecording ? 'mic' : 'mic-outline'}
-                  size={18}
-                  color={isRecording ? '#FFFFFF' : isDark ? '#94A3B8' : '#64748B'}
+            {/* Bottom Chat Input Dock */}
+            <View style={[styles.inputDock, { backgroundColor: headerBg, borderTopColor: headerBorder }]}>
+              <View style={[styles.inputBar, { backgroundColor: inputBg, borderColor: inputBorder }]}>
+                <TextInput
+                  ref={inputRef}
+                  value={draft}
+                  onChangeText={setDraft}
+                  placeholder={
+                    isRecording
+                      ? 'Listening... Auto-sends when you finish'
+                      : loading
+                      ? 'Thinking...'
+                      : 'Ask SpeakMate Assistant...'
+                  }
+                  placeholderTextColor={subtextColor}
+                  style={[styles.textInput, { color: textColor }]}
+                  editable={!loading}
+                  returnKeyType="send"
+                  onSubmitEditing={() => handleSend()}
                 />
-              </TouchableOpacity>
 
-              {/* Send Button */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => handleSend()}
-                disabled={loading || !draft.trim()}
-                style={[
-                  styles.sendBtn,
-                  (!draft.trim() || loading) && styles.sendBtnDisabled,
-                ]}
-                accessibilityLabel="Send question"
-              >
-                {loading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Ionicons name="send" size={14} color="#FFFFFF" style={{ marginLeft: 2 }} />
-                )}
-              </TouchableOpacity>
+                {/* Speech-to-text Microphone Button */}
+                <TouchableOpacity
+                  activeOpacity={0.75}
+                  onPress={handleToggleRecording}
+                  disabled={loading}
+                  style={[styles.micBtn, isRecording && styles.micBtnActive]}
+                  accessibilityLabel={isRecording ? 'Stop voice recording' : 'Voice input'}
+                >
+                  <Ionicons
+                    name={isRecording ? 'mic' : 'mic-outline'}
+                    size={18}
+                    color={isRecording ? '#FFFFFF' : isDark ? '#94A3B8' : '#64748B'}
+                  />
+                </TouchableOpacity>
+
+                {/* Send Button */}
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={() => handleSend()}
+                  disabled={loading || !draft.trim()}
+                  style={[styles.sendBtn, (!draft.trim() || loading) && styles.sendBtnDisabled]}
+                  accessibilityLabel="Send question"
+                >
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="send" size={14} color="#FFFFFF" style={{ marginLeft: 2 }} />
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {/* Micro AI Disclaimer */}
+              <Text style={[styles.disclaimerText, { color: subtextColor }]}>
+                Powered by SpeakMate AI • Grounded Academic Assistant
+              </Text>
             </View>
-
-            {/* Micro AI Disclaimer */}
-            <Text style={[styles.disclaimerText, { color: subtextColor }]}>
-              Powered by SpeakMate AI • Grounded Academic Assistant
-            </Text>
           </View>
         </KeyboardAvoidingView>
       </View>
@@ -541,22 +677,32 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     zIndex: 1,
   },
+  sheetWrapper: {
+    width: '100%',
+    justifyContent: 'flex-end',
+    zIndex: 10,
+  },
   sheetContainer: {
-    height: Math.min(SCREEN_HEIGHT * 0.85, 660),
     width: '100%',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     borderWidth: 1,
     borderBottomWidth: 0,
-    zIndex: 10,
     elevation: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -6 },
     shadowOpacity: 0.18,
     shadowRadius: 16,
+    overflow: 'hidden',
   },
   scrollArea: {
     flex: 1,
+    minHeight: 180,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 16,
   },
   topAccentBar: {
     height: 4,
@@ -653,11 +799,11 @@ const styles = StyleSheet.create({
   headerActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   actionBtn: {
-    width: 32,
-    height: 32,
+    width: 34,
+    height: 34,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -665,11 +811,11 @@ const styles = StyleSheet.create({
   errorBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(239, 68, 68, 0.2)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   errorText: {
     flex: 1,
@@ -677,16 +823,11 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     fontWeight: '500',
   },
-  scrollContent: {
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    flexGrow: 1,
-  },
   emptyContainer: {
-    flex: 1,
+    paddingVertical: 4,
   },
   suggestionsWrapper: {
-    marginTop: 14,
+    marginTop: 12,
   },
   suggestionsHeader: {
     flexDirection: 'row',
@@ -696,7 +837,7 @@ const styles = StyleSheet.create({
   },
   suggestionsTitle: {
     fontSize: 10.5,
-    fontWeight: '700',
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   suggestionsList: {
@@ -706,16 +847,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 14,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     borderWidth: 1,
   },
   suggestionText: {
-    flex: 1,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '500',
+    flex: 1,
     marginRight: 8,
+    lineHeight: 16,
   },
   thinkingContainer: {
     flexDirection: 'row',
@@ -724,9 +866,9 @@ const styles = StyleSheet.create({
   thinkingCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 14,
+    paddingHorizontal: 12,
+    borderRadius: 16,
     borderWidth: 1,
   },
   thinkingText: {
@@ -734,29 +876,31 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   inputDock: {
-    paddingHorizontal: 14,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 6,
     borderTopWidth: 1,
   },
   inputBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 18,
+    borderRadius: 22,
     borderWidth: 1,
-    paddingLeft: 12,
-    paddingRight: 5,
+    paddingHorizontal: 8,
     paddingVertical: 4,
   },
   textInput: {
     flex: 1,
-    fontSize: 12.5,
+    fontSize: 13,
     paddingVertical: 6,
+    paddingHorizontal: 8,
+    minHeight: 36,
+    maxHeight: 80,
   },
   micBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 4,
@@ -768,18 +912,19 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#4F46E5',
+    backgroundColor: '#6366F1',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtnDisabled: {
+    backgroundColor: '#94A3B8',
     opacity: 0.45,
   },
   disclaimerText: {
     fontSize: 9.5,
     textAlign: 'center',
     marginTop: 6,
-    letterSpacing: 0.1,
+    fontWeight: '500',
   },
 });
 

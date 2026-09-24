@@ -1,79 +1,34 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
-import { VoiceService } from '../../services/VoiceService';
+import { navigateToAssistantRoute } from '../../navigation/navigationRef';
 import MarkdownText from './MarkdownText';
 import StatRow from './StatRow';
 import DeepLinkChip from './DeepLinkChip';
+import MiniChart from './MiniChart';
 
-/**
- * Strips markdown and formats text for natural Indian female TTS speech.
- */
-function cleanTextForSpeech(text) {
-  if (!text) return '';
-  return text
-    // Expand abbreviations
-    .replace(/\bStd\.?\b/gi, 'Standard')
-    .replace(/\bDiv\.?\b/gi, 'Division')
-    .replace(/\bXP\b/g, 'X P')
-    .replace(/\bNo\.\b/gi, 'Number')
-    .replace(/\bno\.\b/gi, 'number')
-    // Remove URLs
-    .replace(/https?:\/\/\S+/g, '')
-    // Markdown links [text](url) -> text
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    // Strip bold/italic/code markers
-    .replace(/[*_`~#]/g, '')
-    // Bullet points to pauses
-    .replace(/^[-*•]\s+/gm, '')
-    .trim();
-}
-
-export function MessageBubble({ message, role, onClose }) {
+export function MessageBubble({
+  message,
+  role,
+  onClose,
+  isSpeaking = false,
+  onToggleSpeech = null,
+}) {
   const { isDark } = useTheme();
   const isUser = message.sender === 'user';
-  const [speaking, setSpeaking] = useState(false);
-  const speakingRef = useRef(false);
 
-  useEffect(() => {
-    return () => {
-      if (speakingRef.current) {
-        speakingRef.current = false;
-        VoiceService.stop();
+  const handleLinkPress = (url) => {
+    if (!url) return;
+    onClose?.();
+    setTimeout(() => {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        Linking.openURL(url).catch(() => {});
+      } else {
+        navigateToAssistantRoute(url);
       }
-    };
-  }, []);
-
-  const handleToggleSpeech = async () => {
-    if (speaking) {
-      speakingRef.current = false;
-      setSpeaking(false);
-      VoiceService.stop();
-    } else {
-      const cleanText = cleanTextForSpeech(message.content || '');
-      if (!cleanText) return;
-
-      speakingRef.current = true;
-      setSpeaking(true);
-
-      VoiceService.speak(cleanText, {
-        voiceType: 'IN Female',
-        rate: 1.15,
-        onStart: () => {
-          setSpeaking(true);
-        },
-        onDone: () => {
-          speakingRef.current = false;
-          setSpeaking(false);
-        },
-        onError: () => {
-          speakingRef.current = false;
-          setSpeaking(false);
-        },
-      });
-    }
+    }, 150);
   };
 
   if (isUser) {
@@ -91,7 +46,7 @@ export function MessageBubble({ message, role, onClose }) {
     );
   }
 
-  const { content, stats = [], suggestions = [] } = message;
+  const { content, stats = [], suggestions = [], chart = null } = message;
 
   const cardBg = isDark ? '#1E293B' : '#FFFFFF';
   const cardBorder = isDark ? '#334155' : '#E2E8F0';
@@ -109,39 +64,43 @@ export function MessageBubble({ message, role, onClose }) {
             <Text style={[styles.assistantTitle, { color: titleColor }]}>SpeakMate AI</Text>
           </View>
 
-          {content ? (
+          {content && onToggleSpeech ? (
             <TouchableOpacity
               activeOpacity={0.7}
-              onPress={handleToggleSpeech}
+              onPress={onToggleSpeech}
               style={[
                 styles.listenPill,
-                speaking
+                isSpeaking
                   ? styles.listenPillActive
                   : {
                       backgroundColor: isDark ? '#312E81' : '#EEF2FF',
                       borderColor: isDark ? '#4338CA' : '#C7D2FE',
                     },
               ]}
+              accessibilityLabel={isSpeaking ? 'Stop voice reading' : 'Listen to message'}
             >
               <Ionicons
-                name={speaking ? 'volume-mute' : 'volume-high'}
+                name={isSpeaking ? 'volume-mute' : 'volume-high'}
                 size={12}
-                color={speaking ? '#FFFFFF' : '#4F46E5'}
+                color={isSpeaking ? '#FFFFFF' : '#4F46E5'}
               />
               <Text
                 style={[
                   styles.listenText,
-                  { color: speaking ? '#FFFFFF' : isDark ? '#C7D2FE' : '#4338CA' },
+                  { color: isSpeaking ? '#FFFFFF' : isDark ? '#C7D2FE' : '#4338CA' },
                 ]}
               >
-                {speaking ? 'Stop' : 'Listen'}
+                {isSpeaking ? 'Stop' : 'Listen'}
               </Text>
             </TouchableOpacity>
           ) : null}
         </View>
 
-        {/* Content Body */}
-        {content ? <MarkdownText content={content} /> : null}
+        {/* Content Body with Clickable Links */}
+        {content ? <MarkdownText content={content} onLinkPress={handleLinkPress} /> : null}
+
+        {/* Structured Chart Visualization */}
+        {chart ? <MiniChart chart={chart} /> : null}
 
         {/* Stat Cards */}
         {Array.isArray(stats) && stats.length > 0 ? (

@@ -1,25 +1,63 @@
 import React from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../../context/ThemeContext';
+import { navigateToAssistantRoute } from '../../navigation/navigationRef';
+
+function handleUrlNavigation(url, onLinkPress) {
+  if (!url) return;
+  const clean = String(url).trim();
+  if (onLinkPress) {
+    onLinkPress(clean);
+    return;
+  }
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    Linking.openURL(clean).catch(() => {});
+  } else {
+    navigateToAssistantRoute(clean);
+  }
+}
 
 /**
- * Parses inline formatting like **bold** and `code` into nested Text elements.
+ * Parses inline formatting like [label](url), **bold**, `code`, *italic*, and _italic_ into nested Text elements.
  */
-function renderInlineFormatting(text, baseStyle, isDark) {
+function renderInlineFormatting(text, baseStyle, isDark, onLinkPress) {
   if (!text) return null;
 
-  // Split by bold (**...**) and inline code (`...`)
-  const regex = /(\*\*.*?\*\*|`.*?`)/g;
+  // Split by links [text](url), bold (**...**), inline code (`...`), and italic (*...* or _..._)
+  const regex = /(\[[^\]]+\]\([^)]+\)|\*\*.*?\*\*|`.*?`|\*[^*\n]+?\*|_[^_\n]+?_)/g;
   const parts = text.split(regex);
 
   return parts.map((part, index) => {
     if (!part) return null;
 
+    // 1. Markdown link: [Label](url)
+    if (part.startsWith('[') && part.includes('](') && part.endsWith(')')) {
+      const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+      if (match) {
+        const linkLabel = match[1];
+        const linkUrl = match[2];
+        return (
+          <Text
+            key={`link-${index}`}
+            onPress={() => handleUrlNavigation(linkUrl, onLinkPress)}
+            style={[
+              baseStyle,
+              styles.linkText,
+              { color: isDark ? '#A5B4FC' : '#4F46E5' },
+            ]}
+          >
+            {linkLabel} ↗
+          </Text>
+        );
+      }
+    }
+
+    // 2. Bold: **text**
     if (part.startsWith('**') && part.endsWith('**') && part.length >= 4) {
       const boldContent = part.slice(2, -2);
       return (
         <Text
-          key={index}
+          key={`b-${index}`}
           style={[
             baseStyle,
             {
@@ -33,11 +71,12 @@ function renderInlineFormatting(text, baseStyle, isDark) {
       );
     }
 
+    // 3. Inline code: `code`
     if (part.startsWith('`') && part.endsWith('`') && part.length >= 2) {
       const codeContent = part.slice(1, -1);
       return (
         <Text
-          key={index}
+          key={`code-${index}`}
           style={[
             baseStyle,
             styles.inlineCode,
@@ -53,8 +92,30 @@ function renderInlineFormatting(text, baseStyle, isDark) {
       );
     }
 
+    // 4. Italic: *text* or _text_
+    if (
+      ((part.startsWith('*') && part.endsWith('*')) || (part.startsWith('_') && part.endsWith('_'))) &&
+      part.length >= 3
+    ) {
+      const italicContent = part.slice(1, -1);
+      return (
+        <Text
+          key={`it-${index}`}
+          style={[
+            baseStyle,
+            {
+              fontStyle: 'italic',
+              color: isDark ? '#CBD5E1' : '#334155',
+            },
+          ]}
+        >
+          {italicContent}
+        </Text>
+      );
+    }
+
     return (
-      <Text key={index} style={baseStyle}>
+      <Text key={`txt-${index}`} style={baseStyle}>
         {part}
       </Text>
     );
@@ -63,9 +124,9 @@ function renderInlineFormatting(text, baseStyle, isDark) {
 
 /**
  * Lightweight, robust native Markdown renderer for React Native.
- * Parses headers, bullet lists, numbered lists, dividers, and formatted paragraphs.
+ * Parses headers, bullet lists, numbered lists, dividers, links, and formatted paragraphs.
  */
-export function MarkdownText({ content = '', style = {} }) {
+export function MarkdownText({ content = '', style = {}, onLinkPress = null }) {
   const { isDark } = useTheme();
 
   if (!content) return null;
@@ -113,7 +174,7 @@ export function MarkdownText({ content = '', style = {} }) {
             style,
           ]}
         >
-          {renderInlineFormatting(text, [styles.h3, { color: headingColor }], isDark)}
+          {renderInlineFormatting(text, [styles.h3, { color: headingColor }], isDark, onLinkPress)}
         </Text>
       );
       continue;
@@ -129,7 +190,7 @@ export function MarkdownText({ content = '', style = {} }) {
             style,
           ]}
         >
-          {renderInlineFormatting(text, [styles.h2, { color: headingColor }], isDark)}
+          {renderInlineFormatting(text, [styles.h2, { color: headingColor }], isDark, onLinkPress)}
         </Text>
       );
       continue;
@@ -145,7 +206,7 @@ export function MarkdownText({ content = '', style = {} }) {
             style,
           ]}
         >
-          {renderInlineFormatting(text, [styles.h1, { color: headingColor }], isDark)}
+          {renderInlineFormatting(text, [styles.h1, { color: headingColor }], isDark, onLinkPress)}
         </Text>
       );
       continue;
@@ -158,7 +219,7 @@ export function MarkdownText({ content = '', style = {} }) {
         <View key={`bullet-${i}`} style={styles.bulletRow}>
           <View style={[styles.bulletDot, { backgroundColor: bulletColor }]} />
           <Text style={[styles.bulletText, { color: textColor }]}>
-            {renderInlineFormatting(itemText, [styles.bodyText, { color: textColor }], isDark)}
+            {renderInlineFormatting(itemText, [styles.bodyText, { color: textColor }], isDark, onLinkPress)}
           </Text>
         </View>
       );
@@ -174,7 +235,7 @@ export function MarkdownText({ content = '', style = {} }) {
         <View key={`num-${i}`} style={styles.numberedRow}>
           <Text style={[styles.numberPrefix, { color: bulletColor }]}>{num}.</Text>
           <Text style={[styles.bulletText, { color: textColor }]}>
-            {renderInlineFormatting(itemText, [styles.bodyText, { color: textColor }], isDark)}
+            {renderInlineFormatting(itemText, [styles.bodyText, { color: textColor }], isDark, onLinkPress)}
           </Text>
         </View>
       );
@@ -187,7 +248,7 @@ export function MarkdownText({ content = '', style = {} }) {
         key={`p-${i}`}
         style={[styles.bodyText, { color: textColor }, style]}
       >
-        {renderInlineFormatting(trimmed, [styles.bodyText, { color: textColor }], isDark)}
+        {renderInlineFormatting(trimmed, [styles.bodyText, { color: textColor }], isDark, onLinkPress)}
       </Text>
     );
   }
@@ -270,6 +331,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingHorizontal: 4,
     overflow: 'hidden',
+  },
+  linkText: {
+    fontWeight: '700',
+    textDecorationLine: 'underline',
   },
 });
 
