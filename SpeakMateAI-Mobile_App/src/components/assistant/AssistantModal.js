@@ -404,14 +404,17 @@ export function AssistantModal({
   console.log('[AssistantModal] SCREEN_HEIGHT:', SCREEN_HEIGHT);
   console.log('[AssistantModal] sheetHeight:', sheetHeight);
 
-  // ─── STEP 1: SIMPLEST POSSIBLE FULL-SCREEN RED MODAL ─────────────────────────
+  // ─── TEST 1 & 3 & 4 & 5: NON-TRANSPARENT MODAL WITH LIFECYCLE & LAYOUT LOGGING ──
   if (showTestView) {
     return (
       <Modal
         visible={visible}
-        transparent={true}
+        transparent={false}
         animationType="none"
         onRequestClose={handleClose}
+        onShow={() => {
+          console.log('[AssistantModal] NATIVE MODAL onShow');
+        }}
       >
         <View
           style={{
@@ -423,6 +426,15 @@ export function AssistantModal({
             alignItems: 'center',
             padding: 24,
           }}
+          onLayout={(event) => {
+            const { width, height, x, y } = event.nativeEvent.layout;
+            console.log('[AssistantModal] ROOT MODAL VIEW LAYOUT', {
+              width,
+              height,
+              x,
+              y,
+            });
+          }}
         >
           <Text
             style={{
@@ -433,7 +445,7 @@ export function AssistantModal({
               marginBottom: 20,
             }}
           >
-            ASSISTANT MODAL TEST
+            MODAL TEST
           </Text>
 
           <TouchableOpacity
@@ -447,7 +459,7 @@ export function AssistantModal({
             }}
           >
             <Text style={{ color: 'red', fontSize: 16, fontWeight: 'bold' }}>
-              CLOSE TEST (RESTORE FAB)
+              CLOSE TEST
             </Text>
           </TouchableOpacity>
         </View>
