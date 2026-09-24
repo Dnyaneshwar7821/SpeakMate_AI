@@ -411,6 +411,7 @@ export function AssistantModal({
         visible={visible}
         transparent={false}
         animationType="none"
+        statusBarTranslucent={true}
         onRequestClose={handleClose}
         onShow={() => {
           console.log('[AssistantModal] NATIVE MODAL onShow');
@@ -419,12 +420,9 @@ export function AssistantModal({
         <View
           style={{
             flex: 1,
-            width: '100%',
-            height: '100%',
             backgroundColor: 'red',
             justifyContent: 'center',
             alignItems: 'center',
-            padding: 24,
           }}
           onLayout={(event) => {
             const { width, height, x, y } = event.nativeEvent.layout;
