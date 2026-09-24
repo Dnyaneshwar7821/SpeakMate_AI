@@ -404,7 +404,7 @@ export function AssistantModal({
   console.log('[AssistantModal] SCREEN_HEIGHT:', SCREEN_HEIGHT);
   console.log('[AssistantModal] sheetHeight:', sheetHeight);
 
-  // ─── DEFINITIVE VISUAL TEST VIEW (Section 3 of Master Prompt) ────────────────
+  // ─── STEP 1: SIMPLEST POSSIBLE FULL-SCREEN RED MODAL ─────────────────────────
   if (showTestView) {
     return (
       <Modal
@@ -416,7 +416,9 @@ export function AssistantModal({
         <View
           style={{
             flex: 1,
-            backgroundColor: '#DC2626',
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'red',
             justifyContent: 'center',
             alignItems: 'center',
             padding: 24,
@@ -424,72 +426,28 @@ export function AssistantModal({
         >
           <Text
             style={{
-              color: '#FFFFFF',
+              color: 'white',
               fontSize: 28,
               fontWeight: 'bold',
               textAlign: 'center',
-              marginBottom: 16,
+              marginBottom: 20,
             }}
           >
             ASSISTANT MODAL TEST
           </Text>
 
-          <View
-            style={{
-              backgroundColor: 'rgba(0,0,0,0.3)',
-              padding: 16,
-              borderRadius: 12,
-              marginBottom: 24,
-              width: '100%',
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{ color: '#FFFFFF', fontSize: 16, marginVertical: 3 }}>
-              visible: {String(visible)}
-            </Text>
-            <Text style={{ color: '#FFFFFF', fontSize: 16, marginVertical: 3 }}>
-              windowHeight: {windowHeight}
-            </Text>
-            <Text style={{ color: '#FFFFFF', fontSize: 16, marginVertical: 3 }}>
-              SCREEN_HEIGHT: {SCREEN_HEIGHT}
-            </Text>
-            <Text style={{ color: '#FFFFFF', fontSize: 16, marginVertical: 3 }}>
-              sheetHeight: {sheetHeight}
-            </Text>
-          </View>
-
           <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => setShowTestView(false)}
-            style={{
-              backgroundColor: '#FFFFFF',
-              paddingHorizontal: 20,
-              paddingVertical: 14,
-              borderRadius: 12,
-              marginBottom: 14,
-              width: '100%',
-              alignItems: 'center',
-            }}
-          >
-            <Text style={{ color: '#DC2626', fontSize: 16, fontWeight: 'bold' }}>
-              👉 SWITCH TO CHATBOT SHEET UI
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={0.8}
             onPress={handleClose}
             style={{
-              backgroundColor: 'rgba(0,0,0,0.5)',
-              paddingHorizontal: 20,
+              backgroundColor: 'white',
+              paddingHorizontal: 24,
               paddingVertical: 14,
-              borderRadius: 12,
-              width: '100%',
-              alignItems: 'center',
+              borderRadius: 8,
+              marginTop: 16,
             }}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' }}>
-              ✕ CLOSE MODAL (RESTORE FAB)
+            <Text style={{ color: 'red', fontSize: 16, fontWeight: 'bold' }}>
+              CLOSE TEST (RESTORE FAB)
             </Text>
           </TouchableOpacity>
         </View>
