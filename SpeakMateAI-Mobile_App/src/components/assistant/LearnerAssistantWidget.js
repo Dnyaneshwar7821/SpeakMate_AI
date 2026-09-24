@@ -213,9 +213,10 @@ export function LearnerAssistantWidget() {
 
   return (
     <>
-      {/* Floating Action Button (hidden when modal is open or when on dedicated tutor/voice screens) */}
-      {!isOpen && !isDedicatedTutorScreen && (
+      {/* Floating Action Button (preserves dragged coordinates across modal toggles, hidden on dedicated tutor screens) */}
+      {!isDedicatedTutorScreen && (
         <AssistantFAB
+          visible={!isOpen}
           onPress={() => setIsOpen(true)}
           loading={loading}
           hasBottomTabs={hasBottomTabs}

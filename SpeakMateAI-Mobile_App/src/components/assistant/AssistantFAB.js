@@ -17,7 +17,7 @@ const FAB_SIZE = 56;
 const MARGIN = 16;
 const DRAG_THRESHOLD = 6;
 
-export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true }) {
+export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true, visible = true }) {
   const insets = useSafeAreaInsets();
   const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = useWindowDimensions();
 
@@ -43,10 +43,12 @@ export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true })
   // Mutable refs to prevent stale closures in PanResponder
   const boundsRef = useRef({ minX, maxX, minY, maxY });
   const onPressRef = useRef(onPress);
+  const visibleRef = useRef(visible);
 
   // Keep refs synchronized on every render
   boundsRef.current = { minX, maxX, minY, maxY };
   onPressRef.current = onPress;
+  visibleRef.current = visible;
 
   // Track position in listener
   useEffect(() => {
@@ -160,7 +162,9 @@ export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true })
 
         // Tap detected: if movement is <= 6px, treat as press and keep original position
         if (dist <= DRAG_THRESHOLD) {
-          onPressRef.current?.();
+          if (visibleRef.current) {
+            onPressRef.current?.();
+          }
           return;
         }
 
@@ -192,8 +196,11 @@ export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true })
         {
           left: pan.x,
           top: pan.y,
+          display: visible ? 'flex' : 'none',
+          opacity: visible ? 1 : 0,
         },
       ]}
+      pointerEvents={visible ? 'auto' : 'none'}
       {...panResponder.panHandlers}
     >
       <View

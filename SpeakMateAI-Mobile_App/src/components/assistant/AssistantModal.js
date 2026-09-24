@@ -384,11 +384,13 @@ export function AssistantModal({
   const textColor = isDark ? '#F1F5F9' : '#0F172A';
   const subtextColor = isDark ? '#94A3B8' : '#64748B';
 
+  const sheetHeight = Math.min(Math.round((windowHeight || SCREEN_HEIGHT) * 0.85), 720);
+
   return (
     <Modal
       visible={isOpen}
       transparent={true}
-      animationType={Platform.OS === 'ios' ? 'slide' : 'fade'}
+      animationType="slide"
       onRequestClose={handleClose}
       statusBarTranslucent={true}
     >
@@ -398,6 +400,7 @@ export function AssistantModal({
           activeOpacity={1}
           onPress={handleClose}
           style={styles.backdropTouchArea}
+          accessible={false}
         >
           <BlurredBackdrop />
         </TouchableOpacity>
@@ -409,17 +412,27 @@ export function AssistantModal({
           style={styles.sheetWrapper}
           pointerEvents="box-none"
         >
+          {/* Outer Elevated Sheet Container (Separated to eliminate Android elevation + overflow clipping bug) */}
           <View
             style={[
               styles.sheetContainer,
               {
-                maxHeight: Math.min((windowHeight || SCREEN_HEIGHT) * 0.88, 720),
+                height: sheetHeight,
                 backgroundColor: panelBg,
-                borderColor: panelBorder,
-                paddingBottom: Math.max(insets.bottom, 12),
               },
             ]}
           >
+            {/* Inner Content Wrapper with Border Radius & Clipping */}
+            <View
+              style={[
+                styles.sheetContent,
+                {
+                  backgroundColor: panelBg,
+                  borderColor: panelBorder,
+                  paddingBottom: Math.max(insets.bottom, 12),
+                },
+              ]}
+            >
             {/* Top Accent Gradient Bar */}
             <LinearGradient
               colors={['#5243F5', '#7B61FF', '#00D2FF']}
@@ -661,15 +674,18 @@ export function AssistantModal({
               </Text>
             </View>
           </View>
-        </KeyboardAvoidingView>
-      </View>
-    </Modal>
-  );
+        </View>
+      </KeyboardAvoidingView>
+    </View>
+  </Modal>
+);
 }
 
 const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
+    width: '100%',
+    height: '100%',
     justifyContent: 'flex-end',
     backgroundColor: 'transparent',
   },
@@ -681,18 +697,26 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'flex-end',
     zIndex: 10,
+    elevation: 24,
   },
   sheetContainer: {
     width: '100%',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
-    borderWidth: 1,
-    borderBottomWidth: 0,
     elevation: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -6 },
     shadowOpacity: 0.18,
     shadowRadius: 16,
+    // Note: No overflow: 'hidden' here to avoid Android HardwareRenderer elevation bug
+  },
+  sheetContent: {
+    flex: 1,
+    width: '100%',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderBottomWidth: 0,
     overflow: 'hidden',
   },
   scrollArea: {
