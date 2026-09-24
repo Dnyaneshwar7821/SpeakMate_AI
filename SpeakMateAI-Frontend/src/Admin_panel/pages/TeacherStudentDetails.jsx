@@ -10,6 +10,8 @@ import ErrorState from "@/Admin_panel/components/teacher/common/ErrorState";
 import { teacherDataApi } from "@services/admin/teacherDataApi";
 import { Sparkles } from "lucide-react";
 import UserProgressModal from "@admin/components/UserProgressModal";
+import { getEnglishLevelLabel } from "@utils/formatters";
+
 
 const statusStyles = {
     Excellent: "bg-emerald-50 text-emerald-700 ring-emerald-600/10 dark:bg-emerald-500/15 dark:text-emerald-400 dark:ring-emerald-500/20",
@@ -149,9 +151,10 @@ function StudentLearningKpis({ student }) {
         {
             label: "Total XP",
             val: (student.xp ?? 0).toLocaleString(),
-            sub: `Level ${Math.max(1, Math.floor((student.xp ?? 0) / 500) + 1)}`,
+            sub: `${getEnglishLevelLabel(Math.max(1, Math.floor((student.xp ?? 0) / 500) + 1))} (Level ${Math.max(1, Math.floor((student.xp ?? 0) / 500) + 1)})`,
             icon: "⚡",
         },
+
         {
             label: "Practice Streak",
             val: `${student.practice?.currentStreak ?? 0} Days`,

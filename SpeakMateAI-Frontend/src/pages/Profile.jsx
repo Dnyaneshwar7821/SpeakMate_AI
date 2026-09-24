@@ -12,6 +12,8 @@ import { Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { speakGlobalText } from "../utils/speechHelper";
 import { CurriculumCache } from "../utils/curriculumCache";
+import { getEnglishLevelLabel } from "../utils/formatters";
+
 
 const PRESET_AVATARS = [
   "🎓", "🦁", "🚀", "🦉", "👑", "⚡",
@@ -785,7 +787,8 @@ export function Profile() {
                 { level: "Intermediate", icon: "🚀", desc: "Fluent conversations & daily situations" },
                 { level: "Advanced", icon: "👑", desc: "Complex vocabulary & executive tone" },
               ].map((item) => {
-                const active = String(cefrLevel || "").toLowerCase().includes(item.level.toLowerCase());
+                const active = (getEnglishLevelLabel(cefrLevel) || String(cefrLevel || "")).toLowerCase().includes(item.level.toLowerCase());
+
                 return (
                   <button
                     key={item.level}

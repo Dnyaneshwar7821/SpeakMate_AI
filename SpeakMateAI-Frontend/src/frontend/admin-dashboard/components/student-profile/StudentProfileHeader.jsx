@@ -10,6 +10,8 @@ import {
   Award,
   ShieldCheck
 } from "lucide-react";
+import { getEnglishLevelLabel } from "@utils/formatters";
+
 
 export function StudentProfileHeader({ student }) {
   if (!student) return null;
@@ -103,15 +105,16 @@ export function StudentProfileHeader({ student }) {
 
         {/* Right: Goals & Level Badges */}
         <div className="flex flex-wrap items-center gap-2 self-stretch md:self-auto">
-          {student.englishLevel && (
+          {(student.englishLevel || student.level) && (
             <div className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 backdrop-blur-sm">
               <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">English Level</p>
               <p className="text-sm font-black text-indigo-300 flex items-center gap-1 mt-0.5">
                 <Award size={14} />
-                {student.englishLevel}
+                {getEnglishLevelLabel(student.englishLevel || student.level)}
               </p>
             </div>
           )}
+
 
           {student.learningGoal && (
             <div className="rounded-xl border border-white/10 bg-white/5 px-3.5 py-2 backdrop-blur-sm max-w-xs">

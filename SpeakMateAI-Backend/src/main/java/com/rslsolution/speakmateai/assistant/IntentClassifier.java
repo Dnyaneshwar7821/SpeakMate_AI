@@ -27,9 +27,6 @@ import com.rslsolution.speakmateai.enums.Role;
 @Component
 public class IntentClassifier {
 
-	private final GroqChatClient groqChatClient;
-	private final ObjectMapper objectMapper;
-
 	private static final String SYSTEM_PROMPT = """
 			You are the Master Adaptive Role-Scoped Intent Classifier for the SpeakMate AI assistant.
 			You operate across 5 authenticated roles: STUDENT, USER, TEACHER, SCHOOL_ADMIN, SUPER_ADMIN.
@@ -41,7 +38,7 @@ public class IntentClassifier {
 			- STUDENT_PERFORMANCE: an individual student's progress or performance (by name, roll number, or id) OR the student/user caller's own learning progress (XP, streaks, lessons completed/pending, speaking stats, pronunciation, fluency, grammar, vocabulary, badges/achievements, homework) OR English language learning & tutoring inquiries (grammar explanations, sentence corrections, vocabulary/idioms questions, pronunciation tips, speaking fluency advice, scenario practice, conversation practice, or achievement/badge guidance).
 			- ACCOUNT_INFO       : the CALLER'S OWN account/identity only ("what is my logged-in email", "what is my name/role", "who am I logged in as", "which school am I in", "what is my current subscription/plan", "tell me about my account/profile").
 			- BILLING            : revenue, subscriptions, plans, payments, invoices, billing.
-			- SCHOOL_ROSTER      : actual names AND stored details of teachers/students ("name of the teacher", "list of students", "who are the teachers", "list of teachers", "show me the students", "which department is Digvijay Patil in", "which subject does he teach", "when did he join the school", "what is his qualification", "how much experience does he have", "tell me about Siddhi Narke", "details for Siddhi Narke").
+			- SCHOOL_ROSTER      : actual names AND stored details of teachers/students ("name of the teacher", "list of students", "who are the teachers", "list of teachers", "show me the students", "students of DY Patil", "show students of DY Patil", "list students from DY Patil", "tell me about DY Patil students", "DY Patil students", "which department is Digvijay Patil in", "which subject does he teach", "when did he join the school", "what is his qualification", "how much experience does he have", "tell me about Siddhi Narke", "details for Siddhi Narke").
 			- NAVIGATION_HELP    : ONLY pure page-locating or navigation questions ("where is X", "how do I open Y", "how do I find Z", "take me to", "go to the page", "how do I navigate to").
 			- SCHOOL_DASHBOARD   : the school-admin DASHBOARD page KPIs (total students/teachers/classes, active vs inactive students, lessons completed, result summary/tallies, average result percentage).
 			- RESULTS_ANALYTICS  : the school-admin RESULTS page (pass/fail counts, pass %, average %, highest/lowest %, per-standard breakdown of exam/test results).
@@ -58,6 +55,7 @@ public class IntentClassifier {
 			4. TEACHER scope: Assigned classes and students only. Other teachers' students/classes, other schools, platform revenue, or platform users -> ACCESS_DENIED.
 			5. SCHOOL_ADMIN scope: Own school only. Other schools, platform revenue -> ACCESS_DENIED.
 			6. SUPER_ADMIN scope: Authorized platform-wide business/application data. Technical secrets/credentials -> ACCESS_DENIED.
+			7. SPEAKMATE DOMAIN RESTRICTION RULE: General knowledge, general programming ("what is Python", "explain Java", "write code"), general math/calculations ("solve 25x48"), general science ("explain photosynthesis"), weather, news, sports, recipes, jokes, poems, or general writing unrelated to SpeakMate AI are strictly OUT OF SCOPE -> ACCESS_DENIED. Legitimate SpeakMate educational questions ("how can students improve English grammar", "how to improve speaking skills", "pronunciation performance") remain IN SCOPE for the relevant performance or casual intent.
 
 			NATURAL LANGUAGE GENERALIZATION RULE:
 			Interpret user intent broadly across synonyms, paraphrases, informal language, short questions, and spelling mistakes:
@@ -103,6 +101,12 @@ public class IntentClassifier {
 			Pattern.CASE_INSENSITIVE);
 	private static final Pattern SCHOOL_BEFORE_ROSTER_ENTITY_PATTERN = Pattern.compile(
 			"\\b(?:only\\s+)?([A-Z0-9]{2,}|[A-Za-z0-9'&.]+(?:\\s+[A-Za-z0-9'&.]+){0,2})\\s+(?:students?|learners?|teachers?|staff)\\b");
+	private static final Pattern SCHOOL_ROSTER_PHRASE_PATTERN = Pattern.compile(
+			"\\b(?:students?|learners?|teachers?|staff)\\s+(?:of|from|in|at|under)\\s+([A-Za-z0-9'&.\\s]+?)" + SCHOOL_CLAUSE_BOUNDARY,
+			Pattern.CASE_INSENSITIVE);
+	private static final Pattern SCHOOL_POSSESSIVE_ROSTER_PATTERN = Pattern.compile(
+			"\\b([A-Za-z0-9'&.\\s]+?)(?:'s|'|\\s+)\\s*(?:students?|learners?|teachers?|staff)\\b",
+			Pattern.CASE_INSENSITIVE);
 	/**
 	 * Interrogative / domain words that can leak into the FRONT of a fallback
 	 * name capture ("info of St.Vincent High" -> "St.Vincent High"). They can
@@ -381,64 +385,50 @@ public class IntentClassifier {
 		* navigation page list.
 		*/
 	private static final Set<String> NAME_METRIC_STOPWORDS = Set.of(
-			// question / scaffolding words
-			"what", "whats", "which", "who", "whos", "whose", "whom", "when",
-			"where", "how", "hows", "is", "are", "was", "were", "am", "be", "been",
-			"the", "a", "an", "of", "for", "to", "in", "on", "at", "by", "with",
-			"and", "or", "please", "tell", "me", "give", "show", "list", "lsit", "lst", "find",
-			"get", "search", "about", "do", "does", "did", "can", "could",
-			"would", "should", "has", "have", "like", "going", "doing",
-			// domain nouns that are never a name
-			"student", "students", "learner", "learners", "teacher", "teachers",
-			"school", "schools", "class", "classes", "standard", "division",
-			"roll", "number", "name", "names", "email", "mail", "user", "users",
-			"account", "accounts", "profile", "profiles", "detail", "details",
-			"info", "information", "report", "reports", "subscription", "subscriptions", "plan", "plans",
-			"roster", "rosters",
-			// pronouns / determiners
-			"his", "her", "their", "him", "she", "he", "they", "them", "this",
-			"that", "these", "those", "my", "mine", "i", "myself", "our", "ours", "us", "own", "self",
-			// platform-wide qualifiers (must NOT be treated as a name)
-			"all", "every", "each", "any", "across", "platform", "overall",
-			"everything", "everyone", "everybody", "many", "much", "more",
-			"most", "today", "now", "currently",
-			// metric words
-			"xp", "exp", "points", "point", "score", "scores", "level", "levels",
-			"streak", "streaks", "progress", "practice", "practiced", "practise",
-			"practicing", "session", "sessions", "grammar", "vocabulary", "word",
-			"words", "minute", "minutes", "time", "total", "current", "longest",
-			"speaking", "spoken", "checks", "check", "learned", "learnt", "learning",
-			"lesson", "lessons", "topic", "topics", "module", "modules",
-			"chapter", "chapters", "completed", "complete", "completes",
-			"completing", "completion", "finished", "finish", "remaining",
-			"pending", "done", "accuracy", "average", "stats", "statistics", "summary",
-			"perform", "performing", "performance", "health", "system",
-			"sentence", "sentences", "achievement", "achievements", "avatar", "avatars",
-			"scenario", "scenarios", "homework", "assignment", "assignments",
-			"fluency", "pronunciation", "pronounciation", "chat", "chatting", "conversation", "conversations",
-			// English tutoring, badges & pedagogical tokens (must NOT be treated as a student name)
-			"confident", "conversationalist", "achiever", "consistent", "champion",
-			"wizard", "master", "badge", "badges", "milestone", "milestones",
-			"unlock", "unlocks", "unlocked", "earn", "earned", "rule", "rules",
-			"explain", "explanation", "correction", "corrections", "idiom", "idioms",
-			"phrase", "phrases", "collocation", "collocations", "hesitation",
-			"shadowing", "chunking", "roleplay", "break", "leg", "simple", "perfect",
-			"tense", "tenses", "past", "present", "future", "continuous",
+			"what", "whats", "which", "who", "whos", "whose", "whom", "when", "where", "how", "hows",
+			"is", "are", "was", "were", "am", "be", "been", "the", "a", "an", "of", "for", "to",
+			"in", "on", "at", "by", "with", "and", "or", "please", "tell", "me", "give", "show",
+			"list", "lsit", "lst", "find", "get", "search", "about", "do", "does", "did", "can",
+			"could", "would", "should", "has", "have", "like", "going", "doing", "student", "students",
+			"learner", "learners", "teacher", "teachers", "school", "schools", "class", "classes",
+			"standard", "division", "roll", "number", "name", "names", "email", "mail", "user",
+			"users", "account", "accounts", "profile", "profiles", "detail", "details", "info",
+			"information", "report", "reports", "subscription", "subscriptions", "plan", "plans",
+			"roster", "rosters", "his", "her", "their", "him", "she", "he", "they", "them", "this",
+			"that", "these", "those", "my", "mine", "i", "myself", "our", "ours", "us", "own",
+			"self", "all", "every", "each", "any", "across", "platform", "overall", "everything",
+			"everyone", "everybody", "many", "much", "more", "most", "today", "now", "currently",
+			"xp", "exp", "points", "point", "score", "scores", "level", "levels", "streak", "streaks",
+			"progress", "practice", "practiced", "practise", "practicing", "session", "sessions",
+			"grammar", "vocabulary", "word", "words", "minute", "minutes", "time", "total", "current",
+			"longest", "speaking", "spoken", "checks", "check", "learned", "learnt", "learning",
+			"sentence", "sentences", "achievement", "achievements", "scenario", "scenarios", "avatar",
+			"avatars", "chatting", "chat", "fluency", "pronunciation", "lesson", "lessons", "topic",
+			"topics", "module", "modules", "chapter", "chapters", "completed", "complete", "completes",
+			"completing", "completion", "finished", "finish", "remaining", "pending", "done", "accuracy",
+			"average", "stats", "statistics", "summary", "perform", "performing", "performance",
+			"health", "system", "speakmate", "speakmateai", "ai", "weak", "weakness", "weaknesses",
+			"spot", "spots", "area", "areas", "improve", "improvement", "improvements", "gap",
+			"gaps", "need", "work", "homework", "assignment", "assignments", "pronounciation",
+			"conversation", "conversations", "confident", "conversationalist", "achiever", "consistent",
+			"champion", "wizard", "master", "badge", "badges", "milestone", "milestones", "unlock",
+			"unlocks", "unlocked", "earn", "earned", "rule", "rules", "explain", "explanation",
+			"correction", "corrections", "idiom", "idioms", "phrase", "phrases", "collocation",
+			"collocations", "hesitation", "shadowing", "chunking", "roleplay", "break", "leg",
+			"simple", "perfect", "tense", "tenses", "past", "present", "future", "continuous",
 			"preposition", "prepositions", "article", "articles", "voice", "passive", "active",
-			"clause", "clauses", "verb", "verbs", "modal", "modals", "conjunction", "conjunctions", "english",
-			"difference", "between", "versus", "vs", "compare", "meaning", "definition", "example", "examples", "tips",
-			// Academic, examinations & study terms (must NOT be treated as a student name)
-			"formal", "informal", "letter", "essay", "paragraph", "writing", "comprehension", "reading",
-			"exam", "exams", "test", "tests", "examination", "prepare", "preparation", "preparing",
-			"study", "studying", "syllabus", "subject", "subjects", "doubt", "doubts", "direct",
-			"indirect", "speech", "reported", "question", "questions", "answer", "answers",
-			"homeworks", "grade", "grades", "teach", "teaches", "teaching", "assigned",
-			"math", "science", "social", "history", "geography", "hindi", "marathi",
-			// visualizations and charts
-			"chart", "charts", "graph", "graphs", "pie", "donut", "doughnut", "bar",
-			"line", "plot", "plots", "table", "tables", "diagram", "diagrams", "visualize", "visualization", "overview",
-			// chat & Indian English qualifiers
-			"out", "only", "first", "last", "full");
+			"clause", "clauses", "verb", "verbs", "modal", "modals", "conjunction", "conjunctions",
+			"english", "difference", "between", "versus", "vs", "compare", "meaning", "definition",
+			"example", "examples", "tips", "formal", "informal", "letter", "essay", "paragraph",
+			"writing", "comprehension", "reading", "exam", "exams", "test", "tests", "examination",
+			"prepare", "preparation", "preparing", "study", "studying", "syllabus", "subject",
+			"subjects", "doubt", "doubts", "direct", "indirect", "speech", "reported", "question",
+			"questions", "answer", "answers", "homeworks", "grade", "grades", "teach", "teaches",
+			"teaching", "assigned", "math", "science", "social", "history", "geography", "hindi",
+			"marathi", "chart", "charts", "graph", "graphs", "pie", "donut", "doughnut", "bar",
+			"line", "plot", "plots", "table", "tables", "diagram", "diagrams", "visualize", "visualization",
+			"overview", "out", "only", "first", "last", "full"
+		);
 
 	/**
 		* Extra scaffolding words that can never belong to a person's name in a
@@ -455,11 +445,23 @@ public class IntentClassifier {
 			"qualifications", "experience", "designation", "designations",
 			"id", "ids", "employee", "employeeid", "phone", "contact",
 			"handle", "handles", "handling", "belong", "belongs", "allocated", "allocation",
+			"weak", "weakness", "weaknesses", "spot", "spots", "area", "areas", "improve", "improvement", "improvements", "gap", "gaps", "need", "work",
 			"roster", "rosters");
 
-	public IntentClassifier(GroqChatClient groqChatClient, ObjectMapper objectMapper) {
+	private final GroqChatClient groqChatClient;
+	private final ObjectMapper objectMapper;
+	private final com.rslsolution.speakmateai.repository.SchoolRepository schoolRepository;
+
+	@org.springframework.beans.factory.annotation.Autowired
+	public IntentClassifier(GroqChatClient groqChatClient, ObjectMapper objectMapper,
+			com.rslsolution.speakmateai.repository.SchoolRepository schoolRepository) {
 		this.groqChatClient = groqChatClient;
 		this.objectMapper = objectMapper;
+		this.schoolRepository = schoolRepository;
+	}
+
+	public IntentClassifier(GroqChatClient groqChatClient, ObjectMapper objectMapper) {
+		this(groqChatClient, objectMapper, null);
 	}
 
 	public IntentResult classify(String message, Role role) {
@@ -677,6 +679,9 @@ public class IntentClassifier {
 	private boolean isPureNavigationQuery(String message) {
 		if (message == null) return false;
 		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (m.contains("where do i study") || m.contains("where i study")) {
+			return false;
+		}
 		return m.startsWith("where can i") || m.startsWith("where do i")
 				|| m.startsWith("take me to") || m.startsWith("how do i navigate")
 				|| m.startsWith("how do i open") || m.startsWith("how can i open")
@@ -698,16 +703,43 @@ public class IntentClassifier {
 		}
 		String m = message.toLowerCase(Locale.ROOT).trim();
 
+		// Account / Identity / Subscription / Roll number self queries:
+		if (isSelfAccountOrProfileQuery(m) || containsAny(m, List.of("what is my name", "who am i", "my account details", "what are my account details", "my profile details",
+				"what is my current subscription", "what is my current plan", "what is my subscription", "what is my plan",
+				"current subscription", "my current subscription", "current plan", "my current plan", "my subscription", "my plan", "subscription/plan",
+				"what is my current subscription/plan", "which school and class", "school and class do i belong",
+				"what school do i belong to", "which school do i belong to"))) {
+			return new IntentResult(AssistantIntent.ACCOUNT_INFO, Map.of(), null);
+		}
+
+		// Teacher inquiries for students:
+		if (containsAny(m, List.of("who is my teacher", "who is my class teacher", "who teaches me",
+				"who teaches my class", "my class teacher", "what is my teacher's name", "tell me my teacher name",
+				"who is teacher of my class", "who is the teacher of my class", "my teacher name",
+				"which teacher teaches me", "who is assigned as my teacher"))) {
+			return new IntentResult(AssistantIntent.ACCOUNT_INFO, Map.of("scope", "SELF", "field", "teacher"), null);
+		}
+
+		// Roll number, class, standard, division direct self inquiries:
+		if (containsAny(m, List.of("roll number", "my roll number", "roll no", "my roll no", "my rool number", "rool number", "roll number tell",
+				"my roll", "what is my roll number", "tell my roll number", "tell me my roll number",
+				"my class", "which class do i belong", "what class am i in", "my standard", "my division",
+				"my grade"))) {
+			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
+		}
+
 		// Cross-Student, Cross-Tenant or Out-of-Scope Security Boundary:
 		boolean outOfScope = containsAny(m, List.of(
 				"another student", "other student", "other students", "someone else", "anyone else",
-				"all students", "show me all students", "list of students", "students in my school",
-				"all teachers", "show me all teachers", "list of teachers",
-				"teacher contact", "teacher details", "teacher's details", "teachers in my school",
+				"all students", "show me all students", "list of students", "students in my school", "show all students",
+				"all teachers", "show me all teachers", "list of teachers", "teacher", "teachers", "my teacher",
+				"teacher contact", "teacher details", "teacher's details", "teachers in my school", "show all teachers",
 				"teacher password", "teacher's password", "teachers password",
+				"school admin", "school admins", "super admin", "super admins", "admin", "admins",
+				"school", "schools", "my school", "another school", "other school", "different school", "different institution", "show all schools", "list all schools",
 				"all users", "show me all users", "list of all users",
 				"revenue", "billing", "platform revenue", "school revenue", "total revenue", "earnings",
-				"other classes", "other class", "other school", "another school", "different school", "different institution",
+				"other classes", "other class",
 				"best student", "top student in another", "best student in another"));
 		if (outOfScope) {
 			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
@@ -736,13 +768,7 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF", "tutoring", true), null);
 		}
 
-		// Teacher inquiries for students:
-		if (containsAny(m, List.of("who is my teacher", "who is my class teacher", "my teacher", "who teaches me",
-				"who teaches my class", "my class teacher", "what is my teacher's name", "tell me my teacher name",
-				"who is teacher of my class", "who is the teacher of my class", "my teacher name", "teacher name",
-				"which teacher teaches me", "who is assigned as my teacher"))) {
-			return new IntentResult(AssistantIntent.ACCOUNT_INFO, Map.of("scope", "SELF", "field", "teacher"), null);
-		}
+
 
 		// Account / Identity / Subscription / Roll number queries:
 		if (containsAny(m, List.of("what is my name", "who am i", "my account details", "what are my account details", "my profile details",
@@ -765,7 +791,6 @@ public class IntentClassifier {
 		if (!targetPerson.isEmpty()) {
 			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
 		}
-
 		// Grammar check history / last checked sentence in grammar:
 		if (containsAny(m, List.of("last check in grammar", "last check in grammer", "last sentence in grammar", "sentence last check",
 				"sentence last check in grammer", "which sentence last check", "last checked sentence", "what sentence did i check",
@@ -811,7 +836,8 @@ public class IntentClassifier {
 				"what have i done across the app", "summary of all my work", "what is my status across modules", "what is my status",
 				"tell me everything i finished", "tell me everything i've done", "overview of all modules", "all module progress",
 				"what has done", "everything about app modules", "what should i do today", "what should i focus on",
-				"what should i practice next", "where should i focus", "what to focus on", "all my progress across modules"))) {
+				"what should i practice next", "where should i focus", "what to focus on", "all my progress across modules",
+				"what lessons i can do", "what lessons can i do", "lessons i can do", "lessons can i do"))) {
 			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
 		}
 
@@ -821,30 +847,43 @@ public class IntentClassifier {
 				"current xp", "what is my xp", "how much xp", "what if i have 0 xp", "my xp", "0 xp",
 				"xp?", "my xp?", "points earned", "how many points have i earned", "experience points", "experience score",
 				"what's my experience score", "how many experience points have i earned", "tell me my current xp",
-				"what is my current xp", "points have i earned", "earned points", "how is my xp total", "my xp total", "total xp",
+				"what is my current xp", "points have i earned", "earned points", "how is my xp total", "my xp total", "total xp", "xp total", "how is my xp",
 				// Level & Streak:
-				"current level", "what is my current level", "my level", "level?",
+				"current level", "what is my current level", "what is my english level", "my level", "level?", "english level", "my english level", "current english level",
+				"am i beginner, intermediate, or advanced", "am i beginner", "am i intermediate", "am i advanced", "how good is my english", "how is my english level", "my proficiency level",
+
 				"current streak", "longest streak", "what is my current streak", "what is my longest streak", "what is my streak", "my streak", "streak?", "practiced today",
-				// Lessons:
+				// Lessons & Achievements:
 				"lessons have i completed", "lessons completed", "completed lessons", "how many lessons have i completed",
 				"lessons have i started", "lessons started", "started lessons", "how many lessons have i started",
 				"lessons are pending", "lessons pending", "lessons remaining", "pending lessons", "how many lessons are pending",
+				"achievements", "how many achievements", "unlocked achievements", "achievements i have unlocked",
 				// Grammar & Vocabulary:
 				"grammar accuracy", "my grammar accuracy", "average grammar score", "my grammar score", "grammar score", "what is my grammar accuracy",
+				"grammar checks", "practice grammar", "grammar practice", "how do i practice grammar",
 				"vocabulary words have i added", "words have i added", "vocabulary added", "words added", "how many vocabulary words have i added",
 				"how many words i added", "words i added", "how many words have i added", "how many words added",
 				"vocabulary words have i mastered", "words have i mastered", "vocabulary mastered", "words mastered", "how many vocabulary words have i mastered",
 				"average vocabulary score", "my vocabulary score", "vocabulary score", "vocab", "my vocab", "vocab score", "vocab progress",
-				// Speaking & Skills:
+				"master vocabulary", "master vocabulary words", "how can i master vocabulary",
+				// Speaking, Fluency & Avatars:
 				"speaking practice statistics", "speaking statistics", "speaking stats", "speaking performance", "how good are my speaking skills",
 				"speaking score", "speaking score?", "average pronunciation score", "pronunciation score", "my pronunciation score",
 				"what is my average pronunciation score", "pronounciation score", "pronounciation", "what is my average fluency score",
 				"average fluency score", "my fluency score", "fluency score", "show my score", "my score", "my scores", "my stats", "show my stats",
+				"speaking sessions", "speaking sessions done", "conversation scenarios", "scenarios for chatting", "chatting scenarios", "scenarios",
+				"ai avatars", "avatars", "avatar", "what ai avatars", "fluency", "fluency in speaking", "tell me about fluency",
 				// Learning progress:
 				"summary of my overall learning progress", "overall learning progress", "overall progress", "learning progress",
 				"how am i doing", "how is my progress", "my progress", "how am i doing with my learning", "how is my learning going",
 				"give me my learning report", "how much have i learned", "what's my progress like", "progress?", "how's my progress",
 				"give me my overall learning progress", "perfomance", "my perfomance",
+				// Weak areas & Improvements:
+				"weak areas", "my weak areas", "where am i weak", "which areas am i weak", "what are my weak areas",
+				"my weaknesses", "what are my weaknesses", "weakness", "weaknesses", "weak spots", "my weak spots",
+				"what should i improve", "where should i improve", "how can i improve", "areas to improve", "what to improve",
+				"which areas do i need to work on", "areas i need to work on", "what do i need to work on", "what should i practice more",
+				"where do i need practice", "what are my areas of improvement", "areas of improvement", "improvement areas", "my weak points", "weak points",
 				// Practice Minutes:
 				"total practice minutes", "practice minutes", "how much have i practiced"));
 
@@ -1266,7 +1305,7 @@ public class IntentClassifier {
 		}
 
 		// User directory:
-		if (containsAny(m, List.of(
+		if (extractSchoolName(message).isEmpty() && (containsAny(m, List.of(
 				"show me all users", "show all users", "names of all users", "list of all users", "list of users", "list of user", "all users on the platform", "all users", "list users", "list all users", "list user", "show users", "show user",
 				"show me all teachers", "show all teachers", "list of all teachers", "list of teachers", "list of teacher", "list out all teachers", "list out teachers", "list out teacher", "all teachers", "list teachers", "list teacher", "show teachers", "show teacher",
 				"show me all students", "show all students", "list of all students", "list of students", "list of student", "list out all students", "list out students", "list out student", "all students", "list students", "list student", "show students", "show student",
@@ -1276,9 +1315,8 @@ public class IntentClassifier {
 				|| (containsAny(m, List.of("list of", "list out", "show all", "names of", "give me the list of", "give list of"))
 						&& containsAny(m, List.of("user", "users", "teacher", "teachers", "student", "students", "admin", "admins"))
 						&& !containsAny(m, List.of("assigned", "who have student", "who have students"))
-						&& extractSchoolName(message).isEmpty()
 						&& extractClassSpec(message) == null
-						&& !containsAny(m, List.of("how many", "total", "count", "number of", "stats", "score")))) {
+						&& !containsAny(m, List.of("how many", "total", "count", "number of", "stats", "score"))))) {
 			Map<String, Object> params = new java.util.LinkedHashMap<>();
 			if (m.contains("super admin") || m.contains("superadmin")) {
 				params.put("roleFilter", "SUPER_ADMIN");
@@ -1386,9 +1424,168 @@ public class IntentClassifier {
 				"reset token", "reset tokens", "verification token", "verification tokens",
 				"auth token", "auth tokens", "authentication token", "authentication tokens", "authentication secret",
 				"credentials", "credential", "login credentials", "admin credentials",
-				"admin password", "teacher's password", "teacher password", "super admin's password",
-				"razorpay secret", "razorpay secret key", "groq api key", "groq api keys",
 				"system secret", "system secrets", "infrastructure credentials"));
+	}
+
+	private static final java.util.regex.Pattern ARITHMETIC_PATTERN = java.util.regex.Pattern.compile(
+			"\\b\\d+\\s*(?:[\\*\\x7d\\xd7\\u00d7xX\\/+\\-]|times|multiplied\\s+by|divided\\s+by|plus|minus)\\s*\\d+\\b",
+			java.util.regex.Pattern.CASE_INSENSITIVE);
+
+	private static final Set<String> SPEAKMATE_DOMAIN_KEYWORDS = Set.of(
+			"speakmate", "student", "students", "teacher", "teachers", "school", "schools",
+			"class", "classes", "std", "standard", "grade", "division", "section",
+			"xp", "points", "streak", "streaks", "level", "levels", "progress",
+			"speaking", "pronunciation", "fluency", "grammar", "vocabulary", "word", "words",
+			"lesson", "lessons", "curriculum", "roster", "analytics", "reports", "results",
+			"insights", "dashboard", "revenue", "billing", "subscription", "plan", "plans", "payment", "payments", "invoice", "profile",
+			"settings", "account", "user", "users", "role", "roles", "department", "qualification",
+			"joining", "roll", "assigned", "my", "our", "performance", "score",
+			"scores", "activity", "activities", "leaderboard", "navigation", "page", "pages"
+	);
+
+	private boolean isUnrelatedDomainRequest(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		return containsExplicitUnrelatedTopic(m);
+	}
+
+	private boolean containsExplicitUnrelatedTopic(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+
+		// 1. General Person / Celebrity / Public Figure Inquiries: "who is X", "who was X", "tell me about X", "where is X from"
+		if (isGeneralPersonQuery(m)) {
+			return true;
+		}
+
+		// 2. General Concept / Definition Inquiries: "what is X", "what are X", "define X", "explain X", "meaning of X", "how does X work"
+		if (isGeneralConceptQuery(m)) {
+			return true;
+		}
+
+		// 3. Programming & Technology Tutorials
+		if (isProgrammingOrTechQuery(m)) {
+			return true;
+		}
+
+		// 4. General Science Topics
+		if (isScienceQuery(m)) {
+			return true;
+		}
+
+		// 5. General Math / Arithmetic Calculations
+		if (isMathQuery(m)) {
+			return true;
+		}
+
+		// 6. Weather, Jokes, Stories, Poems, Songs, Recipes, Sports, Entertainment & News Trivia
+		if (isGeneralEntertainmentOrTriviaQuery(m)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean isGeneralPersonQuery(String m) {
+		boolean hasPersonMarker = m.contains("who is ") || m.contains("who was ")
+				|| m.contains("tell me about ") || m.contains("tell me who ")
+				|| (m.contains("where is ") && m.endsWith(" from"))
+				|| m.contains("who won yesterday") || m.contains("who is the best cricket") || m.contains("who is the president")
+				|| m.contains("who is prime minister") || m.contains("who founded");
+		if (!hasPersonMarker) {
+			return false;
+		}
+		if (hasSpeakMateDomainContext(m)) {
+			if (m.contains("virat kohli") || m.contains("ms dhoni") || m.contains("elon musk") || m.contains("albert einstein") || m.contains("rohit sharma")) {
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isGeneralConceptQuery(String m) {
+		boolean conceptQuestionStart = m.startsWith("what is ") || m.startsWith("what are ")
+				|| m.startsWith("define ") || m.startsWith("explain ") || m.startsWith("meaning of ")
+				|| (m.startsWith("how does ") && m.endsWith(" work"));
+		if (!conceptQuestionStart) {
+			return false;
+		}
+		if (hasSpeakMateDomainContext(m)) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean hasSpeakMateDomainContext(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		for (String kw : SPEAKMATE_DOMAIN_KEYWORDS) {
+			if (m.contains(kw)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isProgrammingOrTechQuery(String m) {
+		return containsAny(m, List.of(
+				"python", "javascript", "c++", "cpp", "c#", "csharp", "typescript", "html", "css",
+				"sql", "react", "reactjs", "angular", "vue", "vuejs", "ruby", "php", "rust language", "golang",
+				"docker", "kubernetes", "blockchain", "machine learning", "write code", "write a code",
+				"write a program", "write python", "write java", "learn programming", "coding tutorial",
+				"how to code", "hello world", "syntax of", "data structures", "algorithm", "algorithms",
+				"program in python", "program in java", "create an api", "api endpoint"))
+				|| (m.contains("java") && (m.contains("what is java") || m.contains("explain java") || m.contains("learn java")
+				|| m.contains("java code") || m.contains("java program") || m.contains("java programming")
+				|| m.contains("write java") || m.contains("teach java") || m.startsWith("java")));
+	}
+
+	private boolean isScienceQuery(String m) {
+		return containsAny(m, List.of(
+				"photosynthesis", "quantum physics", "solar system", "thermodynamics",
+				"theory of relativity", "speed of light", "dna structure", "periodic table",
+				"black hole", "gravitational force", "gravity", "electromagnetism",
+				"mitosis", "meiosis", "plate tectonics", "organic chemistry", "chemistry",
+				"how plants make food", "how plants convert sunlight", "why is the sky blue"));
+	}
+
+	private boolean isMathQuery(String m) {
+		return containsAny(m, List.of(
+				"quadratic equation", "pythagorean theorem", "square root of", "sqrt of",
+				"solve math", "solve equation", "calculate equation", "solve 25", "calculate 25",
+				"25 times 40", "25 multiplied by 40", "calculate this for me", "math problem",
+				"percentage of 500", "calculate 125"))
+				|| isArithmeticQuery(m);
+	}
+
+	private boolean isGeneralEntertainmentOrTriviaQuery(String m) {
+		return containsAny(m, List.of(
+				"weather", "today's weather", "todays weather", "weather today", "weather forecast",
+				"temperature today", "today's temperature",
+				"tell me a joke", "tell a joke", "make me laugh", "say a joke", "funny joke", "crack a joke", "joke",
+				"write a poem", "write me a poem", "poem", "write a song", "write me a song", "song", "write a story", "write me a story", "tell a story", "tell me a story", "sing a song",
+				"recipe for", "give me a recipe", "how to cook", "how to bake", "bake a cake", "cook pasta", "recipe", "recipes",
+				"cricket match", "football match", "football score", "who won yesterday", "today's news", "todays news",
+				"ipl", "best cricket player", "indian cricket team", "favorite actor", "latest movie", "movie recommendation",
+				"capital of france", "population of",
+				"tell me about google", "tell me about apple", "tell me about microsoft", "tell me about amazon",
+				"aptitude exam", "generic resume", "help me write a resume", "write a birthday message",
+				"essay about cricket", "write a short story"));
+	}
+
+	private boolean isArithmeticQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		if (m.contains("-") && m.matches(".*\\b\\d{4}\\s*-\\s*\\d{4}\\b.*")) {
+			return false;
+		}
+		return ARITHMETIC_PATTERN.matcher(m).find();
 	}
 
 	/**
@@ -1412,6 +1609,10 @@ public class IntentClassifier {
 		IntentResult selfProgress = selfProgressFastPath(message, role);
 		if (selfProgress != null) {
 			return selfProgress;
+		}
+
+		if (isUnrelatedDomainRequest(message)) {
+			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
 		}
 
 		IntentResult teacherFast = teacherRoleFastPath(message, role);
@@ -1705,7 +1906,7 @@ public class IntentClassifier {
 	 * "school named X" / "school called X", "... in/at/of/for X ...", and
 	 * "... X school". Returns "" when no school name can be detected.
 	 */
-	private String extractSchoolName(String message) {
+	public String extractSchoolName(String message) {
 		if (message == null || message.isBlank()) {
 			return "";
 		}
@@ -1757,6 +1958,20 @@ public class IntentClassifier {
 				return entitySchool;
 			}
 		}
+		Matcher rosterPhraseMatcher = SCHOOL_ROSTER_PHRASE_PATTERN.matcher(m);
+		if (rosterPhraseMatcher.find()) {
+			String rosterSchool = cleanSchoolFragment(rosterPhraseMatcher.group(1));
+			if (isPlausibleSchoolName(rosterSchool)) {
+				return rosterSchool;
+			}
+		}
+		Matcher possessiveRosterMatcher = SCHOOL_POSSESSIVE_ROSTER_PATTERN.matcher(m);
+		if (possessiveRosterMatcher.find()) {
+			String possSchool = cleanSchoolFragment(possessiveRosterMatcher.group(1));
+			if (isPlausibleSchoolName(possSchool)) {
+				return possSchool;
+			}
+		}
 		return "";
 	}
 
@@ -1775,9 +1990,16 @@ public class IntentClassifier {
 			return false;
 		}
 		String lower = trimmed.toLowerCase(Locale.ROOT);
+		if (containsExplicitUnrelatedTopic(lower)) {
+			return false;
+		}
 		if (lower.equals("school") || lower.equals("schools") || lower.equals("highschool")
 				|| lower.equals("high school") || lower.equals("academy") || lower.equals("college")
-				|| lower.contains("network") || lower.equals("the school") || lower.equals("a school")) {
+				|| lower.contains("network") || lower.equals("the school") || lower.equals("a school")
+				|| lower.equals("school admin") || lower.equals("school admins")
+				|| lower.equals("super admin") || lower.equals("super admins")
+				|| lower.equals("admin") || lower.equals("admins")
+				|| lower.equals("all school admins") || lower.equals("all super admins")) {
 			return false;
 		}
 		if (containsAnyWord(lower, List.of(
@@ -1807,8 +2029,28 @@ public class IntentClassifier {
 				break;
 			}
 		}
+		if (schoolRepository != null) {
+			String key = schoolKey(trimmed);
+			if (!key.isEmpty()) {
+				boolean matchesDbSchool = schoolRepository.findAll().stream().anyMatch(s -> {
+					String name = s.getSchoolName() != null ? s.getSchoolName() : (s.getName() != null ? s.getName() : "");
+					String fullKey = schoolKey(name);
+					String shortKey = schoolKey(s.getName());
+					return fullKey.contains(key) || key.contains(fullKey)
+							|| (!shortKey.isEmpty() && (shortKey.contains(key) || key.contains(shortKey)));
+				});
+				if (matchesDbSchool) {
+					return true;
+				}
+			}
+		}
 		boolean hasCapital = trimmed.chars().anyMatch(Character::isUpperCase);
 		return hasSchoolToken || hasCapital;
+	}
+
+	private String schoolKey(String value) {
+		if (value == null) return "";
+		return value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
 	}
 
 	/**
@@ -1867,6 +2109,11 @@ public class IntentClassifier {
 				f = lastSpace >= 0 ? f.substring(0, lastSpace).trim() : "";
 				changed = true;
 			}
+		}
+		if (f.toLowerCase(Locale.ROOT).endsWith("'s")) {
+			f = f.substring(0, f.length() - 2).trim();
+		} else if (f.endsWith("'")) {
+			f = f.substring(0, f.length() - 1).trim();
 		}
 		return f;
 	}
@@ -2047,9 +2294,8 @@ public class IntentClassifier {
 		if (extractClassSpec(message) != null && (m.contains("student") || m.contains("learner") || m.contains("who") || m.contains("list") || m.contains("names") || m.contains("show") || m.contains("give"))) {
 			return AssistantIntent.SCHOOL_ROSTER;
 		}
-		// A school-scoped student/teacher list inquiry ("list out only JSPM student", "list JSPM students", "students in JSPM"):
-		if ((m.contains("list") || m.contains("show") || m.contains("who are") || m.contains("names") || m.contains("give"))
-				&& (m.contains("student") || m.contains("teacher") || m.contains("learner"))
+		// A school-scoped student/teacher list inquiry ("students of DY Patil", "show students of DY Patil", "list students from DY Patil", "DY Patil students"):
+		if ((m.contains("student") || m.contains("teacher") || m.contains("learner"))
 				&& !extractSchoolName(message).isEmpty()) {
 			return AssistantIntent.SCHOOL_ROSTER;
 		}
@@ -2199,7 +2445,7 @@ public class IntentClassifier {
 		* it is unambiguous and the STUDENT_PERFORMANCE provider can match it
 		* directly. Returns "" when none is present.
 		*/
-	private String extractStudentMetricName(String message) {
+	String extractStudentMetricName(String message) {
 		if (message == null || message.isBlank()) {
 			return "";
 		}
@@ -2289,7 +2535,7 @@ public class IntentClassifier {
 		* never downgraded. Returns {@code null} when no action phrase is present.
 		*/
 	private AssistantIntent navigationOverride(String message, Role role) {
-		if (message == null) {
+		if (message == null || isUnrelatedDomainRequest(message)) {
 			return null;
 		}
 		String m = message.toLowerCase(Locale.ROOT).trim();
@@ -2373,7 +2619,13 @@ public class IntentClassifier {
 			enriched.put("entityType", "teachers");
 		}
 		// Student teacher query
-		if (containsAny(m, List.of("teacher of", "assigned teacher for", "assigned teacher of", "'s teacher", "teacher for student", "teacher of student"))) {
+		Matcher studentTeacherMatcher = Pattern.compile("\\b(?:teacher of|assigned teacher for|assigned teacher of|teacher for student|teacher of student)\\s+(.+)", Pattern.CASE_INSENSITIVE).matcher(message);
+		if (studentTeacherMatcher.find()) {
+			String extractedName = studentTeacherMatcher.group(1).trim().replaceAll("[?.!]+$", "");
+			enriched.put("queryType", "TEACHER_OF_STUDENT");
+			enriched.put("studentName", extractedName.toLowerCase(Locale.ROOT));
+			enriched.put("focusName", extractedName);
+		} else if (containsAny(m, List.of("teacher of", "assigned teacher for", "assigned teacher of", "'s teacher", "teacher for student", "teacher of student"))) {
 			enriched.put("queryType", "TEACHER_OF_STUDENT");
 			if (!focusName.isBlank()) {
 				enriched.put("studentName", focusName.toLowerCase(Locale.ROOT));
@@ -2591,11 +2843,36 @@ public class IntentClassifier {
 	 * to ACCESS_DENIED or navigation help, even when Groq is unavailable.
 	 * Returns {@code null} when no account question is detected.
 	 */
+	private boolean isSelfAccountOrProfileQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		if (m.contains("where can i access") || m.contains("where can i find") || m.contains("where do i find") || m.contains("how do i access")) {
+			return false;
+		}
+		boolean showMySchool = m.contains("show my school")
+				&& !m.contains("school's") && !m.contains("school details")
+				&& !m.contains("school info") && !m.contains("school report");
+		return m.contains("what is my school") || m.contains("what's my school") || m.contains("tell me my school")
+				|| showMySchool || m.contains("my school name") || m.contains("school am i")
+				|| m.contains("school do i") || m.contains("where do i study") || m.contains("where i study")
+				|| m.contains("which school am i") || m.contains("what school am i") || m.contains("which school do i")
+				|| m.contains("what school do i") || m.contains("school i study") || m.contains("school i am in")
+				|| m.contains("school i belong") || m.contains("school am i from") || m.contains("school am i enrolled")
+				|| m.contains("school do i study") || m.contains("school am i in") || m.contains("which school am i from")
+				|| m.contains("what school am i from") || m.contains("my email") || m.contains("my profile")
+				|| m.contains("my account") || m.contains("who am i") || m.contains("my details") || m.contains("my info")
+				|| m.contains("my name") || m.contains("my phone");
+	}
+
 	private AssistantIntent accountInfoOverride(String message, Role role) {
 		if (message == null) {
 			return null;
 		}
 		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (isSelfAccountOrProfileQuery(m)) {
+			return AssistantIntent.ACCOUNT_INFO;
+		}
 		boolean account = containsAny(m, List.of(
 				"my email", "my e-mail", "my mail", "email id", "email address",
 				"logged in email", "logged-in email", "login email", "sign in email",
@@ -2678,6 +2955,9 @@ public class IntentClassifier {
 			return null;
 		}
 		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (isSelfAccountOrProfileQuery(m)) {
+			return null;
+		}
 
 		boolean dataMarker = containsAny(m, List.of(
 				"how many", "how much", "total", "count", "number of", "most", "highest", "lowest", "top ",
@@ -2818,6 +3098,9 @@ public class IntentClassifier {
 			return null;
 		}
 		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (isSelfAccountOrProfileQuery(m)) {
+			return null;
+		}
 		boolean dataMarker = containsAny(m, List.of(
 				"how many", "how much", "total", "count", "number of", "stats",
 				"statistics", "overview", "performance", "performing", "enrolled",
@@ -2946,14 +3229,18 @@ public class IntentClassifier {
 						"invoice", "fees", "plans"))) {
 					return AssistantIntent.ACCESS_DENIED;
 				}
-				// Cross-student privacy guard:
-				boolean anotherStudent = containsAny(m, List.of(
+				if (isSelfAccountOrProfileQuery(m)) {
+					return AssistantIntent.ACCOUNT_INFO;
+				}
+				// Protected entities & cross-entity scope guard for STUDENT role:
+				boolean unallowedStudentEntity = containsAny(m, List.of(
 						"another student", "other student", "other students", "someone else", "anyone else",
 						"all students", "show me all students", "list of students", "students in my school",
-						"all teachers", "show me all teachers", "list of teachers",
+						"all teachers", "show me all teachers", "list of teachers", "teacher", "teachers",
 						"teacher contact", "teacher details", "teacher's details", "teachers in my school",
-						"teacher password", "teacher's password", "teachers password",
-						"other classes", "other class", "other school", "another school", "different school", "different institution",
+						"school admin", "school admins", "super admin", "super admins", "admin", "admins",
+						"school", "schools", "my school", "another school", "other school", "different school", "different institution",
+						"other classes", "other class",
 						"best student", "top student in another", "best student in another"))
 						|| !extractStudentMetricName(message).isEmpty();
 				boolean hasOtherPossessive = false;
@@ -2965,7 +3252,7 @@ public class IntentClassifier {
 						break;
 					}
 				}
-				if (anotherStudent || hasOtherPossessive) {
+				if (unallowedStudentEntity || hasOtherPossessive) {
 					return AssistantIntent.ACCESS_DENIED;
 				}
 				boolean selfEntity = containsAny(m, List.of("progress", "streak", "xp", "lesson", "lessons",
@@ -2974,7 +3261,8 @@ public class IntentClassifier {
 						"i have completed", "my stats", "performing", "progressing", "doing", "daily goal", "tips", "level", "learning",
 						"achievement", "achievements", "avatar", "avatars", "scenario", "scenarios", "homework", "assignment", "assignments",
 						"done", "finished", "completed", "module", "modules", "app", "all modules", "across all", "focus on", "practice next",
-						"what lessons", "available lessons", "checks for sentences", "grammar checks", "sentence", "sentences", "what have i done"));
+						"what lessons", "available lessons", "checks for sentences", "grammar checks", "sentence", "sentences", "what have i done",
+						"weak", "weakness", "weaknesses", "improve", "improvement", "improvements", "area", "areas", "work on", "gap", "gaps", "spot", "spots"));
 				if (selfEntity) {
 					return AssistantIntent.STUDENT_PERFORMANCE;
 				}

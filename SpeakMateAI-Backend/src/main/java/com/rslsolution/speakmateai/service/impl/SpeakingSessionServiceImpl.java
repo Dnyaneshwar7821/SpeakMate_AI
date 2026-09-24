@@ -705,16 +705,29 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		} else if (cl.contains("10th std") || cl.contains("board prep")) {
 			levelInstruction = "Student Grade: 10th Standard (Board Exam Prep & Oratory Mastery).\n" +
 					"Pedagogy: Simulate formal board oral examinations, academic pitch defenses, advanced idioms, and CEFR C1 oratory fluency.";
-		} else if ("beginner".equalsIgnoreCase(chatLevel)) {
-			levelInstruction = "Current Learner English Level: Beginner (A1-A2).\n" +
-					"Instructions: Use extremely simple, clear, and common vocabulary. Speak in very short, basic sentences. Keep your grammar explanations simple and concrete.";
-		} else if ("intermediate".equalsIgnoreCase(chatLevel)) {
-			levelInstruction = "Current Learner English Level: Intermediate (B1-B2).\n" +
-					"Instructions: Use everyday conversational English, standard sentence lengths, and B1-B2 vocabulary. Introduce occasional common idioms with practical explanations.";
-		} else { // Advanced
-			levelInstruction = "Current Learner English Level: Advanced (C1-C2).\n" +
-					"Instructions: Use sophisticated and diverse vocabulary. Use complex sentence structures, advanced idioms, and nuanced stylistic suggestions.";
+		} else {
+			String normLvl = chatLevel.trim();
+			if (normLvl.matches("(?i).*level\\s*\\d+.*|\\d+")) {
+				java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(normLvl);
+				if (m.find()) {
+					int lvl = Integer.parseInt(m.group());
+					if (lvl <= 2) normLvl = "beginner";
+					else if (lvl <= 4) normLvl = "intermediate";
+					else normLvl = "advanced";
+				}
+			}
+			if ("beginner".equalsIgnoreCase(normLvl) || normLvl.toLowerCase().contains("beginner") || normLvl.toLowerCase().contains("a1") || normLvl.toLowerCase().contains("a2")) {
+				levelInstruction = "Current Learner English Level: Beginner (A1-A2).\n" +
+						"Instructions: Use extremely simple, clear, and common vocabulary. Speak in very short, basic sentences. Keep your grammar explanations simple and concrete.";
+			} else if ("intermediate".equalsIgnoreCase(normLvl) || normLvl.toLowerCase().contains("intermediate") || normLvl.toLowerCase().contains("b1") || normLvl.toLowerCase().contains("b2")) {
+				levelInstruction = "Current Learner English Level: Intermediate (B1-B2).\n" +
+						"Instructions: Use everyday conversational English, standard sentence lengths, and B1-B2 vocabulary. Introduce occasional common idioms with practical explanations.";
+			} else { // Advanced
+				levelInstruction = "Current Learner English Level: Advanced (C1-C2).\n" +
+						"Instructions: Use sophisticated and diverse vocabulary. Use complex sentence structures, advanced idioms, and nuanced stylistic suggestions.";
+			}
 		}
+
 
 		User user = session.getUser();
 		String userContextInstruction = buildUserContextInstruction(user, session.getScenario());

@@ -26,6 +26,37 @@ public class AnswerSynthesizerChatTest {
 	}
 
 	@Test
+	void testGeneralUserSelfSchoolAnswer() throws Exception {
+		Map<String, Object> data = Map.of(
+				"scope", "SELF",
+				"role", "USER",
+				"email", "user@speakmate.ai"
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		String[] selfSchoolQueries = {
+			"Which school am I studying in?",
+			"What school am I in?",
+			"Which school am I from?",
+			"Where do I study?",
+			"What is my school?"
+		};
+
+		for (String q : selfSchoolQueries) {
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.ACCOUNT_INFO,
+					null,
+					q,
+					Map.of(),
+					dataJson,
+					null
+			);
+			assertNotNull(answer);
+			assertEquals("**You are not a student. You are a general user.**", answer.getMarkdown());
+		}
+	}
+
+	@Test
 	void testHowManyStudentsTargetedSynthesis() throws Exception {
 		Map<String, Object> platformData = Map.of(
 				"totalSchools", 13,

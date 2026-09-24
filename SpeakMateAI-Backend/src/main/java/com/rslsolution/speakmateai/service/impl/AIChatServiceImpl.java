@@ -245,17 +245,29 @@ public class AIChatServiceImpl implements AIChatService {
 			chatLevel = "Beginner";
 		}
 
+		String normalizedLevel = chatLevel.trim();
+		if (normalizedLevel.matches("(?i).*level\\s*\\d+.*|\\d+")) {
+			java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\d+").matcher(normalizedLevel);
+			if (m.find()) {
+				int lvl = Integer.parseInt(m.group());
+				if (lvl <= 2) normalizedLevel = "Beginner";
+				else if (lvl <= 4) normalizedLevel = "Intermediate";
+				else normalizedLevel = "Advanced";
+			}
+		}
+
 		String levelInstruction = "";
-		if ("Beginner".equalsIgnoreCase(chatLevel)) {
+		if ("Beginner".equalsIgnoreCase(normalizedLevel) || normalizedLevel.toLowerCase().contains("beginner") || normalizedLevel.toLowerCase().contains("a1") || normalizedLevel.toLowerCase().contains("a2")) {
 			levelInstruction = "Current Learner English Level: Beginner.\n" +
 					"Instructions: Use extremely simple, clear, and common vocabulary (A1-A2 levels). Speak in very short, basic sentences. Keep your grammar explanations as simple and concrete as possible.\n";
-		} else if ("Intermediate".equalsIgnoreCase(chatLevel)) {
+		} else if ("Intermediate".equalsIgnoreCase(normalizedLevel) || normalizedLevel.toLowerCase().contains("intermediate") || normalizedLevel.toLowerCase().contains("b1") || normalizedLevel.toLowerCase().contains("b2")) {
 			levelInstruction = "Current Learner English Level: Intermediate.\n" +
 					"Instructions: Use everyday conversational English, standard sentence lengths, and B1-B2 vocabulary. Introduce occasional common idioms with clear, practical explanations.\n";
 		} else { // Advanced
 			levelInstruction = "Current Learner English Level: Advanced.\n" +
 					"Instructions: Use sophisticated and diverse vocabulary (C1-C2 levels). Use complex and varied sentence structures, advanced idioms, and nuanced phrasing suggestions.\n";
 		}
+
 
 		// 3. Fetch last 10 messages for context
 		List<ChatMessage> history = chatMessageRepository.findBySessionOrderByCreatedAtAsc(session);

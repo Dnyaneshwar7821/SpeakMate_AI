@@ -100,6 +100,7 @@ public class ProfileServiceAvatarTest {
         });
 
         assertTrue(ex.getMessage().contains("500 KB"), "Error message must mention 500 KB limit");
+
     }
 
     @Test

@@ -70,7 +70,27 @@ public class SchoolDataProvider implements AssistantDataProvider {
 		if (school == null) {
 			Map<String, Object> empty = new LinkedHashMap<>();
 			empty.put("message", "NO DATA");
+			String reqName = params != null && params.get("schoolName") != null ? params.get("schoolName").toString().trim() : "";
 			if (actor != null && actor.getRole() == Role.SCHOOL_ADMIN) {
+				School ownSchool = actor.getSchoolId() != null ? schoolRepository.findById(actor.getSchoolId()).orElse(null) : null;
+				if (ownSchool != null && !reqName.isBlank()) {
+					String reqKey = schoolKey(reqName);
+					String ownKey = schoolKey(displayName(ownSchool));
+					String ownShort = schoolKey(ownSchool.getName());
+					boolean matchesOwn = ownKey.contains(reqKey) || reqKey.contains(ownKey)
+							|| (!ownShort.isEmpty() && (ownShort.contains(reqKey) || reqKey.contains(ownShort)));
+					if (!matchesOwn) {
+						empty.put("reason", "Access denied: You are only authorized to view data for your own school.");
+						empty.put("availableSchools", List.of(displayName(ownSchool)));
+						return toJson(empty);
+					}
+				}
+			}
+			if (!reqName.isBlank()) {
+				empty.put("reason", "School not found");
+				empty.put("requestedSchool", reqName);
+				empty.put("availableSchools", availableSchoolNames());
+			} else if (actor != null && actor.getRole() == Role.SCHOOL_ADMIN) {
 				empty.put("reason", "Access denied: You are only authorized to view data for your own school.");
 				if (actor.getSchoolId() != null) {
 					schoolRepository.findById(actor.getSchoolId()).ifPresent(s -> empty.put("availableSchools", List.of(displayName(s))));

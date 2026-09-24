@@ -157,6 +157,92 @@ public class MasterRoleScopedChatbotTest {
 		}
 
 		@Test
+		@DisplayName("Student Authorized: Self-School Inquiries")
+		void testStudentSelfSchoolQueries() {
+			String[] selfSchoolQueries = {
+				"Which school am I studying in?",
+				"What school do I study in?",
+				"Which school am I from?",
+				"What is my school?",
+				"Tell me my school",
+				"Where do I study?",
+				"Which school am I enrolled in?",
+				"What school am I enrolled in?",
+				"Show my school"
+			};
+			for (String q : selfSchoolQueries) {
+				IntentResult res = classifier.classify(q, Role.STUDENT, null);
+				assertNotNull(res, "Result should not be null for query: " + q);
+				assertEquals(AssistantIntent.ACCOUNT_INFO, res.getIntent(), "Self school query must classify as ACCOUNT_INFO: " + q);
+			}
+		}
+
+		@Test
+		@DisplayName("General User Self School Queries map to ACCOUNT_INFO")
+		void testGeneralUserSelfSchoolQueries() {
+			String[] selfSchoolQueries = {
+				"Which school am I studying in?",
+				"What school am I in?",
+				"Which school am I from?",
+				"Where do I study?",
+				"What is my school?"
+			};
+			for (String q : selfSchoolQueries) {
+				IntentResult res = classifier.classify(q, Role.USER, null);
+				assertNotNull(res, "Result should not be null for query: " + q);
+				assertEquals(AssistantIntent.ACCOUNT_INFO, res.getIntent(), "General user self school query must classify as ACCOUNT_INFO: " + q);
+			}
+		}
+
+		@Test
+		@DisplayName("Student Authorized: 11 Specific Investigation Test Queries")
+		void testStudentProblemStatementQueries() {
+			String[] targetQueries = {
+				"how do I practice grammar checks for sentences",
+				"How many achievements I have unlocked",
+				"what lessons I can do",
+				"how many words I added",
+				"how many speaking sessions done and what are those conversation scenarios",
+				"what AI avatars currently I have to use?",
+				"tell me about fluency in speaking sessions",
+				"what are scenarios for chatting",
+				"how is my XP total",
+				"what is my current english level",
+				"how can I master vocabulary words"
+			};
+			for (String q : targetQueries) {
+				IntentResult res = classifier.classify(q, Role.STUDENT, null);
+				assertNotNull(res, "Result should not be null for query: " + q);
+				assertTrue(res.getIntent() == AssistantIntent.STUDENT_PERFORMANCE || res.getIntent() == AssistantIntent.NAVIGATION_HELP,
+						"Query should classify as STUDENT_PERFORMANCE or NAVIGATION_HELP (was " + res.getIntent() + ") for: " + q);
+			}
+		}
+
+		@Test
+		@DisplayName("Student Authorized: Weak areas and improvement queries")
+		void testStudentWeakAreasQueries() {
+			String[] targetQueries = {
+				"What are my weak areas?",
+				"Where am I weak?",
+				"What should I improve?",
+				"Which areas do I need to work on?",
+				"What are my weaknesses?",
+				"What are my weak spots?",
+				"Where should I improve?",
+				"How can I improve?",
+				"Which areas do I need to practice?"
+			};
+			for (String q : targetQueries) {
+				IntentResult res = classifier.classify(q, Role.STUDENT, null);
+				assertNotNull(res, "Result should not be null for query: " + q);
+				assertEquals(AssistantIntent.STUDENT_PERFORMANCE, res.getIntent(),
+						"Query should classify as STUDENT_PERFORMANCE (was " + res.getIntent() + ") for: " + q);
+				assertFalse(res.getIntent() == AssistantIntent.ACCESS_DENIED, "Query should NOT be ACCESS_DENIED: " + q);
+
+			}
+		}
+
+		@Test
 		@DisplayName("Student Restricted: Cross-student, school-wide, revenue, platform, credentials")
 		void testStudentRestrictedQueries() {
 			String[] restrictedQueries = {
@@ -519,6 +605,27 @@ public class MasterRoleScopedChatbotTest {
 			assertEquals(AssistantIntent.SCHOOL_ROSTER, rJspm.getIntent());
 			assertEquals("JSPM", rJspm.getParams().get("schoolName"));
 
+			String[] dyPatilQueries = {
+				"Students of DY Patil",
+				"Show students of DY Patil",
+				"How many students are in DY Patil?",
+				"List students from DY Patil",
+				"Tell me about DY Patil students",
+				"DY Patil students",
+				"Students from DY Patil",
+				"Who are the students in DY Patil?",
+				"How many students does DY Patil have?",
+				"Show me DY Patil's students"
+			};
+			for (String q : dyPatilQueries) {
+				IntentResult res = classifier.classify(q, Role.SUPER_ADMIN, null);
+				assertNotNull(res, "Result should not be null for query: " + q);
+				assertTrue(res.getIntent() == AssistantIntent.SCHOOL_ROSTER || res.getIntent() == AssistantIntent.SCHOOL_OVERVIEW,
+						"Expected SCHOOL_ROSTER or SCHOOL_OVERVIEW for query: " + q + " but got: " + res.getIntent());
+				assertEquals("DY Patil", res.getParams().get("schoolName"), "Expected extracted schoolName DY Patil for query: " + q);
+				assertFalse(res.getIntent() == AssistantIntent.ACCESS_DENIED, "Query should NOT be ACCESS_DENIED: " + q);
+			}
+
 			// Platform performance and singular student list
 			assertEquals(AssistantIntent.PLATFORM_OVERVIEW, classifier.classify("How is the platform performing overall?", Role.SUPER_ADMIN, null).getIntent());
 			IntentResult rListOfStudent = classifier.classify("list of student", Role.SUPER_ADMIN, null);
@@ -701,6 +808,126 @@ public class MasterRoleScopedChatbotTest {
 							"Secret request should be denied for role " + role + ": " + q);
 				}
 			}
+		}
+	}
+
+	@Nested
+	@DisplayName("6. SpeakMate AI Domain Boundary Tests")
+	class DomainBoundaryTests {
+
+		@Test
+		@DisplayName("Unrelated general knowledge questions must be denied for all roles")
+		void testUnrelatedQuestionsDeniedForAllRoles() {
+			String[] unrelatedQueries = {
+				"what is hobby",
+				"What is a hobby?",
+				"Who is MS Dhoni?",
+				"Who is Virat Kohli?",
+				"Who is Rohit Sharma?",
+				"Who is Elon Musk?",
+				"Who is Albert Einstein?",
+				"What is democracy?",
+				"How does Docker work?",
+				"What is chemistry?",
+				"Explain blockchain.",
+				"What is Python?",
+				"Explain Java.",
+				"Explain photosynthesis.",
+				"Solve 25 × 40.",
+				"What is 25 * 40?",
+				"Calculate 125 + 375.",
+				"What is today's weather?",
+				"Give me a recipe.",
+				"Tell me a joke.",
+				"Write a poem.",
+				"Who won yesterday's cricket match?",
+				"Help me write a generic resume.",
+				"Can you teach me Python programming?",
+				"I want to learn programming. Where should I start?",
+				"Can you explain how photosynthesis works?",
+				"Help me prepare for a general aptitude exam.",
+				"Can you calculate this for me?"
+			};
+			for (Role role : new Role[]{Role.STUDENT, Role.TEACHER, Role.SCHOOL_ADMIN, Role.SUPER_ADMIN, Role.USER}) {
+				for (String q : unrelatedQueries) {
+					IntentResult res = classifier.classify(q, role, null);
+					assertNotNull(res, "Result should not be null for query: " + q);
+					assertEquals(AssistantIntent.ACCESS_DENIED, res.getIntent(),
+							"Unrelated domain query should be DENIED for role " + role + ": " + q);
+				}
+			}
+		}
+
+		@Test
+		@DisplayName("Cross-panel Route Leakage Protection: Current route must not cause unrelated queries to become NAVIGATION_HELP")
+		void testCrossPanelRouteLeakageProtection() {
+			String[] unrelatedQueries = {
+				"what is hobby",
+				"Who is MS Dhoni?",
+				"Who is Virat Kohli?",
+				"What is Python?",
+				"Explain photosynthesis.",
+				"Tell me a joke.",
+				"What is 25 * 40?",
+				"What is today's weather?",
+				"Explain Java."
+			};
+			// Panels & routes: Teacher (/teacher/dashboard), School Admin (/school-admin/dashboard), Super Admin (/admin/dashboard), Student (/progress), User (/dashboard)
+			Role[] roles = new Role[]{Role.TEACHER, Role.SCHOOL_ADMIN, Role.SUPER_ADMIN, Role.STUDENT, Role.USER};
+			for (Role role : roles) {
+				for (String q : unrelatedQueries) {
+					IntentResult res = classifier.classify(q, role, null);
+					assertNotNull(res, "Result should not be null for query: " + q);
+					assertEquals(AssistantIntent.ACCESS_DENIED, res.getIntent(),
+							"Unrelated query must return ACCESS_DENIED for role " + role + " regardless of route context: " + q);
+				}
+			}
+		}
+
+		@Test
+		@DisplayName("Legitimate SpeakMate Navigation Protection: Valid navigation queries must continue working across all panels")
+		void testLegitimateNavigationQueriesWork() {
+			String[] navQueries = {
+				"Where can I find the Students page?",
+				"How do I open student reports?",
+				"Where can I see analytics?",
+				"Where can I access my profile?"
+			};
+			for (String q : navQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertNotNull(res);
+				assertEquals(AssistantIntent.NAVIGATION_HELP, res.getIntent(),
+						"Legitimate navigation query should classify as NAVIGATION_HELP: " + q);
+			}
+		}
+
+		@Test
+		@DisplayName("Mixed requests containing unrelated topics must be denied")
+		void testMixedRequestsDenied() {
+			String[] mixedQueries = {
+				"Show my students and explain photosynthesis.",
+				"Show my students and tell me who Virat Kohli is.",
+				"How is my speaking score and what is Python?",
+				"Show my teacher list and tell me a joke.",
+				"Show my progress and solve this math problem."
+			};
+			for (Role role : new Role[]{Role.TEACHER, Role.SCHOOL_ADMIN, Role.SUPER_ADMIN}) {
+				for (String q : mixedQueries) {
+					IntentResult res = classifier.classify(q, role, null);
+					assertNotNull(res);
+					assertEquals(AssistantIntent.ACCESS_DENIED, res.getIntent(),
+							"Mixed query containing unrelated topic should be DENIED: " + q);
+				}
+			}
+		}
+
+		@Test
+		@DisplayName("False-positive protection: Legitimate SpeakMate educational queries must be allowed")
+		void testLegitimateEducationalQueriesAllowed() {
+			assertFalse(AssistantIntent.ACCESS_DENIED == classifier.classify("Show student pronunciation performance.", Role.TEACHER, null).getIntent());
+			assertEquals(AssistantIntent.STUDENT_PERFORMANCE, classifier.classify("Show vocabulary progress.", Role.STUDENT, null).getIntent());
+			assertFalse(AssistantIntent.ACCESS_DENIED == classifier.classify("Explain my student's speaking score.", Role.TEACHER, null).getIntent());
+			assertFalse(AssistantIntent.ACCESS_DENIED == classifier.classify("Show students with low fluency.", Role.TEACHER, null).getIntent());
 		}
 	}
 }

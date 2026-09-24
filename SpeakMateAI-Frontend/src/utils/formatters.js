@@ -43,8 +43,56 @@ export function formatScore(score) {
  * @param {number} xp
  */
 export function formatXP(xp) {
-  return xp.toLocaleString("en-US");
+  return xp ? xp.toLocaleString("en-US") : "0";
 }
+
+/**
+ * Get user-friendly English proficiency label from numeric level or level string.
+ * Mapping:
+ * - Level 1–2 → Beginner
+ * - Level 3–4 → Intermediate
+ * - Level 5+  → Advanced
+ *
+ * @param {number|string|null|undefined} level
+ * @returns {string} "Beginner" | "Intermediate" | "Advanced"
+ */
+export function getEnglishLevelLabel(level) {
+  if (level === null || level === undefined) return "Beginner";
+
+  if (typeof level === "object") {
+    level = level.level ?? level.englishLevel ?? level.levelName ?? null;
+  }
+
+  if (typeof level === "string") {
+    const trimmed = level.trim();
+    const matchNum = trimmed.match(/(?:level\s*)?(\d+)/i);
+    if (matchNum && matchNum[1]) {
+      const parsed = parseInt(matchNum[1], 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        return getEnglishLevelLabel(parsed);
+      }
+    }
+
+    const lower = trimmed.toLowerCase();
+    if (lower.includes("advanced") || lower.includes("c1") || lower.includes("c2") || lower.includes("mastery")) {
+      return "Advanced";
+    }
+    if (lower.includes("intermediate") || lower.includes("b1") || lower.includes("b2")) {
+      return "Intermediate";
+    }
+    if (lower.includes("beginner") || lower.includes("elementary") || lower.includes("basic") || lower.includes("a1") || lower.includes("a2")) {
+      return "Beginner";
+    }
+    return "Beginner";
+  }
+
+  const num = Number(level);
+  if (isNaN(num) || num < 1) return "Beginner";
+  if (num <= 2) return "Beginner";
+  if (num <= 4) return "Intermediate";
+  return "Advanced";
+}
+
 
 /**
  * Get score label from numeric score
