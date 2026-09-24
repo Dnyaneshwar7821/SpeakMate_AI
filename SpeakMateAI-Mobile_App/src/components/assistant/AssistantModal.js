@@ -384,87 +384,8 @@ export function AssistantModal({
   const textColor = isDark ? '#F1F5F9' : '#0F172A';
   const subtextColor = isDark ? '#94A3B8' : '#64748B';
 
-  const [showTestView, setShowTestView] = useState(true);
-
-  useEffect(() => {
-    if (isOpen) {
-      setShowTestView(true);
-      console.log('[AssistantModal] OPEN');
-    } else {
-      console.log('[AssistantModal] CLOSE');
-    }
-  }, [isOpen]);
-
   const visible = Boolean(isOpen);
   const sheetHeight = Math.min(Math.round((windowHeight || SCREEN_HEIGHT) * 0.85), 720);
-
-  console.log('[AssistantModal] RENDER');
-  console.log('[AssistantModal] visible:', visible);
-  console.log('[AssistantModal] windowHeight:', windowHeight);
-  console.log('[AssistantModal] SCREEN_HEIGHT:', SCREEN_HEIGHT);
-  console.log('[AssistantModal] sheetHeight:', sheetHeight);
-
-  // ─── TEST 1 & 3 & 4 & 5: NON-TRANSPARENT MODAL WITH LIFECYCLE & LAYOUT LOGGING ──
-  if (showTestView) {
-    return (
-      <Modal
-        visible={visible}
-        transparent={false}
-        animationType="none"
-        statusBarTranslucent={true}
-        onRequestClose={handleClose}
-        onShow={() => {
-          console.log('[AssistantModal] NATIVE MODAL onShow');
-        }}
-      >
-        <View
-          style={{
-            flex: 1,
-            backgroundColor: 'red',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-          onLayout={(event) => {
-            const { width, height, x, y } = event.nativeEvent.layout;
-            console.log('[AssistantModal] ROOT MODAL VIEW LAYOUT: width=' + width + ', height=' + height + ', x=' + x + ', y=' + y);
-            console.log('[AssistantModal] ROOT MODAL VIEW LAYOUT', JSON.stringify({
-              width,
-              height,
-              x,
-              y,
-            }));
-          }}
-        >
-          <Text
-            style={{
-              color: 'white',
-              fontSize: 28,
-              fontWeight: 'bold',
-              textAlign: 'center',
-              marginBottom: 20,
-            }}
-          >
-            MODAL TEST
-          </Text>
-
-          <TouchableOpacity
-            onPress={handleClose}
-            style={{
-              backgroundColor: 'white',
-              paddingHorizontal: 24,
-              paddingVertical: 14,
-              borderRadius: 8,
-              marginTop: 16,
-            }}
-          >
-            <Text style={{ color: 'red', fontSize: 16, fontWeight: 'bold' }}>
-              CLOSE TEST
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-    );
-  }
 
   return (
     <Modal
@@ -568,15 +489,6 @@ export function AssistantModal({
 
               {/* Header Action Buttons */}
               <View style={styles.headerActions}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={() => setShowTestView(true)}
-                  style={[styles.actionBtn, { backgroundColor: '#FEE2E2', width: 'auto', paddingHorizontal: 8 }]}
-                  accessibilityLabel="Switch to red test view"
-                >
-                  <Text style={{ color: '#DC2626', fontSize: 10, fontWeight: 'bold' }}>RED TEST</Text>
-                </TouchableOpacity>
-
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={onResetChat}
