@@ -1,0 +1,13 @@
+# Ignore non-mobile folders for EAS Cloud builds
+SpeakMateAI-Backend/
+SpeakMateAI-Frontend/
+SpeakMateAI-Mobile_App/android/
+SpeakMateAI-Mobile_App/ios/
+SpeakMateAI-Mobile_App/node_modules/
+SpeakMateAI-Mobile_App/.expo/
+**/android/**
+**/ios/**
+**/.gradle/**
+**/build/**
+*.log
+.git/
