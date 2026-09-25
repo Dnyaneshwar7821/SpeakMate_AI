@@ -1274,7 +1274,12 @@ export default function LessonDetailScreen({ navigation, route }) {
   ] : [];
 
   // Get active quiz definition
-  const quiz = lesson ? (LESSON_QUIZZES[lesson.title] || DEFAULT_QUIZ) : DEFAULT_QUIZ;
+  const quiz = lesson ? (lesson.quiz?.[0] ? {
+    question: lesson.quiz[0].question,
+    options: lesson.quiz[0].options,
+    answerIndex: lesson.quiz[0].options ? Math.max(0, lesson.quiz[0].options.indexOf(lesson.quiz[0].correctAnswer)) : 0,
+    explanation: lesson.quiz[0].explanation,
+  } : (LESSON_QUIZZES[lesson.title] || DEFAULT_QUIZ)) : DEFAULT_QUIZ;
 
   // ── Skeleton ────────────────────────────────────────────────────────
   if (loading) {

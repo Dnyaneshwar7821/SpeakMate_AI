@@ -346,15 +346,46 @@ export default function LessonsScreen({ navigation }) {
       ]);
       const effAccType = savedAccType || 'INDIVIDUAL_USER';
       setAccountType(effAccType);
-      setCategories(cats || []);
-      setRecommended(recs || []);
-      setContinueItems(cont || []);
       if (savedGrade) {
         setUserGrade(savedGrade);
       }
       if (savedAgeGroup) {
         setUserAgeGroup(savedAgeGroup);
       }
+
+      // Compute baseCurriculum for user profile
+      let baseCurriculum = [];
+      if (effAccType === 'STUDENT') {
+        baseCurriculum = STANDARD_LESSONS[savedGrade || userGrade] || STANDARD_LESSONS['1st Std'];
+      } else {
+        const effAge = String(savedAgeGroup || userAgeGroup || 'Professional').toLowerCase();
+        let targetGroup = 'Professionals & Seniors (Age 25+)';
+        if (effAge.includes('kid') || effAge.includes('6-12')) targetGroup = 'Kids (Age 6–12)';
+        else if (effAge.includes('teen') || effAge.includes('young') || effAge.includes('13-24')) targetGroup = 'Teens & Young Adults (Age 13–24)';
+        baseCurriculum = GENERAL_LESSONS[targetGroup] || GENERAL_LESSONS['Professionals & Seniors (Age 25+)'];
+      }
+
+      // Categories from newly defined profile lessons
+      const catCounts = {};
+      baseCurriculum.forEach(l => {
+        const c = l.category || 'General';
+        catCounts[c] = (catCounts[c] || 0) + 1;
+      });
+      const curatedCategories = Object.keys(catCounts).map(catName => ({
+        name: catName,
+        lessonCount: catCounts[catName],
+        completedCount: 0,
+        icon: 'book-outline',
+      }));
+      setCategories(curatedCategories);
+
+      // Continue learning from newly defined profile lessons
+      const targetTitles = new Set(baseCurriculum.map(t => (t.title || '').trim().toLowerCase()));
+      const matchedCont = (cont || []).filter(c => targetTitles.has((c.title || '').trim().toLowerCase()));
+      setContinueItems(matchedCont.length > 0 ? matchedCont : (baseCurriculum.length > 0 ? [baseCurriculum[0]] : []));
+
+      // Recommended from newly defined profile lessons
+      setRecommended(baseCurriculum.slice(0, 5));
 
       // Load lessons based on current filter
       await applyFilter(selectedCategory, activeTab, silent);
@@ -364,7 +395,7 @@ export default function LessonsScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedCategory, activeTab]);
+  }, [selectedCategory, activeTab, userGrade, userAgeGroup, accountType]);
 
   const applyFilter = useCallback(async (category, difficulty, silent = false) => {
     if (!silent) setLoading(true);
@@ -392,21 +423,30 @@ export default function LessonsScreen({ navigation }) {
         baseCurriculum = GENERAL_LESSONS[targetGroup] || GENERAL_LESSONS['Professionals & Seniors (Age 25+)'];
       }
 
-      const gradeCurated = baseCurriculum.map((sl) => ({
-        ...sl,
-        completed: completedSet.has(String(sl.id)),
-        progressPercent: completedSet.has(String(sl.id)) ? 100 : (sl.progressPercent || 0),
-      }));
-      let list = Array.isArray(data) && data.length > 0 ? [...data] : [...gradeCurated];
-
-      // Merge curriculum alongside backend lessons seamlessly
-      if (Array.isArray(data) && data.length > 0 && gradeCurated) {
-        const existingTitles = new Set(data.map((l) => (l.title || '').trim().toLowerCase()));
-        const uniqueStandard = gradeCurated.filter(
-          (sl) => !existingTitles.has((sl.title || '').trim().toLowerCase())
-        );
-        list = [...data, ...uniqueStandard];
+      // Map any backend completion/progress into the newly defined profile lessons
+      const backendMap = new Map();
+      if (Array.isArray(data) && data.length > 0) {
+        data.forEach(item => {
+          if (item?.title) backendMap.set(item.title.trim().toLowerCase(), item);
+        });
       }
+
+      let list = baseCurriculum.map((sl) => {
+        const backendMatch = backendMap.get((sl.title || '').trim().toLowerCase());
+        const isDone = completedSet.has(String(sl.id)) || Boolean(backendMatch?.completed);
+        const prog = isDone ? 100 : (backendMatch?.progressPercent || sl.progressPercent || 0);
+        return {
+          ...sl,
+          ...(backendMatch || {}),
+          id: sl.id,
+          title: sl.title,
+          category: sl.category,
+          level: sl.level,
+          description: sl.description,
+          completed: isDone,
+          progressPercent: prog,
+        };
+      });
 
       if (category && category !== 'All') {
         list = list.filter((l) => l.category?.toLowerCase() === category?.toLowerCase());
@@ -476,13 +516,7 @@ export default function LessonsScreen({ navigation }) {
             completed: completedSet.has(String(sl.id)),
             progressPercent: completedSet.has(String(sl.id)) ? 100 : (sl.progressPercent || 0),
           }));
-
-        const existingTitles = new Set((results || []).map((r) => (r.title || '').trim().toLowerCase()));
-        const uniqueStandard = matchedStandard.filter(
-          (sl) => !existingTitles.has((sl.title || '').trim().toLowerCase())
-        );
-
-        setSearchResults([...(results || []), ...uniqueStandard]);
+        setSearchResults(matchedStandard);
       } catch {
         setSearchResults([]);
       } finally {
