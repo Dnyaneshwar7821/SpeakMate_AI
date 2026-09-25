@@ -16,6 +16,15 @@ export function Login() {
   const [error, setError] = useState("");
   const infoMessage = location.state?.infoMessage || "";
 
+  const handleTabChange = (type) => {
+    if (loginType === type) return;
+    setLoginType(type);
+    setForm({ email: "", password: "" });
+    setSchoolCode("");
+    setError("");
+    setShowPassword(false);
+  };
+
   const handleSubmit = async (event) => {
     if (event) event.preventDefault();
     setError("");
@@ -156,7 +165,7 @@ export function Login() {
             <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-[var(--bg-elevated)]/60 border border-[var(--border-default)]">
               <button
                 type="button"
-                onClick={() => { setLoginType("STANDARD"); setError(""); }}
+                onClick={() => handleTabChange("STANDARD")}
                 className={`py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                   loginType === "STANDARD"
                     ? "bg-[var(--bg-surface)] text-[#6C63FF] shadow-sm border border-[var(--border-default)]"
@@ -167,7 +176,7 @@ export function Login() {
               </button>
               <button
                 type="button"
-                onClick={() => { setLoginType("SCHOOL"); setError(""); }}
+                onClick={() => handleTabChange("SCHOOL")}
                 className={`py-2 px-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                   loginType === "SCHOOL"
                     ? "bg-[var(--bg-surface)] text-[#6C63FF] shadow-sm border border-[var(--border-default)]"

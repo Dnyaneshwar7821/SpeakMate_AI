@@ -45,6 +45,20 @@ export default function LoginScreen({ navigation }) {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
 
+  const handleTabChange = (type) => {
+    if (loginType === type) return;
+    setLoginType(type);
+    setEmail('');
+    setPassword('');
+    setSchoolCode('');
+    setError('');
+    setTouched({
+      schoolCode: false,
+      email: false,
+      password: false,
+    });
+  };
+
   const getSchoolCodeError = () => {
     if (loginType === 'SCHOOL' && !schoolCode.trim()) {
       return 'Please enter your School Code (e.g. SCH-1082).';
@@ -186,7 +200,7 @@ export default function LoginScreen({ navigation }) {
               <View style={styles.tabContainer}>
                 <TouchableOpacity
                   style={[styles.tabBtn, loginType === 'STANDARD' && styles.activeTabBtn]}
-                  onPress={() => { setLoginType('STANDARD'); setError(''); }}
+                  onPress={() => handleTabChange('STANDARD')}
                   activeOpacity={0.85}
                 >
                   <Ionicons
@@ -201,7 +215,7 @@ export default function LoginScreen({ navigation }) {
 
                 <TouchableOpacity
                   style={[styles.tabBtn, loginType === 'SCHOOL' && styles.activeTabBtn]}
-                  onPress={() => { setLoginType('SCHOOL'); setError(''); }}
+                  onPress={() => handleTabChange('SCHOOL')}
                   activeOpacity={0.85}
                 >
                   <Ionicons
