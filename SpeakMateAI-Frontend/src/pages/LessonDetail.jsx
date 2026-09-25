@@ -4,6 +4,7 @@ import ROUTES from "../constants/routes";
 import { speakGlobalText } from "../utils/speechHelper";
 import { lessonModuleService, aiService, speechService } from "../services/appServices";
 import { recordLessonCompleted } from "../utils/progressTracker";
+import { findCurriculumLesson } from "../constants/masterCurriculum";
 
 // Helper to safely parse objectives and skills arrays regardless of API response type
 const parseArrayField = (field, fallback = []) => {
@@ -142,28 +143,44 @@ export function LessonDetail() {
   const recognitionRef = useRef(null);
 
   useEffect(() => {
+    const curr = findCurriculumLesson(id);
+    if (curr) {
+      setLesson(curr);
+    }
+
     lessonModuleService
       .detail(id)
       .then((data) => {
-        setLesson(data);
+        setLesson((prev) => ({
+          ...(curr || {}),
+          ...data,
+          objectives: data?.objectives && parseArrayField(data.objectives).length > 0 ? parseArrayField(data.objectives) : curr?.objectives,
+          skills: data?.skills && parseArrayField(data.skills).length > 0 ? parseArrayField(data.skills) : curr?.skills,
+          checkQuestion: curr?.checkQuestion || prev?.checkQuestion,
+          guidedPractice: curr?.guidedPractice || prev?.guidedPractice,
+          speakingDrills: curr?.speakingDrills || prev?.speakingDrills,
+          quiz: curr?.quiz || prev?.quiz,
+        }));
       })
       .catch(() => {
-        setLesson({
-          id: id || "1",
-          title: "Present Tenses Mastery",
-          category: "Grammar",
-          level: "Beginner",
-          estimatedMinutes: 15,
-          xpReward: 35,
-          description: "Master present simple vs continuous tenses with real-world sentence drills and voice audio exercises.",
-          objectives: [
-            "Understand present simple vs continuous rules",
-            "Identify stative vs action verbs",
-            "Form correct positive, negative, and question sentences",
-            "Practice speaking full sentences confidently out loud",
-          ],
-          skills: ["Grammar Accuracy", "Speaking Fluency", "Sentence Structure"],
-        });
+        if (!curr) {
+          setLesson({
+            id: id || "1",
+            title: "Present Tenses Mastery",
+            category: "Grammar",
+            level: "Beginner",
+            estimatedMinutes: 15,
+            xpReward: 35,
+            description: "Master present simple vs continuous tenses with real-world sentence drills and voice audio exercises.",
+            objectives: [
+              "Understand present simple vs continuous rules",
+              "Identify stative vs action verbs",
+              "Form correct positive, negative, and question sentences",
+              "Practice speaking full sentences confidently out loud",
+            ],
+            skills: ["Grammar Accuracy", "Speaking Fluency", "Sentence Structure"],
+          });
+        }
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -215,6 +232,15 @@ export function LessonDetail() {
     if (!showStudy || studyStep !== 2 || !lesson) return;
     if (aiExamples.length > 0) return;
 
+    if (lesson?.speakingDrills && lesson.speakingDrills.length > 0) {
+      setAiExamples(lesson.speakingDrills.map((drill, idx) => ({
+        sentence: drill,
+        context: `Academic Practice Drill #${idx + 1}`,
+        explanation: `Demonstrates the core academic formula for "${lesson.title}".`
+      })));
+      return;
+    }
+
     setAiExamplesLoading(true);
     setAiExamples([
       { sentence: "She has been studying English for three years now.", context: "Everyday Life", explanation: "Uses present perfect continuous to show an ongoing action." },
@@ -228,6 +254,11 @@ export function LessonDetail() {
   useEffect(() => {
     if (!showStudy || studyStep !== 3 || !lesson) return;
     if (aiCheckQ) return;
+
+    if (lesson?.checkQuestion) {
+      setAiCheckQ(shuffleCheckQ(lesson.checkQuestion));
+      return;
+    }
 
     const baseCheck = {
       question: `Select the correct sentence format for "${lesson.title}":`,
@@ -246,6 +277,11 @@ export function LessonDetail() {
   useEffect(() => {
     if (!showStudy || studyStep !== 4 || !lesson) return;
     if (aiGuidedQ) return;
+
+    if (lesson?.guidedPractice) {
+      setAiGuidedQ(lesson.guidedPractice);
+      return;
+    }
 
     setAiGuidedQ({
       sentence: "Every day I ______ new English vocabulary phrases to build fluency.",
@@ -273,39 +309,43 @@ export function LessonDetail() {
         throw new Error("Invalid questions");
       }
     } catch (e) {
-      const baseFallback = [
-        {
-          question: `[${tier}] What is the primary rule taught in "${lesson?.title}"?`,
-          options: ["Focus on natural sentence structure and verb tenses.", "Memorize dictionary words without sentences.", "Translate word for word from native language.", "Avoid practicing out loud."],
-          correctAnswer: "Focus on natural sentence structure and verb tenses.",
-          explanation: "Correct sentence structure builds natural speech fluency.",
-        },
-        {
-          question: `[${tier}] Select the most polite professional expression:`,
-          options: ["Could you please provide an update on the project?", "Give me project update now.", "I want project update.", "Tell update immediately."],
-          correctAnswer: "Could you please provide an update on the project?",
-          explanation: "'Could you please' is formal and polite in business communication.",
-        },
-        {
-          question: `[${tier}] Which sentence demonstrates correct contextual usage?`,
-          options: ["I practice speaking every single day.", "Me practice speak everyday.", "I am practice speech everyday.", "Practicing I do daily."],
-          correctAnswer: "I practice speaking every single day.",
-          explanation: "Simple present tense with correct subject pronoun 'I' expresses a daily habit.",
-        },
-        {
-          question: `[${tier}] What is the best way to eliminate awkward pauses?`,
-          options: ["Use natural transitional phrases and structured pauses.", "Speak as fast as possible without breathing.", "Repeat the same word continuously.", "Never speak in full sentences."],
-          correctAnswer: "Use natural transitional phrases and structured pauses.",
-          explanation: "Transitional phrases give your brain time to formulate the next thought naturally.",
-        },
-        {
-          question: `[${tier}] What key habit ensures long-term fluency?`,
-          options: ["Consistent daily practice and active conversational drills.", "Reading grammar books without ever speaking.", "Avoiding listening to native audio.", "Only memorizing single isolated words."],
-          correctAnswer: "Consistent daily practice and active conversational drills.",
-          explanation: "Active conversational drills build lasting neural pathways for spontaneous speech.",
-        }
-      ];
-      setQuizQuestions(shuffleQuestionOptions(baseFallback));
+      if (lesson?.quiz && Array.isArray(lesson.quiz) && lesson.quiz.length >= 3) {
+        setQuizQuestions(shuffleQuestionOptions(lesson.quiz));
+      } else {
+        const baseFallback = [
+          {
+            question: `[${tier}] What is the primary rule taught in "${lesson?.title}"?`,
+            options: ["Focus on natural sentence structure and verb tenses.", "Memorize dictionary words without sentences.", "Translate word for word from native language.", "Avoid practicing out loud."],
+            correctAnswer: "Focus on natural sentence structure and verb tenses.",
+            explanation: "Correct sentence structure builds natural speech fluency.",
+          },
+          {
+            question: `[${tier}] Select the most polite professional expression:`,
+            options: ["Could you please provide an update on the project?", "Give me project update now.", "I want project update.", "Tell update immediately."],
+            correctAnswer: "Could you please provide an update on the project?",
+            explanation: "'Could you please' is formal and polite in business communication.",
+          },
+          {
+            question: `[${tier}] Which sentence demonstrates correct contextual usage?`,
+            options: ["I practice speaking every single day.", "Me practice speak everyday.", "I am practice speech everyday.", "Practicing I do daily."],
+            correctAnswer: "I practice speaking every single day.",
+            explanation: "Simple present tense with correct subject pronoun 'I' expresses a daily habit.",
+          },
+          {
+            question: `[${tier}] What is the best way to eliminate awkward pauses?`,
+            options: ["Use natural transitional phrases and structured pauses.", "Speak as fast as possible without breathing.", "Repeat the same word continuously.", "Never speak in full sentences."],
+            correctAnswer: "Use natural transitional phrases and structured pauses.",
+            explanation: "Transitional phrases give your brain time to formulate the next thought naturally.",
+          },
+          {
+            question: `[${tier}] What key habit ensures long-term fluency?`,
+            options: ["Consistent daily practice and active conversational drills.", "Reading grammar books without ever speaking.", "Avoiding listening to native audio.", "Only memorizing single isolated words."],
+            correctAnswer: "Consistent daily practice and active conversational drills.",
+            explanation: "Active conversational drills build lasting neural pathways for spontaneous speech.",
+          }
+        ];
+        setQuizQuestions(shuffleQuestionOptions(baseFallback));
+      }
     } finally {
       setQuizLoading(false);
     }
@@ -727,6 +767,13 @@ export function LessonDetail() {
             <div className="space-y-4">
               <h2 className="text-lg font-extrabold text-[var(--text-primary)]">🎙️ Step 5: Live Speaking Practice</h2>
               <p className="text-xs text-[var(--text-secondary)]">Speak a full sentence out loud applying this lesson concept.</p>
+
+              {lesson?.speakingDrills && lesson.speakingDrills.length > 0 && (
+                <div className="p-3 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 text-xs">
+                  <span className="font-extrabold text-[#6c63ff]">🎯 Recommended Speaking Prompt:</span>
+                  <p className="mt-1 font-semibold text-[var(--text-primary)]">"{lesson.speakingDrills[0]}"</p>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <input

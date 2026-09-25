@@ -396,28 +396,36 @@ export default function LessonDetailScreen({ navigation, route }) {
     setLoading(true);
     setError('');
     try {
+      const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle) || findStandardLesson(route.params?.title);
+      const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
+      const completedIds = stored ? JSON.parse(stored) : [];
+      const isDone = local ? completedIds.includes(String(local.id)) : false;
+
+      if (local) {
+        setLesson({
+          ...local,
+          completed: isDone,
+          progressPercent: isDone ? 100 : (local.progressPercent || 0),
+        });
+        Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+      }
+
       if (typeof lessonId === 'number' || (/^\d+$/.test(String(lessonId)))) {
         const data = await lessonModuleService.detail(lessonId);
-        setLesson(data);
-      } else {
-        const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle);
-        if (local) {
-          const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
-          const completedIds = stored ? JSON.parse(stored) : [];
-          const isDone = completedIds.includes(String(local.id));
-          setLesson({
-            ...local,
-            completed: isDone,
-            progressPercent: isDone ? 100 : (local.progressPercent || 0),
-          });
-        } else {
-          const data = await lessonModuleService.detail(lessonId);
-          setLesson(data);
+        if (data) {
+          setLesson((prev) => ({
+            ...(local || {}),
+            ...data,
+            checkQuestion: local?.checkQuestion || prev?.checkQuestion,
+            guidedPractice: local?.guidedPractice || prev?.guidedPractice,
+            speakingDrills: local?.speakingDrills || prev?.speakingDrills,
+            quiz: local?.quiz || prev?.quiz,
+          }));
         }
       }
       Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     } catch (e) {
-      const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle);
+      const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle) || findStandardLesson(route.params?.title);
       if (local) {
         const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
         const completedIds = stored ? JSON.parse(stored) : [];
@@ -614,12 +622,20 @@ export default function LessonDetailScreen({ navigation, route }) {
         throw new Error('Invalid examples response');
       } catch (err) {
         console.warn('Auto AI examples failed, using fallback:', err);
-        setAiExamples([
-          { sentence: `She has been studying English for three years now.`, context: 'Everyday life', explanation: `This shows the present perfect continuous tense correctly — "has been" + verb-ing for ongoing actions that started in the past.` },
-          { sentence: `Could you please explain that point again?`, context: 'In a meeting', explanation: 'Using "Could you" makes a polite request. Native speakers prefer this over "Can you" in formal settings.' },
-          { sentence: `I would have called you if I had known earlier.`, context: 'With a friend', explanation: 'This is a third conditional sentence — used for imaginary past situations and their hypothetical results.' },
-          { sentence: `The report needs to be submitted by Friday.`, context: 'At work', explanation: '"Needs to be" is passive voice — used when the action matters more than who does it, common in professional English.' },
-        ]);
+        if (lesson?.speakingDrills && lesson.speakingDrills.length > 0) {
+          setAiExamples(lesson.speakingDrills.map((drill, idx) => ({
+            sentence: drill,
+            context: `Academic Practice Drill #${idx + 1}`,
+            explanation: `Demonstrates the core academic formula for "${lesson.title}".`
+          })));
+        } else {
+          setAiExamples([
+            { sentence: `She has been studying English for three years now.`, context: 'Everyday life', explanation: `This shows the present perfect continuous tense correctly — "has been" + verb-ing for ongoing actions that started in the past.` },
+            { sentence: `Could you please explain that point again?`, context: 'In a meeting', explanation: 'Using "Could you" makes a polite request. Native speakers prefer this over "Can you" in formal settings.' },
+            { sentence: `I would have called you if I had known earlier.`, context: 'With a friend', explanation: 'This is a third conditional sentence — used for imaginary past situations and their hypothetical results.' },
+            { sentence: `The report needs to be submitted by Friday.`, context: 'At work', explanation: '"Needs to be" is passive voice — used when the action matters more than who does it, common in professional English.' },
+          ]);
+        }
       } finally {
         setAiExamplesLoading(false);
       }
@@ -666,16 +682,20 @@ export default function LessonDetailScreen({ navigation, route }) {
         throw new Error('Invalid check question response');
       } catch (err) {
         console.warn('Auto AI check question failed, using fallback:', err);
-        setAiCheckQ(shuffleCheckQ({
-          question: `What is the most important thing to remember when using "${lesson.title}" in a real conversation?`,
-          options: [
-            'Focus on correct structure, natural rhythm, and clear meaning.',
-            'Translate every word directly from your native language.',
-            'Memorize rules without ever practicing in sentences.',
-          ],
-          correctIndex: 0,
-          explanation: 'Applying the rule in real sentences with natural rhythm is the key to truly mastering any English concept.',
-        }));
+        if (lesson?.checkQuestion) {
+          setAiCheckQ(shuffleCheckQ(lesson.checkQuestion));
+        } else {
+          setAiCheckQ(shuffleCheckQ({
+            question: `What is the most important thing to remember when using "${lesson.title}" in a real conversation?`,
+            options: [
+              'Focus on correct structure, natural rhythm, and clear meaning.',
+              'Translate every word directly from your native language.',
+              'Memorize rules without ever practicing in sentences.',
+            ],
+            correctIndex: 0,
+            explanation: 'Applying the rule in real sentences with natural rhythm is the key to truly mastering any English concept.',
+          }));
+        }
       } finally {
         setAiCheckQLoading(false);
       }
@@ -721,12 +741,16 @@ export default function LessonDetailScreen({ navigation, route }) {
         throw new Error('Invalid guided question response');
       } catch (err) {
         console.warn('Auto AI guided practice failed, using fallback:', err);
-        setAiGuidedQ({
-          sentence: `Every day I ______ new English phrases to improve my fluency.`,
-          correctWord: 'practice',
-          hint: 'Think of a verb meaning to do something repeatedly to get better at it.',
-          explanation: '"Practice" is the correct verb here — a habitual action done daily requires the simple present tense.',
-        });
+        if (lesson?.guidedPractice) {
+          setAiGuidedQ(lesson.guidedPractice);
+        } else {
+          setAiGuidedQ({
+            sentence: `Every day I ______ new English phrases to improve my fluency.`,
+            correctWord: 'practice',
+            hint: 'Think of a verb meaning to do something repeatedly to get better at it.',
+            explanation: '"Practice" is the correct verb here — a habitual action done daily requires the simple present tense.',
+          });
+        }
       } finally {
         setAiGuidedQLoading(false);
       }
@@ -737,6 +761,14 @@ export default function LessonDetailScreen({ navigation, route }) {
 
   // Dynamic Quiz Loader
   const generateFallbackQuestions = (title, levelTier) => {
+    if (lesson?.quiz && Array.isArray(lesson.quiz) && lesson.quiz.length >= 3) {
+      return lesson.quiz.map(q => ({
+        question: `[${levelTier}] ${q.question}`,
+        options: q.options,
+        correctAnswer: q.correctAnswer || (q.options ? q.options[q.correctIndex || 0] : ''),
+        explanation: q.explanation || "Focus on correct academic grammar principles."
+      }));
+    }
     const pfx = levelTier === 'Advanced' ? '[Advanced Challenge] ' : (levelTier === 'Intermediate' ? '[Intermediate] ' : '[Basic Concept] ');
     return [
       {
@@ -1226,8 +1258,8 @@ export default function LessonDetailScreen({ navigation, route }) {
   const isLocked = lesson?.locked;
   const hasStarted = prog > 0;
 
-  const skillList = lesson?.skills ? lesson.skills.split(',').map((s) => s.trim()).filter(Boolean) : [];
-  const objectiveList = lesson?.objectives ? lesson.objectives.split(',').map((s) => s.trim()).filter(Boolean) : [];
+  const skillList = lesson?.skills ? (Array.isArray(lesson.skills) ? lesson.skills : lesson.skills.split(',').map((s) => s.trim()).filter(Boolean)) : [];
+  const objectiveList = lesson?.objectives ? (Array.isArray(lesson.objectives) ? lesson.objectives : lesson.objectives.split(',').map((s) => s.trim()).filter(Boolean)) : [];
 
   const sections = lesson ? [
     '1. Introduction & Objectives',
@@ -1909,6 +1941,13 @@ export default function LessonDetailScreen({ navigation, route }) {
                   <Text style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 18, marginBottom: 14 }}>
                     Speak a sentence using this concept. AI will check your grammar, fluency, and structure!
                   </Text>
+
+                  {lesson?.speakingDrills && lesson.speakingDrills.length > 0 && (
+                    <View style={{ backgroundColor: isDark ? 'rgba(99,102,241,0.15)' : '#EEF2FF', borderRadius: 10, padding: 12, marginBottom: 14, borderWidth: 1, borderColor: '#818CF8' }}>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.primary, marginBottom: 2 }}>🎯 Practice Prompt:</Text>
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: theme.textPrimary, fontStyle: 'italic' }}>&quot;{lesson.speakingDrills[0]}&quot;</Text>
+                    </View>
+                  )}
 
                   {/* Mic Button + Wave Animation */}
                   <View style={{ alignItems: 'center', marginBottom: 16 }}>

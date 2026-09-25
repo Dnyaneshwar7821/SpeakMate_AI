@@ -70,6 +70,8 @@ scratch/
 SpeakMate_AI_SRS_v2.docx
 SpeakMate AI/backup_db.js
 backup_db.js
+hs_err_*.log
+replay_*.log
 
 # --- Hold from push until user requests ---
 ADMIN_PANEL_MASTER_DOCUMENTATION.md

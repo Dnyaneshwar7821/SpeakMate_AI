@@ -26,7 +26,7 @@ import { useTheme } from '../../context/ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lessonModuleService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
-import { STANDARD_LESSONS } from '../../constants/standardLessons';
+import { STANDARD_LESSONS, GENERAL_LESSONS, MASTER_LESSONS } from '../../constants/standardLessons';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -367,19 +367,31 @@ export default function LessonsScreen({ navigation }) {
       const params = {};
       if (category && category !== 'All') params.category = category;
       if (difficulty && difficulty !== 'All') params.difficulty = difficulty;
-      const [data, storedCompleted] = await Promise.all([
+      const [data, storedCompleted, savedAccType, savedAgeGroup] = await Promise.all([
         lessonModuleService.list(params).catch(() => []),
         AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null),
+        AsyncStorage.getItem('speakmate_account_type').catch(() => null),
+        AsyncStorage.getItem('speakmate_age_group').catch(() => null),
       ]);
       const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted) : []);
-      const gradeCurated = (STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std']).map((sl) => ({
+      
+      let baseCurriculum = [];
+      const effType = savedAccType || accountType;
+      if (effType === 'STUDENT') {
+        baseCurriculum = STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std'];
+      } else {
+        const effAgeGroup = savedAgeGroup || 'Professionals & Seniors (Age 25+)';
+        baseCurriculum = GENERAL_LESSONS[effAgeGroup] || GENERAL_LESSONS['Professionals & Seniors (Age 25+)'] || MASTER_LESSONS;
+      }
+
+      const gradeCurated = baseCurriculum.map((sl) => ({
         ...sl,
         completed: completedSet.has(String(sl.id)),
         progressPercent: completedSet.has(String(sl.id)) ? 100 : (sl.progressPercent || 0),
       }));
       let list = Array.isArray(data) && data.length > 0 ? [...data] : [...gradeCurated];
 
-      // Merge standard-curated curriculum alongside backend lessons seamlessly
+      // Merge curriculum alongside backend lessons seamlessly
       if (Array.isArray(data) && data.length > 0 && gradeCurated) {
         const existingTitles = new Set(data.map((l) => (l.title || '').trim().toLowerCase()));
         const uniqueStandard = gradeCurated.filter(
@@ -396,11 +408,11 @@ export default function LessonsScreen({ navigation }) {
       }
       setLessons(list);
     } catch {
-      setLessons(STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std']);
+      setLessons(accountType === 'STUDENT' ? (STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std']) : (GENERAL_LESSONS['Professionals & Seniors (Age 25+)'] || MASTER_LESSONS));
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [userGrade]);
+  }, [userGrade, accountType]);
 
   useFocusEffect(
     useCallback(() => {
@@ -432,7 +444,7 @@ export default function LessonsScreen({ navigation }) {
         ]);
         const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted) : []);
         const q = searchText.trim().toLowerCase();
-        const allStandard = Object.values(STANDARD_LESSONS).flat();
+        const allStandard = MASTER_LESSONS;
         const matchedStandard = allStandard
           .filter(
             (l) =>
