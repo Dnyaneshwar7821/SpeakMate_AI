@@ -329,18 +329,20 @@ export default function LessonsScreen({ navigation }) {
 
   const [userGrade, setUserGrade] = useState('1st Std');
   const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
+  const [userAgeGroup, setUserAgeGroup] = useState('Professional');
 
   // ── Load data ──────────────────────────────────────────────────────
   const loadAll = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     setError('');
     try {
-      const [cats, recs, cont, savedGrade, savedAccType] = await Promise.all([
+      const [cats, recs, cont, savedGrade, savedAccType, savedAgeGroup] = await Promise.all([
         lessonModuleService.categories(),
         lessonModuleService.recommended(),
         lessonModuleService.continueLearning(),
         AsyncStorage.getItem('speakmate_school_grade'),
         AsyncStorage.getItem('speakmate_account_type'),
+        AsyncStorage.getItem('speakmate_age_group'),
       ]);
       const effAccType = savedAccType || 'INDIVIDUAL_USER';
       setAccountType(effAccType);
@@ -349,6 +351,9 @@ export default function LessonsScreen({ navigation }) {
       setContinueItems(cont || []);
       if (savedGrade) {
         setUserGrade(savedGrade);
+      }
+      if (savedAgeGroup) {
+        setUserAgeGroup(savedAgeGroup);
       }
 
       // Load lessons based on current filter
@@ -380,8 +385,11 @@ export default function LessonsScreen({ navigation }) {
       if (effType === 'STUDENT') {
         baseCurriculum = STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std'];
       } else {
-        const effAgeGroup = savedAgeGroup || 'Professionals & Seniors (Age 25+)';
-        baseCurriculum = GENERAL_LESSONS[effAgeGroup] || GENERAL_LESSONS['Professionals & Seniors (Age 25+)'] || MASTER_LESSONS;
+        const effAge = String(savedAgeGroup || userAgeGroup || 'Professional').toLowerCase();
+        let targetGroup = 'Professionals & Seniors (Age 25+)';
+        if (effAge.includes('kid') || effAge.includes('6-12')) targetGroup = 'Kids (Age 6–12)';
+        else if (effAge.includes('teen') || effAge.includes('young') || effAge.includes('13-24')) targetGroup = 'Teens & Young Adults (Age 13–24)';
+        baseCurriculum = GENERAL_LESSONS[targetGroup] || GENERAL_LESSONS['Professionals & Seniors (Age 25+)'];
       }
 
       const gradeCurated = baseCurriculum.map((sl) => ({
@@ -444,7 +452,16 @@ export default function LessonsScreen({ navigation }) {
         ]);
         const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted) : []);
         const q = searchText.trim().toLowerCase();
-        const allStandard = MASTER_LESSONS;
+        const effAge = String(userAgeGroup || 'Professional').toLowerCase();
+        let targetCurriculum = GENERAL_LESSONS['Professionals & Seniors (Age 25+)'];
+        if (accountType === 'STUDENT') {
+          targetCurriculum = STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std'];
+        } else if (effAge.includes('kid') || effAge.includes('6-12')) {
+          targetCurriculum = GENERAL_LESSONS['Kids (Age 6–12)'];
+        } else if (effAge.includes('teen') || effAge.includes('young') || effAge.includes('13-24')) {
+          targetCurriculum = GENERAL_LESSONS['Teens & Young Adults (Age 13–24)'];
+        }
+        const allStandard = targetCurriculum || [];
         const matchedStandard = allStandard
           .filter(
             (l) =>
@@ -518,9 +535,13 @@ export default function LessonsScreen({ navigation }) {
               <View>
                 <Text style={styles.heroHi}>Welcome back 👋</Text>
                 <Text style={styles.heroTitle}>Continue your learning</Text>
-                {accountType === 'STUDENT' && (
+                {accountType === 'STUDENT' ? (
                   <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
-                    🎓 Standard Level: {userGrade || '1st Std'}
+                    🎓 School Grade: {userGrade || '1st Std'}
+                  </Text>
+                ) : (
+                  <Text style={{ color: '#818CF8', fontSize: 12, fontWeight: '700', marginTop: 2 }}>
+                    👤 Target Profile: {String(userAgeGroup || 'Professional').replace(/\s*\(Age.*?\)/i, '')}
                   </Text>
                 )}
               </View>

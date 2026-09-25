@@ -4,8 +4,6 @@ import { useAuth } from "../context/AuthContext";
 import { lessonModuleService } from "../services/appServices";
 import {
   MASTER_LESSONS,
-  CLUSTERS,
-  getCuratedLessons,
   getLessonsForSchoolGrade,
   getLessonsForAgeGroup,
 } from "../constants/masterCurriculum";
@@ -27,76 +25,90 @@ export function Lessons() {
   // User Profile
   const accountType = user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
   const schoolGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std";
-  const ageGroup = user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Kids (Age 6–12)";
+  const rawAge = user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional";
   const isStudent = accountType === "STUDENT" || Boolean(user?.schoolGrade);
 
-  // Default cluster
-  const defaultClusterId = useMemo(() => {
-    if (isStudent) {
-      const g = String(schoolGrade).toLowerCase();
-      if (g.includes("1st") || g.includes("2nd") || g.includes("3rd") || g.includes("4th")) return "std_1_4";
-      if (g.includes("5th") || g.includes("6th") || g.includes("7th") || g.includes("8th")) return "std_5_8";
-      if (g.includes("9th") || g.includes("10th")) return "std_9_10";
-      return "std_1_4";
-    } else {
-      const a = String(ageGroup).toLowerCase();
-      if (a.includes("kid") || a.includes("6-12")) return "kids";
-      if (a.includes("teen") || a.includes("young") || a.includes("13-24")) return "teens_young";
-      return "professionals_seniors";
-    }
-  }, [isStudent, schoolGrade, ageGroup]);
+  const normalizeAgeGroup = (raw) => {
+    if (!raw) return "Professional";
+    const s = String(raw).toLowerCase();
+    if (s.includes("kid") || s.includes("6-12")) return "Kids";
+    if (s.includes("teen") || s.includes("13-24") || s.includes("young")) return "Teens";
+    if (s.includes("senior")) return "Senior";
+    if (s.includes("prof") || s.includes("25+")) return "Professional";
+    return "Professional";
+  };
+  const effectiveAge = normalizeAgeGroup(rawAge);
 
-  const [selectedClusterId, setSelectedClusterId] = useState(defaultClusterId);
-  const [lessons, setLessons] = useState(MASTER_LESSONS);
-  const [continueItems, setContinueItems] = useState([MASTER_LESSONS[0]]);
+  // Exact profile-scoped 20 academic lessons
+  const profileLessons = useMemo(() => {
+    if (isStudent) {
+      return getLessonsForSchoolGrade(schoolGrade);
+    }
+    if (effectiveAge === "Kids") return getLessonsForAgeGroup("Kids (Age 6–12)");
+    if (effectiveAge === "Teens") return getLessonsForAgeGroup("Teens & Young Adults (Age 13–24)");
+    return getLessonsForAgeGroup("Professionals & Seniors (Age 25+)");
+  }, [isStudent, schoolGrade, effectiveAge]);
+
+  const [lessons, setLessons] = useState(profileLessons);
+  const [continueItems, setContinueItems] = useState(profileLessons.length > 0 ? [profileLessons[0]] : []);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState(urlSearchQuery);
   const [searchResults, setSearchResults] = useState(null);
   const [activeTab, setActiveTab] = useState("All");
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  // Distinct categories computed from MASTER_LESSONS
+  // Distinct categories computed strictly from user's profile lessons
   const categories = useMemo(() => {
     const counts = {};
-    MASTER_LESSONS.forEach((l) => {
+    profileLessons.forEach((l) => {
       const cat = l.category || "General";
       counts[cat] = (counts[cat] || 0) + 1;
     });
     return Object.entries(counts).map(([name, lessonCount]) => ({ name, lessonCount }));
-  }, []);
+  }, [profileLessons]);
 
   const loadData = async () => {
     try {
-      const fetchWithTimeout = (promise, ms = 2000) =>
-        Promise.race([
-          promise,
-          new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), ms)),
-        ]);
-
       const [cont, list] = await Promise.all([
-        fetchWithTimeout(lessonModuleService.continueLearning()).catch(() => null),
-        fetchWithTimeout(lessonModuleService.list({})).catch(() => null),
+        lessonModuleService.continueLearning().catch(() => null),
+        lessonModuleService.list({}).catch(() => null),
       ]);
 
-      if (cont && Array.isArray(cont) && cont.length > 0) setContinueItems(cont);
+      const targetTitles = new Set(profileLessons.map((t) => (t.title || "").toLowerCase().trim()));
+
+      if (cont && Array.isArray(cont) && cont.length > 0) {
+        const matchedCont = cont.filter((c) => targetTitles.has((c.title || "").toLowerCase().trim()));
+        if (matchedCont.length > 0) {
+          setContinueItems(matchedCont);
+        } else if (profileLessons.length > 0) {
+          setContinueItems([profileLessons[0]]);
+        }
+      } else if (profileLessons.length > 0) {
+        setContinueItems([profileLessons[0]]);
+      }
+
       if (list && Array.isArray(list) && list.length > 0) {
-        // Merge backend lessons with our master curriculum so all 120 exist
-        const backendTitles = new Set(list.map((b) => (b.title || "").trim().toLowerCase()));
-        const unseeded = MASTER_LESSONS.filter((m) => !backendTitles.has(m.title.trim().toLowerCase()));
-        setLessons([...list, ...unseeded]);
+        const matchedBackend = list.filter((b) => targetTitles.has((b.title || "").toLowerCase().trim()));
+        const backendTitles = new Set(matchedBackend.map((b) => (b.title || "").toLowerCase().trim()));
+        const unseeded = profileLessons.filter((t) => !backendTitles.has((t.title || "").toLowerCase().trim()));
+        setLessons([...matchedBackend, ...unseeded]);
       } else {
-        setLessons(MASTER_LESSONS);
+        setLessons(profileLessons);
       }
     } catch {
-      setLessons(MASTER_LESSONS);
+      setLessons(profileLessons);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    setLessons(profileLessons);
+    if (profileLessons.length > 0) {
+      setContinueItems([profileLessons[0]]);
+    }
     loadData();
-  }, []);
+  }, [profileLessons]);
 
   const handleSearch = useCallback(
     async (text, currentLessons = lessons) => {
@@ -137,22 +149,16 @@ export function Lessons() {
 
   const filteredLessons = useMemo(() => {
     let result = searchResults !== null ? searchResults : lessons;
-    // 1. Filter by active cluster (unless "all" is chosen)
-    if (selectedClusterId && selectedClusterId !== "all") {
-      result = result.filter((l) => l.clusterId === selectedClusterId);
-    }
-    // 2. Filter by difficulty tab
+    // 1. Filter by difficulty tab
     if (activeTab !== "All") {
       result = result.filter((l) => l.level === activeTab || l.difficulty === activeTab);
     }
-    // 3. Filter by category
+    // 2. Filter by category
     if (selectedCategory) {
       result = result.filter((l) => l.category === selectedCategory);
     }
     return result;
-  }, [lessons, searchResults, selectedClusterId, activeTab, selectedCategory]);
-
-  const activeClusterObj = CLUSTERS.find((c) => c.clusterId === selectedClusterId);
+  }, [lessons, searchResults, activeTab, selectedCategory]);
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
@@ -161,13 +167,15 @@ export function Lessons() {
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-72 h-72 rounded-full bg-white/10 blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20 shadow-sm mb-3.5 sm:mb-4">
-            {isStudent ? `🎓 School Track: ${schoolGrade}` : `🌟 General Track: ${ageGroup}`}
+            {isStudent ? `🎓 School Grade: ${schoolGrade}` : `👤 Target Profile: ${effectiveAge}`}
           </div>
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight mb-2.5">
-            Academic Concept Lessons
+            {isStudent ? `${schoolGrade} Academic Lessons` : `${effectiveAge} English Masterclasses`}
           </h1>
           <p className="text-sm sm:text-base text-indigo-200 font-medium leading-relaxed">
-            120 structured academic masterclasses teaching grammar formulas, phonics rules, sentence syntax, and oratory frameworks.
+            {isStudent
+              ? `20 structured academic masterclasses teaching grammar formulas, phonics rules, and sentence syntax tailored to your ${schoolGrade} curriculum.`
+              : `20 structured academic masterclasses teaching grammar formulas, executive sentence syntax, and formal communication tailored to your ${effectiveAge} profile.`}
           </p>
         </div>
 
@@ -180,58 +188,6 @@ export function Lessons() {
             onChange={(e) => onSearchInputChange(e.target.value)}
             className="w-full pl-5 pr-4 py-3.5 rounded-2xl bg-white/15 border border-white/25 text-white placeholder-indigo-200 text-sm font-bold focus:outline-none focus:border-white focus:ring-2 focus:ring-white/20 transition-all shadow-inner"
           />
-        </div>
-      </div>
-
-      {/* Cluster Track Selector */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider">
-            Curriculum Clusters (20 Lessons Each)
-          </span>
-          <button
-            onClick={() => setSelectedClusterId("all")}
-            className={`text-xs font-black px-3 py-1 rounded-xl transition ${
-              selectedClusterId === "all"
-                ? "bg-[#6C63FF] text-white"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            Show All 120 Lessons
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {CLUSTERS.map((cl) => {
-            const isSelected = selectedClusterId === cl.clusterId;
-            const isUserDefault = defaultClusterId === cl.clusterId;
-            return (
-              <button
-                key={cl.clusterId}
-                onClick={() => setSelectedClusterId(cl.clusterId)}
-                className={`p-4 rounded-2xl text-left border transition-all flex flex-col justify-between gap-2 ${
-                  isSelected
-                    ? "bg-gradient-to-r from-[#6C63FF]/20 to-[#8B5CF6]/20 border-[#6C63FF] shadow-lg shadow-[#6C63FF]/15"
-                    : "glass-card border-[var(--border-default)] hover:border-[#6C63FF]/40"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full bg-[#6C63FF]/15 text-[#6C63FF]">
-                    {cl.segment === "school" ? "School Track" : "General Track"}
-                  </span>
-                  {isUserDefault && (
-                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-500">
-                      ★ Your Cluster
-                    </span>
-                  )}
-                </div>
-                <h4 className="text-sm font-black text-[var(--text-primary)]">{cl.clusterName}</h4>
-                <p className="text-[11px] text-[var(--text-secondary)] font-medium">
-                  {cl.clusterTitle} • 20 Academic Lessons
-                </p>
-              </button>
-            );
-          })}
         </div>
       </div>
 
@@ -266,7 +222,7 @@ export function Lessons() {
             </span>
             <h3 className="text-2xl font-black">{continueItems[0].title}</h3>
             <p className="text-xs sm:text-sm font-semibold opacity-90">
-              Category: {continueItems[0].category} • Level: {continueItems[0].level} • 35 XP Reward
+              Category: {continueItems[0].category} • Level: {continueItems[0].level} • +{continueItems[0].xpReward || 35} XP Reward
             </p>
           </div>
           <button
@@ -316,14 +272,11 @@ export function Lessons() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-black text-[var(--text-primary)]">
-            {activeClusterObj ? `${activeClusterObj.clusterName} Lessons` : "Curriculum Lessons"} (
-            {filteredLessons.length})
+            {isStudent ? `${schoolGrade} Academic Lessons` : `${effectiveAge} Lessons`} ({filteredLessons.length})
           </h2>
-          {selectedClusterId !== "all" && (
-            <span className="text-xs font-bold text-[var(--text-secondary)]">
-              Showing 20 targeted concept lessons
-            </span>
-          )}
+          <span className="text-xs font-bold text-[var(--text-secondary)]">
+            Showing 20 targeted concept lessons
+          </span>
         </div>
 
         {loading ? (
@@ -388,4 +341,3 @@ export function Lessons() {
 }
 
 export default Lessons;
-
