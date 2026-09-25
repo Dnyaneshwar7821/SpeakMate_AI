@@ -16,7 +16,7 @@ export const MASTER_LESSONS = [
   {
     "id": "1",
     "numericId": 1,
-    "title": "Alphabet Phonics: Short & Long Vowel Sounds",
+    "title": "Mastering Short & Long Vowels",
     "category": "Phonics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -30,7 +30,7 @@ export const MASTER_LESSONS = [
     "icon": "volume-high-outline",
     "description": "Identifying short vowel sounds (/a/, /e/, /i/, /o/, /u/) vs long vowel sounds (CVC rule).",
     "objectives": [
-      "Master the foundational rules of Alphabet Phonics: Short & Long Vowel Sounds",
+      "Master the foundational rules of Mastering Short & Long Vowels",
       "Identify and correct frequent errors in Phonics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -41,14 +41,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Alphabet Phonics: Short & Long Vowel Sounds\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Mastering Short & Long Vowels\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Alphabet Phonics: Short & Long Vowel Sounds\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Mastering Short & Long Vowels\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -57,12 +57,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding alphabet phonics: short & long vowel sounds and practicing every day.",
-      "targetPhonemes": "Alphabet Phonics: Short & Long Vowel Sounds"
+      "sentence": "Clear communication relies on understanding mastering short & long vowels and practicing every day.",
+      "targetPhonemes": "Mastering Short & Long Vowels"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Alphabet Phonics: Short & Long Vowel Sounds\"?",
+        "question": "What is the primary academic focus of \"Mastering Short & Long Vowels\"?",
         "options": [
           "Identifying short vowel sounds (/a/, /e/, /i/, /o/, /u/) vs long vowel sounds (CVC rule).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -86,12 +86,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Alphabet Phonics: Short & Long Vowel Sounds to improve my fluency.",
-          "Me practice rules of Alphabet Phonics: Short & Long Vowel Sounds without sentence.",
-          "I practicing rule Alphabet Phonics: Short & Long Vowel Sounds yesterday today.",
+          "I have practiced the rules of Mastering Short & Long Vowels to improve my fluency.",
+          "Me practice rules of Mastering Short & Long Vowels without sentence.",
+          "I practicing rule Mastering Short & Long Vowels yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Alphabet Phonics: Short & Long Vowel Sounds to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Mastering Short & Long Vowels to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -121,7 +121,7 @@ export const MASTER_LESSONS = [
   {
     "id": "2",
     "numericId": 2,
-    "title": "Consonant Blends & Digraphs (sh, ch, th, wh)",
+    "title": "Sounds of Blends & Digraphs",
     "category": "Phonics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -135,7 +135,7 @@ export const MASTER_LESSONS = [
     "icon": "volume-high-outline",
     "description": "Pronouncing and identifying beginning and ending consonant blends (ship, chat, this).",
     "objectives": [
-      "Master the foundational rules of Consonant Blends & Digraphs (sh, ch, th, wh)",
+      "Master the foundational rules of Sounds of Blends & Digraphs",
       "Identify and correct frequent errors in Phonics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -146,14 +146,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Consonant Blends & Digraphs (sh, ch, th, wh)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Sounds of Blends & Digraphs\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Consonant Blends & Digraphs (sh, ch, th, wh)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Sounds of Blends & Digraphs\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -162,12 +162,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding consonant blends & digraphs (sh, ch, th, wh) and practicing every day.",
-      "targetPhonemes": "Consonant Blends & Digraphs (sh, ch, th, wh)"
+      "sentence": "Clear communication relies on understanding sounds of blends & digraphs and practicing every day.",
+      "targetPhonemes": "Sounds of Blends & Digraphs"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Consonant Blends & Digraphs (sh, ch, th, wh)\"?",
+        "question": "What is the primary academic focus of \"Sounds of Blends & Digraphs\"?",
         "options": [
           "Pronouncing and identifying beginning and ending consonant blends (ship, chat, this).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -191,12 +191,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Consonant Blends & Digraphs (sh, ch, th, wh) to improve my fluency.",
-          "Me practice rules of Consonant Blends & Digraphs (sh, ch, th, wh) without sentence.",
-          "I practicing rule Consonant Blends & Digraphs (sh, ch, th, wh) yesterday today.",
+          "I have practiced the rules of Sounds of Blends & Digraphs to improve my fluency.",
+          "Me practice rules of Sounds of Blends & Digraphs without sentence.",
+          "I practicing rule Sounds of Blends & Digraphs yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Consonant Blends & Digraphs (sh, ch, th, wh) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Sounds of Blends & Digraphs to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -226,7 +226,7 @@ export const MASTER_LESSONS = [
   {
     "id": "3",
     "numericId": 3,
-    "title": "Nouns: Naming Words (Person, Place, Animal, Thing)",
+    "title": "Naming Words: All About Nouns",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -240,7 +240,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Identifying common nouns in sentences; distinguishing people, places, animals, and items.",
     "objectives": [
-      "Master the foundational rules of Nouns: Naming Words (Person, Place, Animal, Thing)",
+      "Master the foundational rules of Naming Words: All About Nouns",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -251,14 +251,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Nouns: Naming Words (Person, Place, Animal, Thing)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Naming Words: All About Nouns\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Nouns: Naming Words (Person, Place, Animal, Thing)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Naming Words: All About Nouns\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -267,12 +267,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding nouns: naming words (person, place, animal, thing) and practicing every day.",
-      "targetPhonemes": "Nouns: Naming Words (Person, Place, Animal, Thing)"
+      "sentence": "Clear communication relies on understanding naming words: all about nouns and practicing every day.",
+      "targetPhonemes": "Naming Words: All About Nouns"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Nouns: Naming Words (Person, Place, Animal, Thing)\"?",
+        "question": "What is the primary academic focus of \"Naming Words: All About Nouns\"?",
         "options": [
           "Identifying common nouns in sentences; distinguishing people, places, animals, and items.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -296,12 +296,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Nouns: Naming Words (Person, Place, Animal, Thing) to improve my fluency.",
-          "Me practice rules of Nouns: Naming Words (Person, Place, Animal, Thing) without sentence.",
-          "I practicing rule Nouns: Naming Words (Person, Place, Animal, Thing) yesterday today.",
+          "I have practiced the rules of Naming Words: All About Nouns to improve my fluency.",
+          "Me practice rules of Naming Words: All About Nouns without sentence.",
+          "I practicing rule Naming Words: All About Nouns yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Nouns: Naming Words (Person, Place, Animal, Thing) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Naming Words: All About Nouns to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -331,7 +331,7 @@ export const MASTER_LESSONS = [
   {
     "id": "4",
     "numericId": 4,
-    "title": "Proper Nouns vs. Common Nouns",
+    "title": "Common vs. Proper Nouns",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -345,7 +345,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Capitalization rule for names, days, months, cities, and holidays.",
     "objectives": [
-      "Master the foundational rules of Proper Nouns vs. Common Nouns",
+      "Master the foundational rules of Common vs. Proper Nouns",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -356,14 +356,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Proper Nouns vs. Common Nouns\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Common vs. Proper Nouns\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Proper Nouns vs. Common Nouns\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Common vs. Proper Nouns\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -372,12 +372,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding proper nouns vs. common nouns and practicing every day.",
-      "targetPhonemes": "Proper Nouns vs. Common Nouns"
+      "sentence": "Clear communication relies on understanding common vs. proper nouns and practicing every day.",
+      "targetPhonemes": "Common vs. Proper Nouns"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Proper Nouns vs. Common Nouns\"?",
+        "question": "What is the primary academic focus of \"Common vs. Proper Nouns\"?",
         "options": [
           "Capitalization rule for names, days, months, cities, and holidays.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -401,12 +401,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Proper Nouns vs. Common Nouns to improve my fluency.",
-          "Me practice rules of Proper Nouns vs. Common Nouns without sentence.",
-          "I practicing rule Proper Nouns vs. Common Nouns yesterday today.",
+          "I have practiced the rules of Common vs. Proper Nouns to improve my fluency.",
+          "Me practice rules of Common vs. Proper Nouns without sentence.",
+          "I practicing rule Common vs. Proper Nouns yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Proper Nouns vs. Common Nouns to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Common vs. Proper Nouns to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -436,7 +436,7 @@ export const MASTER_LESSONS = [
   {
     "id": "5",
     "numericId": 5,
-    "title": "Singular and Plural Nouns: Adding -s and -es",
+    "title": "Singular & Plural Nouns",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -450,7 +450,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Pluralization rules for nouns ending in -s, -sh, -ch, -x, and irregular plurals (foot/feet).",
     "objectives": [
-      "Master the foundational rules of Singular and Plural Nouns: Adding -s and -es",
+      "Master the foundational rules of Singular & Plural Nouns",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -461,14 +461,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Singular and Plural Nouns: Adding -s and -es\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Singular & Plural Nouns\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Singular and Plural Nouns: Adding -s and -es\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Singular & Plural Nouns\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -477,12 +477,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding singular and plural nouns: adding -s and -es and practicing every day.",
-      "targetPhonemes": "Singular and Plural Nouns: Adding -s and -es"
+      "sentence": "Clear communication relies on understanding singular & plural nouns and practicing every day.",
+      "targetPhonemes": "Singular & Plural Nouns"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Singular and Plural Nouns: Adding -s and -es\"?",
+        "question": "What is the primary academic focus of \"Singular & Plural Nouns\"?",
         "options": [
           "Pluralization rules for nouns ending in -s, -sh, -ch, -x, and irregular plurals (foot/feet).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -506,12 +506,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Singular and Plural Nouns: Adding -s and -es to improve my fluency.",
-          "Me practice rules of Singular and Plural Nouns: Adding -s and -es without sentence.",
-          "I practicing rule Singular and Plural Nouns: Adding -s and -es yesterday today.",
+          "I have practiced the rules of Singular & Plural Nouns to improve my fluency.",
+          "Me practice rules of Singular & Plural Nouns without sentence.",
+          "I practicing rule Singular & Plural Nouns yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Singular and Plural Nouns: Adding -s and -es to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Singular & Plural Nouns to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -541,7 +541,7 @@ export const MASTER_LESSONS = [
   {
     "id": "6",
     "numericId": 6,
-    "title": "Pronouns: Replacing Names (He, She, It, They, We)",
+    "title": "Pronouns: Replacing Names",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -555,7 +555,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Using personal subject pronouns to avoid repeating nouns in spoken sentences.",
     "objectives": [
-      "Master the foundational rules of Pronouns: Replacing Names (He, She, It, They, We)",
+      "Master the foundational rules of Pronouns: Replacing Names",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -566,14 +566,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Pronouns: Replacing Names (He, She, It, They, We)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Pronouns: Replacing Names\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Pronouns: Replacing Names (He, She, It, They, We)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Pronouns: Replacing Names\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -582,12 +582,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding pronouns: replacing names (he, she, it, they, we) and practicing every day.",
-      "targetPhonemes": "Pronouns: Replacing Names (He, She, It, They, We)"
+      "sentence": "Clear communication relies on understanding pronouns: replacing names and practicing every day.",
+      "targetPhonemes": "Pronouns: Replacing Names"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Pronouns: Replacing Names (He, She, It, They, We)\"?",
+        "question": "What is the primary academic focus of \"Pronouns: Replacing Names\"?",
         "options": [
           "Using personal subject pronouns to avoid repeating nouns in spoken sentences.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -611,12 +611,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Pronouns: Replacing Names (He, She, It, They, We) to improve my fluency.",
-          "Me practice rules of Pronouns: Replacing Names (He, She, It, They, We) without sentence.",
-          "I practicing rule Pronouns: Replacing Names (He, She, It, They, We) yesterday today.",
+          "I have practiced the rules of Pronouns: Replacing Names to improve my fluency.",
+          "Me practice rules of Pronouns: Replacing Names without sentence.",
+          "I practicing rule Pronouns: Replacing Names yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Pronouns: Replacing Names (He, She, It, They, We) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Pronouns: Replacing Names to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -646,7 +646,7 @@ export const MASTER_LESSONS = [
   {
     "id": "7",
     "numericId": 7,
-    "title": "Action Verbs: Doing Words",
+    "title": "Action Verbs in Motion",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -660,7 +660,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Identifying verbs; recognizing physical actions (run, write, eat, sleep).",
     "objectives": [
-      "Master the foundational rules of Action Verbs: Doing Words",
+      "Master the foundational rules of Action Verbs in Motion",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -671,14 +671,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Action Verbs: Doing Words\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Action Verbs in Motion\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Action Verbs: Doing Words\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Action Verbs in Motion\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -687,12 +687,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding action verbs: doing words and practicing every day.",
-      "targetPhonemes": "Action Verbs: Doing Words"
+      "sentence": "Clear communication relies on understanding action verbs in motion and practicing every day.",
+      "targetPhonemes": "Action Verbs in Motion"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Action Verbs: Doing Words\"?",
+        "question": "What is the primary academic focus of \"Action Verbs in Motion\"?",
         "options": [
           "Identifying verbs; recognizing physical actions (run, write, eat, sleep).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -716,12 +716,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Action Verbs: Doing Words to improve my fluency.",
-          "Me practice rules of Action Verbs: Doing Words without sentence.",
-          "I practicing rule Action Verbs: Doing Words yesterday today.",
+          "I have practiced the rules of Action Verbs in Motion to improve my fluency.",
+          "Me practice rules of Action Verbs in Motion without sentence.",
+          "I practicing rule Action Verbs in Motion yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Action Verbs: Doing Words to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Action Verbs in Motion to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -751,7 +751,7 @@ export const MASTER_LESSONS = [
   {
     "id": "8",
     "numericId": 8,
-    "title": "Helping Verbs: Am, Is, Are",
+    "title": "Helping Verbs: Am, Is & Are",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -765,7 +765,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Subject-verb agreement rules with singular and plural subjects in the present.",
     "objectives": [
-      "Master the foundational rules of Helping Verbs: Am, Is, Are",
+      "Master the foundational rules of Helping Verbs: Am, Is & Are",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -776,14 +776,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Helping Verbs: Am, Is, Are\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Helping Verbs: Am, Is & Are\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Helping Verbs: Am, Is, Are\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Helping Verbs: Am, Is & Are\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -792,12 +792,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding helping verbs: am, is, are and practicing every day.",
-      "targetPhonemes": "Helping Verbs: Am, Is, Are"
+      "sentence": "Clear communication relies on understanding helping verbs: am, is & are and practicing every day.",
+      "targetPhonemes": "Helping Verbs: Am, Is & Are"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Helping Verbs: Am, Is, Are\"?",
+        "question": "What is the primary academic focus of \"Helping Verbs: Am, Is & Are\"?",
         "options": [
           "Subject-verb agreement rules with singular and plural subjects in the present.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -821,12 +821,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Helping Verbs: Am, Is, Are to improve my fluency.",
-          "Me practice rules of Helping Verbs: Am, Is, Are without sentence.",
-          "I practicing rule Helping Verbs: Am, Is, Are yesterday today.",
+          "I have practiced the rules of Helping Verbs: Am, Is & Are to improve my fluency.",
+          "Me practice rules of Helping Verbs: Am, Is & Are without sentence.",
+          "I practicing rule Helping Verbs: Am, Is & Are yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Helping Verbs: Am, Is, Are to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Helping Verbs: Am, Is & Are to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -856,7 +856,7 @@ export const MASTER_LESSONS = [
   {
     "id": "9",
     "numericId": 9,
-    "title": "Describing Words (Adjectives): Size, Color, Shape",
+    "title": "Adjectives: Describing Words",
     "category": "Vocabulary",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -870,7 +870,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Identifying adjectives that describe qualities of nouns (a huge green balloon).",
     "objectives": [
-      "Master the foundational rules of Describing Words (Adjectives): Size, Color, Shape",
+      "Master the foundational rules of Adjectives: Describing Words",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -881,14 +881,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Describing Words (Adjectives): Size, Color, Shape\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Adjectives: Describing Words\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Describing Words (Adjectives): Size, Color, Shape\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Adjectives: Describing Words\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -897,12 +897,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding describing words (adjectives): size, color, shape and practicing every day.",
-      "targetPhonemes": "Describing Words (Adjectives): Size, Color, Shape"
+      "sentence": "Clear communication relies on understanding adjectives: describing words and practicing every day.",
+      "targetPhonemes": "Adjectives: Describing Words"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Describing Words (Adjectives): Size, Color, Shape\"?",
+        "question": "What is the primary academic focus of \"Adjectives: Describing Words\"?",
         "options": [
           "Identifying adjectives that describe qualities of nouns (a huge green balloon).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -926,12 +926,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Describing Words (Adjectives): Size, Color, Shape to improve my fluency.",
-          "Me practice rules of Describing Words (Adjectives): Size, Color, Shape without sentence.",
-          "I practicing rule Describing Words (Adjectives): Size, Color, Shape yesterday today.",
+          "I have practiced the rules of Adjectives: Describing Words to improve my fluency.",
+          "Me practice rules of Adjectives: Describing Words without sentence.",
+          "I practicing rule Adjectives: Describing Words yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Describing Words (Adjectives): Size, Color, Shape to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Adjectives: Describing Words to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -961,7 +961,7 @@ export const MASTER_LESSONS = [
   {
     "id": "10",
     "numericId": 10,
-    "title": "Opposite Words (Antonyms) & Word Pairs",
+    "title": "Opposite Words & Antonyms",
     "category": "Vocabulary",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -975,7 +975,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Building vocabulary through opposites (hot/cold, fast/slow, heavy/light).",
     "objectives": [
-      "Master the foundational rules of Opposite Words (Antonyms) & Word Pairs",
+      "Master the foundational rules of Opposite Words & Antonyms",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -986,14 +986,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Opposite Words (Antonyms) & Word Pairs\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Opposite Words & Antonyms\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Opposite Words (Antonyms) & Word Pairs\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Opposite Words & Antonyms\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1002,12 +1002,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding opposite words (antonyms) & word pairs and practicing every day.",
-      "targetPhonemes": "Opposite Words (Antonyms) & Word Pairs"
+      "sentence": "Clear communication relies on understanding opposite words & antonyms and practicing every day.",
+      "targetPhonemes": "Opposite Words & Antonyms"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Opposite Words (Antonyms) & Word Pairs\"?",
+        "question": "What is the primary academic focus of \"Opposite Words & Antonyms\"?",
         "options": [
           "Building vocabulary through opposites (hot/cold, fast/slow, heavy/light).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1031,12 +1031,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Opposite Words (Antonyms) & Word Pairs to improve my fluency.",
-          "Me practice rules of Opposite Words (Antonyms) & Word Pairs without sentence.",
-          "I practicing rule Opposite Words (Antonyms) & Word Pairs yesterday today.",
+          "I have practiced the rules of Opposite Words & Antonyms to improve my fluency.",
+          "Me practice rules of Opposite Words & Antonyms without sentence.",
+          "I practicing rule Opposite Words & Antonyms yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Opposite Words (Antonyms) & Word Pairs to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Opposite Words & Antonyms to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1066,7 +1066,7 @@ export const MASTER_LESSONS = [
   {
     "id": "11",
     "numericId": 11,
-    "title": "Prepositions of Place: In, On, Under, Behind, Next To",
+    "title": "Prepositions of Place",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1080,7 +1080,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Describing exact spatial position of objects relative to other nouns.",
     "objectives": [
-      "Master the foundational rules of Prepositions of Place: In, On, Under, Behind, Next To",
+      "Master the foundational rules of Prepositions of Place",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1091,14 +1091,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Prepositions of Place: In, On, Under, Behind, Next To\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Prepositions of Place\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Prepositions of Place: In, On, Under, Behind, Next To\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Prepositions of Place\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1107,12 +1107,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding prepositions of place: in, on, under, behind, next to and practicing every day.",
-      "targetPhonemes": "Prepositions of Place: In, On, Under, Behind, Next To"
+      "sentence": "Clear communication relies on understanding prepositions of place and practicing every day.",
+      "targetPhonemes": "Prepositions of Place"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Prepositions of Place: In, On, Under, Behind, Next To\"?",
+        "question": "What is the primary academic focus of \"Prepositions of Place\"?",
         "options": [
           "Describing exact spatial position of objects relative to other nouns.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1136,12 +1136,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Prepositions of Place: In, On, Under, Behind, Next To to improve my fluency.",
-          "Me practice rules of Prepositions of Place: In, On, Under, Behind, Next To without sentence.",
-          "I practicing rule Prepositions of Place: In, On, Under, Behind, Next To yesterday today.",
+          "I have practiced the rules of Prepositions of Place to improve my fluency.",
+          "Me practice rules of Prepositions of Place without sentence.",
+          "I practicing rule Prepositions of Place yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Prepositions of Place: In, On, Under, Behind, Next To to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Prepositions of Place to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1171,7 +1171,7 @@ export const MASTER_LESSONS = [
   {
     "id": "12",
     "numericId": 12,
-    "title": "Sentence Building: Subject + Verb + Object",
+    "title": "Building Complete Sentences",
     "category": "Syntax",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1185,7 +1185,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Constructing complete sentences; understanding who does what (\"The dog chased the ball\").",
     "objectives": [
-      "Master the foundational rules of Sentence Building: Subject + Verb + Object",
+      "Master the foundational rules of Building Complete Sentences",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1196,14 +1196,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Sentence Building: Subject + Verb + Object\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Building Complete Sentences\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Sentence Building: Subject + Verb + Object\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Building Complete Sentences\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1212,12 +1212,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding sentence building: subject + verb + object and practicing every day.",
-      "targetPhonemes": "Sentence Building: Subject + Verb + Object"
+      "sentence": "Clear communication relies on understanding building complete sentences and practicing every day.",
+      "targetPhonemes": "Building Complete Sentences"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Sentence Building: Subject + Verb + Object\"?",
+        "question": "What is the primary academic focus of \"Building Complete Sentences\"?",
         "options": [
           "Constructing complete sentences; understanding who does what (\"The dog chased the ball\").",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1241,12 +1241,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Sentence Building: Subject + Verb + Object to improve my fluency.",
-          "Me practice rules of Sentence Building: Subject + Verb + Object without sentence.",
-          "I practicing rule Sentence Building: Subject + Verb + Object yesterday today.",
+          "I have practiced the rules of Building Complete Sentences to improve my fluency.",
+          "Me practice rules of Building Complete Sentences without sentence.",
+          "I practicing rule Building Complete Sentences yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Sentence Building: Subject + Verb + Object to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Building Complete Sentences to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1276,7 +1276,7 @@ export const MASTER_LESSONS = [
   {
     "id": "13",
     "numericId": 13,
-    "title": "Capital Letters, Full Stops & Question Marks",
+    "title": "Capitals & End Punctuation",
     "category": "Mechanics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1290,7 +1290,7 @@ export const MASTER_LESSONS = [
     "icon": "create-outline",
     "description": "Punctuation rules: capitalizing the first word and 'I', ending with '.' or '?'.",
     "objectives": [
-      "Master the foundational rules of Capital Letters, Full Stops & Question Marks",
+      "Master the foundational rules of Capitals & End Punctuation",
       "Identify and correct frequent errors in Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1301,14 +1301,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Capital Letters, Full Stops & Question Marks\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Capitals & End Punctuation\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Capital Letters, Full Stops & Question Marks\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Capitals & End Punctuation\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1317,12 +1317,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding capital letters, full stops & question marks and practicing every day.",
-      "targetPhonemes": "Capital Letters, Full Stops & Question Marks"
+      "sentence": "Clear communication relies on understanding capitals & end punctuation and practicing every day.",
+      "targetPhonemes": "Capitals & End Punctuation"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Capital Letters, Full Stops & Question Marks\"?",
+        "question": "What is the primary academic focus of \"Capitals & End Punctuation\"?",
         "options": [
           "Punctuation rules: capitalizing the first word and 'I', ending with '.' or '?'.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1346,12 +1346,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Capital Letters, Full Stops & Question Marks to improve my fluency.",
-          "Me practice rules of Capital Letters, Full Stops & Question Marks without sentence.",
-          "I practicing rule Capital Letters, Full Stops & Question Marks yesterday today.",
+          "I have practiced the rules of Capitals & End Punctuation to improve my fluency.",
+          "Me practice rules of Capitals & End Punctuation without sentence.",
+          "I practicing rule Capitals & End Punctuation yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Capital Letters, Full Stops & Question Marks to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Capitals & End Punctuation to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1381,7 +1381,7 @@ export const MASTER_LESSONS = [
   {
     "id": "14",
     "numericId": 14,
-    "title": "Question Words: Who, What, Where, When, Why, How",
+    "title": "The 5 WH-Question Words",
     "category": "Syntax",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1395,7 +1395,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Asking grammatically accurate questions using WH-interrogative words.",
     "objectives": [
-      "Master the foundational rules of Question Words: Who, What, Where, When, Why, How",
+      "Master the foundational rules of The 5 WH-Question Words",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1406,14 +1406,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Question Words: Who, What, Where, When, Why, How\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"The 5 WH-Question Words\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Question Words: Who, What, Where, When, Why, How\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"The 5 WH-Question Words\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1422,12 +1422,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding question words: who, what, where, when, why, how and practicing every day.",
-      "targetPhonemes": "Question Words: Who, What, Where, When, Why, How"
+      "sentence": "Clear communication relies on understanding the 5 wh-question words and practicing every day.",
+      "targetPhonemes": "The 5 WH-Question Words"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Question Words: Who, What, Where, When, Why, How\"?",
+        "question": "What is the primary academic focus of \"The 5 WH-Question Words\"?",
         "options": [
           "Asking grammatically accurate questions using WH-interrogative words.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1451,12 +1451,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Question Words: Who, What, Where, When, Why, How to improve my fluency.",
-          "Me practice rules of Question Words: Who, What, Where, When, Why, How without sentence.",
-          "I practicing rule Question Words: Who, What, Where, When, Why, How yesterday today.",
+          "I have practiced the rules of The 5 WH-Question Words to improve my fluency.",
+          "Me practice rules of The 5 WH-Question Words without sentence.",
+          "I practicing rule The 5 WH-Question Words yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Question Words: Who, What, Where, When, Why, How to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of The 5 WH-Question Words to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1486,7 +1486,7 @@ export const MASTER_LESSONS = [
   {
     "id": "15",
     "numericId": 15,
-    "title": "Articles: The Rules of 'A', 'An', and 'The'",
+    "title": "Using Articles: A, An & The",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1500,7 +1500,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Vowel sound rule for 'an' vs consonant rule for 'a'; using 'the' for specific objects.",
     "objectives": [
-      "Master the foundational rules of Articles: The Rules of 'A', 'An', and 'The'",
+      "Master the foundational rules of Using Articles: A, An & The",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1511,14 +1511,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Articles: The Rules of 'A', 'An', and 'The'\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Using Articles: A, An & The\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Articles: The Rules of 'A', 'An', and 'The'\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Using Articles: A, An & The\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1527,12 +1527,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding articles: the rules of 'a', 'an', and 'the' and practicing every day.",
-      "targetPhonemes": "Articles: The Rules of 'A', 'An', and 'The'"
+      "sentence": "Clear communication relies on understanding using articles: a, an & the and practicing every day.",
+      "targetPhonemes": "Using Articles: A, An & The"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Articles: The Rules of 'A', 'An', and 'The'\"?",
+        "question": "What is the primary academic focus of \"Using Articles: A, An & The\"?",
         "options": [
           "Vowel sound rule for 'an' vs consonant rule for 'a'; using 'the' for specific objects.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1556,12 +1556,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Articles: The Rules of 'A', 'An', and 'The' to improve my fluency.",
-          "Me practice rules of Articles: The Rules of 'A', 'An', and 'The' without sentence.",
-          "I practicing rule Articles: The Rules of 'A', 'An', and 'The' yesterday today.",
+          "I have practiced the rules of Using Articles: A, An & The to improve my fluency.",
+          "Me practice rules of Using Articles: A, An & The without sentence.",
+          "I practicing rule Using Articles: A, An & The yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Articles: The Rules of 'A', 'An', and 'The' to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Using Articles: A, An & The to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1591,7 +1591,7 @@ export const MASTER_LESSONS = [
   {
     "id": "16",
     "numericId": 16,
-    "title": "Simple Present Tense: Daily Habits & Truths",
+    "title": "Simple Present Tense & Habits",
     "category": "Tenses",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1605,7 +1605,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Adding -s/-es to third-person singular verbs (He plays, She walks).",
     "objectives": [
-      "Master the foundational rules of Simple Present Tense: Daily Habits & Truths",
+      "Master the foundational rules of Simple Present Tense & Habits",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1616,14 +1616,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Simple Present Tense: Daily Habits & Truths\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Simple Present Tense & Habits\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Simple Present Tense: Daily Habits & Truths\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Simple Present Tense & Habits\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1632,12 +1632,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding simple present tense: daily habits & truths and practicing every day.",
-      "targetPhonemes": "Simple Present Tense: Daily Habits & Truths"
+      "sentence": "Clear communication relies on understanding simple present tense & habits and practicing every day.",
+      "targetPhonemes": "Simple Present Tense & Habits"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Simple Present Tense: Daily Habits & Truths\"?",
+        "question": "What is the primary academic focus of \"Simple Present Tense & Habits\"?",
         "options": [
           "Adding -s/-es to third-person singular verbs (He plays, She walks).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1661,12 +1661,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Simple Present Tense: Daily Habits & Truths to improve my fluency.",
-          "Me practice rules of Simple Present Tense: Daily Habits & Truths without sentence.",
-          "I practicing rule Simple Present Tense: Daily Habits & Truths yesterday today.",
+          "I have practiced the rules of Simple Present Tense & Habits to improve my fluency.",
+          "Me practice rules of Simple Present Tense & Habits without sentence.",
+          "I practicing rule Simple Present Tense & Habits yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Simple Present Tense: Daily Habits & Truths to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Simple Present Tense & Habits to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1696,7 +1696,7 @@ export const MASTER_LESSONS = [
   {
     "id": "17",
     "numericId": 17,
-    "title": "Simple Past Tense: Regular Verbs (-ed Ending)",
+    "title": "Simple Past Tense Verbs",
     "category": "Tenses",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1710,7 +1710,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Converting base verbs into past actions by adding -ed (walked, jumped, played).",
     "objectives": [
-      "Master the foundational rules of Simple Past Tense: Regular Verbs (-ed Ending)",
+      "Master the foundational rules of Simple Past Tense Verbs",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1721,14 +1721,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Simple Past Tense: Regular Verbs (-ed Ending)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Simple Past Tense Verbs\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Simple Past Tense: Regular Verbs (-ed Ending)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Simple Past Tense Verbs\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1737,12 +1737,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding simple past tense: regular verbs (-ed ending) and practicing every day.",
-      "targetPhonemes": "Simple Past Tense: Regular Verbs (-ed Ending)"
+      "sentence": "Clear communication relies on understanding simple past tense verbs and practicing every day.",
+      "targetPhonemes": "Simple Past Tense Verbs"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Simple Past Tense: Regular Verbs (-ed Ending)\"?",
+        "question": "What is the primary academic focus of \"Simple Past Tense Verbs\"?",
         "options": [
           "Converting base verbs into past actions by adding -ed (walked, jumped, played).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1766,12 +1766,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Simple Past Tense: Regular Verbs (-ed Ending) to improve my fluency.",
-          "Me practice rules of Simple Past Tense: Regular Verbs (-ed Ending) without sentence.",
-          "I practicing rule Simple Past Tense: Regular Verbs (-ed Ending) yesterday today.",
+          "I have practiced the rules of Simple Past Tense Verbs to improve my fluency.",
+          "Me practice rules of Simple Past Tense Verbs without sentence.",
+          "I practicing rule Simple Past Tense Verbs yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Simple Past Tense: Regular Verbs (-ed Ending) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Simple Past Tense Verbs to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1801,7 +1801,7 @@ export const MASTER_LESSONS = [
   {
     "id": "18",
     "numericId": 18,
-    "title": "Conjunctions: Joining Words with 'And', 'But', 'Because'",
+    "title": "Joining Words: Conjunctions",
     "category": "Syntax",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1815,7 +1815,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Combining two short ideas into compound sentences with linking words.",
     "objectives": [
-      "Master the foundational rules of Conjunctions: Joining Words with 'And', 'But', 'Because'",
+      "Master the foundational rules of Joining Words: Conjunctions",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1826,14 +1826,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Conjunctions: Joining Words with 'And', 'But', 'Because'\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Joining Words: Conjunctions\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Conjunctions: Joining Words with 'And', 'But', 'Because'\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Joining Words: Conjunctions\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1842,12 +1842,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding conjunctions: joining words with 'and', 'but', 'because' and practicing every day.",
-      "targetPhonemes": "Conjunctions: Joining Words with 'And', 'But', 'Because'"
+      "sentence": "Clear communication relies on understanding joining words: conjunctions and practicing every day.",
+      "targetPhonemes": "Joining Words: Conjunctions"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Conjunctions: Joining Words with 'And', 'But', 'Because'\"?",
+        "question": "What is the primary academic focus of \"Joining Words: Conjunctions\"?",
         "options": [
           "Combining two short ideas into compound sentences with linking words.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1871,12 +1871,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Conjunctions: Joining Words with 'And', 'But', 'Because' to improve my fluency.",
-          "Me practice rules of Conjunctions: Joining Words with 'And', 'But', 'Because' without sentence.",
-          "I practicing rule Conjunctions: Joining Words with 'And', 'But', 'Because' yesterday today.",
+          "I have practiced the rules of Joining Words: Conjunctions to improve my fluency.",
+          "Me practice rules of Joining Words: Conjunctions without sentence.",
+          "I practicing rule Joining Words: Conjunctions yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Conjunctions: Joining Words with 'And', 'But', 'Because' to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Joining Words: Conjunctions to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -1906,7 +1906,7 @@ export const MASTER_LESSONS = [
   {
     "id": "19",
     "numericId": 19,
-    "title": "Comparing Things: Adding -er and -est",
+    "title": "Comparing with -er and -est",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -1920,7 +1920,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Positive, comparative, and superlative degrees (tall, taller, tallest).",
     "objectives": [
-      "Master the foundational rules of Comparing Things: Adding -er and -est",
+      "Master the foundational rules of Comparing with -er and -est",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -1931,14 +1931,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Comparing Things: Adding -er and -est\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Comparing with -er and -est\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Comparing Things: Adding -er and -est\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Comparing with -er and -est\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -1947,12 +1947,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding comparing things: adding -er and -est and practicing every day.",
-      "targetPhonemes": "Comparing Things: Adding -er and -est"
+      "sentence": "Clear communication relies on understanding comparing with -er and -est and practicing every day.",
+      "targetPhonemes": "Comparing with -er and -est"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Comparing Things: Adding -er and -est\"?",
+        "question": "What is the primary academic focus of \"Comparing with -er and -est\"?",
         "options": [
           "Positive, comparative, and superlative degrees (tall, taller, tallest).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -1976,12 +1976,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Comparing Things: Adding -er and -est to improve my fluency.",
-          "Me practice rules of Comparing Things: Adding -er and -est without sentence.",
-          "I practicing rule Comparing Things: Adding -er and -est yesterday today.",
+          "I have practiced the rules of Comparing with -er and -est to improve my fluency.",
+          "Me practice rules of Comparing with -er and -est without sentence.",
+          "I practicing rule Comparing with -er and -est yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Comparing Things: Adding -er and -est to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Comparing with -er and -est to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2011,7 +2011,7 @@ export const MASTER_LESSONS = [
   {
     "id": "20",
     "numericId": 20,
-    "title": "Spoken Fluency: Clear Word Articulation & Voice Volume",
+    "title": "Clear Speech & Voice Confidence",
     "category": "Spoken Mechanics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -2025,7 +2025,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Speaking out loud with appropriate volume, clear syllables, and confident pauses.",
     "objectives": [
-      "Master the foundational rules of Spoken Fluency: Clear Word Articulation & Voice Volume",
+      "Master the foundational rules of Clear Speech & Voice Confidence",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2036,14 +2036,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Spoken Fluency: Clear Word Articulation & Voice Volume\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Clear Speech & Voice Confidence\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Spoken Fluency: Clear Word Articulation & Voice Volume\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Clear Speech & Voice Confidence\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2052,12 +2052,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding spoken fluency: clear word articulation & voice volume and practicing every day.",
-      "targetPhonemes": "Spoken Fluency: Clear Word Articulation & Voice Volume"
+      "sentence": "Clear communication relies on understanding clear speech & voice confidence and practicing every day.",
+      "targetPhonemes": "Clear Speech & Voice Confidence"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Spoken Fluency: Clear Word Articulation & Voice Volume\"?",
+        "question": "What is the primary academic focus of \"Clear Speech & Voice Confidence\"?",
         "options": [
           "Speaking out loud with appropriate volume, clear syllables, and confident pauses.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2081,12 +2081,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Spoken Fluency: Clear Word Articulation & Voice Volume to improve my fluency.",
-          "Me practice rules of Spoken Fluency: Clear Word Articulation & Voice Volume without sentence.",
-          "I practicing rule Spoken Fluency: Clear Word Articulation & Voice Volume yesterday today.",
+          "I have practiced the rules of Clear Speech & Voice Confidence to improve my fluency.",
+          "Me practice rules of Clear Speech & Voice Confidence without sentence.",
+          "I practicing rule Clear Speech & Voice Confidence yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Spoken Fluency: Clear Word Articulation & Voice Volume to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Clear Speech & Voice Confidence to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2116,7 +2116,7 @@ export const MASTER_LESSONS = [
   {
     "id": "21",
     "numericId": 21,
-    "title": "The 8 Parts of Speech: Complete Syntactic Review",
+    "title": "The 8 Parts of Speech",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2130,7 +2130,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Classifying nouns, pronouns, verbs, adjectives, adverbs, prepositions, conjunctions, interjections.",
     "objectives": [
-      "Master the foundational rules of The 8 Parts of Speech: Complete Syntactic Review",
+      "Master the foundational rules of The 8 Parts of Speech",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2141,14 +2141,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"The 8 Parts of Speech: Complete Syntactic Review\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"The 8 Parts of Speech\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"The 8 Parts of Speech: Complete Syntactic Review\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"The 8 Parts of Speech\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2157,12 +2157,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding the 8 parts of speech: complete syntactic review and practicing every day.",
-      "targetPhonemes": "The 8 Parts of Speech: Complete Syntactic Review"
+      "sentence": "Clear communication relies on understanding the 8 parts of speech and practicing every day.",
+      "targetPhonemes": "The 8 Parts of Speech"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"The 8 Parts of Speech: Complete Syntactic Review\"?",
+        "question": "What is the primary academic focus of \"The 8 Parts of Speech\"?",
         "options": [
           "Classifying nouns, pronouns, verbs, adjectives, adverbs, prepositions, conjunctions, interjections.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2186,12 +2186,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of The 8 Parts of Speech: Complete Syntactic Review to improve my fluency.",
-          "Me practice rules of The 8 Parts of Speech: Complete Syntactic Review without sentence.",
-          "I practicing rule The 8 Parts of Speech: Complete Syntactic Review yesterday today.",
+          "I have practiced the rules of The 8 Parts of Speech to improve my fluency.",
+          "Me practice rules of The 8 Parts of Speech without sentence.",
+          "I practicing rule The 8 Parts of Speech yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of The 8 Parts of Speech: Complete Syntactic Review to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of The 8 Parts of Speech to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2221,7 +2221,7 @@ export const MASTER_LESSONS = [
   {
     "id": "22",
     "numericId": 22,
-    "title": "Subject-Verb Agreement & Tricky Plurals",
+    "title": "Subject-Verb Agreement Rules",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2235,7 +2235,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Agreement rules with compound subjects (neither/nor, either/or, everyone, each).",
     "objectives": [
-      "Master the foundational rules of Subject-Verb Agreement & Tricky Plurals",
+      "Master the foundational rules of Subject-Verb Agreement Rules",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2246,14 +2246,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Subject-Verb Agreement & Tricky Plurals\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Subject-Verb Agreement Rules\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Subject-Verb Agreement & Tricky Plurals\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Subject-Verb Agreement Rules\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2262,12 +2262,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding subject-verb agreement & tricky plurals and practicing every day.",
-      "targetPhonemes": "Subject-Verb Agreement & Tricky Plurals"
+      "sentence": "Clear communication relies on understanding subject-verb agreement rules and practicing every day.",
+      "targetPhonemes": "Subject-Verb Agreement Rules"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Subject-Verb Agreement & Tricky Plurals\"?",
+        "question": "What is the primary academic focus of \"Subject-Verb Agreement Rules\"?",
         "options": [
           "Agreement rules with compound subjects (neither/nor, either/or, everyone, each).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2291,12 +2291,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Subject-Verb Agreement & Tricky Plurals to improve my fluency.",
-          "Me practice rules of Subject-Verb Agreement & Tricky Plurals without sentence.",
-          "I practicing rule Subject-Verb Agreement & Tricky Plurals yesterday today.",
+          "I have practiced the rules of Subject-Verb Agreement Rules to improve my fluency.",
+          "Me practice rules of Subject-Verb Agreement Rules without sentence.",
+          "I practicing rule Subject-Verb Agreement Rules yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Subject-Verb Agreement & Tricky Plurals to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Subject-Verb Agreement Rules to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2326,7 +2326,7 @@ export const MASTER_LESSONS = [
   {
     "id": "23",
     "numericId": 23,
-    "title": "Timeline of the 12 English Verb Tenses",
+    "title": "Mastering the 12 Verb Tenses",
     "category": "Tenses",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2340,7 +2340,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Visualizing and mastering the past, present, and future across simple, continuous, and perfect.",
     "objectives": [
-      "Master the foundational rules of Timeline of the 12 English Verb Tenses",
+      "Master the foundational rules of Mastering the 12 Verb Tenses",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2351,14 +2351,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Timeline of the 12 English Verb Tenses\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Mastering the 12 Verb Tenses\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Timeline of the 12 English Verb Tenses\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Mastering the 12 Verb Tenses\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2367,12 +2367,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding timeline of the 12 english verb tenses and practicing every day.",
-      "targetPhonemes": "Timeline of the 12 English Verb Tenses"
+      "sentence": "Clear communication relies on understanding mastering the 12 verb tenses and practicing every day.",
+      "targetPhonemes": "Mastering the 12 Verb Tenses"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Timeline of the 12 English Verb Tenses\"?",
+        "question": "What is the primary academic focus of \"Mastering the 12 Verb Tenses\"?",
         "options": [
           "Visualizing and mastering the past, present, and future across simple, continuous, and perfect.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2396,12 +2396,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Timeline of the 12 English Verb Tenses to improve my fluency.",
-          "Me practice rules of Timeline of the 12 English Verb Tenses without sentence.",
-          "I practicing rule Timeline of the 12 English Verb Tenses yesterday today.",
+          "I have practiced the rules of Mastering the 12 Verb Tenses to improve my fluency.",
+          "Me practice rules of Mastering the 12 Verb Tenses without sentence.",
+          "I practicing rule Mastering the 12 Verb Tenses yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Timeline of the 12 English Verb Tenses to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Mastering the 12 Verb Tenses to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2431,7 +2431,7 @@ export const MASTER_LESSONS = [
   {
     "id": "24",
     "numericId": 24,
-    "title": "Present Perfect vs. Simple Past Tense",
+    "title": "Present Perfect vs. Simple Past",
     "category": "Tenses",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2445,7 +2445,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Differentiating completed past actions at specific times vs indefinite life experiences.",
     "objectives": [
-      "Master the foundational rules of Present Perfect vs. Simple Past Tense",
+      "Master the foundational rules of Present Perfect vs. Simple Past",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2456,14 +2456,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Present Perfect vs. Simple Past Tense\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Present Perfect vs. Simple Past\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Present Perfect vs. Simple Past Tense\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Present Perfect vs. Simple Past\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2472,12 +2472,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding present perfect vs. simple past tense and practicing every day.",
-      "targetPhonemes": "Present Perfect vs. Simple Past Tense"
+      "sentence": "Clear communication relies on understanding present perfect vs. simple past and practicing every day.",
+      "targetPhonemes": "Present Perfect vs. Simple Past"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Present Perfect vs. Simple Past Tense\"?",
+        "question": "What is the primary academic focus of \"Present Perfect vs. Simple Past\"?",
         "options": [
           "Differentiating completed past actions at specific times vs indefinite life experiences.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2501,12 +2501,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Present Perfect vs. Simple Past Tense to improve my fluency.",
-          "Me practice rules of Present Perfect vs. Simple Past Tense without sentence.",
-          "I practicing rule Present Perfect vs. Simple Past Tense yesterday today.",
+          "I have practiced the rules of Present Perfect vs. Simple Past to improve my fluency.",
+          "Me practice rules of Present Perfect vs. Simple Past without sentence.",
+          "I practicing rule Present Perfect vs. Simple Past yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Present Perfect vs. Simple Past Tense to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Present Perfect vs. Simple Past to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2536,7 +2536,7 @@ export const MASTER_LESSONS = [
   {
     "id": "25",
     "numericId": 25,
-    "title": "Past Continuous & Past Perfect Sequences",
+    "title": "Past Continuous & Past Perfect",
     "category": "Tenses",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2550,7 +2550,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Using had + past participle to show which past event happened first.",
     "objectives": [
-      "Master the foundational rules of Past Continuous & Past Perfect Sequences",
+      "Master the foundational rules of Past Continuous & Past Perfect",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2561,14 +2561,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Past Continuous & Past Perfect Sequences\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Past Continuous & Past Perfect\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Past Continuous & Past Perfect Sequences\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Past Continuous & Past Perfect\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2577,12 +2577,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding past continuous & past perfect sequences and practicing every day.",
-      "targetPhonemes": "Past Continuous & Past Perfect Sequences"
+      "sentence": "Clear communication relies on understanding past continuous & past perfect and practicing every day.",
+      "targetPhonemes": "Past Continuous & Past Perfect"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Past Continuous & Past Perfect Sequences\"?",
+        "question": "What is the primary academic focus of \"Past Continuous & Past Perfect\"?",
         "options": [
           "Using had + past participle to show which past event happened first.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2606,12 +2606,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Past Continuous & Past Perfect Sequences to improve my fluency.",
-          "Me practice rules of Past Continuous & Past Perfect Sequences without sentence.",
-          "I practicing rule Past Continuous & Past Perfect Sequences yesterday today.",
+          "I have practiced the rules of Past Continuous & Past Perfect to improve my fluency.",
+          "Me practice rules of Past Continuous & Past Perfect without sentence.",
+          "I practicing rule Past Continuous & Past Perfect yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Past Continuous & Past Perfect Sequences to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Past Continuous & Past Perfect to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2641,7 +2641,7 @@ export const MASTER_LESSONS = [
   {
     "id": "26",
     "numericId": 26,
-    "title": "Future Tense Variations: Will vs. Going To vs. Present Continuous",
+    "title": "Future Forms: Will vs. Going To",
     "category": "Tenses",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2655,7 +2655,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Differentiating spontaneous decisions (will), prior plans (going to), and fixed schedules.",
     "objectives": [
-      "Master the foundational rules of Future Tense Variations: Will vs. Going To vs. Present Continuous",
+      "Master the foundational rules of Future Forms: Will vs. Going To",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2666,14 +2666,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Future Tense Variations: Will vs. Going To vs. Present Continuous\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Future Forms: Will vs. Going To\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Future Tense Variations: Will vs. Going To vs. Present Continuous\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Future Forms: Will vs. Going To\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2682,12 +2682,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding future tense variations: will vs. going to vs. present continuous and practicing every day.",
-      "targetPhonemes": "Future Tense Variations: Will vs. Going To vs. Present Continuous"
+      "sentence": "Clear communication relies on understanding future forms: will vs. going to and practicing every day.",
+      "targetPhonemes": "Future Forms: Will vs. Going To"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Future Tense Variations: Will vs. Going To vs. Present Continuous\"?",
+        "question": "What is the primary academic focus of \"Future Forms: Will vs. Going To\"?",
         "options": [
           "Differentiating spontaneous decisions (will), prior plans (going to), and fixed schedules.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2711,12 +2711,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Future Tense Variations: Will vs. Going To vs. Present Continuous to improve my fluency.",
-          "Me practice rules of Future Tense Variations: Will vs. Going To vs. Present Continuous without sentence.",
-          "I practicing rule Future Tense Variations: Will vs. Going To vs. Present Continuous yesterday today.",
+          "I have practiced the rules of Future Forms: Will vs. Going To to improve my fluency.",
+          "Me practice rules of Future Forms: Will vs. Going To without sentence.",
+          "I practicing rule Future Forms: Will vs. Going To yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Future Tense Variations: Will vs. Going To vs. Present Continuous to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Future Forms: Will vs. Going To to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2746,7 +2746,7 @@ export const MASTER_LESSONS = [
   {
     "id": "27",
     "numericId": 27,
-    "title": "Transitive and Intransitive Verbs & Objects",
+    "title": "Transitive & Intransitive Verbs",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2760,7 +2760,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Distinguishing verbs that require direct/indirect objects from verbs that stand alone.",
     "objectives": [
-      "Master the foundational rules of Transitive and Intransitive Verbs & Objects",
+      "Master the foundational rules of Transitive & Intransitive Verbs",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2771,14 +2771,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Transitive and Intransitive Verbs & Objects\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Transitive & Intransitive Verbs\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Transitive and Intransitive Verbs & Objects\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Transitive & Intransitive Verbs\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2787,12 +2787,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding transitive and intransitive verbs & objects and practicing every day.",
-      "targetPhonemes": "Transitive and Intransitive Verbs & Objects"
+      "sentence": "Clear communication relies on understanding transitive & intransitive verbs and practicing every day.",
+      "targetPhonemes": "Transitive & Intransitive Verbs"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Transitive and Intransitive Verbs & Objects\"?",
+        "question": "What is the primary academic focus of \"Transitive & Intransitive Verbs\"?",
         "options": [
           "Distinguishing verbs that require direct/indirect objects from verbs that stand alone.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2816,12 +2816,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Transitive and Intransitive Verbs & Objects to improve my fluency.",
-          "Me practice rules of Transitive and Intransitive Verbs & Objects without sentence.",
-          "I practicing rule Transitive and Intransitive Verbs & Objects yesterday today.",
+          "I have practiced the rules of Transitive & Intransitive Verbs to improve my fluency.",
+          "Me practice rules of Transitive & Intransitive Verbs without sentence.",
+          "I practicing rule Transitive & Intransitive Verbs yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Transitive and Intransitive Verbs & Objects to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Transitive & Intransitive Verbs to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2851,7 +2851,7 @@ export const MASTER_LESSONS = [
   {
     "id": "28",
     "numericId": 28,
-    "title": "Sentence Architecture: Simple, Compound & Complex",
+    "title": "Simple, Compound & Complex Sentences",
     "category": "Syntax",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2865,7 +2865,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Independent vs dependent clauses; coordinating (FANBOYS) and subordinating conjunctions.",
     "objectives": [
-      "Master the foundational rules of Sentence Architecture: Simple, Compound & Complex",
+      "Master the foundational rules of Simple, Compound & Complex Sentences",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2876,14 +2876,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Sentence Architecture: Simple, Compound & Complex\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Simple, Compound & Complex Sentences\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Sentence Architecture: Simple, Compound & Complex\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Simple, Compound & Complex Sentences\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2892,12 +2892,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding sentence architecture: simple, compound & complex and practicing every day.",
-      "targetPhonemes": "Sentence Architecture: Simple, Compound & Complex"
+      "sentence": "Clear communication relies on understanding simple, compound & complex sentences and practicing every day.",
+      "targetPhonemes": "Simple, Compound & Complex Sentences"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Sentence Architecture: Simple, Compound & Complex\"?",
+        "question": "What is the primary academic focus of \"Simple, Compound & Complex Sentences\"?",
         "options": [
           "Independent vs dependent clauses; coordinating (FANBOYS) and subordinating conjunctions.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -2921,12 +2921,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Sentence Architecture: Simple, Compound & Complex to improve my fluency.",
-          "Me practice rules of Sentence Architecture: Simple, Compound & Complex without sentence.",
-          "I practicing rule Sentence Architecture: Simple, Compound & Complex yesterday today.",
+          "I have practiced the rules of Simple, Compound & Complex Sentences to improve my fluency.",
+          "Me practice rules of Simple, Compound & Complex Sentences without sentence.",
+          "I practicing rule Simple, Compound & Complex Sentences yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Sentence Architecture: Simple, Compound & Complex to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Simple, Compound & Complex Sentences to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -2956,7 +2956,7 @@ export const MASTER_LESSONS = [
   {
     "id": "29",
     "numericId": 29,
-    "title": "Active Voice vs. Passive Voice Fundamentals",
+    "title": "Active vs. Passive Voice",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -2970,7 +2970,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Subject-object inversion formula: Object + be + past participle + by subject.",
     "objectives": [
-      "Master the foundational rules of Active Voice vs. Passive Voice Fundamentals",
+      "Master the foundational rules of Active vs. Passive Voice",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -2981,14 +2981,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Active Voice vs. Passive Voice Fundamentals\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Active vs. Passive Voice\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Active Voice vs. Passive Voice Fundamentals\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Active vs. Passive Voice\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -2997,12 +2997,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding active voice vs. passive voice fundamentals and practicing every day.",
-      "targetPhonemes": "Active Voice vs. Passive Voice Fundamentals"
+      "sentence": "Clear communication relies on understanding active vs. passive voice and practicing every day.",
+      "targetPhonemes": "Active vs. Passive Voice"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Active Voice vs. Passive Voice Fundamentals\"?",
+        "question": "What is the primary academic focus of \"Active vs. Passive Voice\"?",
         "options": [
           "Subject-object inversion formula: Object + be + past participle + by subject.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3026,12 +3026,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Active Voice vs. Passive Voice Fundamentals to improve my fluency.",
-          "Me practice rules of Active Voice vs. Passive Voice Fundamentals without sentence.",
-          "I practicing rule Active Voice vs. Passive Voice Fundamentals yesterday today.",
+          "I have practiced the rules of Active vs. Passive Voice to improve my fluency.",
+          "Me practice rules of Active vs. Passive Voice without sentence.",
+          "I practicing rule Active vs. Passive Voice yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Active Voice vs. Passive Voice Fundamentals to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Active vs. Passive Voice to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3061,7 +3061,7 @@ export const MASTER_LESSONS = [
   {
     "id": "30",
     "numericId": 30,
-    "title": "Direct and Indirect (Reported) Speech",
+    "title": "Direct and Indirect Speech",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3075,7 +3075,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Rules for converting direct quotes into reported speech; tense shift and pronoun changes.",
     "objectives": [
-      "Master the foundational rules of Direct and Indirect (Reported) Speech",
+      "Master the foundational rules of Direct and Indirect Speech",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3086,14 +3086,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Direct and Indirect (Reported) Speech\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Direct and Indirect Speech\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Direct and Indirect (Reported) Speech\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Direct and Indirect Speech\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3102,12 +3102,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding direct and indirect (reported) speech and practicing every day.",
-      "targetPhonemes": "Direct and Indirect (Reported) Speech"
+      "sentence": "Clear communication relies on understanding direct and indirect speech and practicing every day.",
+      "targetPhonemes": "Direct and Indirect Speech"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Direct and Indirect (Reported) Speech\"?",
+        "question": "What is the primary academic focus of \"Direct and Indirect Speech\"?",
         "options": [
           "Rules for converting direct quotes into reported speech; tense shift and pronoun changes.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3131,12 +3131,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Direct and Indirect (Reported) Speech to improve my fluency.",
-          "Me practice rules of Direct and Indirect (Reported) Speech without sentence.",
-          "I practicing rule Direct and Indirect (Reported) Speech yesterday today.",
+          "I have practiced the rules of Direct and Indirect Speech to improve my fluency.",
+          "Me practice rules of Direct and Indirect Speech without sentence.",
+          "I practicing rule Direct and Indirect Speech yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Direct and Indirect (Reported) Speech to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Direct and Indirect Speech to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3166,7 +3166,7 @@ export const MASTER_LESSONS = [
   {
     "id": "31",
     "numericId": 31,
-    "title": "Reported Questions, Orders & Requests",
+    "title": "Reporting Questions & Requests",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3180,7 +3180,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Converting interrogative and imperative statements using asked if/whether, ordered to, requested.",
     "objectives": [
-      "Master the foundational rules of Reported Questions, Orders & Requests",
+      "Master the foundational rules of Reporting Questions & Requests",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3191,14 +3191,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Reported Questions, Orders & Requests\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Reporting Questions & Requests\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Reported Questions, Orders & Requests\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Reporting Questions & Requests\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3207,12 +3207,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding reported questions, orders & requests and practicing every day.",
-      "targetPhonemes": "Reported Questions, Orders & Requests"
+      "sentence": "Clear communication relies on understanding reporting questions & requests and practicing every day.",
+      "targetPhonemes": "Reporting Questions & Requests"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Reported Questions, Orders & Requests\"?",
+        "question": "What is the primary academic focus of \"Reporting Questions & Requests\"?",
         "options": [
           "Converting interrogative and imperative statements using asked if/whether, ordered to, requested.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3236,12 +3236,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Reported Questions, Orders & Requests to improve my fluency.",
-          "Me practice rules of Reported Questions, Orders & Requests without sentence.",
-          "I practicing rule Reported Questions, Orders & Requests yesterday today.",
+          "I have practiced the rules of Reporting Questions & Requests to improve my fluency.",
+          "Me practice rules of Reporting Questions & Requests without sentence.",
+          "I practicing rule Reporting Questions & Requests yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Reported Questions, Orders & Requests to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Reporting Questions & Requests to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3271,7 +3271,7 @@ export const MASTER_LESSONS = [
   {
     "id": "32",
     "numericId": 32,
-    "title": "Modal Auxiliaries: Ability, Permission & Obligation",
+    "title": "Modal Verbs: Can, May & Must",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3285,7 +3285,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Nuances and correct usage of can, could, may, might, must, should, ought to.",
     "objectives": [
-      "Master the foundational rules of Modal Auxiliaries: Ability, Permission & Obligation",
+      "Master the foundational rules of Modal Verbs: Can, May & Must",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3296,14 +3296,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Modal Auxiliaries: Ability, Permission & Obligation\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Modal Verbs: Can, May & Must\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Modal Auxiliaries: Ability, Permission & Obligation\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Modal Verbs: Can, May & Must\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3312,12 +3312,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding modal auxiliaries: ability, permission & obligation and practicing every day.",
-      "targetPhonemes": "Modal Auxiliaries: Ability, Permission & Obligation"
+      "sentence": "Clear communication relies on understanding modal verbs: can, may & must and practicing every day.",
+      "targetPhonemes": "Modal Verbs: Can, May & Must"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Modal Auxiliaries: Ability, Permission & Obligation\"?",
+        "question": "What is the primary academic focus of \"Modal Verbs: Can, May & Must\"?",
         "options": [
           "Nuances and correct usage of can, could, may, might, must, should, ought to.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3341,12 +3341,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Modal Auxiliaries: Ability, Permission & Obligation to improve my fluency.",
-          "Me practice rules of Modal Auxiliaries: Ability, Permission & Obligation without sentence.",
-          "I practicing rule Modal Auxiliaries: Ability, Permission & Obligation yesterday today.",
+          "I have practiced the rules of Modal Verbs: Can, May & Must to improve my fluency.",
+          "Me practice rules of Modal Verbs: Can, May & Must without sentence.",
+          "I practicing rule Modal Verbs: Can, May & Must yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Modal Auxiliaries: Ability, Permission & Obligation to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Modal Verbs: Can, May & Must to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3376,7 +3376,7 @@ export const MASTER_LESSONS = [
   {
     "id": "33",
     "numericId": 33,
-    "title": "Prefixes, Suffixes & Latin/Greek Root Words",
+    "title": "Word Roots, Prefixes & Suffixes",
     "category": "Vocabulary",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3390,7 +3390,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Deconstructing word meanings using roots (bio, geo, tele) and affixes (un-, dis-, -tion).",
     "objectives": [
-      "Master the foundational rules of Prefixes, Suffixes & Latin/Greek Root Words",
+      "Master the foundational rules of Word Roots, Prefixes & Suffixes",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3401,14 +3401,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Prefixes, Suffixes & Latin/Greek Root Words\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Word Roots, Prefixes & Suffixes\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Prefixes, Suffixes & Latin/Greek Root Words\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Word Roots, Prefixes & Suffixes\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3417,12 +3417,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding prefixes, suffixes & latin/greek root words and practicing every day.",
-      "targetPhonemes": "Prefixes, Suffixes & Latin/Greek Root Words"
+      "sentence": "Clear communication relies on understanding word roots, prefixes & suffixes and practicing every day.",
+      "targetPhonemes": "Word Roots, Prefixes & Suffixes"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Prefixes, Suffixes & Latin/Greek Root Words\"?",
+        "question": "What is the primary academic focus of \"Word Roots, Prefixes & Suffixes\"?",
         "options": [
           "Deconstructing word meanings using roots (bio, geo, tele) and affixes (un-, dis-, -tion).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3446,12 +3446,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Prefixes, Suffixes & Latin/Greek Root Words to improve my fluency.",
-          "Me practice rules of Prefixes, Suffixes & Latin/Greek Root Words without sentence.",
-          "I practicing rule Prefixes, Suffixes & Latin/Greek Root Words yesterday today.",
+          "I have practiced the rules of Word Roots, Prefixes & Suffixes to improve my fluency.",
+          "Me practice rules of Word Roots, Prefixes & Suffixes without sentence.",
+          "I practicing rule Word Roots, Prefixes & Suffixes yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Prefixes, Suffixes & Latin/Greek Root Words to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Word Roots, Prefixes & Suffixes to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3481,7 +3481,7 @@ export const MASTER_LESSONS = [
   {
     "id": "34",
     "numericId": 34,
-    "title": "Relative Clauses & Relative Pronouns (Who, Which, That, Whose)",
+    "title": "Relative Clauses & Pronouns",
     "category": "Syntax",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3495,7 +3495,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Defining vs non-defining clauses and combining sentences cleanly without repetition.",
     "objectives": [
-      "Master the foundational rules of Relative Clauses & Relative Pronouns (Who, Which, That, Whose)",
+      "Master the foundational rules of Relative Clauses & Pronouns",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3506,14 +3506,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Relative Clauses & Relative Pronouns (Who, Which, That, Whose)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Relative Clauses & Pronouns\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Relative Clauses & Relative Pronouns (Who, Which, That, Whose)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Relative Clauses & Pronouns\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3522,12 +3522,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding relative clauses & relative pronouns (who, which, that, whose) and practicing every day.",
-      "targetPhonemes": "Relative Clauses & Relative Pronouns (Who, Which, That, Whose)"
+      "sentence": "Clear communication relies on understanding relative clauses & pronouns and practicing every day.",
+      "targetPhonemes": "Relative Clauses & Pronouns"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Relative Clauses & Relative Pronouns (Who, Which, That, Whose)\"?",
+        "question": "What is the primary academic focus of \"Relative Clauses & Pronouns\"?",
         "options": [
           "Defining vs non-defining clauses and combining sentences cleanly without repetition.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3551,12 +3551,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Relative Clauses & Relative Pronouns (Who, Which, That, Whose) to improve my fluency.",
-          "Me practice rules of Relative Clauses & Relative Pronouns (Who, Which, That, Whose) without sentence.",
-          "I practicing rule Relative Clauses & Relative Pronouns (Who, Which, That, Whose) yesterday today.",
+          "I have practiced the rules of Relative Clauses & Pronouns to improve my fluency.",
+          "Me practice rules of Relative Clauses & Pronouns without sentence.",
+          "I practicing rule Relative Clauses & Pronouns yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Relative Clauses & Relative Pronouns (Who, Which, That, Whose) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Relative Clauses & Pronouns to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3586,7 +3586,7 @@ export const MASTER_LESSONS = [
   {
     "id": "35",
     "numericId": 35,
-    "title": "Degrees of Comparison: Irregular Adjectives & Adverbs",
+    "title": "Advanced Degrees of Comparison",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3600,7 +3600,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Complex comparison structures (better, worse, farther, as...as, the more...the more).",
     "objectives": [
-      "Master the foundational rules of Degrees of Comparison: Irregular Adjectives & Adverbs",
+      "Master the foundational rules of Advanced Degrees of Comparison",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3611,14 +3611,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Degrees of Comparison: Irregular Adjectives & Adverbs\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Advanced Degrees of Comparison\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Degrees of Comparison: Irregular Adjectives & Adverbs\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Advanced Degrees of Comparison\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3627,12 +3627,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding degrees of comparison: irregular adjectives & adverbs and practicing every day.",
-      "targetPhonemes": "Degrees of Comparison: Irregular Adjectives & Adverbs"
+      "sentence": "Clear communication relies on understanding advanced degrees of comparison and practicing every day.",
+      "targetPhonemes": "Advanced Degrees of Comparison"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Degrees of Comparison: Irregular Adjectives & Adverbs\"?",
+        "question": "What is the primary academic focus of \"Advanced Degrees of Comparison\"?",
         "options": [
           "Complex comparison structures (better, worse, farther, as...as, the more...the more).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3656,12 +3656,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Degrees of Comparison: Irregular Adjectives & Adverbs to improve my fluency.",
-          "Me practice rules of Degrees of Comparison: Irregular Adjectives & Adverbs without sentence.",
-          "I practicing rule Degrees of Comparison: Irregular Adjectives & Adverbs yesterday today.",
+          "I have practiced the rules of Advanced Degrees of Comparison to improve my fluency.",
+          "Me practice rules of Advanced Degrees of Comparison without sentence.",
+          "I practicing rule Advanced Degrees of Comparison yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Degrees of Comparison: Irregular Adjectives & Adverbs to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Advanced Degrees of Comparison to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3691,7 +3691,7 @@ export const MASTER_LESSONS = [
   {
     "id": "36",
     "numericId": 36,
-    "title": "Punctuation Mastery: Commas, Semicolons & Quotation Marks",
+    "title": "Punctuation: Commas & Semicolons",
     "category": "Mechanics",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3705,7 +3705,7 @@ export const MASTER_LESSONS = [
     "icon": "create-outline",
     "description": "Using commas with clauses, introductory elements, lists, and direct quotes.",
     "objectives": [
-      "Master the foundational rules of Punctuation Mastery: Commas, Semicolons & Quotation Marks",
+      "Master the foundational rules of Punctuation: Commas & Semicolons",
       "Identify and correct frequent errors in Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3716,14 +3716,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Punctuation Mastery: Commas, Semicolons & Quotation Marks\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Punctuation: Commas & Semicolons\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Punctuation Mastery: Commas, Semicolons & Quotation Marks\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Punctuation: Commas & Semicolons\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3732,12 +3732,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding punctuation mastery: commas, semicolons & quotation marks and practicing every day.",
-      "targetPhonemes": "Punctuation Mastery: Commas, Semicolons & Quotation Marks"
+      "sentence": "Clear communication relies on understanding punctuation: commas & semicolons and practicing every day.",
+      "targetPhonemes": "Punctuation: Commas & Semicolons"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Punctuation Mastery: Commas, Semicolons & Quotation Marks\"?",
+        "question": "What is the primary academic focus of \"Punctuation: Commas & Semicolons\"?",
         "options": [
           "Using commas with clauses, introductory elements, lists, and direct quotes.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3761,12 +3761,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Punctuation Mastery: Commas, Semicolons & Quotation Marks to improve my fluency.",
-          "Me practice rules of Punctuation Mastery: Commas, Semicolons & Quotation Marks without sentence.",
-          "I practicing rule Punctuation Mastery: Commas, Semicolons & Quotation Marks yesterday today.",
+          "I have practiced the rules of Punctuation: Commas & Semicolons to improve my fluency.",
+          "Me practice rules of Punctuation: Commas & Semicolons without sentence.",
+          "I practicing rule Punctuation: Commas & Semicolons yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Punctuation Mastery: Commas, Semicolons & Quotation Marks to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Punctuation: Commas & Semicolons to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3796,7 +3796,7 @@ export const MASTER_LESSONS = [
   {
     "id": "37",
     "numericId": 37,
-    "title": "Paragraph Structure: Topic Sentence, Evidence & Conclusion",
+    "title": "Structuring Strong Paragraphs",
     "category": "Writing Mechanics",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3810,7 +3810,7 @@ export const MASTER_LESSONS = [
     "icon": "document-text-outline",
     "description": "Structuring cohesive written and spoken paragraphs with unified thematic focus.",
     "objectives": [
-      "Master the foundational rules of Paragraph Structure: Topic Sentence, Evidence & Conclusion",
+      "Master the foundational rules of Structuring Strong Paragraphs",
       "Identify and correct frequent errors in Writing Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3821,14 +3821,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Paragraph Structure: Topic Sentence, Evidence & Conclusion\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Structuring Strong Paragraphs\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Paragraph Structure: Topic Sentence, Evidence & Conclusion\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Structuring Strong Paragraphs\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3837,12 +3837,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding paragraph structure: topic sentence, evidence & conclusion and practicing every day.",
-      "targetPhonemes": "Paragraph Structure: Topic Sentence, Evidence & Conclusion"
+      "sentence": "Clear communication relies on understanding structuring strong paragraphs and practicing every day.",
+      "targetPhonemes": "Structuring Strong Paragraphs"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Paragraph Structure: Topic Sentence, Evidence & Conclusion\"?",
+        "question": "What is the primary academic focus of \"Structuring Strong Paragraphs\"?",
         "options": [
           "Structuring cohesive written and spoken paragraphs with unified thematic focus.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3866,12 +3866,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Paragraph Structure: Topic Sentence, Evidence & Conclusion to improve my fluency.",
-          "Me practice rules of Paragraph Structure: Topic Sentence, Evidence & Conclusion without sentence.",
-          "I practicing rule Paragraph Structure: Topic Sentence, Evidence & Conclusion yesterday today.",
+          "I have practiced the rules of Structuring Strong Paragraphs to improve my fluency.",
+          "Me practice rules of Structuring Strong Paragraphs without sentence.",
+          "I practicing rule Structuring Strong Paragraphs yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Paragraph Structure: Topic Sentence, Evidence & Conclusion to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Structuring Strong Paragraphs to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -3901,7 +3901,7 @@ export const MASTER_LESSONS = [
   {
     "id": "38",
     "numericId": 38,
-    "title": "Phonetic Syllable Stress & Word Intonation Rules",
+    "title": "Word Stress & Intonation",
     "category": "Phonology",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -3915,7 +3915,7 @@ export const MASTER_LESSONS = [
     "icon": "volume-medium-outline",
     "description": "Pitch modulation and stress placement in two-syllable nouns vs verbs (CON-duct vs con-DUCT).",
     "objectives": [
-      "Master the foundational rules of Phonetic Syllable Stress & Word Intonation Rules",
+      "Master the foundational rules of Word Stress & Intonation",
       "Identify and correct frequent errors in Phonology",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -3926,14 +3926,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Phonetic Syllable Stress & Word Intonation Rules\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Word Stress & Intonation\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Phonetic Syllable Stress & Word Intonation Rules\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Word Stress & Intonation\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -3942,12 +3942,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding phonetic syllable stress & word intonation rules and practicing every day.",
-      "targetPhonemes": "Phonetic Syllable Stress & Word Intonation Rules"
+      "sentence": "Clear communication relies on understanding word stress & intonation and practicing every day.",
+      "targetPhonemes": "Word Stress & Intonation"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Phonetic Syllable Stress & Word Intonation Rules\"?",
+        "question": "What is the primary academic focus of \"Word Stress & Intonation\"?",
         "options": [
           "Pitch modulation and stress placement in two-syllable nouns vs verbs (CON-duct vs con-DUCT).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -3971,12 +3971,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Phonetic Syllable Stress & Word Intonation Rules to improve my fluency.",
-          "Me practice rules of Phonetic Syllable Stress & Word Intonation Rules without sentence.",
-          "I practicing rule Phonetic Syllable Stress & Word Intonation Rules yesterday today.",
+          "I have practiced the rules of Word Stress & Intonation to improve my fluency.",
+          "Me practice rules of Word Stress & Intonation without sentence.",
+          "I practicing rule Word Stress & Intonation yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Phonetic Syllable Stress & Word Intonation Rules to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Word Stress & Intonation to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4006,7 +4006,7 @@ export const MASTER_LESSONS = [
   {
     "id": "39",
     "numericId": 39,
-    "title": "Oral Reading Fluency: Pausing at Punctuation & Expression",
+    "title": "Expressive Oral Reading",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -4020,7 +4020,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Pacing oral delivery by observing commas, periods, exclamation, and quotation inflection.",
     "objectives": [
-      "Master the foundational rules of Oral Reading Fluency: Pausing at Punctuation & Expression",
+      "Master the foundational rules of Expressive Oral Reading",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4031,14 +4031,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Oral Reading Fluency: Pausing at Punctuation & Expression\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Expressive Oral Reading\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Oral Reading Fluency: Pausing at Punctuation & Expression\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Expressive Oral Reading\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4047,12 +4047,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding oral reading fluency: pausing at punctuation & expression and practicing every day.",
-      "targetPhonemes": "Oral Reading Fluency: Pausing at Punctuation & Expression"
+      "sentence": "Clear communication relies on understanding expressive oral reading and practicing every day.",
+      "targetPhonemes": "Expressive Oral Reading"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Oral Reading Fluency: Pausing at Punctuation & Expression\"?",
+        "question": "What is the primary academic focus of \"Expressive Oral Reading\"?",
         "options": [
           "Pacing oral delivery by observing commas, periods, exclamation, and quotation inflection.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4076,12 +4076,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Oral Reading Fluency: Pausing at Punctuation & Expression to improve my fluency.",
-          "Me practice rules of Oral Reading Fluency: Pausing at Punctuation & Expression without sentence.",
-          "I practicing rule Oral Reading Fluency: Pausing at Punctuation & Expression yesterday today.",
+          "I have practiced the rules of Expressive Oral Reading to improve my fluency.",
+          "Me practice rules of Expressive Oral Reading without sentence.",
+          "I practicing rule Expressive Oral Reading yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Oral Reading Fluency: Pausing at Punctuation & Expression to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Expressive Oral Reading to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4111,7 +4111,7 @@ export const MASTER_LESSONS = [
   {
     "id": "40",
     "numericId": 40,
-    "title": "Formal Letter & Academic Email Formatting",
+    "title": "Formal Letters & Email Writing",
     "category": "Writing Mechanics",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -4125,7 +4125,7 @@ export const MASTER_LESSONS = [
     "icon": "document-text-outline",
     "description": "Structural conventions: sender/receiver address, date, formal salutation, concise body, sign-off.",
     "objectives": [
-      "Master the foundational rules of Formal Letter & Academic Email Formatting",
+      "Master the foundational rules of Formal Letters & Email Writing",
       "Identify and correct frequent errors in Writing Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4136,14 +4136,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Formal Letter & Academic Email Formatting\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Formal Letters & Email Writing\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Formal Letter & Academic Email Formatting\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Formal Letters & Email Writing\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4152,12 +4152,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding formal letter & academic email formatting and practicing every day.",
-      "targetPhonemes": "Formal Letter & Academic Email Formatting"
+      "sentence": "Clear communication relies on understanding formal letters & email writing and practicing every day.",
+      "targetPhonemes": "Formal Letters & Email Writing"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Formal Letter & Academic Email Formatting\"?",
+        "question": "What is the primary academic focus of \"Formal Letters & Email Writing\"?",
         "options": [
           "Structural conventions: sender/receiver address, date, formal salutation, concise body, sign-off.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4181,12 +4181,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Formal Letter & Academic Email Formatting to improve my fluency.",
-          "Me practice rules of Formal Letter & Academic Email Formatting without sentence.",
-          "I practicing rule Formal Letter & Academic Email Formatting yesterday today.",
+          "I have practiced the rules of Formal Letters & Email Writing to improve my fluency.",
+          "Me practice rules of Formal Letters & Email Writing without sentence.",
+          "I practicing rule Formal Letters & Email Writing yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Formal Letter & Academic Email Formatting to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Formal Letters & Email Writing to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4216,7 +4216,7 @@ export const MASTER_LESSONS = [
   {
     "id": "41",
     "numericId": 41,
-    "title": "10th Board Exam English Viva & Oral Test Simulation",
+    "title": "Board Exam Viva & Oral Prep",
     "category": "Board Prep",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -4230,7 +4230,7 @@ export const MASTER_LESSONS = [
     "icon": "ribbon-outline",
     "description": "Official oral examination simulation: responding to literary prompts, themes, and analytical Q&A.",
     "objectives": [
-      "Master the foundational rules of 10th Board Exam English Viva & Oral Test Simulation",
+      "Master the foundational rules of Board Exam Viva & Oral Prep",
       "Identify and correct frequent errors in Board Prep",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4241,14 +4241,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"10th Board Exam English Viva & Oral Test Simulation\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Board Exam Viva & Oral Prep\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"10th Board Exam English Viva & Oral Test Simulation\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Board Exam Viva & Oral Prep\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4257,12 +4257,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding 10th board exam english viva & oral test simulation and practicing every day.",
-      "targetPhonemes": "10th Board Exam English Viva & Oral Test Simulation"
+      "sentence": "Clear communication relies on understanding board exam viva & oral prep and practicing every day.",
+      "targetPhonemes": "Board Exam Viva & Oral Prep"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"10th Board Exam English Viva & Oral Test Simulation\"?",
+        "question": "What is the primary academic focus of \"Board Exam Viva & Oral Prep\"?",
         "options": [
           "Official oral examination simulation: responding to literary prompts, themes, and analytical Q&A.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4286,12 +4286,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of 10th Board Exam English Viva & Oral Test Simulation to improve my fluency.",
-          "Me practice rules of 10th Board Exam English Viva & Oral Test Simulation without sentence.",
-          "I practicing rule 10th Board Exam English Viva & Oral Test Simulation yesterday today.",
+          "I have practiced the rules of Board Exam Viva & Oral Prep to improve my fluency.",
+          "Me practice rules of Board Exam Viva & Oral Prep without sentence.",
+          "I practicing rule Board Exam Viva & Oral Prep yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of 10th Board Exam English Viva & Oral Test Simulation to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Board Exam Viva & Oral Prep to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4321,7 +4321,7 @@ export const MASTER_LESSONS = [
   {
     "id": "42",
     "numericId": 42,
-    "title": "Advanced Subject-Verb Concord & Inverted Sentences",
+    "title": "Advanced Subject-Verb Concord",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -4335,7 +4335,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Agreement with indefinite pronouns, collective nouns, distances, sums of money, and inverted word order.",
     "objectives": [
-      "Master the foundational rules of Advanced Subject-Verb Concord & Inverted Sentences",
+      "Master the foundational rules of Advanced Subject-Verb Concord",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4346,14 +4346,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Advanced Subject-Verb Concord & Inverted Sentences\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Advanced Subject-Verb Concord\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Advanced Subject-Verb Concord & Inverted Sentences\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Advanced Subject-Verb Concord\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4362,12 +4362,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding advanced subject-verb concord & inverted sentences and practicing every day.",
-      "targetPhonemes": "Advanced Subject-Verb Concord & Inverted Sentences"
+      "sentence": "Clear communication relies on understanding advanced subject-verb concord and practicing every day.",
+      "targetPhonemes": "Advanced Subject-Verb Concord"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Advanced Subject-Verb Concord & Inverted Sentences\"?",
+        "question": "What is the primary academic focus of \"Advanced Subject-Verb Concord\"?",
         "options": [
           "Agreement with indefinite pronouns, collective nouns, distances, sums of money, and inverted word order.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4391,12 +4391,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Advanced Subject-Verb Concord & Inverted Sentences to improve my fluency.",
-          "Me practice rules of Advanced Subject-Verb Concord & Inverted Sentences without sentence.",
-          "I practicing rule Advanced Subject-Verb Concord & Inverted Sentences yesterday today.",
+          "I have practiced the rules of Advanced Subject-Verb Concord to improve my fluency.",
+          "Me practice rules of Advanced Subject-Verb Concord without sentence.",
+          "I practicing rule Advanced Subject-Verb Concord yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Advanced Subject-Verb Concord & Inverted Sentences to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Advanced Subject-Verb Concord to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4426,7 +4426,7 @@ export const MASTER_LESSONS = [
   {
     "id": "43",
     "numericId": 43,
-    "title": "Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed",
+    "title": "Conditionals: If-Clause Formulas",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -4440,7 +4440,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Expressing scientific certainty, future conditions, hypothetical dreams, and past regrets (had + would have).",
     "objectives": [
-      "Master the foundational rules of Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed",
+      "Master the foundational rules of Conditionals: If-Clause Formulas",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4451,14 +4451,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Conditionals: If-Clause Formulas\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Conditionals: If-Clause Formulas\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4467,12 +4467,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding conditionals mastery: zero, 1st, 2nd, 3rd & mixed and practicing every day.",
-      "targetPhonemes": "Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed"
+      "sentence": "Clear communication relies on understanding conditionals: if-clause formulas and practicing every day.",
+      "targetPhonemes": "Conditionals: If-Clause Formulas"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed\"?",
+        "question": "What is the primary academic focus of \"Conditionals: If-Clause Formulas\"?",
         "options": [
           "Expressing scientific certainty, future conditions, hypothetical dreams, and past regrets (had + would have).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4496,12 +4496,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed to improve my fluency.",
-          "Me practice rules of Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed without sentence.",
-          "I practicing rule Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed yesterday today.",
+          "I have practiced the rules of Conditionals: If-Clause Formulas to improve my fluency.",
+          "Me practice rules of Conditionals: If-Clause Formulas without sentence.",
+          "I practicing rule Conditionals: If-Clause Formulas yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Conditionals Mastery: Zero, 1st, 2nd, 3rd & Mixed to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Conditionals: If-Clause Formulas to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4531,7 +4531,7 @@ export const MASTER_LESSONS = [
   {
     "id": "44",
     "numericId": 44,
-    "title": "Advanced Passive Voice: Impersonal Passive & Modals",
+    "title": "Advanced & Impersonal Passive",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -4545,7 +4545,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Formal passive constructions without agents (\"It is believed that...\", modal passive formulas).",
     "objectives": [
-      "Master the foundational rules of Advanced Passive Voice: Impersonal Passive & Modals",
+      "Master the foundational rules of Advanced & Impersonal Passive",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4556,14 +4556,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Advanced Passive Voice: Impersonal Passive & Modals\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Advanced & Impersonal Passive\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Advanced Passive Voice: Impersonal Passive & Modals\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Advanced & Impersonal Passive\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4572,12 +4572,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding advanced passive voice: impersonal passive & modals and practicing every day.",
-      "targetPhonemes": "Advanced Passive Voice: Impersonal Passive & Modals"
+      "sentence": "Clear communication relies on understanding advanced & impersonal passive and practicing every day.",
+      "targetPhonemes": "Advanced & Impersonal Passive"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Advanced Passive Voice: Impersonal Passive & Modals\"?",
+        "question": "What is the primary academic focus of \"Advanced & Impersonal Passive\"?",
         "options": [
           "Formal passive constructions without agents (\"It is believed that...\", modal passive formulas).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4601,12 +4601,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Advanced Passive Voice: Impersonal Passive & Modals to improve my fluency.",
-          "Me practice rules of Advanced Passive Voice: Impersonal Passive & Modals without sentence.",
-          "I practicing rule Advanced Passive Voice: Impersonal Passive & Modals yesterday today.",
+          "I have practiced the rules of Advanced & Impersonal Passive to improve my fluency.",
+          "Me practice rules of Advanced & Impersonal Passive without sentence.",
+          "I practicing rule Advanced & Impersonal Passive yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Advanced Passive Voice: Impersonal Passive & Modals to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Advanced & Impersonal Passive to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4636,7 +4636,7 @@ export const MASTER_LESSONS = [
   {
     "id": "45",
     "numericId": 45,
-    "title": "Complex Indirect Speech: Exclamations, Wishes & Subjunctive",
+    "title": "Advanced Reported Speech",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -4650,7 +4650,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Converting wishes, exclamatory sentences, and subjunctive moods into reported discourse.",
     "objectives": [
-      "Master the foundational rules of Complex Indirect Speech: Exclamations, Wishes & Subjunctive",
+      "Master the foundational rules of Advanced Reported Speech",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4661,14 +4661,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Complex Indirect Speech: Exclamations, Wishes & Subjunctive\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Advanced Reported Speech\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Complex Indirect Speech: Exclamations, Wishes & Subjunctive\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Advanced Reported Speech\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4677,12 +4677,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding complex indirect speech: exclamations, wishes & subjunctive and practicing every day.",
-      "targetPhonemes": "Complex Indirect Speech: Exclamations, Wishes & Subjunctive"
+      "sentence": "Clear communication relies on understanding advanced reported speech and practicing every day.",
+      "targetPhonemes": "Advanced Reported Speech"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Complex Indirect Speech: Exclamations, Wishes & Subjunctive\"?",
+        "question": "What is the primary academic focus of \"Advanced Reported Speech\"?",
         "options": [
           "Converting wishes, exclamatory sentences, and subjunctive moods into reported discourse.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4706,12 +4706,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Complex Indirect Speech: Exclamations, Wishes & Subjunctive to improve my fluency.",
-          "Me practice rules of Complex Indirect Speech: Exclamations, Wishes & Subjunctive without sentence.",
-          "I practicing rule Complex Indirect Speech: Exclamations, Wishes & Subjunctive yesterday today.",
+          "I have practiced the rules of Advanced Reported Speech to improve my fluency.",
+          "Me practice rules of Advanced Reported Speech without sentence.",
+          "I practicing rule Advanced Reported Speech yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Complex Indirect Speech: Exclamations, Wishes & Subjunctive to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Advanced Reported Speech to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4741,7 +4741,7 @@ export const MASTER_LESSONS = [
   {
     "id": "46",
     "numericId": 46,
-    "title": "Clauses in Depth: Noun, Adjective & Adverbial Clauses",
+    "title": "Noun, Adjective & Adverb Clauses",
     "category": "Syntax",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -4755,7 +4755,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Identifying clause function (time, reason, condition, concession, purpose) in complex sentences.",
     "objectives": [
-      "Master the foundational rules of Clauses in Depth: Noun, Adjective & Adverbial Clauses",
+      "Master the foundational rules of Noun, Adjective & Adverb Clauses",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4766,14 +4766,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Clauses in Depth: Noun, Adjective & Adverbial Clauses\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Noun, Adjective & Adverb Clauses\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Clauses in Depth: Noun, Adjective & Adverbial Clauses\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Noun, Adjective & Adverb Clauses\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4782,12 +4782,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding clauses in depth: noun, adjective & adverbial clauses and practicing every day.",
-      "targetPhonemes": "Clauses in Depth: Noun, Adjective & Adverbial Clauses"
+      "sentence": "Clear communication relies on understanding noun, adjective & adverb clauses and practicing every day.",
+      "targetPhonemes": "Noun, Adjective & Adverb Clauses"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Clauses in Depth: Noun, Adjective & Adverbial Clauses\"?",
+        "question": "What is the primary academic focus of \"Noun, Adjective & Adverb Clauses\"?",
         "options": [
           "Identifying clause function (time, reason, condition, concession, purpose) in complex sentences.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4811,12 +4811,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Clauses in Depth: Noun, Adjective & Adverbial Clauses to improve my fluency.",
-          "Me practice rules of Clauses in Depth: Noun, Adjective & Adverbial Clauses without sentence.",
-          "I practicing rule Clauses in Depth: Noun, Adjective & Adverbial Clauses yesterday today.",
+          "I have practiced the rules of Noun, Adjective & Adverb Clauses to improve my fluency.",
+          "Me practice rules of Noun, Adjective & Adverb Clauses without sentence.",
+          "I practicing rule Noun, Adjective & Adverb Clauses yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Clauses in Depth: Noun, Adjective & Adverbial Clauses to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Noun, Adjective & Adverb Clauses to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4846,7 +4846,7 @@ export const MASTER_LESSONS = [
   {
     "id": "47",
     "numericId": 47,
-    "title": "Synthesis of Sentences: Combining Without Conjunctions",
+    "title": "Synthesis: Combining Sentences",
     "category": "Syntax",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -4860,7 +4860,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Merging sentences using participles, infinitives, absolute phrases, and nouns in apposition.",
     "objectives": [
-      "Master the foundational rules of Synthesis of Sentences: Combining Without Conjunctions",
+      "Master the foundational rules of Synthesis: Combining Sentences",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4871,14 +4871,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Synthesis of Sentences: Combining Without Conjunctions\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Synthesis: Combining Sentences\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Synthesis of Sentences: Combining Without Conjunctions\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Synthesis: Combining Sentences\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4887,12 +4887,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding synthesis of sentences: combining without conjunctions and practicing every day.",
-      "targetPhonemes": "Synthesis of Sentences: Combining Without Conjunctions"
+      "sentence": "Clear communication relies on understanding synthesis: combining sentences and practicing every day.",
+      "targetPhonemes": "Synthesis: Combining Sentences"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Synthesis of Sentences: Combining Without Conjunctions\"?",
+        "question": "What is the primary academic focus of \"Synthesis: Combining Sentences\"?",
         "options": [
           "Merging sentences using participles, infinitives, absolute phrases, and nouns in apposition.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -4916,12 +4916,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Synthesis of Sentences: Combining Without Conjunctions to improve my fluency.",
-          "Me practice rules of Synthesis of Sentences: Combining Without Conjunctions without sentence.",
-          "I practicing rule Synthesis of Sentences: Combining Without Conjunctions yesterday today.",
+          "I have practiced the rules of Synthesis: Combining Sentences to improve my fluency.",
+          "Me practice rules of Synthesis: Combining Sentences without sentence.",
+          "I practicing rule Synthesis: Combining Sentences yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Synthesis of Sentences: Combining Without Conjunctions to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Synthesis: Combining Sentences to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -4951,7 +4951,7 @@ export const MASTER_LESSONS = [
   {
     "id": "48",
     "numericId": 48,
-    "title": "Transformation of Sentences: Affirmative, Negative & Interrogative",
+    "title": "Transformation of Sentences",
     "category": "Syntax",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -4965,7 +4965,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Transforming sentence structure while strictly preserving original grammatical meaning.",
     "objectives": [
-      "Master the foundational rules of Transformation of Sentences: Affirmative, Negative & Interrogative",
+      "Master the foundational rules of Transformation of Sentences",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -4976,14 +4976,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Transformation of Sentences: Affirmative, Negative & Interrogative\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Transformation of Sentences\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Transformation of Sentences: Affirmative, Negative & Interrogative\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Transformation of Sentences\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -4992,12 +4992,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding transformation of sentences: affirmative, negative & interrogative and practicing every day.",
-      "targetPhonemes": "Transformation of Sentences: Affirmative, Negative & Interrogative"
+      "sentence": "Clear communication relies on understanding transformation of sentences and practicing every day.",
+      "targetPhonemes": "Transformation of Sentences"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Transformation of Sentences: Affirmative, Negative & Interrogative\"?",
+        "question": "What is the primary academic focus of \"Transformation of Sentences\"?",
         "options": [
           "Transforming sentence structure while strictly preserving original grammatical meaning.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5021,12 +5021,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Transformation of Sentences: Affirmative, Negative & Interrogative to improve my fluency.",
-          "Me practice rules of Transformation of Sentences: Affirmative, Negative & Interrogative without sentence.",
-          "I practicing rule Transformation of Sentences: Affirmative, Negative & Interrogative yesterday today.",
+          "I have practiced the rules of Transformation of Sentences to improve my fluency.",
+          "Me practice rules of Transformation of Sentences without sentence.",
+          "I practicing rule Transformation of Sentences yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Transformation of Sentences: Affirmative, Negative & Interrogative to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Transformation of Sentences to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5056,7 +5056,7 @@ export const MASTER_LESSONS = [
   {
     "id": "49",
     "numericId": 49,
-    "title": "Non-Finite Verbs: Infinitives, Gerunds & Participles",
+    "title": "Infinitives, Gerunds & Participles",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5070,7 +5070,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Distinguishing gerunds (-ing nouns), infinitives (to + verb), and participles (verbal adjectives).",
     "objectives": [
-      "Master the foundational rules of Non-Finite Verbs: Infinitives, Gerunds & Participles",
+      "Master the foundational rules of Infinitives, Gerunds & Participles",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5081,14 +5081,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Non-Finite Verbs: Infinitives, Gerunds & Participles\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Infinitives, Gerunds & Participles\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Non-Finite Verbs: Infinitives, Gerunds & Participles\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Infinitives, Gerunds & Participles\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5097,12 +5097,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding non-finite verbs: infinitives, gerunds & participles and practicing every day.",
-      "targetPhonemes": "Non-Finite Verbs: Infinitives, Gerunds & Participles"
+      "sentence": "Clear communication relies on understanding infinitives, gerunds & participles and practicing every day.",
+      "targetPhonemes": "Infinitives, Gerunds & Participles"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Non-Finite Verbs: Infinitives, Gerunds & Participles\"?",
+        "question": "What is the primary academic focus of \"Infinitives, Gerunds & Participles\"?",
         "options": [
           "Distinguishing gerunds (-ing nouns), infinitives (to + verb), and participles (verbal adjectives).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5126,12 +5126,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Non-Finite Verbs: Infinitives, Gerunds & Participles to improve my fluency.",
-          "Me practice rules of Non-Finite Verbs: Infinitives, Gerunds & Participles without sentence.",
-          "I practicing rule Non-Finite Verbs: Infinitives, Gerunds & Participles yesterday today.",
+          "I have practiced the rules of Infinitives, Gerunds & Participles to improve my fluency.",
+          "Me practice rules of Infinitives, Gerunds & Participles without sentence.",
+          "I practicing rule Infinitives, Gerunds & Participles yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Non-Finite Verbs: Infinitives, Gerunds & Participles to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Infinitives, Gerunds & Participles to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5161,7 +5161,7 @@ export const MASTER_LESSONS = [
   {
     "id": "50",
     "numericId": 50,
-    "title": "Modals of Deduction & Past Speculation",
+    "title": "Modals of Past Deduction",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5175,7 +5175,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Expressing past probability and deductions (must have been, couldn't have, might have).",
     "objectives": [
-      "Master the foundational rules of Modals of Deduction & Past Speculation",
+      "Master the foundational rules of Modals of Past Deduction",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5186,14 +5186,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Modals of Deduction & Past Speculation\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Modals of Past Deduction\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Modals of Deduction & Past Speculation\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Modals of Past Deduction\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5202,12 +5202,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding modals of deduction & past speculation and practicing every day.",
-      "targetPhonemes": "Modals of Deduction & Past Speculation"
+      "sentence": "Clear communication relies on understanding modals of past deduction and practicing every day.",
+      "targetPhonemes": "Modals of Past Deduction"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Modals of Deduction & Past Speculation\"?",
+        "question": "What is the primary academic focus of \"Modals of Past Deduction\"?",
         "options": [
           "Expressing past probability and deductions (must have been, couldn't have, might have).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5231,12 +5231,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Modals of Deduction & Past Speculation to improve my fluency.",
-          "Me practice rules of Modals of Deduction & Past Speculation without sentence.",
-          "I practicing rule Modals of Deduction & Past Speculation yesterday today.",
+          "I have practiced the rules of Modals of Past Deduction to improve my fluency.",
+          "Me practice rules of Modals of Past Deduction without sentence.",
+          "I practicing rule Modals of Past Deduction yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Modals of Deduction & Past Speculation to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Modals of Past Deduction to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5266,7 +5266,7 @@ export const MASTER_LESSONS = [
   {
     "id": "51",
     "numericId": 51,
-    "title": "Phrasal Verbs & Prepositional Idioms in Formal English",
+    "title": "Academic Phrasal Verbs",
     "category": "Vocabulary",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5280,7 +5280,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Mastering multi-word verbs (bring about, call off, look forward to) in formal and academic usage.",
     "objectives": [
-      "Master the foundational rules of Phrasal Verbs & Prepositional Idioms in Formal English",
+      "Master the foundational rules of Academic Phrasal Verbs",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5291,14 +5291,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Phrasal Verbs & Prepositional Idioms in Formal English\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Academic Phrasal Verbs\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Phrasal Verbs & Prepositional Idioms in Formal English\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Academic Phrasal Verbs\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5307,12 +5307,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding phrasal verbs & prepositional idioms in formal english and practicing every day.",
-      "targetPhonemes": "Phrasal Verbs & Prepositional Idioms in Formal English"
+      "sentence": "Clear communication relies on understanding academic phrasal verbs and practicing every day.",
+      "targetPhonemes": "Academic Phrasal Verbs"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Phrasal Verbs & Prepositional Idioms in Formal English\"?",
+        "question": "What is the primary academic focus of \"Academic Phrasal Verbs\"?",
         "options": [
           "Mastering multi-word verbs (bring about, call off, look forward to) in formal and academic usage.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5336,12 +5336,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Phrasal Verbs & Prepositional Idioms in Formal English to improve my fluency.",
-          "Me practice rules of Phrasal Verbs & Prepositional Idioms in Formal English without sentence.",
-          "I practicing rule Phrasal Verbs & Prepositional Idioms in Formal English yesterday today.",
+          "I have practiced the rules of Academic Phrasal Verbs to improve my fluency.",
+          "Me practice rules of Academic Phrasal Verbs without sentence.",
+          "I practicing rule Academic Phrasal Verbs yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Phrasal Verbs & Prepositional Idioms in Formal English to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Academic Phrasal Verbs to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5371,7 +5371,7 @@ export const MASTER_LESSONS = [
   {
     "id": "52",
     "numericId": 52,
-    "title": "Figures of Speech: Metaphor, Simile, Personification & Hyperbole",
+    "title": "Figures of Speech & Imagery",
     "category": "Literary Devices",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5385,7 +5385,7 @@ export const MASTER_LESSONS = [
     "icon": "sparkles-outline",
     "description": "Analyzing and using literary figurative language to enrich descriptive spoken prose.",
     "objectives": [
-      "Master the foundational rules of Figures of Speech: Metaphor, Simile, Personification & Hyperbole",
+      "Master the foundational rules of Figures of Speech & Imagery",
       "Identify and correct frequent errors in Literary Devices",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5396,14 +5396,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Figures of Speech: Metaphor, Simile, Personification & Hyperbole\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Figures of Speech & Imagery\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Figures of Speech: Metaphor, Simile, Personification & Hyperbole\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Figures of Speech & Imagery\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5412,12 +5412,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding figures of speech: metaphor, simile, personification & hyperbole and practicing every day.",
-      "targetPhonemes": "Figures of Speech: Metaphor, Simile, Personification & Hyperbole"
+      "sentence": "Clear communication relies on understanding figures of speech & imagery and practicing every day.",
+      "targetPhonemes": "Figures of Speech & Imagery"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Figures of Speech: Metaphor, Simile, Personification & Hyperbole\"?",
+        "question": "What is the primary academic focus of \"Figures of Speech & Imagery\"?",
         "options": [
           "Analyzing and using literary figurative language to enrich descriptive spoken prose.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5441,12 +5441,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Figures of Speech: Metaphor, Simile, Personification & Hyperbole to improve my fluency.",
-          "Me practice rules of Figures of Speech: Metaphor, Simile, Personification & Hyperbole without sentence.",
-          "I practicing rule Figures of Speech: Metaphor, Simile, Personification & Hyperbole yesterday today.",
+          "I have practiced the rules of Figures of Speech & Imagery to improve my fluency.",
+          "Me practice rules of Figures of Speech & Imagery without sentence.",
+          "I practicing rule Figures of Speech & Imagery yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Figures of Speech: Metaphor, Simile, Personification & Hyperbole to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Figures of Speech & Imagery to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5476,7 +5476,7 @@ export const MASTER_LESSONS = [
   {
     "id": "53",
     "numericId": 53,
-    "title": "Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity",
+    "title": "Fixing Common Grammar Errors",
     "category": "Grammar Error Fix",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5490,7 +5490,7 @@ export const MASTER_LESSONS = [
     "icon": "checkmark-circle-outline",
     "description": "Spotting and correcting dangling participles, faulty parallelism, and unclear pronoun references.",
     "objectives": [
-      "Master the foundational rules of Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity",
+      "Master the foundational rules of Fixing Common Grammar Errors",
       "Identify and correct frequent errors in Grammar Error Fix",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5501,14 +5501,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Fixing Common Grammar Errors\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Fixing Common Grammar Errors\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5517,12 +5517,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding common grammatical pitfalls, dangling modifiers & ambiguity and practicing every day.",
-      "targetPhonemes": "Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity"
+      "sentence": "Clear communication relies on understanding fixing common grammar errors and practicing every day.",
+      "targetPhonemes": "Fixing Common Grammar Errors"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity\"?",
+        "question": "What is the primary academic focus of \"Fixing Common Grammar Errors\"?",
         "options": [
           "Spotting and correcting dangling participles, faulty parallelism, and unclear pronoun references.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5546,12 +5546,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity to improve my fluency.",
-          "Me practice rules of Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity without sentence.",
-          "I practicing rule Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity yesterday today.",
+          "I have practiced the rules of Fixing Common Grammar Errors to improve my fluency.",
+          "Me practice rules of Fixing Common Grammar Errors without sentence.",
+          "I practicing rule Fixing Common Grammar Errors yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Common Grammatical Pitfalls, Dangling Modifiers & Ambiguity to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Fixing Common Grammar Errors to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5581,7 +5581,7 @@ export const MASTER_LESSONS = [
   {
     "id": "54",
     "numericId": 54,
-    "title": "Analytical Paragraph: Interpreting Data, Charts & Graphs",
+    "title": "Writing Analytical Paragraphs",
     "category": "Academic Writing",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5595,7 +5595,7 @@ export const MASTER_LESSONS = [
     "icon": "newspaper-outline",
     "description": "Structuring analytical descriptions of visual data, trends, comparisons, and concluding inferences.",
     "objectives": [
-      "Master the foundational rules of Analytical Paragraph: Interpreting Data, Charts & Graphs",
+      "Master the foundational rules of Writing Analytical Paragraphs",
       "Identify and correct frequent errors in Academic Writing",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5606,14 +5606,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Analytical Paragraph: Interpreting Data, Charts & Graphs\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Writing Analytical Paragraphs\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Analytical Paragraph: Interpreting Data, Charts & Graphs\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Writing Analytical Paragraphs\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5622,12 +5622,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding analytical paragraph: interpreting data, charts & graphs and practicing every day.",
-      "targetPhonemes": "Analytical Paragraph: Interpreting Data, Charts & Graphs"
+      "sentence": "Clear communication relies on understanding writing analytical paragraphs and practicing every day.",
+      "targetPhonemes": "Writing Analytical Paragraphs"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Analytical Paragraph: Interpreting Data, Charts & Graphs\"?",
+        "question": "What is the primary academic focus of \"Writing Analytical Paragraphs\"?",
         "options": [
           "Structuring analytical descriptions of visual data, trends, comparisons, and concluding inferences.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5651,12 +5651,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Analytical Paragraph: Interpreting Data, Charts & Graphs to improve my fluency.",
-          "Me practice rules of Analytical Paragraph: Interpreting Data, Charts & Graphs without sentence.",
-          "I practicing rule Analytical Paragraph: Interpreting Data, Charts & Graphs yesterday today.",
+          "I have practiced the rules of Writing Analytical Paragraphs to improve my fluency.",
+          "Me practice rules of Writing Analytical Paragraphs without sentence.",
+          "I practicing rule Writing Analytical Paragraphs yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Analytical Paragraph: Interpreting Data, Charts & Graphs to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Writing Analytical Paragraphs to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5686,7 +5686,7 @@ export const MASTER_LESSONS = [
   {
     "id": "55",
     "numericId": 55,
-    "title": "Essay & Speech Architecture: Hooks, Thesis & Rebuttals",
+    "title": "Essay & Speech Structuring",
     "category": "Oratory & Writing",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5700,7 +5700,7 @@ export const MASTER_LESSONS = [
     "icon": "megaphone-outline",
     "description": "Constructing a 5-paragraph spoken/written argument: attention grabber, thesis statement, counter-claim.",
     "objectives": [
-      "Master the foundational rules of Essay & Speech Architecture: Hooks, Thesis & Rebuttals",
+      "Master the foundational rules of Essay & Speech Structuring",
       "Identify and correct frequent errors in Oratory & Writing",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5711,14 +5711,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Essay & Speech Architecture: Hooks, Thesis & Rebuttals\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Essay & Speech Structuring\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Essay & Speech Architecture: Hooks, Thesis & Rebuttals\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Essay & Speech Structuring\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5727,12 +5727,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding essay & speech architecture: hooks, thesis & rebuttals and practicing every day.",
-      "targetPhonemes": "Essay & Speech Architecture: Hooks, Thesis & Rebuttals"
+      "sentence": "Clear communication relies on understanding essay & speech structuring and practicing every day.",
+      "targetPhonemes": "Essay & Speech Structuring"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Essay & Speech Architecture: Hooks, Thesis & Rebuttals\"?",
+        "question": "What is the primary academic focus of \"Essay & Speech Structuring\"?",
         "options": [
           "Constructing a 5-paragraph spoken/written argument: attention grabber, thesis statement, counter-claim.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5756,12 +5756,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Essay & Speech Architecture: Hooks, Thesis & Rebuttals to improve my fluency.",
-          "Me practice rules of Essay & Speech Architecture: Hooks, Thesis & Rebuttals without sentence.",
-          "I practicing rule Essay & Speech Architecture: Hooks, Thesis & Rebuttals yesterday today.",
+          "I have practiced the rules of Essay & Speech Structuring to improve my fluency.",
+          "Me practice rules of Essay & Speech Structuring without sentence.",
+          "I practicing rule Essay & Speech Structuring yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Essay & Speech Architecture: Hooks, Thesis & Rebuttals to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Essay & Speech Structuring to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5791,7 +5791,7 @@ export const MASTER_LESSONS = [
   {
     "id": "56",
     "numericId": 56,
-    "title": "Denotation vs. Connotation & Contextual Vocabulary",
+    "title": "Word Nuance: Tone & Connotation",
     "category": "Vocabulary",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5805,7 +5805,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Choosing words based on subtle emotional and stylistic shades (assertive vs aggressive).",
     "objectives": [
-      "Master the foundational rules of Denotation vs. Connotation & Contextual Vocabulary",
+      "Master the foundational rules of Word Nuance: Tone & Connotation",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5816,14 +5816,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Denotation vs. Connotation & Contextual Vocabulary\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Word Nuance: Tone & Connotation\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Denotation vs. Connotation & Contextual Vocabulary\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Word Nuance: Tone & Connotation\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5832,12 +5832,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding denotation vs. connotation & contextual vocabulary and practicing every day.",
-      "targetPhonemes": "Denotation vs. Connotation & Contextual Vocabulary"
+      "sentence": "Clear communication relies on understanding word nuance: tone & connotation and practicing every day.",
+      "targetPhonemes": "Word Nuance: Tone & Connotation"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Denotation vs. Connotation & Contextual Vocabulary\"?",
+        "question": "What is the primary academic focus of \"Word Nuance: Tone & Connotation\"?",
         "options": [
           "Choosing words based on subtle emotional and stylistic shades (assertive vs aggressive).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5861,12 +5861,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Denotation vs. Connotation & Contextual Vocabulary to improve my fluency.",
-          "Me practice rules of Denotation vs. Connotation & Contextual Vocabulary without sentence.",
-          "I practicing rule Denotation vs. Connotation & Contextual Vocabulary yesterday today.",
+          "I have practiced the rules of Word Nuance: Tone & Connotation to improve my fluency.",
+          "Me practice rules of Word Nuance: Tone & Connotation without sentence.",
+          "I practicing rule Word Nuance: Tone & Connotation yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Denotation vs. Connotation & Contextual Vocabulary to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Word Nuance: Tone & Connotation to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -5896,7 +5896,7 @@ export const MASTER_LESSONS = [
   {
     "id": "57",
     "numericId": 57,
-    "title": "Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora)",
+    "title": "Rhetoric & Persuasive Devices",
     "category": "Oratory",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -5910,7 +5910,7 @@ export const MASTER_LESSONS = [
     "icon": "megaphone-outline",
     "description": "Using classical rhetorical appeals and deliberate repetition to make persuasive speeches memorable.",
     "objectives": [
-      "Master the foundational rules of Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora)",
+      "Master the foundational rules of Rhetoric & Persuasive Devices",
       "Identify and correct frequent errors in Oratory",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -5921,14 +5921,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Rhetoric & Persuasive Devices\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Rhetoric & Persuasive Devices\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -5937,12 +5937,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding rhetorical persuasion devices (ethos, pathos, logos & anaphora) and practicing every day.",
-      "targetPhonemes": "Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora)"
+      "sentence": "Clear communication relies on understanding rhetoric & persuasive devices and practicing every day.",
+      "targetPhonemes": "Rhetoric & Persuasive Devices"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora)\"?",
+        "question": "What is the primary academic focus of \"Rhetoric & Persuasive Devices\"?",
         "options": [
           "Using classical rhetorical appeals and deliberate repetition to make persuasive speeches memorable.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -5966,12 +5966,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora) to improve my fluency.",
-          "Me practice rules of Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora) without sentence.",
-          "I practicing rule Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora) yesterday today.",
+          "I have practiced the rules of Rhetoric & Persuasive Devices to improve my fluency.",
+          "Me practice rules of Rhetoric & Persuasive Devices without sentence.",
+          "I practicing rule Rhetoric & Persuasive Devices yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Rhetorical Persuasion Devices (Ethos, Pathos, Logos & Anaphora) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Rhetoric & Persuasive Devices to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6001,7 +6001,7 @@ export const MASTER_LESSONS = [
   {
     "id": "58",
     "numericId": 58,
-    "title": "Spontaneous Extempore Speaking (The PREP Framework)",
+    "title": "Extempore Speaking: PREP Method",
     "category": "Spoken Mechanics",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -6015,7 +6015,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Structuring 2-minute impromptu talks on random topics using Point, Reason, Example, Point.",
     "objectives": [
-      "Master the foundational rules of Spontaneous Extempore Speaking (The PREP Framework)",
+      "Master the foundational rules of Extempore Speaking: PREP Method",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6026,14 +6026,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Spontaneous Extempore Speaking (The PREP Framework)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Extempore Speaking: PREP Method\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Spontaneous Extempore Speaking (The PREP Framework)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Extempore Speaking: PREP Method\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6042,12 +6042,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding spontaneous extempore speaking (the prep framework) and practicing every day.",
-      "targetPhonemes": "Spontaneous Extempore Speaking (The PREP Framework)"
+      "sentence": "Clear communication relies on understanding extempore speaking: prep method and practicing every day.",
+      "targetPhonemes": "Extempore Speaking: PREP Method"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Spontaneous Extempore Speaking (The PREP Framework)\"?",
+        "question": "What is the primary academic focus of \"Extempore Speaking: PREP Method\"?",
         "options": [
           "Structuring 2-minute impromptu talks on random topics using Point, Reason, Example, Point.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6071,12 +6071,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Spontaneous Extempore Speaking (The PREP Framework) to improve my fluency.",
-          "Me practice rules of Spontaneous Extempore Speaking (The PREP Framework) without sentence.",
-          "I practicing rule Spontaneous Extempore Speaking (The PREP Framework) yesterday today.",
+          "I have practiced the rules of Extempore Speaking: PREP Method to improve my fluency.",
+          "Me practice rules of Extempore Speaking: PREP Method without sentence.",
+          "I practicing rule Extempore Speaking: PREP Method yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Spontaneous Extempore Speaking (The PREP Framework) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Extempore Speaking: PREP Method to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6106,7 +6106,7 @@ export const MASTER_LESSONS = [
   {
     "id": "59",
     "numericId": 59,
-    "title": "Voice Modulation, Cadence & Eliminating Speech Fillers",
+    "title": "Voice Cadence & Eliminating Fillers",
     "category": "Spoken Mechanics",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -6120,7 +6120,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Breath support, vocal pitch variation, eliminating verbal crutches (umm, like, basically) with silence.",
     "objectives": [
-      "Master the foundational rules of Voice Modulation, Cadence & Eliminating Speech Fillers",
+      "Master the foundational rules of Voice Cadence & Eliminating Fillers",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6131,14 +6131,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Voice Modulation, Cadence & Eliminating Speech Fillers\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Voice Cadence & Eliminating Fillers\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Voice Modulation, Cadence & Eliminating Speech Fillers\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Voice Cadence & Eliminating Fillers\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6147,12 +6147,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding voice modulation, cadence & eliminating speech fillers and practicing every day.",
-      "targetPhonemes": "Voice Modulation, Cadence & Eliminating Speech Fillers"
+      "sentence": "Clear communication relies on understanding voice cadence & eliminating fillers and practicing every day.",
+      "targetPhonemes": "Voice Cadence & Eliminating Fillers"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Voice Modulation, Cadence & Eliminating Speech Fillers\"?",
+        "question": "What is the primary academic focus of \"Voice Cadence & Eliminating Fillers\"?",
         "options": [
           "Breath support, vocal pitch variation, eliminating verbal crutches (umm, like, basically) with silence.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6176,12 +6176,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Voice Modulation, Cadence & Eliminating Speech Fillers to improve my fluency.",
-          "Me practice rules of Voice Modulation, Cadence & Eliminating Speech Fillers without sentence.",
-          "I practicing rule Voice Modulation, Cadence & Eliminating Speech Fillers yesterday today.",
+          "I have practiced the rules of Voice Cadence & Eliminating Fillers to improve my fluency.",
+          "Me practice rules of Voice Cadence & Eliminating Fillers without sentence.",
+          "I practicing rule Voice Cadence & Eliminating Fillers yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Voice Modulation, Cadence & Eliminating Speech Fillers to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Voice Cadence & Eliminating Fillers to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6211,7 +6211,7 @@ export const MASTER_LESSONS = [
   {
     "id": "60",
     "numericId": 60,
-    "title": "Formal Debate Rules: Opening, Cross-Examination & Rebuttal",
+    "title": "Formal Debate & Rebuttals",
     "category": "Oratory",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -6225,7 +6225,7 @@ export const MASTER_LESSONS = [
     "icon": "megaphone-outline",
     "description": "Parliamentary debate mechanics: defining the motion, building affirmative/negative cases, rebuttal logic.",
     "objectives": [
-      "Master the foundational rules of Formal Debate Rules: Opening, Cross-Examination & Rebuttal",
+      "Master the foundational rules of Formal Debate & Rebuttals",
       "Identify and correct frequent errors in Oratory",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6236,14 +6236,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Formal Debate Rules: Opening, Cross-Examination & Rebuttal\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Formal Debate & Rebuttals\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Formal Debate Rules: Opening, Cross-Examination & Rebuttal\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Formal Debate & Rebuttals\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6252,12 +6252,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding formal debate rules: opening, cross-examination & rebuttal and practicing every day.",
-      "targetPhonemes": "Formal Debate Rules: Opening, Cross-Examination & Rebuttal"
+      "sentence": "Clear communication relies on understanding formal debate & rebuttals and practicing every day.",
+      "targetPhonemes": "Formal Debate & Rebuttals"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Formal Debate Rules: Opening, Cross-Examination & Rebuttal\"?",
+        "question": "What is the primary academic focus of \"Formal Debate & Rebuttals\"?",
         "options": [
           "Parliamentary debate mechanics: defining the motion, building affirmative/negative cases, rebuttal logic.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6281,12 +6281,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Formal Debate Rules: Opening, Cross-Examination & Rebuttal to improve my fluency.",
-          "Me practice rules of Formal Debate Rules: Opening, Cross-Examination & Rebuttal without sentence.",
-          "I practicing rule Formal Debate Rules: Opening, Cross-Examination & Rebuttal yesterday today.",
+          "I have practiced the rules of Formal Debate & Rebuttals to improve my fluency.",
+          "Me practice rules of Formal Debate & Rebuttals without sentence.",
+          "I practicing rule Formal Debate & Rebuttals yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Formal Debate Rules: Opening, Cross-Examination & Rebuttal to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Formal Debate & Rebuttals to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6316,7 +6316,7 @@ export const MASTER_LESSONS = [
   {
     "id": "61",
     "numericId": 61,
-    "title": "Phonics Word Families: -at, -an, -op, -ig, -ug",
+    "title": "Rhyming Words & Word Families",
     "category": "Phonics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -6330,7 +6330,7 @@ export const MASTER_LESSONS = [
     "icon": "volume-high-outline",
     "description": "Identifying rhyming word families and decoding phonetic word patterns.",
     "objectives": [
-      "Master the foundational rules of Phonics Word Families: -at, -an, -op, -ig, -ug",
+      "Master the foundational rules of Rhyming Words & Word Families",
       "Identify and correct frequent errors in Phonics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6341,14 +6341,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Phonics Word Families: -at, -an, -op, -ig, -ug\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Rhyming Words & Word Families\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Phonics Word Families: -at, -an, -op, -ig, -ug\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Rhyming Words & Word Families\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6357,12 +6357,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding phonics word families: -at, -an, -op, -ig, -ug and practicing every day.",
-      "targetPhonemes": "Phonics Word Families: -at, -an, -op, -ig, -ug"
+      "sentence": "Clear communication relies on understanding rhyming words & word families and practicing every day.",
+      "targetPhonemes": "Rhyming Words & Word Families"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Phonics Word Families: -at, -an, -op, -ig, -ug\"?",
+        "question": "What is the primary academic focus of \"Rhyming Words & Word Families\"?",
         "options": [
           "Identifying rhyming word families and decoding phonetic word patterns.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6386,12 +6386,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Phonics Word Families: -at, -an, -op, -ig, -ug to improve my fluency.",
-          "Me practice rules of Phonics Word Families: -at, -an, -op, -ig, -ug without sentence.",
-          "I practicing rule Phonics Word Families: -at, -an, -op, -ig, -ug yesterday today.",
+          "I have practiced the rules of Rhyming Words & Word Families to improve my fluency.",
+          "Me practice rules of Rhyming Words & Word Families without sentence.",
+          "I practicing rule Rhyming Words & Word Families yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Phonics Word Families: -at, -an, -op, -ig, -ug to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Rhyming Words & Word Families to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6421,7 +6421,7 @@ export const MASTER_LESSONS = [
   {
     "id": "62",
     "numericId": 62,
-    "title": "Silent Letters in English (k in knee, w in write, b in thumb)",
+    "title": "Discovering Silent Letters",
     "category": "Phonics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -6435,7 +6435,7 @@ export const MASTER_LESSONS = [
     "icon": "volume-high-outline",
     "description": "Recognizing letters that are written but not pronounced in common English words.",
     "objectives": [
-      "Master the foundational rules of Silent Letters in English (k in knee, w in write, b in thumb)",
+      "Master the foundational rules of Discovering Silent Letters",
       "Identify and correct frequent errors in Phonics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6446,14 +6446,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Silent Letters in English (k in knee, w in write, b in thumb)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Discovering Silent Letters\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Silent Letters in English (k in knee, w in write, b in thumb)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Discovering Silent Letters\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6462,12 +6462,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding silent letters in english (k in knee, w in write, b in thumb) and practicing every day.",
-      "targetPhonemes": "Silent Letters in English (k in knee, w in write, b in thumb)"
+      "sentence": "Clear communication relies on understanding discovering silent letters and practicing every day.",
+      "targetPhonemes": "Discovering Silent Letters"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Silent Letters in English (k in knee, w in write, b in thumb)\"?",
+        "question": "What is the primary academic focus of \"Discovering Silent Letters\"?",
         "options": [
           "Recognizing letters that are written but not pronounced in common English words.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6491,12 +6491,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Silent Letters in English (k in knee, w in write, b in thumb) to improve my fluency.",
-          "Me practice rules of Silent Letters in English (k in knee, w in write, b in thumb) without sentence.",
-          "I practicing rule Silent Letters in English (k in knee, w in write, b in thumb) yesterday today.",
+          "I have practiced the rules of Discovering Silent Letters to improve my fluency.",
+          "Me practice rules of Discovering Silent Letters without sentence.",
+          "I practicing rule Discovering Silent Letters yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Silent Letters in English (k in knee, w in write, b in thumb) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Discovering Silent Letters to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6526,7 +6526,7 @@ export const MASTER_LESSONS = [
   {
     "id": "63",
     "numericId": 63,
-    "title": "Sight Words Mastery: Top 100 Frequent Reading Words",
+    "title": "Top 100 Sight Words",
     "category": "Vocabulary",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -6540,7 +6540,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Memorizing and pronouncing irregular words that cannot be sounded out phonetically (the, was, said).",
     "objectives": [
-      "Master the foundational rules of Sight Words Mastery: Top 100 Frequent Reading Words",
+      "Master the foundational rules of Top 100 Sight Words",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6551,14 +6551,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Sight Words Mastery: Top 100 Frequent Reading Words\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Top 100 Sight Words\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Sight Words Mastery: Top 100 Frequent Reading Words\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Top 100 Sight Words\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6567,12 +6567,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding sight words mastery: top 100 frequent reading words and practicing every day.",
-      "targetPhonemes": "Sight Words Mastery: Top 100 Frequent Reading Words"
+      "sentence": "Clear communication relies on understanding top 100 sight words and practicing every day.",
+      "targetPhonemes": "Top 100 Sight Words"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Sight Words Mastery: Top 100 Frequent Reading Words\"?",
+        "question": "What is the primary academic focus of \"Top 100 Sight Words\"?",
         "options": [
           "Memorizing and pronouncing irregular words that cannot be sounded out phonetically (the, was, said).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6596,12 +6596,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Sight Words Mastery: Top 100 Frequent Reading Words to improve my fluency.",
-          "Me practice rules of Sight Words Mastery: Top 100 Frequent Reading Words without sentence.",
-          "I practicing rule Sight Words Mastery: Top 100 Frequent Reading Words yesterday today.",
+          "I have practiced the rules of Top 100 Sight Words to improve my fluency.",
+          "Me practice rules of Top 100 Sight Words without sentence.",
+          "I practicing rule Top 100 Sight Words yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Sight Words Mastery: Top 100 Frequent Reading Words to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Top 100 Sight Words to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6631,7 +6631,7 @@ export const MASTER_LESSONS = [
   {
     "id": "64",
     "numericId": 64,
-    "title": "Naming Words: Animals, Toys, Food & Places",
+    "title": "Everyday Naming Words",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -6645,7 +6645,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Categorizing nouns and building a foundational lexicon of common nouns.",
     "objectives": [
-      "Master the foundational rules of Naming Words: Animals, Toys, Food & Places",
+      "Master the foundational rules of Everyday Naming Words",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6656,14 +6656,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Naming Words: Animals, Toys, Food & Places\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Everyday Naming Words\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Naming Words: Animals, Toys, Food & Places\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Everyday Naming Words\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6672,12 +6672,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding naming words: animals, toys, food & places and practicing every day.",
-      "targetPhonemes": "Naming Words: Animals, Toys, Food & Places"
+      "sentence": "Clear communication relies on understanding everyday naming words and practicing every day.",
+      "targetPhonemes": "Everyday Naming Words"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Naming Words: Animals, Toys, Food & Places\"?",
+        "question": "What is the primary academic focus of \"Everyday Naming Words\"?",
         "options": [
           "Categorizing nouns and building a foundational lexicon of common nouns.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6701,12 +6701,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Naming Words: Animals, Toys, Food & Places to improve my fluency.",
-          "Me practice rules of Naming Words: Animals, Toys, Food & Places without sentence.",
-          "I practicing rule Naming Words: Animals, Toys, Food & Places yesterday today.",
+          "I have practiced the rules of Everyday Naming Words to improve my fluency.",
+          "Me practice rules of Everyday Naming Words without sentence.",
+          "I practicing rule Everyday Naming Words yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Naming Words: Animals, Toys, Food & Places to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Everyday Naming Words to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6736,7 +6736,7 @@ export const MASTER_LESSONS = [
   {
     "id": "65",
     "numericId": 65,
-    "title": "Action Words: Present Tense with -ing (Doing Words)",
+    "title": "Action Words with -ing",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -6750,7 +6750,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Understanding ongoing actions using is/am/are + verb-ing (\"The baby is sleeping\").",
     "objectives": [
-      "Master the foundational rules of Action Words: Present Tense with -ing (Doing Words)",
+      "Master the foundational rules of Action Words with -ing",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6761,14 +6761,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Action Words: Present Tense with -ing (Doing Words)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Action Words with -ing\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Action Words: Present Tense with -ing (Doing Words)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Action Words with -ing\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6777,12 +6777,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding action words: present tense with -ing (doing words) and practicing every day.",
-      "targetPhonemes": "Action Words: Present Tense with -ing (Doing Words)"
+      "sentence": "Clear communication relies on understanding action words with -ing and practicing every day.",
+      "targetPhonemes": "Action Words with -ing"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Action Words: Present Tense with -ing (Doing Words)\"?",
+        "question": "What is the primary academic focus of \"Action Words with -ing\"?",
         "options": [
           "Understanding ongoing actions using is/am/are + verb-ing (\"The baby is sleeping\").",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6806,12 +6806,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Action Words: Present Tense with -ing (Doing Words) to improve my fluency.",
-          "Me practice rules of Action Words: Present Tense with -ing (Doing Words) without sentence.",
-          "I practicing rule Action Words: Present Tense with -ing (Doing Words) yesterday today.",
+          "I have practiced the rules of Action Words with -ing to improve my fluency.",
+          "Me practice rules of Action Words with -ing without sentence.",
+          "I practicing rule Action Words with -ing yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Action Words: Present Tense with -ing (Doing Words) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Action Words with -ing to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6841,7 +6841,7 @@ export const MASTER_LESSONS = [
   {
     "id": "66",
     "numericId": 66,
-    "title": "Describing Words: Texture, Taste, Size & Sound",
+    "title": "Sensory Describing Words",
     "category": "Vocabulary",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -6855,7 +6855,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Using descriptive sensory adjectives (fluffy, crunchy, tiny, loud).",
     "objectives": [
-      "Master the foundational rules of Describing Words: Texture, Taste, Size & Sound",
+      "Master the foundational rules of Sensory Describing Words",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6866,14 +6866,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Describing Words: Texture, Taste, Size & Sound\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Sensory Describing Words\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Describing Words: Texture, Taste, Size & Sound\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Sensory Describing Words\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6882,12 +6882,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding describing words: texture, taste, size & sound and practicing every day.",
-      "targetPhonemes": "Describing Words: Texture, Taste, Size & Sound"
+      "sentence": "Clear communication relies on understanding sensory describing words and practicing every day.",
+      "targetPhonemes": "Sensory Describing Words"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Describing Words: Texture, Taste, Size & Sound\"?",
+        "question": "What is the primary academic focus of \"Sensory Describing Words\"?",
         "options": [
           "Using descriptive sensory adjectives (fluffy, crunchy, tiny, loud).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -6911,12 +6911,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Describing Words: Texture, Taste, Size & Sound to improve my fluency.",
-          "Me practice rules of Describing Words: Texture, Taste, Size & Sound without sentence.",
-          "I practicing rule Describing Words: Texture, Taste, Size & Sound yesterday today.",
+          "I have practiced the rules of Sensory Describing Words to improve my fluency.",
+          "Me practice rules of Sensory Describing Words without sentence.",
+          "I practicing rule Sensory Describing Words yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Describing Words: Texture, Taste, Size & Sound to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Sensory Describing Words to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -6946,7 +6946,7 @@ export const MASTER_LESSONS = [
   {
     "id": "67",
     "numericId": 67,
-    "title": "Singular & Plural: When to Add -s and -es",
+    "title": "Singular & Plural Patterns",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -6960,7 +6960,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Applying pluralization rules to everyday objects (box/boxes, watch/watches).",
     "objectives": [
-      "Master the foundational rules of Singular & Plural: When to Add -s and -es",
+      "Master the foundational rules of Singular & Plural Patterns",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -6971,14 +6971,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Singular & Plural: When to Add -s and -es\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Singular & Plural Patterns\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Singular & Plural: When to Add -s and -es\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Singular & Plural Patterns\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -6987,12 +6987,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding singular & plural: when to add -s and -es and practicing every day.",
-      "targetPhonemes": "Singular & Plural: When to Add -s and -es"
+      "sentence": "Clear communication relies on understanding singular & plural patterns and practicing every day.",
+      "targetPhonemes": "Singular & Plural Patterns"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Singular & Plural: When to Add -s and -es\"?",
+        "question": "What is the primary academic focus of \"Singular & Plural Patterns\"?",
         "options": [
           "Applying pluralization rules to everyday objects (box/boxes, watch/watches).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7016,12 +7016,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Singular & Plural: When to Add -s and -es to improve my fluency.",
-          "Me practice rules of Singular & Plural: When to Add -s and -es without sentence.",
-          "I practicing rule Singular & Plural: When to Add -s and -es yesterday today.",
+          "I have practiced the rules of Singular & Plural Patterns to improve my fluency.",
+          "Me practice rules of Singular & Plural Patterns without sentence.",
+          "I practicing rule Singular & Plural Patterns yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Singular & Plural: When to Add -s and -es to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Singular & Plural Patterns to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7051,7 +7051,7 @@ export const MASTER_LESSONS = [
   {
     "id": "68",
     "numericId": 68,
-    "title": "Replacing Names with Pronouns (He, She, It, They)",
+    "title": "Pronouns: He, She, It & They",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7065,7 +7065,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Understanding subject pronouns and eliminating repetitive noun usage.",
     "objectives": [
-      "Master the foundational rules of Replacing Names with Pronouns (He, She, It, They)",
+      "Master the foundational rules of Pronouns: He, She, It & They",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7076,14 +7076,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Replacing Names with Pronouns (He, She, It, They)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Pronouns: He, She, It & They\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Replacing Names with Pronouns (He, She, It, They)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Pronouns: He, She, It & They\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7092,12 +7092,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding replacing names with pronouns (he, she, it, they) and practicing every day.",
-      "targetPhonemes": "Replacing Names with Pronouns (He, She, It, They)"
+      "sentence": "Clear communication relies on understanding pronouns: he, she, it & they and practicing every day.",
+      "targetPhonemes": "Pronouns: He, She, It & They"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Replacing Names with Pronouns (He, She, It, They)\"?",
+        "question": "What is the primary academic focus of \"Pronouns: He, She, It & They\"?",
         "options": [
           "Understanding subject pronouns and eliminating repetitive noun usage.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7121,12 +7121,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Replacing Names with Pronouns (He, She, It, They) to improve my fluency.",
-          "Me practice rules of Replacing Names with Pronouns (He, She, It, They) without sentence.",
-          "I practicing rule Replacing Names with Pronouns (He, She, It, They) yesterday today.",
+          "I have practiced the rules of Pronouns: He, She, It & They to improve my fluency.",
+          "Me practice rules of Pronouns: He, She, It & They without sentence.",
+          "I practicing rule Pronouns: He, She, It & They yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Replacing Names with Pronouns (He, She, It, They) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Pronouns: He, She, It & They to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7156,7 +7156,7 @@ export const MASTER_LESSONS = [
   {
     "id": "69",
     "numericId": 69,
-    "title": "Position Words (Prepositions): In, On, Under, Over, Between",
+    "title": "Position Words & Prepositions",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7170,7 +7170,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Identifying physical position and spatial relationships between objects.",
     "objectives": [
-      "Master the foundational rules of Position Words (Prepositions): In, On, Under, Over, Between",
+      "Master the foundational rules of Position Words & Prepositions",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7181,14 +7181,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Position Words (Prepositions): In, On, Under, Over, Between\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Position Words & Prepositions\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Position Words (Prepositions): In, On, Under, Over, Between\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Position Words & Prepositions\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7197,12 +7197,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding position words (prepositions): in, on, under, over, between and practicing every day.",
-      "targetPhonemes": "Position Words (Prepositions): In, On, Under, Over, Between"
+      "sentence": "Clear communication relies on understanding position words & prepositions and practicing every day.",
+      "targetPhonemes": "Position Words & Prepositions"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Position Words (Prepositions): In, On, Under, Over, Between\"?",
+        "question": "What is the primary academic focus of \"Position Words & Prepositions\"?",
         "options": [
           "Identifying physical position and spatial relationships between objects.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7226,12 +7226,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Position Words (Prepositions): In, On, Under, Over, Between to improve my fluency.",
-          "Me practice rules of Position Words (Prepositions): In, On, Under, Over, Between without sentence.",
-          "I practicing rule Position Words (Prepositions): In, On, Under, Over, Between yesterday today.",
+          "I have practiced the rules of Position Words & Prepositions to improve my fluency.",
+          "Me practice rules of Position Words & Prepositions without sentence.",
+          "I practicing rule Position Words & Prepositions yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Position Words (Prepositions): In, On, Under, Over, Between to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Position Words & Prepositions to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7261,7 +7261,7 @@ export const MASTER_LESSONS = [
   {
     "id": "70",
     "numericId": 70,
-    "title": "Capital Letters and Punctuation at the End of Sentences",
+    "title": "Capitals & Punctuation Marks",
     "category": "Mechanics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7275,7 +7275,7 @@ export const MASTER_LESSONS = [
     "icon": "create-outline",
     "description": "The rule of capital starting letters, full stops, and exclamation points.",
     "objectives": [
-      "Master the foundational rules of Capital Letters and Punctuation at the End of Sentences",
+      "Master the foundational rules of Capitals & Punctuation Marks",
       "Identify and correct frequent errors in Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7286,14 +7286,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Capital Letters and Punctuation at the End of Sentences\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Capitals & Punctuation Marks\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Capital Letters and Punctuation at the End of Sentences\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Capitals & Punctuation Marks\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7302,12 +7302,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding capital letters and punctuation at the end of sentences and practicing every day.",
-      "targetPhonemes": "Capital Letters and Punctuation at the End of Sentences"
+      "sentence": "Clear communication relies on understanding capitals & punctuation marks and practicing every day.",
+      "targetPhonemes": "Capitals & Punctuation Marks"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Capital Letters and Punctuation at the End of Sentences\"?",
+        "question": "What is the primary academic focus of \"Capitals & Punctuation Marks\"?",
         "options": [
           "The rule of capital starting letters, full stops, and exclamation points.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7331,12 +7331,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Capital Letters and Punctuation at the End of Sentences to improve my fluency.",
-          "Me practice rules of Capital Letters and Punctuation at the End of Sentences without sentence.",
-          "I practicing rule Capital Letters and Punctuation at the End of Sentences yesterday today.",
+          "I have practiced the rules of Capitals & Punctuation Marks to improve my fluency.",
+          "Me practice rules of Capitals & Punctuation Marks without sentence.",
+          "I practicing rule Capitals & Punctuation Marks yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Capital Letters and Punctuation at the End of Sentences to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Capitals & Punctuation Marks to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7366,7 +7366,7 @@ export const MASTER_LESSONS = [
   {
     "id": "71",
     "numericId": 71,
-    "title": "Asking Questions: The 5 W’s (Who, What, Where, When, Why)",
+    "title": "Asking Questions with 5 W's",
     "category": "Syntax",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7380,7 +7380,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Sentence order for questions: Question Word + Helping Verb + Subject + Main Verb.",
     "objectives": [
-      "Master the foundational rules of Asking Questions: The 5 W’s (Who, What, Where, When, Why)",
+      "Master the foundational rules of Asking Questions with 5 W's",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7391,14 +7391,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Asking Questions: The 5 W’s (Who, What, Where, When, Why)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Asking Questions with 5 W's\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Asking Questions: The 5 W’s (Who, What, Where, When, Why)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Asking Questions with 5 W's\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7407,12 +7407,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding asking questions: the 5 w’s (who, what, where, when, why) and practicing every day.",
-      "targetPhonemes": "Asking Questions: The 5 W’s (Who, What, Where, When, Why)"
+      "sentence": "Clear communication relies on understanding asking questions with 5 w's and practicing every day.",
+      "targetPhonemes": "Asking Questions with 5 W's"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Asking Questions: The 5 W’s (Who, What, Where, When, Why)\"?",
+        "question": "What is the primary academic focus of \"Asking Questions with 5 W's\"?",
         "options": [
           "Sentence order for questions: Question Word + Helping Verb + Subject + Main Verb.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7436,12 +7436,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Asking Questions: The 5 W’s (Who, What, Where, When, Why) to improve my fluency.",
-          "Me practice rules of Asking Questions: The 5 W’s (Who, What, Where, When, Why) without sentence.",
-          "I practicing rule Asking Questions: The 5 W’s (Who, What, Where, When, Why) yesterday today.",
+          "I have practiced the rules of Asking Questions with 5 W's to improve my fluency.",
+          "Me practice rules of Asking Questions with 5 W's without sentence.",
+          "I practicing rule Asking Questions with 5 W's yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Asking Questions: The 5 W’s (Who, What, Where, When, Why) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Asking Questions with 5 W's to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7471,7 +7471,7 @@ export const MASTER_LESSONS = [
   {
     "id": "72",
     "numericId": 72,
-    "title": "Joining Ideas with 'And' and 'Because'",
+    "title": "Connecting Ideas: And & Because",
     "category": "Syntax",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7485,7 +7485,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Explaining reasons using the subordinating connector because (\"I slept early because I was tired\").",
     "objectives": [
-      "Master the foundational rules of Joining Ideas with 'And' and 'Because'",
+      "Master the foundational rules of Connecting Ideas: And & Because",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7496,14 +7496,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Joining Ideas with 'And' and 'Because'\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Connecting Ideas: And & Because\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Joining Ideas with 'And' and 'Because'\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Connecting Ideas: And & Because\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7512,12 +7512,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding joining ideas with 'and' and 'because' and practicing every day.",
-      "targetPhonemes": "Joining Ideas with 'And' and 'Because'"
+      "sentence": "Clear communication relies on understanding connecting ideas: and & because and practicing every day.",
+      "targetPhonemes": "Connecting Ideas: And & Because"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Joining Ideas with 'And' and 'Because'\"?",
+        "question": "What is the primary academic focus of \"Connecting Ideas: And & Because\"?",
         "options": [
           "Explaining reasons using the subordinating connector because (\"I slept early because I was tired\").",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7541,12 +7541,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Joining Ideas with 'And' and 'Because' to improve my fluency.",
-          "Me practice rules of Joining Ideas with 'And' and 'Because' without sentence.",
-          "I practicing rule Joining Ideas with 'And' and 'Because' yesterday today.",
+          "I have practiced the rules of Connecting Ideas: And & Because to improve my fluency.",
+          "Me practice rules of Connecting Ideas: And & Because without sentence.",
+          "I practicing rule Connecting Ideas: And & Because yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Joining Ideas with 'And' and 'Because' to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Connecting Ideas: And & Because to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7576,7 +7576,7 @@ export const MASTER_LESSONS = [
   {
     "id": "73",
     "numericId": 73,
-    "title": "Time Words: Past (Yesterday), Present (Today), Future (Tomorrow)",
+    "title": "Time Words: Past, Present & Future",
     "category": "Tenses",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7590,7 +7590,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Understanding time markers and how they change verb tenses.",
     "objectives": [
-      "Master the foundational rules of Time Words: Past (Yesterday), Present (Today), Future (Tomorrow)",
+      "Master the foundational rules of Time Words: Past, Present & Future",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7601,14 +7601,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Time Words: Past (Yesterday), Present (Today), Future (Tomorrow)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Time Words: Past, Present & Future\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Time Words: Past (Yesterday), Present (Today), Future (Tomorrow)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Time Words: Past, Present & Future\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7617,12 +7617,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding time words: past (yesterday), present (today), future (tomorrow) and practicing every day.",
-      "targetPhonemes": "Time Words: Past (Yesterday), Present (Today), Future (Tomorrow)"
+      "sentence": "Clear communication relies on understanding time words: past, present & future and practicing every day.",
+      "targetPhonemes": "Time Words: Past, Present & Future"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Time Words: Past (Yesterday), Present (Today), Future (Tomorrow)\"?",
+        "question": "What is the primary academic focus of \"Time Words: Past, Present & Future\"?",
         "options": [
           "Understanding time markers and how they change verb tenses.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7646,12 +7646,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Time Words: Past (Yesterday), Present (Today), Future (Tomorrow) to improve my fluency.",
-          "Me practice rules of Time Words: Past (Yesterday), Present (Today), Future (Tomorrow) without sentence.",
-          "I practicing rule Time Words: Past (Yesterday), Present (Today), Future (Tomorrow) yesterday today.",
+          "I have practiced the rules of Time Words: Past, Present & Future to improve my fluency.",
+          "Me practice rules of Time Words: Past, Present & Future without sentence.",
+          "I practicing rule Time Words: Past, Present & Future yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Time Words: Past (Yesterday), Present (Today), Future (Tomorrow) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Time Words: Past, Present & Future to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7681,7 +7681,7 @@ export const MASTER_LESSONS = [
   {
     "id": "74",
     "numericId": 74,
-    "title": "Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs",
+    "title": "Past Action Verbs",
     "category": "Tenses",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7695,7 +7695,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Learning irregular past verbs (went, saw, ate, drank, ran, came).",
     "objectives": [
-      "Master the foundational rules of Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs",
+      "Master the foundational rules of Past Action Verbs",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7706,14 +7706,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Past Action Verbs\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Past Action Verbs\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7722,12 +7722,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding past tense verbs: regular (-ed) vs common irregular verbs and practicing every day.",
-      "targetPhonemes": "Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs"
+      "sentence": "Clear communication relies on understanding past action verbs and practicing every day.",
+      "targetPhonemes": "Past Action Verbs"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs\"?",
+        "question": "What is the primary academic focus of \"Past Action Verbs\"?",
         "options": [
           "Learning irregular past verbs (went, saw, ate, drank, ran, came).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7751,12 +7751,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs to improve my fluency.",
-          "Me practice rules of Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs without sentence.",
-          "I practicing rule Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs yesterday today.",
+          "I have practiced the rules of Past Action Verbs to improve my fluency.",
+          "Me practice rules of Past Action Verbs without sentence.",
+          "I practicing rule Past Action Verbs yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Past Tense Verbs: Regular (-ed) vs Common Irregular Verbs to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Past Action Verbs to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7786,7 +7786,7 @@ export const MASTER_LESSONS = [
   {
     "id": "75",
     "numericId": 75,
-    "title": "Comparing Adjectives: Big, Bigger, Biggest",
+    "title": "Comparing Sizes & Qualities",
     "category": "Grammar",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7800,7 +7800,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Understanding positive, comparative, and superlative adjective forms.",
     "objectives": [
-      "Master the foundational rules of Comparing Adjectives: Big, Bigger, Biggest",
+      "Master the foundational rules of Comparing Sizes & Qualities",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7811,14 +7811,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Comparing Adjectives: Big, Bigger, Biggest\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Comparing Sizes & Qualities\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Comparing Adjectives: Big, Bigger, Biggest\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Comparing Sizes & Qualities\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7827,12 +7827,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding comparing adjectives: big, bigger, biggest and practicing every day.",
-      "targetPhonemes": "Comparing Adjectives: Big, Bigger, Biggest"
+      "sentence": "Clear communication relies on understanding comparing sizes & qualities and practicing every day.",
+      "targetPhonemes": "Comparing Sizes & Qualities"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Comparing Adjectives: Big, Bigger, Biggest\"?",
+        "question": "What is the primary academic focus of \"Comparing Sizes & Qualities\"?",
         "options": [
           "Understanding positive, comparative, and superlative adjective forms.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7856,12 +7856,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Comparing Adjectives: Big, Bigger, Biggest to improve my fluency.",
-          "Me practice rules of Comparing Adjectives: Big, Bigger, Biggest without sentence.",
-          "I practicing rule Comparing Adjectives: Big, Bigger, Biggest yesterday today.",
+          "I have practiced the rules of Comparing Sizes & Qualities to improve my fluency.",
+          "Me practice rules of Comparing Sizes & Qualities without sentence.",
+          "I practicing rule Comparing Sizes & Qualities yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Comparing Adjectives: Big, Bigger, Biggest to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Comparing Sizes & Qualities to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7891,7 +7891,7 @@ export const MASTER_LESSONS = [
   {
     "id": "76",
     "numericId": 76,
-    "title": "Compound Words: Joining Two Words to Make One",
+    "title": "Making Fun Compound Words",
     "category": "Vocabulary",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -7905,7 +7905,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Understanding semantic compounding (sun + flower = sunflower, rain + coat = raincoat).",
     "objectives": [
-      "Master the foundational rules of Compound Words: Joining Two Words to Make One",
+      "Master the foundational rules of Making Fun Compound Words",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -7916,14 +7916,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Compound Words: Joining Two Words to Make One\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Making Fun Compound Words\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Compound Words: Joining Two Words to Make One\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Making Fun Compound Words\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -7932,12 +7932,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding compound words: joining two words to make one and practicing every day.",
-      "targetPhonemes": "Compound Words: Joining Two Words to Make One"
+      "sentence": "Clear communication relies on understanding making fun compound words and practicing every day.",
+      "targetPhonemes": "Making Fun Compound Words"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Compound Words: Joining Two Words to Make One\"?",
+        "question": "What is the primary academic focus of \"Making Fun Compound Words\"?",
         "options": [
           "Understanding semantic compounding (sun + flower = sunflower, rain + coat = raincoat).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -7961,12 +7961,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Compound Words: Joining Two Words to Make One to improve my fluency.",
-          "Me practice rules of Compound Words: Joining Two Words to Make One without sentence.",
-          "I practicing rule Compound Words: Joining Two Words to Make One yesterday today.",
+          "I have practiced the rules of Making Fun Compound Words to improve my fluency.",
+          "Me practice rules of Making Fun Compound Words without sentence.",
+          "I practicing rule Making Fun Compound Words yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Compound Words: Joining Two Words to Make One to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Making Fun Compound Words to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -7996,7 +7996,7 @@ export const MASTER_LESSONS = [
   {
     "id": "77",
     "numericId": 77,
-    "title": "Word Opposites (Antonyms) & Word Twins (Synonyms)",
+    "title": "Opposites & Word Twins",
     "category": "Vocabulary",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -8010,7 +8010,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Expanding expressive vocabulary through antonyms and synonyms.",
     "objectives": [
-      "Master the foundational rules of Word Opposites (Antonyms) & Word Twins (Synonyms)",
+      "Master the foundational rules of Opposites & Word Twins",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8021,14 +8021,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Word Opposites (Antonyms) & Word Twins (Synonyms)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Opposites & Word Twins\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Word Opposites (Antonyms) & Word Twins (Synonyms)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Opposites & Word Twins\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8037,12 +8037,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding word opposites (antonyms) & word twins (synonyms) and practicing every day.",
-      "targetPhonemes": "Word Opposites (Antonyms) & Word Twins (Synonyms)"
+      "sentence": "Clear communication relies on understanding opposites & word twins and practicing every day.",
+      "targetPhonemes": "Opposites & Word Twins"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Word Opposites (Antonyms) & Word Twins (Synonyms)\"?",
+        "question": "What is the primary academic focus of \"Opposites & Word Twins\"?",
         "options": [
           "Expanding expressive vocabulary through antonyms and synonyms.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8066,12 +8066,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Word Opposites (Antonyms) & Word Twins (Synonyms) to improve my fluency.",
-          "Me practice rules of Word Opposites (Antonyms) & Word Twins (Synonyms) without sentence.",
-          "I practicing rule Word Opposites (Antonyms) & Word Twins (Synonyms) yesterday today.",
+          "I have practiced the rules of Opposites & Word Twins to improve my fluency.",
+          "Me practice rules of Opposites & Word Twins without sentence.",
+          "I practicing rule Opposites & Word Twins yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Word Opposites (Antonyms) & Word Twins (Synonyms) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Opposites & Word Twins to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8101,7 +8101,7 @@ export const MASTER_LESSONS = [
   {
     "id": "78",
     "numericId": 78,
-    "title": "Reading Comprehension: Sequencing Events (First, Next, Last)",
+    "title": "Story Sequencing: First, Next, Last",
     "category": "Reading Skills",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -8115,7 +8115,7 @@ export const MASTER_LESSONS = [
     "icon": "book-open-outline",
     "description": "Identifying narrative chronology and recalling story sequences logically.",
     "objectives": [
-      "Master the foundational rules of Reading Comprehension: Sequencing Events (First, Next, Last)",
+      "Master the foundational rules of Story Sequencing: First, Next, Last",
       "Identify and correct frequent errors in Reading Skills",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8126,14 +8126,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Reading Comprehension: Sequencing Events (First, Next, Last)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Story Sequencing: First, Next, Last\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Reading Comprehension: Sequencing Events (First, Next, Last)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Story Sequencing: First, Next, Last\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8142,12 +8142,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding reading comprehension: sequencing events (first, next, last) and practicing every day.",
-      "targetPhonemes": "Reading Comprehension: Sequencing Events (First, Next, Last)"
+      "sentence": "Clear communication relies on understanding story sequencing: first, next, last and practicing every day.",
+      "targetPhonemes": "Story Sequencing: First, Next, Last"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Reading Comprehension: Sequencing Events (First, Next, Last)\"?",
+        "question": "What is the primary academic focus of \"Story Sequencing: First, Next, Last\"?",
         "options": [
           "Identifying narrative chronology and recalling story sequences logically.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8171,12 +8171,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Reading Comprehension: Sequencing Events (First, Next, Last) to improve my fluency.",
-          "Me practice rules of Reading Comprehension: Sequencing Events (First, Next, Last) without sentence.",
-          "I practicing rule Reading Comprehension: Sequencing Events (First, Next, Last) yesterday today.",
+          "I have practiced the rules of Story Sequencing: First, Next, Last to improve my fluency.",
+          "Me practice rules of Story Sequencing: First, Next, Last without sentence.",
+          "I practicing rule Story Sequencing: First, Next, Last yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Reading Comprehension: Sequencing Events (First, Next, Last) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Story Sequencing: First, Next, Last to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8206,7 +8206,7 @@ export const MASTER_LESSONS = [
   {
     "id": "79",
     "numericId": 79,
-    "title": "Oral Pronunciation: Tongue Twisters & Consonant Clarity",
+    "title": "Tongue Twisters & Clear Speech",
     "category": "Spoken Mechanics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -8220,7 +8220,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Speech articulation drills to improve tongue movement and consonant clarity.",
     "objectives": [
-      "Master the foundational rules of Oral Pronunciation: Tongue Twisters & Consonant Clarity",
+      "Master the foundational rules of Tongue Twisters & Clear Speech",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8231,14 +8231,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Oral Pronunciation: Tongue Twisters & Consonant Clarity\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Tongue Twisters & Clear Speech\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Oral Pronunciation: Tongue Twisters & Consonant Clarity\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Tongue Twisters & Clear Speech\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8247,12 +8247,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding oral pronunciation: tongue twisters & consonant clarity and practicing every day.",
-      "targetPhonemes": "Oral Pronunciation: Tongue Twisters & Consonant Clarity"
+      "sentence": "Clear communication relies on understanding tongue twisters & clear speech and practicing every day.",
+      "targetPhonemes": "Tongue Twisters & Clear Speech"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Oral Pronunciation: Tongue Twisters & Consonant Clarity\"?",
+        "question": "What is the primary academic focus of \"Tongue Twisters & Clear Speech\"?",
         "options": [
           "Speech articulation drills to improve tongue movement and consonant clarity.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8276,12 +8276,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Oral Pronunciation: Tongue Twisters & Consonant Clarity to improve my fluency.",
-          "Me practice rules of Oral Pronunciation: Tongue Twisters & Consonant Clarity without sentence.",
-          "I practicing rule Oral Pronunciation: Tongue Twisters & Consonant Clarity yesterday today.",
+          "I have practiced the rules of Tongue Twisters & Clear Speech to improve my fluency.",
+          "Me practice rules of Tongue Twisters & Clear Speech without sentence.",
+          "I practicing rule Tongue Twisters & Clear Speech yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Oral Pronunciation: Tongue Twisters & Consonant Clarity to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Tongue Twisters & Clear Speech to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8311,7 +8311,7 @@ export const MASTER_LESSONS = [
   {
     "id": "80",
     "numericId": 80,
-    "title": "Spoken Expression: Telling a Complete Short Story Clearly",
+    "title": "Telling Your Own Story",
     "category": "Spoken Mechanics",
     "level": "Beginner",
     "difficulty": "Beginner",
@@ -8325,7 +8325,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Speaking in 4–5 coherent connected sentences using a beginning, middle, and end.",
     "objectives": [
-      "Master the foundational rules of Spoken Expression: Telling a Complete Short Story Clearly",
+      "Master the foundational rules of Telling Your Own Story",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8336,14 +8336,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Spoken Expression: Telling a Complete Short Story Clearly\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Telling Your Own Story\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Spoken Expression: Telling a Complete Short Story Clearly\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Telling Your Own Story\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8352,12 +8352,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding spoken expression: telling a complete short story clearly and practicing every day.",
-      "targetPhonemes": "Spoken Expression: Telling a Complete Short Story Clearly"
+      "sentence": "Clear communication relies on understanding telling your own story and practicing every day.",
+      "targetPhonemes": "Telling Your Own Story"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Spoken Expression: Telling a Complete Short Story Clearly\"?",
+        "question": "What is the primary academic focus of \"Telling Your Own Story\"?",
         "options": [
           "Speaking in 4–5 coherent connected sentences using a beginning, middle, and end.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8381,12 +8381,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Spoken Expression: Telling a Complete Short Story Clearly to improve my fluency.",
-          "Me practice rules of Spoken Expression: Telling a Complete Short Story Clearly without sentence.",
-          "I practicing rule Spoken Expression: Telling a Complete Short Story Clearly yesterday today.",
+          "I have practiced the rules of Telling Your Own Story to improve my fluency.",
+          "Me practice rules of Telling Your Own Story without sentence.",
+          "I practicing rule Telling Your Own Story yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Spoken Expression: Telling a Complete Short Story Clearly to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Telling Your Own Story to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8416,7 +8416,7 @@ export const MASTER_LESSONS = [
   {
     "id": "81",
     "numericId": 81,
-    "title": "Sentence Diagnostics: Eliminating Run-ons & Fragments",
+    "title": "Fixing Run-ons & Fragments",
     "category": "Syntax",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -8430,7 +8430,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Identifying complete independent clauses; fixing fused sentences and comma splices.",
     "objectives": [
-      "Master the foundational rules of Sentence Diagnostics: Eliminating Run-ons & Fragments",
+      "Master the foundational rules of Fixing Run-ons & Fragments",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8441,14 +8441,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Sentence Diagnostics: Eliminating Run-ons & Fragments\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Fixing Run-ons & Fragments\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Sentence Diagnostics: Eliminating Run-ons & Fragments\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Fixing Run-ons & Fragments\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8457,12 +8457,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding sentence diagnostics: eliminating run-ons & fragments and practicing every day.",
-      "targetPhonemes": "Sentence Diagnostics: Eliminating Run-ons & Fragments"
+      "sentence": "Clear communication relies on understanding fixing run-ons & fragments and practicing every day.",
+      "targetPhonemes": "Fixing Run-ons & Fragments"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Sentence Diagnostics: Eliminating Run-ons & Fragments\"?",
+        "question": "What is the primary academic focus of \"Fixing Run-ons & Fragments\"?",
         "options": [
           "Identifying complete independent clauses; fixing fused sentences and comma splices.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8486,12 +8486,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Sentence Diagnostics: Eliminating Run-ons & Fragments to improve my fluency.",
-          "Me practice rules of Sentence Diagnostics: Eliminating Run-ons & Fragments without sentence.",
-          "I practicing rule Sentence Diagnostics: Eliminating Run-ons & Fragments yesterday today.",
+          "I have practiced the rules of Fixing Run-ons & Fragments to improve my fluency.",
+          "Me practice rules of Fixing Run-ons & Fragments without sentence.",
+          "I practicing rule Fixing Run-ons & Fragments yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Sentence Diagnostics: Eliminating Run-ons & Fragments to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Fixing Run-ons & Fragments to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8521,7 +8521,7 @@ export const MASTER_LESSONS = [
   {
     "id": "82",
     "numericId": 82,
-    "title": "Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly",
+    "title": "Seamless Tense Transitions",
     "category": "Tenses",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -8535,7 +8535,7 @@ export const MASTER_LESSONS = [
     "icon": "time-outline",
     "description": "Navigating present perfect, simple past, and past continuous in a single spoken paragraph.",
     "objectives": [
-      "Master the foundational rules of Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly",
+      "Master the foundational rules of Seamless Tense Transitions",
       "Identify and correct frequent errors in Tenses",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8546,14 +8546,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Seamless Tense Transitions\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Seamless Tense Transitions\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8562,12 +8562,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding dynamic verb tenses: shifting across time zones seamlessly and practicing every day.",
-      "targetPhonemes": "Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly"
+      "sentence": "Clear communication relies on understanding seamless tense transitions and practicing every day.",
+      "targetPhonemes": "Seamless Tense Transitions"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly\"?",
+        "question": "What is the primary academic focus of \"Seamless Tense Transitions\"?",
         "options": [
           "Navigating present perfect, simple past, and past continuous in a single spoken paragraph.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8591,12 +8591,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly to improve my fluency.",
-          "Me practice rules of Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly without sentence.",
-          "I practicing rule Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly yesterday today.",
+          "I have practiced the rules of Seamless Tense Transitions to improve my fluency.",
+          "Me practice rules of Seamless Tense Transitions without sentence.",
+          "I practicing rule Seamless Tense Transitions yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Dynamic Verb Tenses: Shifting Across Time Zones Seamlessly to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Seamless Tense Transitions to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8626,7 +8626,7 @@ export const MASTER_LESSONS = [
   {
     "id": "83",
     "numericId": 83,
-    "title": "Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals",
+    "title": "Real & Unreal Conditionals",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -8640,7 +8640,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Formulating hypotheses, real possibilities, and past counterfactuals.",
     "objectives": [
-      "Master the foundational rules of Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals",
+      "Master the foundational rules of Real & Unreal Conditionals",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8651,14 +8651,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Real & Unreal Conditionals\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Real & Unreal Conditionals\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8667,12 +8667,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding conditionals for scenarios: 1st, 2nd & 3rd conditionals and practicing every day.",
-      "targetPhonemes": "Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals"
+      "sentence": "Clear communication relies on understanding real & unreal conditionals and practicing every day.",
+      "targetPhonemes": "Real & Unreal Conditionals"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals\"?",
+        "question": "What is the primary academic focus of \"Real & Unreal Conditionals\"?",
         "options": [
           "Formulating hypotheses, real possibilities, and past counterfactuals.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8696,12 +8696,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals to improve my fluency.",
-          "Me practice rules of Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals without sentence.",
-          "I practicing rule Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals yesterday today.",
+          "I have practiced the rules of Real & Unreal Conditionals to improve my fluency.",
+          "Me practice rules of Real & Unreal Conditionals without sentence.",
+          "I practicing rule Real & Unreal Conditionals yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Conditionals for Scenarios: 1st, 2nd & 3rd Conditionals to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Real & Unreal Conditionals to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8731,7 +8731,7 @@ export const MASTER_LESSONS = [
   {
     "id": "84",
     "numericId": 84,
-    "title": "Subject-Verb Agreement in Complex Compound Sentences",
+    "title": "Complex Subject-Verb Agreement",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -8745,7 +8745,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Handling intervening prepositional phrases, collective nouns, and correlative conjunctions.",
     "objectives": [
-      "Master the foundational rules of Subject-Verb Agreement in Complex Compound Sentences",
+      "Master the foundational rules of Complex Subject-Verb Agreement",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8756,14 +8756,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Subject-Verb Agreement in Complex Compound Sentences\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Complex Subject-Verb Agreement\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Subject-Verb Agreement in Complex Compound Sentences\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Complex Subject-Verb Agreement\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8772,12 +8772,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding subject-verb agreement in complex compound sentences and practicing every day.",
-      "targetPhonemes": "Subject-Verb Agreement in Complex Compound Sentences"
+      "sentence": "Clear communication relies on understanding complex subject-verb agreement and practicing every day.",
+      "targetPhonemes": "Complex Subject-Verb Agreement"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Subject-Verb Agreement in Complex Compound Sentences\"?",
+        "question": "What is the primary academic focus of \"Complex Subject-Verb Agreement\"?",
         "options": [
           "Handling intervening prepositional phrases, collective nouns, and correlative conjunctions.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8801,12 +8801,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Subject-Verb Agreement in Complex Compound Sentences to improve my fluency.",
-          "Me practice rules of Subject-Verb Agreement in Complex Compound Sentences without sentence.",
-          "I practicing rule Subject-Verb Agreement in Complex Compound Sentences yesterday today.",
+          "I have practiced the rules of Complex Subject-Verb Agreement to improve my fluency.",
+          "Me practice rules of Complex Subject-Verb Agreement without sentence.",
+          "I practicing rule Complex Subject-Verb Agreement yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Subject-Verb Agreement in Complex Compound Sentences to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Complex Subject-Verb Agreement to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8836,7 +8836,7 @@ export const MASTER_LESSONS = [
   {
     "id": "85",
     "numericId": 85,
-    "title": "Active Voice for Directness vs. Passive Voice for Objectivity",
+    "title": "Active Directness vs. Passive Tone",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -8850,7 +8850,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Stylistic choice: when active voice commands energy vs when passive voice protects objectivity.",
     "objectives": [
-      "Master the foundational rules of Active Voice for Directness vs. Passive Voice for Objectivity",
+      "Master the foundational rules of Active Directness vs. Passive Tone",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8861,14 +8861,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Active Voice for Directness vs. Passive Voice for Objectivity\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Active Directness vs. Passive Tone\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Active Voice for Directness vs. Passive Voice for Objectivity\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Active Directness vs. Passive Tone\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8877,12 +8877,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding active voice for directness vs. passive voice for objectivity and practicing every day.",
-      "targetPhonemes": "Active Voice for Directness vs. Passive Voice for Objectivity"
+      "sentence": "Clear communication relies on understanding active directness vs. passive tone and practicing every day.",
+      "targetPhonemes": "Active Directness vs. Passive Tone"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Active Voice for Directness vs. Passive Voice for Objectivity\"?",
+        "question": "What is the primary academic focus of \"Active Directness vs. Passive Tone\"?",
         "options": [
           "Stylistic choice: when active voice commands energy vs when passive voice protects objectivity.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -8906,12 +8906,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Active Voice for Directness vs. Passive Voice for Objectivity to improve my fluency.",
-          "Me practice rules of Active Voice for Directness vs. Passive Voice for Objectivity without sentence.",
-          "I practicing rule Active Voice for Directness vs. Passive Voice for Objectivity yesterday today.",
+          "I have practiced the rules of Active Directness vs. Passive Tone to improve my fluency.",
+          "Me practice rules of Active Directness vs. Passive Tone without sentence.",
+          "I practicing rule Active Directness vs. Passive Tone yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Active Voice for Directness vs. Passive Voice for Objectivity to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Active Directness vs. Passive Tone to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -8941,7 +8941,7 @@ export const MASTER_LESSONS = [
   {
     "id": "86",
     "numericId": 86,
-    "title": "Modals of Advice, Obligation & Degrees of Certainty",
+    "title": "Modals of Advice & Certainty",
     "category": "Grammar",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -8955,7 +8955,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Fine-tuning assertions using should, ought to, must, might, could, may.",
     "objectives": [
-      "Master the foundational rules of Modals of Advice, Obligation & Degrees of Certainty",
+      "Master the foundational rules of Modals of Advice & Certainty",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -8966,14 +8966,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Modals of Advice, Obligation & Degrees of Certainty\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Modals of Advice & Certainty\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Modals of Advice, Obligation & Degrees of Certainty\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Modals of Advice & Certainty\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -8982,12 +8982,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding modals of advice, obligation & degrees of certainty and practicing every day.",
-      "targetPhonemes": "Modals of Advice, Obligation & Degrees of Certainty"
+      "sentence": "Clear communication relies on understanding modals of advice & certainty and practicing every day.",
+      "targetPhonemes": "Modals of Advice & Certainty"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Modals of Advice, Obligation & Degrees of Certainty\"?",
+        "question": "What is the primary academic focus of \"Modals of Advice & Certainty\"?",
         "options": [
           "Fine-tuning assertions using should, ought to, must, might, could, may.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9011,12 +9011,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Modals of Advice, Obligation & Degrees of Certainty to improve my fluency.",
-          "Me practice rules of Modals of Advice, Obligation & Degrees of Certainty without sentence.",
-          "I practicing rule Modals of Advice, Obligation & Degrees of Certainty yesterday today.",
+          "I have practiced the rules of Modals of Advice & Certainty to improve my fluency.",
+          "Me practice rules of Modals of Advice & Certainty without sentence.",
+          "I practicing rule Modals of Advice & Certainty yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Modals of Advice, Obligation & Degrees of Certainty to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Modals of Advice & Certainty to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9046,7 +9046,7 @@ export const MASTER_LESSONS = [
   {
     "id": "87",
     "numericId": 87,
-    "title": "High-Utility Phrasal Verbs & Everyday Collocations",
+    "title": "Everyday Phrasal Verbs & Collocations",
     "category": "Vocabulary",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9060,7 +9060,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Understanding multi-word verbs (bring up, turn down, run out of) and natural word partnerships.",
     "objectives": [
-      "Master the foundational rules of High-Utility Phrasal Verbs & Everyday Collocations",
+      "Master the foundational rules of Everyday Phrasal Verbs & Collocations",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9071,14 +9071,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"High-Utility Phrasal Verbs & Everyday Collocations\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Everyday Phrasal Verbs & Collocations\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"High-Utility Phrasal Verbs & Everyday Collocations\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Everyday Phrasal Verbs & Collocations\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9087,12 +9087,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding high-utility phrasal verbs & everyday collocations and practicing every day.",
-      "targetPhonemes": "High-Utility Phrasal Verbs & Everyday Collocations"
+      "sentence": "Clear communication relies on understanding everyday phrasal verbs & collocations and practicing every day.",
+      "targetPhonemes": "Everyday Phrasal Verbs & Collocations"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"High-Utility Phrasal Verbs & Everyday Collocations\"?",
+        "question": "What is the primary academic focus of \"Everyday Phrasal Verbs & Collocations\"?",
         "options": [
           "Understanding multi-word verbs (bring up, turn down, run out of) and natural word partnerships.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9116,12 +9116,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of High-Utility Phrasal Verbs & Everyday Collocations to improve my fluency.",
-          "Me practice rules of High-Utility Phrasal Verbs & Everyday Collocations without sentence.",
-          "I practicing rule High-Utility Phrasal Verbs & Everyday Collocations yesterday today.",
+          "I have practiced the rules of Everyday Phrasal Verbs & Collocations to improve my fluency.",
+          "Me practice rules of Everyday Phrasal Verbs & Collocations without sentence.",
+          "I practicing rule Everyday Phrasal Verbs & Collocations yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of High-Utility Phrasal Verbs & Everyday Collocations to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Everyday Phrasal Verbs & Collocations to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9151,7 +9151,7 @@ export const MASTER_LESSONS = [
   {
     "id": "88",
     "numericId": 88,
-    "title": "Discourse Markers & Transitional Flow (However, Consequently, Furthermore)",
+    "title": "Discourse Markers & Smooth Flow",
     "category": "Syntax",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9165,7 +9165,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Structuring logical transitions between contrasting, additive, and causal arguments.",
     "objectives": [
-      "Master the foundational rules of Discourse Markers & Transitional Flow (However, Consequently, Furthermore)",
+      "Master the foundational rules of Discourse Markers & Smooth Flow",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9176,14 +9176,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Discourse Markers & Transitional Flow (However, Consequently, Furthermore)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Discourse Markers & Smooth Flow\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Discourse Markers & Transitional Flow (However, Consequently, Furthermore)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Discourse Markers & Smooth Flow\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9192,12 +9192,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding discourse markers & transitional flow (however, consequently, furthermore) and practicing every day.",
-      "targetPhonemes": "Discourse Markers & Transitional Flow (However, Consequently, Furthermore)"
+      "sentence": "Clear communication relies on understanding discourse markers & smooth flow and practicing every day.",
+      "targetPhonemes": "Discourse Markers & Smooth Flow"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Discourse Markers & Transitional Flow (However, Consequently, Furthermore)\"?",
+        "question": "What is the primary academic focus of \"Discourse Markers & Smooth Flow\"?",
         "options": [
           "Structuring logical transitions between contrasting, additive, and causal arguments.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9221,12 +9221,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Discourse Markers & Transitional Flow (However, Consequently, Furthermore) to improve my fluency.",
-          "Me practice rules of Discourse Markers & Transitional Flow (However, Consequently, Furthermore) without sentence.",
-          "I practicing rule Discourse Markers & Transitional Flow (However, Consequently, Furthermore) yesterday today.",
+          "I have practiced the rules of Discourse Markers & Smooth Flow to improve my fluency.",
+          "Me practice rules of Discourse Markers & Smooth Flow without sentence.",
+          "I practicing rule Discourse Markers & Smooth Flow yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Discourse Markers & Transitional Flow (However, Consequently, Furthermore) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Discourse Markers & Smooth Flow to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9256,7 +9256,7 @@ export const MASTER_LESSONS = [
   {
     "id": "89",
     "numericId": 89,
-    "title": "Relative Clauses: Combining Ideas Without Redundancy",
+    "title": "Relative Clauses & Conciseness",
     "category": "Syntax",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9270,7 +9270,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Creating restrictive and non-restrictive relative clauses with who, which, that.",
     "objectives": [
-      "Master the foundational rules of Relative Clauses: Combining Ideas Without Redundancy",
+      "Master the foundational rules of Relative Clauses & Conciseness",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9281,14 +9281,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Relative Clauses: Combining Ideas Without Redundancy\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Relative Clauses & Conciseness\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Relative Clauses: Combining Ideas Without Redundancy\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Relative Clauses & Conciseness\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9297,12 +9297,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding relative clauses: combining ideas without redundancy and practicing every day.",
-      "targetPhonemes": "Relative Clauses: Combining Ideas Without Redundancy"
+      "sentence": "Clear communication relies on understanding relative clauses & conciseness and practicing every day.",
+      "targetPhonemes": "Relative Clauses & Conciseness"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Relative Clauses: Combining Ideas Without Redundancy\"?",
+        "question": "What is the primary academic focus of \"Relative Clauses & Conciseness\"?",
         "options": [
           "Creating restrictive and non-restrictive relative clauses with who, which, that.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9326,12 +9326,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Relative Clauses: Combining Ideas Without Redundancy to improve my fluency.",
-          "Me practice rules of Relative Clauses: Combining Ideas Without Redundancy without sentence.",
-          "I practicing rule Relative Clauses: Combining Ideas Without Redundancy yesterday today.",
+          "I have practiced the rules of Relative Clauses & Conciseness to improve my fluency.",
+          "Me practice rules of Relative Clauses & Conciseness without sentence.",
+          "I practicing rule Relative Clauses & Conciseness yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Relative Clauses: Combining Ideas Without Redundancy to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Relative Clauses & Conciseness to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9361,7 +9361,7 @@ export const MASTER_LESSONS = [
   {
     "id": "90",
     "numericId": 90,
-    "title": "Idiomatic Fluency: Common Figurative Expressions",
+    "title": "Idiomatic Expressions in Context",
     "category": "Vocabulary",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9375,7 +9375,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Understanding figurative idioms in natural speech (on the fence, cutting corners).",
     "objectives": [
-      "Master the foundational rules of Idiomatic Fluency: Common Figurative Expressions",
+      "Master the foundational rules of Idiomatic Expressions in Context",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9386,14 +9386,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Idiomatic Fluency: Common Figurative Expressions\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Idiomatic Expressions in Context\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Idiomatic Fluency: Common Figurative Expressions\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Idiomatic Expressions in Context\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9402,12 +9402,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding idiomatic fluency: common figurative expressions and practicing every day.",
-      "targetPhonemes": "Idiomatic Fluency: Common Figurative Expressions"
+      "sentence": "Clear communication relies on understanding idiomatic expressions in context and practicing every day.",
+      "targetPhonemes": "Idiomatic Expressions in Context"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Idiomatic Fluency: Common Figurative Expressions\"?",
+        "question": "What is the primary academic focus of \"Idiomatic Expressions in Context\"?",
         "options": [
           "Understanding figurative idioms in natural speech (on the fence, cutting corners).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9431,12 +9431,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Idiomatic Fluency: Common Figurative Expressions to improve my fluency.",
-          "Me practice rules of Idiomatic Fluency: Common Figurative Expressions without sentence.",
-          "I practicing rule Idiomatic Fluency: Common Figurative Expressions yesterday today.",
+          "I have practiced the rules of Idiomatic Expressions in Context to improve my fluency.",
+          "Me practice rules of Idiomatic Expressions in Context without sentence.",
+          "I practicing rule Idiomatic Expressions in Context yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Idiomatic Fluency: Common Figurative Expressions to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Idiomatic Expressions in Context to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9466,7 +9466,7 @@ export const MASTER_LESSONS = [
   {
     "id": "91",
     "numericId": 91,
-    "title": "Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/)",
+    "title": "Natural Rhythm & The Schwa Sound",
     "category": "Phonology",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9480,7 +9480,7 @@ export const MASTER_LESSONS = [
     "icon": "volume-medium-outline",
     "description": "Mastering English rhythm, unstressed vowel reductions, and the neutral schwa sound.",
     "objectives": [
-      "Master the foundational rules of Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/)",
+      "Master the foundational rules of Natural Rhythm & The Schwa Sound",
       "Identify and correct frequent errors in Phonology",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9491,14 +9491,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Natural Rhythm & The Schwa Sound\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Natural Rhythm & The Schwa Sound\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9507,12 +9507,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding pronunciation & phonetics: silent letters, weak forms & schwa (/ə/) and practicing every day.",
-      "targetPhonemes": "Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/)"
+      "sentence": "Clear communication relies on understanding natural rhythm & the schwa sound and practicing every day.",
+      "targetPhonemes": "Natural Rhythm & The Schwa Sound"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/)\"?",
+        "question": "What is the primary academic focus of \"Natural Rhythm & The Schwa Sound\"?",
         "options": [
           "Mastering English rhythm, unstressed vowel reductions, and the neutral schwa sound.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9536,12 +9536,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/) to improve my fluency.",
-          "Me practice rules of Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/) without sentence.",
-          "I practicing rule Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/) yesterday today.",
+          "I have practiced the rules of Natural Rhythm & The Schwa Sound to improve my fluency.",
+          "Me practice rules of Natural Rhythm & The Schwa Sound without sentence.",
+          "I practicing rule Natural Rhythm & The Schwa Sound yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Pronunciation & Phonetics: Silent Letters, Weak Forms & Schwa (/ə/) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Natural Rhythm & The Schwa Sound to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9571,7 +9571,7 @@ export const MASTER_LESSONS = [
   {
     "id": "92",
     "numericId": 92,
-    "title": "Sentence Stress & Rhythmic Modulation",
+    "title": "Sentence Stress & Rhythm",
     "category": "Phonology",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9585,7 +9585,7 @@ export const MASTER_LESSONS = [
     "icon": "volume-medium-outline",
     "description": "Emphasizing content words (nouns, verbs) while de-emphasizing structure words.",
     "objectives": [
-      "Master the foundational rules of Sentence Stress & Rhythmic Modulation",
+      "Master the foundational rules of Sentence Stress & Rhythm",
       "Identify and correct frequent errors in Phonology",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9596,14 +9596,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Sentence Stress & Rhythmic Modulation\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Sentence Stress & Rhythm\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Sentence Stress & Rhythmic Modulation\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Sentence Stress & Rhythm\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9612,12 +9612,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding sentence stress & rhythmic modulation and practicing every day.",
-      "targetPhonemes": "Sentence Stress & Rhythmic Modulation"
+      "sentence": "Clear communication relies on understanding sentence stress & rhythm and practicing every day.",
+      "targetPhonemes": "Sentence Stress & Rhythm"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Sentence Stress & Rhythmic Modulation\"?",
+        "question": "What is the primary academic focus of \"Sentence Stress & Rhythm\"?",
         "options": [
           "Emphasizing content words (nouns, verbs) while de-emphasizing structure words.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9641,12 +9641,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Sentence Stress & Rhythmic Modulation to improve my fluency.",
-          "Me practice rules of Sentence Stress & Rhythmic Modulation without sentence.",
-          "I practicing rule Sentence Stress & Rhythmic Modulation yesterday today.",
+          "I have practiced the rules of Sentence Stress & Rhythm to improve my fluency.",
+          "Me practice rules of Sentence Stress & Rhythm without sentence.",
+          "I practicing rule Sentence Stress & Rhythm yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Sentence Stress & Rhythmic Modulation to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Sentence Stress & Rhythm to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9676,7 +9676,7 @@ export const MASTER_LESSONS = [
   {
     "id": "93",
     "numericId": 93,
-    "title": "Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\")",
+    "title": "Eliminating Fillers & Crutch Words",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9690,7 +9690,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Replacing filler words with deliberate, authoritative pauses.",
     "objectives": [
-      "Master the foundational rules of Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\")",
+      "Master the foundational rules of Eliminating Fillers & Crutch Words",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9701,14 +9701,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\")\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Eliminating Fillers & Crutch Words\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\")\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Eliminating Fillers & Crutch Words\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9717,12 +9717,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding eliminating verbal fillers (\"umm\", \"like\", \"you know\") and practicing every day.",
-      "targetPhonemes": "Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\")"
+      "sentence": "Clear communication relies on understanding eliminating fillers & crutch words and practicing every day.",
+      "targetPhonemes": "Eliminating Fillers & Crutch Words"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\")\"?",
+        "question": "What is the primary academic focus of \"Eliminating Fillers & Crutch Words\"?",
         "options": [
           "Replacing filler words with deliberate, authoritative pauses.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9746,12 +9746,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\") to improve my fluency.",
-          "Me practice rules of Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\") without sentence.",
-          "I practicing rule Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\") yesterday today.",
+          "I have practiced the rules of Eliminating Fillers & Crutch Words to improve my fluency.",
+          "Me practice rules of Eliminating Fillers & Crutch Words without sentence.",
+          "I practicing rule Eliminating Fillers & Crutch Words yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Eliminating Verbal Fillers (\"Umm\", \"Like\", \"You know\") to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Eliminating Fillers & Crutch Words to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9781,7 +9781,7 @@ export const MASTER_LESSONS = [
   {
     "id": "94",
     "numericId": 94,
-    "title": "Academic & Placement Vocabulary: Greek/Latin Etymology",
+    "title": "College & Placement Vocabulary",
     "category": "Vocabulary",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9795,7 +9795,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Expanding vocabulary exponentially through root word analysis (chron, spect, scrib, dict).",
     "objectives": [
-      "Master the foundational rules of Academic & Placement Vocabulary: Greek/Latin Etymology",
+      "Master the foundational rules of College & Placement Vocabulary",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9806,14 +9806,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Academic & Placement Vocabulary: Greek/Latin Etymology\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"College & Placement Vocabulary\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Academic & Placement Vocabulary: Greek/Latin Etymology\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"College & Placement Vocabulary\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9822,12 +9822,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding academic & placement vocabulary: greek/latin etymology and practicing every day.",
-      "targetPhonemes": "Academic & Placement Vocabulary: Greek/Latin Etymology"
+      "sentence": "Clear communication relies on understanding college & placement vocabulary and practicing every day.",
+      "targetPhonemes": "College & Placement Vocabulary"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Academic & Placement Vocabulary: Greek/Latin Etymology\"?",
+        "question": "What is the primary academic focus of \"College & Placement Vocabulary\"?",
         "options": [
           "Expanding vocabulary exponentially through root word analysis (chron, spect, scrib, dict).",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9851,12 +9851,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Academic & Placement Vocabulary: Greek/Latin Etymology to improve my fluency.",
-          "Me practice rules of Academic & Placement Vocabulary: Greek/Latin Etymology without sentence.",
-          "I practicing rule Academic & Placement Vocabulary: Greek/Latin Etymology yesterday today.",
+          "I have practiced the rules of College & Placement Vocabulary to improve my fluency.",
+          "Me practice rules of College & Placement Vocabulary without sentence.",
+          "I practicing rule College & Placement Vocabulary yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Academic & Placement Vocabulary: Greek/Latin Etymology to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of College & Placement Vocabulary to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9886,7 +9886,7 @@ export const MASTER_LESSONS = [
   {
     "id": "95",
     "numericId": 95,
-    "title": "Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal",
+    "title": "Structuring Spoken Arguments",
     "category": "Oratory",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -9900,7 +9900,7 @@ export const MASTER_LESSONS = [
     "icon": "megaphone-outline",
     "description": "Constructing persuasive arguments with claim validity, empirical data, and rationale.",
     "objectives": [
-      "Master the foundational rules of Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal",
+      "Master the foundational rules of Structuring Spoken Arguments",
       "Identify and correct frequent errors in Oratory",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -9911,14 +9911,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Structuring Spoken Arguments\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Structuring Spoken Arguments\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -9927,12 +9927,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding structuring spoken arguments: claim, evidence, reasoning & rebuttal and practicing every day.",
-      "targetPhonemes": "Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal"
+      "sentence": "Clear communication relies on understanding structuring spoken arguments and practicing every day.",
+      "targetPhonemes": "Structuring Spoken Arguments"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal\"?",
+        "question": "What is the primary academic focus of \"Structuring Spoken Arguments\"?",
         "options": [
           "Constructing persuasive arguments with claim validity, empirical data, and rationale.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -9956,12 +9956,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal to improve my fluency.",
-          "Me practice rules of Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal without sentence.",
-          "I practicing rule Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal yesterday today.",
+          "I have practiced the rules of Structuring Spoken Arguments to improve my fluency.",
+          "Me practice rules of Structuring Spoken Arguments without sentence.",
+          "I practicing rule Structuring Spoken Arguments yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Structuring Spoken Arguments: Claim, Evidence, Reasoning & Rebuttal to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Structuring Spoken Arguments to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -9991,7 +9991,7 @@ export const MASTER_LESSONS = [
   {
     "id": "96",
     "numericId": 96,
-    "title": "Formal Email & Cover Letter Writing Mechanics",
+    "title": "Formal Emails & Cover Letters",
     "category": "Writing Mechanics",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -10005,7 +10005,7 @@ export const MASTER_LESSONS = [
     "icon": "document-text-outline",
     "description": "Structuring formal inquiries: subject clarity, greeting formality, call-to-action, sign-off.",
     "objectives": [
-      "Master the foundational rules of Formal Email & Cover Letter Writing Mechanics",
+      "Master the foundational rules of Formal Emails & Cover Letters",
       "Identify and correct frequent errors in Writing Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10016,14 +10016,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Formal Email & Cover Letter Writing Mechanics\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Formal Emails & Cover Letters\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Formal Email & Cover Letter Writing Mechanics\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Formal Emails & Cover Letters\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10032,12 +10032,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding formal email & cover letter writing mechanics and practicing every day.",
-      "targetPhonemes": "Formal Email & Cover Letter Writing Mechanics"
+      "sentence": "Clear communication relies on understanding formal emails & cover letters and practicing every day.",
+      "targetPhonemes": "Formal Emails & Cover Letters"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Formal Email & Cover Letter Writing Mechanics\"?",
+        "question": "What is the primary academic focus of \"Formal Emails & Cover Letters\"?",
         "options": [
           "Structuring formal inquiries: subject clarity, greeting formality, call-to-action, sign-off.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10061,12 +10061,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Formal Email & Cover Letter Writing Mechanics to improve my fluency.",
-          "Me practice rules of Formal Email & Cover Letter Writing Mechanics without sentence.",
-          "I practicing rule Formal Email & Cover Letter Writing Mechanics yesterday today.",
+          "I have practiced the rules of Formal Emails & Cover Letters to improve my fluency.",
+          "Me practice rules of Formal Emails & Cover Letters without sentence.",
+          "I practicing rule Formal Emails & Cover Letters yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Formal Email & Cover Letter Writing Mechanics to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Formal Emails & Cover Letters to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10096,7 +10096,7 @@ export const MASTER_LESSONS = [
   {
     "id": "97",
     "numericId": 97,
-    "title": "Summarization & Paraphrasing Techniques",
+    "title": "Summarizing & Paraphrasing",
     "category": "Academic Skills",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -10110,7 +10110,7 @@ export const MASTER_LESSONS = [
     "icon": "school-outline",
     "description": "Restating complex ideas in one’s own words without changing semantic meaning.",
     "objectives": [
-      "Master the foundational rules of Summarization & Paraphrasing Techniques",
+      "Master the foundational rules of Summarizing & Paraphrasing",
       "Identify and correct frequent errors in Academic Skills",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10121,14 +10121,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Summarization & Paraphrasing Techniques\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Summarizing & Paraphrasing\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Summarization & Paraphrasing Techniques\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Summarizing & Paraphrasing\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10137,12 +10137,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding summarization & paraphrasing techniques and practicing every day.",
-      "targetPhonemes": "Summarization & Paraphrasing Techniques"
+      "sentence": "Clear communication relies on understanding summarizing & paraphrasing and practicing every day.",
+      "targetPhonemes": "Summarizing & Paraphrasing"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Summarization & Paraphrasing Techniques\"?",
+        "question": "What is the primary academic focus of \"Summarizing & Paraphrasing\"?",
         "options": [
           "Restating complex ideas in one’s own words without changing semantic meaning.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10166,12 +10166,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Summarization & Paraphrasing Techniques to improve my fluency.",
-          "Me practice rules of Summarization & Paraphrasing Techniques without sentence.",
-          "I practicing rule Summarization & Paraphrasing Techniques yesterday today.",
+          "I have practiced the rules of Summarizing & Paraphrasing to improve my fluency.",
+          "Me practice rules of Summarizing & Paraphrasing without sentence.",
+          "I practicing rule Summarizing & Paraphrasing yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Summarization & Paraphrasing Techniques to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Summarizing & Paraphrasing to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10201,7 +10201,7 @@ export const MASTER_LESSONS = [
   {
     "id": "98",
     "numericId": 98,
-    "title": "Critical Thinking: Distinguishing Facts, Inferences & Bias",
+    "title": "Spotting Bias & Critical Thinking",
     "category": "Critical Analysis",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -10215,7 +10215,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Detecting rhetorical fallacies, loaded language, and unstated assumptions in spoken text.",
     "objectives": [
-      "Master the foundational rules of Critical Thinking: Distinguishing Facts, Inferences & Bias",
+      "Master the foundational rules of Spotting Bias & Critical Thinking",
       "Identify and correct frequent errors in Critical Analysis",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10226,14 +10226,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Critical Thinking: Distinguishing Facts, Inferences & Bias\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Spotting Bias & Critical Thinking\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Critical Thinking: Distinguishing Facts, Inferences & Bias\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Spotting Bias & Critical Thinking\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10242,12 +10242,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding critical thinking: distinguishing facts, inferences & bias and practicing every day.",
-      "targetPhonemes": "Critical Thinking: Distinguishing Facts, Inferences & Bias"
+      "sentence": "Clear communication relies on understanding spotting bias & critical thinking and practicing every day.",
+      "targetPhonemes": "Spotting Bias & Critical Thinking"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Critical Thinking: Distinguishing Facts, Inferences & Bias\"?",
+        "question": "What is the primary academic focus of \"Spotting Bias & Critical Thinking\"?",
         "options": [
           "Detecting rhetorical fallacies, loaded language, and unstated assumptions in spoken text.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10271,12 +10271,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Critical Thinking: Distinguishing Facts, Inferences & Bias to improve my fluency.",
-          "Me practice rules of Critical Thinking: Distinguishing Facts, Inferences & Bias without sentence.",
-          "I practicing rule Critical Thinking: Distinguishing Facts, Inferences & Bias yesterday today.",
+          "I have practiced the rules of Spotting Bias & Critical Thinking to improve my fluency.",
+          "Me practice rules of Spotting Bias & Critical Thinking without sentence.",
+          "I practicing rule Spotting Bias & Critical Thinking yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Critical Thinking: Distinguishing Facts, Inferences & Bias to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Spotting Bias & Critical Thinking to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10306,7 +10306,7 @@ export const MASTER_LESSONS = [
   {
     "id": "99",
     "numericId": 99,
-    "title": "Impromptu Speaking: The PREP Model (Point, Reason, Example, Point)",
+    "title": "Impromptu Speaking with PREP",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -10320,7 +10320,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Formulating a coherent 2-minute response to any surprise question within 5 seconds.",
     "objectives": [
-      "Master the foundational rules of Impromptu Speaking: The PREP Model (Point, Reason, Example, Point)",
+      "Master the foundational rules of Impromptu Speaking with PREP",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10331,14 +10331,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Impromptu Speaking: The PREP Model (Point, Reason, Example, Point)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Impromptu Speaking with PREP\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Impromptu Speaking: The PREP Model (Point, Reason, Example, Point)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Impromptu Speaking with PREP\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10347,12 +10347,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding impromptu speaking: the prep model (point, reason, example, point) and practicing every day.",
-      "targetPhonemes": "Impromptu Speaking: The PREP Model (Point, Reason, Example, Point)"
+      "sentence": "Clear communication relies on understanding impromptu speaking with prep and practicing every day.",
+      "targetPhonemes": "Impromptu Speaking with PREP"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Impromptu Speaking: The PREP Model (Point, Reason, Example, Point)\"?",
+        "question": "What is the primary academic focus of \"Impromptu Speaking with PREP\"?",
         "options": [
           "Formulating a coherent 2-minute response to any surprise question within 5 seconds.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10376,12 +10376,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Impromptu Speaking: The PREP Model (Point, Reason, Example, Point) to improve my fluency.",
-          "Me practice rules of Impromptu Speaking: The PREP Model (Point, Reason, Example, Point) without sentence.",
-          "I practicing rule Impromptu Speaking: The PREP Model (Point, Reason, Example, Point) yesterday today.",
+          "I have practiced the rules of Impromptu Speaking with PREP to improve my fluency.",
+          "Me practice rules of Impromptu Speaking with PREP without sentence.",
+          "I practicing rule Impromptu Speaking with PREP yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Impromptu Speaking: The PREP Model (Point, Reason, Example, Point) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Impromptu Speaking with PREP to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10411,7 +10411,7 @@ export const MASTER_LESSONS = [
   {
     "id": "100",
     "numericId": 100,
-    "title": "The STAR Method: Behavioral Interview Question Architecture",
+    "title": "Ace the Interview: STAR Method",
     "category": "Career Mechanics",
     "level": "Intermediate",
     "difficulty": "Intermediate",
@@ -10425,7 +10425,7 @@ export const MASTER_LESSONS = [
     "icon": "briefcase-outline",
     "description": "Structuring narrative interview answers using Situation, Task, Action, and Result.",
     "objectives": [
-      "Master the foundational rules of The STAR Method: Behavioral Interview Question Architecture",
+      "Master the foundational rules of Ace the Interview: STAR Method",
       "Identify and correct frequent errors in Career Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10436,14 +10436,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"The STAR Method: Behavioral Interview Question Architecture\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Ace the Interview: STAR Method\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"The STAR Method: Behavioral Interview Question Architecture\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Ace the Interview: STAR Method\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10452,12 +10452,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding the star method: behavioral interview question architecture and practicing every day.",
-      "targetPhonemes": "The STAR Method: Behavioral Interview Question Architecture"
+      "sentence": "Clear communication relies on understanding ace the interview: star method and practicing every day.",
+      "targetPhonemes": "Ace the Interview: STAR Method"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"The STAR Method: Behavioral Interview Question Architecture\"?",
+        "question": "What is the primary academic focus of \"Ace the Interview: STAR Method\"?",
         "options": [
           "Structuring narrative interview answers using Situation, Task, Action, and Result.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10481,12 +10481,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of The STAR Method: Behavioral Interview Question Architecture to improve my fluency.",
-          "Me practice rules of The STAR Method: Behavioral Interview Question Architecture without sentence.",
-          "I practicing rule The STAR Method: Behavioral Interview Question Architecture yesterday today.",
+          "I have practiced the rules of Ace the Interview: STAR Method to improve my fluency.",
+          "Me practice rules of Ace the Interview: STAR Method without sentence.",
+          "I practicing rule Ace the Interview: STAR Method yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of The STAR Method: Behavioral Interview Question Architecture to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Ace the Interview: STAR Method to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10516,7 +10516,7 @@ export const MASTER_LESSONS = [
   {
     "id": "101",
     "numericId": 101,
-    "title": "Executive Grammar & Syntactic Precision",
+    "title": "Executive Precision & Grammar",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -10530,7 +10530,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Eliminating subtle professional errors in agreement, modifier placement, and parallelism.",
     "objectives": [
-      "Master the foundational rules of Executive Grammar & Syntactic Precision",
+      "Master the foundational rules of Executive Precision & Grammar",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10541,14 +10541,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Executive Grammar & Syntactic Precision\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Executive Precision & Grammar\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Executive Grammar & Syntactic Precision\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Executive Precision & Grammar\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10557,12 +10557,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding executive grammar & syntactic precision and practicing every day.",
-      "targetPhonemes": "Executive Grammar & Syntactic Precision"
+      "sentence": "Clear communication relies on understanding executive precision & grammar and practicing every day.",
+      "targetPhonemes": "Executive Precision & Grammar"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Executive Grammar & Syntactic Precision\"?",
+        "question": "What is the primary academic focus of \"Executive Precision & Grammar\"?",
         "options": [
           "Eliminating subtle professional errors in agreement, modifier placement, and parallelism.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10586,12 +10586,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Executive Grammar & Syntactic Precision to improve my fluency.",
-          "Me practice rules of Executive Grammar & Syntactic Precision without sentence.",
-          "I practicing rule Executive Grammar & Syntactic Precision yesterday today.",
+          "I have practiced the rules of Executive Precision & Grammar to improve my fluency.",
+          "Me practice rules of Executive Precision & Grammar without sentence.",
+          "I practicing rule Executive Precision & Grammar yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Executive Grammar & Syntactic Precision to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Executive Precision & Grammar to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10621,7 +10621,7 @@ export const MASTER_LESSONS = [
   {
     "id": "102",
     "numericId": 102,
-    "title": "The Mechanics of Brevity: Plain English Principles",
+    "title": "The Power of Brevity & Plain English",
     "category": "Communication",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -10635,7 +10635,7 @@ export const MASTER_LESSONS = [
     "icon": "chatbubbles-outline",
     "description": "Eliminating corporate bloat, passive nominalization, and wordiness; writing with punch.",
     "objectives": [
-      "Master the foundational rules of The Mechanics of Brevity: Plain English Principles",
+      "Master the foundational rules of The Power of Brevity & Plain English",
       "Identify and correct frequent errors in Communication",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10646,14 +10646,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"The Mechanics of Brevity: Plain English Principles\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"The Power of Brevity & Plain English\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"The Mechanics of Brevity: Plain English Principles\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"The Power of Brevity & Plain English\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10662,12 +10662,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding the mechanics of brevity: plain english principles and practicing every day.",
-      "targetPhonemes": "The Mechanics of Brevity: Plain English Principles"
+      "sentence": "Clear communication relies on understanding the power of brevity & plain english and practicing every day.",
+      "targetPhonemes": "The Power of Brevity & Plain English"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"The Mechanics of Brevity: Plain English Principles\"?",
+        "question": "What is the primary academic focus of \"The Power of Brevity & Plain English\"?",
         "options": [
           "Eliminating corporate bloat, passive nominalization, and wordiness; writing with punch.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10691,12 +10691,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of The Mechanics of Brevity: Plain English Principles to improve my fluency.",
-          "Me practice rules of The Mechanics of Brevity: Plain English Principles without sentence.",
-          "I practicing rule The Mechanics of Brevity: Plain English Principles yesterday today.",
+          "I have practiced the rules of The Power of Brevity & Plain English to improve my fluency.",
+          "Me practice rules of The Power of Brevity & Plain English without sentence.",
+          "I practicing rule The Power of Brevity & Plain English yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of The Mechanics of Brevity: Plain English Principles to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of The Power of Brevity & Plain English to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10726,7 +10726,7 @@ export const MASTER_LESSONS = [
   {
     "id": "103",
     "numericId": 103,
-    "title": "Diplomatic Passive Voice: Softening Blame & Preserving Relationships",
+    "title": "Diplomatic Tone & Softening Directness",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -10740,7 +10740,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Using agentless passives (\"A mistake was made\") to address errors diplomatically.",
     "objectives": [
-      "Master the foundational rules of Diplomatic Passive Voice: Softening Blame & Preserving Relationships",
+      "Master the foundational rules of Diplomatic Tone & Softening Directness",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10751,14 +10751,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Diplomatic Passive Voice: Softening Blame & Preserving Relationships\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Diplomatic Tone & Softening Directness\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Diplomatic Passive Voice: Softening Blame & Preserving Relationships\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Diplomatic Tone & Softening Directness\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10767,12 +10767,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding diplomatic passive voice: softening blame & preserving relationships and practicing every day.",
-      "targetPhonemes": "Diplomatic Passive Voice: Softening Blame & Preserving Relationships"
+      "sentence": "Clear communication relies on understanding diplomatic tone & softening directness and practicing every day.",
+      "targetPhonemes": "Diplomatic Tone & Softening Directness"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Diplomatic Passive Voice: Softening Blame & Preserving Relationships\"?",
+        "question": "What is the primary academic focus of \"Diplomatic Tone & Softening Directness\"?",
         "options": [
           "Using agentless passives (\"A mistake was made\") to address errors diplomatically.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10796,12 +10796,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Diplomatic Passive Voice: Softening Blame & Preserving Relationships to improve my fluency.",
-          "Me practice rules of Diplomatic Passive Voice: Softening Blame & Preserving Relationships without sentence.",
-          "I practicing rule Diplomatic Passive Voice: Softening Blame & Preserving Relationships yesterday today.",
+          "I have practiced the rules of Diplomatic Tone & Softening Directness to improve my fluency.",
+          "Me practice rules of Diplomatic Tone & Softening Directness without sentence.",
+          "I practicing rule Diplomatic Tone & Softening Directness yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Diplomatic Passive Voice: Softening Blame & Preserving Relationships to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Diplomatic Tone & Softening Directness to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10831,7 +10831,7 @@ export const MASTER_LESSONS = [
   {
     "id": "104",
     "numericId": 104,
-    "title": "Modal Nuance: Converting Commands into Persuasive Inquiries",
+    "title": "Persuasive Requests & Modal Nuance",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -10845,7 +10845,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Softening imperatives into collaborative requests using would you mind, could we consider.",
     "objectives": [
-      "Master the foundational rules of Modal Nuance: Converting Commands into Persuasive Inquiries",
+      "Master the foundational rules of Persuasive Requests & Modal Nuance",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10856,14 +10856,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Modal Nuance: Converting Commands into Persuasive Inquiries\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Persuasive Requests & Modal Nuance\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Modal Nuance: Converting Commands into Persuasive Inquiries\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Persuasive Requests & Modal Nuance\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10872,12 +10872,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding modal nuance: converting commands into persuasive inquiries and practicing every day.",
-      "targetPhonemes": "Modal Nuance: Converting Commands into Persuasive Inquiries"
+      "sentence": "Clear communication relies on understanding persuasive requests & modal nuance and practicing every day.",
+      "targetPhonemes": "Persuasive Requests & Modal Nuance"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Modal Nuance: Converting Commands into Persuasive Inquiries\"?",
+        "question": "What is the primary academic focus of \"Persuasive Requests & Modal Nuance\"?",
         "options": [
           "Softening imperatives into collaborative requests using would you mind, could we consider.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -10901,12 +10901,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Modal Nuance: Converting Commands into Persuasive Inquiries to improve my fluency.",
-          "Me practice rules of Modal Nuance: Converting Commands into Persuasive Inquiries without sentence.",
-          "I practicing rule Modal Nuance: Converting Commands into Persuasive Inquiries yesterday today.",
+          "I have practiced the rules of Persuasive Requests & Modal Nuance to improve my fluency.",
+          "Me practice rules of Persuasive Requests & Modal Nuance without sentence.",
+          "I practicing rule Persuasive Requests & Modal Nuance yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Modal Nuance: Converting Commands into Persuasive Inquiries to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Persuasive Requests & Modal Nuance to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -10936,7 +10936,7 @@ export const MASTER_LESSONS = [
   {
     "id": "105",
     "numericId": 105,
-    "title": "Advanced Discourse Markers for Boardroom Presentations",
+    "title": "Executive Transitions & Signposting",
     "category": "Syntax",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -10950,7 +10950,7 @@ export const MASTER_LESSONS = [
     "icon": "git-network-outline",
     "description": "Strategic transitional phrases for steering executive meetings (\"Turning our attention to...\").",
     "objectives": [
-      "Master the foundational rules of Advanced Discourse Markers for Boardroom Presentations",
+      "Master the foundational rules of Executive Transitions & Signposting",
       "Identify and correct frequent errors in Syntax",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -10961,14 +10961,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Advanced Discourse Markers for Boardroom Presentations\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Executive Transitions & Signposting\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Advanced Discourse Markers for Boardroom Presentations\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Executive Transitions & Signposting\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -10977,12 +10977,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding advanced discourse markers for boardroom presentations and practicing every day.",
-      "targetPhonemes": "Advanced Discourse Markers for Boardroom Presentations"
+      "sentence": "Clear communication relies on understanding executive transitions & signposting and practicing every day.",
+      "targetPhonemes": "Executive Transitions & Signposting"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Advanced Discourse Markers for Boardroom Presentations\"?",
+        "question": "What is the primary academic focus of \"Executive Transitions & Signposting\"?",
         "options": [
           "Strategic transitional phrases for steering executive meetings (\"Turning our attention to...\").",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11006,12 +11006,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Advanced Discourse Markers for Boardroom Presentations to improve my fluency.",
-          "Me practice rules of Advanced Discourse Markers for Boardroom Presentations without sentence.",
-          "I practicing rule Advanced Discourse Markers for Boardroom Presentations yesterday today.",
+          "I have practiced the rules of Executive Transitions & Signposting to improve my fluency.",
+          "Me practice rules of Executive Transitions & Signposting without sentence.",
+          "I practicing rule Executive Transitions & Signposting yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Advanced Discourse Markers for Boardroom Presentations to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Executive Transitions & Signposting to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11041,7 +11041,7 @@ export const MASTER_LESSONS = [
   {
     "id": "106",
     "numericId": 106,
-    "title": "Executive Business Vocabulary & Boardroom Collocations",
+    "title": "Strategic Business Vocabulary",
     "category": "Vocabulary",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11055,7 +11055,7 @@ export const MASTER_LESSONS = [
     "icon": "library-outline",
     "description": "Precise terminology for ROI, bandwidth, strategic alignment, and stakeholder engagement.",
     "objectives": [
-      "Master the foundational rules of Executive Business Vocabulary & Boardroom Collocations",
+      "Master the foundational rules of Strategic Business Vocabulary",
       "Identify and correct frequent errors in Vocabulary",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11066,14 +11066,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Executive Business Vocabulary & Boardroom Collocations\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Strategic Business Vocabulary\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Executive Business Vocabulary & Boardroom Collocations\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Strategic Business Vocabulary\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11082,12 +11082,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding executive business vocabulary & boardroom collocations and practicing every day.",
-      "targetPhonemes": "Executive Business Vocabulary & Boardroom Collocations"
+      "sentence": "Clear communication relies on understanding strategic business vocabulary and practicing every day.",
+      "targetPhonemes": "Strategic Business Vocabulary"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Executive Business Vocabulary & Boardroom Collocations\"?",
+        "question": "What is the primary academic focus of \"Strategic Business Vocabulary\"?",
         "options": [
           "Precise terminology for ROI, bandwidth, strategic alignment, and stakeholder engagement.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11111,12 +11111,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Executive Business Vocabulary & Boardroom Collocations to improve my fluency.",
-          "Me practice rules of Executive Business Vocabulary & Boardroom Collocations without sentence.",
-          "I practicing rule Executive Business Vocabulary & Boardroom Collocations yesterday today.",
+          "I have practiced the rules of Strategic Business Vocabulary to improve my fluency.",
+          "Me practice rules of Strategic Business Vocabulary without sentence.",
+          "I practicing rule Strategic Business Vocabulary yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Executive Business Vocabulary & Boardroom Collocations to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Strategic Business Vocabulary to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11146,7 +11146,7 @@ export const MASTER_LESSONS = [
   {
     "id": "107",
     "numericId": 107,
-    "title": "Calibrating Register: Formal vs. Professional vs. Semi-Formal",
+    "title": "Mastering Workplace Formality",
     "category": "Communication",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11160,7 +11160,7 @@ export const MASTER_LESSONS = [
     "icon": "chatbubbles-outline",
     "description": "Knowing when to adjust linguistic formality depending on hierarchy and audience.",
     "objectives": [
-      "Master the foundational rules of Calibrating Register: Formal vs. Professional vs. Semi-Formal",
+      "Master the foundational rules of Mastering Workplace Formality",
       "Identify and correct frequent errors in Communication",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11171,14 +11171,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Calibrating Register: Formal vs. Professional vs. Semi-Formal\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Mastering Workplace Formality\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Calibrating Register: Formal vs. Professional vs. Semi-Formal\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Mastering Workplace Formality\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11187,12 +11187,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding calibrating register: formal vs. professional vs. semi-formal and practicing every day.",
-      "targetPhonemes": "Calibrating Register: Formal vs. Professional vs. Semi-Formal"
+      "sentence": "Clear communication relies on understanding mastering workplace formality and practicing every day.",
+      "targetPhonemes": "Mastering Workplace Formality"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Calibrating Register: Formal vs. Professional vs. Semi-Formal\"?",
+        "question": "What is the primary academic focus of \"Mastering Workplace Formality\"?",
         "options": [
           "Knowing when to adjust linguistic formality depending on hierarchy and audience.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11216,12 +11216,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Calibrating Register: Formal vs. Professional vs. Semi-Formal to improve my fluency.",
-          "Me practice rules of Calibrating Register: Formal vs. Professional vs. Semi-Formal without sentence.",
-          "I practicing rule Calibrating Register: Formal vs. Professional vs. Semi-Formal yesterday today.",
+          "I have practiced the rules of Mastering Workplace Formality to improve my fluency.",
+          "Me practice rules of Mastering Workplace Formality without sentence.",
+          "I practicing rule Mastering Workplace Formality yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Calibrating Register: Formal vs. Professional vs. Semi-Formal to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Mastering Workplace Formality to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11251,7 +11251,7 @@ export const MASTER_LESSONS = [
   {
     "id": "108",
     "numericId": 108,
-    "title": "Executive Summaries & Proposals: Structural Architecture",
+    "title": "Writing Impactful Executive Summaries",
     "category": "Writing Mechanics",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11265,7 +11265,7 @@ export const MASTER_LESSONS = [
     "icon": "document-text-outline",
     "description": "Writing the BLUF (Bottom Line Up Front), problem statements, solution scopes, and deliverables.",
     "objectives": [
-      "Master the foundational rules of Executive Summaries & Proposals: Structural Architecture",
+      "Master the foundational rules of Writing Impactful Executive Summaries",
       "Identify and correct frequent errors in Writing Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11276,14 +11276,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Executive Summaries & Proposals: Structural Architecture\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Writing Impactful Executive Summaries\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Executive Summaries & Proposals: Structural Architecture\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Writing Impactful Executive Summaries\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11292,12 +11292,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding executive summaries & proposals: structural architecture and practicing every day.",
-      "targetPhonemes": "Executive Summaries & Proposals: Structural Architecture"
+      "sentence": "Clear communication relies on understanding writing impactful executive summaries and practicing every day.",
+      "targetPhonemes": "Writing Impactful Executive Summaries"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Executive Summaries & Proposals: Structural Architecture\"?",
+        "question": "What is the primary academic focus of \"Writing Impactful Executive Summaries\"?",
         "options": [
           "Writing the BLUF (Bottom Line Up Front), problem statements, solution scopes, and deliverables.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11321,12 +11321,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Executive Summaries & Proposals: Structural Architecture to improve my fluency.",
-          "Me practice rules of Executive Summaries & Proposals: Structural Architecture without sentence.",
-          "I practicing rule Executive Summaries & Proposals: Structural Architecture yesterday today.",
+          "I have practiced the rules of Writing Impactful Executive Summaries to improve my fluency.",
+          "Me practice rules of Writing Impactful Executive Summaries without sentence.",
+          "I practicing rule Writing Impactful Executive Summaries yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Executive Summaries & Proposals: Structural Architecture to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Writing Impactful Executive Summaries to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11356,7 +11356,7 @@ export const MASTER_LESSONS = [
   {
     "id": "109",
     "numericId": 109,
-    "title": "Pronunciation & Accent Softening: Word Endings & Consonant Clusters",
+    "title": "Clear Articulation for Global Teams",
     "category": "Phonology",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11370,7 +11370,7 @@ export const MASTER_LESSONS = [
     "icon": "volume-medium-outline",
     "description": "Ensuring crisp enunciation of word-ending consonants (/t/, /d/, /s/, /ed/) for global clarity.",
     "objectives": [
-      "Master the foundational rules of Pronunciation & Accent Softening: Word Endings & Consonant Clusters",
+      "Master the foundational rules of Clear Articulation for Global Teams",
       "Identify and correct frequent errors in Phonology",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11381,14 +11381,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Pronunciation & Accent Softening: Word Endings & Consonant Clusters\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Clear Articulation for Global Teams\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Pronunciation & Accent Softening: Word Endings & Consonant Clusters\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Clear Articulation for Global Teams\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11397,12 +11397,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding pronunciation & accent softening: word endings & consonant clusters and practicing every day.",
-      "targetPhonemes": "Pronunciation & Accent Softening: Word Endings & Consonant Clusters"
+      "sentence": "Clear communication relies on understanding clear articulation for global teams and practicing every day.",
+      "targetPhonemes": "Clear Articulation for Global Teams"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Pronunciation & Accent Softening: Word Endings & Consonant Clusters\"?",
+        "question": "What is the primary academic focus of \"Clear Articulation for Global Teams\"?",
         "options": [
           "Ensuring crisp enunciation of word-ending consonants (/t/, /d/, /s/, /ed/) for global clarity.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11426,12 +11426,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Pronunciation & Accent Softening: Word Endings & Consonant Clusters to improve my fluency.",
-          "Me practice rules of Pronunciation & Accent Softening: Word Endings & Consonant Clusters without sentence.",
-          "I practicing rule Pronunciation & Accent Softening: Word Endings & Consonant Clusters yesterday today.",
+          "I have practiced the rules of Clear Articulation for Global Teams to improve my fluency.",
+          "Me practice rules of Clear Articulation for Global Teams without sentence.",
+          "I practicing rule Clear Articulation for Global Teams yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Pronunciation & Accent Softening: Word Endings & Consonant Clusters to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Clear Articulation for Global Teams to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11461,7 +11461,7 @@ export const MASTER_LESSONS = [
   {
     "id": "110",
     "numericId": 110,
-    "title": "Pitch Modulation, Intonation & Executive Cadence",
+    "title": "Vocal Authority & Pitch Modulation",
     "category": "Spoken Mechanics",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11475,7 +11475,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Controlling pitch drops at sentence ends to project finality, confidence, and authority.",
     "objectives": [
-      "Master the foundational rules of Pitch Modulation, Intonation & Executive Cadence",
+      "Master the foundational rules of Vocal Authority & Pitch Modulation",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11486,14 +11486,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Pitch Modulation, Intonation & Executive Cadence\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Vocal Authority & Pitch Modulation\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Pitch Modulation, Intonation & Executive Cadence\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Vocal Authority & Pitch Modulation\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11502,12 +11502,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding pitch modulation, intonation & executive cadence and practicing every day.",
-      "targetPhonemes": "Pitch Modulation, Intonation & Executive Cadence"
+      "sentence": "Clear communication relies on understanding vocal authority & pitch modulation and practicing every day.",
+      "targetPhonemes": "Vocal Authority & Pitch Modulation"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Pitch Modulation, Intonation & Executive Cadence\"?",
+        "question": "What is the primary academic focus of \"Vocal Authority & Pitch Modulation\"?",
         "options": [
           "Controlling pitch drops at sentence ends to project finality, confidence, and authority.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11531,12 +11531,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Pitch Modulation, Intonation & Executive Cadence to improve my fluency.",
-          "Me practice rules of Pitch Modulation, Intonation & Executive Cadence without sentence.",
-          "I practicing rule Pitch Modulation, Intonation & Executive Cadence yesterday today.",
+          "I have practiced the rules of Vocal Authority & Pitch Modulation to improve my fluency.",
+          "Me practice rules of Vocal Authority & Pitch Modulation without sentence.",
+          "I practicing rule Vocal Authority & Pitch Modulation yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Pitch Modulation, Intonation & Executive Cadence to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Vocal Authority & Pitch Modulation to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11566,7 +11566,7 @@ export const MASTER_LESSONS = [
   {
     "id": "111",
     "numericId": 111,
-    "title": "The Architecture of Narrative Storytelling in Business",
+    "title": "Business Storytelling Frameworks",
     "category": "Communication",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11580,7 +11580,7 @@ export const MASTER_LESSONS = [
     "icon": "chatbubbles-outline",
     "description": "Using narrative frameworks (Status Quo -> Conflict -> Resolution) to pitch ideas.",
     "objectives": [
-      "Master the foundational rules of The Architecture of Narrative Storytelling in Business",
+      "Master the foundational rules of Business Storytelling Frameworks",
       "Identify and correct frequent errors in Communication",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11591,14 +11591,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"The Architecture of Narrative Storytelling in Business\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Business Storytelling Frameworks\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"The Architecture of Narrative Storytelling in Business\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Business Storytelling Frameworks\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11607,12 +11607,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding the architecture of narrative storytelling in business and practicing every day.",
-      "targetPhonemes": "The Architecture of Narrative Storytelling in Business"
+      "sentence": "Clear communication relies on understanding business storytelling frameworks and practicing every day.",
+      "targetPhonemes": "Business Storytelling Frameworks"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"The Architecture of Narrative Storytelling in Business\"?",
+        "question": "What is the primary academic focus of \"Business Storytelling Frameworks\"?",
         "options": [
           "Using narrative frameworks (Status Quo -> Conflict -> Resolution) to pitch ideas.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11636,12 +11636,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of The Architecture of Narrative Storytelling in Business to improve my fluency.",
-          "Me practice rules of The Architecture of Narrative Storytelling in Business without sentence.",
-          "I practicing rule The Architecture of Narrative Storytelling in Business yesterday today.",
+          "I have practiced the rules of Business Storytelling Frameworks to improve my fluency.",
+          "Me practice rules of Business Storytelling Frameworks without sentence.",
+          "I practicing rule Business Storytelling Frameworks yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of The Architecture of Narrative Storytelling in Business to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Business Storytelling Frameworks to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11671,7 +11671,7 @@ export const MASTER_LESSONS = [
   {
     "id": "112",
     "numericId": 112,
-    "title": "Impromptu Executive Framing: The Rule of Three & PREP Framework",
+    "title": "Thinking on Your Feet: Rule of 3",
     "category": "Spoken Mechanics",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11685,7 +11685,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Structuring thoughts instantly into three distinct, memorable pillars during live meetings.",
     "objectives": [
-      "Master the foundational rules of Impromptu Executive Framing: The Rule of Three & PREP Framework",
+      "Master the foundational rules of Thinking on Your Feet: Rule of 3",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11696,14 +11696,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Impromptu Executive Framing: The Rule of Three & PREP Framework\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Thinking on Your Feet: Rule of 3\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Impromptu Executive Framing: The Rule of Three & PREP Framework\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Thinking on Your Feet: Rule of 3\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11712,12 +11712,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding impromptu executive framing: the rule of three & prep framework and practicing every day.",
-      "targetPhonemes": "Impromptu Executive Framing: The Rule of Three & PREP Framework"
+      "sentence": "Clear communication relies on understanding thinking on your feet: rule of 3 and practicing every day.",
+      "targetPhonemes": "Thinking on Your Feet: Rule of 3"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Impromptu Executive Framing: The Rule of Three & PREP Framework\"?",
+        "question": "What is the primary academic focus of \"Thinking on Your Feet: Rule of 3\"?",
         "options": [
           "Structuring thoughts instantly into three distinct, memorable pillars during live meetings.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11741,12 +11741,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Impromptu Executive Framing: The Rule of Three & PREP Framework to improve my fluency.",
-          "Me practice rules of Impromptu Executive Framing: The Rule of Three & PREP Framework without sentence.",
-          "I practicing rule Impromptu Executive Framing: The Rule of Three & PREP Framework yesterday today.",
+          "I have practiced the rules of Thinking on Your Feet: Rule of 3 to improve my fluency.",
+          "Me practice rules of Thinking on Your Feet: Rule of 3 without sentence.",
+          "I practicing rule Thinking on Your Feet: Rule of 3 yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Impromptu Executive Framing: The Rule of Three & PREP Framework to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Thinking on Your Feet: Rule of 3 to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11776,7 +11776,7 @@ export const MASTER_LESSONS = [
   {
     "id": "113",
     "numericId": 113,
-    "title": "Diplomatic Disagreement: Concession & Pivot Phrases",
+    "title": "Diplomatic Disagreement & Pivoting",
     "category": "Communication",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11790,7 +11790,7 @@ export const MASTER_LESSONS = [
     "icon": "chatbubbles-outline",
     "description": "Agreeing with the intent while offering a counter-proposal (\"I appreciate that perspective; however...\").",
     "objectives": [
-      "Master the foundational rules of Diplomatic Disagreement: Concession & Pivot Phrases",
+      "Master the foundational rules of Diplomatic Disagreement & Pivoting",
       "Identify and correct frequent errors in Communication",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11801,14 +11801,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Diplomatic Disagreement: Concession & Pivot Phrases\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Diplomatic Disagreement & Pivoting\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Diplomatic Disagreement: Concession & Pivot Phrases\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Diplomatic Disagreement & Pivoting\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11817,12 +11817,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding diplomatic disagreement: concession & pivot phrases and practicing every day.",
-      "targetPhonemes": "Diplomatic Disagreement: Concession & Pivot Phrases"
+      "sentence": "Clear communication relies on understanding diplomatic disagreement & pivoting and practicing every day.",
+      "targetPhonemes": "Diplomatic Disagreement & Pivoting"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Diplomatic Disagreement: Concession & Pivot Phrases\"?",
+        "question": "What is the primary academic focus of \"Diplomatic Disagreement & Pivoting\"?",
         "options": [
           "Agreeing with the intent while offering a counter-proposal (\"I appreciate that perspective; however...\").",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11846,12 +11846,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Diplomatic Disagreement: Concession & Pivot Phrases to improve my fluency.",
-          "Me practice rules of Diplomatic Disagreement: Concession & Pivot Phrases without sentence.",
-          "I practicing rule Diplomatic Disagreement: Concession & Pivot Phrases yesterday today.",
+          "I have practiced the rules of Diplomatic Disagreement & Pivoting to improve my fluency.",
+          "Me practice rules of Diplomatic Disagreement & Pivoting without sentence.",
+          "I practicing rule Diplomatic Disagreement & Pivoting yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Diplomatic Disagreement: Concession & Pivot Phrases to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Diplomatic Disagreement & Pivoting to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11881,7 +11881,7 @@ export const MASTER_LESSONS = [
   {
     "id": "114",
     "numericId": 114,
-    "title": "Active Listening Mechanics: Paraphrasing & Verifying Stakeholders",
+    "title": "Active Listening & Paraphrasing",
     "category": "Communication",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -11895,7 +11895,7 @@ export const MASTER_LESSONS = [
     "icon": "chatbubbles-outline",
     "description": "Reflective listening techniques: summarizing the other party's point before replying.",
     "objectives": [
-      "Master the foundational rules of Active Listening Mechanics: Paraphrasing & Verifying Stakeholders",
+      "Master the foundational rules of Active Listening & Paraphrasing",
       "Identify and correct frequent errors in Communication",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -11906,14 +11906,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Active Listening Mechanics: Paraphrasing & Verifying Stakeholders\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Active Listening & Paraphrasing\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Active Listening Mechanics: Paraphrasing & Verifying Stakeholders\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Active Listening & Paraphrasing\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -11922,12 +11922,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding active listening mechanics: paraphrasing & verifying stakeholders and practicing every day.",
-      "targetPhonemes": "Active Listening Mechanics: Paraphrasing & Verifying Stakeholders"
+      "sentence": "Clear communication relies on understanding active listening & paraphrasing and practicing every day.",
+      "targetPhonemes": "Active Listening & Paraphrasing"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Active Listening Mechanics: Paraphrasing & Verifying Stakeholders\"?",
+        "question": "What is the primary academic focus of \"Active Listening & Paraphrasing\"?",
         "options": [
           "Reflective listening techniques: summarizing the other party's point before replying.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -11951,12 +11951,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Active Listening Mechanics: Paraphrasing & Verifying Stakeholders to improve my fluency.",
-          "Me practice rules of Active Listening Mechanics: Paraphrasing & Verifying Stakeholders without sentence.",
-          "I practicing rule Active Listening Mechanics: Paraphrasing & Verifying Stakeholders yesterday today.",
+          "I have practiced the rules of Active Listening & Paraphrasing to improve my fluency.",
+          "Me practice rules of Active Listening & Paraphrasing without sentence.",
+          "I practicing rule Active Listening & Paraphrasing yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Active Listening Mechanics: Paraphrasing & Verifying Stakeholders to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Active Listening & Paraphrasing to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -11986,7 +11986,7 @@ export const MASTER_LESSONS = [
   {
     "id": "115",
     "numericId": 115,
-    "title": "Global Cross-Cultural Communication: Neutral English",
+    "title": "Global Cross-Cultural Communication",
     "category": "Communication",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -12000,7 +12000,7 @@ export const MASTER_LESSONS = [
     "icon": "chatbubbles-outline",
     "description": "Eliminating region-specific idioms and metaphors when speaking with global international partners.",
     "objectives": [
-      "Master the foundational rules of Global Cross-Cultural Communication: Neutral English",
+      "Master the foundational rules of Global Cross-Cultural Communication",
       "Identify and correct frequent errors in Communication",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -12011,14 +12011,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Global Cross-Cultural Communication: Neutral English\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Global Cross-Cultural Communication\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Global Cross-Cultural Communication: Neutral English\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Global Cross-Cultural Communication\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -12027,12 +12027,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding global cross-cultural communication: neutral english and practicing every day.",
-      "targetPhonemes": "Global Cross-Cultural Communication: Neutral English"
+      "sentence": "Clear communication relies on understanding global cross-cultural communication and practicing every day.",
+      "targetPhonemes": "Global Cross-Cultural Communication"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Global Cross-Cultural Communication: Neutral English\"?",
+        "question": "What is the primary academic focus of \"Global Cross-Cultural Communication\"?",
         "options": [
           "Eliminating region-specific idioms and metaphors when speaking with global international partners.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -12056,12 +12056,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Global Cross-Cultural Communication: Neutral English to improve my fluency.",
-          "Me practice rules of Global Cross-Cultural Communication: Neutral English without sentence.",
-          "I practicing rule Global Cross-Cultural Communication: Neutral English yesterday today.",
+          "I have practiced the rules of Global Cross-Cultural Communication to improve my fluency.",
+          "Me practice rules of Global Cross-Cultural Communication without sentence.",
+          "I practicing rule Global Cross-Cultural Communication yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Global Cross-Cultural Communication: Neutral English to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Global Cross-Cultural Communication to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -12091,7 +12091,7 @@ export const MASTER_LESSONS = [
   {
     "id": "116",
     "numericId": 116,
-    "title": "Asynchronous & Digital Communication Tone Nuances",
+    "title": "Digital Communication & Workplace Etiquette",
     "category": "Communication",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -12105,7 +12105,7 @@ export const MASTER_LESSONS = [
     "icon": "chatbubbles-outline",
     "description": "Avoiding misperceptions of coldness or aggression in Slack, Teams, and email communication.",
     "objectives": [
-      "Master the foundational rules of Asynchronous & Digital Communication Tone Nuances",
+      "Master the foundational rules of Digital Communication & Workplace Etiquette",
       "Identify and correct frequent errors in Communication",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -12116,14 +12116,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Asynchronous & Digital Communication Tone Nuances\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Digital Communication & Workplace Etiquette\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Asynchronous & Digital Communication Tone Nuances\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Digital Communication & Workplace Etiquette\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -12132,12 +12132,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding asynchronous & digital communication tone nuances and practicing every day.",
-      "targetPhonemes": "Asynchronous & Digital Communication Tone Nuances"
+      "sentence": "Clear communication relies on understanding digital communication & workplace etiquette and practicing every day.",
+      "targetPhonemes": "Digital Communication & Workplace Etiquette"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Asynchronous & Digital Communication Tone Nuances\"?",
+        "question": "What is the primary academic focus of \"Digital Communication & Workplace Etiquette\"?",
         "options": [
           "Avoiding misperceptions of coldness or aggression in Slack, Teams, and email communication.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -12161,12 +12161,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Asynchronous & Digital Communication Tone Nuances to improve my fluency.",
-          "Me practice rules of Asynchronous & Digital Communication Tone Nuances without sentence.",
-          "I practicing rule Asynchronous & Digital Communication Tone Nuances yesterday today.",
+          "I have practiced the rules of Digital Communication & Workplace Etiquette to improve my fluency.",
+          "Me practice rules of Digital Communication & Workplace Etiquette without sentence.",
+          "I practicing rule Digital Communication & Workplace Etiquette yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Asynchronous & Digital Communication Tone Nuances to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Digital Communication & Workplace Etiquette to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -12196,7 +12196,7 @@ export const MASTER_LESSONS = [
   {
     "id": "117",
     "numericId": 117,
-    "title": "The SBI Constructive Feedback Model (Situation-Behavior-Impact)",
+    "title": "Constructive Feedback: SBI Model",
     "category": "Management",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -12210,7 +12210,7 @@ export const MASTER_LESSONS = [
     "icon": "people-outline",
     "description": "Structuring objective, non-judgmental performance feedback to direct reports.",
     "objectives": [
-      "Master the foundational rules of The SBI Constructive Feedback Model (Situation-Behavior-Impact)",
+      "Master the foundational rules of Constructive Feedback: SBI Model",
       "Identify and correct frequent errors in Management",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -12221,14 +12221,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"The SBI Constructive Feedback Model (Situation-Behavior-Impact)\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Constructive Feedback: SBI Model\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"The SBI Constructive Feedback Model (Situation-Behavior-Impact)\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Constructive Feedback: SBI Model\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -12237,12 +12237,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding the sbi constructive feedback model (situation-behavior-impact) and practicing every day.",
-      "targetPhonemes": "The SBI Constructive Feedback Model (Situation-Behavior-Impact)"
+      "sentence": "Clear communication relies on understanding constructive feedback: sbi model and practicing every day.",
+      "targetPhonemes": "Constructive Feedback: SBI Model"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"The SBI Constructive Feedback Model (Situation-Behavior-Impact)\"?",
+        "question": "What is the primary academic focus of \"Constructive Feedback: SBI Model\"?",
         "options": [
           "Structuring objective, non-judgmental performance feedback to direct reports.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -12266,12 +12266,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of The SBI Constructive Feedback Model (Situation-Behavior-Impact) to improve my fluency.",
-          "Me practice rules of The SBI Constructive Feedback Model (Situation-Behavior-Impact) without sentence.",
-          "I practicing rule The SBI Constructive Feedback Model (Situation-Behavior-Impact) yesterday today.",
+          "I have practiced the rules of Constructive Feedback: SBI Model to improve my fluency.",
+          "Me practice rules of Constructive Feedback: SBI Model without sentence.",
+          "I practicing rule Constructive Feedback: SBI Model yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of The SBI Constructive Feedback Model (Situation-Behavior-Impact) to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Constructive Feedback: SBI Model to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -12301,7 +12301,7 @@ export const MASTER_LESSONS = [
   {
     "id": "118",
     "numericId": 118,
-    "title": "Hypothetical Projections: 2nd & 3rd Conditionals in Strategy",
+    "title": "Strategic Forecasting & Scenarios",
     "category": "Grammar",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -12315,7 +12315,7 @@ export const MASTER_LESSONS = [
     "icon": "book-outline",
     "description": "Explaining business contingencies, forecasting, risk management, and counter-factual scenarios.",
     "objectives": [
-      "Master the foundational rules of Hypothetical Projections: 2nd & 3rd Conditionals in Strategy",
+      "Master the foundational rules of Strategic Forecasting & Scenarios",
       "Identify and correct frequent errors in Grammar",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -12326,14 +12326,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Hypothetical Projections: 2nd & 3rd Conditionals in Strategy\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Strategic Forecasting & Scenarios\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Hypothetical Projections: 2nd & 3rd Conditionals in Strategy\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Strategic Forecasting & Scenarios\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -12342,12 +12342,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding hypothetical projections: 2nd & 3rd conditionals in strategy and practicing every day.",
-      "targetPhonemes": "Hypothetical Projections: 2nd & 3rd Conditionals in Strategy"
+      "sentence": "Clear communication relies on understanding strategic forecasting & scenarios and practicing every day.",
+      "targetPhonemes": "Strategic Forecasting & Scenarios"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Hypothetical Projections: 2nd & 3rd Conditionals in Strategy\"?",
+        "question": "What is the primary academic focus of \"Strategic Forecasting & Scenarios\"?",
         "options": [
           "Explaining business contingencies, forecasting, risk management, and counter-factual scenarios.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -12371,12 +12371,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Hypothetical Projections: 2nd & 3rd Conditionals in Strategy to improve my fluency.",
-          "Me practice rules of Hypothetical Projections: 2nd & 3rd Conditionals in Strategy without sentence.",
-          "I practicing rule Hypothetical Projections: 2nd & 3rd Conditionals in Strategy yesterday today.",
+          "I have practiced the rules of Strategic Forecasting & Scenarios to improve my fluency.",
+          "Me practice rules of Strategic Forecasting & Scenarios without sentence.",
+          "I practicing rule Strategic Forecasting & Scenarios yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Hypothetical Projections: 2nd & 3rd Conditionals in Strategy to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Strategic Forecasting & Scenarios to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -12406,7 +12406,7 @@ export const MASTER_LESSONS = [
   {
     "id": "119",
     "numericId": 119,
-    "title": "Conversational Agility: Fluid Topic Transitions & Anecdotal Recall",
+    "title": "Small Talk & Executive Networking",
     "category": "Spoken Mechanics",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -12420,7 +12420,7 @@ export const MASTER_LESSONS = [
     "icon": "mic-outline",
     "description": "Seamlessly pivoting between formal business topics and warm interpersonal discussions.",
     "objectives": [
-      "Master the foundational rules of Conversational Agility: Fluid Topic Transitions & Anecdotal Recall",
+      "Master the foundational rules of Small Talk & Executive Networking",
       "Identify and correct frequent errors in Spoken Mechanics",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -12431,14 +12431,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Conversational Agility: Fluid Topic Transitions & Anecdotal Recall\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Small Talk & Executive Networking\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Conversational Agility: Fluid Topic Transitions & Anecdotal Recall\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Small Talk & Executive Networking\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -12447,12 +12447,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding conversational agility: fluid topic transitions & anecdotal recall and practicing every day.",
-      "targetPhonemes": "Conversational Agility: Fluid Topic Transitions & Anecdotal Recall"
+      "sentence": "Clear communication relies on understanding small talk & executive networking and practicing every day.",
+      "targetPhonemes": "Small Talk & Executive Networking"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Conversational Agility: Fluid Topic Transitions & Anecdotal Recall\"?",
+        "question": "What is the primary academic focus of \"Small Talk & Executive Networking\"?",
         "options": [
           "Seamlessly pivoting between formal business topics and warm interpersonal discussions.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -12476,12 +12476,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Conversational Agility: Fluid Topic Transitions & Anecdotal Recall to improve my fluency.",
-          "Me practice rules of Conversational Agility: Fluid Topic Transitions & Anecdotal Recall without sentence.",
-          "I practicing rule Conversational Agility: Fluid Topic Transitions & Anecdotal Recall yesterday today.",
+          "I have practiced the rules of Small Talk & Executive Networking to improve my fluency.",
+          "Me practice rules of Small Talk & Executive Networking without sentence.",
+          "I practicing rule Small Talk & Executive Networking yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Conversational Agility: Fluid Topic Transitions & Anecdotal Recall to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Small Talk & Executive Networking to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
@@ -12511,7 +12511,7 @@ export const MASTER_LESSONS = [
   {
     "id": "120",
     "numericId": 120,
-    "title": "Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas",
+    "title": "Keynote Speaking & Executive Presence",
     "category": "Oratory",
     "level": "Advanced",
     "difficulty": "Advanced",
@@ -12525,7 +12525,7 @@ export const MASTER_LESSONS = [
     "icon": "megaphone-outline",
     "description": "Delivering speeches to large audiences with deliberate pauses, vocal projection, and stage presence.",
     "objectives": [
-      "Master the foundational rules of Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas",
+      "Master the foundational rules of Keynote Speaking & Executive Presence",
       "Identify and correct frequent errors in Oratory",
       "Construct grammatically sound spoken and written sentences",
       "Practice confident oral delivery and articulation with AI feedback"
@@ -12536,14 +12536,14 @@ export const MASTER_LESSONS = [
       "Sentence Mechanics"
     ],
     "checkQuestion": {
-      "question": "Which sentence correctly demonstrates the academic principle of \"Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas\"?",
+      "question": "Which sentence correctly demonstrates the academic principle of \"Keynote Speaking & Executive Presence\"?",
       "options": [
         "Applying the standard rule correctly in a complete, natural sentence.",
         "Using improper word order without subject-verb agreement.",
         "Omitting necessary auxiliary verbs and punctuation marks."
       ],
       "correctIndex": 0,
-      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas\"."
+      "explanation": "This option correctly follows the grammatical rules and structural formula for \"Keynote Speaking & Executive Presence\"."
     },
     "guidedPractice": {
       "sentence": "In English, we always ______ proper grammatical structure to communicate ideas clearly.",
@@ -12552,12 +12552,12 @@ export const MASTER_LESSONS = [
       "explanation": "'Apply' is the correct base verb fitting the sentence context."
     },
     "speakingDrill": {
-      "sentence": "Clear communication relies on understanding public keynote oratory: pacing, rhetorical pauses & gravitas and practicing every day.",
-      "targetPhonemes": "Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas"
+      "sentence": "Clear communication relies on understanding keynote speaking & executive presence and practicing every day.",
+      "targetPhonemes": "Keynote Speaking & Executive Presence"
     },
     "quiz": [
       {
-        "question": "What is the primary academic focus of \"Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas\"?",
+        "question": "What is the primary academic focus of \"Keynote Speaking & Executive Presence\"?",
         "options": [
           "Delivering speeches to large audiences with deliberate pauses, vocal projection, and stage presence.",
           "Memorizing vocabulary without understanding sentence structure.",
@@ -12581,12 +12581,12 @@ export const MASTER_LESSONS = [
       {
         "question": "Select the sentence with the most accurate usage:",
         "options": [
-          "I have practiced the rules of Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas to improve my fluency.",
-          "Me practice rules of Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas without sentence.",
-          "I practicing rule Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas yesterday today.",
+          "I have practiced the rules of Keynote Speaking & Executive Presence to improve my fluency.",
+          "Me practice rules of Keynote Speaking & Executive Presence without sentence.",
+          "I practicing rule Keynote Speaking & Executive Presence yesterday today.",
           "Practice I did no rules."
         ],
-        "correctAnswer": "I have practiced the rules of Public Keynote Oratory: Pacing, Rhetorical Pauses & Gravitas to improve my fluency.",
+        "correctAnswer": "I have practiced the rules of Keynote Speaking & Executive Presence to improve my fluency.",
         "explanation": "This sentence demonstrates correct tense, pronoun agreement, and natural phrasing."
       },
       {
