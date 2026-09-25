@@ -14,7 +14,43 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [touched, setTouched] = useState({
+    schoolCode: false,
+    email: false,
+    password: false,
+  });
   const infoMessage = location.state?.infoMessage || "";
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const getSchoolCodeError = () => {
+    if (loginType === "SCHOOL" && touched.schoolCode && !schoolCode.trim()) {
+      return "School Code is required (e.g. SCH-1082).";
+    }
+    return null;
+  };
+
+  const getEmailError = () => {
+    if (!touched.email) return null;
+    const trimmed = form.email.trim();
+    if (!trimmed) {
+      return loginType === "SCHOOL" ? "Student ID or Email is required." : "Email address is required.";
+    }
+    if (loginType === "STANDARD" && !EMAIL_REGEX.test(trimmed)) {
+      return "Please enter a valid email address.";
+    }
+    if (loginType === "SCHOOL" && !trimmed.includes("@") && trimmed.length < 3) {
+      return "Student ID must be at least 3 characters.";
+    }
+    return null;
+  };
+
+  const getPasswordError = () => {
+    if (!touched.password) return null;
+    if (!form.password) return "Password is required.";
+    if (form.password.length < 6) return "Password must be at least 6 characters.";
+    return null;
+  };
 
   const handleTabChange = (type) => {
     if (loginType === type) return;
@@ -22,15 +58,35 @@ export function Login() {
     setForm({ email: "", password: "" });
     setSchoolCode("");
     setError("");
+    setTouched({ schoolCode: false, email: false, password: false });
     setShowPassword(false);
   };
 
   const handleSubmit = async (event) => {
     if (event) event.preventDefault();
+    setTouched({ schoolCode: true, email: true, password: true });
     setError("");
 
     if (loginType === "SCHOOL" && !schoolCode.trim()) {
       setError("Please enter your School Code (e.g. SCH-1082).");
+      return;
+    }
+
+    const trimmedEmail = form.email.trim();
+    if (!trimmedEmail) {
+      setError(loginType === "SCHOOL" ? "Please enter your Student ID or Email." : "Please enter your email address.");
+      return;
+    }
+    if (loginType === "STANDARD" && !EMAIL_REGEX.test(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (loginType === "SCHOOL" && !trimmedEmail.includes("@") && trimmedEmail.length < 3) {
+      setError("Student ID must be at least 3 characters.");
+      return;
+    }
+    if (!form.password || form.password.length < 6) {
+      setError("Password must be at least 6 characters.");
       return;
     }
 
@@ -216,11 +272,24 @@ export function Login() {
                       type="text"
                       placeholder="e.g. SCH-1082"
                       value={schoolCode}
-                      onChange={(e) => setSchoolCode(e.target.value.toUpperCase())}
+                      onChange={(e) => {
+                        setSchoolCode(e.target.value.toUpperCase());
+                        if (error) setError("");
+                      }}
+                      onBlur={() => setTouched((p) => ({ ...p, schoolCode: true }))}
                       required
-                      className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all tracking-wider uppercase"
+                      className={`w-full pl-12 pr-4 py-3.5 rounded-2xl border ${
+                        getSchoolCodeError()
+                          ? "border-rose-500 ring-2 ring-rose-500/20"
+                          : "border-[var(--border-default)]"
+                      } bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all tracking-wider uppercase`}
                     />
                   </div>
+                  {getSchoolCodeError() && (
+                    <p className="text-xs font-semibold text-rose-500 mt-1.5 ml-1">
+                      {getSchoolCodeError()}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -234,11 +303,24 @@ export function Login() {
                     type={loginType === "SCHOOL" ? "text" : "email"}
                     placeholder={loginType === "SCHOOL" ? "e.g. STU-1082 or student@school.edu" : "you@example.com"}
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) => {
+                      setForm({ ...form, email: e.target.value });
+                      if (error) setError("");
+                    }}
+                    onBlur={() => setTouched((p) => ({ ...p, email: true }))}
                     required
-                    className="w-full pl-12 pr-4 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    className={`w-full pl-12 pr-4 py-3.5 rounded-2xl border ${
+                      getEmailError()
+                        ? "border-rose-500 ring-2 ring-rose-500/20"
+                        : "border-[var(--border-default)]"
+                    } bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all`}
                   />
                 </div>
+                {getEmailError() && (
+                  <p className="text-xs font-semibold text-rose-500 mt-1.5 ml-1">
+                    {getEmailError()}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -251,9 +333,17 @@ export function Login() {
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onChange={(e) => {
+                      setForm({ ...form, password: e.target.value });
+                      if (error) setError("");
+                    }}
+                    onBlur={() => setTouched((p) => ({ ...p, password: true }))}
                     required
-                    className="w-full pl-12 pr-12 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    className={`w-full pl-12 pr-12 py-3.5 rounded-2xl border ${
+                      getPasswordError()
+                        ? "border-rose-500 ring-2 ring-rose-500/20"
+                        : "border-[var(--border-default)]"
+                    } bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all`}
                   />
                   <button
                     type="button"
@@ -269,6 +359,11 @@ export function Login() {
                     )}
                   </button>
                 </div>
+                {getPasswordError() && (
+                  <p className="text-xs font-semibold text-rose-500 mt-1.5 ml-1">
+                    {getPasswordError()}
+                  </p>
+                )}
                 <div className="flex justify-end mt-2">
                   <Link
                     to={ROUTES.FORGOT_PASSWORD}

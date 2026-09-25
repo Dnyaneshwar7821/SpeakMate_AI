@@ -1,5 +1,5 @@
 export const NAME_REGEX = /^[a-zA-Z\s'-]{2,40}$/;
-export const NAME_VALIDATION_ERROR = 'Names can only contain letters.';
+export const NAME_VALIDATION_ERROR = 'Names can only contain letters (2-40 characters).';
 
 export const validateName = (name) => {
   if (!name || typeof name !== 'string') return false;

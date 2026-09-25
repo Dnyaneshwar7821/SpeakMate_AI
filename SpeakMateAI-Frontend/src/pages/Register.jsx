@@ -37,6 +37,53 @@ export function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [registered, setRegistered] = useState(false);
+  const [touched, setTouched] = useState({
+    firstName: false,
+    lastName: false,
+    email: false,
+    password: false,
+    confirmPassword: false,
+  });
+
+  const NAME_REGEX = /^[a-zA-Z\s'-]{2,40}$/;
+
+  const getFirstNameError = () => {
+    if (!touched.firstName) return null;
+    const trimmed = firstName.trim();
+    if (!trimmed) return "First name is required.";
+    if (!NAME_REGEX.test(trimmed)) return "Names can only contain letters (2-40 characters).";
+    return null;
+  };
+
+  const getLastNameError = () => {
+    if (!touched.lastName) return null;
+    const trimmed = lastName.trim();
+    if (!trimmed) return "Last name is required.";
+    if (!NAME_REGEX.test(trimmed)) return "Names can only contain letters (2-40 characters).";
+    return null;
+  };
+
+  const getEmailError = () => {
+    if (!touched.email) return null;
+    const trimmed = email.trim();
+    if (!trimmed) return "Email address is required.";
+    if (!/\S+@\S+\.\S+/.test(trimmed)) return "Please enter a valid email address.";
+    return null;
+  };
+
+  const getConfirmPasswordError = () => {
+    if (!touched.confirmPassword) return null;
+    if (!confirmPassword) return "Please confirm your password.";
+    if (password !== confirmPassword) return "Passwords do not match.";
+    return null;
+  };
+
+  const getPasswordError = () => {
+    if (!touched.password) return null;
+    if (!password) return "Password is required.";
+    if (password.length < 8) return "Password must be at least 8 characters.";
+    return null;
+  };
 
   // Password criteria computation
   const passwordChecks = useMemo(() => {
@@ -68,6 +115,7 @@ export function Register() {
 
   const handleSendOtp = async (e) => {
     if (e) e.preventDefault();
+    setTouched((prev) => ({ ...prev, email: true }));
     const emailErr = validateEmailOnly();
     if (emailErr) {
       setError(emailErr);
@@ -127,7 +175,9 @@ export function Register() {
 
   const validateFullForm = () => {
     if (!firstName.trim()) return "First name is required.";
+    if (!NAME_REGEX.test(firstName.trim())) return "First name can only contain letters (2-40 characters).";
     if (!lastName.trim()) return "Last name is required.";
+    if (!NAME_REGEX.test(lastName.trim())) return "Last name can only contain letters (2-40 characters).";
     if (!email.trim()) return "Email address is required.";
     if (!/\S+@\S+\.\S+/.test(email.trim())) return "Please enter a valid email address.";
     if (otpState !== "VERIFIED") {
@@ -146,6 +196,13 @@ export function Register() {
 
   const handleRegister = async (e) => {
     if (e) e.preventDefault();
+    setTouched({
+      firstName: true,
+      lastName: true,
+      email: true,
+      password: true,
+      confirmPassword: true,
+    });
     const emailLower = email.trim().toLowerCase();
 
     // Auto-verify OTP if user typed 6 digits but didn't click "Verify OTP" separately
@@ -283,9 +340,13 @@ export function Register() {
                     placeholder="Jane"
                     value={firstName}
                     onChange={(e) => { setFirstName(e.target.value); if (error) setError(""); }}
+                    onBlur={() => setTouched((prev) => ({ ...prev, firstName: true }))}
                     required
-                    className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    className={`w-full px-4 py-3 rounded-2xl border ${getFirstNameError() ? "border-rose-500 ring-2 ring-rose-500/20" : "border-[var(--border-default)]"} bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all`}
                   />
+                  {getFirstNameError() && (
+                    <p className="text-xs font-semibold text-rose-500 mt-1.5 ml-1">{getFirstNameError()}</p>
+                  )}
                 </div>
 
                 <div>
@@ -297,9 +358,13 @@ export function Register() {
                     placeholder="Doe"
                     value={lastName}
                     onChange={(e) => { setLastName(e.target.value); if (error) setError(""); }}
+                    onBlur={() => setTouched((prev) => ({ ...prev, lastName: true }))}
                     required
-                    className="w-full px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    className={`w-full px-4 py-3 rounded-2xl border ${getLastNameError() ? "border-rose-500 ring-2 ring-rose-500/20" : "border-[var(--border-default)]"} bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all`}
                   />
+                  {getLastNameError() && (
+                    <p className="text-xs font-semibold text-rose-500 mt-1.5 ml-1">{getLastNameError()}</p>
+                  )}
                 </div>
               </div>
 
@@ -326,8 +391,9 @@ export function Register() {
                         setOtpError("");
                       }
                     }}
+                    onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                     required
-                    className="w-full pl-11 pr-28 sm:pr-32 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all disabled:opacity-75 disabled:bg-emerald-500/5"
+                    className={`w-full pl-11 pr-28 sm:pr-32 py-3 rounded-2xl border ${getEmailError() ? "border-rose-500 ring-2 ring-rose-500/20" : "border-[var(--border-default)]"} bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all disabled:opacity-75 disabled:bg-emerald-500/5`}
                   />
 
                   {/* Inline OTP Button Status */}
@@ -363,6 +429,9 @@ export function Register() {
                     )}
                   </div>
                 </div>
+                {getEmailError() && (
+                  <p className="text-xs font-semibold text-rose-500 mt-1.5 ml-1">{getEmailError()}</p>
+                )}
               </div>
 
               {/* Inline OTP Section (Unfolds when OTP is sent) */}
@@ -429,8 +498,9 @@ export function Register() {
                     placeholder="Create strong password"
                     value={password}
                     onChange={(e) => { setPassword(e.target.value); if (error) setError(""); }}
+                    onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                     required
-                    className="w-full pl-11 pr-12 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    className={`w-full pl-11 pr-12 py-3 rounded-2xl border ${getPasswordError() ? "border-rose-500 ring-2 ring-rose-500/20" : "border-[var(--border-default)]"} bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all`}
                   />
                   <button
                     type="button"
@@ -440,6 +510,9 @@ export function Register() {
                     {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                   </button>
                 </div>
+                {getPasswordError() && (
+                  <p className="text-xs font-semibold text-rose-500 mt-1.5 ml-1">{getPasswordError()}</p>
+                )}
 
                 {/* Password Strength Indicator */}
                 {password.length > 0 && (
@@ -488,8 +561,9 @@ export function Register() {
                     placeholder="Confirm your password"
                     value={confirmPassword}
                     onChange={(e) => { setConfirmPassword(e.target.value); if (error) setError(""); }}
+                    onBlur={() => setTouched((prev) => ({ ...prev, confirmPassword: true }))}
                     required
-                    className="w-full pl-11 pr-12 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all"
+                    className={`w-full pl-11 pr-12 py-3 rounded-2xl border ${getConfirmPasswordError() ? "border-rose-500 ring-2 ring-rose-500/20" : "border-[var(--border-default)]"} bg-[var(--bg-elevated)] text-sm font-bold text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] focus:ring-2 focus:ring-[#6C63FF]/20 transition-all`}
                   />
                   <button
                     type="button"
@@ -499,6 +573,9 @@ export function Register() {
                     {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
                   </button>
                 </div>
+                {getConfirmPasswordError() && (
+                  <p className="text-xs font-semibold text-rose-500 mt-1.5 ml-1">{getConfirmPasswordError()}</p>
+                )}
               </div>
 
               {/* Create Account Submit Button */}

@@ -67,12 +67,22 @@ export default function LoginScreen({ navigation }) {
   };
 
   const getEmailError = () => {
-    const normalized = normalizeEmail(email);
-    if (!normalized) {
-      return loginType === 'SCHOOL' ? 'Please enter your Student ID or Email.' : 'Please enter your email address.';
+    const trimmed = email.trim();
+    if (!trimmed) {
+      return loginType === 'SCHOOL' ? 'Please enter your Student ID or School Email.' : 'Please enter your email address.';
     }
-    if (loginType === 'STANDARD' && !isValidEmail(email)) {
-      return 'Please enter a valid email address.';
+    if (loginType === 'STANDARD') {
+      if (!isValidEmail(trimmed)) {
+        return 'Please enter a valid email address.';
+      }
+    } else {
+      // SCHOOL mode: can be Student ID or School Email
+      if (!trimmed.includes('@') && trimmed.length < 3) {
+        return 'Student ID must be at least 3 characters.';
+      }
+      if (trimmed.includes('@') && !isValidEmail(trimmed)) {
+        return 'Please enter a valid school email address.';
+      }
     }
     return null;
   };

@@ -291,36 +291,89 @@ export function PasswordInput({
 
 // ─── PasswordStrength ─────────────────────────────────────────────────────────
 export function PasswordStrength({ password }) {
-  const getStrength = () => {
-    if (!password) return { level: 0, label: '', color: 'transparent' };
-    let score = 0;
-    if (password.length >= 8) score++;
-    if (password.length >= 12) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
-    if (/[^A-Za-z0-9]/.test(password)) score++;
-    if (score <= 2) return { level: 1, label: 'Weak', color: '#EF4444' };
-    if (score <= 3) return { level: 2, label: 'Fair', color: '#F59E0B' };
-    return { level: 3, label: 'Strong', color: '#10B981' };
-  };
-
-  const { level, label, color } = getStrength();
   if (!password) return null;
 
+  const checks = {
+    length: password.length >= 8,
+    upper: /[A-Z]/.test(password),
+    lower: /[a-z]/.test(password),
+    number: /[0-9]/.test(password),
+    special: /[^A-Za-z0-9]/.test(password),
+  };
+
+  const score = Object.values(checks).filter(Boolean).length;
+  let level = 1;
+  let label = 'Weak';
+  let color = '#EF4444';
+
+  if (score >= 5) {
+    level = 3;
+    label = 'Strong';
+    color = '#10B981';
+  } else if (score >= 3) {
+    level = 2;
+    label = 'Fair';
+    color = '#F59E0B';
+  }
+
   return (
-    <View style={styles.strengthContainer}>
-      <View style={styles.strengthBars}>
-        {[1, 2, 3].map((i) => (
-          <View
-            key={i}
-            style={[
-              styles.strengthBar,
-              { backgroundColor: i <= level ? color : AUTH_COLORS.border },
-            ]}
-          />
-        ))}
+    <View style={styles.strengthWrapper}>
+      <View style={styles.strengthContainer}>
+        <View style={styles.strengthBars}>
+          {[1, 2, 3].map((i) => (
+            <View
+              key={i}
+              style={[
+                styles.strengthBar,
+                { backgroundColor: i <= level ? color : AUTH_COLORS.border },
+              ]}
+            />
+          ))}
+        </View>
+        <Text style={[styles.strengthLabel, { color }]}>{label}</Text>
       </View>
-      <Text style={[styles.strengthLabel, { color }]}>{label}</Text>
+      <View style={styles.criteriaGrid}>
+        <View style={styles.criteriaItem}>
+          <Ionicons
+            name={checks.length ? 'checkmark-circle' : 'ellipse-outline'}
+            size={13}
+            color={checks.length ? '#10B981' : AUTH_COLORS.textMuted}
+          />
+          <Text style={[styles.criteriaText, checks.length && styles.criteriaTextActive]}>
+            8+ Characters
+          </Text>
+        </View>
+        <View style={styles.criteriaItem}>
+          <Ionicons
+            name={checks.upper ? 'checkmark-circle' : 'ellipse-outline'}
+            size={13}
+            color={checks.upper ? '#10B981' : AUTH_COLORS.textMuted}
+          />
+          <Text style={[styles.criteriaText, checks.upper && styles.criteriaTextActive]}>
+            1 Uppercase (A-Z)
+          </Text>
+        </View>
+        <View style={styles.criteriaItem}>
+          <Ionicons
+            name={checks.lower ? 'checkmark-circle' : 'ellipse-outline'}
+            size={13}
+            color={checks.lower ? '#10B981' : AUTH_COLORS.textMuted}
+          />
+          <Text style={[styles.criteriaText, checks.lower && styles.criteriaTextActive]}>
+            1 Lowercase (a-z)
+          </Text>
+        </View>
+        <View style={styles.criteriaItem}>
+          <Ionicons
+            name={checks.number && checks.special ? 'checkmark-circle' : 'ellipse-outline'}
+            size={13}
+            color={checks.number && checks.special ? '#10B981' : AUTH_COLORS.textMuted}
+          />
+          <Text style={[styles.criteriaText, checks.number && checks.special && styles.criteriaTextActive]}>
+            Number & Special
+          </Text>
+        </View>
+      </View>
     </View>
   );
 }
@@ -559,12 +612,15 @@ const styles = StyleSheet.create({
   eyeIcon: { paddingLeft: 8 },
 
   // PasswordStrength
+  strengthWrapper: {
+    marginTop: -8,
+    marginBottom: 12,
+  },
   strengthContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: -10,
-    marginBottom: 12,
+    marginBottom: 6,
   },
   strengthBars: { flexDirection: 'row', gap: 4, flex: 1 },
   strengthBar: {
@@ -573,6 +629,27 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   strengthLabel: { fontSize: 12, fontWeight: '700', width: 48 },
+  criteriaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 2,
+    rowGap: 4,
+  },
+  criteriaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '50%',
+    gap: 4,
+  },
+  criteriaText: {
+    fontSize: 11,
+    color: AUTH_COLORS.textMuted,
+    fontWeight: '500',
+  },
+  criteriaTextActive: {
+    color: '#10B981',
+    fontWeight: '700',
+  },
 
   // ErrorMessage
   errorBox: {
