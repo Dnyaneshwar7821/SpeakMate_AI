@@ -154,6 +154,10 @@ export function LessonDetail() {
         setLesson((prev) => ({
           ...(curr || {}),
           ...data,
+          title: curr?.title || data?.title || prev?.title,
+          category: curr?.category || data?.category || prev?.category,
+          level: curr?.level || data?.level || prev?.level,
+          description: curr?.description || data?.description || prev?.description,
           objectives: data?.objectives && parseArrayField(data.objectives).length > 0 ? parseArrayField(data.objectives) : curr?.objectives,
           skills: data?.skills && parseArrayField(data.skills).length > 0 ? parseArrayField(data.skills) : curr?.skills,
           checkQuestion: curr?.checkQuestion || prev?.checkQuestion,

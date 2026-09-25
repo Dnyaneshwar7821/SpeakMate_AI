@@ -416,6 +416,10 @@ export default function LessonDetailScreen({ navigation, route }) {
           setLesson((prev) => ({
             ...(local || {}),
             ...data,
+            title: local?.title || data?.title || prev?.title,
+            category: local?.category || data?.category || prev?.category,
+            level: local?.level || data?.level || prev?.level,
+            description: local?.description || data?.description || prev?.description,
             checkQuestion: local?.checkQuestion || prev?.checkQuestion,
             guidedPractice: local?.guidedPractice || prev?.guidedPractice,
             speakingDrills: local?.speakingDrills || prev?.speakingDrills,
