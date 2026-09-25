@@ -89,7 +89,7 @@ export default function LoginScreen({ navigation }) {
 
   const getPasswordError = () => {
     if (!password) return 'Please enter your password.';
-    if (password.length < 6) return 'Password must be at least 6 characters.';
+    if (password.length < 8) return 'Password must be at least 8 characters.';
     return null;
   };
 

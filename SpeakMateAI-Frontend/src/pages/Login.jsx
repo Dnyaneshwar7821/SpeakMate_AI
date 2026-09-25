@@ -48,7 +48,7 @@ export function Login() {
   const getPasswordError = () => {
     if (!touched.password) return null;
     if (!form.password) return "Password is required.";
-    if (form.password.length < 6) return "Password must be at least 6 characters.";
+    if (form.password.length < 8) return "Password must be at least 8 characters.";
     return null;
   };
 
@@ -85,8 +85,8 @@ export function Login() {
       setError("Student ID must be at least 3 characters.");
       return;
     }
-    if (!form.password || form.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (!form.password || form.password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
 
