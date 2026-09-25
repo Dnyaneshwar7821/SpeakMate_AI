@@ -2,9 +2,11 @@ package com.rslsolution.speakmateai.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
@@ -43,7 +45,15 @@ public class LessonServiceImpl implements LessonService {
 			Map.entry("Business English", "briefcase-outline"),
 			Map.entry("Interview Preparation", "document-text-outline"),
 			Map.entry("Travel English", "airplane-outline"),
-			Map.entry("Daily English", "sunny-outline"));
+			Map.entry("Daily English", "sunny-outline"),
+			Map.entry("Debate", "chatbubbles-outline"),
+			Map.entry("Public Speaking", "megaphone-outline"),
+			Map.entry("Academic", "school-outline"),
+			Map.entry("Career", "briefcase-outline"),
+			Map.entry("Social", "people-outline"),
+			Map.entry("Science", "flask-outline"),
+			Map.entry("Board Prep", "ribbon-outline"),
+			Map.entry("General", "apps-outline"));
 
 	private final LessonRepository lessonRepository;
 	private final LessonProgressRepository progressRepository;
@@ -273,27 +283,39 @@ public class LessonServiceImpl implements LessonService {
 		User user = currentUser();
 		List<Lesson> allActive = lessonRepository.findByActiveTrue();
 
-		// group by category
+		// group by category safely handling nulls
 		Map<String, Long> countByCategory = allActive.stream()
-				.collect(Collectors.groupingBy(Lesson::getCategory, Collectors.counting()));
+				.collect(Collectors.groupingBy(
+						l -> (l.getCategory() != null && !l.getCategory().isBlank()) ? l.getCategory() : "General",
+						Collectors.counting()));
 
-		// user-completed counts
+		// user-completed counts safely handling nulls
 		Map<String, Long> completedByCategory = user == null
 				? Map.of()
 				: progressRepository.findByUserAndCompleted(user, true).stream()
-						.collect(Collectors.groupingBy(p -> p.getLesson().getCategory(), Collectors.counting()));
+						.collect(Collectors.groupingBy(
+								p -> (p.getLesson() != null && p.getLesson().getCategory() != null && !p.getLesson().getCategory().isBlank())
+										? p.getLesson().getCategory()
+										: "General",
+								Collectors.counting()));
 
-		// total XP per category
+		// total XP per category safely handling nulls
 		Map<String, Integer> xpByCategory = allActive.stream()
-				.collect(Collectors.groupingBy(Lesson::getCategory,
+				.collect(Collectors.groupingBy(
+						l -> (l.getCategory() != null && !l.getCategory().isBlank()) ? l.getCategory() : "General",
 						Collectors.summingInt(l -> l.getXpReward() != null ? l.getXpReward() : 0)));
 
-		return Arrays.asList(
+		List<String> defaultOrder = Arrays.asList(
 				"Grammar", "Vocabulary", "Speaking", "Listening", "Pronunciation",
 				"Conversation", "Business English", "Interview Preparation",
-				"Travel English", "Daily English")
-				.stream()
-				.filter(cat -> countByCategory.containsKey(cat))
+				"Travel English", "Daily English", "Debate", "Public Speaking",
+				"Academic", "Career", "Social", "Science", "Board Prep", "General");
+
+		Set<String> allCats = new LinkedHashSet<>(defaultOrder);
+		allCats.addAll(countByCategory.keySet());
+
+		return allCats.stream()
+				.filter(countByCategory::containsKey)
 				.map(cat -> CategoryResponse.builder()
 						.name(cat)
 						.icon(CATEGORY_ICONS.getOrDefault(cat, "book-outline"))
@@ -340,16 +362,20 @@ public class LessonServiceImpl implements LessonService {
 		if (query != null && !query.isBlank()) {
 			String q = query.toLowerCase();
 			base = base.stream()
-					.filter(l -> l.getTitle().toLowerCase().contains(q)
+					.filter(l -> (l.getTitle() != null && l.getTitle().toLowerCase().contains(q))
 							|| (l.getDescription() != null && l.getDescription().toLowerCase().contains(q))
-							|| l.getCategory().toLowerCase().contains(q))
+							|| (l.getCategory() != null && l.getCategory().toLowerCase().contains(q)))
 					.toList();
 		}
 		if (category != null && !category.isBlank() && !category.equalsIgnoreCase("All")) {
-			base = base.stream().filter(l -> l.getCategory().equalsIgnoreCase(category)).toList();
+			base = base.stream()
+					.filter(l -> l.getCategory() != null && l.getCategory().equalsIgnoreCase(category))
+					.toList();
 		}
 		if (difficulty != null && !difficulty.isBlank() && !difficulty.equalsIgnoreCase("All")) {
-			base = base.stream().filter(l -> l.getLevel().equalsIgnoreCase(difficulty)).toList();
+			base = base.stream()
+					.filter(l -> l.getLevel() != null && l.getLevel().equalsIgnoreCase(difficulty))
+					.toList();
 		}
 
 		return mapLessonsWithUserProgress(base, user);
@@ -419,8 +445,14 @@ public class LessonServiceImpl implements LessonService {
 			progress.setProgressPercent(request.getProgressPercent());
 		if (request.getLastSectionIndex() != null)
 			progress.setLastSectionIndex(request.getLastSectionIndex());
-		if (request.getTimeSpentMinutes() != null)
+		if (request.getTimeSpentMinutes() != null && request.getTimeSpentMinutes() > 0) {
 			progress.setTimeSpentMinutes(progress.getTimeSpentMinutes() + request.getTimeSpentMinutes());
+			userProgressRepository.findByUser(user).ifPresent(up -> {
+				int currentMins = up.getTotalPracticeMinutes() != null ? up.getTotalPracticeMinutes() : 0;
+				up.setTotalPracticeMinutes(currentMins + request.getTimeSpentMinutes());
+				userProgressRepository.save(up);
+			});
+		}
 		progress.setLastOpenedAt(LocalDateTime.now());
 
 		return mapProgressToResponse(progressRepository.save(progress));

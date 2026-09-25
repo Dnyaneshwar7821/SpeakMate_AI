@@ -20,14 +20,18 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
-
+import {
+  useAudioRecorder,
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+} from 'expo-audio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
 import { lessonModuleService, settingsService, aiService, progressService, speechService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
 import { COLORS } from '../../constants/colors';
+import { findStandardLesson } from '../../constants/standardLessons';
 
 // ─── Helpers & Quizzes ────────────────────────────────────────────────────────
 
@@ -365,15 +369,68 @@ export default function LessonDetailScreen({ navigation, route }) {
     return unsubscribe;
   }, [navigation]);
 
+  // Cleanup audio, recording and VAD interval on screen blur and unmount
+  useEffect(() => {
+    const cleanup = () => {
+      VoiceService.stop();
+      setIsSpeakingContent(false);
+      if (vadIntervalRef.current) {
+        clearInterval(vadIntervalRef.current);
+        vadIntervalRef.current = null;
+      }
+      try {
+        if (audioRecorder?.isRecording) {
+          audioRecorder.stop().catch(() => {});
+        }
+      } catch (_) {}
+    };
+
+    const unsubBlur = navigation.addListener('blur', cleanup);
+    return () => {
+      cleanup();
+      unsubBlur();
+    };
+  }, [navigation, audioRecorder]);
+
   const loadLesson = async () => {
     setLoading(true);
     setError('');
     try {
-      const data = await lessonModuleService.detail(lessonId);
-      setLesson(data);
+      if (typeof lessonId === 'number' || (/^\d+$/.test(String(lessonId)))) {
+        const data = await lessonModuleService.detail(lessonId);
+        setLesson(data);
+      } else {
+        const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle);
+        if (local) {
+          const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
+          const completedIds = stored ? JSON.parse(stored) : [];
+          const isDone = completedIds.includes(String(local.id));
+          setLesson({
+            ...local,
+            completed: isDone,
+            progressPercent: isDone ? 100 : (local.progressPercent || 0),
+          });
+        } else {
+          const data = await lessonModuleService.detail(lessonId);
+          setLesson(data);
+        }
+      }
       Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     } catch (e) {
-      setError('Failed to load lesson. Please go back and try again.');
+      const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle);
+      if (local) {
+        const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
+        const completedIds = stored ? JSON.parse(stored) : [];
+        const isDone = completedIds.includes(String(local.id));
+        setLesson({
+          ...local,
+          completed: isDone,
+          progressPercent: isDone ? 100 : (local.progressPercent || 0),
+        });
+        Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }).start();
+      } else {
+        setError('Failed to load lesson. Please go back and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -1022,15 +1079,18 @@ export default function LessonDetailScreen({ navigation, route }) {
 
     let progressPercent = Math.min(100, Math.round(((nextStep + 1) / 9) * 100));
 
-    try {
-      await lessonModuleService.updateProgress({
-        lessonId: lesson.id,
-        progressPercent,
-        lastSectionIndex: nextStep,
-        timeSpentMinutes: 2
-      });
-    } catch (err) {
-      console.warn('Failed to sync progress to backend:', err);
+    const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
+    if (isNumeric) {
+      try {
+        await lessonModuleService.updateProgress({
+          lessonId: lesson.id,
+          progressPercent,
+          lastSectionIndex: nextStep,
+          timeSpentMinutes: 2
+        });
+      } catch (err) {
+        console.warn('Failed to sync progress to backend:', err);
+      }
     }
   };
 
@@ -1090,18 +1150,27 @@ export default function LessonDetailScreen({ navigation, route }) {
     showToast(`Quiz Complete! +${totalAwarded} XP 🏆`, 'xp', `Score: ${finalScore}/${totalQ} correct!`);
 
     try {
-      if (lesson) {
+      const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
+      if (isNumeric) {
         await lessonModuleService.complete(lesson.id);
-      }
-      const curProg = await progressService.get().catch(() => null);
-      if (curProg) {
-        await progressService.update({
-          ...curProg,
-          xp: (curProg.xp || 0) + totalAwarded,
-        });
+      } else {
+        const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
+        const completedIds = stored ? JSON.parse(stored) : [];
+        if (lesson?.id && !completedIds.includes(String(lesson.id))) {
+          completedIds.push(String(lesson.id));
+          await AsyncStorage.setItem('speakmate_completed_standard_lessons', JSON.stringify(completedIds));
+        }
+        const curProg = await progressService.get().catch(() => null);
+        if (curProg) {
+          await progressService.update({
+            ...curProg,
+            xp: (curProg.xp || 0) + totalAwarded,
+            completedLessons: (curProg.completedLessons || 0) + 1,
+          });
+        }
       }
     } catch (e) {
-      console.warn("Failed to update dynamic quiz completion XP:", e);
+      console.warn("Failed to complete lesson on quiz finish:", e);
     }
   };
 
@@ -1109,13 +1178,36 @@ export default function LessonDetailScreen({ navigation, route }) {
     if (!lesson) return;
     setActionLoading(true);
     try {
-      try {
-        await lessonModuleService.complete(lesson.id);
-      } catch (backendErr) {
-        console.warn('Backend complete lesson sync warning (using client fallback):', backendErr?.message);
+      const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
+      if (isNumeric) {
+        try {
+          await lessonModuleService.complete(lesson.id);
+        } catch (backendErr) {
+          console.warn('Backend complete lesson sync warning (using client fallback):', backendErr?.message);
+        }
+      } else {
+        try {
+          const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
+          const completedIds = stored ? JSON.parse(stored) : [];
+          if (lesson?.id && !completedIds.includes(String(lesson.id))) {
+            completedIds.push(String(lesson.id));
+            await AsyncStorage.setItem('speakmate_completed_standard_lessons', JSON.stringify(completedIds));
+          }
+          const curProg = await progressService.get().catch(() => null);
+          const xpToAdd = earnedXP > 0 ? earnedXP : (lesson.xpReward || 50);
+          if (curProg) {
+            await progressService.update({
+              ...curProg,
+              xp: (curProg.xp || 0) + xpToAdd,
+              completedLessons: (curProg.completedLessons || 0) + 1,
+            });
+          }
+        } catch (e) {
+          console.warn('Failed to update standard lesson progress:', e);
+        }
       }
       setShowStudy(false);
-      
+      setLesson((prev) => (prev ? { ...prev, completed: true, progressPercent: 100 } : prev));
       await loadLesson().catch(() => {});
       
       triggerConfetti();
