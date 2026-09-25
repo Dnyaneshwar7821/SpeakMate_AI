@@ -109,9 +109,9 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 		try {
 			return executeGroqCall(targetModel, messages, 0.0);
 		} catch (Exception e) {
-			if (!"llama-3.1-8b-instant".equals(targetModel)) {
+			if (chatModel != null && !chatModel.equals(targetModel)) {
 				try {
-					return executeGroqCall("llama-3.1-8b-instant", messages, 0.0);
+					return executeGroqCall(chatModel, messages, 0.0);
 				} catch (Exception ex) {
 					throw new GroqException(ex.getMessage());
 				}
@@ -174,7 +174,7 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 				new GroqRequest.Message("system", "You are an automated backend JSON API. You MUST output ONLY valid, parsable JSON starting with '[' and ending with ']'. Never output introductory words like 'Certainly', 'Here are', markdown formatting, bold text, or backticks."),
 				new GroqRequest.Message("user", prompt)
 			);
-			AiResponse res = executeGroqCall("llama-3.3-70b-versatile", messages, 0.2);
+			AiResponse res = executeGroqCall(chatModel, messages, 0.2);
 			if (res != null && res.getResponse() != null) {
 				String raw = res.getResponse().trim();
 				raw = raw.replaceAll("(?s)<think>.*?</think>", "").trim();
@@ -246,7 +246,7 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 				new GroqRequest.Message("system", systemInstruction),
 				new GroqRequest.Message("user", prompt)
 			);
-			return executeGroqCall("llama-3.3-70b-versatile", messages, 0.7);
+			return executeGroqCall(chatModel, messages, 0.7);
 		} catch (Exception e) {
 			return AiResponse.builder()
 					.response("Welcome to your detailed lesson masterclass! Today we are exploring this topic thoroughly to build your English fluency.\n\n🎯 1. What Is This Concept & Why It Matters:\nThis topic forms the backbone of natural, confident communication. It gives your sentences proper grammatical structure and clarity so you express yourself effortlessly.\n\n📐 2. Golden Rules & Sentence Formulas:\n• Positive (+): Subject + Verb + Complement (e.g., 'I practice speaking daily.')\n• Negative (-): Subject + do/does/did not + Base Verb (e.g., 'She does not hesitate.')\n• Question (?): Do/Does/Did + Subject + Base Verb? (e.g., 'Do you practice every morning?')\n\n🌟 3. Real-Life Examples:\n• Daily Life: 'I usually catch the morning bus at 8 AM to reach on time.'\n• Workplace: 'Could we schedule a quick call to review the project milestones?'\n• Travel: 'Excuse me, could you point me toward the departure terminal?'\n\n⚠️ 4. Common Mistakes to Avoid:\n• ❌ Incorrect: 'He don't like speaking.'\n• ✅ Correct: 'He doesn't like speaking.' (Use 'doesn't' with third-person singular he/she/it)\n\n💡 5. Pro-Tip & Quick Practice:\nSpeak 3 original sentences out loud right now using this formula to lock it into your muscle memory!")
@@ -258,9 +258,9 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 		try {
 			return executeGroqCall(targetModel, List.of(new GroqRequest.Message("user", prompt)), temperature);
 		} catch (Exception e) {
-			if (!"llama-3.1-8b-instant".equals(targetModel)) {
+			if (chatModel != null && !chatModel.equals(targetModel)) {
 				try {
-					return executeGroqCall("llama-3.1-8b-instant", List.of(new GroqRequest.Message("user", prompt)), temperature);
+					return executeGroqCall(chatModel, List.of(new GroqRequest.Message("user", prompt)), temperature);
 				} catch (Exception ex) {
 					throw new GroqException(ex.getMessage());
 				}
