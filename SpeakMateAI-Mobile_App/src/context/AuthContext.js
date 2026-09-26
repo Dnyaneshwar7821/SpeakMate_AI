@@ -209,6 +209,18 @@ export const AuthProvider = ({ children }) => {
       if (email) {
         await AsyncStorage.removeItem(`speakmate_onboarding_${email}`);
       }
+
+      // Clear all assistant chatbot conversation history & sessions so next login is 100% fresh
+      try {
+        const allKeys = await AsyncStorage.getAllKeys();
+        const assistantKeys = allKeys.filter(
+          (key) => key && key.startsWith('speakmate_assistant_')
+        );
+        if (assistantKeys.length > 0) {
+          await AsyncStorage.multiRemove(assistantKeys);
+        }
+      } catch (_) {}
+
       setToken(null);
       setUser(null);
       setOnboardingCompletedState(false);

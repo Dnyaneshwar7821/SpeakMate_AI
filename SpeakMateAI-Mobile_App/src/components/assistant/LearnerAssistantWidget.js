@@ -70,29 +70,38 @@ export function LearnerAssistantWidget() {
 
   // Load user-specific conversation history from AsyncStorage on mount or account switch
   useEffect(() => {
-    if (!userStorageKey) {
+    if (!isAuthenticated || !userStorageKey) {
       setMessages([]);
+      setIsOpen(false);
+      sessionIdRef.current = generateSessionId();
       return;
     }
 
     let isMounted = true;
     AsyncStorage.getItem(userStorageKey)
       .then((saved) => {
-        if (isMounted && saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed)) {
-              setMessages(parsed);
-            }
-          } catch (_) {}
+        if (isMounted) {
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed)) {
+                setMessages(parsed);
+                return;
+              }
+            } catch (_) {}
+          }
+          // Fresh session if no saved history exists
+          setMessages([]);
         }
       })
-      .catch(() => {});
+      .catch(() => {
+        if (isMounted) setMessages([]);
+      });
 
     return () => {
       isMounted = false;
     };
-  }, [userStorageKey]);
+  }, [isAuthenticated, userStorageKey]);
 
   // Persist updated message history for current authenticated user
   const persistMessages = useCallback(
