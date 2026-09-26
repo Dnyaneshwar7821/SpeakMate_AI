@@ -196,6 +196,27 @@ export function AssistantModal({
     };
   }, [isOpen]);
 
+  // Control Status Bar theme when chatbot is open: solid black background with crisp white icons
+  useEffect(() => {
+    if (isOpen) {
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor('#000000', true);
+      }
+      StatusBar.setBarStyle('light-content', true);
+    } else {
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor('transparent', true);
+      }
+      StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content', true);
+    }
+    return () => {
+      if (Platform.OS === 'android') {
+        StatusBar.setBackgroundColor('transparent', true);
+      }
+      StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content', true);
+    };
+  }, [isOpen, isDark]);
+
   // Auto-scroll to bottom on new messages or loading state change
   useEffect(() => {
     if (isOpen) {
@@ -497,15 +518,20 @@ export function AssistantModal({
         }
       }}
     >
+      {/* Declarative Status Bar when chatbot overlay is rendered */}
+      <StatusBar barStyle="light-content" backgroundColor="#000000" translucent={true} />
+
       <View
         style={[
           styles.fullScreenWrapper,
           {
-            paddingTop: safeTop,
             paddingBottom: dynamicKeyboardInset,
           },
         ]}
       >
+        {/* Solid Black Top Bar for System Status Bar / Hotspot / Notch */}
+        <View style={[styles.statusBarBackground, { height: safeTop }]} />
+
         {/* Top Accent Gradient Bar */}
         <LinearGradient
           colors={['#5243F5', '#7B61FF', '#00D2FF']}
@@ -778,6 +804,10 @@ const styles = StyleSheet.create({
   fullScreenWrapper: {
     flex: 1,
     width: '100%',
+  },
+  statusBarBackground: {
+    width: '100%',
+    backgroundColor: '#000000',
   },
   scrollArea: {
     flex: 1,
