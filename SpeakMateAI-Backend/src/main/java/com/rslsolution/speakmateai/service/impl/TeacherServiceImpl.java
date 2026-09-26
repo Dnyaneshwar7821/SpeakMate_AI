@@ -98,7 +98,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @Transactional
-@SuppressWarnings({"null", "unused"})
+@SuppressWarnings("unused")
 public class TeacherServiceImpl implements TeacherService {
 
 	private final UserRepository userRepository;

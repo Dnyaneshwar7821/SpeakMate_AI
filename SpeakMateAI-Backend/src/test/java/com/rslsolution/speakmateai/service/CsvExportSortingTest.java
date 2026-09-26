@@ -98,6 +98,7 @@ public class CsvExportSortingTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void testB_ExportSchoolUsersCsv_SortedNumericallyAscending() {
         UserRepository userRepository = mock(UserRepository.class);
         StudentRepository studentRepository = mock(StudentRepository.class);

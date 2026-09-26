@@ -19,7 +19,6 @@ import java.io.UnsupportedEncodingException;
 @Component("smtpEmailProvider")
 @Conditional(OnSmtpCondition.class)
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class SmtpEmailProvider implements EmailProvider {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SmtpEmailProvider.class);

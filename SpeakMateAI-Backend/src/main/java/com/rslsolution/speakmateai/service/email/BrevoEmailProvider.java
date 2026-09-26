@@ -31,7 +31,6 @@ import java.util.Map;
  */
 @Component("brevoEmailProvider")
 @Conditional(OnBrevoCondition.class)
-@SuppressWarnings("null")
 public class BrevoEmailProvider implements EmailProvider {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BrevoEmailProvider.class);

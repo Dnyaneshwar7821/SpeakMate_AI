@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@SuppressWarnings("null")
 public class StudentServiceImpl implements StudentService {
 
     private final UserRepository userRepository;

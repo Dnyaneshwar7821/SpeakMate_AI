@@ -17,7 +17,6 @@ import com.rslsolution.speakmateai.service.OnboardingService;
 
 @Service
 @Transactional
-@SuppressWarnings("null")
 public class OnboardingServiceImpl implements OnboardingService {
 
 	private final OnboardingRepository onboardingRepository;

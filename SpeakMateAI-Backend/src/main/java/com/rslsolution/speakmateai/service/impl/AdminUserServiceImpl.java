@@ -54,7 +54,6 @@ import com.rslsolution.speakmateai.service.AdminUserService;
 
 @Service
 @Transactional
-@SuppressWarnings("null")
 public class AdminUserServiceImpl implements AdminUserService {
 
     private final UserRepository userRepository;

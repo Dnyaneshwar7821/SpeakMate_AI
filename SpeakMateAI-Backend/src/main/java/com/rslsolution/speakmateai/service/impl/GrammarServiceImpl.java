@@ -19,7 +19,6 @@ import com.rslsolution.speakmateai.service.GrammarService;
 
 @Service
 @Transactional
-@SuppressWarnings("null")
 public class GrammarServiceImpl implements GrammarService {
 
 	private final GrammarHistoryRepository grammarHistoryRepository;

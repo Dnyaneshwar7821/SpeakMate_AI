@@ -199,6 +199,7 @@ public class SubscriptionDataMappingTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void testAdminSubscriberMapping_SafeWithNullSubscriptionPlan() {
         // Legacy record with subscriptionPlan == null
         UserSubscription legacySub = new UserSubscription();
@@ -227,6 +228,7 @@ public class SubscriptionDataMappingTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void testAdminSubscriberMapping_SafeWithCompletelyUnknownPlanAndNulls() {
         UserSubscription brokenSub = new UserSubscription();
         brokenSub.setId(99L);

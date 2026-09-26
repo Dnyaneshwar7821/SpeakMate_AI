@@ -27,7 +27,6 @@ import com.rslsolution.speakmateai.util.StandardDivisionUtil;
 
 @Service
 @Transactional
-@SuppressWarnings("null")
 public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
 
     private final UserRepository userRepository;

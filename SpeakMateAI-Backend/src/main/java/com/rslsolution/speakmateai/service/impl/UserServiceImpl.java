@@ -42,7 +42,6 @@ import jakarta.mail.internet.MimeMessage;
 
 @Service
 @Transactional
-@SuppressWarnings("null")
 public class UserServiceImpl implements UserService {
 
 	@jakarta.persistence.PersistenceContext
