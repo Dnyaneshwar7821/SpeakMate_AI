@@ -1,8 +1,6 @@
 package com.rslsolution.speakmateai.service.impl;
 
 import java.util.List;
-
-import java.util.List;
 import java.util.ArrayList;
 
 import org.springframework.security.core.Authentication;

@@ -20,6 +20,19 @@ SpeakMateAI-App/*.mobileprovision
 SpeakMateAI-App/npm-debug.log*
 SpeakMateAI-App/yarn-debug.log*
 SpeakMateAI-App/yarn-error.log*
+SpeakMateAI-Mobile_App/node_modules/
+SpeakMateAI-Mobile_App/.expo/
+SpeakMateAI-Mobile_App/android/
+SpeakMateAI-Mobile_App/ios/
+SpeakMateAI-Mobile_App/web-build/
+SpeakMateAI-Mobile_App/dist/
+SpeakMateAI-Mobile_App/*.jks
+SpeakMateAI-Mobile_App/*.p8
+SpeakMateAI-Mobile_App/*.p12
+SpeakMateAI-Mobile_App/*.mobileprovision
+SpeakMateAI-Mobile_App/npm-debug.log*
+SpeakMateAI-Mobile_App/yarn-debug.log*
+SpeakMateAI-Mobile_App/yarn-error.log*
 
 # --- Web Landing/Admin Panel ---
 SpeakMate AI/node_modules/

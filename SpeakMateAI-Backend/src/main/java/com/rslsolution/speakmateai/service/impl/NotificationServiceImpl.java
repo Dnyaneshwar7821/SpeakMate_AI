@@ -24,7 +24,6 @@ import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.NotificationType;
 import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.exception.NotificationNotFoundException;
-import com.rslsolution.speakmateai.exception.UserNotFoundException;
 import com.rslsolution.speakmateai.repository.AdminRepository;
 import com.rslsolution.speakmateai.repository.NotificationRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;

@@ -2,8 +2,6 @@ package com.rslsolution.speakmateai.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.rslsolution.speakmateai.enums.Status;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -1,7 +1,6 @@
 package com.rslsolution.speakmateai.dto.response;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

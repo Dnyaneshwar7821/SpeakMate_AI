@@ -30,7 +30,6 @@ import com.rslsolution.speakmateai.repository.UserSubscriptionRepository;
 import com.rslsolution.speakmateai.repository.VocabularyRepository;
 
 import com.rslsolution.speakmateai.entity.Achievement;
-import com.rslsolution.speakmateai.entity.Assignment;
 import com.rslsolution.speakmateai.entity.AssignmentProgress;
 import com.rslsolution.speakmateai.entity.Lesson;
 import com.rslsolution.speakmateai.repository.AchievementRepository;

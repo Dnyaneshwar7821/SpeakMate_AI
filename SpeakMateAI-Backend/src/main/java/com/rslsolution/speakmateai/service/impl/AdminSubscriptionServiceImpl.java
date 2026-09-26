@@ -2,7 +2,6 @@ package com.rslsolution.speakmateai.service.impl;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

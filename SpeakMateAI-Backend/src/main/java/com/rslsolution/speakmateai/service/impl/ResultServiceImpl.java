@@ -1,14 +1,9 @@
 package com.rslsolution.speakmateai.service.impl;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +15,6 @@ import com.rslsolution.speakmateai.dto.response.ResultResponse;
 import com.rslsolution.speakmateai.entity.Result;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
-import com.rslsolution.speakmateai.enums.Status;
 import com.rslsolution.speakmateai.exception.UserNotFoundException;
 import com.rslsolution.speakmateai.repository.ResultRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
