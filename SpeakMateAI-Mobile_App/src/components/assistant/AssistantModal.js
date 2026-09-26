@@ -7,6 +7,7 @@ import {
   Dimensions,
   Easing,
   Keyboard,
+  LayoutAnimation,
   Platform,
   ScrollView,
   StatusBar,
@@ -14,6 +15,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  UIManager,
   View,
   useWindowDimensions,
 } from 'react-native';
@@ -22,6 +24,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { VoiceRecorder } from '../../utils/audioRecorder';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 import { useTheme } from '../../context/ThemeContext';
 import { speechService, settingsService } from '../../services/appServices';
@@ -85,7 +91,8 @@ export function AssistantModal({
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const isKeyboardVisibleRef = useRef(false);
-  const [layoutHeight, setLayoutHeight] = useState(windowHeight || SCREEN_HEIGHT);
+  const initialHeightRef = useRef(0);
+  const [currentLayoutHeight, setCurrentLayoutHeight] = useState(0);
 
   // Physical keyboard listeners: dynamically track soft keyboard dimensions
   useEffect(() => {
@@ -97,6 +104,9 @@ export function AssistantModal({
       isKeyboardVisibleRef.current = true;
       setIsKeyboardVisible(true);
       setKeyboardHeight(height);
+      try {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      } catch (_) {}
       setTimeout(() => {
         scrollRef.current?.scrollToEnd({ animated: true });
       }, 100);
@@ -106,6 +116,9 @@ export function AssistantModal({
       isKeyboardVisibleRef.current = false;
       setIsKeyboardVisible(false);
       setKeyboardHeight(0);
+      try {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      } catch (_) {}
     };
 
     const showSub = Keyboard.addListener(showEvent, onKeyboardShow);
@@ -434,8 +447,19 @@ export function AssistantModal({
     Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 0
   );
 
-  const hasWindowResized = layoutHeight < (windowHeight || SCREEN_HEIGHT) - 80;
-  const dynamicBottomInset = isKeyboardVisible && !hasWindowResized ? keyboardHeight : 0;
+  // On Android with edge-to-edge / translucent status bar, React Native's keyboardDidShow
+  // returns `height = imeInsets.bottom - barInsets.bottom` (see ReactRootView.java line 962).
+  // Because our full-screen overlay extends to the absolute bottom of the display (including
+  // the system navigation bar), the total distance from the bottom of the screen to the top
+  // of the keyboard is: keyboardHeight + insets.bottom.
+  // We subtract any amount the OS already shrunk the container to prevent double padding.
+  const totalKeyboardNeeded = keyboardHeight + (Platform.OS === 'android' ? insets.bottom : 0);
+  const osShrunkAmount = initialHeightRef.current && currentLayoutHeight
+    ? Math.max(0, initialHeightRef.current - currentLayoutHeight)
+    : 0;
+  const dynamicKeyboardInset = isKeyboardVisible
+    ? Math.max(0, totalKeyboardNeeded - osShrunkAmount)
+    : 0;
   const inputDockPaddingBottom = isKeyboardVisible ? 8 : Math.max(insets.bottom, 12);
 
   if (!isMounted) {
@@ -466,7 +490,10 @@ export function AssistantModal({
       onLayout={(e) => {
         const { height } = e.nativeEvent.layout;
         if (height > 0) {
-          setLayoutHeight(height);
+          setCurrentLayoutHeight(height);
+          if (!isKeyboardVisibleRef.current && (!initialHeightRef.current || height > initialHeightRef.current)) {
+            initialHeightRef.current = height;
+          }
         }
       }}
     >
@@ -475,7 +502,7 @@ export function AssistantModal({
           styles.fullScreenWrapper,
           {
             paddingTop: safeTop,
-            marginBottom: dynamicBottomInset,
+            paddingBottom: dynamicKeyboardInset,
           },
         ]}
       >
@@ -751,7 +778,6 @@ const styles = StyleSheet.create({
   fullScreenWrapper: {
     flex: 1,
     width: '100%',
-    height: '100%',
   },
   scrollArea: {
     flex: 1,
