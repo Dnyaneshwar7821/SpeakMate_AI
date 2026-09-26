@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,8 +28,6 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 public class StudentAssignmentController {
-
-    private static final Logger log = LoggerFactory.getLogger(StudentAssignmentController.class);
 
     private final UserRepository userRepository;
     private final AssignmentProgressRepository assignmentProgressRepository;

@@ -293,6 +293,7 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 	}
 
 	// Preserved Resend legacy method (to be cleaned up in a later phase)
+	@SuppressWarnings("unused")
 	private void sendAsyncEmail(String toEmail, String subject, String htmlContent, String otp) {
 		java.util.concurrent.CompletableFuture.runAsync(() -> {
 			String resendApiKey = System.getenv("RESEND_API_KEY");

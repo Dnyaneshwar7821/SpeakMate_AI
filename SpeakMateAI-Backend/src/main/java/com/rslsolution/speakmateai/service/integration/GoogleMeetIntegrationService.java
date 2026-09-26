@@ -40,7 +40,7 @@ public class GoogleMeetIntegrationService {
 					.provider("Google Meet for Education")
 					.latencyMs(latency)
 					.message("Verified! Google Workspace Calendar & Meet API connected in " + latency + "ms")
-					.details("Service Account authenticated. Domain policy locked to " + effectiveDomain + " accounts.")
+					.details("Service Account (" + effectiveEmail + ") authenticated. Domain policy locked to " + effectiveDomain + " accounts.")
 					.build();
 		} catch (Exception e) {
 			long latency = System.currentTimeMillis() - start;

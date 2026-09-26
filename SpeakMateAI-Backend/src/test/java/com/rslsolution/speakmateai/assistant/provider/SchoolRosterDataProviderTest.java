@@ -20,7 +20,6 @@ import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
 import com.rslsolution.speakmateai.entity.SchoolStandard;
 import com.rslsolution.speakmateai.entity.StandardDivision;
-import com.rslsolution.speakmateai.entity.Student;
 import com.rslsolution.speakmateai.entity.TeacherStandardDivision;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;

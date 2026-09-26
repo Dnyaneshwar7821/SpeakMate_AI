@@ -495,6 +495,7 @@ public class SchoolServiceImpl implements SchoolService {
         return buildSchoolAdminWelcomeEmailText(adminName, email, tempPassword, schoolName, schoolCode, address, contactPhone, null, null);
     }
 
+    @SuppressWarnings("unused")
     private String buildInvitationEmailHtml(String email, String tempPassword) {
         return buildSchoolAdminWelcomeEmailHtml(
                 "School Administrator",
@@ -507,6 +508,7 @@ public class SchoolServiceImpl implements SchoolService {
         );
     }
 
+    @SuppressWarnings("unused")
     private String buildInvitationEmailText(String email, String tempPassword) {
         return buildSchoolAdminWelcomeEmailText(
                 "School Administrator",

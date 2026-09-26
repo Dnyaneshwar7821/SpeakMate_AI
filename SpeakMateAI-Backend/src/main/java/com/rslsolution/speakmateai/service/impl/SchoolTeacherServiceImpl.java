@@ -63,6 +63,7 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 	private final SchoolStandardRepository schoolStandardRepository;
 	private final StandardDivisionRepository standardDivisionRepository;
 	private final TeacherStandardDivisionRepository teacherStandardDivisionRepository;
+	@SuppressWarnings("unused")
 	private final ProgressRepository progressRepository;
 	private final AdminRepository adminRepository;
 	private final NotificationService notificationService;
