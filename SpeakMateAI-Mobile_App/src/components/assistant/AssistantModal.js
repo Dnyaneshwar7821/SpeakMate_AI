@@ -6,9 +6,10 @@ import {
   BackHandler,
   Dimensions,
   Easing,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -25,7 +26,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '../../context/ThemeContext';
 import { speechService, settingsService } from '../../services/appServices';
 import { VoiceService } from '../../services/VoiceService';
-import { BlurredBackdrop } from './BlurredBackdrop';
 import {
   DEFAULT_ROLE,
   QUICK_SUGGESTIONS_BY_ROLE,
@@ -81,6 +81,42 @@ export function AssistantModal({
   const [isMounted, setIsMounted] = useState(Boolean(isOpen));
   const isOpenRef = useRef(isOpen);
 
+  // Dynamic keyboard state tracking
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const isKeyboardVisibleRef = useRef(false);
+  const [layoutHeight, setLayoutHeight] = useState(windowHeight || SCREEN_HEIGHT);
+
+  // Physical keyboard listeners: dynamically track soft keyboard dimensions
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const onKeyboardShow = (e) => {
+      const height = e?.endCoordinates?.height || 0;
+      isKeyboardVisibleRef.current = true;
+      setIsKeyboardVisible(true);
+      setKeyboardHeight(height);
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    };
+
+    const onKeyboardHide = () => {
+      isKeyboardVisibleRef.current = false;
+      setIsKeyboardVisible(false);
+      setKeyboardHeight(0);
+    };
+
+    const showSub = Keyboard.addListener(showEvent, onKeyboardShow);
+    const hideSub = Keyboard.addListener(hideEvent, onKeyboardHide);
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const recordingRef = useRef(null);
   const isRecordingRef = useRef(false);
   const speechDetectedRef = useRef(false);
@@ -126,13 +162,19 @@ export function AssistantModal({
     }
   }, [isOpen, animProgress]);
 
-  // Handle Android hardware back button: close chatbot without navigating away
+  // Handle Android hardware back button:
+  // If keyboard is open -> dismiss keyboard only, chatbot remains open
+  // If keyboard is closed -> close chatbot, preserve underlying navigation
   useEffect(() => {
     if (!isOpen) return;
 
     const onHardwareBack = () => {
+      if (isKeyboardVisibleRef.current) {
+        Keyboard.dismiss();
+        return true; // Dismiss keyboard only; keep chatbot open
+      }
       handleClose();
-      return true; // Prevents back navigation of the underlying screen
+      return true; // Close chatbot; keep underlying navigation intact
     };
 
     const backSubscription = BackHandler.addEventListener('hardwareBackPress', onHardwareBack);
@@ -175,6 +217,7 @@ export function AssistantModal({
 
   // Master cleanup whenever modal closes or unmounts: stop STT and TTS completely
   const handleClose = () => {
+    Keyboard.dismiss();
     VoiceService.stop();
     setSpeakingMessageId(null);
 
@@ -386,361 +429,332 @@ export function AssistantModal({
   const textColor = isDark ? '#F1F5F9' : '#0F172A';
   const subtextColor = isDark ? '#94A3B8' : '#64748B';
 
-  const sheetHeight = Math.min(Math.round((windowHeight || SCREEN_HEIGHT) * 0.85), 720);
+  const safeTop = Math.max(
+    insets.top,
+    Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 0
+  );
+
+  const hasWindowResized = layoutHeight < (windowHeight || SCREEN_HEIGHT) - 80;
+  const dynamicBottomInset = isKeyboardVisible && !hasWindowResized ? keyboardHeight : 0;
+  const inputDockPaddingBottom = isKeyboardVisible ? 8 : Math.max(insets.bottom, 12);
 
   if (!isMounted) {
     return null;
   }
 
-  const backdropOpacity = animProgress.interpolate({
+  const overlayTranslateY = animProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [windowHeight || SCREEN_HEIGHT, 0],
+  });
+
+  const overlayOpacity = animProgress.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 1],
   });
 
-  const panelTranslateY = animProgress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [sheetHeight, 0],
-  });
-
   return (
-    <View
-      style={styles.overlayContainer}
-      pointerEvents="box-none"
+    <Animated.View
+      style={[
+        styles.overlayContainer,
+        {
+          backgroundColor: panelBg,
+          opacity: overlayOpacity,
+          transform: [{ translateY: overlayTranslateY }],
+        },
+      ]}
+      pointerEvents={isOpen ? 'auto' : 'none'}
+      onLayout={(e) => {
+        const { height } = e.nativeEvent.layout;
+        if (height > 0) {
+          setLayoutHeight(height);
+        }
+      }}
     >
-      {/* Animated Fullscreen Blurred Backdrop & Dismiss Area */}
-      <Animated.View
+      <View
         style={[
-          styles.backdropTouchArea,
-          { opacity: backdropOpacity },
+          styles.fullScreenWrapper,
+          {
+            paddingTop: safeTop,
+            marginBottom: dynamicBottomInset,
+          },
         ]}
-        pointerEvents={isOpen ? 'auto' : 'none'}
       >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={handleClose}
-          style={StyleSheet.absoluteFill}
-          accessible={false}
-        >
-          <BlurredBackdrop />
-        </TouchableOpacity>
-      </Animated.View>
+        {/* Top Accent Gradient Bar */}
+        <LinearGradient
+          colors={['#5243F5', '#7B61FF', '#00D2FF']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.topAccentBar}
+        />
 
-      {/* Dynamic Keyboard-Safe Bottom Sheet Container */}
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
-        style={styles.sheetWrapper}
-        pointerEvents="box-none"
-      >
-        {/* Animated Elevated Sheet Container */}
-        <Animated.View
-          style={[
-            styles.sheetContainer,
-            {
-              height: sheetHeight,
-              backgroundColor: panelBg,
-              transform: [{ translateY: panelTranslateY }],
-            },
-          ]}
-        >
-            {/* Inner Content Wrapper with Border Radius & Clipping */}
-            <View
-              style={[
-                styles.sheetContent,
-                {
-                  backgroundColor: panelBg,
-                  borderColor: panelBorder,
-                  paddingBottom: Math.max(insets.bottom, 12),
-                },
-              ]}
-            >
-            {/* Top Accent Gradient Bar */}
+        {/* Assistant Header */}
+        <View style={[styles.header, { backgroundColor: headerBg, borderBottomColor: headerBorder }]}>
+          {/* AI Avatar with Live Dot */}
+          <View style={styles.avatarBox}>
             <LinearGradient
-              colors={['#5243F5', '#7B61FF', '#00D2FF']}
+              colors={['#5243F5', '#8F4FFF']}
               start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.topAccentBar}
-            />
-
-            {/* Sheet Handle */}
-            <View style={styles.handleRow}>
-              <View style={[styles.handlePill, { backgroundColor: isDark ? '#334155' : '#CBD5E1' }]} />
-            </View>
-
-            {/* Assistant Header */}
-            <View style={[styles.header, { backgroundColor: headerBg, borderBottomColor: headerBorder }]}>
-              {/* AI Avatar with Live Dot */}
-              <View style={styles.avatarBox}>
-                <LinearGradient
-                  colors={['#5243F5', '#8F4FFF']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.avatarGradient}
-                >
-                  <Ionicons name="sparkles" size={18} color="#FFFFFF" />
-                </LinearGradient>
-                <View style={[styles.liveBadge, { borderColor: headerBg }]}>
-                  <View style={styles.liveDot} />
-                </View>
-              </View>
-
-              {/* Title & Role Info */}
-              <View style={styles.headerInfo}>
-                <View style={styles.titleRow}>
-                  <Text style={[styles.headerTitle, { color: textColor }]}>SpeakMate Assistant</Text>
-                  <View
-                    style={[
-                      styles.aiPill,
-                      {
-                        backgroundColor: isDark ? '#312E81' : '#EEF2FF',
-                        borderColor: isDark ? '#4338CA' : '#C7D2FE',
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.aiPillText, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>AI</Text>
-                  </View>
-                </View>
-
-                <View style={styles.statusRow}>
-                  <Text style={[styles.roleText, { color: subtextColor }]}>{roleTitle}</Text>
-                  <Text style={[styles.dotDivider, { color: subtextColor }]}>•</Text>
-                  <Text style={styles.onlineText}>Online</Text>
-                </View>
-              </View>
-
-              {/* Header Action Buttons */}
-              <View style={styles.headerActions}>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={onResetChat}
-                  style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-                  accessibilityLabel="Reset conversation"
-                >
-                  <Ionicons name="trash-outline" size={18} color={isDark ? '#94A3B8' : '#64748B'} />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleClose}
-                  style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-                  accessibilityLabel="Close assistant"
-                >
-                  <Ionicons name="close" size={20} color={isDark ? '#F1F5F9' : '#1E293B'} />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Error Banner */}
-            {error ? (
-              <View style={styles.errorBanner}>
-                <Ionicons name="alert-circle" size={16} color="#EF4444" style={{ marginRight: 6 }} />
-                <Text style={styles.errorText} numberOfLines={2}>
-                  {error}
-                </Text>
-                <TouchableOpacity activeOpacity={0.7} onPress={onClearError}>
-                  <Ionicons name="close" size={16} color="#EF4444" />
-                </TouchableOpacity>
-              </View>
-            ) : null}
-
-            {/* Flexible Message Stream Scroll Area */}
-            <ScrollView
-              ref={scrollRef}
-              style={styles.scrollArea}
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
+              end={{ x: 1, y: 1 }}
+              style={styles.avatarGradient}
             >
-              {isEmpty ? (
-                <View style={styles.emptyContainer}>
-                  {/* Welcome Message Card */}
-                  <MessageBubble
-                    message={{
-                      id: 'welcome',
-                      sender: 'assistant',
-                      content: welcomeText,
-                    }}
-                    role={role}
-                    onClose={handleClose}
-                    isSpeaking={speakingMessageId === 'welcome'}
-                    onToggleSpeech={() => handleToggleSpeech('welcome', welcomeText)}
-                  />
+              <Ionicons name="sparkles" size={18} color="#FFFFFF" />
+            </LinearGradient>
+            <View style={[styles.liveBadge, { borderColor: headerBg }]}>
+              <View style={styles.liveDot} />
+            </View>
+          </View>
 
-                  {/* Suggested Questions */}
-                  {quickSuggestions.length > 0 ? (
-                    <View style={styles.suggestionsWrapper}>
-                      <View style={styles.suggestionsHeader}>
-                        <Ionicons name="sparkles" size={12} color="#F59E0B" style={{ marginRight: 5 }} />
-                        <Text style={[styles.suggestionsTitle, { color: subtextColor }]}>
-                          SUGGESTED QUESTIONS
-                        </Text>
-                      </View>
+          {/* Title & Role Info */}
+          <View style={styles.headerInfo}>
+            <View style={styles.titleRow}>
+              <Text style={[styles.headerTitle, { color: textColor }]}>SpeakMate Assistant</Text>
+              <View
+                style={[
+                  styles.aiPill,
+                  {
+                    backgroundColor: isDark ? '#312E81' : '#EEF2FF',
+                    borderColor: isDark ? '#4338CA' : '#C7D2FE',
+                  },
+                ]}
+              >
+                <Text style={[styles.aiPillText, { color: isDark ? '#A5B4FC' : '#4F46E5' }]}>AI</Text>
+              </View>
+            </View>
 
-                      <View style={styles.suggestionsList}>
-                        {quickSuggestions.map((question, index) => (
-                          <TouchableOpacity
-                            key={`${question}-${index}`}
-                            activeOpacity={0.7}
-                            onPress={() => handleSend(question)}
-                            disabled={loading}
-                            style={[
-                              styles.suggestionButton,
-                              {
-                                backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
-                                borderColor: isDark ? '#334155' : '#E2E8F0',
-                              },
-                            ]}
-                          >
-                            <Text style={[styles.suggestionText, { color: textColor }]} numberOfLines={2}>
-                              {question}
-                            </Text>
-                            <Ionicons name="arrow-forward" size={14} color="#6366F1" />
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    </View>
-                  ) : null}
-                </View>
-              ) : (
-                <>
-                  {messages.map((msg) => (
-                    <MessageBubble
-                      key={msg.id}
-                      message={msg}
-                      role={role}
-                      onClose={handleClose}
-                      isSpeaking={speakingMessageId === msg.id}
-                      onToggleSpeech={() => handleToggleSpeech(msg.id, msg.content)}
-                    />
-                  ))}
+            <View style={styles.statusRow}>
+              <Text style={[styles.roleText, { color: subtextColor }]}>{roleTitle}</Text>
+              <Text style={[styles.dotDivider, { color: subtextColor }]}>•</Text>
+              <Text style={styles.onlineText}>Online</Text>
+            </View>
+          </View>
 
-                  {/* Thinking / Typing Indicator */}
-                  {loading ? (
-                    <View style={styles.thinkingContainer}>
-                      <View
+          {/* Header Action Buttons */}
+          <View style={styles.headerActions}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={onResetChat}
+              style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+              accessibilityLabel="Reset conversation"
+            >
+              <Ionicons name="trash-outline" size={18} color={isDark ? '#94A3B8' : '#64748B'} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleClose}
+              style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+              accessibilityLabel="Close assistant"
+            >
+              <Ionicons name="close" size={20} color={isDark ? '#F1F5F9' : '#1E293B'} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Error Banner */}
+        {error ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="alert-circle" size={16} color="#EF4444" style={{ marginRight: 6 }} />
+            <Text style={styles.errorText} numberOfLines={2}>
+              {error}
+            </Text>
+            <TouchableOpacity activeOpacity={0.7} onPress={onClearError}>
+              <Ionicons name="close" size={16} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {/* Flexible Message Stream Scroll Area */}
+        <ScrollView
+          ref={scrollRef}
+          style={styles.scrollArea}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+        >
+          {isEmpty ? (
+            <View style={styles.emptyContainer}>
+              {/* Welcome Message Card */}
+              <MessageBubble
+                message={{
+                  id: 'welcome',
+                  sender: 'assistant',
+                  content: welcomeText,
+                }}
+                role={role}
+                onClose={handleClose}
+                isSpeaking={speakingMessageId === 'welcome'}
+                onToggleSpeech={() => handleToggleSpeech('welcome', welcomeText)}
+              />
+
+              {/* Suggested Questions */}
+              {quickSuggestions.length > 0 ? (
+                <View style={styles.suggestionsWrapper}>
+                  <View style={styles.suggestionsHeader}>
+                    <Ionicons name="sparkles" size={12} color="#F59E0B" style={{ marginRight: 5 }} />
+                    <Text style={[styles.suggestionsTitle, { color: subtextColor }]}>
+                      SUGGESTED QUESTIONS
+                    </Text>
+                  </View>
+
+                  <View style={styles.suggestionsList}>
+                    {quickSuggestions.map((question, index) => (
+                      <TouchableOpacity
+                        key={`${question}-${index}`}
+                        activeOpacity={0.7}
+                        onPress={() => handleSend(question)}
+                        disabled={loading}
                         style={[
-                          styles.thinkingCard,
+                          styles.suggestionButton,
                           {
-                            backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                            backgroundColor: isDark ? '#1E293B' : '#F8FAFC',
                             borderColor: isDark ? '#334155' : '#E2E8F0',
                           },
                         ]}
                       >
-                        <ActivityIndicator size="small" color="#6366F1" style={{ marginRight: 8 }} />
-                        <Text style={[styles.thinkingText, { color: subtextColor }]}>
-                          SpeakMate AI is thinking...
+                        <Text style={[styles.suggestionText, { color: textColor }]} numberOfLines={2}>
+                          {question}
                         </Text>
-                      </View>
-                    </View>
-                  ) : null}
-                </>
-              )}
-            </ScrollView>
-
-            {/* Bottom Chat Input Dock */}
-            <View style={[styles.inputDock, { backgroundColor: headerBg, borderTopColor: headerBorder }]}>
-              <View style={[styles.inputBar, { backgroundColor: inputBg, borderColor: inputBorder }]}>
-                <TextInput
-                  ref={inputRef}
-                  value={draft}
-                  onChangeText={setDraft}
-                  placeholder={
-                    isRecording
-                      ? 'Listening... Auto-sends when you finish'
-                      : loading
-                      ? 'Thinking...'
-                      : 'Ask SpeakMate Assistant...'
-                  }
-                  placeholderTextColor={subtextColor}
-                  style={[styles.textInput, { color: textColor }]}
-                  editable={!loading}
-                  returnKeyType="send"
-                  onSubmitEditing={() => handleSend()}
-                />
-
-                {/* Speech-to-text Microphone Button */}
-                <TouchableOpacity
-                  activeOpacity={0.75}
-                  onPress={handleToggleRecording}
-                  disabled={loading}
-                  style={[styles.micBtn, isRecording && styles.micBtnActive]}
-                  accessibilityLabel={isRecording ? 'Stop voice recording' : 'Voice input'}
-                >
-                  <Ionicons
-                    name={isRecording ? 'mic' : 'mic-outline'}
-                    size={18}
-                    color={isRecording ? '#FFFFFF' : isDark ? '#94A3B8' : '#64748B'}
-                  />
-                </TouchableOpacity>
-
-                {/* Send Button */}
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => handleSend()}
-                  disabled={loading || !draft.trim()}
-                  style={[styles.sendBtn, (!draft.trim() || loading) && styles.sendBtnDisabled]}
-                  accessibilityLabel="Send question"
-                >
-                  {loading ? (
-                    <ActivityIndicator size="small" color="#FFFFFF" />
-                  ) : (
-                    <Ionicons name="send" size={14} color="#FFFFFF" style={{ marginLeft: 2 }} />
-                  )}
-                </TouchableOpacity>
-              </View>
-
-              {/* Micro AI Disclaimer */}
-              <Text style={[styles.disclaimerText, { color: subtextColor }]}>
-                Powered by SpeakMate AI • Grounded Academic Assistant
-              </Text>
+                        <Ionicons name="arrow-forward" size={14} color="#6366F1" />
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+              ) : null}
             </View>
+          ) : (
+            <>
+              {messages.map((msg) => (
+                <MessageBubble
+                  key={msg.id}
+                  message={msg}
+                  role={role}
+                  onClose={handleClose}
+                  isSpeaking={speakingMessageId === msg.id}
+                  onToggleSpeech={() => handleToggleSpeech(msg.id, msg.content)}
+                />
+              ))}
+
+              {/* Thinking / Typing Indicator */}
+              {loading ? (
+                <View style={styles.thinkingContainer}>
+                  <View
+                    style={[
+                      styles.thinkingCard,
+                      {
+                        backgroundColor: isDark ? '#1E293B' : '#FFFFFF',
+                        borderColor: isDark ? '#334155' : '#E2E8F0',
+                      },
+                    ]}
+                  >
+                    <ActivityIndicator size="small" color="#6366F1" style={{ marginRight: 8 }} />
+                    <Text style={[styles.thinkingText, { color: subtextColor }]}>
+                      SpeakMate AI is thinking...
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
+            </>
+          )}
+        </ScrollView>
+
+        {/* Bottom Chat Input Dock */}
+        <View
+          style={[
+            styles.inputDock,
+            {
+              backgroundColor: headerBg,
+              borderTopColor: headerBorder,
+              paddingBottom: inputDockPaddingBottom,
+            },
+          ]}
+        >
+          <View style={[styles.inputBar, { backgroundColor: inputBg, borderColor: inputBorder }]}>
+            <TextInput
+              ref={inputRef}
+              value={draft}
+              onChangeText={setDraft}
+              placeholder={
+                isRecording
+                  ? 'Listening... Auto-sends when you finish'
+                  : loading
+                  ? 'Thinking...'
+                  : 'Ask SpeakMate Assistant...'
+              }
+              placeholderTextColor={subtextColor}
+              style={[styles.textInput, { color: textColor }]}
+              editable={!loading}
+              multiline={true}
+              maxHeight={90}
+              returnKeyType={draft.trim().length > 0 ? 'send' : 'default'}
+              onSubmitEditing={() => {
+                if (draft.trim()) {
+                  handleSend();
+                }
+              }}
+              onFocus={() => {
+                setTimeout(() => {
+                  scrollRef.current?.scrollToEnd({ animated: true });
+                }, 150);
+              }}
+            />
+
+            {/* Speech-to-text Microphone Button */}
+            <TouchableOpacity
+              activeOpacity={0.75}
+              onPress={handleToggleRecording}
+              disabled={loading}
+              style={[styles.micBtn, isRecording && styles.micBtnActive]}
+              accessibilityLabel={isRecording ? 'Stop voice recording' : 'Voice input'}
+            >
+              <Ionicons
+                name={isRecording ? 'mic' : 'mic-outline'}
+                size={18}
+                color={isRecording ? '#FFFFFF' : isDark ? '#94A3B8' : '#64748B'}
+              />
+            </TouchableOpacity>
+
+            {/* Send Button */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => handleSend()}
+              disabled={loading || !draft.trim()}
+              style={[styles.sendBtn, (!draft.trim() || loading) && styles.sendBtnDisabled]}
+              accessibilityLabel="Send question"
+            >
+              {loading ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Ionicons name="send" size={14} color="#FFFFFF" style={{ marginLeft: 2 }} />
+              )}
+            </TouchableOpacity>
           </View>
-        </Animated.View>
-      </KeyboardAvoidingView>
-    </View>
+
+          {/* Micro AI Disclaimer */}
+          <Text style={[styles.disclaimerText, { color: subtextColor }]}>
+            Powered by SpeakMate AI • Grounded Academic Assistant
+          </Text>
+        </View>
+      </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   overlayContainer: {
     ...StyleSheet.absoluteFillObject,
-    justifyContent: 'flex-end',
-    zIndex: 9999,
-    elevation: Platform.OS === 'android' ? 24 : 0,
-  },
-  backdropTouchArea: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1,
-  },
-  sheetWrapper: {
     width: '100%',
-    justifyContent: 'flex-end',
-    zIndex: 10,
-    elevation: 24,
+    height: '100%',
+    zIndex: 99999,
+    elevation: Platform.OS === 'android' ? 999 : 0,
   },
-  sheetContainer: {
-    width: '100%',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    elevation: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -6 },
-    shadowOpacity: 0.18,
-    shadowRadius: 16,
-    // Note: No overflow: 'hidden' here to avoid Android HardwareRenderer elevation bug
-  },
-  sheetContent: {
+  fullScreenWrapper: {
     flex: 1,
     width: '100%',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderWidth: 1,
-    borderBottomWidth: 0,
-    overflow: 'hidden',
+    height: '100%',
   },
   scrollArea: {
     flex: 1,
-    minHeight: 180,
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -748,25 +762,14 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   topAccentBar: {
-    height: 4,
+    height: 3,
     width: '100%',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-  },
-  handleRow: {
-    alignItems: 'center',
-    paddingVertical: 5,
-  },
-  handlePill: {
-    width: 38,
-    height: 4,
-    borderRadius: 2,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
   },
   avatarBox: {
