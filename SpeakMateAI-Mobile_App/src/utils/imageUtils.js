@@ -2,13 +2,12 @@
  * Image processing utilities for profile avatars.
  *
  * Enforces the Mobile <-> Backend contract:
- * - Uses native ImagePicker built-in cropping (1:1 square) and compression (quality: 0.2, base64: true).
- *   Native ImagePicker (UCrop) produces a ~18 KB - 28 KB clean avatar, running natively in the existing dev-client APK.
+ * - Uses native ImagePicker built-in cropping (1:1 square) and compression (quality: 0.65, base64: true).
  * - Formats to clean Base64 data URI (data:image/jpeg;base64,...).
- * - Validates that payload size stays strictly under 64 KB (65,536 characters).
+ * - Validates that payload size stays strictly under 500 KB (512,000 characters).
  */
 
-export const MAX_AVATAR_PAYLOAD_CHARS = 65536; // 64 KB backend contract
+export const MAX_AVATAR_PAYLOAD_CHARS = 500 * 1024; // 500 KB limit (512,000 chars)
 
 /**
  * Validates and formats a selected image for use as a profile avatar.
@@ -55,10 +54,10 @@ export async function prepareAvatarAsync(imageUri, pickerBase64 = null) {
   const sizeChars = dataUri.length;
   const approxKb = Math.round(sizeChars / 1024);
 
-  // Validate contract limit before sending (strict 64 KB backend limit)
+  // Validate contract limit before sending (strict 500 KB limit)
   if (sizeChars > MAX_AVATAR_PAYLOAD_CHARS) {
     throw new Error(
-      `Avatar payload (${approxKb} KB) exceeds the maximum allowed limit (64 KB). Please crop closer or choose a simpler photo.`
+      `Avatar payload (${approxKb} KB) exceeds the maximum allowed limit (500 KB). Please crop closer or choose a simpler photo.`
     );
   }
 

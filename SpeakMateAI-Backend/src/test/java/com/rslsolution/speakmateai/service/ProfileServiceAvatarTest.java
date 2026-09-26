@@ -62,16 +62,16 @@ public class ProfileServiceAvatarTest {
     }
 
     @Test
-    @DisplayName("Valid ~20 KB base64 avatar within 64 KB limit updates successfully")
+    @DisplayName("Valid ~50 KB base64 avatar within 500 KB limit updates successfully")
     public void testValidBase64AvatarUpdatesSuccessfully() {
-        byte[] dummyImageBytes = new byte[15 * 1024]; // 15 KB binary
+        byte[] dummyImageBytes = new byte[35 * 1024]; // 35 KB binary (~47 KB base64)
         for (int i = 0; i < dummyImageBytes.length; i++) {
             dummyImageBytes[i] = (byte) (i % 128);
         }
         String base64Encoded = Base64.getEncoder().encodeToString(dummyImageBytes);
         String dataUri = "data:image/jpeg;base64," + base64Encoded;
 
-        assertTrue(dataUri.length() < ProfileServiceImpl.MAX_AVATAR_LENGTH, "Payload should be under 64 KB");
+        assertTrue(dataUri.length() < ProfileServiceImpl.MAX_AVATAR_LENGTH, "Payload should be under 500 KB");
 
         AvatarRequest request = new AvatarRequest();
         request.setAvatar(dataUri);
@@ -84,13 +84,13 @@ public class ProfileServiceAvatarTest {
     }
 
     @Test
-    @DisplayName("Oversized avatar (> 64 KB) throws IllegalArgumentException with specific message")
+    @DisplayName("Oversized avatar (> 500 KB) throws IllegalArgumentException with specific message")
     public void testOversizedAvatarThrowsException() {
-        byte[] largeBytes = new byte[55 * 1024]; // ~73 KB Base64
+        byte[] largeBytes = new byte[400 * 1024]; // ~533 KB Base64
         String largeBase64 = Base64.getEncoder().encodeToString(largeBytes);
         String oversizedDataUri = "data:image/jpeg;base64," + largeBase64;
 
-        assertTrue(oversizedDataUri.length() > ProfileServiceImpl.MAX_AVATAR_LENGTH, "Payload must exceed 64 KB");
+        assertTrue(oversizedDataUri.length() > ProfileServiceImpl.MAX_AVATAR_LENGTH, "Payload must exceed 500 KB");
 
         AvatarRequest request = new AvatarRequest();
         request.setAvatar(oversizedDataUri);
@@ -99,7 +99,7 @@ public class ProfileServiceAvatarTest {
             profileService.updateAvatar(request);
         });
 
-        assertTrue(ex.getMessage().contains("64 KB"), "Error message must mention 64 KB limit");
+        assertTrue(ex.getMessage().contains("500 KB"), "Error message must mention 500 KB limit");
     }
 
     @Test

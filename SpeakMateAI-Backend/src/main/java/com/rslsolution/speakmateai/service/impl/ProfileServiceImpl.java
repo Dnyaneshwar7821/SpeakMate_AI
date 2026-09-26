@@ -146,7 +146,7 @@ public class ProfileServiceImpl implements ProfileService {
 		return mapToProfileResponse(updatedUser);
 	}
 
-	public static final int MAX_AVATAR_LENGTH = 2 * 1024 * 1024; // 2 MB limit
+	public static final int MAX_AVATAR_LENGTH = 500 * 1024; // 500 KB limit
 
 	private void validateAvatarPayload(String avatar) {
 		if (avatar == null || avatar.trim().isEmpty()) {
@@ -154,7 +154,7 @@ public class ProfileServiceImpl implements ProfileService {
 		}
 		String trimmed = avatar.trim();
 		if (trimmed.length() > MAX_AVATAR_LENGTH) {
-			throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (2 MB). Please upload a compressed image.");
+			throw new IllegalArgumentException("Avatar data exceeds maximum allowed size (500 KB). Please upload a compressed image.");
 		}
 		if (trimmed.startsWith("data:")) {
 			int commaIdx = trimmed.indexOf(',');

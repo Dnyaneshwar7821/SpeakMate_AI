@@ -113,10 +113,10 @@ async function runBackup() {
       const rowsRes = await client.query(`SELECT * FROM "${table}";`);
       const rows = rowsRes.rows;
 
-      // Sanitize any oversize avatar string (> 64 KB) in memory
+      // Sanitize any oversize avatar string (> 500 KB) in memory
       let sanitizedCount = 0;
       for (const row of rows) {
-        if (row.avatar && typeof row.avatar === 'string' && row.avatar.length > 65536) {
+        if (row.avatar && typeof row.avatar === 'string' && row.avatar.length > 512000) {
           row.avatar = '';
           sanitizedCount++;
         }

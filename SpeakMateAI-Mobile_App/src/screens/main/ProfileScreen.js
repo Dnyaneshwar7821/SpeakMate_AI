@@ -544,7 +544,7 @@ export default function ProfileScreen({ navigation }) {
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 0.2,
+        quality: 0.65,
         base64: true,
       });
 
