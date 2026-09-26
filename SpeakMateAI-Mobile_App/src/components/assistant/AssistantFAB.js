@@ -12,6 +12,28 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
+
+// Exact Lucide MessageCircleMore icon matching SpeakMate AI Web App
+function MessageCircleMoreIcon({ size = 26, color = '#FFFFFF' }) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="rgba(255, 255, 255, 0.12)"
+      stroke={color}
+      strokeWidth={2.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <Path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" />
+      <Path d="M8 12h.01" strokeWidth={2.8} />
+      <Path d="M12 12h.01" strokeWidth={2.8} />
+      <Path d="M16 12h.01" strokeWidth={2.8} />
+    </Svg>
+  );
+}
 
 const FAB_SIZE = 56;
 const MARGIN = 16;
@@ -208,19 +230,26 @@ export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true, v
         accessibilityRole="button"
         accessibilityLabel="Open SpeakMate AI Assistant"
       >
-        {/* Glow halo */}
+        {/* Glow halo matching web app */}
         <View style={styles.glow} />
 
         <LinearGradient
-          colors={['#4F46E5', '#6366F1', '#7C3AED']}
+          colors={['#7C3AED', '#9333EA', '#A855F7']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.fab}
         >
+          {/* Subtle Inner Glass Top Highlight like web app */}
+          <LinearGradient
+            colors={['rgba(255, 255, 255, 0.32)', 'rgba(255, 255, 255, 0.06)', 'transparent']}
+            style={styles.glassHighlight}
+            pointerEvents="none"
+          />
+
           {loading ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Ionicons name="chatbubble-ellipses" size={24} color="#FFFFFF" />
+            <MessageCircleMoreIcon size={26} color="#FFFFFF" />
           )}
 
           {/* Online green indicator badge */}
@@ -248,14 +277,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  glassHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: (FAB_SIZE - 2) * 0.45,
+    borderTopLeftRadius: (FAB_SIZE - 2) / 2,
+    borderTopRightRadius: (FAB_SIZE - 2) / 2,
+  },
   glow: {
     position: 'absolute',
     width: FAB_SIZE,
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
-    backgroundColor: '#6366F1',
+    backgroundColor: '#9333EA',
     opacity: 0.35,
-    transform: [{ scale: 1.15 }],
+    transform: [{ scale: 1.18 }],
   },
   fab: {
     width: FAB_SIZE - 2,
@@ -263,22 +301,28 @@ const styles = StyleSheet.create({
     borderRadius: (FAB_SIZE - 2) / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowColor: '#9333EA',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.40,
+    shadowRadius: 10,
+    elevation: 8,
+    overflow: 'hidden',
   },
   onlineBadge: {
     position: 'absolute',
     top: 2,
     right: 2,
-    width: 13,
-    height: 13,
-    borderRadius: 6.5,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   onlineDot: {
     width: 9,
