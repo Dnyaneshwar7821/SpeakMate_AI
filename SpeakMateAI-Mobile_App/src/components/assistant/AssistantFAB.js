@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
-// Professional Dual-Bubble Dialogue icon matching SpeakMate AI Web App
+// Professional Dual-Bubble Dialogue icon with smooth organic curves matching the mobile app
 function DualBubbleDialogueIcon({ size = 26, color = '#FFFFFF' }) {
   return (
     <Svg
@@ -23,18 +23,27 @@ function DualBubbleDialogueIcon({ size = 26, color = '#FFFFFF' }) {
       viewBox="0 0 24 24"
       fill="none"
       stroke={color}
-      strokeWidth={2.2}
+      strokeWidth={2}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      {/* Background companion bubble */}
       <Path
-        d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
-        fill="rgba(255, 255, 255, 0.16)"
+        d="M8.5 7.5A4.5 4.5 0 0 1 13 3h4a4.5 4.5 0 0 1 4.5 4.5v2a4.5 4.5 0 0 1-4.5 4.5h-.7l-2.4 2.1a.6.6 0 0 1-1-.45V14H13a4.5 4.5 0 0 1-4.5-4.5v-2z"
+        fill="rgba(255, 255, 255, 0.12)"
+        stroke={color}
+        strokeWidth={1.8}
       />
+      {/* Foreground primary bubble */}
       <Path
-        d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"
-        fill="rgba(255, 255, 255, 0.08)"
+        d="M2.5 12A4.5 4.5 0 0 1 7 7.5h5A4.5 4.5 0 0 1 16.5 12v2.5a4.5 4.5 0 0 1-4.5 4.5h-.8l-3.2 2.6a.6.6 0 0 1-1-.45V19H7a4.5 4.5 0 0 1-4.5-4.5V12z"
+        fill="rgba(255, 255, 255, 0.22)"
+        stroke={color}
+        strokeWidth={2.2}
       />
+      {/* Dialogue speech lines inside primary bubble */}
+      <Path d="M6.5 12.5h5.5" stroke={color} strokeWidth={2} />
+      <Path d="M6.5 15.5h3.5" stroke={color} strokeWidth={2} />
     </Svg>
   );
 }
@@ -234,18 +243,18 @@ export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true, v
         accessibilityRole="button"
         accessibilityLabel="Open SpeakMate AI Assistant"
       >
-        {/* Glow halo matching web app */}
+        {/* Glow halo matching mobile electric indigo palette */}
         <View style={styles.glow} />
 
         <LinearGradient
-          colors={['#7C3AED', '#9333EA', '#A855F7']}
+          colors={['#4338CA', '#4F46E5', '#6366F1']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.fab}
         >
-          {/* Subtle Inner Glass Top Highlight like web app */}
+          {/* Subtle Inner Glass Top Highlight matching mobile app */}
           <LinearGradient
-            colors={['rgba(255, 255, 255, 0.32)', 'rgba(255, 255, 255, 0.06)', 'transparent']}
+            colors={['rgba(255, 255, 255, 0.35)', 'rgba(255, 255, 255, 0.08)', 'transparent']}
             style={styles.glassHighlight}
             pointerEvents="none"
           />
@@ -290,9 +299,9 @@ const styles = StyleSheet.create({
     width: FAB_SIZE,
     height: FAB_SIZE,
     borderRadius: FAB_SIZE / 2,
-    backgroundColor: '#9333EA',
-    opacity: 0.35,
-    transform: [{ scale: 1.18 }],
+    backgroundColor: '#4F46E5',
+    opacity: 0.30,
+    transform: [{ scale: 1.16 }],
   },
   fab: {
     width: FAB_SIZE - 2,
@@ -300,7 +309,7 @@ const styles = StyleSheet.create({
     borderRadius: (FAB_SIZE - 2) / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#9333EA',
+    shadowColor: '#4338CA',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.40,
     shadowRadius: 10,
