@@ -272,7 +272,7 @@ export const syncBackendProgress = (backendData, userContext = null) => {
     : Number(current.wordsLearned || 0);
 
   const finalSessions = rawBackendSessions !== undefined && rawBackendSessions !== null
-    ? Math.max(Number(current.speakingSessions || 0), Number(rawBackendSessions))
+    ? Number(rawBackendSessions)
     : Number(current.speakingSessions || 0);
 
   const finalGrammar = rawBackendGrammar !== undefined && rawBackendGrammar !== null

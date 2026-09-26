@@ -99,11 +99,11 @@ public class ProgressServiceImpl implements ProgressService {
 			dirty = true;
 		}
 
-		int liveSpeakingSessions = (int) speakingSessionRepository.countByUser(user);
+		int liveSpeakingSessions = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
 		int liveVocabWords = (int) vocabularyRepository.countByUser(user);
 		int liveGrammarChecks = (int) grammarHistoryRepository.countByUserId(user.getId());
 
-		if (progress.getTotalSpeakingSessions() == null || progress.getTotalSpeakingSessions() < liveSpeakingSessions) {
+		if (progress.getTotalSpeakingSessions() == null || !progress.getTotalSpeakingSessions().equals(liveSpeakingSessions)) {
 			progress.setTotalSpeakingSessions(liveSpeakingSessions);
 			dirty = true;
 		}
@@ -158,7 +158,9 @@ public class ProgressServiceImpl implements ProgressService {
 		progress.setCurrentStreak(request.getCurrentStreak());
 		progress.setLongestStreak(request.getLongestStreak());
 		progress.setTotalPracticeMinutes(request.getTotalPracticeMinutes());
-		progress.setTotalSpeakingSessions(request.getTotalSpeakingSessions());
+		// Total speaking sessions is authoritative from completed speaking sessions in DB
+		int completedSpeaking = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+		progress.setTotalSpeakingSessions(completedSpeaking);
 		progress.setTotalGrammarChecks(request.getTotalGrammarChecks());
 		progress.setTotalVocabularyWords(request.getTotalVocabularyWords());
 

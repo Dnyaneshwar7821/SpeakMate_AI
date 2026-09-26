@@ -603,17 +603,19 @@ public class StudentServiceImpl implements StudentService {
             try {
                 List<com.rslsolution.speakmateai.entity.SpeakingSession> sessions = speakingSessionRepository
                         .findByUser(user);
-                if (sessions != null && !sessions.isEmpty()) {
-                    if (speakingSessions == 0)
-                        speakingSessions = sessions.size();
-                    averageScore = sessions.stream().filter(s -> s.getScore() != null)
+                    int completedCount = (int) sessions.stream()
+                            .filter(s -> Boolean.TRUE.equals(s.getCompleted()))
+                            .count();
+                    speakingSessions = completedCount;
+                    averageScore = sessions.stream()
+                            .filter(s -> Boolean.TRUE.equals(s.getCompleted()) && s.getScore() != null && s.getScore() > 0)
                             .mapToDouble(com.rslsolution.speakmateai.entity.SpeakingSession::getScore).average()
                             .orElse(0.0);
                     if (practiceMinutes == 0) {
-                        practiceMinutes = sessions.stream().filter(s -> s.getDuration() != null)
+                        practiceMinutes = sessions.stream()
+                                .filter(s -> Boolean.TRUE.equals(s.getCompleted()) && s.getDuration() != null)
                                 .mapToInt(com.rslsolution.speakmateai.entity.SpeakingSession::getDuration).sum() / 60;
                     }
-                }
             } catch (Exception ignored) {
             }
         }

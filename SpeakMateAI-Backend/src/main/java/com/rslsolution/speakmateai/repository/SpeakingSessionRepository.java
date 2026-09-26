@@ -55,12 +55,29 @@ public interface SpeakingSessionRepository extends JpaRepository<SpeakingSession
 	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.user.id = :userId AND s.createdAt BETWEEN :start AND :end")
 	long countByUserIdAndCreatedAtBetween(@Param("userId") Long userId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-	@Query("SELECT s FROM SpeakingSession s WHERE s.user.schoolId = :schoolId AND s.createdAt BETWEEN :start AND :end")
+	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true AND s.createdAt BETWEEN :start AND :end")
+	long countByUserIdAndCompletedTrueAndCreatedAtBetween(@Param("userId") Long userId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+	@Query("SELECT s FROM SpeakingSession s WHERE s.user.schoolId = :schoolId AND s.completed = true AND s.createdAt BETWEEN :start AND :end")
 	List<SpeakingSession> findSchoolSessionsBetween(@Param("schoolId") Long schoolId, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
-	@Query("SELECT COALESCE(AVG(s.overallScore), 0.0) FROM SpeakingSession s")
+	@Query("SELECT COALESCE(AVG(s.overallScore), 0.0) FROM SpeakingSession s WHERE s.completed = true")
 	Double getAverageSpeakingScore();
-    // Count total speaking sessions for a user
-    long countByUser(com.rslsolution.speakmateai.entity.User user);
+
+	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.completed = true")
+	long countAllCompletedSessions();
+
+	// Count completed speaking sessions for a user
+	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.user = :user AND s.completed = true")
+	long countByUserAndCompletedTrue(@Param("user") com.rslsolution.speakmateai.entity.User user);
+
+	@Query("SELECT s FROM SpeakingSession s WHERE s.user = :user AND s.completed = true ORDER BY s.createdAt DESC")
+	List<SpeakingSession> findByUserAndCompletedTrueOrderByCreatedAtDesc(@Param("user") com.rslsolution.speakmateai.entity.User user);
+
+	@Query("SELECT s FROM SpeakingSession s WHERE s.user = :user AND s.completed = true")
+	List<SpeakingSession> findByUserAndCompletedTrue(@Param("user") com.rslsolution.speakmateai.entity.User user);
+
+	// Count total speaking sessions for a user (including uncompleted)
+	long countByUser(com.rslsolution.speakmateai.entity.User user);
 
 }

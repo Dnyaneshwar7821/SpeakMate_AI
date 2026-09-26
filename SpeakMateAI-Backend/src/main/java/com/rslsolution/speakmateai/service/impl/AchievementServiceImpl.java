@@ -28,14 +28,17 @@ public class AchievementServiceImpl implements AchievementService {
 	private final UserRepository userRepository;
 	private final com.rslsolution.speakmateai.repository.ProgressRepository progressRepository;
 	private final NotificationService notificationService;
+	private final com.rslsolution.speakmateai.repository.SpeakingSessionRepository speakingSessionRepository;
 
 	public AchievementServiceImpl(AchievementRepository achievementRepository, UserRepository userRepository,
 			com.rslsolution.speakmateai.repository.ProgressRepository progressRepository,
-			NotificationService notificationService) {
+			NotificationService notificationService,
+			com.rslsolution.speakmateai.repository.SpeakingSessionRepository speakingSessionRepository) {
 		this.achievementRepository = achievementRepository;
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
 		this.notificationService = notificationService;
+		this.speakingSessionRepository = speakingSessionRepository;
 	}
 
 	@Override
@@ -84,13 +87,22 @@ public class AchievementServiceImpl implements AchievementService {
 		com.rslsolution.speakmateai.entity.Progress progress = progressRepository.findByUser(user)
 				.orElseGet(() -> com.rslsolution.speakmateai.entity.Progress.builder().user(user).xp(0).level(1).currentStreak(0).longestStreak(0).totalPracticeMinutes(0).totalSpeakingSessions(0).totalGrammarChecks(0).totalVocabularyWords(0).build());
 
+		// Synchronize speaking sessions with verified completed sessions count
+		if (speakingSessionRepository != null) {
+			int liveSpeakingSessions = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+			if (progress.getTotalSpeakingSessions() == null || !progress.getTotalSpeakingSessions().equals(liveSpeakingSessions)) {
+				progress.setTotalSpeakingSessions(liveSpeakingSessions);
+				progressRepository.save(progress);
+			}
+		}
+
 		boolean progressUpdated = false;
 
 		for (Achievement achievement : userAchievements) {
 			boolean conditionMet = checkUnlockCondition(achievement, progress);
 
 			if (Boolean.TRUE.equals(achievement.getUnlocked())) {
-				// Re-validate in case speaking achievement was falsely unlocked with 0 valid sessions
+				// Re-validate in case speaking achievement was falsely unlocked with 0 or insufficient valid sessions
 				if (!conditionMet && isProgressDependent(achievement, progress)) {
 					achievement.setUnlocked(false);
 					achievement.setUnlockedAt(null);

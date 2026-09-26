@@ -151,10 +151,10 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 
 		// 2. Speaking sessions & evaluation scores
 		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(s);
-		int totalSpeakingSessions = sessions.size();
 		int completedSpeakingSessions = (int) sessions.stream()
 				.filter(ss -> Boolean.TRUE.equals(ss.getCompleted()))
 				.count();
+		int totalSpeakingSessions = completedSpeakingSessions;
 
 		double totalFluency = 0;
 		double totalPronunciation = 0;
@@ -165,7 +165,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 
 		for (SpeakingSession ss : sessions) {
 			double overall = ss.getOverallScore() != null ? ss.getOverallScore() : (ss.getScore() != null ? ss.getScore() : 0.0);
-			if (Boolean.TRUE.equals(ss.getCompleted()) || overall > 0.0) {
+			if (Boolean.TRUE.equals(ss.getCompleted()) && overall > 0.0) {
 				scoredCount++;
 				if (ss.getFluencyScore() != null) totalFluency += ss.getFluencyScore();
 				if (ss.getPronunciationScore() != null) totalPronunciation += ss.getPronunciationScore();
@@ -182,6 +182,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		double avgOverall = scoredCount > 0 ? Math.round((totalOverall / scoredCount) * 10.0) / 10.0 : 0.0;
 
 		data.put("totalSpeakingSessions", totalSpeakingSessions);
+		data.put("attemptedSpeakingSessions", sessions.size());
 		data.put("completedSpeakingSessions", completedSpeakingSessions);
 		if (scoredCount > 0) {
 			data.put("overallSpeakingScore", avgOverall);

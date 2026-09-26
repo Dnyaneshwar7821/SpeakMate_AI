@@ -184,13 +184,13 @@ public class StudentProgressAnalyticsServiceImpl implements StudentProgressAnaly
             speakingSessions = Collections.emptyList();
         }
 
-        int totalSpeakingSessions = speakingSessions.size();
         int completedSpeakingSessions = (int) speakingSessions.stream()
                 .filter(s -> Boolean.TRUE.equals(s.getCompleted()))
                 .count();
+        int totalSpeakingSessions = completedSpeakingSessions;
 
         int totalSpeakingSeconds = speakingSessions.stream()
-                .filter(s -> s.getDuration() != null)
+                .filter(s -> Boolean.TRUE.equals(s.getCompleted()) && s.getDuration() != null)
                 .mapToInt(SpeakingSession::getDuration)
                 .sum();
         int totalSpeakingMinutes = totalSpeakingSeconds / 60;
@@ -1109,14 +1109,15 @@ public class StudentProgressAnalyticsServiceImpl implements StudentProgressAnaly
 
     private boolean isEvaluatedSpeakingSession(SpeakingSession s) {
         if (s == null) return false;
+        if (!Boolean.TRUE.equals(s.getCompleted())) return false;
         if (s.getOverallScore() != null && s.getOverallScore() > 0) return true;
-        return Boolean.TRUE.equals(s.getCompleted()) && s.getScore() != null && s.getScore() > 0;
+        return s.getScore() != null && s.getScore() > 0;
     }
 
     private Double getEvaluatedSpeakingScore(SpeakingSession s) {
-        if (s == null) return null;
+        if (s == null || !Boolean.TRUE.equals(s.getCompleted())) return null;
         if (s.getOverallScore() != null && s.getOverallScore() > 0) return s.getOverallScore();
-        if (Boolean.TRUE.equals(s.getCompleted()) && s.getScore() != null && s.getScore() > 0) return s.getScore();
+        if (s.getScore() != null && s.getScore() > 0) return s.getScore();
         return null;
     }
 }

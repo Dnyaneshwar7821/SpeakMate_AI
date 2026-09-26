@@ -463,7 +463,7 @@ public class TeacherServiceImpl implements TeacherService {
 
 	private ProfileResponse buildProfileResponse(User user, Progress progress) {
 		int xp = (progress != null && progress.getXp() != null) ? progress.getXp() : 0;
-		int liveSpeaking = (int) speakingSessionRepository.countByUser(user);
+		int liveSpeaking = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
 		int liveGrammar = (int) grammarHistoryRepository.countByUserId(user.getId());
 		int liveVocab = (int) vocabularyRepository.countByUser(user);
 
@@ -1042,10 +1042,10 @@ public class TeacherServiceImpl implements TeacherService {
 		ProfileResponse profile = buildProfileResponse(student, progress);
 
 		List<SpeakingSession> allStudentSessions = speakingSessionRepository.findByUser(student);
-		int totalSpeakingSessions = allStudentSessions.size();
 		int completedSpeakingSessions = (int) allStudentSessions.stream()
 				.filter(s -> Boolean.TRUE.equals(s.getCompleted()))
 				.count();
+		int totalSpeakingSessions = completedSpeakingSessions;
 		int totalVocabularyWords = (int) vocabularyRepository.countByUser(student);
 		int totalGrammarChecks = (int) grammarHistoryRepository.countByUserId(student.getId());
 
@@ -1374,7 +1374,7 @@ public class TeacherServiceImpl implements TeacherService {
 			boolean isActive = student.getStatus() == Status.ACTIVE;
 			if (isActive) activeStudentsCount++;
 
-			int weeklySessions = (int) speakingSessionRepository.countByUserIdAndCreatedAtBetween(student.getId(), sevenDaysAgo, LocalDateTime.now());
+			int weeklySessions = (int) speakingSessionRepository.countByUserIdAndCompletedTrueAndCreatedAtBetween(student.getId(), sevenDaysAgo, LocalDateTime.now());
 			int weeklyGrammar = (int) grammarHistoryRepository.countByUserIdAndCreatedAtBetween(student.getId(), sevenDaysAgo, LocalDateTime.now());
 			boolean practicedThisWeek = (weeklySessions > 0 || weeklyGrammar > 0);
 			if (practicedThisWeek) practicingStudentsCount++;

@@ -97,7 +97,7 @@ public class PlatformDataProvider implements AssistantDataProvider {
 		data.put("totalRevenueFromPayments", paymentRepository.sumTotalRevenue());
 		data.put("totalRevenueFromSubscriptions", userSubscriptionRepository.sumTotalRevenue());
 		data.put("activeSubscriptionPlans", subscriptionPlanRepository.countByIsActiveTrue());
-		data.put("totalSpeakingSessions", speakingSessionRepository != null ? speakingSessionRepository.count() : 0);
+		data.put("totalSpeakingSessions", speakingSessionRepository != null ? speakingSessionRepository.countAllCompletedSessions() : 0);
 
 		if (studentRepository != null && progressRepository != null) {
 			List<Student> students = studentRepository.findAll();

@@ -273,19 +273,19 @@ public class StudentProgressAnalyticsServiceTest {
         when(vocabularyRepository.findByUser(sampleUser)).thenReturn(Collections.emptyList());
 
         // Active within 3 days -> ACTIVE
-        SpeakingSession recent = SpeakingSession.builder().id(1L).createdAt(LocalDateTime.now().minusDays(3)).overallScore(75.0).build();
+        SpeakingSession recent = SpeakingSession.builder().id(1L).createdAt(LocalDateTime.now().minusDays(3)).overallScore(75.0).completed(true).build();
         when(speakingSessionRepository.findByUserOrderByCreatedAtDesc(sampleUser)).thenReturn(List.of(recent));
         StudentProgressProfileResponse activeResp = analyticsService.getStudentProgressProfile(101L);
         assertEquals(ActivityStatus.ACTIVE, activeResp.getEngagement().getActivityStatus());
 
         // Active 18 days ago -> RECENTLY_ACTIVE
-        SpeakingSession medium = SpeakingSession.builder().id(2L).createdAt(LocalDateTime.now().minusDays(18)).overallScore(75.0).build();
+        SpeakingSession medium = SpeakingSession.builder().id(2L).createdAt(LocalDateTime.now().minusDays(18)).overallScore(75.0).completed(true).build();
         when(speakingSessionRepository.findByUserOrderByCreatedAtDesc(sampleUser)).thenReturn(List.of(medium));
         StudentProgressProfileResponse recentResp = analyticsService.getStudentProgressProfile(101L);
         assertEquals(ActivityStatus.RECENTLY_ACTIVE, recentResp.getEngagement().getActivityStatus());
 
         // Active 45 days ago -> INACTIVE
-        SpeakingSession old = SpeakingSession.builder().id(3L).createdAt(LocalDateTime.now().minusDays(45)).overallScore(75.0).build();
+        SpeakingSession old = SpeakingSession.builder().id(3L).createdAt(LocalDateTime.now().minusDays(45)).overallScore(75.0).completed(true).build();
         when(speakingSessionRepository.findByUserOrderByCreatedAtDesc(sampleUser)).thenReturn(List.of(old));
         StudentProgressProfileResponse inactiveResp = analyticsService.getStudentProgressProfile(101L);
         assertEquals(ActivityStatus.INACTIVE, inactiveResp.getEngagement().getActivityStatus());
@@ -426,8 +426,8 @@ public class StudentProgressAnalyticsServiceTest {
 
         // Low speaking: 2 sessions with 50% avg -> Speaking attention area
         List<SpeakingSession> sessions = List.of(
-                SpeakingSession.builder().id(1L).overallScore(50.0).createdAt(LocalDateTime.now().minusDays(1)).build(),
-                SpeakingSession.builder().id(2L).overallScore(50.0).createdAt(LocalDateTime.now().minusDays(2)).build()
+                SpeakingSession.builder().id(1L).overallScore(50.0).createdAt(LocalDateTime.now().minusDays(1)).completed(true).build(),
+                SpeakingSession.builder().id(2L).overallScore(50.0).createdAt(LocalDateTime.now().minusDays(2)).completed(true).build()
         );
         when(speakingSessionRepository.findByUserOrderByCreatedAtDesc(sampleUser)).thenReturn(sessions);
 

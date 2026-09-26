@@ -111,6 +111,13 @@ public class DashboardServiceImpl implements DashboardService {
 	public DashboardSummaryResponse getDashboardSummary() {
 		User user = getCurrentUser();
 		Progress progress = progressRepository.findByUser(user).orElse(null);
+		if (progress != null) {
+			int completedCount = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+			if (progress.getTotalSpeakingSessions() == null || !progress.getTotalSpeakingSessions().equals(completedCount)) {
+				progress.setTotalSpeakingSessions(completedCount);
+				progress = progressRepository.save(progress);
+			}
+		}
 		int xp = (progress != null) ? progress.getXp() : 0;
 		String rank;
 		if (xp < 100) rank = "Bronze III";
@@ -536,7 +543,7 @@ public class DashboardServiceImpl implements DashboardService {
 		int[] lessonsCompleted = new int[7];
 
 		for (SpeakingSession s : sessions) {
-			boolean isValid = (s.getScore() != null && s.getScore() > 0) || (s.getXpEarned() != null && s.getXpEarned() > 0) || (s.getDuration() != null && s.getDuration() >= 15);
+			boolean isValid = Boolean.TRUE.equals(s.getCompleted()) && ((s.getScore() != null && s.getScore() > 0) || (s.getXpEarned() != null && s.getXpEarned() > 0) || (s.getDuration() != null && s.getDuration() >= 15));
 			if (!isValid) continue;
 			if (s.getCreatedAt() != null) {
 				LocalDate date = s.getCreatedAt().toLocalDate();
@@ -569,30 +576,26 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public StatisticsResponse getStatistics() {
 		User user = getCurrentUser();
-		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
+		List<SpeakingSession> completedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
 		List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
 		List<GrammarHistory> grammars = grammarHistoryRepository.findByUser(user);
 		Progress progress = progressRepository.findByUser(user).orElse(null);
 		List<Lesson> lessons = lessonRepository.findByActiveTrue();
 
-		List<SpeakingSession> validSessions = sessions.stream()
-				.filter(s -> (s.getScore() != null && s.getScore() > 0) || (s.getXpEarned() != null && s.getXpEarned() > 0) || (s.getDuration() != null && s.getDuration() >= 15))
-				.toList();
-
 		int totalLessons = lessons.size();
 		int completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true).size();
-		int speakingSessions = progress != null && progress.getTotalSpeakingSessions() != null ? progress.getTotalSpeakingSessions() : validSessions.size();
+		int speakingSessions = completedSessions.size();
 		int vocabularyLearned = progress != null && progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : vocabs.size();
 		int grammarExercises = progress != null && progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : grammars.size();
 
-		int totalPracticeSeconds = validSessions.stream().mapToInt(s -> s.getDuration() != null ? s.getDuration() : 0).sum();
+		int totalPracticeSeconds = completedSessions.stream().mapToInt(s -> s.getDuration() != null ? s.getDuration() : 0).sum();
 		double totalStudyHours = Math.round((totalPracticeSeconds / 3600.0) * 10.0) / 10.0;
 
-		int currentStreak = (progress != null) ? progress.getCurrentStreak() : 0;
-		int longestStreak = (progress != null) ? progress.getLongestStreak() : 0;
+		int currentStreak = (progress != null && progress.getCurrentStreak() != null) ? progress.getCurrentStreak() : 0;
+		int longestStreak = (progress != null && progress.getLongestStreak() != null) ? progress.getLongestStreak() : 0;
 
-		double avgScoreSum = sessions.stream()
-				.filter(s -> s.getOverallScore() != null)
+		double avgScoreSum = completedSessions.stream()
+				.filter(s -> s.getOverallScore() != null && s.getOverallScore() > 0)
 				.mapToDouble(SpeakingSession::getOverallScore)
 				.average()
 				.orElse(0.0);
@@ -634,7 +637,7 @@ public class DashboardServiceImpl implements DashboardService {
 		User user = getCurrentUser();
 		List<RecentActivityResponse> activities = new ArrayList<>();
 
-		List<SpeakingSession> sessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUserAndCompletedTrueOrderByCreatedAtDesc(user);
 		for (SpeakingSession s : sessions) {
 			activities.add(RecentActivityResponse.builder()
 					.id("speaking-" + s.getId())
@@ -642,7 +645,7 @@ public class DashboardServiceImpl implements DashboardService {
 					.icon("mic")
 					.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
 					.time(s.getCreatedAt())
-					.xp(15)
+					.xp(s.getXpEarned() != null && s.getXpEarned() > 0 ? s.getXpEarned() : 15)
 					.build());
 		}
 

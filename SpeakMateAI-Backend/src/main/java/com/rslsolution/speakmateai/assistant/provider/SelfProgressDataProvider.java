@@ -153,7 +153,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		int scoredCount = 0;
 
 		for (SpeakingSession s : sessions) {
-			if (s.getOverallScore() != null || s.getScore() != null) {
+			if (Boolean.TRUE.equals(s.getCompleted()) && (s.getOverallScore() != null || s.getScore() != null)) {
 				scoredCount++;
 				if (s.getFluencyScore() != null) totalFluency += s.getFluencyScore();
 				if (s.getPronunciationScore() != null) totalPronunciation += s.getPronunciationScore();
@@ -360,7 +360,8 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			data.put("totalPracticeMinutes", 0);
 		}
 
-		data.put("totalSpeakingSessions", totalSessions);
+		data.put("totalSpeakingSessions", completedSessions);
+		data.put("attemptedSpeakingSessions", totalSessions);
 		data.put("completedSpeakingSessions", completedSessions);
 		data.put("totalVocabularyWords", totalVocabularyWords);
 		data.put("wordsAdded", totalVocabularyWords);
