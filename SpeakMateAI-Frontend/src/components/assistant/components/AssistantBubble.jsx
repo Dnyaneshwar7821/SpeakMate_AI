@@ -1,5 +1,5 @@
 import React from "react";
-import { MessageCircleMore, Sparkles, X } from "lucide-react";
+import { MessagesSquare, Sparkles, X } from "lucide-react";
 import { useAssistantTheme } from "../useAssistantTheme";
 
 /**
@@ -20,9 +20,8 @@ export const AssistantBubble = React.forwardRef(function AssistantBubble(
                 {/* Floating Tooltip Pill (Appears to the left on desktop hover) */}
                 {!isOpen && (
                     <div className="pointer-events-none absolute right-full mr-3 hidden sm:flex items-center gap-2 whitespace-nowrap rounded-full border border-slate-200/90 dark:border-slate-700/90 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-3.5 py-1.5 shadow-lg shadow-black/10 text-xs font-semibold text-slate-800 dark:text-slate-100 transition-all duration-200 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0">
-                        <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span>Ask SpeakMate AI</span>
                         <Sparkles className={`h-3.5 w-3.5 ${theme.sparkleColor}`} />
+                        <span>Ask SpeakMate AI</span>
                     </div>
                 )}
 
@@ -63,23 +62,13 @@ export const AssistantBubble = React.forwardRef(function AssistantBubble(
                         />
                     ) : null}
 
-                    {/* Online Status Green Indicator Dot */}
-                    {!isOpen && !loading && (
-                        <span
-                            className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-white dark:bg-slate-900 shadow-sm"
-                            title="Assistant is Online"
-                        >
-                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
-                        </span>
-                    )}
-
                     {/* Icon Transition */}
                     <div className={`transition-transform duration-300 ${isOpen ? "rotate-90 scale-95" : "rotate-0 scale-100"}`}>
                         {isOpen ? (
                             <X className="h-6 w-6 stroke-[2.2]" aria-hidden="true" />
                         ) : (
                             <div className="relative grid place-items-center">
-                                <MessageCircleMore className="h-6 w-6 stroke-[2.2] fill-white/10" aria-hidden="true" />
+                                <MessagesSquare className="h-6 w-6 stroke-[2.2] fill-white/10" aria-hidden="true" />
                             </div>
                         )}
                     </div>

@@ -14,23 +14,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 
-// Exact Lucide MessageCircleMore icon matching SpeakMate AI Web App
-function MessageCircleMoreIcon({ size = 26, color = '#FFFFFF' }) {
+// Professional Dual-Bubble Dialogue icon matching SpeakMate AI Web App
+function DualBubbleDialogueIcon({ size = 26, color = '#FFFFFF' }) {
   return (
     <Svg
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill="rgba(255, 255, 255, 0.12)"
+      fill="none"
       stroke={color}
       strokeWidth={2.2}
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <Path d="M2.992 16.342a2 2 0 0 1 .094 1.167l-1.065 3.29a1 1 0 0 0 1.236 1.168l3.413-.998a2 2 0 0 1 1.099.092 10 10 0 1 0-4.777-4.719" />
-      <Path d="M8 12h.01" strokeWidth={2.8} />
-      <Path d="M12 12h.01" strokeWidth={2.8} />
-      <Path d="M16 12h.01" strokeWidth={2.8} />
+      <Path
+        d="M16 10a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 14.286V4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"
+        fill="rgba(255, 255, 255, 0.16)"
+      />
+      <Path
+        d="M20 9a2 2 0 0 1 2 2v10.286a.71.71 0 0 1-1.212.502l-2.202-2.202A2 2 0 0 0 17.172 19H10a2 2 0 0 1-2-2v-1"
+        fill="rgba(255, 255, 255, 0.08)"
+      />
     </Svg>
   );
 }
@@ -249,13 +253,8 @@ export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true, v
           {loading ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <MessageCircleMoreIcon size={26} color="#FFFFFF" />
+            <DualBubbleDialogueIcon size={26} color="#FFFFFF" />
           )}
-
-          {/* Online green indicator badge */}
-          <View style={styles.onlineBadge}>
-            <View style={styles.onlineDot} />
-          </View>
         </LinearGradient>
       </View>
     </Animated.View>
@@ -307,28 +306,6 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 8,
     overflow: 'hidden',
-  },
-  onlineBadge: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  onlineDot: {
-    width: 9,
-    height: 9,
-    borderRadius: 4.5,
-    backgroundColor: '#10B981',
   },
 });
 
