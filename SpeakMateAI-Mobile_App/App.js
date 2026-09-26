@@ -1,6 +1,6 @@
 import './global.css';
 import React, { useEffect } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -74,11 +74,11 @@ function AppContent() {
   const { isDark } = useTheme();
   usePushNotifications();
   return (
-    <>
+    <View style={styles.rootContainer}>
       <StatusBar style={isDark ? 'light' : 'dark'} translucent={true} backgroundColor="transparent" />
       <AppNavigator />
       <LearnerAssistantWidget />
-    </>
+    </View>
   );
 }
 
@@ -118,3 +118,9 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
+const styles = StyleSheet.create({
+  rootContainer: {
+    flex: 1,
+  },
+});

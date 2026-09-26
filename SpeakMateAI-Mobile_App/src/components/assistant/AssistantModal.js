@@ -2,9 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
+  BackHandler,
   Dimensions,
+  Easing,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -75,6 +77,10 @@ export function AssistantModal({
     speed: 1.0,
   });
 
+  const animProgress = useRef(new Animated.Value(isOpen ? 1 : 0)).current;
+  const [isMounted, setIsMounted] = useState(Boolean(isOpen));
+  const isOpenRef = useRef(isOpen);
+
   const recordingRef = useRef(null);
   const isRecordingRef = useRef(false);
   const speechDetectedRef = useRef(false);
@@ -94,6 +100,46 @@ export function AssistantModal({
   const roleTitle = ROLE_LABEL[role] || role;
 
   const isEmpty = messages.length === 0;
+
+  // Animate backdrop opacity and panel slide on open/close
+  useEffect(() => {
+    isOpenRef.current = isOpen;
+    if (isOpen) {
+      setIsMounted(true);
+      Animated.timing(animProgress, {
+        toValue: 1,
+        duration: 260,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(animProgress, {
+        toValue: 0,
+        duration: 200,
+        easing: Easing.in(Easing.cubic),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished && !isOpenRef.current) {
+          setIsMounted(false);
+        }
+      });
+    }
+  }, [isOpen, animProgress]);
+
+  // Handle Android hardware back button: close chatbot without navigating away
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const onHardwareBack = () => {
+      handleClose();
+      return true; // Prevents back navigation of the underlying screen
+    };
+
+    const backSubscription = BackHandler.addEventListener('hardwareBackPress', onHardwareBack);
+    return () => {
+      backSubscription.remove();
+    };
+  }, [isOpen]);
 
   // Auto-scroll to bottom on new messages or loading state change
   useEffect(() => {
@@ -340,44 +386,63 @@ export function AssistantModal({
   const textColor = isDark ? '#F1F5F9' : '#0F172A';
   const subtextColor = isDark ? '#94A3B8' : '#64748B';
 
-  const visible = Boolean(isOpen);
   const sheetHeight = Math.min(Math.round((windowHeight || SCREEN_HEIGHT) * 0.85), 720);
 
+  if (!isMounted) {
+    return null;
+  }
+
+  const backdropOpacity = animProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  const panelTranslateY = animProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [sheetHeight, 0],
+  });
+
   return (
-    <Modal
-      visible={visible}
-      transparent={true}
-      animationType="none"
-      onRequestClose={handleClose}
+    <View
+      style={styles.overlayContainer}
+      pointerEvents="box-none"
     >
-      <View style={styles.modalOverlay}>
-        {/* Fullscreen Blurred Backdrop & Dismiss Area */}
+      {/* Animated Fullscreen Blurred Backdrop & Dismiss Area */}
+      <Animated.View
+        style={[
+          styles.backdropTouchArea,
+          { opacity: backdropOpacity },
+        ]}
+        pointerEvents={isOpen ? 'auto' : 'none'}
+      >
         <TouchableOpacity
           activeOpacity={1}
           onPress={handleClose}
-          style={styles.backdropTouchArea}
+          style={StyleSheet.absoluteFill}
           accessible={false}
         >
           <BlurredBackdrop />
         </TouchableOpacity>
+      </Animated.View>
 
-        {/* Dynamic Keyboard-Safe Bottom Sheet Container */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
-          style={styles.sheetWrapper}
-          pointerEvents="box-none"
+      {/* Dynamic Keyboard-Safe Bottom Sheet Container */}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 10 : 0}
+        style={styles.sheetWrapper}
+        pointerEvents="box-none"
+      >
+        {/* Animated Elevated Sheet Container */}
+        <Animated.View
+          style={[
+            styles.sheetContainer,
+            {
+              height: sheetHeight,
+              backgroundColor: panelBg,
+              transform: [{ translateY: panelTranslateY }],
+            },
+          ]}
         >
-          {/* Outer Elevated Sheet Container (Separated to eliminate Android elevation + overflow clipping bug) */}
-          <View
-            style={[
-              styles.sheetContainer,
-              {
-                height: sheetHeight,
-                backgroundColor: panelBg,
-              },
-            ]}
-          >
             {/* Inner Content Wrapper with Border Radius & Clipping */}
             <View
               style={[
@@ -630,20 +695,18 @@ export function AssistantModal({
               </Text>
             </View>
           </View>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </View>
-  </Modal>
-);
+  );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
+  overlayContainer: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
-    backgroundColor: 'transparent',
+    zIndex: 9999,
+    elevation: Platform.OS === 'android' ? 24 : 0,
   },
   backdropTouchArea: {
     ...StyleSheet.absoluteFillObject,
