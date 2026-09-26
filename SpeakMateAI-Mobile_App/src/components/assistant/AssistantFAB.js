@@ -220,7 +220,7 @@ export function AssistantFAB({ onPress, loading = false, hasBottomTabs = true, v
           {loading ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Ionicons name="sparkles" size={24} color="#FFFFFF" />
+            <Ionicons name="chatbubble-ellipses" size={24} color="#FFFFFF" />
           )}
 
           {/* Online green indicator badge */}
