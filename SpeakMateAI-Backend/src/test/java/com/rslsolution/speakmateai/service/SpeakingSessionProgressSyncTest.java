@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,7 +19,6 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.rslsolution.speakmateai.dto.response.AchievementResponse;
-import com.rslsolution.speakmateai.dto.response.DashboardSummaryResponse;
 import com.rslsolution.speakmateai.dto.response.ProgressResponse;
 import com.rslsolution.speakmateai.dto.response.StatisticsResponse;
 import com.rslsolution.speakmateai.entity.Achievement;
