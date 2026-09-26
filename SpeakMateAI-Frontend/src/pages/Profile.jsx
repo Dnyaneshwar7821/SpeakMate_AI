@@ -522,9 +522,9 @@ export function Profile() {
       const img = new Image();
       img.onload = async () => {
         try {
-          // Resize to max 128x128 thumbnail to prevent excessive database egress (< 8KB)
+          // Resize to max 400x400 for crisp high-definition avatar clarity within 500 KB contract
           const canvas = document.createElement("canvas");
-          const maxDim = 128;
+          const maxDim = 400;
           let width = img.width;
           let height = img.height;
           if (width > height) {
@@ -542,7 +542,12 @@ export function Profile() {
           canvas.height = height;
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedUri = canvas.toDataURL("image/jpeg", 0.82);
+          const compressedUri = canvas.toDataURL("image/jpeg", 0.85);
+
+          if (compressedUri.length > 500 * 1024) {
+            toast.error("Avatar payload exceeds 500 KB limit. Please choose a smaller photo.");
+            return;
+          }
 
           setSelectedAvatar(compressedUri);
           setShowAvatarModal(false);
