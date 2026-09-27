@@ -608,26 +608,7 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleSelectSchoolGrade = async (newGrade) => {
-    setUpdatingLevel(true);
-    try {
-      const updated = await profileService.update({
-        firstName: form.firstName || user?.firstName,
-        lastName: form.lastName || user?.lastName,
-        email: form.email || user?.email,
-        schoolGrade: newGrade,
-      });
-      await AsyncStorage.setItem('speakmate_school_grade', newGrade);
-      DashboardCache.clear();
-      setState((curr) => ({ ...curr, profile: updated }));
-      if (updateUser) updateUser(updated);
-      showToast('Grade Updated 🎓', 'success', `School curriculum set to ${newGrade}`);
-    } catch (err) {
-      showToast('Update Failed', 'error', 'Could not update School Grade.');
-    } finally {
-      setUpdatingLevel(false);
-    }
-  };
+
 
   const handleSelectProficiencyLevel = async (newLevel) => {
     setUpdatingLevel(true);
@@ -794,98 +775,82 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </Card>
 
-        {/* Dynamic Setting Section based on Student vs Individual User */}
-        {isStudent ? (
-          /* Student Mode: School Standard Curriculum Grade Selection */
+        {/* School Standard Curriculum (Locked - Read-Only) */}
+        {isStudent && (
           <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+              <View style={{ flex: 1, marginRight: 8 }}>
                 <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  🏫 School Curriculum Grade
+                  🏫 School Curriculum Standard
                 </Text>
-                <Text style={{ fontSize: 12, color: sublabelColor }}>
-                  Select your current school standard for personalized tests & syllabus
+                <Text style={{ fontSize: 12, color: sublabelColor, lineHeight: 16 }}>
+                  Your syllabus, grammar tests, and practice material are aligned with your assigned grade.
                 </Text>
               </View>
-              {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
+              <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' }} />
+                <Text style={{ fontSize: 11, fontWeight: '700', color: '#10B981' }}>Admin Managed 🎓</Text>
+              </View>
             </View>
 
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingVertical: 4 }}>
-              {[
-                '1st Std', '2nd Std', '3rd Std', '4th Std', '5th Std',
-                '6th Std', '7th Std', '8th Std', '9th Std', '10th Std', '11th Std', '12th Std'
-              ].map((grade) => {
-                const active = (currentSchoolGrade || '').toLowerCase() === grade.toLowerCase();
-                return (
-                  <TouchableOpacity
-                    key={grade}
-                    style={[
-                      styles.levelSegmentBtn,
-                      active && styles.levelSegmentBtnActive,
-                      isDark && !active && { backgroundColor: '#334155' },
-                      { paddingHorizontal: 12, paddingVertical: 8 }
-                    ]}
-                    onPress={() => handleSelectSchoolGrade(grade)}
-                    disabled={updatingLevel}
-                  >
-                    <Text
-                      style={[
-                        styles.levelSegmentText,
-                        active && styles.levelSegmentTextActive,
-                        isDark && !active && { color: '#94A3B8' },
-                      ]}
-                    >
-                      {grade}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </Card>
-        ) : (
-          /* Individual User Mode: English Proficiency Level Card */
-          <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-              <View>
-                <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
-                  👤 AI Tutor English Level
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: isDark ? '#334155' : '#F1F5F9', marginTop: 4 }}>
+              <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: isDark ? '#1E293B' : '#E0E7FF', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 22 }}>🎓</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: labelColor }}>
+                  {currentSchoolGrade || (user?.standard ? `${user.standard}th Standard` : 'Assigned School Standard')}
                 </Text>
-                <Text style={{ fontSize: 12, color: sublabelColor }}>
-                  Controls speaking & chat response complexity
+                <Text style={{ fontSize: 11, color: sublabelColor, marginTop: 2, lineHeight: 15 }}>
+                  Assigned by your School / Super Admin. Contact your school administrator to change standard.
                 </Text>
               </View>
-              {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
-            </View>
-
-            <View style={styles.levelSegmentRow}>
-              {['Beginner', 'Intermediate', 'Advanced'].map((lvl) => {
-                const active = currentEnglishLevel.toLowerCase() === lvl.toLowerCase();
-                return (
-                  <TouchableOpacity
-                    key={lvl}
-                    style={[
-                      styles.levelSegmentBtn,
-                      active && styles.levelSegmentBtnActive,
-                      isDark && !active && { backgroundColor: '#334155' },
-                    ]}
-                    onPress={() => handleSelectProficiencyLevel(lvl)}
-                    disabled={updatingLevel}
-                  >
-                    <Text
-                      style={[
-                        styles.levelSegmentText,
-                        active && styles.levelSegmentTextActive,
-                        isDark && !active && { color: '#94A3B8' },
-                      ]}
-                    >
-                      {lvl}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
             </View>
           </Card>
         )}
+
+        {/* AI Tutor English Level Card (Available for All Learners) */}
+        <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <View>
+              <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+                👤 AI Tutor English Level
+              </Text>
+              <Text style={{ fontSize: 12, color: sublabelColor }}>
+                Controls speaking & chat response complexity
+              </Text>
+            </View>
+            {updatingLevel && <ActivityIndicator size="small" color={COLORS.primary} />}
+          </View>
+
+          <View style={styles.levelSegmentRow}>
+            {['Beginner', 'Intermediate', 'Advanced'].map((lvl) => {
+              const active = currentEnglishLevel.toLowerCase() === lvl.toLowerCase();
+              return (
+                <TouchableOpacity
+                  key={lvl}
+                  style={[
+                    styles.levelSegmentBtn,
+                    active && styles.levelSegmentBtnActive,
+                    isDark && !active && { backgroundColor: '#334155' },
+                  ]}
+                  onPress={() => handleSelectProficiencyLevel(lvl)}
+                  disabled={updatingLevel}
+                >
+                  <Text
+                    style={[
+                      styles.levelSegmentText,
+                      active && styles.levelSegmentTextActive,
+                      isDark && !active && { color: '#94A3B8' },
+                    ]}
+                  >
+                    {lvl}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </Card>
 
         {/* AI Speaking Tutor Avatar Active Card */}
         {(() => {
