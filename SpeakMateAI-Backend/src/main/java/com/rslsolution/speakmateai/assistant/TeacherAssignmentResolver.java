@@ -336,7 +336,7 @@ public class TeacherAssignmentResolver {
 						classRoomRepository.findById(cs.getClassId()).ifPresent(cr -> {
 							if (cr.getTeacherId() != null && !teacherMap.containsKey(cr.getTeacherId())) {
 								userRepository.findById(cr.getTeacherId()).ifPresent(t -> {
-									String context = cr.getClassName() != null ? "Teacher for " + cr.getClassName() : "Class Teacher";
+									String context = cr.getName() != null ? "Teacher for " + cr.getName() : "Class Teacher";
 									teacherMap.put(t.getId(), buildTeacherInfo(t, context));
 								});
 							}
@@ -354,15 +354,19 @@ public class TeacherAssignmentResolver {
 			try {
 				List<TeacherStandardDivision> allAllocations = teacherStandardDivisionRepository.findAll();
 				for (TeacherStandardDivision tsd : allAllocations) {
-					if (tsd != null && tsd.getTeacherId() != null && tsd.getStandardDivision() != null
+					if (tsd != null && tsd.getTeacher() != null && tsd.getStandardDivision() != null
 							&& tsd.getStandardDivision().getSchoolStandard() != null) {
+						Long tid = tsd.getTeacher().getId();
+						if (tid == null) {
+							continue;
+						}
 						String assignedStd = tsd.getStandardDivision().getSchoolStandard().getStandard();
 						String assignedDiv = tsd.getStandardDivision().getDivision();
 						if (normStd.equals(normalizeStandard(assignedStd))) {
 							String nDiv = assignedDiv != null ? assignedDiv.trim().toUpperCase(Locale.ROOT) : "";
 							if (normDiv.isEmpty() || nDiv.isEmpty() || normDiv.equals(nDiv)) {
-								if (!teacherMap.containsKey(tsd.getTeacherId())) {
-									userRepository.findById(tsd.getTeacherId()).ifPresent(t -> {
+								if (!teacherMap.containsKey(tid)) {
+									userRepository.findById(tid).ifPresent(t -> {
 										if (schoolId.equals(t.getSchoolId())) {
 											teacherMap.put(t.getId(), buildTeacherInfo(t, "Teacher for Class " + studentStandard + (studentDivision != null ? "-" + studentDivision : "")));
 										}
