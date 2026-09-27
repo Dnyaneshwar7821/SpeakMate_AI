@@ -686,7 +686,21 @@ export default function ProfileScreen({ navigation }) {
   const xpInCurrentLevel = xp % 500;
   const levelProgress = xpInCurrentLevel / 500;
   const rankTier = getRankTier(xp);
-  const currentSchoolGrade = state.profile?.schoolGrade || user?.schoolGrade || '1st Std';
+  const rawGrade = state.profile?.schoolGrade || user?.schoolGrade || state.profile?.standard || user?.standard;
+  const formatStandardDisplay = (gradeOrStandard) => {
+    if (!gradeOrStandard) return '9th Std';
+    const str = String(gradeOrStandard).trim();
+    if (!str) return '9th Std';
+    if (str.toLowerCase().includes('std')) return str;
+    const numMatch = str.match(/\d+/);
+    if (numMatch) {
+      const num = parseInt(numMatch[0], 10);
+      const suffix = num === 1 ? 'st' : num === 2 ? 'nd' : num === 3 ? 'rd' : 'th';
+      return `${num}${suffix} Std`;
+    }
+    return `${str} Std`;
+  };
+  const currentSchoolGrade = formatStandardDisplay(rawGrade);
   const currentEnglishLevel = state.profile?.englishLevel || user?.englishLevel || 'Beginner';
   const currentAgeGroup = selectedAgeGroup || state.profile?.ageGroup || user?.ageGroup || 'Professional';
   const normAge = (currentAgeGroup || '').toLowerCase();
@@ -775,33 +789,64 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </Card>
 
-        {/* School Standard Curriculum (Locked - Read-Only) */}
+        {/* School Standard Curriculum (Locked - Exactly like Web App) */}
         {isStudent && (
-          <Card style={{ backgroundColor: cardBg, marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
-              <View style={{ flex: 1, marginRight: 8 }}>
-                <Text style={[styles.cardHeaderTitle, { color: labelColor, marginBottom: 2 }]}>
+          <Card style={{ backgroundColor: cardBg, borderRadius: 24, padding: 18, marginBottom: 14 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={{ fontSize: 17, fontWeight: '900', color: labelColor, letterSpacing: -0.2 }}>
                   🏫 School Curriculum Standard
                 </Text>
-                <Text style={{ fontSize: 12, color: sublabelColor, lineHeight: 16 }}>
+                <Text style={{ fontSize: 12.5, color: sublabelColor, marginTop: 4, lineHeight: 17 }}>
                   Your syllabus, grammar tests, and practice material are aligned with your assigned grade.
                 </Text>
               </View>
-              <View style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.1)', borderWidth: 1, borderColor: 'rgba(16, 185, 129, 0.3)', flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#10B981' }} />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#10B981' }}>Admin Managed 🎓</Text>
+              <View style={{
+                paddingHorizontal: 10,
+                paddingVertical: 4.5,
+                borderRadius: 20,
+                backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#E6FBF2',
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(16, 185, 129, 0.35)' : '#A7F3D0',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5
+              }}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#059669' }} />
+                <Text style={{ fontSize: 11, fontWeight: '800', color: isDark ? '#34D399' : '#059669' }}>
+                  Admin Managed 🎓
+                </Text>
               </View>
             </View>
 
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 16, backgroundColor: isDark ? '#334155' : '#F1F5F9', marginTop: 4 }}>
-              <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: isDark ? '#1E293B' : '#E0E7FF', alignItems: 'center', justifyContent: 'center' }}>
-                <Text style={{ fontSize: 22 }}>🎓</Text>
+            <View style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 14,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              borderRadius: 18,
+              backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
+              borderWidth: 1,
+              borderColor: isDark ? '#334155' : '#E2E8F0',
+            }}>
+              <View style={{
+                width: 48,
+                height: 48,
+                borderRadius: 16,
+                backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : '#EDE9FE',
+                borderWidth: 1,
+                borderColor: isDark ? 'rgba(99, 102, 241, 0.3)' : '#DDD6FE',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Text style={{ fontSize: 24 }}>🎓</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: '800', color: labelColor }}>
-                  {currentSchoolGrade || (user?.standard ? `${user.standard}th Standard` : 'Assigned School Standard')}
+                <Text style={{ fontSize: 18, fontWeight: '900', color: labelColor, letterSpacing: -0.3 }}>
+                  {currentSchoolGrade}
                 </Text>
-                <Text style={{ fontSize: 11, color: sublabelColor, marginTop: 2, lineHeight: 15 }}>
+                <Text style={{ fontSize: 11.5, color: sublabelColor, marginTop: 2, lineHeight: 16 }}>
                   Assigned by your School / Super Admin. Contact your school administrator to change standard.
                 </Text>
               </View>
