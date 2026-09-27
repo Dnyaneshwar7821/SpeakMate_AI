@@ -19,12 +19,28 @@ public interface SpeakingSessionRepository extends JpaRepository<SpeakingSession
 
 	List<SpeakingSession> findByUserOrderByCreatedAtDesc(User user);
 
+	@Query("SELECT s FROM SpeakingSession s WHERE s.user.id = :userId ORDER BY s.createdAt DESC")
+	List<SpeakingSession> findByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId);
+
+	@Query("SELECT s FROM SpeakingSession s WHERE s.user.id = :userId")
+	List<SpeakingSession> findByUserId(@Param("userId") Long userId);
+
+	@Query("SELECT s FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true ORDER BY s.createdAt DESC")
+	List<SpeakingSession> findByUserIdAndCompletedTrueOrderByCreatedAtDesc(@Param("userId") Long userId);
+
+	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true")
+	long countByUserIdAndCompletedTrue(@Param("userId") Long userId);
+
 	default List<SpeakingSession> findByStudent(Student student) {
-		return findByUser(student);
+		if (student == null) return List.of();
+		List<SpeakingSession> byId = findByUserId(student.getId());
+		return !byId.isEmpty() ? byId : findByUser(student);
 	}
 
 	default List<SpeakingSession> findByStudentOrderByCreatedAtDesc(Student student) {
-		return findByUserOrderByCreatedAtDesc(student);
+		if (student == null) return List.of();
+		List<SpeakingSession> byId = findByUserIdOrderByCreatedAtDesc(student.getId());
+		return !byId.isEmpty() ? byId : findByUserOrderByCreatedAtDesc(student);
 	}
 
 	@Query("SELECT AVG(s.overallScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true AND s.overallScore IS NOT NULL")

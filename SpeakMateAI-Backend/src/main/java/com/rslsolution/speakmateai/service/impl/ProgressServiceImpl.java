@@ -93,7 +93,8 @@ public class ProgressServiceImpl implements ProgressService {
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
-		Progress progress = progressRepository.findByUser(user)
+		Progress progress = progressRepository.findByUserId(user.getId())
+				.or(() -> progressRepository.findByUser(user))
 				.orElseGet(() -> {
 					Progress newProgress = Progress.builder()
 							.user(user)
@@ -109,8 +110,14 @@ public class ProgressServiceImpl implements ProgressService {
 					return progressRepository.save(newProgress);
 				});
 
-		int liveSpeakingSessions = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
-		int liveVocabWords = (int) vocabularyRepository.countByUser(user);
+		int liveSpeakingSessions = (int) speakingSessionRepository.countByUserIdAndCompletedTrue(user.getId());
+		if (liveSpeakingSessions == 0) {
+			liveSpeakingSessions = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+		}
+		int liveVocabWords = (int) vocabularyRepository.countByUserId(user.getId());
+		if (liveVocabWords == 0) {
+			liveVocabWords = (int) vocabularyRepository.countByUser(user);
+		}
 		int liveGrammarChecks = (int) grammarHistoryRepository.countByUserId(user.getId());
 
 		// Self-healing: If user had inflated speaking sessions (e.g. 81 attempts instead of 6 completed),
@@ -154,7 +161,8 @@ public class ProgressServiceImpl implements ProgressService {
 		User user = userRepository.findByEmail(authentication.getName())
 				.orElseThrow(() -> new UserNotFoundException("User not found"));
 
-		Progress progress = progressRepository.findByUser(user)
+		Progress progress = progressRepository.findByUserId(user.getId())
+				.or(() -> progressRepository.findByUser(user))
 				.orElseGet(() -> {
 					Progress newProgress = Progress.builder()
 							.user(user)
@@ -176,7 +184,10 @@ public class ProgressServiceImpl implements ProgressService {
 		progress.setLongestStreak(request.getLongestStreak());
 		progress.setTotalPracticeMinutes(request.getTotalPracticeMinutes());
 		// Total speaking sessions is authoritative from completed speaking sessions in DB
-		int completedSpeaking = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+		int completedSpeaking = (int) speakingSessionRepository.countByUserIdAndCompletedTrue(user.getId());
+		if (completedSpeaking == 0) {
+			completedSpeaking = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+		}
 		progress.setTotalSpeakingSessions(completedSpeaking);
 		progress.setTotalGrammarChecks(request.getTotalGrammarChecks());
 		progress.setTotalVocabularyWords(request.getTotalVocabularyWords());

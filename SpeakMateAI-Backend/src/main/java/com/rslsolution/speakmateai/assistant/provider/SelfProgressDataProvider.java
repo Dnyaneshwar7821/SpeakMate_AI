@@ -111,6 +111,9 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		}
 
 		User user = me.get();
+		if (targetUserId == null) {
+			targetUserId = user.getId();
+		}
 
 		// Defensive Cross-Student Privacy Guard:
 		// Students and Learners are strictly restricted to their own metrics.
@@ -136,18 +139,50 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			return toJson(denial);
 		}
 
-		Progress p = progressRepository.findByUser(user).orElse(null);
+		Progress p = null;
+		if (targetUserId != null) {
+			p = progressRepository.findByUserId(targetUserId).orElse(null);
+		}
+		if (p == null) {
+			p = progressRepository.findByUser(user).orElse(null);
+		}
 
 		// Lesson metrics
-		long lessonsCompleted = lessonProgressRepository.countByUserIdAndCompletedTrue(user.getId());
-		List<LessonProgress> lessonRows = lessonProgressRepository.findByUser(user);
+		List<LessonProgress> lessonRows = List.of();
+		if (targetUserId != null) {
+			lessonRows = lessonProgressRepository.findByUserId(targetUserId);
+		}
+		if (lessonRows.isEmpty()) {
+			lessonRows = lessonProgressRepository.findByUser(user);
+		}
+		long lessonsCompleted = 0;
+		if (targetUserId != null) {
+			lessonsCompleted = lessonProgressRepository.countByUserIdAndCompletedTrue(targetUserId);
+		}
+		if (lessonsCompleted == 0 && !lessonRows.isEmpty()) {
+			lessonsCompleted = lessonRows.stream().filter(lp -> Boolean.TRUE.equals(lp.getCompleted())).count();
+		}
 		long lessonsStarted = lessonRows.size();
 		long lessonsPending = Math.max(0L, lessonsStarted - lessonsCompleted);
 
 		// Speaking sessions & speech metrics
-		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
+		List<SpeakingSession> sessions = List.of();
+		if (targetUserId != null) {
+			sessions = speakingSessionRepository.findByUserIdOrderByCreatedAtDesc(targetUserId);
+		}
+		if (sessions.isEmpty()) {
+			sessions = speakingSessionRepository.findByUser(user);
+		}
 		int totalSessions = sessions.size();
 		int completedSessions = (int) sessions.stream().filter(s -> Boolean.TRUE.equals(s.getCompleted())).count();
+		// If sessions query returned empty but progress record has cached count, fallback to progress record
+		if (completedSessions == 0 && p != null && p.getTotalSpeakingSessions() != null && p.getTotalSpeakingSessions() > 0) {
+			completedSessions = p.getTotalSpeakingSessions();
+			if (totalSessions < completedSessions) {
+				totalSessions = completedSessions;
+			}
+		}
+
 		double totalFluency = 0;
 		double totalPronunciation = 0;
 		double totalGrammar = 0;
@@ -174,8 +209,17 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		double avgOverall = scoredCount > 0 ? Math.round((totalOverall / scoredCount) * 10.0) / 10.0 : 0.0;
 
 		// Vocabulary words
-		List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(user);
+		List<Vocabulary> vocabs = List.of();
+		if (targetUserId != null) {
+			vocabs = vocabularyRepository.findByUserIdOrderByCreatedAtDesc(targetUserId);
+		}
+		if (vocabs.isEmpty()) {
+			vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(user);
+		}
 		int totalVocabularyWords = vocabs.size();
+		if (totalVocabularyWords == 0 && p != null && p.getTotalVocabularyWords() != null && p.getTotalVocabularyWords() > 0) {
+			totalVocabularyWords = p.getTotalVocabularyWords();
+		}
 		int masteredVocabularyWords = (int) vocabs.stream().filter(v -> Boolean.TRUE.equals(v.getMastered())).count();
 		List<String> recentVocabWords = vocabs.stream()
 				.limit(10)
@@ -184,8 +228,17 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 				.collect(Collectors.toList());
 
 		// Grammar checks
-		List<GrammarHistory> grammarChecks = grammarHistoryRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+		List<GrammarHistory> grammarChecks = List.of();
+		if (targetUserId != null) {
+			grammarChecks = grammarHistoryRepository.findByUserIdOrderByCreatedAtDesc(targetUserId);
+		}
+		if (grammarChecks.isEmpty()) {
+			grammarChecks = grammarHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+		}
 		int totalGrammarChecks = grammarChecks.size();
+		if (totalGrammarChecks == 0 && p != null && p.getTotalGrammarChecks() != null && p.getTotalGrammarChecks() > 0) {
+			totalGrammarChecks = p.getTotalGrammarChecks();
+		}
 		double totalGrammarScore = 0;
 		int scoredGrammarCount = 0;
 		for (GrammarHistory g : grammarChecks) {
@@ -232,7 +285,13 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		int unlockedAchievementsCount = 0;
 		List<String> unlockedAchievementTitles = new ArrayList<>();
 		try {
-			List<Achievement> userAchievements = achievementRepository.findByUserAndUnlockedTrue(user);
+			List<Achievement> userAchievements = List.of();
+			if (targetUserId != null) {
+				userAchievements = achievementRepository.findByUserIdAndUnlockedTrue(targetUserId);
+			}
+			if (userAchievements.isEmpty()) {
+				userAchievements = achievementRepository.findByUserAndUnlockedTrue(user);
+			}
 			unlockedAchievementsCount = userAchievements.size();
 			unlockedAchievementTitles = userAchievements.stream()
 					.map(Achievement::getTitle)
@@ -437,7 +496,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			data.put("overallSpeakingScore", "Not yet evaluated");
 		}
 
-		boolean hasStarted = (lessonsCompleted > 0 || totalSessions > 0 || totalVocabularyWords > 0 || totalGrammarChecks > 0 || (p != null && p.getXp() != null && p.getXp() > 0));
+		boolean hasStarted = (lessonsCompleted > 0 || totalSessions > 0 || completedSessions > 0 || totalVocabularyWords > 0 || totalGrammarChecks > 0 || (p != null && p.getXp() != null && p.getXp() > 0));
 		data.put("hasStartedLearning", hasStarted);
 		data.put("isNewLearner", !hasStarted);
 		data.put("starterGuidance", !hasStarted

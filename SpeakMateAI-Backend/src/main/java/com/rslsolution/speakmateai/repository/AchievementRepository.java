@@ -17,5 +17,11 @@ public interface AchievementRepository extends JpaRepository<Achievement, Long> 
 
 	List<Achievement> findByUserAndUnlockedTrue(User user);
 
+	@org.springframework.data.jpa.repository.Query("SELECT a FROM Achievement a WHERE a.user.id = :userId")
+	List<Achievement> findByUserId(@org.springframework.data.repository.query.Param("userId") Long userId);
+
+	@org.springframework.data.jpa.repository.Query("SELECT a FROM Achievement a WHERE a.user.id = :userId AND a.unlocked = true")
+	List<Achievement> findByUserIdAndUnlockedTrue(@org.springframework.data.repository.query.Param("userId") Long userId);
+
 	List<Achievement> findByUserIdAndUnlockedTrueOrderByUnlockedAtDesc(Long userId);
 }

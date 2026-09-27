@@ -101,7 +101,13 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 
 		Student s = target.student();
-		Progress p = progressRepository.findByStudent(s).orElse(null);
+		Progress p = null;
+		if (s.getId() != null) {
+			p = progressRepository.findByUserId(s.getId()).orElse(null);
+		}
+		if (p == null) {
+			p = progressRepository.findByStudent(s).orElse(null);
+		}
 
 		Map<String, Object> data = new LinkedHashMap<>();
 		data.put("scope", "STUDENT (id=" + s.getId() + ")");
@@ -141,8 +147,20 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 
 		// 1. Lesson-completion metrics
-		List<LessonProgress> lessonRows = lessonProgressRepository.findByStudent(s);
-		long lessonsCompleted = lessonProgressRepository.countByUserIdAndCompletedTrue(s.getId());
+		List<LessonProgress> lessonRows = List.of();
+		if (s.getId() != null) {
+			lessonRows = lessonProgressRepository.findByUserId(s.getId());
+		}
+		if (lessonRows.isEmpty()) {
+			lessonRows = lessonProgressRepository.findByStudent(s);
+		}
+		long lessonsCompleted = 0;
+		if (s.getId() != null) {
+			lessonsCompleted = lessonProgressRepository.countByUserIdAndCompletedTrue(s.getId());
+		}
+		if (lessonsCompleted == 0 && !lessonRows.isEmpty()) {
+			lessonsCompleted = lessonRows.stream().filter(lp -> Boolean.TRUE.equals(lp.getCompleted())).count();
+		}
 		long lessonsStarted = lessonRows.size();
 		long lessonsPending = Math.max(0L, lessonsStarted - lessonsCompleted);
 		data.put("lessonsCompleted", lessonsCompleted);
@@ -150,11 +168,21 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		data.put("lessonsPending", lessonsPending);
 
 		// 2. Speaking sessions & evaluation scores
-		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(s);
+		List<SpeakingSession> sessions = List.of();
+		if (s.getId() != null) {
+			sessions = speakingSessionRepository.findByUserIdOrderByCreatedAtDesc(s.getId());
+		}
+		if (sessions.isEmpty()) {
+			sessions = speakingSessionRepository.findByUser(s);
+		}
 		int completedSpeakingSessions = (int) sessions.stream()
 				.filter(ss -> Boolean.TRUE.equals(ss.getCompleted()))
 				.count();
 		int totalSpeakingSessions = completedSpeakingSessions;
+		if (totalSpeakingSessions == 0 && p != null && p.getTotalSpeakingSessions() != null && p.getTotalSpeakingSessions() > 0) {
+			totalSpeakingSessions = p.getTotalSpeakingSessions();
+			completedSpeakingSessions = totalSpeakingSessions;
+		}
 
 		double totalFluency = 0;
 		double totalPronunciation = 0;
@@ -193,8 +221,17 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 
 		// 3. Vocabulary words added & mastered
-		List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(s);
+		List<Vocabulary> vocabs = List.of();
+		if (s.getId() != null) {
+			vocabs = vocabularyRepository.findByUserIdOrderByCreatedAtDesc(s.getId());
+		}
+		if (vocabs.isEmpty()) {
+			vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(s);
+		}
 		int totalVocabularyWords = vocabs.size();
+		if (totalVocabularyWords == 0 && p != null && p.getTotalVocabularyWords() != null && p.getTotalVocabularyWords() > 0) {
+			totalVocabularyWords = p.getTotalVocabularyWords();
+		}
 		int masteredVocabularyWords = (int) vocabs.stream().filter(v -> Boolean.TRUE.equals(v.getMastered())).count();
 		List<String> recentVocabWords = vocabs.stream()
 				.limit(10)
@@ -208,8 +245,17 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 
 		// 4. Grammar checks
-		List<GrammarHistory> grammarChecks = grammarHistoryRepository.findByUserIdOrderByCreatedAtDesc(s.getId());
+		List<GrammarHistory> grammarChecks = List.of();
+		if (s.getId() != null) {
+			grammarChecks = grammarHistoryRepository.findByUserIdOrderByCreatedAtDesc(s.getId());
+		}
+		if (grammarChecks.isEmpty()) {
+			grammarChecks = grammarHistoryRepository.findByUser(s);
+		}
 		int totalGrammarChecks = grammarChecks.size();
+		if (totalGrammarChecks == 0 && p != null && p.getTotalGrammarChecks() != null && p.getTotalGrammarChecks() > 0) {
+			totalGrammarChecks = p.getTotalGrammarChecks();
+		}
 		double totalGrammarScore = 0;
 		int scoredGrammarCount = 0;
 		for (GrammarHistory g : grammarChecks) {

@@ -110,9 +110,14 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public DashboardSummaryResponse getDashboardSummary() {
 		User user = getCurrentUser();
-		Progress progress = progressRepository.findByUser(user).orElse(null);
+		Progress progress = progressRepository.findByUserId(user.getId())
+				.or(() -> progressRepository.findByUser(user))
+				.orElse(null);
 		if (progress != null) {
-			int completedCount = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+			int completedCount = (int) speakingSessionRepository.countByUserIdAndCompletedTrue(user.getId());
+			if (completedCount == 0) {
+				completedCount = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+			}
 			if (progress.getTotalSpeakingSessions() == null || !progress.getTotalSpeakingSessions().equals(completedCount)) {
 				progress.setTotalSpeakingSessions(completedCount);
 				progress = progressRepository.save(progress);
@@ -179,7 +184,10 @@ public class DashboardServiceImpl implements DashboardService {
 		// 2. ProgressResponse
 		int distinctScenarios = 0;
 		if (speakingSessionRepository != null && user != null) {
-			List<SpeakingSession> completed = speakingSessionRepository.findByUserAndCompletedTrue(user);
+			List<SpeakingSession> completed = speakingSessionRepository.findByUserIdAndCompletedTrueOrderByCreatedAtDesc(user.getId());
+			if (completed.isEmpty()) {
+				completed = speakingSessionRepository.findByUserAndCompletedTrue(user);
+			}
 			distinctScenarios = (int) completed.stream()
 					.map(s -> {
 						String sc = s.getScenario() != null && !s.getScenario().trim().isEmpty() ? s.getScenario() : s.getTopic();
@@ -241,7 +249,10 @@ public class DashboardServiceImpl implements DashboardService {
 		List<RecentActivityResponse> recentActivityRes = getRecentActivity();
 
 		// 8. Active and Upcoming Lessons
-		List<LessonProgress> userProgressList = lessonProgressRepository.findByUser(user);
+		List<LessonProgress> userProgressList = lessonProgressRepository.findByUserId(user.getId());
+		if (userProgressList.isEmpty()) {
+			userProgressList = lessonProgressRepository.findByUser(user);
+		}
 		Map<Long, LessonProgress> progressMap = userProgressList.stream()
 				.collect(Collectors.toMap(p -> p.getLesson().getId(), p -> p, (a, b) -> a));
 

@@ -25,20 +25,35 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
 
 	List<LessonProgress> findByUser(User user);
 
+	@Query("SELECT l FROM LessonProgress l WHERE l.user.id = :userId")
+	List<LessonProgress> findByUserId(@Param("userId") Long userId);
+
+	@Query("SELECT l FROM LessonProgress l WHERE l.user.id = :userId ORDER BY l.lastOpenedAt DESC")
+	List<LessonProgress> findByUserIdOrderByLastOpenedAtDesc(@Param("userId") Long userId);
+
+	@Query("SELECT l FROM LessonProgress l WHERE l.user.id = :userId AND l.completed = :completed")
+	List<LessonProgress> findByUserIdAndCompleted(@Param("userId") Long userId, @Param("completed") Boolean completed);
+
 	default List<LessonProgress> findByStudent(Student student) {
-		return findByUser(student);
+		if (student == null) return List.of();
+		List<LessonProgress> byId = findByUserId(student.getId());
+		return !byId.isEmpty() ? byId : findByUser(student);
 	}
 
 	List<LessonProgress> findByUserAndCompleted(User user, Boolean completed);
 
 	default List<LessonProgress> findByStudentAndCompleted(Student student, Boolean completed) {
-		return findByUserAndCompleted(student, completed);
+		if (student == null) return List.of();
+		List<LessonProgress> byId = findByUserIdAndCompleted(student.getId(), completed);
+		return !byId.isEmpty() ? byId : findByUserAndCompleted(student, completed);
 	}
 
 	List<LessonProgress> findByUserOrderByLastOpenedAtDesc(User user);
 
 	default List<LessonProgress> findByStudentOrderByLastOpenedAtDesc(Student student) {
-		return findByUserOrderByLastOpenedAtDesc(student);
+		if (student == null) return List.of();
+		List<LessonProgress> byId = findByUserIdOrderByLastOpenedAtDesc(student.getId());
+		return !byId.isEmpty() ? byId : findByUserOrderByLastOpenedAtDesc(student);
 	}
 
 	boolean existsByUserAndLesson(User user, Lesson lesson);
