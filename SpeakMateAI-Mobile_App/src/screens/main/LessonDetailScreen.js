@@ -1106,6 +1106,8 @@ export default function LessonDetailScreen({ navigation, route }) {
 
   const handleNextStep = async () => {
     if (!lesson) return;
+    VoiceService.stop();
+    setIsSpeakingContent(false);
     const nextStep = studyStep + 1;
     setStudyStep(nextStep);
 
@@ -1131,6 +1133,8 @@ export default function LessonDetailScreen({ navigation, route }) {
   };
 
   const handlePrevStep = () => {
+    VoiceService.stop();
+    setIsSpeakingContent(false);
     if (studyStep > 0) {
       setStudyStep(studyStep - 1);
     }
@@ -1167,15 +1171,8 @@ export default function LessonDetailScreen({ navigation, route }) {
     const finalScore = quizScoreRef.current;
     const totalQ = quizQuestions.length || 5;
 
-    let multiplier = 4;
-    let perfectBonusAmount = 5;
-    if (quizLevel === 'Intermediate') {
-      multiplier = 6;
-      perfectBonusAmount = 5;
-    } else if (quizLevel === 'Advanced') {
-      multiplier = 8;
-      perfectBonusAmount = 10;
-    }
+    const multiplier = quizLevel === 'Advanced' ? 20 : (quizLevel === 'Intermediate' ? 15 : 10);
+    const perfectBonusAmount = quizLevel === 'Advanced' ? 30 : (quizLevel === 'Intermediate' ? 25 : 20);
 
     const baseXP = finalScore * multiplier;
     const perfectBonus = (finalScore === totalQ && totalQ > 0) ? perfectBonusAmount : 0;
@@ -1879,9 +1876,46 @@ export default function LessonDetailScreen({ navigation, route }) {
                       </View>
                     )}
 
+                    {/* Word Bank Suggestion Chips */}
+                    {!guidedSubmitted && (
+                      <View style={{ marginBottom: 12 }}>
+                        <Text style={{ fontSize: 11, fontWeight: '700', color: theme.textSecondary, marginBottom: 6 }}>
+                          Word Suggestions (tap to fill):
+                        </Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                          {[
+                            aiGuidedQ.correctWord,
+                            'practicing',
+                            'speaking',
+                            'routine'
+                          ]
+                            .filter(Boolean)
+                            .sort(() => (aiGuidedQ.correctWord.length % 2 === 0 ? 1 : -1))
+                            .map((word, wIdx) => (
+                              <TouchableOpacity
+                                key={wIdx}
+                                onPress={() => setGuidedInput(word)}
+                                style={{
+                                  paddingHorizontal: 12,
+                                  paddingVertical: 6,
+                                  borderRadius: 8,
+                                  backgroundColor: isDark ? '#334155' : '#EEF2FF',
+                                  borderWidth: 1,
+                                  borderColor: isDark ? '#475569' : '#C7D2FE',
+                                }}
+                              >
+                                <Text style={{ fontSize: 12, fontWeight: '700', color: COLORS.primary }}>
+                                  {word}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                        </View>
+                      </View>
+                    )}
+
                     <TextInput
                       style={[styles.tutorInput, { backgroundColor: isDark ? '#334155' : '#FFF', color: theme.textPrimary, borderColor: theme.cardBorder, marginBottom: 12 }]}
-                      placeholder="Type the missing word or phrase..."
+                      placeholder="Type or tap word from above..."
                       placeholderTextColor={theme.textSecondary}
                       value={guidedInput}
                       onChangeText={setGuidedInput}
@@ -1894,7 +1928,9 @@ export default function LessonDetailScreen({ navigation, route }) {
                         onPress={() => {
                           if (!guidedInput.trim()) return;
                           setGuidedSubmitted(true);
-                          if (guidedInput.trim().toLowerCase() !== aiGuidedQ.correctWord.toLowerCase()) {
+                          const cleanIn = guidedInput.replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, '').trim().toLowerCase();
+                          const cleanExp = (aiGuidedQ.correctWord || '').replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, '').trim().toLowerCase();
+                          if (cleanIn !== cleanExp) {
                             setBlankPenalty(5);
                           }
                         }}
@@ -1906,29 +1942,39 @@ export default function LessonDetailScreen({ navigation, route }) {
                     ) : (
                       <View>
                         {/* Answer reveal */}
-                        <View style={[
-                          { borderRadius: 10, padding: 12, marginBottom: 10, borderWidth: 1 },
-                          guidedInput.trim().toLowerCase() === aiGuidedQ.correctWord.toLowerCase()
-                            ? { backgroundColor: isDark ? '#052E16' : '#F0FDF4', borderColor: '#16A34A' }
-                            : { backgroundColor: isDark ? '#1F0404' : '#FEF2F2', borderColor: '#EF4444' }
-                        ]}>
-                          <Text style={{ fontSize: 13, fontWeight: '800', color: guidedInput.trim().toLowerCase() === aiGuidedQ.correctWord.toLowerCase() ? '#16A34A' : '#EF4444', marginBottom: 4 }}>
-                            {guidedInput.trim().toLowerCase() === aiGuidedQ.correctWord.toLowerCase() ? '🎉 Perfect!' : `❌ The correct word is: "${aiGuidedQ.correctWord}"`}
-                          </Text>
-                          {!!aiGuidedQ.explanation && (
-                            <Text style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 17 }}>{aiGuidedQ.explanation}</Text>
-                          )}
-                        </View>
-                        {/* Try again button */}
-                        {guidedInput.trim().toLowerCase() !== aiGuidedQ.correctWord.toLowerCase() && (
-                          <TouchableOpacity
-                            style={[styles.quizNextBtn, { backgroundColor: '#6B7280' }]}
-                            onPress={() => { setGuidedInput(''); setGuidedSubmitted(false); }}
-                          >
-                            <Ionicons name="refresh" size={16} color="#FFF" />
-                            <Text style={styles.quizNextText}>Try Again</Text>
-                          </TouchableOpacity>
-                        )}
+                        {(() => {
+                          const cleanIn = guidedInput.replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, '').trim().toLowerCase();
+                          const cleanExp = (aiGuidedQ.correctWord || '').replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, '').trim().toLowerCase();
+                          const isCorrect = cleanIn === cleanExp;
+
+                          return (
+                            <>
+                              <View style={[
+                                { borderRadius: 10, padding: 12, marginBottom: 10, borderWidth: 1 },
+                                isCorrect
+                                  ? { backgroundColor: isDark ? '#052E16' : '#F0FDF4', borderColor: '#16A34A' }
+                                  : { backgroundColor: isDark ? '#1F0404' : '#FEF2F2', borderColor: '#EF4444' }
+                              ]}>
+                                <Text style={{ fontSize: 13, fontWeight: '800', color: isCorrect ? '#16A34A' : '#EF4444', marginBottom: 4 }}>
+                                  {isCorrect ? '🎉 Perfect!' : `❌ The correct word is: "${aiGuidedQ.correctWord}"`}
+                                </Text>
+                                {!!aiGuidedQ.explanation && (
+                                  <Text style={{ fontSize: 12, color: theme.textSecondary, lineHeight: 17 }}>{aiGuidedQ.explanation}</Text>
+                                )}
+                              </View>
+                              {/* Try again button */}
+                              {!isCorrect && (
+                                <TouchableOpacity
+                                  style={[styles.quizNextBtn, { backgroundColor: '#6B7280' }]}
+                                  onPress={() => { setGuidedInput(''); setGuidedSubmitted(false); }}
+                                >
+                                  <Ionicons name="refresh" size={16} color="#FFF" />
+                                  <Text style={styles.quizNextText}>Try Again</Text>
+                                </TouchableOpacity>
+                              )}
+                            </>
+                          );
+                        })()}
                       </View>
                     )}
                   </View>
@@ -2029,6 +2075,19 @@ export default function LessonDetailScreen({ navigation, route }) {
                     <Ionicons name="sparkles" size={18} color="#FFF" />
                     <Text style={styles.quizNextText}>
                       {evaluatingSpeaking ? 'Analyzing with AI…' : 'Submit to AI Feedback'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Can't Speak Now Mode */}
+                  <TouchableOpacity
+                    style={{ alignItems: 'center', marginTop: 12, paddingVertical: 8 }}
+                    onPress={() => {
+                      fetchDynamicQuiz(quizLevel);
+                      setStudyStep(7);
+                    }}
+                  >
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: theme.textSecondary }}>
+                      Can't speak right now? Skip to Final Quiz →
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -2334,10 +2393,7 @@ export default function LessonDetailScreen({ navigation, route }) {
                   let nextLabel = "Next Step";
 
                   if (studyStep === 1) {
-                    if (isSpeakingContent) {
-                      isNextDisabled = true;
-                      nextLabel = "🎧 Listening to Tutor...";
-                    }
+                    nextLabel = "Next: Examples";
                   } else if (studyStep === 3) {
                     if (!checkSubmitted) {
                       isNextDisabled = true;
@@ -2350,8 +2406,7 @@ export default function LessonDetailScreen({ navigation, route }) {
                     }
                   } else if (studyStep === 5) {
                     if (!speakingFeedback && !speakingInput.trim()) {
-                      isNextDisabled = true;
-                      nextLabel = "Submit Sentence to Continue";
+                      nextLabel = "Skip or Speak to Continue";
                     }
                   }
 
