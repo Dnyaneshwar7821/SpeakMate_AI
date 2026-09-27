@@ -1272,12 +1272,6 @@ export default function LessonDetailScreen({ navigation, route }) {
       setActionLoading(false);
     }
   };
-    } catch (err) {
-      console.warn('Finish lesson error:', err);
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   // ── Derived ─────────────────────────────────────────────────────────
   const diffColors = lesson ? (DIFF_COLORS[lesson.level] || { bg: '#F1F5F9', text: '#64748B' }) : {};
