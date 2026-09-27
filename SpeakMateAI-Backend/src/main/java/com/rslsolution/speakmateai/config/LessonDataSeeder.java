@@ -42,8 +42,11 @@ public class LessonDataSeeder implements CommandLineRunner {
             if (updated) {
                 lessonRepository.saveAll(existing);
             }
+            seedCurriculumLessons();
             return;
         }
+
+        seedCurriculumLessons();
 
         List<Lesson> lessons = List.of(
 
@@ -557,6 +560,66 @@ public class LessonDataSeeder implements CommandLineRunner {
                 .active(true).locked(false).build()
         );
 
-        lessonRepository.saveAll(lessons);
+        if (!lessons.isEmpty()) {
+            lessonRepository.saveAll(lessons);
+        }
+    }
+
+    private void seedCurriculumLessons() {
+        try {
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.ClassPathResource("curriculum_lessons.json");
+            if (!resource.exists()) {
+                return;
+            }
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, Object>> list = mapper.readValue(
+                resource.getInputStream(),
+                new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, Object>>>() {}
+            );
+            if (list == null || list.isEmpty()) return;
+
+            java.util.List<Lesson> toSave = new java.util.ArrayList<>();
+            for (java.util.Map<String, Object> map : list) {
+                String title = (String) map.get("title");
+                if (title == null || title.isBlank()) continue;
+                if (lessonRepository.findByTitleIgnoreCase(title.trim()).isPresent()) {
+                    continue;
+                }
+                String category = (String) map.getOrDefault("category", "General");
+                String level = (String) map.getOrDefault("level", "Beginner");
+                String description = (String) map.getOrDefault("description", "");
+                Integer xp = map.get("xpReward") instanceof Number n ? n.intValue() : 35;
+                Integer mins = map.get("estimatedMinutes") instanceof Number n ? n.intValue() : 15;
+                Integer order = map.get("orderIndex") instanceof Number n ? n.intValue() : 0;
+                String skills = (String) map.getOrDefault("skills", "");
+                String objectives = (String) map.getOrDefault("objectives", "");
+                String requirements = (String) map.getOrDefault("requirements", "");
+
+                Lesson lesson = Lesson.builder()
+                        .title(title.trim())
+                        .category(category)
+                        .level(level)
+                        .description(description)
+                        .content(description)
+                        .xpReward(xp)
+                        .estimatedMinutes(mins)
+                        .duration(mins)
+                        .orderIndex(order)
+                        .skills(skills)
+                        .objectives(objectives)
+                        .requirements(requirements)
+                        .active(true)
+                        .locked(false)
+                        .popular(false)
+                        .featured(false)
+                        .build();
+                toSave.add(lesson);
+            }
+            if (!toSave.isEmpty()) {
+                lessonRepository.saveAll(toSave);
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: Could not seed curriculum_lessons.json: " + e.getMessage());
+        }
     }
 }

@@ -186,7 +186,12 @@ export function LessonDetail() {
           });
         }
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setLoading(false);
+        if (id) {
+          lessonModuleService.start(id).catch(() => null);
+        }
+      });
   }, [id]);
 
   // Audio Speech Read-Aloud Helper
@@ -211,6 +216,19 @@ export function LessonDetail() {
       }
     };
   }, [studyStep, showStudy]);
+
+  // Sync step progress with backend
+  useEffect(() => {
+    if (showStudy && lesson?.id && studyStep > 0 && studyStep < 8) {
+      const progressPercent = Math.min(95, Math.round(((studyStep + 1) / 9) * 100));
+      lessonModuleService.updateProgress({
+        lessonId: Number(lesson.id) || lesson.id,
+        progressPercent,
+        lastSectionIndex: studyStep,
+        timeSpentMinutes: 1,
+      }).catch(() => null);
+    }
+  }, [showStudy, studyStep, lesson?.id]);
 
   // Step 1: Auto AI Teaching Concept background enhancement
   useEffect(() => {
@@ -936,6 +954,11 @@ export function LessonDetail() {
                           setQuizFinished(true);
                           setStudyStep(8);
                           recordLessonCompleted(lesson?.title || "English Lesson");
+                          if (lesson?.id) {
+                            lessonModuleService.complete(Number(lesson.id) || lesson.id).catch((err) => {
+                              console.warn("Backend lesson complete sync error:", err);
+                            });
+                          }
                         }
                       }}
                       className="px-6 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#8b85ff] disabled:opacity-50 text-white text-xs font-extrabold shadow-md transition-all"

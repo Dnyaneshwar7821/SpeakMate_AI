@@ -26,6 +26,10 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
 
 	long countByActiveTrue();
 
+	java.util.Optional<Lesson> findByTitleIgnoreCase(String title);
+
+	java.util.Optional<Lesson> findByTitle(String title);
+
 	@Query("SELECT l FROM Lesson l WHERE l.active = true AND (LOWER(l.title) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(l.description) LIKE LOWER(CONCAT('%', :q, '%')) OR LOWER(l.category) LIKE LOWER(CONCAT('%', :q, '%')))")
 	List<Lesson> searchActive(@Param("q") String query);
 }

@@ -60,6 +60,8 @@ public class LessonServiceImpl implements LessonService {
 	private final UserRepository userRepository;
 	private final ProgressRepository userProgressRepository;
 	private final NotificationService notificationService;
+	private final Map<Long, Map<String, Object>> curriculumById = new java.util.concurrent.ConcurrentHashMap<>();
+	private final Map<String, Map<String, Object>> curriculumByTitle = new java.util.concurrent.ConcurrentHashMap<>();
 
 	public LessonServiceImpl(LessonRepository lessonRepository,
 			LessonProgressRepository progressRepository,
@@ -71,6 +73,99 @@ public class LessonServiceImpl implements LessonService {
 		this.userRepository = userRepository;
 		this.userProgressRepository = userProgressRepository;
 		this.notificationService = notificationService;
+	}
+
+	@jakarta.annotation.PostConstruct
+	public void initCurriculumCatalog() {
+		try {
+			org.springframework.core.io.Resource resource = new org.springframework.core.io.ClassPathResource("curriculum_lessons.json");
+			if (!resource.exists()) return;
+			com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+			List<Map<String, Object>> list = mapper.readValue(
+				resource.getInputStream(),
+				new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, Object>>>() {}
+			);
+			if (list != null) {
+				for (Map<String, Object> item : list) {
+					if (item.get("id") instanceof Number n) {
+						curriculumById.put(n.longValue(), item);
+					}
+					String t = (String) item.get("title");
+					if (t != null && !t.isBlank()) {
+						curriculumByTitle.put(t.trim().toLowerCase(), item);
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Warning loading curriculum catalog: " + e.getMessage());
+		}
+	}
+
+	public Lesson resolveLesson(Long id, String fallbackTitle) {
+		if (id != null) {
+			Optional<Lesson> found = lessonRepository.findById(id);
+			if (found.isPresent()) return found.get();
+		}
+		if (fallbackTitle != null && !fallbackTitle.isBlank()) {
+			Optional<Lesson> found = lessonRepository.findByTitleIgnoreCase(fallbackTitle.trim());
+			if (found.isPresent()) return found.get();
+		}
+
+		Map<String, Object> map = null;
+		if (id != null && curriculumById.containsKey(id)) {
+			map = curriculumById.get(id);
+		} else if (fallbackTitle != null && curriculumByTitle.containsKey(fallbackTitle.trim().toLowerCase())) {
+			map = curriculumByTitle.get(fallbackTitle.trim().toLowerCase());
+		}
+
+		if (map != null) {
+			String title = (String) map.get("title");
+			if (title != null) {
+				Optional<Lesson> byTitle = lessonRepository.findByTitleIgnoreCase(title.trim());
+				if (byTitle.isPresent()) return byTitle.get();
+			}
+			String category = (String) map.getOrDefault("category", "General");
+			String level = (String) map.getOrDefault("level", "Beginner");
+			String description = (String) map.getOrDefault("description", "");
+			Integer xp = map.get("xpReward") instanceof Number n ? n.intValue() : 35;
+			Integer mins = map.get("estimatedMinutes") instanceof Number n ? n.intValue() : 15;
+			Integer order = map.get("orderIndex") instanceof Number n ? n.intValue() : 0;
+			String skills = (String) map.getOrDefault("skills", "");
+			String objectives = (String) map.getOrDefault("objectives", "");
+			String requirements = (String) map.getOrDefault("requirements", "");
+
+			Lesson lesson = Lesson.builder()
+					.title(title != null ? title.trim() : "Curriculum Lesson " + id)
+					.category(category)
+					.level(level)
+					.description(description)
+					.content(description)
+					.xpReward(xp)
+					.estimatedMinutes(mins)
+					.duration(mins)
+					.orderIndex(order)
+					.skills(skills)
+					.objectives(objectives)
+					.requirements(requirements)
+					.active(true)
+					.locked(false)
+					.build();
+			return lessonRepository.save(lesson);
+		}
+
+		Lesson fallback = Lesson.builder()
+				.title(fallbackTitle != null && !fallbackTitle.isBlank() ? fallbackTitle.trim() : "Lesson " + id)
+				.category("General")
+				.level("Beginner")
+				.description("English mastery lesson")
+				.content("English mastery lesson")
+				.xpReward(35)
+				.estimatedMinutes(15)
+				.duration(15)
+				.active(true)
+				.locked(false)
+				.build();
+		return lessonRepository.save(fallback);
 	}
 
 	// ── Helpers ───────────────────────────────────────────────────────
@@ -205,8 +300,7 @@ public class LessonServiceImpl implements LessonService {
 
 	@Override
 	public LessonResponse getLessonById(Long id) {
-		Lesson lesson = lessonRepository.findById(id)
-				.orElseThrow(() -> new LessonNotFoundException("Lesson not found"));
+		Lesson lesson = resolveLesson(id, null);
 		User user = currentUser();
 		return mapWithUserProgress(lesson, user);
 	}
@@ -402,8 +496,7 @@ public class LessonServiceImpl implements LessonService {
 
 	@Override
 	public LessonResponse startLesson(Long id) {
-		Lesson lesson = lessonRepository.findById(id)
-				.orElseThrow(() -> new LessonNotFoundException("Lesson not found"));
+		Lesson lesson = resolveLesson(id, null);
 		User user = currentUser();
 		if (user == null) return mapToResponse(lesson);
 
@@ -427,8 +520,7 @@ public class LessonServiceImpl implements LessonService {
 		User user = currentUser();
 		if (user == null) throw new UserNotFoundException("Not authenticated");
 
-		Lesson lesson = lessonRepository.findById(request.getLessonId())
-				.orElseThrow(() -> new LessonNotFoundException("Lesson not found"));
+		Lesson lesson = resolveLesson(request.getLessonId(), null);
 
 		LessonProgress progress = progressRepository.findByUserAndLesson(user, lesson)
 				.orElseGet(() -> LessonProgress.builder()
@@ -463,16 +555,7 @@ public class LessonServiceImpl implements LessonService {
 		User user = currentUser();
 		if (user == null) throw new UserNotFoundException("Not authenticated");
 
-		Lesson lesson = lessonRepository.findById(id).orElse(null);
-		if (lesson == null) {
-			return LessonProgressResponse.builder()
-					.lessonId(id)
-					.progressPercent(100)
-					.completed(true)
-					.xpEarned(25)
-					.completedAt(LocalDateTime.now())
-					.build();
-		}
+		Lesson lesson = resolveLesson(id, null);
 
 		LessonProgress progress = progressRepository.findByUserAndLesson(user, lesson)
 				.orElseGet(() -> LessonProgress.builder()
