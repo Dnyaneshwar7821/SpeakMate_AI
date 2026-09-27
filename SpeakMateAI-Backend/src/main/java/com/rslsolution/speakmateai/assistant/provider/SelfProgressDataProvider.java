@@ -37,12 +37,16 @@ import com.rslsolution.speakmateai.repository.AssignmentProgressRepository;
 import com.rslsolution.speakmateai.repository.AssignmentRepository;
 import com.rslsolution.speakmateai.repository.LessonRepository;
 
+import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * Caller's own learning progress, available to both STUDENT and USER (Learner) roles.
  * Provides a comprehensive snapshot of XP, streaks, completed lessons, speaking practice,
  * fluency metrics, vocabulary words, and grammar checks.
  */
 @Component
+@Transactional(readOnly = true)
 public class SelfProgressDataProvider implements AssistantDataProvider {
 
 	private final UserRepository userRepository;
@@ -56,6 +60,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 	private final AchievementRepository achievementRepository;
 	private final AssignmentProgressRepository assignmentProgressRepository;
 	private final AssignmentRepository assignmentRepository;
+	private final TeacherAssignmentResolver teacherAssignmentResolver;
 	private final ObjectMapper objectMapper;
 
 	public SelfProgressDataProvider(UserRepository userRepository,
@@ -69,6 +74,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			AchievementRepository achievementRepository,
 			AssignmentProgressRepository assignmentProgressRepository,
 			AssignmentRepository assignmentRepository,
+			@org.springframework.beans.factory.annotation.Autowired(required = false) TeacherAssignmentResolver teacherAssignmentResolver,
 			ObjectMapper objectMapper) {
 		this.userRepository = userRepository;
 		this.progressRepository = progressRepository;
@@ -81,6 +87,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		this.achievementRepository = achievementRepository;
 		this.assignmentProgressRepository = assignmentProgressRepository;
 		this.assignmentRepository = assignmentRepository;
+		this.teacherAssignmentResolver = teacherAssignmentResolver;
 		this.objectMapper = objectMapper;
 	}
 
@@ -249,11 +256,16 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		}
 		double avgGrammarScore = scoredGrammarCount > 0 ? Math.round((totalGrammarScore / scoredGrammarCount) * 10.0) / 10.0 : 0.0;
 
-		List<String> completedLessonTitles = lessonRows.stream()
-				.filter(lp -> Boolean.TRUE.equals(lp.getCompleted()) && lp.getLesson() != null && lp.getLesson().getTitle() != null && !lp.getLesson().getTitle().isBlank())
-				.map(lp -> lp.getLesson().getTitle().trim())
-				.distinct()
-				.collect(Collectors.toList());
+		List<String> completedLessonTitles = new ArrayList<>();
+		try {
+			completedLessonTitles = lessonRows.stream()
+					.filter(lp -> Boolean.TRUE.equals(lp.getCompleted()) && lp.getLesson() != null && lp.getLesson().getTitle() != null && !lp.getLesson().getTitle().isBlank())
+					.map(lp -> lp.getLesson().getTitle().trim())
+					.distinct()
+					.collect(Collectors.toList());
+		} catch (Exception ignored) {
+			// defensive fallback against detached/lazy entities
+		}
 		data.put("completedLessonTitles", completedLessonTitles);
 
 		// Available lessons catalog & recommended next lesson
@@ -411,8 +423,19 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		data.put("studentName", fullName(user));
 		data.put("role", user.getRole() != null ? user.getRole().name() : "USER");
 
-		if (user.getStandard() != null && !user.getStandard().isBlank()) {
-			data.put("standard", user.getStandard());
+		String std = user.getStandard();
+		if (std == null || std.isBlank()) {
+			std = user.getSchoolGrade();
+		}
+		String grade = user.getSchoolGrade();
+		if (grade == null || grade.isBlank()) {
+			grade = std;
+		}
+		if (std != null && !std.isBlank()) {
+			data.put("standard", std);
+		}
+		if (grade != null && !grade.isBlank()) {
+			data.put("schoolGrade", grade);
 		}
 		if (user.getDivision() != null && !user.getDivision().isBlank()) {
 			data.put("division", user.getDivision());
@@ -423,12 +446,25 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		if (user.getSchoolName() != null && !user.getSchoolName().isBlank()) {
 			data.put("schoolName", user.getSchoolName());
 		}
-		if (user.getSchoolGrade() != null && !user.getSchoolGrade().isBlank()) {
-			data.put("schoolGrade", user.getSchoolGrade());
-		}
 		if (user.getAgeGroup() != null && !user.getAgeGroup().isBlank()) {
 			data.put("ageGroup", user.getAgeGroup());
 		}
+
+		if (teacherAssignmentResolver != null && (user.getRole() == com.rslsolution.speakmateai.enums.Role.STUDENT || user.getSchoolId() != null)) {
+			try {
+				List<Map<String, Object>> teachers = teacherAssignmentResolver.resolveAssignedTeachersForStudent(
+						user.getId(), user.getSchoolId(), std, user.getDivision());
+				if (teachers != null && !teachers.isEmpty()) {
+					data.put("assignedTeachers", teachers);
+					data.put("assignedTeacher", teachers.get(0).get("name"));
+					if (teachers.get(0).get("subject") != null) {
+						data.put("teacherSubject", teachers.get(0).get("subject"));
+					}
+				}
+			} catch (Exception ignored) {
+			}
+		}
+
 		data.put("dailyGoalMinutes", user.getDailyGoalMinutes() != null ? user.getDailyGoalMinutes() : 15);
 		if (user.getLearningGoal() != null && !user.getLearningGoal().isBlank()) {
 			data.put("learningGoal", user.getLearningGoal());

@@ -10,6 +10,7 @@ export const ROUTES = Object.freeze({
     ACHIEVEMENTS: "/achievements",
     PROFILE: "/profile",
     SETTINGS: "/settings",
+    ASSIGNMENTS: "/assignments",
 
     // Super Admin Routes
     ADMIN_LOGIN: "/admin/login",

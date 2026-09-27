@@ -135,6 +135,7 @@ public class AnswerSynthesizer {
 			enrichStudentStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
+			sanitizeStudentAnswer(answer, intent);
 			return answer;
 		} catch (Exception e) {
 			// Graceful fallback: keep the raw text so the user still gets an answer.
@@ -147,6 +148,7 @@ public class AnswerSynthesizer {
 			enrichStudentStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
+			sanitizeStudentAnswer(answer, intent);
 			return answer;
 		}
 	}
@@ -282,7 +284,7 @@ public class AnswerSynthesizer {
 					+ "  ⚡ XP & Streaks (Level, XP, streak days)\n"
 					+ "  🏆 Achievements (unlockedAchievementsCount out of totalAchievementsCount)\n"
 					+ "  📋 School Homework (for students: report pending homework tasks and deadlines, or '0 pending tasks (All caught up!)' if pendingHomework is 0).\n"
-					+ "  CRITICAL ZERO-PROGRESS RULE: A student or learner who has 0 completed sessions or 0 XP is a brand new learner starting their learning journey. You MUST NEVER apologize, say 'I don't have any data about your progress at the moment', or claim information is unavailable! Always output the complete multi-module snapshot with 0 counts (e.g. 'Sessions completed: 0', 'Fluency: Not yet evaluated', 'Completed: 0 / 20', 'XP: 0', 'Pending homework: 0'), recommend their first lesson or speaking session to get started, and provide enthusiastic encouragement! In 'stats', include cards for 'Level', 'XP', 'Streak', and 'Speaking Sessions'. In 'suggestDeepLink', use '/progress'.\n"
+					+ "  CRITICAL ZERO-PROGRESS RULE: A student or learner who has 0 completed sessions or 0 XP is a brand new learner starting their learning journey. You MUST NEVER apologize, say 'I don't have any data about your progress at the moment', or claim information is unavailable! Always output the complete multi-module snapshot with 0 counts (e.g. 'Sessions completed: 0', 'Fluency: Not yet evaluated', 'Completed: 0 / 15', 'XP: 0', 'Pending homework: 0'), recommend their first lesson or speaking session to get started, and provide enthusiastic encouragement! In 'stats', include cards for 'Level' (minimum Level 1), 'XP', 'Streak', and 'Speaking Sessions'. In 'suggestDeepLink', use '/progress'. IMPORTANT: Level is 1-based (every user starts at Level 1, NEVER report Level 0). Total available lessons in catalog is at least 15 (never output 0 / 0). Total achievements is 12 (never output 0 / 0).\n"
 					+ "- ENGLISH TUTORING & GRAMMAR EXPLANATIONS: When asked about grammar (e.g. 'explain difference between past simple and present perfect', 'when do I use since vs for', 'articles', 'tenses'): provide an engaging, clear educational explanation with comparison bullet points and 2-3 clear example sentences. Suggest testing sentences in the **Grammar Check** module. In 'suggestDeepLink', use '/grammar'.\n"
 					+ "- SENTENCE CORRECTIONS: When asked to correct a sentence (e.g. 'correct this sentence: She don't like apples'):\n"
 					+ "  1. Show the **Corrected Sentence** clearly in bold.\n"
@@ -355,7 +357,29 @@ public class AnswerSynthesizer {
 		enrichStudentStatsIfMissing(answer, intent, userMessage, dataJson);
 		enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 		enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
+		sanitizeStudentAnswer(answer, intent);
 		return answer;
+	}
+
+	private void sanitizeStudentAnswer(SynthesizedAnswer answer, AssistantIntent intent) {
+		if (answer == null) {
+			return;
+		}
+		if (answer.getStats() != null) {
+			for (AssistantResponse.StatCard card : answer.getStats()) {
+				if (card != null && card.getLabel() != null && "level".equalsIgnoreCase(card.getLabel().trim())) {
+					if ("0".equals(card.getValue()) || "Level 0".equalsIgnoreCase(card.getValue())) {
+						card.setValue("Level 1");
+					}
+				}
+			}
+		}
+		if (intent == AssistantIntent.STUDENT_PERFORMANCE && answer.getMarkdown() != null) {
+			String md = answer.getMarkdown();
+			if (md.contains("Level 0")) {
+				answer.setMarkdown(md.replace("Level 0", "Level 1"));
+			}
+		}
 	}
 
 	/**
@@ -1310,9 +1334,18 @@ public class AnswerSynthesizer {
 		addLine(sb, "Email", str(d, "email"));
 		String role = str(d, "role").replace('_', ' ');
 		addLine(sb, "Role", role);
-		addLine(sb, "Standard", str(d, "standard"));
+		String std = str(d, "standard");
+		if (std.isBlank()) {
+			std = str(d, "schoolGrade");
+		}
+		addLine(sb, "Standard", std);
 		addLine(sb, "Division", str(d, "division"));
 		addLine(sb, "Roll Number", str(d, "rollNumber"));
+		String teacher = str(d, "assignedTeacher");
+		if (!teacher.isBlank()) {
+			String teacherSubject = str(d, "teacherSubject");
+			addLine(sb, "Assigned Teacher", teacher + (!teacherSubject.isBlank() ? " (" + teacherSubject + ")" : ""));
+		}
 		addLine(sb, "Phone", str(d, "phone"));
 		addLine(sb, "School", str(d, "schoolName"));
 		addLine(sb, "Subscription Plan", str(d, "subscriptionPlan"));
@@ -1453,6 +1486,9 @@ public class AnswerSynthesizer {
 		if (containsWord(m, "roll", "rool", "standard", "division", "grade") || m.contains("which class") || m.contains("what class") || m.contains("my class")) {
 			String rollNo = str(d, "rollNumber");
 			String std = str(d, "standard");
+			if (std.isBlank()) {
+				std = str(d, "schoolGrade");
+			}
 			String div = str(d, "division");
 			String school = str(d, "schoolName");
 			if (!rollNo.isBlank()) {
@@ -1469,6 +1505,18 @@ public class AnswerSynthesizer {
 			}
 			if (!school.isBlank()) {
 				sb.append("- **School:** ").append(school).append("\n");
+				matched = true;
+			}
+		}
+		if (containsWord(m, "teacher", "sir", "madam", "miss", "faculty") || m.contains("who teaches") || m.contains("who is teaching")) {
+			String teacherName = str(d, "assignedTeacher");
+			if (!teacherName.isBlank()) {
+				sb.append("- **Assigned Teacher:** ").append(teacherName);
+				String subject = str(d, "teacherSubject");
+				if (!subject.isBlank()) {
+					sb.append(" (").append(subject).append(")");
+				}
+				sb.append("\n");
 				matched = true;
 			}
 		}
@@ -2355,7 +2403,11 @@ public class AnswerSynthesizer {
 				return;
 			}
 			List<AssistantResponse.StatCard> cards = new ArrayList<>();
-			cards.add(new AssistantResponse.StatCard("Level", "Level " + d.getOrDefault("level", 1), null));
+			int lvl = 1;
+			try {
+				lvl = Math.max(1, Integer.parseInt(String.valueOf(d.getOrDefault("level", 1))));
+			} catch (Exception ignored) {}
+			cards.add(new AssistantResponse.StatCard("Level", "Level " + lvl, null));
 			cards.add(new AssistantResponse.StatCard("XP", d.getOrDefault("xp", 0) + " XP", null));
 			cards.add(new AssistantResponse.StatCard("Streak", d.getOrDefault("currentStreak", 0) + " days", null));
 			cards.add(new AssistantResponse.StatCard("Speaking Sessions", String.valueOf(d.getOrDefault("totalSpeakingSessions", 0)), null));

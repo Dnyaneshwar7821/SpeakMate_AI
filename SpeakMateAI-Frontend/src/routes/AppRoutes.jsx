@@ -421,6 +421,15 @@ export function AppRoutes() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path={ROUTES.ASSIGNMENTS || "/assignments"}
+            element={
+              <ProtectedRoute>
+                <Navigate to={ROUTES.DASHBOARD} replace />
+              </ProtectedRoute>
+            }
+          />
         </Route>
 
         {/* ================= PORTAL SCOPE (ISOLATED AUTH & THEME) ================= */}

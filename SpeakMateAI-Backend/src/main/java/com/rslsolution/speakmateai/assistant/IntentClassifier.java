@@ -427,6 +427,13 @@ public class IntentClassifier {
 			"preposition", "prepositions", "article", "articles", "voice", "passive", "active",
 			"clause", "clauses", "verb", "verbs", "modal", "modals", "conjunction", "conjunctions", "english",
 			"difference", "between", "versus", "vs", "compare", "meaning", "definition", "example", "examples", "tips",
+			// Academic, examinations & study terms (must NOT be treated as a student name)
+			"formal", "informal", "letter", "essay", "paragraph", "writing", "comprehension", "reading",
+			"exam", "exams", "test", "tests", "examination", "prepare", "preparation", "preparing",
+			"study", "studying", "syllabus", "subject", "subjects", "doubt", "doubts", "direct",
+			"indirect", "speech", "reported", "question", "questions", "answer", "answers",
+			"homeworks", "grade", "grades", "teach", "teaches", "teaching", "assigned",
+			"math", "science", "social", "history", "geography", "hindi", "marathi",
 			// visualizations and charts
 			"chart", "charts", "graph", "graphs", "pie", "donut", "doughnut", "bar",
 			"line", "plot", "plots", "table", "tables", "diagram", "diagrams", "visualize", "visualization", "overview",
@@ -729,9 +736,12 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF", "tutoring", true), null);
 		}
 
-		String targetPerson = extractStudentMetricName(message);
-		if (!targetPerson.isEmpty()) {
-			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
+		// Teacher inquiries for students:
+		if (containsAny(m, List.of("who is my teacher", "who is my class teacher", "my teacher", "who teaches me",
+				"who teaches my class", "my class teacher", "what is my teacher's name", "tell me my teacher name",
+				"who is teacher of my class", "who is the teacher of my class", "my teacher name", "teacher name",
+				"which teacher teaches me", "who is assigned as my teacher"))) {
+			return new IntentResult(AssistantIntent.ACCOUNT_INFO, Map.of("scope", "SELF", "field", "teacher"), null);
 		}
 
 		// Account / Identity / Subscription / Roll number queries:
@@ -749,6 +759,11 @@ public class IntentClassifier {
 				"my class", "which class", "which class do i belong", "what class am i in", "my standard", "which standard", "my division", "which division",
 				"what grade am i in", "which grade am i in", "my roll number tell", "my rool number tell"))) {
 			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
+		}
+
+		String targetPerson = extractStudentMetricName(message);
+		if (!targetPerson.isEmpty()) {
+			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of(), null);
 		}
 
 		// Grammar check history / last checked sentence in grammar:
@@ -848,8 +863,12 @@ public class IntentClassifier {
 				"explain grammar", "grammar rules", "difference between", "how do i use", "when do i use",
 				"present perfect", "past simple", "past tense", "future tense", "present continuous", "simple present",
 				"preposition", "prepositions", "article", "articles", "subject verb", "passive voice", "active voice",
-				"direct indirect", "reported speech", "modal verbs", "modals", "conjunction", "clause", "tenses",
+				"direct indirect", "direct and indirect", "direct speech", "indirect speech", "reported speech", "modal verbs", "modals", "conjunction", "clause", "tenses",
 				"why do we say", "why is it", "is it correct to say", "is this sentence correct", "grammar tips",
+				// Academic writing, essays, letters & exam preparation:
+				"formal letter", "informal letter", "letter writing", "write a letter", "essay writing", "write an essay",
+				"paragraph writing", "reading comprehension", "comprehension", "exam preparation", "prepare for exam",
+				"prepare for exams", "exam tips", "study tips", "how to study", "syllabus", "doubt", "doubts",
 				// Sentence corrections:
 				"correct this sentence", "correct my sentence", "check my sentence", "check this sentence",
 				"can you correct", "fix my sentence", "fix this sentence", "correct the sentence",

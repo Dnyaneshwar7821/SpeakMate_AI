@@ -25,13 +25,13 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
 
 	List<LessonProgress> findByUser(User user);
 
-	@Query("SELECT l FROM LessonProgress l WHERE l.user.id = :userId")
+	@Query("SELECT l FROM LessonProgress l LEFT JOIN FETCH l.lesson WHERE l.user.id = :userId")
 	List<LessonProgress> findByUserId(@Param("userId") Long userId);
 
-	@Query("SELECT l FROM LessonProgress l WHERE l.user.id = :userId ORDER BY l.lastOpenedAt DESC")
+	@Query("SELECT l FROM LessonProgress l LEFT JOIN FETCH l.lesson WHERE l.user.id = :userId ORDER BY l.lastOpenedAt DESC")
 	List<LessonProgress> findByUserIdOrderByLastOpenedAtDesc(@Param("userId") Long userId);
 
-	@Query("SELECT l FROM LessonProgress l WHERE l.user.id = :userId AND l.completed = :completed")
+	@Query("SELECT l FROM LessonProgress l LEFT JOIN FETCH l.lesson WHERE l.user.id = :userId AND l.completed = :completed")
 	List<LessonProgress> findByUserIdAndCompleted(@Param("userId") Long userId, @Param("completed") Boolean completed);
 
 	default List<LessonProgress> findByStudent(Student student) {

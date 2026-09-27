@@ -537,6 +537,32 @@ public class AnswerSynthesizerChatTest {
 	}
 
 	@Test
+	void testStudentSelfAssignedTeacherAccountInfo() throws Exception {
+		Map<String, Object> data = Map.of(
+				"fullName", "Siddhi Narke",
+				"email", "siddhi.narke@example.com",
+				"role", "STUDENT",
+				"standard", "9",
+				"division", "A",
+				"assignedTeacher", "Pratik Patil"
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.ACCOUNT_INFO,
+				null,
+				"who is my teacher",
+				Map.of("scope", "SELF", "field", "teacher"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Pratik Patil"));
+	}
+
+	@Test
 	void testTeacherHandlingMostClassesSynthesis() throws Exception {
 		Map<String, Object> data = Map.of(
 				"topTeacherByClasses", Map.of(

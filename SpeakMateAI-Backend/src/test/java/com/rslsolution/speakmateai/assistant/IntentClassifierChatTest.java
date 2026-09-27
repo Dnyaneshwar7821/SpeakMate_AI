@@ -292,5 +292,30 @@ public class IntentClassifierChatTest {
 		IntentResult r10 = classifier.classify("show me Rahul's progress and scores", Role.STUDENT, null);
 		assertNotNull(r10);
 		assertEquals(AssistantIntent.ACCESS_DENIED, r10.getIntent());
+
+		// 11. Student Teacher inquiries: who is my teacher / class teacher
+		IntentResult r11 = classifier.classify("who is my teacher", Role.STUDENT, null);
+		assertNotNull(r11);
+		assertEquals(AssistantIntent.ACCOUNT_INFO, r11.getIntent());
+		assertEquals("SELF", r11.getParams().get("scope"));
+		assertEquals("teacher", r11.getParams().get("field"));
+
+		IntentResult r12 = classifier.classify("who is my class teacher?", Role.STUDENT, null);
+		assertNotNull(r12);
+		assertEquals(AssistantIntent.ACCOUNT_INFO, r12.getIntent());
+		assertEquals("SELF", r12.getParams().get("scope"));
+
+		// 12. Academic and study inquiries must NOT trigger false ACCESS_DENIED as person names
+		IntentResult r13 = classifier.classify("how to write a formal letter", Role.STUDENT, null);
+		assertNotNull(r13);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r13.getIntent());
+
+		IntentResult r14 = classifier.classify("how to prepare for exam", Role.STUDENT, null);
+		assertNotNull(r14);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r14.getIntent());
+
+		IntentResult r15 = classifier.classify("explain direct and indirect speech", Role.STUDENT, null);
+		assertNotNull(r15);
+		assertEquals(AssistantIntent.STUDENT_PERFORMANCE, r15.getIntent());
 	}
 }

@@ -29,6 +29,7 @@ import com.rslsolution.speakmateai.repository.SpeakingSessionRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 import com.rslsolution.speakmateai.repository.VocabularyRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Individual student performance. Super Admin / School Admin can look up any
@@ -37,6 +38,7 @@ import com.rslsolution.speakmateai.repository.VocabularyRepository;
  * routes STUDENT callers to {@link SelfProgressDataProvider} instead).
  */
 @Component
+@Transactional(readOnly = true)
 public class StudentLookupDataProvider implements AssistantDataProvider {
 
 	private final StudentRepository studentRepository;

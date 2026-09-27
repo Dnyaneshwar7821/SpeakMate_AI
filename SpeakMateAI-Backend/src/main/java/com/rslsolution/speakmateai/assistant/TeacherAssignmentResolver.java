@@ -16,12 +16,14 @@ import org.springframework.stereotype.Component;
 import com.rslsolution.speakmateai.entity.ClassRoom;
 import com.rslsolution.speakmateai.entity.ClassStudent;
 import com.rslsolution.speakmateai.entity.Student;
+import com.rslsolution.speakmateai.entity.Teacher;
 import com.rslsolution.speakmateai.entity.TeacherStandardDivision;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.repository.ClassRoomRepository;
 import com.rslsolution.speakmateai.repository.ClassStudentRepository;
 import com.rslsolution.speakmateai.repository.StudentRepository;
+import com.rslsolution.speakmateai.repository.TeacherRepository;
 import com.rslsolution.speakmateai.repository.TeacherStandardDivisionRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 
@@ -46,17 +48,29 @@ public class TeacherAssignmentResolver {
 	private final ClassRoomRepository classRoomRepository;
 	private final ClassStudentRepository classStudentRepository;
 	private final TeacherStandardDivisionRepository teacherStandardDivisionRepository;
+	private final TeacherRepository teacherRepository;
 
 	public TeacherAssignmentResolver(StudentRepository studentRepository,
 			UserRepository userRepository,
 			ClassRoomRepository classRoomRepository,
 			ClassStudentRepository classStudentRepository,
 			TeacherStandardDivisionRepository teacherStandardDivisionRepository) {
+		this(studentRepository, userRepository, classRoomRepository, classStudentRepository, teacherStandardDivisionRepository, null);
+	}
+
+	@org.springframework.beans.factory.annotation.Autowired
+	public TeacherAssignmentResolver(StudentRepository studentRepository,
+			UserRepository userRepository,
+			ClassRoomRepository classRoomRepository,
+			ClassStudentRepository classStudentRepository,
+			TeacherStandardDivisionRepository teacherStandardDivisionRepository,
+			@org.springframework.beans.factory.annotation.Autowired(required = false) TeacherRepository teacherRepository) {
 		this.studentRepository = studentRepository;
 		this.userRepository = userRepository;
 		this.classRoomRepository = classRoomRepository;
 		this.classStudentRepository = classStudentRepository;
 		this.teacherStandardDivisionRepository = teacherStandardDivisionRepository;
+		this.teacherRepository = teacherRepository;
 	}
 
 	/**
@@ -294,6 +308,131 @@ public class TeacherAssignmentResolver {
 		String first = s.getFirstName() != null ? s.getFirstName() : "";
 		String last = s.getLastName() != null ? s.getLastName() : "";
 		return (first + " " + last).trim();
+	}
+
+	public List<Map<String, Object>> resolveAssignedTeachersForStudent(Long studentId, Long schoolId, String studentStandard, String studentDivision) {
+		Map<Long, Map<String, Object>> teacherMap = new LinkedHashMap<>();
+
+		// 1. Direct assignment via Student.teacherId
+		if (studentId != null) {
+			try {
+				Optional<Student> studentOpt = studentRepository.findById(studentId);
+				if (studentOpt.isPresent() && studentOpt.get().getTeacherId() != null) {
+					Long directTeacherId = studentOpt.get().getTeacherId();
+					userRepository.findById(directTeacherId).ifPresent(t -> {
+						teacherMap.put(t.getId(), buildTeacherInfo(t, "Assigned Class Teacher"));
+					});
+				}
+			} catch (Exception ignored) {
+			}
+		}
+
+		// 2. Class memberships: student -> ClassRoom -> Teacher
+		if (studentId != null) {
+			try {
+				List<ClassStudent> memberships = classStudentRepository.findByStudentId(studentId);
+				for (ClassStudent cs : memberships) {
+					if (cs.getClassId() != null) {
+						classRoomRepository.findById(cs.getClassId()).ifPresent(cr -> {
+							if (cr.getTeacherId() != null && !teacherMap.containsKey(cr.getTeacherId())) {
+								userRepository.findById(cr.getTeacherId()).ifPresent(t -> {
+									String context = cr.getClassName() != null ? "Teacher for " + cr.getClassName() : "Class Teacher";
+									teacherMap.put(t.getId(), buildTeacherInfo(t, context));
+								});
+							}
+						});
+					}
+				}
+			} catch (Exception ignored) {
+			}
+		}
+
+		// 3. Allocations via TeacherStandardDivision matching student standard & division
+		String normStd = normalizeStandard(studentStandard);
+		String normDiv = studentDivision != null ? studentDivision.trim().toUpperCase(Locale.ROOT) : "";
+		if (schoolId != null && !normStd.isEmpty()) {
+			try {
+				List<TeacherStandardDivision> allAllocations = teacherStandardDivisionRepository.findAll();
+				for (TeacherStandardDivision tsd : allAllocations) {
+					if (tsd != null && tsd.getTeacherId() != null && tsd.getStandardDivision() != null
+							&& tsd.getStandardDivision().getSchoolStandard() != null) {
+						String assignedStd = tsd.getStandardDivision().getSchoolStandard().getStandard();
+						String assignedDiv = tsd.getStandardDivision().getDivision();
+						if (normStd.equals(normalizeStandard(assignedStd))) {
+							String nDiv = assignedDiv != null ? assignedDiv.trim().toUpperCase(Locale.ROOT) : "";
+							if (normDiv.isEmpty() || nDiv.isEmpty() || normDiv.equals(nDiv)) {
+								if (!teacherMap.containsKey(tsd.getTeacherId())) {
+									userRepository.findById(tsd.getTeacherId()).ifPresent(t -> {
+										if (schoolId.equals(t.getSchoolId())) {
+											teacherMap.put(t.getId(), buildTeacherInfo(t, "Teacher for Class " + studentStandard + (studentDivision != null ? "-" + studentDivision : "")));
+										}
+									});
+								}
+							}
+						}
+					}
+				}
+			} catch (Exception ignored) {
+			}
+		}
+
+		// 4. Match via teacher's own standard & division in the same school
+		if (schoolId != null && !normStd.isEmpty()) {
+			try {
+				List<User> schoolTeachers = userRepository.findAll().stream()
+						.filter(u -> u.getRole() == Role.TEACHER && schoolId.equals(u.getSchoolId()))
+						.collect(Collectors.toList());
+				for (User t : schoolTeachers) {
+					if (t.getStandard() != null && normStd.equals(normalizeStandard(t.getStandard()))) {
+						String tDiv = t.getDivision() != null ? t.getDivision().trim().toUpperCase(Locale.ROOT) : "";
+						if (normDiv.isEmpty() || tDiv.isEmpty() || normDiv.equals(tDiv)) {
+							teacherMap.putIfAbsent(t.getId(), buildTeacherInfo(t, "Class Teacher for " + studentStandard + (studentDivision != null ? "-" + studentDivision : "")));
+						}
+					}
+				}
+			} catch (Exception ignored) {
+			}
+		}
+
+		return new ArrayList<>(teacherMap.values());
+	}
+
+	private Map<String, Object> buildTeacherInfo(User t, String assignmentContext) {
+		Map<String, Object> m = new LinkedHashMap<>();
+		String first = t.getFirstName() != null ? t.getFirstName().trim() : "";
+		String last = t.getLastName() != null ? t.getLastName().trim() : "";
+		String name = (first + " " + last).trim();
+		m.put("name", name.isEmpty() ? "Teacher" : name);
+		m.put("email", t.getEmail());
+		if (t.getPhone() != null && !t.getPhone().isBlank()) {
+			m.put("phone", t.getPhone().trim());
+		}
+		String subject = null;
+		if (teacherRepository != null && t.getId() != null) {
+			try {
+				Optional<Teacher> teacherOpt = teacherRepository.findById(t.getId());
+				if (teacherOpt.isPresent()) {
+					Teacher teacher = teacherOpt.get();
+					if (teacher.getDepartment() != null && !teacher.getDepartment().isBlank()) {
+						subject = teacher.getDepartment().trim();
+					}
+					if (teacher.getDesignation() != null && !teacher.getDesignation().isBlank()) {
+						m.put("designation", teacher.getDesignation().trim());
+					}
+				}
+			} catch (Exception ignored) {
+			}
+		}
+		if (subject == null && t instanceof Teacher) {
+			Teacher tr = (Teacher) t;
+			subject = tr.getDepartment();
+			if (tr.getDesignation() != null) {
+				m.put("designation", tr.getDesignation());
+			}
+		}
+		m.put("subject", subject != null ? subject : "English");
+		m.put("context", assignmentContext);
+		return m;
 	}
 
 	private String strParam(Map<String, Object> params, String key) {

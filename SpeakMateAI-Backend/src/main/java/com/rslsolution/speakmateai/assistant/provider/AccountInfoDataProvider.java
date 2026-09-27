@@ -15,6 +15,8 @@ import com.rslsolution.speakmateai.entity.UserSubscription;
 import com.rslsolution.speakmateai.enums.SubscriptionStatus;
 import com.rslsolution.speakmateai.repository.SchoolRepository;
 import com.rslsolution.speakmateai.repository.UserSubscriptionRepository;
+import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Answers questions about the authenticated caller's OWN account/identity
@@ -27,17 +29,21 @@ import com.rslsolution.speakmateai.repository.UserSubscriptionRepository;
  * own account, and no DB write is performed.
  */
 @Component
+@Transactional(readOnly = true)
 public class AccountInfoDataProvider implements AssistantDataProvider {
 
 	private final SchoolRepository schoolRepository;
 	private final UserSubscriptionRepository userSubscriptionRepository;
+	private final TeacherAssignmentResolver teacherAssignmentResolver;
 	private final ObjectMapper objectMapper;
 
 	public AccountInfoDataProvider(SchoolRepository schoolRepository,
 			UserSubscriptionRepository userSubscriptionRepository,
+			TeacherAssignmentResolver teacherAssignmentResolver,
 			ObjectMapper objectMapper) {
 		this.schoolRepository = schoolRepository;
 		this.userSubscriptionRepository = userSubscriptionRepository;
+		this.teacherAssignmentResolver = teacherAssignmentResolver;
 		this.objectMapper = objectMapper;
 	}
 
@@ -146,12 +152,31 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 		if (actor.getRollNumber() != null && !actor.getRollNumber().isBlank()) {
 			data.put("rollNumber", actor.getRollNumber());
 		}
+
+		String assignedTeacherName = null;
+		if (actor.getRole() == com.rslsolution.speakmateai.enums.Role.STUDENT || actor.getStudentId() != null) {
+			try {
+				Long targetStudentId = actor.getUserId() != null ? actor.getUserId() : actor.getStudentId();
+				List<Map<String, Object>> teachers = teacherAssignmentResolver.resolveAssignedTeachersForStudent(
+						targetStudentId, actor.getSchoolId(), actor.getStandard(), actor.getDivision());
+				if (teachers != null && !teachers.isEmpty()) {
+					data.put("assignedTeachers", teachers);
+					assignedTeacherName = String.valueOf(teachers.get(0).get("name"));
+					data.put("assignedTeacher", assignedTeacherName);
+					if (teachers.get(0).get("subject") != null) {
+						data.put("teacherSubject", teachers.get(0).get("subject"));
+					}
+				}
+			} catch (Exception ignored) {
+			}
+		}
+
 		String subPlan = data.get("subscriptionPlan") != null ? String.valueOf(data.get("subscriptionPlan")) : null;
-		data.put("summary", accountSummary(actor, schoolName, location, subPlan));
+		data.put("summary", accountSummary(actor, schoolName, location, subPlan, assignedTeacherName));
 		return toJson(data);
 	}
 
-	private String accountSummary(ActorContext actor, String schoolName, String location, String subscriptionPlan) {
+	private String accountSummary(ActorContext actor, String schoolName, String location, String subscriptionPlan, String assignedTeacherName) {
 		String role = actor.getRole() != null ? actor.getRole().name().replace('_', ' ') : "user";
 		StringBuilder sb = new StringBuilder();
 		if (actor.getDisplayName() != null && !actor.getDisplayName().isBlank()) {
@@ -170,6 +195,9 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 		}
 		if (actor.getRollNumber() != null && !actor.getRollNumber().isBlank()) {
 			sb.append(", Roll No. ").append(actor.getRollNumber());
+		}
+		if (assignedTeacherName != null && !assignedTeacherName.isBlank()) {
+			sb.append(", taught by teacher ").append(assignedTeacherName);
 		}
 		if (schoolName != null) {
 			sb.append(" at ").append(schoolName);

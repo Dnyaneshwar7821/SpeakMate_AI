@@ -26,6 +26,7 @@ export const ROUTES = {
   SUBSCRIPTION: "/pricing",
   HELP: "/help",
   ABOUT: "/about",
+  ASSIGNMENTS: "/assignments",
 
   // Super Admin
   ADMIN_LOGIN: "/admin/login",

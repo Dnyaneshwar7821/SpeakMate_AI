@@ -37,6 +37,7 @@ import com.rslsolution.speakmateai.enums.Role;
  * writes of any kind. Conversation history lives in the frontend React state.
  */
 @Service
+@org.springframework.transaction.annotation.Transactional(readOnly = true)
 public class AssistantService {
 
 	private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(AssistantService.class);
