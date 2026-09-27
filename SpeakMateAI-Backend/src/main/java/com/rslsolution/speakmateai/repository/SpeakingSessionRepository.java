@@ -27,23 +27,23 @@ public interface SpeakingSessionRepository extends JpaRepository<SpeakingSession
 		return findByUserOrderByCreatedAtDesc(student);
 	}
 
-	@Query("SELECT AVG(s.overallScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.overallScore IS NOT NULL")
+	@Query("SELECT AVG(s.overallScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true AND s.overallScore IS NOT NULL")
 	Double findAverageOverallScoreByUserId(@Param("userId") Long userId);
 
-	@Query("SELECT AVG(s.pronunciationScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.pronunciationScore IS NOT NULL")
+	@Query("SELECT AVG(s.pronunciationScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true AND s.pronunciationScore IS NOT NULL")
 	Double findAveragePronunciationScoreByUserId(@Param("userId") Long userId);
 
-	@Query("SELECT AVG(s.fluencyScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.fluencyScore IS NOT NULL")
+	@Query("SELECT AVG(s.fluencyScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true AND s.fluencyScore IS NOT NULL")
 	Double findAverageFluencyScoreByUserId(@Param("userId") Long userId);
 
-	@Query("SELECT AVG(s.grammarScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.grammarScore IS NOT NULL")
+	@Query("SELECT AVG(s.grammarScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true AND s.grammarScore IS NOT NULL")
 	Double findAverageGrammarScoreByUserId(@Param("userId") Long userId);
 
-	@Query("SELECT AVG(s.vocabularyScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.vocabularyScore IS NOT NULL")
+	@Query("SELECT AVG(s.vocabularyScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true AND s.vocabularyScore IS NOT NULL")
 	Double findAverageVocabularyScoreByUserId(@Param("userId") Long userId);
 
 	@Query("SELECT s.user.id, AVG(s.overallScore), AVG(s.pronunciationScore), AVG(s.fluencyScore), AVG(s.grammarScore), AVG(s.vocabularyScore) " +
-	       "FROM SpeakingSession s WHERE s.user.id IN :userIds GROUP BY s.user.id")
+	       "FROM SpeakingSession s WHERE s.user.id IN :userIds AND s.completed = true GROUP BY s.user.id")
 	List<Object[]> findAverageScoresByUserIds(@Param("userIds") java.util.Collection<Long> userIds);
 
 	@Query("SELECT s FROM SpeakingSession s WHERE s.user.id = :userId AND s.createdAt BETWEEN :start AND :end ORDER BY s.createdAt DESC")

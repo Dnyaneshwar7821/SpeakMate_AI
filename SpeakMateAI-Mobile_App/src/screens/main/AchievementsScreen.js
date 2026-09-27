@@ -302,8 +302,9 @@ export default function AchievementsScreen() {
       const backendItem = backendList.find(
         (b) => b.title && b.title.trim().toLowerCase() === ach.title.trim().toLowerCase()
       );
-      // Strictly unlocked only when verified by backend or valid progress target met
-      const unlocked = backendItem ? Boolean(backendItem.unlocked) : currentVal >= ach.target;
+      // Strictly unlocked only when progress target is satisfied AND verified by backend
+      const meetsTarget = currentVal >= ach.target;
+      const unlocked = backendItem ? (Boolean(backendItem.unlocked) && meetsTarget) : meetsTarget;
       const progressPercent = Math.min(100, Math.max(0, (currentVal / ach.target) * 100));
 
       return {

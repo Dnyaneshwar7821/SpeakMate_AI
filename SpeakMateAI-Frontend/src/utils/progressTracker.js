@@ -227,25 +227,17 @@ export const syncBackendProgress = (backendData, userContext = null) => {
     const backendXp = Number(rawBackendXp);
     const didSpendRecently = Boolean(current.lastSpentAt && (Date.now() - current.lastSpentAt < 120000));
 
-    if (current.xp > backendXp) {
-      // Local progress has earned more XP than the backend DB has recorded yet.
-      // Keep local XP and push the higher score to backend DB!
+    if (didSpendRecently && current.xp < backendXp) {
+      // User recently spent XP on a freeze or streak repair locally. Preserve deduction!
       finalXp = current.xp;
       shouldPushToBackend = true;
-    } else if (current.xp < backendXp) {
-      if (didSpendRecently) {
-        // User recently spent XP on a freeze or streak repair locally. Preserve deduction!
-        finalXp = current.xp;
-        shouldPushToBackend = true;
-      } else {
-        // Server has higher progress from another session or device. Adopt it.
-        finalXp = backendXp;
-      }
     } else {
+      // Backend DB is the authoritative single source of truth for user XP.
       finalXp = backendXp;
+      shouldPushToBackend = false;
     }
   } else if (userContext?.xp !== undefined && userContext?.xp !== null) {
-    finalXp = Math.max(Number(current.xp || 0), Number(userContext.xp));
+    finalXp = Number(userContext.xp);
   }
 
   const finalStreak = rawBackendStreak !== undefined && rawBackendStreak !== null

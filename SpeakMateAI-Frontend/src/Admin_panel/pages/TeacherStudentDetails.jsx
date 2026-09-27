@@ -160,8 +160,8 @@ function StudentLearningKpis({ student }) {
         },
         {
             label: "Speaking Practice",
-            val: `${student.totalSpeakingSessions ?? 0} Sessions`,
-            sub: `${student.completedSpeakingSessions ?? 0} evaluated`,
+            val: `${student.completedSpeakingSessions ?? student.totalSpeakingSessions ?? 0} Completed`,
+            sub: `${student.practice?.practiceMinutes ?? 0} mins total practice`,
             icon: "🎙️",
         },
         {

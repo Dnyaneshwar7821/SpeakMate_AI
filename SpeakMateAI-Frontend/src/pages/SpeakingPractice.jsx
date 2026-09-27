@@ -235,11 +235,14 @@ export function SpeakingPractice() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [historyData, meData] = await Promise.all([
+      const [rawHistory, meData] = await Promise.all([
         speakingService.history().catch(() => []),
         authService.me().catch(() => null),
       ]);
-      setHistory(historyData || []);
+      const validHistory = Array.isArray(rawHistory)
+        ? rawHistory.filter(item => item && (item.completed === true || item.status === 'COMPLETED' || (item.duration && item.duration > 0 && (item.overallScore > 0 || item.score > 0))))
+        : [];
+      setHistory(validHistory);
 
       const effectiveAge = meData?.ageGroup || user?.ageGroup || localStorage.getItem("speakmate_age_group");
       if (effectiveAge) {

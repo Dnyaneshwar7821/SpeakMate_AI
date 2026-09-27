@@ -536,9 +536,9 @@ public class TeacherServiceImpl implements TeacherService {
 		int[] lessonsCompleted = new int[7];
 
 		for (SpeakingSession s : sessions) {
-			if (s.getCreatedAt() != null) {
+			if (s.getCreatedAt() != null && Boolean.TRUE.equals(s.getCompleted())) {
 				LocalDate date = s.getCreatedAt().toLocalDate();
-			if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
+				if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
 					int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
 					studySeconds[dayOfWeekIndex] += s.getDuration() != null ? s.getDuration() : 0;
 					speakingSessions[dayOfWeekIndex]++;
@@ -589,7 +589,7 @@ public class TeacherServiceImpl implements TeacherService {
 		int[] lessonsCompleted = new int[7];
 
 		for (SpeakingSession s : sessions) {
-			if (s.getCreatedAt() != null) {
+			if (s.getCreatedAt() != null && Boolean.TRUE.equals(s.getCompleted())) {
 				LocalDate date = s.getCreatedAt().toLocalDate();
 				if (!date.isBefore(weekStart.toLocalDate()) && !date.isAfter(weekStart.toLocalDate().plusDays(6))) {
 					int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
@@ -641,9 +641,11 @@ public class TeacherServiceImpl implements TeacherService {
 		List<RecentActivityResponse> activities = new ArrayList<>();
 
 		for (SpeakingSession s : sessions) {
-			activities.add(RecentActivityResponse.builder().id("speaking-" + s.getId()).type("speaking").icon("mic")
-					.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
-					.time(s.getCreatedAt()).xp(15).build());
+			if (Boolean.TRUE.equals(s.getCompleted())) {
+				activities.add(RecentActivityResponse.builder().id("speaking-" + s.getId()).type("speaking").icon("mic")
+						.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
+						.time(s.getCreatedAt()).xp(15).build());
+			}
 		}
 
 		for (Vocabulary v : vocabs) {
@@ -843,6 +845,7 @@ public class TeacherServiceImpl implements TeacherService {
 		LocalDateTime sevenDaysAgo = now.minusDays(7);
 		List<SpeakingSession> recentSevenDaySessions = speakingSessionRepository.findByUserIdsAndCreatedAtBetween(studentIds, sevenDaysAgo, now);
 		Set<Long> studentsWithRecentPractice = recentSevenDaySessions.stream()
+				.filter(s -> Boolean.TRUE.equals(s.getCompleted()))
 				.map(s -> s.getUser().getId())
 				.collect(Collectors.toSet());
 
@@ -1084,9 +1087,11 @@ public class TeacherServiceImpl implements TeacherService {
 		List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCreatedAtBetween(student.getId(), oneWeekAgo,
 				LocalDateTime.now());
 		for (SpeakingSession s : sessions) {
-			recentActivity.add(RecentActivityResponse.builder().id("speaking-" + s.getId()).type("speaking").icon("mic")
-					.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
-					.time(s.getCreatedAt()).xp(15).build());
+			if (Boolean.TRUE.equals(s.getCompleted())) {
+				recentActivity.add(RecentActivityResponse.builder().id("speaking-" + s.getId()).type("speaking").icon("mic")
+						.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
+						.time(s.getCreatedAt()).xp(15).build());
+			}
 		}
 
 		List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(student);
@@ -1164,9 +1169,9 @@ public class TeacherServiceImpl implements TeacherService {
 
 		LocalDateTime lastPracticeDate = null;
 		SpeakingSessionDetailResponse latestSpeakingDetail = null;
-		List<SpeakingSession> allSessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(student);
-		if (!allSessions.isEmpty()) {
-			SpeakingSession s = allSessions.get(0);
+		List<SpeakingSession> completedSessions = speakingSessionRepository.findByUserAndCompletedTrueOrderByCreatedAtDesc(student);
+		if (!completedSessions.isEmpty()) {
+			SpeakingSession s = completedSessions.get(0);
 			lastPracticeDate = s.getCreatedAt();
 			ConversationFeedback fb = null;
 			if (conversationFeedbackRepository != null) {

@@ -181,9 +181,7 @@ export function TeacherReports() {
         const lessonProgress = reportDetails?.performance?.lessonsCompleted != null ? `${reportDetails.performance.lessonsCompleted} Lessons Completed` : `${selectedStudentForReport.overallProgress}%`;
         const grammar = reportDetails?.performance?.grammarScore != null ? `${Math.round(reportDetails.performance.grammarScore)}%` : `${selectedStudentForReport.grammarScore}%`;
         const vocabulary = reportDetails?.performance?.vocabularyScore != null ? `${Math.round(reportDetails.performance.vocabularyScore)}%` : `${selectedStudentForReport.vocabularyScore}%`;
-        const speaking = reportDetails?.performance?.speakingScore != null ? `${Math.round(reportDetails.performance.speakingScore)}%` : `${selectedStudentForReport.speakingScore}%`;
-        const listening = reportDetails?.performance?.listeningScore != null ? `${Math.round(reportDetails.performance.listeningScore)}%` : `${selectedStudentForReport.listeningScore}%`;
-        const speakingSessions = reportDetails?.practiceStatistics?.totalSpeakingSessions ?? reportDetails?.performance?.totalSpeakingSessions ?? "-";
+        const speakingSessions = reportDetails?.practiceStatistics?.completedSpeakingSessions ?? reportDetails?.practiceStatistics?.totalSpeakingSessions ?? reportDetails?.performance?.completedSpeakingSessions ?? reportDetails?.performance?.totalSpeakingSessions ?? "-";
         const practiceMinutes = reportDetails?.practiceStatistics?.totalPracticeMinutes ?? reportDetails?.profile?.totalPracticeMinutes ?? "-";
 
         const printWindow = window.open("", "_blank");

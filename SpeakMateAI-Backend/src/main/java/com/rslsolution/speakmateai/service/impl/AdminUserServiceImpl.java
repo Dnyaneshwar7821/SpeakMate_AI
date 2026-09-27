@@ -663,7 +663,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         int currentStreak = (progress != null && progress.getCurrentStreak() != null) ? progress.getCurrentStreak() : 0;
         int longestStreak = (progress != null && progress.getLongestStreak() != null) ? progress.getLongestStreak() : currentStreak;
 
-        List<SpeakingSession> userSessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
+        List<SpeakingSession> userSessions = speakingSessionRepository.findByUserAndCompletedTrueOrderByCreatedAtDesc(user);
         int speakingSessionsCount = (userSessions != null) ? userSessions.size() : 0;
         int speakingMinutes = 0;
         if (userSessions != null) {
@@ -725,7 +725,7 @@ public class AdminUserServiceImpl implements AdminUserService {
         LocalDateTime lastDate = null;
         double bestScore = 0.0;
 
-        List<SpeakingSession> sessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
+        List<SpeakingSession> sessions = speakingSessionRepository.findByUserAndCompletedTrueOrderByCreatedAtDesc(user);
         SpeakingSessionDetailResponse latestDetail = null;
         List<SpeakingSessionDetailResponse> recentDetails = new ArrayList<>();
 

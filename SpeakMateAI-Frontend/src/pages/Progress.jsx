@@ -61,17 +61,18 @@ export function Progress() {
       if (backend) {
         const merged = {
           ...local,
-          xp: Math.max(local.xp || 0, backend.xp || 0),
-          level: Math.max(local.level || 1, backend.level || 1),
+          xp: backend.xp !== undefined && backend.xp !== null ? backend.xp : (local.xp || 0),
+          level: backend.level !== undefined && backend.level !== null ? backend.level : (local.level || 1),
           streak: Math.max(local.streak || 0, backend.currentStreak || 0),
           longestStreak: Math.max(local.longestStreak || 0, backend.longestStreak || 0),
-          speakingSessions: Math.max(local.speakingSessions || 0, backend.totalSpeakingSessions || 0),
-          wordsLearned: Math.max(local.wordsLearned || 0, backend.totalVocabularyWords || 0),
-          grammarExercises: Math.max(local.grammarExercises || 0, backend.totalGrammarChecks || 0),
-          speakingMins: Math.max(local.speakingMins || 0, backend.totalPracticeMinutes || 0),
-          totalHours: ((Math.max(local.speakingMins || 0, backend.totalPracticeMinutes || 0)) / 60).toFixed(1),
+          speakingSessions: backend.totalSpeakingSessions !== undefined && backend.totalSpeakingSessions !== null ? backend.totalSpeakingSessions : (local.speakingSessions || 0),
+          wordsLearned: backend.totalVocabularyWords !== undefined && backend.totalVocabularyWords !== null ? backend.totalVocabularyWords : (local.wordsLearned || 0),
+          grammarExercises: backend.totalGrammarChecks !== undefined && backend.totalGrammarChecks !== null ? backend.totalGrammarChecks : (local.grammarExercises || 0),
+          speakingMins: backend.totalPracticeMinutes !== undefined && backend.totalPracticeMinutes !== null ? backend.totalPracticeMinutes : (local.speakingMins || 0),
+          totalHours: (((backend.totalPracticeMinutes !== undefined && backend.totalPracticeMinutes !== null ? backend.totalPracticeMinutes : (local.speakingMins || 0))) / 60).toFixed(1),
         };
         setLiveStats(merged);
+        syncBackendProgress({ ...backend, progress: backend });
       } else {
         setLiveStats(local);
       }

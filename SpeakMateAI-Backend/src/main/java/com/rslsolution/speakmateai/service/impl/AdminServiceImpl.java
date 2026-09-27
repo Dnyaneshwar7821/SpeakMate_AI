@@ -64,7 +64,7 @@ public class AdminServiceImpl implements AdminService {
 				.activeUsers(userRepository.countByActiveTrue())
 				.totalLessons(lessonRepository.count())
 				.activeLessons(lessonRepository.countByActiveTrue())
-				.totalSpeakingSessions(speakingSessionRepository.count())
+				.totalSpeakingSessions(speakingSessionRepository.countAllCompletedSessions())
 				.totalVocabularyWords(vocabularyRepository.count())
 				.totalAchievements(achievementRepository.count())
 				.totalNotifications(notificationRepository.count())

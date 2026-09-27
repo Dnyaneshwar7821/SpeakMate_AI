@@ -360,12 +360,15 @@ export default function SpeakingHomeScreen({ navigation }) {
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
     try {
-      const [historyData, onboardingData, savedAccType] = await Promise.all([
+      const [rawHistory, onboardingData, savedAccType] = await Promise.all([
         speakingService.history().catch(() => []),
         onboardingService.get().catch(() => null),
         AsyncStorage.getItem('speakmate_account_type'),
       ]);
-      setHistory(historyData || []);
+      const validHistory = Array.isArray(rawHistory)
+        ? rawHistory.filter(item => item && (item.completed === true || item.status === 'COMPLETED' || (item.duration && item.duration > 0 && (item.overallScore > 0 || item.score > 0))))
+        : [];
+      setHistory(validHistory);
       const effectiveAccType = savedAccType || onboardingData?.accountType || 'INDIVIDUAL_USER';
       setAccountType(effectiveAccType);
 

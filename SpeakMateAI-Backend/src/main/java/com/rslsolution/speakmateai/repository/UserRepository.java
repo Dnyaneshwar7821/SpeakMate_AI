@@ -39,7 +39,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	@Query("SELECT COUNT(l) FROM LessonProgress l WHERE l.user.id = :userId AND l.completed = true")
 	long countLessonProgressByUserId(@Param("userId") Long userId);
 
-	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.user.id = :userId")
+	@Query("SELECT COUNT(s) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true")
 	long countSpeakingSessionsByUserId(@Param("userId") Long userId);
 
 	@Query("SELECT COUNT(g) FROM GrammarHistory g WHERE g.user.id = :userId")
@@ -48,7 +48,7 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 	@Query("SELECT COUNT(v) FROM Vocabulary v WHERE v.user.id = :userId")
 	long countVocabularyByUserId(@Param("userId") Long userId);
 
-	@Query("SELECT AVG(s.overallScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.overallScore IS NOT NULL")
+	@Query("SELECT AVG(s.overallScore) FROM SpeakingSession s WHERE s.user.id = :userId AND s.completed = true AND s.overallScore IS NOT NULL")
 	Double findAverageScoreByUserId(@Param("userId") Long userId);
 
 	@Query("SELECT u FROM User u WHERE u.role = com.rslsolution.speakmateai.enums.Role.STUDENT")
