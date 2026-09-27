@@ -96,7 +96,10 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		if (me.isEmpty()) {
 			// Try fallback via email
 			if (actor.getEmail() != null) {
-				me = userRepository.findByEmail(actor.getEmail());
+				me = userRepository.findByEmailIgnoreCase(actor.getEmail());
+				if (me.isEmpty()) {
+					me = userRepository.findByEmail(actor.getEmail());
+				}
 			}
 		}
 
@@ -332,9 +335,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			data.put("totalAssignedHomework", totalAssignedHomework);
 			data.put("completedHomework", completedHomework);
 			data.put("pendingHomework", pendingHomework);
-			if (!pendingAssignmentsList.isEmpty()) {
-				data.put("pendingAssignments", pendingAssignmentsList);
-			}
+			data.put("pendingAssignments", pendingAssignmentsList);
 		}
 
 		if (!grammarChecks.isEmpty()) {
@@ -414,6 +415,8 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		data.put("totalGrammarChecks", totalGrammarChecks);
 		if (scoredGrammarCount > 0) {
 			data.put("averageGrammarScore", avgGrammarScore);
+		} else {
+			data.put("averageGrammarScore", "Not yet evaluated");
 		}
 
 		data.put("lessonsCompleted", lessonsCompleted);
@@ -426,11 +429,20 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			data.put("grammarScore", avgGrammar);
 			data.put("vocabularyScore", avgVocab);
 			data.put("overallSpeakingScore", avgOverall);
+		} else {
+			data.put("fluencyScore", "Not yet evaluated");
+			data.put("pronunciationScore", "Not yet evaluated");
+			data.put("grammarScore", "Not yet evaluated");
+			data.put("vocabularyScore", "Not yet evaluated");
+			data.put("overallSpeakingScore", "Not yet evaluated");
 		}
 
 		boolean hasStarted = (lessonsCompleted > 0 || totalSessions > 0 || totalVocabularyWords > 0 || totalGrammarChecks > 0 || (p != null && p.getXp() != null && p.getXp() > 0));
 		data.put("hasStartedLearning", hasStarted);
 		data.put("isNewLearner", !hasStarted);
+		data.put("starterGuidance", !hasStarted
+				? "Brand new learner starting their learning path. Recommended next lesson: " + recommendedNextLesson
+				: "Active learner with recorded progress.");
 
 		data.put("appModules", List.of(
 				"Speaking Practice (AI Voice & Roleplay Scenarios)",

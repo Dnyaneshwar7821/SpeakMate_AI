@@ -36,7 +36,10 @@ public class ActorResolver {
 	}
 
 	public ActorContext resolve(String email) {
-		Optional<User> user = userRepository.findByEmail(email);
+		Optional<User> user = userRepository.findByEmailIgnoreCase(email);
+		if (user.isEmpty()) {
+			user = userRepository.findByEmail(email);
+		}
 		Optional<Admin> admin = adminRepository.findByEmail(email);
 		if (user.isPresent()) {
 			User u = user.get();

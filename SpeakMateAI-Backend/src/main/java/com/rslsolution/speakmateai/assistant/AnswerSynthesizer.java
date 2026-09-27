@@ -132,6 +132,7 @@ public class AnswerSynthesizer {
 			SynthesizedAnswer answer = objectMapper.readValue(extractJson(raw), SynthesizedAnswer.class);
 			enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichClassStatsIfMissing(answer, intent, userMessage, dataJson);
+			enrichStudentStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 			return answer;
@@ -143,6 +144,7 @@ public class AnswerSynthesizer {
 					.build();
 			enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichClassStatsIfMissing(answer, intent, userMessage, dataJson);
+			enrichStudentStatsIfMissing(answer, intent, userMessage, dataJson);
 			enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 			enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 			return answer;
@@ -272,7 +274,15 @@ public class AnswerSynthesizer {
 					+ "- CLASS PERFORMANCE SUMMARY: When asked for class performance summary, report enrolled student count, assigned teacher, total XP, average XP, average practice minutes, average speaking scores (classAverageSpeakingScore, classAverageFluencyScore, classAveragePronunciationScore), and highlight top students.\n"
 					+ "- TOP STUDENTS / HIGHEST XP / MOST LESSONS: When asked for top students or highest XP in class, rank students from topStudents with their name, XP, streak, and lessons completed.";
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress or English tutoring):\n"
-					+ "- ALL-IN-ONE MULTI-MODULE OVERVIEW: When asked broadly ('what have I done in the app', 'what have I done across all modules', 'how is my progress', 'how am I doing', 'my stats', 'summary of all my work', etc.), synthesize a complete, bulleted executive snapshot across all app modules: 🎙️ Speaking Practice (sessions, fluency %, pronunciation %), 📚 Curriculum Lessons (completed out of totalAvailableLessons in catalog, and recommendedNextLesson), 📝 Grammar Checks (total checks, accuracy), 💡 Vocabulary Builder (total words added, mastered), ⚡ XP & Streaks (Level, XP, streak days), 🏆 Achievements (unlockedAchievementsCount out of totalAchievementsCount), and 📋 School Homework (for students: pending homework and deadlines). In 'stats', include cards for 'Level', 'XP', 'Streak', and 'Speaking Sessions'. In 'suggestDeepLink', use '/progress'.\n"
+					+ "- ALL-IN-ONE MULTI-MODULE OVERVIEW: When asked broadly ('what have I done in the app', 'what have I done across all modules', 'how is my progress', 'how am I doing', 'my stats', 'summary of all my work', etc.), synthesize a complete, bulleted executive snapshot across all app modules:\n"
+					+ "  🎙️ Speaking Practice (totalSpeakingSessions completed, fluency %, pronunciation % — or 'Not yet evaluated' if 0 sessions completed)\n"
+					+ "  📚 Curriculum Lessons (completed out of totalAvailableLessons in catalog, and recommendedNextLesson)\n"
+					+ "  📝 Grammar Checks (total checks, accuracy score — or 'Not yet evaluated' if 0)\n"
+					+ "  💡 Vocabulary Builder (total words added, mastered)\n"
+					+ "  ⚡ XP & Streaks (Level, XP, streak days)\n"
+					+ "  🏆 Achievements (unlockedAchievementsCount out of totalAchievementsCount)\n"
+					+ "  📋 School Homework (for students: report pending homework tasks and deadlines, or '0 pending tasks (All caught up!)' if pendingHomework is 0).\n"
+					+ "  CRITICAL ZERO-PROGRESS RULE: A student or learner who has 0 completed sessions or 0 XP is a brand new learner starting their learning journey. You MUST NEVER apologize, say 'I don't have any data about your progress at the moment', or claim information is unavailable! Always output the complete multi-module snapshot with 0 counts (e.g. 'Sessions completed: 0', 'Fluency: Not yet evaluated', 'Completed: 0 / 20', 'XP: 0', 'Pending homework: 0'), recommend their first lesson or speaking session to get started, and provide enthusiastic encouragement! In 'stats', include cards for 'Level', 'XP', 'Streak', and 'Speaking Sessions'. In 'suggestDeepLink', use '/progress'.\n"
 					+ "- ENGLISH TUTORING & GRAMMAR EXPLANATIONS: When asked about grammar (e.g. 'explain difference between past simple and present perfect', 'when do I use since vs for', 'articles', 'tenses'): provide an engaging, clear educational explanation with comparison bullet points and 2-3 clear example sentences. Suggest testing sentences in the **Grammar Check** module. In 'suggestDeepLink', use '/grammar'.\n"
 					+ "- SENTENCE CORRECTIONS: When asked to correct a sentence (e.g. 'correct this sentence: She don't like apples'):\n"
 					+ "  1. Show the **Corrected Sentence** clearly in bold.\n"
@@ -289,7 +299,7 @@ public class AnswerSynthesizer {
 					+ "- GRAMMAR PRACTICE & CHECKS: When asked about grammar practice or checking sentences ('how do I practice grammar checks for sentences', etc.), explain that they can submit sentences in the Grammar Check module for instant AI grammatical corrections, phrasing tips, and accuracy scores, and report their current totalGrammarChecks. In 'suggestDeepLink', use '/grammar'.\n"
 					+ "- HOMEWORK & ASSIGNMENTS: When a student asks about homework ('what homework do I have due', 'assignments', etc.), report totalAssignedHomework, completedHomework, pendingHomework, and list any pending assignments with due dates and passing scores. In 'suggestDeepLink', use '/assignments'.\n"
 					+ "- WHAT SHOULD I FOCUS ON: When asked where to focus or what to practice next, compare their real scores (Fluency vs Pronunciation vs Grammar), pinpoint their lowest area, and give a specific reason and module recommendation (e.g. \"Focus on Pronunciation (68%) by practicing repeat drills with Haru\").\n"
-					+ "- ZERO IS VALID RULE: A count of 0 is a completely valid number! If totalVocabularyWords is 0, say: \"You haven't added any vocabulary words yet.\" If totalSpeakingSessions is 0, say: \"You haven't completed any speaking sessions yet.\" NEVER answer that information is unavailable when a count is 0.\n"
+					+ "- ZERO IS VALID RULE: A count of 0 is a completely valid number! If totalVocabularyWords is 0, say: \"You haven't added any vocabulary words yet.\" If totalSpeakingSessions is 0, say: \"You haven't completed any speaking sessions yet.\" NEVER answer that information is unavailable when a count is 0 or when hasStartedLearning is false.\n"
 					+ "If scope is a teacher or admin looking up an assigned student: provide a crisp, professional educator snapshot with the same multi-module structure. Report the student's name, standard, division, XP, current streak, speaking sessions breakdown, vocabulary words added, grammar checks completed, and lessons completed/started/pending. Highlight their learning consistency and any areas needing practice. Include stat cards for XP, streak, speaking, and completed lessons.\n"
 					+ "CHART RULE FOR STUDENT LEARNING: When adding a chart for learning progress or performance, NEVER create a narrow 'Completed vs Remaining' chart. Always break down activity across EACH MODULE: Speaking (totalSpeakingSessions), Lessons (lessonsCompleted), Grammar (totalGrammarChecks), and Vocabulary (totalVocabularyWords). Set labels: ['Speaking', 'Lessons', 'Grammar', 'Vocabulary'], title: 'Learning Activity by Module', dataset label: 'Activities', with dynamic chart type 'bar' or 'doughnut'. If the user specifically asks for speech scores progress, use labels ['Fluency', 'Pronunciation', 'Grammar', 'Vocabulary'] with speaking evaluation scores.\n"
 					+ "If the person is not a student (it carries a personRole field), state they are not a student and report their role EXACTLY as given in personRole.\n"
@@ -342,6 +352,7 @@ public class AnswerSynthesizer {
 		SynthesizedAnswer answer = SynthesizedAnswer.builder().markdown(markdown).build();
 		enrichPlatformStatsIfMissing(answer, intent, userMessage, dataJson);
 		enrichClassStatsIfMissing(answer, intent, userMessage, dataJson);
+		enrichStudentStatsIfMissing(answer, intent, userMessage, dataJson);
 		enrichStudentProgressChart(answer, intent, userMessage, dataJson);
 		enrichPlatformOverviewChart(answer, intent, userMessage, params, dataJson);
 		return answer;
@@ -1415,6 +1426,29 @@ public class AnswerSynthesizer {
 			sb.append('\n');
 		}
 
+		boolean isAllInOneQuery = m.contains("across all modules")
+				|| m.contains("what have i done")
+				|| m.contains("across the app")
+				|| m.contains("in the app")
+				|| m.contains("all modules")
+				|| m.contains("all module")
+				|| m.contains("summary of all")
+				|| m.contains("overall progress")
+				|| m.contains("my progress across")
+				|| m.contains("status across")
+				|| m.contains("my stats");
+
+		if (isAllInOneQuery) {
+			renderComprehensiveMultiModuleOverview(sb, d);
+			if (isNonStudentPerson(d)) {
+				String summary = str(d, "summary");
+				if (!summary.isBlank()) {
+					sb.append('\n').append(summary);
+				}
+			}
+			return trimOrNull(sb);
+		}
+
 		boolean matched = false;
 		if (containsWord(m, "roll", "rool", "standard", "division", "grade") || m.contains("which class") || m.contains("what class") || m.contains("my class")) {
 			String rollNo = str(d, "rollNumber");
@@ -1730,53 +1764,7 @@ public class AnswerSynthesizer {
 		}
 
 		if (!matched) {
-			// Comprehensive Multi-Module Learning Overview
-			sb.append("\n**Overall Learning Progress Across Modules**\n");
-			sb.append("- **Level & XP:** Level ").append(zeroIfBlank(num(d, "level"))).append(" (").append(zeroIfBlank(num(d, "xp"))).append(" XP)\n");
-			sb.append("- **Practice Streak:** ").append(zeroIfBlank(num(d, "currentStreak"))).append(" day(s) (Best: ").append(zeroIfBlank(num(d, "longestStreak"))).append(" days)\n");
-
-			sb.append("\n**🎙️ Speaking Practice**\n");
-			sb.append("- **Total Sessions:** ").append(zeroIfBlank(num(d, "totalSpeakingSessions")));
-			if (d.get("completedSpeakingSessions") != null) {
-				sb.append(" (").append(d.get("completedSpeakingSessions")).append(" completed with AI evaluations)");
-			}
-			sb.append("\n");
-			if (d.get("overallSpeakingScore") != null) {
-				sb.append("- **Average Speaking Score:** ").append(d.get("overallSpeakingScore")).append("%");
-				if (d.get("fluencyScore") != null && d.get("pronunciationScore") != null) {
-					sb.append(" (Fluency: ").append(d.get("fluencyScore")).append("% | Pronunciation: ").append(d.get("pronunciationScore")).append("%)");
-				}
-				sb.append("\n");
-			}
-
-			sb.append("\n**📚 Curriculum Lessons**\n");
-			sb.append("- **Lessons Completed:** ").append(zeroIfBlank(num(d, "lessonsCompleted"))).append(" (of ").append(d.getOrDefault("totalAvailableLessons", 15)).append(" in catalog)\n");
-			if (d.get("recommendedNextLesson") != null) {
-				sb.append("- **Recommended Next:** ").append(d.get("recommendedNextLesson")).append("\n");
-			}
-
-			sb.append("\n**📝 Grammar & 💡 Vocabulary**\n");
-			sb.append("- **Grammar Checks Done:** ").append(zeroIfBlank(num(d, "totalGrammarChecks")));
-			if (d.get("averageGrammarScore") != null) {
-				sb.append(" (Accuracy: ").append(d.get("averageGrammarScore")).append("%)");
-			}
-			sb.append("\n");
-			sb.append("- **Vocabulary Words Added:** ").append(zeroIfBlank(num(d, "totalVocabularyWords")));
-			if (d.get("masteredVocabularyWords") != null) {
-				sb.append(" (").append(d.get("masteredVocabularyWords")).append(" mastered)");
-			}
-			sb.append("\n");
-
-			if (d.get("unlockedAchievementsCount") != null) {
-				sb.append("\n**🏆 Achievements & Milestones**\n");
-				sb.append("- **Unlocked:** ").append(d.get("unlockedAchievementsCount")).append(" / ").append(d.getOrDefault("totalAchievementsCount", 12)).append(" badges\n");
-			}
-
-			if (d.get("totalAssignedHomework") != null && ((Number) d.get("totalAssignedHomework")).intValue() > 0) {
-				sb.append("\n**📋 School Homework**\n");
-				sb.append("- **Pending Homework:** ").append(d.get("pendingHomework")).append(" task(s) remaining\n");
-			}
-
+			renderComprehensiveMultiModuleOverview(sb, d);
 			if (isNonStudentPerson(d)) {
 				String summary = str(d, "summary");
 				if (!summary.isBlank()) {
@@ -1796,6 +1784,70 @@ public class AnswerSynthesizer {
 			}
 		}
 		return trimOrNull(sb);
+	}
+
+	private void renderComprehensiveMultiModuleOverview(StringBuilder sb, Map<String, Object> d) {
+		// Comprehensive Multi-Module Learning Overview
+		sb.append("\n**Overall Learning Progress Across Modules**\n");
+		sb.append("- **Level & XP:** Level ").append(zeroIfBlank(num(d, "level"))).append(" (").append(zeroIfBlank(num(d, "xp"))).append(" XP)\n");
+		sb.append("- **Practice Streak:** ").append(zeroIfBlank(num(d, "currentStreak"))).append(" day(s) (Best: ").append(zeroIfBlank(num(d, "longestStreak"))).append(" days)\n");
+
+		sb.append("\n**🎙️ Speaking Practice**\n");
+		sb.append("- **Total Sessions:** ").append(zeroIfBlank(num(d, "totalSpeakingSessions")));
+		if (d.get("completedSpeakingSessions") != null) {
+			sb.append(" (").append(d.get("completedSpeakingSessions")).append(" completed with AI evaluations)");
+		}
+		sb.append("\n");
+		Object ovr = d.get("overallSpeakingScore");
+		if (ovr != null && !"Not yet evaluated".equals(String.valueOf(ovr))) {
+			sb.append("- **Average Speaking Score:** ").append(ovr).append("%");
+			if (d.get("fluencyScore") != null && d.get("pronunciationScore") != null && !"Not yet evaluated".equals(String.valueOf(d.get("fluencyScore")))) {
+				sb.append(" (Fluency: ").append(d.get("fluencyScore")).append("% | Pronunciation: ").append(d.get("pronunciationScore")).append("%)");
+			}
+			sb.append("\n");
+		} else {
+			sb.append("- **Speech Evaluation:** Not yet evaluated (Complete your first speaking session to get scored!)\n");
+		}
+
+		sb.append("\n**📚 Curriculum Lessons**\n");
+		sb.append("- **Lessons Completed:** ").append(zeroIfBlank(num(d, "lessonsCompleted"))).append(" (of ").append(d.getOrDefault("totalAvailableLessons", 15)).append(" in catalog)\n");
+		if (d.get("recommendedNextLesson") != null) {
+			sb.append("- **Recommended Next:** ").append(d.get("recommendedNextLesson")).append("\n");
+		}
+
+		sb.append("\n**📝 Grammar & 💡 Vocabulary**\n");
+		sb.append("- **Grammar Checks Done:** ").append(zeroIfBlank(num(d, "totalGrammarChecks")));
+		Object avgGrammar = d.get("averageGrammarScore");
+		if (avgGrammar != null && !"Not yet evaluated".equals(String.valueOf(avgGrammar))) {
+			sb.append(" (Accuracy: ").append(avgGrammar).append("%)");
+		}
+		sb.append("\n");
+		sb.append("- **Vocabulary Words Added:** ").append(zeroIfBlank(num(d, "totalVocabularyWords")));
+		if (d.get("masteredVocabularyWords") != null) {
+			sb.append(" (").append(d.get("masteredVocabularyWords")).append(" mastered)");
+		}
+		sb.append("\n");
+
+		if (d.get("unlockedAchievementsCount") != null) {
+			sb.append("\n**🏆 Achievements & Milestones**\n");
+			sb.append("- **Unlocked:** ").append(d.get("unlockedAchievementsCount")).append(" / ").append(d.getOrDefault("totalAchievementsCount", 12)).append(" badges\n");
+		}
+
+		if (d.get("totalAssignedHomework") != null) {
+			int assigned = ((Number) d.get("totalAssignedHomework")).intValue();
+			sb.append("\n**📋 School Homework**\n");
+			if (assigned > 0) {
+				sb.append("- **Pending Homework:** ").append(d.get("pendingHomework")).append(" task(s) remaining\n");
+			} else {
+				sb.append("- **Pending Homework:** 0 tasks (You're all caught up!)\n");
+			}
+		}
+
+		if (Boolean.TRUE.equals(d.get("isNewLearner")) || !Boolean.TRUE.equals(d.get("hasStartedLearning"))) {
+			sb.append("\n🌟 **Welcome to SpeakMate AI!** You are at the start of your English learning journey. Start with your first curriculum lesson: **")
+			  .append(d.getOrDefault("recommendedNextLesson", "Everyday Introductions & Small Talk"))
+			  .append("** or jump into a conversation in **Speaking Practice**!\n");
+		}
 	}
 
 	private String renderDisambiguationPrompt(Map<String, Object> data) {
@@ -2284,6 +2336,30 @@ public class AnswerSynthesizer {
 			if (!totalXp.isBlank() && !"0".equals(totalXp)) stats.add(new AssistantResponse.StatCard("Total XP", totalXp, null));
 			if (!avgXp.isBlank() && !"0".equals(avgXp)) stats.add(new AssistantResponse.StatCard("Average XP per Student", avgXp, null));
 			if (!streaks.isBlank() && !"0".equals(streaks)) stats.add(new AssistantResponse.StatCard("Students with Active Streak", streaks, null));
+		}
+	}
+
+	private void enrichStudentStatsIfMissing(SynthesizedAnswer answer, AssistantIntent intent, String userMessage, String dataJson) {
+		if (answer == null || intent != AssistantIntent.STUDENT_PERFORMANCE) {
+			return;
+		}
+		if (answer.getStats() != null && !answer.getStats().isEmpty()) {
+			return;
+		}
+		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT);
+		if (m.contains("across all modules") || m.contains("what have i done") || m.contains("my progress")
+				|| m.contains("all modules") || m.contains("summary of all") || m.contains("my stats")
+				|| m.contains("what have i done in the app") || m.contains("how am i doing")) {
+			Map<String, Object> d = parseData(dataJson);
+			if (d.isEmpty()) {
+				return;
+			}
+			List<AssistantResponse.StatCard> cards = new ArrayList<>();
+			cards.add(new AssistantResponse.StatCard("Level", "Level " + d.getOrDefault("level", 1), null));
+			cards.add(new AssistantResponse.StatCard("XP", d.getOrDefault("xp", 0) + " XP", null));
+			cards.add(new AssistantResponse.StatCard("Streak", d.getOrDefault("currentStreak", 0) + " days", null));
+			cards.add(new AssistantResponse.StatCard("Speaking Sessions", String.valueOf(d.getOrDefault("totalSpeakingSessions", 0)), null));
+			answer.setStats(cards);
 		}
 	}
 

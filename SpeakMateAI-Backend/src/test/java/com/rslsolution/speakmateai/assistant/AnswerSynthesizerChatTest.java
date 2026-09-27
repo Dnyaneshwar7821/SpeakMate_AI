@@ -2,6 +2,7 @@ package com.rslsolution.speakmateai.assistant;
 
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -956,5 +957,130 @@ public class AnswerSynthesizerChatTest {
 		assertNotNull(answer.getMarkdown());
 		assertTrue(answer.getMarkdown().contains("Speaking Practice"));
 		assertTrue(answer.getMarkdown().contains("sidebar menu under **Speaking**") || answer.getMarkdown().contains("clicking **Speaking** in your sidebar menu"));
+	}
+
+	@Test
+	void testActiveLearnerAcrossAllModulesOverview() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("studentName", "Gangu Algule");
+		data.put("role", "USER");
+		data.put("totalSpeakingSessions", 6);
+		data.put("completedSpeakingSessions", 6);
+		data.put("overallSpeakingScore", 71.9);
+		data.put("fluencyScore", 68.8);
+		data.put("pronunciationScore", 75.0);
+		data.put("lessonsCompleted", 0);
+		data.put("totalAvailableLessons", 20);
+		data.put("recommendedNextLesson", "Present Tenses Mastery");
+		data.put("totalGrammarChecks", 2);
+		data.put("averageGrammarScore", 70.0);
+		data.put("totalVocabularyWords", 7);
+		data.put("masteredVocabularyWords", 0);
+		data.put("level", 1);
+		data.put("xp", 356);
+		data.put("currentStreak", 0);
+		data.put("longestStreak", 0);
+		data.put("unlockedAchievementsCount", 4);
+		data.put("totalAchievementsCount", 12);
+
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.STUDENT_PERFORMANCE,
+				null,
+				"What have I done across all modules?",
+				Map.of("scope", "SELF"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		String md = answer.getMarkdown();
+		assertTrue(md.contains("Speaking Practice"));
+		assertTrue(md.contains("Total Sessions") && md.contains("6"));
+		assertTrue(md.contains("Fluency: 68.8%") && md.contains("Pronunciation: 75.0%"));
+		assertTrue(md.contains("Curriculum Lessons"));
+		assertTrue(md.contains("Present Tenses Mastery"));
+		assertTrue(md.contains("Grammar Checks Done:") && md.contains("2"));
+		assertTrue(md.contains("Vocabulary Words Added:") && md.contains("7"));
+		assertTrue(md.contains("Achievements & Milestones"));
+		assertTrue(md.contains("4 / 12"));
+
+		// Stat cards must be present
+		assertNotNull(answer.getStats());
+		assertTrue(answer.getStats().stream().anyMatch(s -> "Level".equals(s.getLabel())));
+		assertTrue(answer.getStats().stream().anyMatch(s -> "XP".equals(s.getLabel())));
+	}
+
+	@Test
+	void testZeroProgressStudentAcrossAllModulesOverview() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("studentName", "Anuradha Patil");
+		data.put("role", "STUDENT");
+		data.put("standard", "8");
+		data.put("division", "A");
+		data.put("schoolName", "DY Patil High School");
+		data.put("totalSpeakingSessions", 0);
+		data.put("completedSpeakingSessions", 0);
+		data.put("overallSpeakingScore", "Not yet evaluated");
+		data.put("fluencyScore", "Not yet evaluated");
+		data.put("pronunciationScore", "Not yet evaluated");
+		data.put("lessonsCompleted", 0);
+		data.put("totalAvailableLessons", 20);
+		data.put("recommendedNextLesson", "Everyday Introductions & Small Talk");
+		data.put("totalGrammarChecks", 0);
+		data.put("averageGrammarScore", "Not yet evaluated");
+		data.put("totalVocabularyWords", 0);
+		data.put("masteredVocabularyWords", 0);
+		data.put("level", 1);
+		data.put("xp", 0);
+		data.put("currentStreak", 0);
+		data.put("longestStreak", 0);
+		data.put("unlockedAchievementsCount", 0);
+		data.put("totalAchievementsCount", 12);
+		data.put("totalAssignedHomework", 0);
+		data.put("pendingHomework", 0);
+		data.put("isNewLearner", true);
+		data.put("hasStartedLearning", false);
+
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.STUDENT_PERFORMANCE,
+				null,
+				"What have I done across all modules?",
+				Map.of("scope", "SELF"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		String md = answer.getMarkdown();
+
+		// MUST NEVER say no data available
+		assertFalse(md.toLowerCase().contains("don't have any data"));
+		assertFalse(md.toLowerCase().contains("no data available"));
+
+		// Must format full multi-module snapshot
+		assertTrue(md.contains("Speaking Practice"));
+		assertTrue(md.contains("Total Sessions") && md.contains("0"));
+		assertTrue(md.contains("Speech Evaluation:") && md.contains("Not yet evaluated"));
+		assertTrue(md.contains("Curriculum Lessons"));
+		assertTrue(md.contains("Everyday Introductions & Small Talk"));
+		assertTrue(md.contains("Grammar Checks Done:") && md.contains("0"));
+		assertTrue(md.contains("Vocabulary Words Added:") && md.contains("0"));
+		assertTrue(md.contains("School Homework"));
+		assertTrue(md.contains("0 tasks (You're all caught up!)"));
+		assertTrue(md.contains("Welcome to SpeakMate AI!"));
+
+		// Stat cards must be present
+		assertNotNull(answer.getStats());
+		assertEquals(4, answer.getStats().size());
+		assertTrue(answer.getStats().stream().anyMatch(s -> "Level".equals(s.getLabel()) && "Level 1".equals(s.getValue())));
+		assertTrue(answer.getStats().stream().anyMatch(s -> "XP".equals(s.getLabel()) && "0 XP".equals(s.getValue())));
+		assertTrue(answer.getStats().stream().anyMatch(s -> "Streak".equals(s.getLabel()) && "0 days".equals(s.getValue())));
+		assertTrue(answer.getStats().stream().anyMatch(s -> "Speaking Sessions".equals(s.getLabel()) && "0".equals(s.getValue())));
 	}
 }
