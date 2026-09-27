@@ -1,13 +1,10 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Mic,
   TrendingUp,
   TrendingDown,
   Minus,
-  Clock,
-  Sparkles,
-  ChevronDown,
-  ChevronUp
+  Sparkles
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -21,8 +18,6 @@ import {
 } from "recharts";
 
 export function SpeakingAnalyticsSection({ speaking, timeSeries }) {
-  const [showRecent, setShowRecent] = useState(false);
-
   if (!speaking) return null;
 
   // Use the actual Phase 2 DTO field name: timeSeries.speakingTrend
@@ -277,70 +272,6 @@ export function SpeakingAnalyticsSection({ speaking, timeSeries }) {
           </div>
         )}
       </div>
-
-      {/* Recent Sessions Toggle (Phase 2 DTO fields: sessionId, durationSeconds, feedbackSummary) */}
-      {speaking.recentSessions && speaking.recentSessions.length > 0 && (
-        <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button
-            type="button"
-            id="recent-speaking-toggle"
-            aria-expanded={showRecent}
-            aria-controls="recent-speaking-sessions-list"
-            onClick={() => setShowRecent(!showRecent)}
-            className="flex items-center justify-between w-full text-left text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-lg p-1"
-          >
-            <span>Recent Speaking Sessions ({speaking.recentSessions.length})</span>
-            {showRecent ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </button>
-
-          {showRecent && (
-            <div id="recent-speaking-sessions-list" role="region" aria-labelledby="recent-speaking-toggle" className="mt-3 space-y-2.5">
-              {speaking.recentSessions.map((s, idx) => {
-                const durationMins = s.durationSeconds != null ? Math.round(s.durationSeconds / 60) : 0;
-                return (
-                  <div
-                    key={s.sessionId || idx}
-                    className="rounded-xl border border-slate-100 dark:border-slate-800 p-3 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-slate-900 dark:text-white">
-                          {s.scenario || s.topic || "Conversation Practice"}
-                        </span>
-                        {s.completed && (
-                          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded">
-                            Completed
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
-                        <span>{s.date ? new Date(s.date).toLocaleString() : "Recent Session"}</span>
-                        <span>•</span>
-                        <span className="flex items-center gap-1">
-                          <Clock size={11} /> {durationMins} mins duration
-                        </span>
-                      </p>
-                      {s.feedbackSummary && (
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-1 italic bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/60 dark:border-slate-800">
-                          "{s.feedbackSummary}"
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-3 shrink-0 self-start sm:self-auto">
-                      {s.overallScore != null && (
-                        <span className="font-black text-indigo-600 dark:text-indigo-400 text-sm bg-indigo-50 dark:bg-indigo-950/50 px-2.5 py-1 rounded-lg">
-                          {Math.round(s.overallScore)}% Overall
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
