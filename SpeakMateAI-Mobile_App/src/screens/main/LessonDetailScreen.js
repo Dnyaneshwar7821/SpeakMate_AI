@@ -320,6 +320,8 @@ export default function LessonDetailScreen({ navigation, route }) {
   const [settings, setSettings] = useState(null);
   const [availableVoices, setAvailableVoices] = useState([]);
   const [isSpeakingContent, setIsSpeakingContent] = useState(false);
+  const [listenedFullExplanation, setListenedFullExplanation] = useState(false);
+  const [explanationSkippedMidway, setExplanationSkippedMidway] = useState(false);
 
   const scrollY = useRef(new Animated.Value(0)).current;
   const fadeIn = useRef(new Animated.Value(0)).current;
@@ -570,14 +572,20 @@ export default function LessonDetailScreen({ navigation, route }) {
   useEffect(() => {
     if (!showStudy || studyStep !== 1 || !lesson) return;
 
-    const textToSpeak = aiTeachContent || `Let's explore ${lesson.title} together! Mastering this concept will significantly boost your English fluency and confidence.`;
-    setIsSpeakingContent(true);
-    VoiceService.speak(sanitizeForSpeech(textToSpeak), {
-      voiceType: settings?.aiVoice || 'Default',
-      availableVoices,
-      onDone: () => setIsSpeakingContent(false),
-      onError: () => setIsSpeakingContent(false),
-    });
+    if (!listenedFullExplanation) {
+      const textToSpeak = aiTeachContent || `Welcome to your detailed masterclass on ${lesson.title}! Mastering this concept will significantly boost your English fluency and confidence.`;
+      setIsSpeakingContent(true);
+      VoiceService.speak(sanitizeForSpeech(textToSpeak), {
+        voiceType: settings?.aiVoice || 'Default',
+        availableVoices,
+        onDone: () => {
+          setIsSpeakingContent(false);
+          setListenedFullExplanation(true);
+          setExplanationSkippedMidway(false);
+        },
+        onError: () => setIsSpeakingContent(false),
+      });
+    }
 
     // Background enhancement without blocking UI
     const fetchDynamicTeach = async () => {
@@ -1090,6 +1098,8 @@ export default function LessonDetailScreen({ navigation, route }) {
       setBlankPenalty(0);
       setSpeakingInput('');
       setSpeakingFeedback(null);
+      setListenedFullExplanation(false);
+      setExplanationSkippedMidway(false);
       setShowStudy(true);
 
       if (initialStep === 7 || quizQuestions.length === 0) {
@@ -1106,6 +1116,9 @@ export default function LessonDetailScreen({ navigation, route }) {
 
   const handleNextStep = async () => {
     if (!lesson) return;
+    if (studyStep === 1 && !listenedFullExplanation) {
+      setExplanationSkippedMidway(true);
+    }
     VoiceService.stop();
     setIsSpeakingContent(false);
     const nextStep = studyStep + 1;
@@ -1171,55 +1184,23 @@ export default function LessonDetailScreen({ navigation, route }) {
     const finalScore = quizScoreRef.current;
     const totalQ = quizQuestions.length || 5;
 
-    const multiplier = quizLevel === 'Advanced' ? 20 : (quizLevel === 'Intermediate' ? 15 : 10);
-    const perfectBonusAmount = quizLevel === 'Advanced' ? 30 : (quizLevel === 'Intermediate' ? 25 : 20);
+    if (listenedFullExplanation) {
+      const multiplier = quizLevel === 'Advanced' ? 20 : (quizLevel === 'Intermediate' ? 15 : 10);
+      const perfectBonusAmount = quizLevel === 'Advanced' ? 30 : (quizLevel === 'Intermediate' ? 25 : 20);
 
-    const baseXP = finalScore * multiplier;
-    const perfectBonus = (finalScore === totalQ && totalQ > 0) ? perfectBonusAmount : 0;
-    const totalAwarded = Math.max(15, baseXP + perfectBonus - blankPenalty);
-    setEarnedXP(totalAwarded);
+      const baseXP = finalScore * multiplier;
+      const perfectBonus = (finalScore === totalQ && totalQ > 0) ? perfectBonusAmount : 0;
+      const totalAwarded = Math.max(15, baseXP + perfectBonus - blankPenalty);
+      setEarnedXP(totalAwarded);
 
-    triggerConfetti();
-    showToast(`Quiz Complete! +${totalAwarded} XP 🏆`, 'xp', `Score: ${finalScore}/${totalQ} correct!`);
+      triggerConfetti();
+      showToast(`Quiz Complete! +${totalAwarded} XP 🏆`, 'xp', `Score: ${finalScore}/${totalQ} correct!`);
 
-    try {
-      const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
-      if (isNumeric) {
-        await lessonModuleService.complete(lesson.id);
-      } else {
-        const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
-        const completedIds = stored ? JSON.parse(stored) : [];
-        if (lesson?.id && !completedIds.includes(String(lesson.id))) {
-          completedIds.push(String(lesson.id));
-          await AsyncStorage.setItem('speakmate_completed_standard_lessons', JSON.stringify(completedIds));
-        }
-        const curProg = await progressService.get().catch(() => null);
-        if (curProg) {
-          await progressService.update({
-            ...curProg,
-            xp: (curProg.xp || 0) + totalAwarded,
-            completedLessons: (curProg.completedLessons || 0) + 1,
-          });
-        }
-      }
-    } catch (e) {
-      console.warn("Failed to complete lesson on quiz finish:", e);
-    }
-  };
-
-  const finishLesson = async () => {
-    if (!lesson) return;
-    setActionLoading(true);
-    try {
-      const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
-      if (isNumeric) {
-        try {
+      try {
+        const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
+        if (isNumeric) {
           await lessonModuleService.complete(lesson.id);
-        } catch (backendErr) {
-          console.warn('Backend complete lesson sync warning (using client fallback):', backendErr?.message);
-        }
-      } else {
-        try {
+        } else {
           const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
           const completedIds = stored ? JSON.parse(stored) : [];
           if (lesson?.id && !completedIds.includes(String(lesson.id))) {
@@ -1227,24 +1208,70 @@ export default function LessonDetailScreen({ navigation, route }) {
             await AsyncStorage.setItem('speakmate_completed_standard_lessons', JSON.stringify(completedIds));
           }
           const curProg = await progressService.get().catch(() => null);
-          const xpToAdd = earnedXP > 0 ? earnedXP : (lesson.xpReward || 50);
           if (curProg) {
             await progressService.update({
               ...curProg,
-              xp: (curProg.xp || 0) + xpToAdd,
+              xp: (curProg.xp || 0) + totalAwarded,
               completedLessons: (curProg.completedLessons || 0) + 1,
             });
           }
-        } catch (e) {
-          console.warn('Failed to update standard lesson progress:', e);
         }
+      } catch (e) {
+        console.warn("Failed to complete lesson on quiz finish:", e);
+      }
+    } else {
+      setEarnedXP(0);
+      showToast(`Session Complete (0 XP)`, 'info', `Listen to full explanation to earn XP.`);
+    }
+  };
+
+  const finishLesson = async () => {
+    if (!lesson) return;
+    setActionLoading(true);
+    try {
+      if (listenedFullExplanation) {
+        const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
+        if (isNumeric) {
+          try {
+            await lessonModuleService.complete(lesson.id);
+          } catch (backendErr) {
+            console.warn('Backend complete lesson sync warning (using client fallback):', backendErr?.message);
+          }
+        } else {
+          try {
+            const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
+            const completedIds = stored ? JSON.parse(stored) : [];
+            if (lesson?.id && !completedIds.includes(String(lesson.id))) {
+              completedIds.push(String(lesson.id));
+              await AsyncStorage.setItem('speakmate_completed_standard_lessons', JSON.stringify(completedIds));
+            }
+            const curProg = await progressService.get().catch(() => null);
+            const xpToAdd = earnedXP > 0 ? earnedXP : (lesson.xpReward || 50);
+            if (curProg) {
+              await progressService.update({
+                ...curProg,
+                xp: (curProg.xp || 0) + xpToAdd,
+                completedLessons: (curProg.completedLessons || 0) + 1,
+              });
+            }
+          } catch (e) {
+            console.warn('Failed to update standard lesson progress:', e);
+          }
+        }
+        triggerConfetti();
+        showToast('Lesson Mastered! 🎉', 'success', `Unlocked +${earnedXP > 0 ? earnedXP : (lesson.xpReward || 50)} XP`);
+      } else {
+        showToast('Practice Finished (0 XP)', 'info', 'Listen to full explanation next time to unlock XP!');
       }
       setShowStudy(false);
       setLesson((prev) => (prev ? { ...prev, completed: true, progressPercent: 100 } : prev));
       await loadLesson().catch(() => {});
-      
-      triggerConfetti();
-      showToast('Lesson Mastered! 🎉', 'success', `Unlocked +${earnedXP > 0 ? earnedXP : (lesson.xpReward || 50)} XP`);
+    } catch (err) {
+      console.warn('Finish lesson error:', err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
     } catch (err) {
       console.warn('Finish lesson error:', err);
     } finally {
@@ -1598,12 +1625,19 @@ export default function LessonDetailScreen({ navigation, route }) {
                         if (isSpeakingContent) {
                           VoiceService.stop();
                           setIsSpeakingContent(false);
+                          if (!listenedFullExplanation) {
+                            setExplanationSkippedMidway(true);
+                          }
                         } else {
                           setIsSpeakingContent(true);
                           VoiceService.speak(sanitizeForSpeech(aiTeachContent), {
                             voiceType: settings?.aiVoice || 'Default',
                             availableVoices,
-                            onDone: () => setIsSpeakingContent(false),
+                            onDone: () => {
+                              setIsSpeakingContent(false);
+                              setListenedFullExplanation(true);
+                              setExplanationSkippedMidway(false);
+                            },
                             onError: () => setIsSpeakingContent(false),
                           });
                         }
@@ -1617,6 +1651,30 @@ export default function LessonDetailScreen({ navigation, route }) {
                     </TouchableOpacity>
                   )}
                 </View>
+
+                {/* XP Qualification Banner */}
+                {listenedFullExplanation ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#064E3B' : '#ECFDF5', borderColor: '#10B981', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12, gap: 8 }}>
+                    <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#10B981', flex: 1 }}>
+                      Full Masterclass Completed! Full XP eligibility unlocked.
+                    </Text>
+                  </View>
+                ) : explanationSkippedMidway ? (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#451A03' : '#FFFBEB', borderColor: '#F59E0B', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12, gap: 8 }}>
+                    <Ionicons name="warning" size={18} color="#F59E0B" />
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#F59E0B', flex: 1 }}>
+                      Voice explanation paused or skipped midway. 0 XP will be awarded for this session. Re-play completely to unlock full XP!
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', borderColor: '#6366F1', borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12, gap: 8 }}>
+                    <Ionicons name="headset" size={18} color="#6366F1" />
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: '#6366F1', flex: 1 }}>
+                      AI Tutor is reading the full lesson explanation. Listen until the end to unlock your full XP reward!
+                    </Text>
+                  </View>
+                )}
 
                 {/* AI Teaching Content — Auto-loaded */}
                 <View style={[styles.studyCard, { backgroundColor: isDark ? '#0F172A' : '#EEF2FF', borderColor: isDark ? '#4F46E5' : '#C7D2FE', borderWidth: 1.5 }]}>
@@ -2124,13 +2182,27 @@ export default function LessonDetailScreen({ navigation, route }) {
                         <Text style={{ fontSize: 13, color: theme.textPrimary, lineHeight: 20 }}>{speakingFeedback}</Text>
                       </View>
 
-                      <TouchableOpacity 
-                        style={styles.tutorSpeakBtn} 
-                        onPress={() => readLessonStep(speakingFeedback)}
-                      >
-                        <Ionicons name="volume-medium" size={16} color={COLORS.primary} />
-                        <Text style={styles.tutorSpeakBtnText}>Listen to AI Feedback</Text>
-                      </TouchableOpacity>
+                      <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+                        <TouchableOpacity 
+                          style={[styles.tutorSpeakBtn, { flex: 1 }]} 
+                          onPress={() => readLessonStep(speakingFeedback)}
+                        >
+                          <Ionicons name="volume-medium" size={16} color={COLORS.primary} />
+                          <Text style={styles.tutorSpeakBtnText}>Listen</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                          style={[styles.tutorSpeakBtn, { flex: 1, backgroundColor: isDark ? '#334155' : '#F1F5F9', borderColor: theme.cardBorder }]} 
+                          onPress={() => {
+                            setSpeakingInput('');
+                            setSpeakingFeedback(null);
+                            setStudyStep(5);
+                          }}
+                        >
+                          <Ionicons name="mic-outline" size={16} color={COLORS.primary} />
+                          <Text style={[styles.tutorSpeakBtnText, { color: COLORS.primary }]}>Retry Speaking</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   ) : (
                     <View style={{ paddingVertical: 20, alignItems: 'center' }}>
@@ -2321,6 +2393,14 @@ export default function LessonDetailScreen({ navigation, route }) {
                         <Text style={[styles.xpTotalLabel, { color: theme.textPrimary }]}>Total XP Added to Profile</Text>
                         <Text style={styles.xpTotalVal}>+{earnedXP} XP</Text>
                       </View>
+
+                      {!listenedFullExplanation && (
+                        <View style={{ marginTop: 8, padding: 8, backgroundColor: isDark ? '#451A03' : '#FEF3C7', borderRadius: 8 }}>
+                          <Text style={{ fontSize: 11, color: '#D97706', textAlign: 'center', fontWeight: '700' }}>
+                            ⚠️ 0 XP applied: AI Tutor explanation in Step 2 was paused/skipped midway.
+                          </Text>
+                        </View>
+                      )}
                     </View>
 
                     <TouchableOpacity style={styles.quizNextBtn} onPress={handleNextStep}>
@@ -2348,13 +2428,53 @@ export default function LessonDetailScreen({ navigation, route }) {
 
                 <View style={styles.rewardContainer}>
                   <View style={[styles.rewardBox, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }]}>
-                    <Text style={styles.rewardValue}>+{earnedXP > 0 ? earnedXP : (lesson?.xpReward || 50)}</Text>
+                    <Text style={[styles.rewardValue, !listenedFullExplanation && { color: '#94A3B8' }]}>
+                      +{listenedFullExplanation ? (earnedXP > 0 ? earnedXP : (lesson?.xpReward || 50)) : 0}
+                    </Text>
                     <Text style={[styles.rewardLabel, { color: theme.textSecondary }]}>XP Rewarded</Text>
                   </View>
                   <View style={[styles.rewardBox, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }]}>
                     <Text style={styles.rewardValue}>{lesson?.estimatedMinutes || 15}m</Text>
                     <Text style={[styles.rewardLabel, { color: theme.textSecondary }]}>Time Spent</Text>
                   </View>
+                </View>
+
+                {/* 0 XP Warning if Step 2 explanation was skipped midway */}
+                {!listenedFullExplanation && (
+                  <View style={{ width: '100%', backgroundColor: isDark ? '#451A03' : '#FFFBEB', borderColor: '#F59E0B', borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <Ionicons name="warning" size={20} color="#F59E0B" />
+                      <Text style={{ fontSize: 14, fontWeight: '800', color: '#B45309' }}>0 XP Awarded for this Session</Text>
+                    </View>
+                    <Text style={{ fontSize: 12, color: isDark ? '#FDE68A' : '#92400E', lineHeight: 18, marginBottom: 10 }}>
+                      You paused or skipped the AI Tutor voice explanation in Step 2. To earn your full XP reward, re-open this lesson and listen to the complete explanation.
+                    </Text>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#F59E0B', borderRadius: 8, paddingVertical: 8, alignItems: 'center' }}
+                      onPress={() => {
+                        setStudyStep(0);
+                        setListenedFullExplanation(false);
+                        setExplanationSkippedMidway(false);
+                      }}
+                    >
+                      <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 12 }}>Re-take Lesson (Earn Full XP)</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Key Lesson Takeaways Deck */}
+                <View style={[styles.studyCard, { width: '100%', backgroundColor: theme.cardBg, borderColor: theme.cardBorder, marginBottom: 12 }]}>
+                  <Text style={{ fontWeight: '800', color: COLORS.primary, fontSize: 13, marginBottom: 8 }}>📌 KEY LESSON TAKEAWAYS</Text>
+                  {(lesson?.keyTakeaways || [
+                    "Listen attentively to AI masterclasses to grasp nuance and rhythm.",
+                    "Active speaking practice builds muscle memory and real conversational fluency.",
+                    "Review concept checks and quiz explanations to consolidate mastery."
+                  ]).map((point, idx) => (
+                    <View key={idx} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 6 }}>
+                      <Ionicons name="checkmark-circle" size={16} color="#10B981" style={{ marginTop: 2 }} />
+                      <Text style={{ fontSize: 13, color: theme.textPrimary, flex: 1, lineHeight: 18 }}>{point}</Text>
+                    </View>
+                  ))}
                 </View>
 
                 <View style={[styles.studyCard, { width: '100%', alignItems: 'center', backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>

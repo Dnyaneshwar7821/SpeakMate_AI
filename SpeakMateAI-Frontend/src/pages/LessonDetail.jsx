@@ -88,6 +88,11 @@ const safeParseJsonArray = (text) => {
   return null;
 };
 
+// Clean string helper for fill-in-the-blank comparison
+const sanitizeWord = (w = "") => {
+  return String(w).replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "").trim().toLowerCase();
+};
+
 export function LessonDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -99,32 +104,34 @@ export function LessonDetail() {
   const [showStudy, setShowStudy] = useState(false);
   const [studyStep, setStudyStep] = useState(0);
 
-  // Auto AI Teaching State (Step 1)
+  // Step 2: Auto AI Teaching & XP Condition Tracking
   const [aiTeachContent, setAiTeachContent] = useState("");
   const [aiTeachLoading, setAiTeachLoading] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  const [listenedFullExplanation, setListenedFullExplanation] = useState(false);
+  const [explanationSkippedMidway, setExplanationSkippedMidway] = useState(false);
 
-  // Auto AI Examples State (Step 2)
+  // Step 3: Contextual Examples State
   const [aiExamples, setAiExamples] = useState([]);
   const [aiExamplesLoading, setAiExamplesLoading] = useState(false);
 
-  // Auto AI Check Question State (Step 3)
+  // Step 4: Concept Check Quiz State
   const [aiCheckQ, setAiCheckQ] = useState(null);
   const [checkSelected, setCheckSelected] = useState(null);
   const [checkSubmitted, setCheckSubmitted] = useState(false);
 
-  // Auto AI Guided Practice State (Step 4)
+  // Step 5: Guided Practice Drill State
   const [aiGuidedQ, setAiGuidedQ] = useState(null);
   const [guidedInput, setGuidedInput] = useState("");
   const [guidedSubmitted, setGuidedSubmitted] = useState(false);
   const [blankPenalty, setBlankPenalty] = useState(0);
 
-  // Still Confused? Ask AI Tutor Q&A Chat State
+  // Step 2: Still Confused? Ask AI Tutor Q&A Chat State
   const [tutorInput, setTutorInput] = useState("");
   const [tutorLoading, setTutorLoading] = useState(false);
   const [tutorChatList, setTutorChatList] = useState([]);
 
-  // Speaking Practice State (Step 5 & 6)
+  // Step 6 & 7: Speaking Practice State
   const [speakingInput, setSpeakingInput] = useState("");
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(true);
@@ -132,7 +139,7 @@ export function LessonDetail() {
   const [evaluatingSpeaking, setEvaluatingSpeaking] = useState(false);
   const [speakingError, setSpeakingError] = useState("");
 
-  // Dynamic 3-Tier Quiz State (Step 7)
+  // Step 8: Dynamic 3-Tier Quiz State
   const [quizLevel, setQuizLevel] = useState("Basic");
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [quizLoading, setQuizLoading] = useState(false);
@@ -171,6 +178,7 @@ export function LessonDetail() {
           skills: data?.skills && parseArrayField(data.skills).length > 0 ? parseArrayField(data.skills) : curr?.skills,
           checkQuestion: curr?.checkQuestion || prev?.checkQuestion,
           guidedPractice: curr?.guidedPractice || prev?.guidedPractice,
+          speakingDrill: curr?.speakingDrill || prev?.speakingDrill,
           speakingDrills: curr?.speakingDrills || prev?.speakingDrills,
           quiz: curr?.quiz || prev?.quiz,
         }));
@@ -204,29 +212,28 @@ export function LessonDetail() {
   }, [id]);
 
   // Audio Speech Read-Aloud Helper
-  const handleSpeakText = (text) => {
-    if (text) {
-      if (isAiSpeaking) {
-        if ("speechSynthesis" in window) {
-          window.speechSynthesis.cancel();
-        }
+  const handleSpeakText = (text, onFinished = null) => {
+    if (!text) return;
+    const clean = cleanAiText(text);
+    setIsAiSpeaking(true);
+    speakGlobalText(clean, 1.0, {
+      onend: () => {
         setIsAiSpeaking(false);
-        return;
-      }
-      const clean = cleanAiText(text);
-      setIsAiSpeaking(true);
-      speakGlobalText(clean);
-      const estDuration = Math.min(15000, Math.max(3000, clean.length * 60));
-      setTimeout(() => setIsAiSpeaking(false), estDuration);
-    }
+        if (onFinished) onFinished();
+      },
+    });
   };
 
-  // Cancel speech synthesis whenever step changes or component unmounts
-  useEffect(() => {
+  const stopAllSpeech = () => {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
     setIsAiSpeaking(false);
+  };
+
+  // Cancel speech synthesis whenever step changes or component unmounts
+  useEffect(() => {
+    stopAllSpeech();
     if (recognitionRef.current) {
       try {
         recognitionRef.current.abort();
@@ -234,9 +241,7 @@ export function LessonDetail() {
       setIsListening(false);
     }
     return () => {
-      if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-      }
+      stopAllSpeech();
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
@@ -244,6 +249,23 @@ export function LessonDetail() {
       }
     };
   }, [studyStep, showStudy]);
+
+  // Step 2: Automatic voice read-aloud when entering Step 2
+  useEffect(() => {
+    if (!showStudy || studyStep !== 1 || !aiTeachContent) return;
+
+    // Autoplay voice as requested
+    if (!listenedFullExplanation) {
+      setIsAiSpeaking(true);
+      speakGlobalText(aiTeachContent, 1.0, {
+        onend: () => {
+          setIsAiSpeaking(false);
+          setListenedFullExplanation(true);
+          setExplanationSkippedMidway(false);
+        },
+      });
+    }
+  }, [showStudy, studyStep, aiTeachContent]);
 
   // Sync step progress with backend
   useEffect(() => {
@@ -260,31 +282,29 @@ export function LessonDetail() {
     }
   }, [showStudy, studyStep, lesson?.id]);
 
-  // Step 1: Auto AI Teaching Concept background enhancement with reliable fallback
+  // Step 2: Auto AI Teaching Concept background enhancement with topic-specific prompt
   useEffect(() => {
     if (!showStudy || studyStep !== 1 || !lesson) return;
-    if (aiTeachContent && aiTeachContent.length > 80) return;
+    if (aiTeachContent && aiTeachContent.length > 150) return;
 
     setAiTeachLoading(true);
     aiService
       .lessonTutor(
-        `Teach the complete comprehensive masterclass on "${lesson.title}" (${lesson.category} - ${lesson.level}). Explain the core concept with real-world analogies, sentence formulas (positive, negative, question), 4 real-life dialogue examples (daily life, school, work, travel), common mistakes vs corrections, and native pro-tips.`
+        `Teach the complete comprehensive masterclass specifically about "${lesson.title}" (${lesson.category} - ${lesson.level} level). Focus strictly on ${lesson.title}. Detail: 1) What is ${lesson.title} and why it matters in ${lesson.category}, 2) The exact sentence formulas and golden grammar rules, 3) 4 real-world situational dialogue examples, 4) Frequent mistakes vs native corrections, 5) Native speaker pro-tips for fluent spoken delivery.`
       )
       .then((res) => {
         if (res?.response) {
           const cleaned = cleanAiText(res.response);
-          if (cleaned && cleaned.length > 50) {
+          if (cleaned && cleaned.length > 80) {
             setAiTeachContent(cleaned);
           }
         }
       })
-      .catch(() => {
-        // Fallback already pre-loaded in handleStartStudyFlow
-      })
+      .catch(() => {})
       .finally(() => setAiTeachLoading(false));
   }, [showStudy, studyStep, lesson]);
 
-  // Step 2: Contextual Examples with curriculum prioritization
+  // Step 3: Contextual Examples prioritized by lesson content
   useEffect(() => {
     if (!showStudy || studyStep !== 2 || !lesson) return;
     if (aiExamples.length > 0) return;
@@ -293,7 +313,7 @@ export function LessonDetail() {
       setAiExamples(
         lesson.speakingDrills.map((drill, idx) => ({
           sentence: drill,
-          context: `Key Drill #${idx + 1}`,
+          context: `Curriculum Example #${idx + 1}`,
           explanation: `Demonstrates the core academic formula for "${lesson.title}".`,
         }))
       );
@@ -303,7 +323,7 @@ export function LessonDetail() {
     setAiExamplesLoading(true);
     aiService
       .lessonTutor(
-        `Generate 3 real-world example sentences for "${lesson.title}" (${lesson.category} - ${lesson.level}). Format as JSON array of objects with keys: sentence, context, explanation.`
+        `Generate 3 distinct real-world example sentences specifically demonstrating "${lesson.title}" in ${lesson.category} (${lesson.level}). Format as JSON array of objects with keys: sentence, context, explanation. Only output JSON array.`
       )
       .then((res) => {
         const parsed = safeParseJsonArray(res?.response);
@@ -311,31 +331,31 @@ export function LessonDetail() {
           setAiExamples(parsed);
           return;
         }
-        throw new Error("Invalid examples format");
+        throw new Error("Invalid format");
       })
       .catch(() => {
         setAiExamples([
           {
-            sentence: `I practice using "${lesson.title}" formulas whenever I speak English with colleagues.`,
-            context: "Professional & Daily Use",
-            explanation: `Demonstrates natural application of "${lesson.title}" in real-life conversational contexts.`,
+            sentence: `I practice "${lesson.title}" rules whenever I speak English in everyday conversations.`,
+            context: "Daily Habit",
+            explanation: `Demonstrates continuous application of "${lesson.title}" principles in daily life.`,
           },
           {
-            sentence: "Could you please explain that point again so I can practice clearly?",
-            context: "Polite Academic Request",
-            explanation: "Using polite modal verbs helps communicate questions with confidence.",
+            sentence: `Could you please explain how to apply "${lesson.title}" in this specific scenario?`,
+            context: "Professional Inquiry",
+            explanation: "Using polite modal verbs combined with the target topic builds clear communication.",
           },
           {
-            sentence: "Regular speaking drills build lasting fluency and automatic sentence construction.",
-            context: "Fluency Principle",
-            explanation: "Applying the target structure repeatedly develops spontaneous speech habits.",
+            sentence: `Active speaking drills build permanent fluency and automatic recall of "${lesson.title}".`,
+            context: "Fluency Practice",
+            explanation: "Repetition in complete sentences develops spontaneous speaking confidence.",
           },
         ]);
       })
       .finally(() => setAiExamplesLoading(false));
   }, [showStudy, studyStep, lesson]);
 
-  // Step 3: Auto AI Concept Check
+  // Step 4: Auto AI Concept Check tailored to this lesson
   useEffect(() => {
     if (!showStudy || studyStep !== 3 || !lesson) return;
     if (aiCheckQ) return;
@@ -346,19 +366,19 @@ export function LessonDetail() {
     }
 
     const baseCheck = {
-      question: `Select the correct sentence format for "${lesson.title}":`,
+      question: `Which sentence correctly demonstrates the foundational rule for "${lesson.title}"?`,
       options: [
-        `She is practicing "${lesson.title}" concepts every day to build confidence.`,
-        "She practice English speak everyday for confidence.",
-        "She practicing English speak everyday build confidence.",
+        `Applying "${lesson.title}" accurately in a complete, grammatically sound sentence.`,
+        "Translating words directly without understanding sentence structure.",
+        "Omitting necessary auxiliary verbs and natural conversational rhythm.",
       ],
       correctIndex: 0,
-      explanation: "This option correctly applies grammatical agreement, natural structure, and proper verb tenses.",
+      explanation: `Proper structural agreement and natural rhythm are essential for mastering "${lesson.title}".`,
     };
     setAiCheckQ(shuffleCheckQ(baseCheck));
   }, [showStudy, studyStep, lesson]);
 
-  // Step 4: Auto AI Guided Practice
+  // Step 5: Auto AI Guided Practice tailored to this lesson
   useEffect(() => {
     if (!showStudy || studyStep !== 4 || !lesson) return;
     if (aiGuidedQ) return;
@@ -369,14 +389,14 @@ export function LessonDetail() {
     }
 
     setAiGuidedQ({
-      sentence: "Every day I ______ new English phrases to build confidence and fluency.",
-      correctWord: "practice",
-      hint: "Think of a verb meaning to do something repeatedly to improve.",
-      explanation: "'Practice' is the correct simple present verb for habitual daily routine.",
+      sentence: `In English, we always ______ the core formulas of ${lesson.title} to communicate clearly.`,
+      correctWord: "apply",
+      hint: "Think of a verb meaning to use or put into practice.",
+      explanation: "'Apply' is the correct base verb fitting the grammatical structure of this sentence.",
     });
   }, [showStudy, studyStep, lesson]);
 
-  // Step 7: Dynamic Quiz Fetcher with instant curriculum fallback
+  // Step 8: Dynamic Quiz Fetcher with instant curriculum fallback
   const fetchQuiz = async (tier) => {
     setQuizLoading(true);
     setQuizFinished(false);
@@ -392,7 +412,7 @@ export function LessonDetail() {
     }
 
     try {
-      const prompt = `Lesson Title: "${lesson?.title}", Category: "${lesson?.category}", Level: "${lesson?.level}", Quiz Tier: "${tier}"`;
+      const prompt = `Generate 5 multiple choice questions strictly testing "${lesson?.title}" in ${lesson?.category} (${lesson?.level}). Quiz Tier: "${tier}". Format as JSON array of objects with keys: question, options (array of 4), correctAnswer, explanation.`;
       const res = await aiService.lessonQuiz(prompt);
       const parsed = safeParseJsonArray(res?.response);
       if (Array.isArray(parsed) && parsed.length >= 3) {
@@ -403,59 +423,37 @@ export function LessonDetail() {
     } catch (e) {
       const baseFallback = [
         {
-          question: `[${tier}] What is the primary rule taught in "${lesson?.title}"?`,
+          question: `[${tier}] What is the primary academic focus of "${lesson?.title}"?`,
           options: [
-            "Focus on natural sentence structure, proper verb forms, and context.",
-            "Memorize dictionary words without sentences.",
+            `Focus on natural sentence structure, proper verb forms, and context in ${lesson?.category}.`,
+            "Memorize dictionary words without full sentences.",
             "Translate word for word from native language.",
-            "Avoid practicing out loud.",
+            "Avoid practicing speaking out loud.",
           ],
-          correctAnswer: "Focus on natural sentence structure, proper verb forms, and context.",
-          explanation: "Correct sentence structure and contextual practice build natural speech fluency.",
+          correctAnswer: `Focus on natural sentence structure, proper verb forms, and context in ${lesson?.category}.`,
+          explanation: `Correct sentence structure and contextual practice build natural speech fluency in ${lesson?.category}.`,
         },
         {
           question: `[${tier}] Which sentence demonstrates the correct practical usage for "${lesson?.title}"?`,
           options: [
-            "I practice speaking full sentences every single day to improve.",
-            "Me practice speak everyday.",
-            "I am practice speech everyday.",
-            "Practicing I do daily without rules.",
+            `I practice speaking full sentences of "${lesson?.title}" every day to build confidence.`,
+            `Me practice "${lesson?.title}" everyday without sentence.`,
+            `I am practice "${lesson?.title}" yesterday tomorrow.`,
+            "Practicing I do without grammar rules.",
           ],
-          correctAnswer: "I practice speaking full sentences every single day to improve.",
-          explanation: "Simple present tense with correct subject pronoun 'I' expresses a daily habit.",
+          correctAnswer: `I practice speaking full sentences of "${lesson?.title}" every day to build confidence.`,
+          explanation: "Simple present tense with correct subject pronoun 'I' expresses a regular daily habit.",
         },
         {
-          question: `[${tier}] Select the most polite professional expression:`,
+          question: `[${tier}] In formal or professional situations, how should you apply this lesson?`,
           options: [
-            "Could you please provide an update on the project?",
-            "Give me project update now.",
-            "I want project update.",
-            "Tell update immediately.",
+            "Use clear, polite modal phrases and well-structured sentences.",
+            "Speak as fast as possible without pauses.",
+            "Never check sentence structure or verb forms.",
+            "Use incomplete fragmented words.",
           ],
-          correctAnswer: "Could you please provide an update on the project?",
-          explanation: "'Could you please' is formal and polite in business communication.",
-        },
-        {
-          question: `[${tier}] What is the best way to eliminate awkward pauses during speech?`,
-          options: [
-            "Use natural transitional phrases and structured pauses.",
-            "Speak as fast as possible without breathing.",
-            "Repeat the same word continuously.",
-            "Never speak in full sentences.",
-          ],
-          correctAnswer: "Use natural transitional phrases and structured pauses.",
-          explanation: "Transitional phrases give your brain time to formulate the next thought naturally.",
-        },
-        {
-          question: `[${tier}] What key habit ensures long-term fluency in "${lesson?.category}"?`,
-          options: [
-            "Consistent daily speaking drills and contextual practice.",
-            "Reading grammar books without ever speaking.",
-            "Avoiding listening to native audio.",
-            "Only memorizing isolated single words.",
-          ],
-          correctAnswer: "Consistent daily speaking drills and contextual practice.",
-          explanation: "Active conversational drills build lasting neural pathways for spontaneous speech.",
+          correctAnswer: "Use clear, polite modal phrases and well-structured sentences.",
+          explanation: "Polite modal structures and clear syntax create confident, respectful communication.",
         },
       ];
       setQuizQuestions(shuffleQuestionOptions(baseFallback));
@@ -464,7 +462,7 @@ export function LessonDetail() {
     }
   };
 
-  // Step 7: Auto Fetch Quiz Questions when entering Step 7
+  // Step 8: Auto Fetch Quiz Questions when entering Step 8
   useEffect(() => {
     if (!showStudy || studyStep !== 7 || !lesson) return;
     if (quizQuestions.length === 0) {
@@ -537,10 +535,10 @@ export function LessonDetail() {
     );
 
     const defaultGuided = lesson?.guidedPractice || {
-      sentence: "Every day I ______ new English phrases to express myself clearly.",
-      correctWord: "practice",
-      hint: "Think of a common verb meaning to do something repeatedly to improve.",
-      explanation: "'Practice' is the correct simple present verb for habitual daily routine.",
+      sentence: `In English, we always ______ proper grammatical structure to communicate ideas clearly.`,
+      correctWord: "apply",
+      hint: "Think of a common verb meaning to use or put into practice.",
+      explanation: "'Apply' is the correct base verb fitting the sentence context.",
     };
 
     setAiTeachContent(defaultTeach);
@@ -557,11 +555,43 @@ export function LessonDetail() {
     setQuizQuestions(lesson?.quiz && Array.isArray(lesson.quiz) ? shuffleQuestionOptions(lesson.quiz) : []);
     setQuizScore(0);
     setQuizFinished(false);
+    setListenedFullExplanation(false);
+    setExplanationSkippedMidway(false);
     setShowStudy(true);
-    setStudyStep(0); // Starts at Step 0: Overview & Objectives!
+    setStudyStep(0); // Starts at Step 0 (Overview & Objectives)
   };
 
-  // Browser Speech Recognition Functions for Step 5
+  // Toggle voice playback in Step 2 with XP tracking
+  const handleToggleTutorVoice = () => {
+    if (isAiSpeaking) {
+      stopAllSpeech();
+      if (!listenedFullExplanation) {
+        setExplanationSkippedMidway(true);
+      }
+    } else {
+      setIsAiSpeaking(true);
+      speakGlobalText(aiTeachContent, 1.0, {
+        onend: () => {
+          setIsAiSpeaking(false);
+          setListenedFullExplanation(true);
+          setExplanationSkippedMidway(false);
+        },
+      });
+    }
+  };
+
+  // Step 2 to Step 3 transition with XP gate warning check
+  const handleAdvanceFromStep2 = () => {
+    if (isAiSpeaking) {
+      stopAllSpeech();
+      if (!listenedFullExplanation) {
+        setExplanationSkippedMidway(true);
+      }
+    }
+    setStudyStep(2);
+  };
+
+  // Browser Speech Recognition Functions for Step 6
   const startSpeechListening = () => {
     setSpeakingError("");
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -674,11 +704,6 @@ export function LessonDetail() {
     } finally {
       setTutorLoading(false);
     }
-  };
-
-  // Clean string helper for fill-in-the-blank comparison
-  const sanitizeWord = (w = "") => {
-    return String(w).replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "").trim().toLowerCase();
   };
 
   if (loading) {
@@ -821,7 +846,7 @@ export function LessonDetail() {
             </div>
           )}
 
-          {/* STEP 1 (Step 2 of 9): Core Concept Teaching */}
+          {/* STEP 1 (Step 2 of 9): Core Concept Teaching with Voice Autoplay & Full-Listening XP Gate */}
           {studyStep === 1 && (
             <div className="space-y-4 animate-in fade-in">
               <div className="flex items-center justify-between">
@@ -834,12 +859,36 @@ export function LessonDetail() {
                   </h2>
                 </div>
                 <button
-                  onClick={() => handleSpeakText(aiTeachContent)}
-                  className="px-3 py-1.5 rounded-xl bg-[#6c63ff] text-white text-xs font-bold hover:bg-[#5a52e0] transition"
+                  onClick={handleToggleTutorVoice}
+                  className={`px-3 py-1.5 rounded-xl text-white text-xs font-bold transition flex items-center gap-1.5 ${
+                    isAiSpeaking ? "bg-red-500 hover:bg-red-600" : "bg-[#6c63ff] hover:bg-[#5a52e0]"
+                  }`}
                 >
-                  {isAiSpeaking ? "⏹️ Stop Audio" : "🔊 Listen Voice"}
+                  <span>{isAiSpeaking ? "⏸️ Pause Audio" : "🔊 Listen Full Masterclass"}</span>
                 </button>
               </div>
+
+              {/* XP Eligibility Status Pill */}
+              {listenedFullExplanation ? (
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2 text-xs font-bold text-emerald-600">
+                  <span>✅</span>
+                  <span>Full Masterclass Completed! You have unlocked full XP eligibility for this lesson.</span>
+                </div>
+              ) : explanationSkippedMidway ? (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 text-xs font-bold text-amber-700">
+                  <span>⚠️</span>
+                  <span>
+                    Voice explanation paused/skipped midway. You can continue practicing, but 0 XP will be awarded for this session because the full tutor explanation was not completed.
+                  </span>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 flex items-center gap-2 text-xs font-bold text-[#6c63ff]">
+                  <span>🎧</span>
+                  <span>
+                    AI Tutor is reading the full lesson explanation. Listen until the end to unlock your +{lesson?.xpReward || 35} XP reward!
+                  </span>
+                </div>
+              )}
 
               {aiTeachLoading ? (
                 <div className="p-6 rounded-2xl bg-[var(--bg-elevated)] text-center text-xs font-bold text-[#6c63ff] animate-pulse">
@@ -933,7 +982,7 @@ export function LessonDetail() {
                   ← Back to Overview
                 </button>
                 <button
-                  onClick={() => setStudyStep(2)}
+                  onClick={handleAdvanceFromStep2}
                   className="px-6 py-2.5 rounded-xl bg-[#6c63ff] text-white text-xs font-extrabold hover:bg-[#5a52e0] transition"
                 >
                   Next: Real-World Examples →
@@ -1210,12 +1259,17 @@ export function LessonDetail() {
                 Use your microphone to speak aloud, or type your practice sentence below.
               </p>
 
-              {lesson?.speakingDrills && lesson.speakingDrills.length > 0 && (
+              {(lesson?.speakingDrills && lesson.speakingDrills.length > 0) ? (
                 <div className="p-3.5 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 text-xs">
                   <span className="font-extrabold text-[#6c63ff]">🎯 Recommended Speaking Prompt:</span>
                   <p className="mt-1 font-semibold text-[var(--text-primary)]">"{lesson.speakingDrills[0]}"</p>
                 </div>
-              )}
+              ) : lesson?.speakingDrill?.sentence ? (
+                <div className="p-3.5 rounded-xl bg-[#6c63ff]/10 border border-[#6c63ff]/20 text-xs">
+                  <span className="font-extrabold text-[#6c63ff]">🎯 Recommended Speaking Prompt:</span>
+                  <p className="mt-1 font-semibold text-[var(--text-primary)]">"{lesson.speakingDrill.sentence}"</p>
+                </div>
+              ) : null}
 
               {/* Big Interactive Microphone Hub */}
               <div className="p-6 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex flex-col items-center justify-center space-y-3 text-center">
@@ -1472,18 +1526,23 @@ export function LessonDetail() {
                           setQuizSelectedAnswer(null);
                           setQuizSubmitted(false);
                         } else {
-                          const baseXP = (lesson?.xpReward || 35);
-                          const bonus = quizScore * (quizLevel === "Advanced" ? 10 : quizLevel === "Intermediate" ? 7 : 5);
-                          const total = Math.max(20, baseXP + bonus - blankPenalty);
-                          setEarnedXP(total);
+                          // XP Gate check
+                          if (listenedFullExplanation) {
+                            const baseXP = (lesson?.xpReward || 35);
+                            const bonus = quizScore * (quizLevel === "Advanced" ? 10 : quizLevel === "Intermediate" ? 7 : 5);
+                            const total = Math.max(20, baseXP + bonus - blankPenalty);
+                            setEarnedXP(total);
+                            recordLessonCompleted(lesson?.title || "English Lesson");
+                            if (lesson?.id) {
+                              lessonModuleService.complete(Number(lesson.id) || lesson.id).catch((err) => {
+                                console.warn("Backend lesson complete sync error:", err);
+                              });
+                            }
+                          } else {
+                            setEarnedXP(0);
+                          }
                           setQuizFinished(true);
                           setStudyStep(8);
-                          recordLessonCompleted(lesson?.title || "English Lesson");
-                          if (lesson?.id) {
-                            lessonModuleService.complete(Number(lesson.id) || lesson.id).catch((err) => {
-                              console.warn("Backend lesson complete sync error:", err);
-                            });
-                          }
                         }
                       }}
                       className="px-6 py-2.5 rounded-xl bg-[#6c63ff] hover:bg-[#5a52e0] disabled:opacity-50 text-white text-xs font-extrabold shadow-md transition-all"
@@ -1498,48 +1557,68 @@ export function LessonDetail() {
             </div>
           )}
 
-          {/* STEP 8 (Step 9 of 9): Lesson Summary & Mastery Rewards */}
+          {/* STEP 8 (Step 9 of 9): Lesson Summary & Mastery Rewards with XP Gate */}
           {studyStep === 8 && (
             <div className="p-8 rounded-3xl bg-gradient-to-r from-[#1E1B4B] via-[#6c63ff] to-[#ff6584] text-white text-center space-y-5 shadow-xl animate-in zoom-in-95">
-              <span className="text-5xl">🏆</span>
+              <span className="text-5xl">{listenedFullExplanation ? "🏆" : "⚠️"}</span>
               <div className="space-y-1">
                 <span className="text-[10px] font-extrabold uppercase tracking-widest text-[#FDE047]">
-                  STEP 9 OF 9 • LESSON MASTERED
+                  STEP 9 OF 9 • LESSON SUMMARY
                 </span>
-                <h2 className="text-2xl sm:text-3xl font-extrabold">Congratulations!</h2>
+                <h2 className="text-2xl sm:text-3xl font-extrabold">
+                  {listenedFullExplanation ? "Lesson Mastered with Full Rewards!" : "Practice Session Completed"}
+                </h2>
                 <p className="text-xs sm:text-sm opacity-90 max-w-md mx-auto">
-                  You successfully mastered "{lesson?.title}" across all 9 interactive study steps!
+                  {listenedFullExplanation
+                    ? `You successfully listened to the AI Tutor masterclass and completed all 9 steps of "${lesson?.title}"!`
+                    : `You completed the practice exercises for "${lesson?.title}".`}
                 </p>
               </div>
 
-              {/* Rewards Stats Card */}
-              <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto text-center pt-2">
-                <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                  <span className="text-xl font-extrabold text-[#FDE047]">+{earnedXP || lesson?.xpReward || 35}</span>
-                  <p className="text-[10px] uppercase font-bold opacity-80">XP Earned</p>
+              {/* XP Condition Gate Feedback Card */}
+              {!listenedFullExplanation ? (
+                <div className="p-4 rounded-2xl bg-amber-500/25 border border-amber-300/40 text-amber-100 text-xs font-semibold max-w-md mx-auto space-y-1">
+                  <p className="font-extrabold text-white text-sm">⚡ 0 XP Awarded for this Session</p>
+                  <p>
+                    You paused or skipped the AI Tutor voice explanation in Step 2. To earn your +{lesson?.xpReward || 35} XP reward and keep your streak active, re-open this lesson and listen to the complete masterclass!
+                  </p>
                 </div>
-                <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
-                  <span className="text-xl font-extrabold text-emerald-300">
-                    {Math.round((quizScore / (quizQuestions.length || 1)) * 100)}%
-                  </span>
-                  <p className="text-[10px] uppercase font-bold opacity-80">Quiz Accuracy</p>
+              ) : (
+                /* Rewards Stats Card */
+                <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto text-center pt-2">
+                  <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                    <span className="text-xl font-extrabold text-[#FDE047]">+{earnedXP || lesson?.xpReward || 35}</span>
+                    <p className="text-[10px] uppercase font-bold opacity-80">XP Earned</p>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20">
+                    <span className="text-xl font-extrabold text-emerald-300">
+                      {Math.round((quizScore / (quizQuestions.length || 1)) * 100)}%
+                    </span>
+                    <p className="text-[10px] uppercase font-bold opacity-80">Quiz Accuracy</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Retention & Practice Recap */}
-              <div className="p-4 rounded-2xl bg-black/20 text-left text-xs space-y-1.5 max-w-md mx-auto">
-                <span className="font-extrabold text-[#FDE047]">💡 Key Takeaway:</span>
-                <p className="opacity-90 leading-relaxed">
-                  Continue applying "{lesson?.title}" rules in everyday speaking. Consistent daily speech habits build permanent fluency!
-                </p>
+              {/* Retention & Practice Recap Deck */}
+              <div className="p-4 rounded-2xl bg-black/20 text-left text-xs space-y-2 max-w-md mx-auto">
+                <span className="font-extrabold text-[#FDE047]">💡 Key Lesson Takeaways:</span>
+                <ul className="space-y-1 list-disc list-inside opacity-90">
+                  <li>Understand and practice the core formulas taught in "{lesson?.title}".</li>
+                  <li>Speak in complete sentences rather than isolated words.</li>
+                  <li>Regular daily speaking out loud builds neural pathways for spontaneous speech.</li>
+                </ul>
               </div>
 
               <div className="pt-2 flex flex-wrap justify-center gap-3">
                 <button
-                  onClick={() => setStudyStep(0)}
+                  onClick={() => {
+                    setStudyStep(0);
+                    setListenedFullExplanation(false);
+                    setExplanationSkippedMidway(false);
+                  }}
                   className="px-6 py-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white font-extrabold text-xs transition"
                 >
-                  🔄 Review Lesson
+                  🔄 Re-take Lesson (Earn Full XP)
                 </button>
                 <button
                   onClick={() => navigate(ROUTES.LESSONS)}
