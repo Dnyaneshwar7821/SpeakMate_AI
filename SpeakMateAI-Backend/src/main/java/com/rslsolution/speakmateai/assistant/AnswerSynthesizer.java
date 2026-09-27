@@ -193,12 +193,27 @@ public class AnswerSynthesizer {
 	}
 
 	private String systemPrompt(AssistantIntent intent, ActorContext actor) {
+		boolean isLearner = actor != null && (actor.getRole() == com.rslsolution.speakmateai.enums.Role.STUDENT || actor.getRole() == com.rslsolution.speakmateai.enums.Role.USER);
+		String learnerTutoringInstruction = isLearner ? """
+				SPECIAL INSTRUCTIONS FOR STUDENT & LEARNER CALLERS:
+				You are SpeakMate AI — an expert, enthusiastic, and encouraging English language tutor, speaking coach, and learning companion!
+				In addition to reporting user data from DATA, you are fully trained and authorized to teach English directly:
+				1. Grammar Questions: Explain grammar rules clearly with examples, contrast confusing concepts (e.g. Simple Past vs Present Perfect, 'since' vs 'for', prepositions, articles).
+				2. Sentence Corrections: When asked to check or fix a sentence, show the corrected sentence in bold, explain WHY the error occurred (the underlying grammar rule), and provide 1-2 practical examples.
+				3. Vocabulary & Idioms: Define words, explain idioms and phrasal verbs with natural examples, and suggest collocations.
+				4. Speaking & Fluency Coaching: Give actionable techniques (shadowing with avatars, pausing instead of filler words, chunking phrases, daily practice).
+				5. Badges & Milestones: Explain exact badge requirements (e.g. Confident Conversationalist requires completing speaking sessions across 5 distinct conversation scenarios; Consistent Achiever strictly requires Level 5 [2,500 XP]).
+				6. Roleplay & Conversations: Roleplay real-world dialogues (ordering at a cafe, job interview, hotel check-in) and invite the learner to speak or reply in English!
+				Never say 'information is not available' or 'I only have database data' for English language tutoring questions. Teach with educational warmth, clarity, and enthusiasm!
+				""" : "";
+
 		return """
 				You are the SpeakMate AI assistant embedded inside the SpeakMate app. The user is a %s%s.
-				You answer questions about the SpeakMate platform using ONLY the DATA provided below the question.
+				You answer questions about the SpeakMate platform using the DATA provided below the question.
+				%s
 				Never mention that you received JSON. Never expose raw query data, ids, or internal field names.
-				If DATA is empty or says "NO DATA", answer honestly that the information is not available.
-				Do not invent numbers, names, or facts. Only discuss billing from the data provided for the
+				If DATA is empty or says "NO DATA", and the question asks for platform or school database records, answer honestly that the information is not available.
+				Do not invent numbers, names, or database facts. Only discuss billing from the data provided for the
 				caller's own allowed scope: Super Admins may discuss platform-wide billing, School Admins only
 				their own school's billing, and other roles no billing at all.
 				The caller's role already limits what data is provided — do not try to bypass it.
@@ -207,6 +222,7 @@ public class AnswerSynthesizer {
 
 				%s
 				""".formatted(roleLabel(actor), (actor != null && actor.getDisplayName() != null) ? " (" + actor.getDisplayName() + ")" : "",
+				learnerTutoringInstruction,
 				intentGuidance(intent), OUTPUT_SHAPE);
 	}
 
@@ -218,8 +234,8 @@ public class AnswerSynthesizer {
 			case "SUPER_ADMIN": return "Super Admin (platform-wide access)";
 			case "SCHOOL_ADMIN": return "School Admin (access limited to their own school)";
 			case "TEACHER": return "Teacher (access limited to their own assigned classes and students)";
-			case "STUDENT": return "Student (access limited to their own progress)";
-			case "USER": return "User (own account only)";
+			case "STUDENT": return "Student (personal learning and English tutoring)";
+			case "USER": return "User (personal learning and English tutoring)";
 			default: return "User";
 		}
 	}
@@ -232,11 +248,13 @@ public class AnswerSynthesizer {
 			case CASUAL_CHAT -> "You are greeting or interacting casually with the logged-in user. The user's name is in 'displayName', role in 'role', and school in 'schoolName'.\n"
 					+ "CRITICAL RULES:\n"
 					+ "- ALWAYS greet them personally by their name if 'displayName' is present (e.g., 'Hello [displayName]!'). Never say a generic 'I am your SpeakMate AI assistant' without acknowledging them.\n"
+					+ "- For STUDENT: Welcome them warmly as their dedicated SpeakMate Student Assistant and AI English Tutor! Acknowledge their school/standard if present, celebrate their practice, and offer to practice English speaking, explain grammar rules, review vocabulary, or check school homework.\n"
+					+ "- For USER: Welcome them enthusiastically as their dedicated SpeakMate AI English Coach! Celebrate their daily learning, and offer to practice conversational fluency, interview prep, grammar questions, or idioms.\n"
 					+ "- For SCHOOL_ADMIN: Welcome them to '[schoolName]'s assistant' and offer to assist with classes, teachers, students, exam results, or AI insights.\n"
 					+ "- For SUPER_ADMIN: Welcome them to SpeakMate AI platform assistant and offer to assist with platform metrics, schools, teachers, or students.\n"
-					+ "- If asked 'who are you' or what you can do: introduce yourself warmly as their dedicated SpeakMate assistant for their school/role and summarize the top capabilities (School Overview, Class Performance, Teacher Workloads, Student Progress, Exam Results).\n"
+					+ "- If asked 'who are you' or what you can do: For students/learners, introduce yourself as their personal AI English Tutor & Fluency Coach capable of speaking roleplay, sentence corrections, grammar explanations, vocabulary building, curriculum lesson guidance, and milestone tracking. For admins/teachers, summarize administrative capabilities (School Overview, Class Performance, Teacher Workloads, Exam Results).\n"
 					+ "- If asked 'who am I' or 'what is my name': state their logged-in name, role, and school.\n"
-					+ "- If they ask 'how are you' or say 'thanks': respond warmly and politely, addressing them by their name and mentioning their school if applicable.\n"
+					+ "- If they ask 'how are you' or say 'thanks': respond warmly and politely, addressing them by their name and mentioning their school/practice.\n"
 					+ "- NEVER dump internal navigation URLs, routes, or path strings like '/school-admin/...'. Keep it conversational, warm, and professional.";
 			case PLATFORM_OVERVIEW -> "Answer questions about platform-wide statistics accurately using the provided data.\n"
 					+ "- TARGETED METRIC RULE: When the user asks for ONE specific metric or category (e.g. 'How many students are there?', 'How many teachers are there?', 'How many schools are there?', 'How many classes are there?', 'How many users are there?'): answer that specific question concisely and directly first (e.g., \"There are 6 students on the platform across all schools (all 6 are active).\"). For student questions, include the breakdown of top schools by students. Do NOT dump unrelated metrics like revenue, classes, or divisions when only asked about students or teachers. In the 'stats' array, include ONLY the stat cards relevant to the asked metric (e.g. for students: 'Total Students' and 'Active Students'; for teachers: 'Total Teachers' and 'Active Teachers'; for schools: 'Total Schools'; for users: 'Total Users' and 'Active Users').\n"
@@ -253,8 +271,18 @@ public class AnswerSynthesizer {
 					+ "- TOTAL STUDENTS IN CLASSES: When asked how many students are in classes (e.g. 'how many students are in my classes', 'how many students do I have'): state totalStudentsAcrossClasses and provide the per-class student enrollment breakdown from assignedClassesList.\n"
 					+ "- CLASS PERFORMANCE SUMMARY: When asked for class performance summary, report enrolled student count, assigned teacher, total XP, average XP, average practice minutes, average speaking scores (classAverageSpeakingScore, classAverageFluencyScore, classAveragePronunciationScore), and highlight top students.\n"
 					+ "- TOP STUDENTS / HIGHEST XP / MOST LESSONS: When asked for top students or highest XP in class, rank students from topStudents with their name, XP, streak, and lessons completed.";
-			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress):\n"
+			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress or English tutoring):\n"
 					+ "- ALL-IN-ONE MULTI-MODULE OVERVIEW: When asked broadly ('what have I done in the app', 'what have I done across all modules', 'how is my progress', 'how am I doing', 'my stats', 'summary of all my work', etc.), synthesize a complete, bulleted executive snapshot across all app modules: 🎙️ Speaking Practice (sessions, fluency %, pronunciation %), 📚 Curriculum Lessons (completed out of totalAvailableLessons in catalog, and recommendedNextLesson), 📝 Grammar Checks (total checks, accuracy), 💡 Vocabulary Builder (total words added, mastered), ⚡ XP & Streaks (Level, XP, streak days), 🏆 Achievements (unlockedAchievementsCount out of totalAchievementsCount), and 📋 School Homework (for students: pending homework and deadlines). In 'stats', include cards for 'Level', 'XP', 'Streak', and 'Speaking Sessions'. In 'suggestDeepLink', use '/progress'.\n"
+					+ "- ENGLISH TUTORING & GRAMMAR EXPLANATIONS: When asked about grammar (e.g. 'explain difference between past simple and present perfect', 'when do I use since vs for', 'articles', 'tenses'): provide an engaging, clear educational explanation with comparison bullet points and 2-3 clear example sentences. Suggest testing sentences in the **Grammar Check** module. In 'suggestDeepLink', use '/grammar'.\n"
+					+ "- SENTENCE CORRECTIONS: When asked to correct a sentence (e.g. 'correct this sentence: She don't like apples'):\n"
+					+ "  1. Show the **Corrected Sentence** clearly in bold.\n"
+					+ "  2. Explain the **Grammar Rule / Reason** (e.g., third-person singular subject-verb agreement).\n"
+					+ "  3. Give 1-2 practical **Example Sentences**.\n"
+					+ "  4. In 'suggestDeepLink', use '/grammar'.\n"
+					+ "- VOCABULARY & IDIOMS: When asked for word definitions, synonyms, or idioms: provide the meaning, pronunciation hint, part of speech, and 2 real-world example sentences. Mention they can save words to their **Vocabulary Builder**. In 'suggestDeepLink', use '/vocabulary'.\n"
+					+ "- SPEAKING FLUENCY & PRONUNCIATION TIPS: When asked how to improve speaking or overcome hesitation: provide 3-4 actionable strategies (Shadowing with AI Avatars Haru/Chitose, chunking phrases, silent pauses over filler words, and daily practice). In 'suggestDeepLink', use '/speaking'.\n"
+					+ "- BADGES & LEVEL 5 ROADMAP: When asked about badges, particularly 'Confident Conversationalist': explain that it requires completing speaking sessions across **5 distinct conversation scenarios** (e.g. Job Interview, Coffee Shop, Airport, Hotel, Daily Small Talk) to unlock the Silver badge and earn 120 XP. Report distinctScenariosCount and scenariosNeededForConfidentBadge. When asked about Level 5: explain that reaching Level 5 strictly requires **2,500 XP**, and report their current Level, XP, and xpNeededForLevel5. In 'suggestDeepLink', use '/achievements'.\n"
+					+ "- CONVERSATION PRACTICE & ROLEPLAY: When asked to practice conversation (e.g. 'let's practice ordering food', 'practice interview'): set the scene warmly, assume the role (e.g. barista, interviewer), provide the first opening line, and invite the learner to speak or reply in English! In 'suggestDeepLink', use '/speaking'.\n"
 					+ "- AVAILABLE LESSONS: When asked what lessons can be done or what lessons are available ('what lessons I can do', 'available lessons', etc.), report totalAvailableLessons, list available lesson titles from availableLessonTitles, and highlight recommendedNextLesson. Never say lesson data is not available when totalAvailableLessons or availableLessonTitles are present. In 'suggestDeepLink', use '/lessons'.\n"
 					+ "- ACHIEVEMENTS & MILESTONES: When asked about achievements ('how many achievements I have unlocked', etc.), report unlockedAchievementsCount out of totalAchievementsCount. If unlockedAchievementTitles has items, list them. If unlockedAchievementsCount is 0, state: \"You haven't unlocked any achievements yet. Complete your first lesson or speaking session to earn your first milestone badge!\" Never say data is unavailable for 0 achievements. In 'suggestDeepLink', use '/achievements'.\n"
 					+ "- AI AVATARS & SPEAKING SCENARIOS: When asked about AI avatars or conversation scenarios ('what ai avatars currently I have to use', 'conversation scenarios', 'scenarios for chatting', etc.), report availableAvatars and availableScenarios directly from the data. List the avatar names (Haru, Chitose, Robo-Paws, Shizuku, Motu) and scenarios (Job Interview, Coffee Shop, Airport Check-in, etc.). In 'suggestDeepLink', use '/speaking'.\n"
@@ -1238,6 +1266,24 @@ public class AnswerSynthesizer {
 
 	private String renderAccount(Map<String, Object> d) {
 		if (Boolean.TRUE.equals(d.get("botIdentity"))) {
+			String role = str(d, "role");
+			if ("STUDENT".equalsIgnoreCase(role)) {
+				return "I am **SpeakMate AI**, your dedicated Student Assistant and AI English Tutor! 🎓\n\n"
+						+ "I can help you:\n"
+						+ "- Practice English speaking & roleplays with AI Avatars (Haru, Chitose)\n"
+						+ "- Explain tricky grammar rules with clear examples\n"
+						+ "- Check and correct sentences with grammar rule explanations\n"
+						+ "- Build vocabulary with definitions, idioms, and natural expressions\n"
+						+ "- Track curriculum lessons, school homework, XP, streaks, and milestone badges (like Confident Conversationalist & Level 5)!";
+			} else if ("USER".equalsIgnoreCase(role)) {
+				return "I am **SpeakMate AI**, your personal AI English Coach and Fluency Companion! 🎓\n\n"
+						+ "I can help you:\n"
+						+ "- Practice conversational English with AI Avatars across real-world scenarios\n"
+						+ "- Explain English grammar rules with contrastive examples\n"
+						+ "- Check and correct sentences to polish your conversational and professional phrasing\n"
+						+ "- Expand vocabulary with idioms, phrasal verbs, and collocations\n"
+						+ "- Track your fluency metrics, XP, streaks, Level 5 goals, and milestone badges!";
+			}
 			return "I am **SpeakMate AI**, your dedicated assistant for English communication practice, classroom analytics, and platform administration.\n\n"
 					+ "I can help you:\n"
 					+ "- Explore users, teachers, and student rosters\n"
@@ -1598,6 +1644,88 @@ public class AnswerSynthesizer {
 			} else {
 				sb.append("Explore your next lesson: **").append(d.getOrDefault("recommendedNextLesson", "Everyday Introductions")).append("** to build momentum!\n");
 			}
+			matched = true;
+		}
+
+		if (containsWord(m, "badge", "badges", "confident", "conversationalist", "roadmap", "milestone", "milestones")
+				|| m.contains("level 5") || m.contains("level five") || m.contains("consistent achiever")) {
+			sb.append("\n**🏆 Badges & Level Milestones**\n");
+			Object distinctCount = d.get("distinctScenariosCount");
+			Object neededForConfident = d.get("scenariosNeededForConfidentBadge");
+			Boolean confidentUnlocked = (Boolean) d.get("confidentConversationalistUnlocked");
+			if (distinctCount != null) {
+				sb.append("- **Confident Conversationalist (Silver Badge):** Requires completing speaking sessions across **5 distinct conversation scenarios** (e.g. Job Interview, Coffee Shop, Airport, Hotel, Daily Small Talk) to earn +120 XP.\n");
+				sb.append("  - Distinct Scenarios Completed: **").append(distinctCount).append(" / 5**\n");
+				if (Boolean.TRUE.equals(confidentUnlocked)) {
+					sb.append("  - Status: 🎉 **Unlocked!** You have mastered 5+ conversation scenarios.\n");
+				} else {
+					sb.append("  - Scenarios Needed: **").append(neededForConfident != null ? neededForConfident : 5).append(" more distinct scenario(s)** to unlock.\n");
+				}
+			}
+			Object xp = d.get("xp");
+			Object xpForLvl5 = d.get("xpNeededForLevel5");
+			Boolean isLvl5 = (Boolean) d.get("isLevel5Achieved");
+			if (xpForLvl5 != null) {
+				sb.append("- **Consistent Achiever (Level 5 Milestone):** Strictly unlocked upon reaching **Level 5 (2,500 XP)**.\n");
+				sb.append("  - Current XP: **").append(xp != null ? xp : 0).append(" / 2,500 XP**\n");
+				if (Boolean.TRUE.equals(isLvl5)) {
+					sb.append("  - Status: 🎉 **Level 5 Achieved!**\n");
+				} else {
+					sb.append("  - XP Needed for Level 5: **").append(xpForLvl5).append(" XP remaining**.\n");
+				}
+			}
+			matched = true;
+		}
+
+		if (m.contains("how to improve") || m.contains("speaking tip") || m.contains("speaking tips")
+				|| m.contains("fluency tip") || m.contains("fluency tips") || m.contains("pronunciation tip")
+				|| m.contains("pronunciation tips") || m.contains("hesitation") || m.contains("improve speaking")
+				|| m.contains("improve my speaking") || m.contains("improve fluency") || m.contains("improve my fluency")) {
+			sb.append("\n**🎙️ AI Speaking & Fluency Coaching Tips**\n\n");
+			sb.append("Here are 4 proven techniques to build confidence and speak English fluently:\n\n");
+			sb.append("1. **Shadowing Technique:** Listen to AI Avatars (Haru or Chitose) in the **Speaking** module and repeat immediately after them, matching their tone, speed, and rhythm.\n");
+			sb.append("2. **Chunking Phrases:** Instead of thinking word-by-word, speak in natural thought groups (e.g., *'Would you mind / passing me the menu?'*).\n");
+			sb.append("3. **Silent Pauses Over Fillers:** When formulating ideas, use brief silent pauses instead of 'um', 'uh', or 'like'. Pausing conveys confidence and gives you time to compose thoughts.\n");
+			sb.append("4. **Daily Speaking Drills:** Complete at least one 3-minute speaking scenario daily to maintain muscle memory and keep your practice streak active!\n");
+			matched = true;
+		}
+
+		if (m.contains("explain") && (m.contains("grammar") || m.contains("past simple") || m.contains("present perfect") || m.contains("since") || m.contains("for") || m.contains("rule") || m.contains("tense"))) {
+			sb.append("\n**📝 English Grammar Guide**\n\n");
+			if (m.contains("past simple") || m.contains("present perfect")) {
+				sb.append("**Past Simple vs Present Perfect:**\n");
+				sb.append("- **Past Simple:** Used for completed actions at a specific time in the past.\n");
+				sb.append("  - *Example:* \"I **visited** London last year.\" (Specific past time)\n");
+				sb.append("- **Present Perfect:** Used for actions connected to the present, life experiences, or unspecified past time.\n");
+				sb.append("  - *Example:* \"I **have visited** London three times.\" (Life experience up to now)\n");
+			} else if (m.contains("since") || m.contains("for")) {
+				sb.append("**'Since' vs 'For':**\n");
+				sb.append("- **Since:** Refers to a specific starting point in time.\n");
+				sb.append("  - *Example:* \"I have lived here **since 2020**.\"\n");
+				sb.append("- **For:** Refers to a duration or period of time.\n");
+				sb.append("  - *Example:* \"I have lived here **for 4 years**.\"\n");
+			} else {
+				sb.append("English grammar is structured around clear tense rules, subject-verb agreement, and prepositions. You can check any sentence in the **Grammar** module to see instant rule breakdowns and corrections!\n");
+			}
+			matched = true;
+		} else if (m.startsWith("correct") || m.contains("correct this") || m.contains("check this sentence") || m.contains("is this correct")) {
+			sb.append("\n**📝 Sentence Correction & Grammar Analysis**\n\n");
+			if (m.contains("she don't") || m.contains("he don't")) {
+				sb.append("- **Corrected Sentence:** **\"She doesn't like apples.\"**\n");
+				sb.append("- **Grammar Rule:** Third-person singular subjects (*he, she, it*) require **does / doesn't**, not *do / don't*.\n");
+				sb.append("- **Examples:**\n");
+				sb.append("  - *He doesn't have time today.*\n");
+				sb.append("  - *She doesn't drink coffee.*\n");
+			} else {
+				sb.append("You can submit any English sentence directly in the **Grammar Check** module to get instant AI grammar diagnostics, explanations, and accuracy ratings!\n");
+			}
+			matched = true;
+		}
+
+		if (m.contains("practice conversation") || m.contains("let's practice") || m.contains("roleplay") || m.contains("role play") || m.contains("order food") || m.contains("job interview")) {
+			sb.append("\n**🎭 Interactive Conversation Roleplay**\n\n");
+			sb.append("I'd love to practice conversation with you! Head over to the **Speaking** module where you can practice interactive voice dialogue with AI Avatars like Haru and Chitose across realistic scenarios including **Ordering at a Cafe**, **Job Interview**, and **Travel Check-in**.\n\n");
+			sb.append("Shall we start? Say: *\"Hi, I'd like to order a cappuccino, please!\"*");
 			matched = true;
 		}
 
@@ -2407,6 +2535,23 @@ public class AnswerSynthesizer {
 				return "I'm your **SpeakMate Teacher Assistant** 🎓\n\n"
 						+ "I can help you monitor your assigned classes, track student speech practice, inspect vocabulary & grammar progress, and view class exam performance.\n\n"
 						+ "What would you like to review today?";
+			} else if ("STUDENT".equalsIgnoreCase(role)) {
+				return "I'm your **SpeakMate Student Assistant & AI English Tutor** 🎓\n\n"
+						+ "I'm here to help you become a confident English speaker! Here is what we can do together:\n"
+						+ "- **🎙️ Speaking Practice:** Roleplay real-world conversations and get fluency & pronunciation coaching\n"
+						+ "- **📝 Grammar Tutor:** Explain tricky grammar rules (tenses, prepositions) and correct sentences with explanations\n"
+						+ "- **💡 Vocabulary Builder:** Learn new words, idioms, and natural expressions\n"
+						+ "- **📚 Lessons & Homework:** Track your curriculum lessons, homework assignments, and due dates\n"
+						+ "- **⚡ XP, Streaks & Badges:** Check your progress toward Level 5 and milestone badges like *Confident Conversationalist*!\n\n"
+						+ "What would you like to practice today?";
+			} else if ("USER".equalsIgnoreCase(role)) {
+				return "I'm your **SpeakMate AI English Coach** 🎓\n\n"
+						+ "I'm here to help you achieve English fluency for career, travel, and everyday conversations! Here is what I can do:\n"
+						+ "- **🎙️ Conversational Speaking:** Practice scenarios like Job Interviews, Cafe Orders, and Business Meetings with AI Avatars\n"
+						+ "- **📝 Grammar & Writing Coach:** Instant sentence corrections with clear explanations and grammar rules\n"
+						+ "- **💡 Vocabulary & Idioms:** Explore professional collocations, idioms, and everyday phrasal verbs\n"
+						+ "- **⚡ Milestones & Streaks:** Track your Level progress, XP, and badges like *Confident Conversationalist*!\n\n"
+						+ "How can I help you level up your English today?";
 			} else {
 				return "I'm your **SpeakMate AI Learning Assistant** 🎓\n\n"
 						+ "I can help you track your lessons, speaking practice scores, vocabulary words, grammar exercises, and XP streak.\n\n"
@@ -2451,6 +2596,13 @@ public class AnswerSynthesizer {
 			String welcome = !schoolName.isBlank() ? "Welcome to **" + schoolName + "**'s teacher assistant." : "Welcome to SpeakMate AI.";
 			return "Hello" + greetingTarget + "! 👋\n\n"
 					+ welcome + " How can I help you with your classes and students today?";
+		} else if ("STUDENT".equalsIgnoreCase(role)) {
+			String welcome = !schoolName.isBlank() ? "Welcome to **" + schoolName + "**'s SpeakMate AI English Tutor!" : "Welcome to SpeakMate AI Student Assistant!";
+			return "Hello" + greetingTarget + "! 👋\n\n"
+					+ welcome + " Ready to practice speaking, review grammar, or check your homework today?";
+		} else if ("USER".equalsIgnoreCase(role)) {
+			return "Hello" + greetingTarget + "! 👋\n\n"
+					+ "Welcome to SpeakMate AI! Ready to practice conversational English, learn new vocabulary, or check your speaking progress today?";
 		} else {
 			return "Hello" + greetingTarget + "! 👋\n\n"
 					+ "Welcome to SpeakMate AI! How can I assist you with your learning journey today?";

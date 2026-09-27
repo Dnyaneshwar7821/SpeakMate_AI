@@ -355,14 +355,23 @@ public class AssistantService {
 				}
 				case STUDENT_PERFORMANCE -> {
 					if (role == Role.STUDENT || role == Role.USER) {
-						if (m.contains("gramm")) {
+						if (m.contains("gramm") || m.contains("sentence") || m.contains("correct")) {
 							candidates.add(suggestion("Practice grammar", "/grammar", role.name()));
 							candidates.add(suggestion("View my progress", "/progress", role.name()));
-						} else if (m.contains("vocab") || m.contains("word")) {
+						} else if (m.contains("vocab") || m.contains("word") || m.contains("idiom")) {
 							candidates.add(suggestion("View vocabulary", "/vocabulary", role.name()));
 							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
 						} else if (m.contains("lesson") || m.contains("curriculum")) {
 							candidates.add(suggestion("View lessons", "/lessons", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						} else if (m.contains("achieve") || m.contains("badge") || m.contains("confident") || m.contains("conversationalist") || m.contains("level 5")) {
+							candidates.add(suggestion("View achievements", "/achievements", role.name()));
+							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
+						} else if (m.contains("homework") || m.contains("assignment")) {
+							candidates.add(suggestion("View assignments", "/assignments", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						} else if (m.contains("speak") || m.contains("fluency") || m.contains("pronun") || m.contains("avatar") || m.contains("scenario")) {
+							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
 							candidates.add(suggestion("View my progress", "/progress", role.name()));
 						} else {
 							candidates.add(suggestion("View my progress", "/progress", role.name()));
@@ -378,14 +387,20 @@ public class AssistantService {
 				}
 				case NAVIGATION_HELP -> {
 					if (role == Role.STUDENT || role == Role.USER) {
-						if (m.contains("gramm")) {
+						if (m.contains("gramm") || m.contains("sentence")) {
 							candidates.add(suggestion("Practice grammar", "/grammar", role.name()));
 							candidates.add(suggestion("View my progress", "/progress", role.name()));
-						} else if (m.contains("vocab") || m.contains("word")) {
+						} else if (m.contains("vocab") || m.contains("word") || m.contains("idiom")) {
 							candidates.add(suggestion("View vocabulary", "/vocabulary", role.name()));
 							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));
 						} else if (m.contains("lesson") || m.contains("curriculum")) {
 							candidates.add(suggestion("View lessons", "/lessons", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						} else if (m.contains("achieve") || m.contains("badge") || m.contains("confident") || m.contains("level 5")) {
+							candidates.add(suggestion("View achievements", "/achievements", role.name()));
+							candidates.add(suggestion("View my progress", "/progress", role.name()));
+						} else if (m.contains("homework") || m.contains("assignment")) {
+							candidates.add(suggestion("View assignments", "/assignments", role.name()));
 							candidates.add(suggestion("View my progress", "/progress", role.name()));
 						} else if (m.contains("what should") || m.contains("next")) {
 							candidates.add(suggestion("Practice speaking", "/speaking", role.name()));

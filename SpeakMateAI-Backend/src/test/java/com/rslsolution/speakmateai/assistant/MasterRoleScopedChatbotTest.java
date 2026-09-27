@@ -136,6 +136,27 @@ public class MasterRoleScopedChatbotTest {
 		}
 
 		@Test
+		@DisplayName("Student & User Authorized: English tutoring, Grammar rules, Sentence corrections, Badges & Roadmaps")
+		void testStudentAndUserEnglishTutoringAndBadges() {
+			for (Role learnerRole : List.of(Role.STUDENT, Role.USER)) {
+				assertEquals(AssistantIntent.STUDENT_PERFORMANCE,
+						classifier.classify("How do I unlock Confident Conversationalist badge?", learnerRole, null).getIntent());
+				assertEquals(AssistantIntent.STUDENT_PERFORMANCE,
+						classifier.classify("How much XP is needed for Level 5?", learnerRole, null).getIntent());
+				assertEquals(AssistantIntent.STUDENT_PERFORMANCE,
+						classifier.classify("Explain the difference between past simple and present perfect", learnerRole, null).getIntent());
+				assertEquals(AssistantIntent.STUDENT_PERFORMANCE,
+						classifier.classify("Correct this sentence: She don't like apples", learnerRole, null).getIntent());
+				assertEquals(AssistantIntent.STUDENT_PERFORMANCE,
+						classifier.classify("Give me tips to improve my speaking fluency and overcome hesitation", learnerRole, null).getIntent());
+				assertEquals(AssistantIntent.STUDENT_PERFORMANCE,
+						classifier.classify("Let's practice conversation ordering food at a cafe", learnerRole, null).getIntent());
+				assertEquals(AssistantIntent.STUDENT_PERFORMANCE,
+						classifier.classify("What is the meaning of break a leg idiom?", learnerRole, null).getIntent());
+			}
+		}
+
+		@Test
 		@DisplayName("Student Restricted: Cross-student, school-wide, revenue, platform, credentials")
 		void testStudentRestrictedQueries() {
 			String[] restrictedQueries = {

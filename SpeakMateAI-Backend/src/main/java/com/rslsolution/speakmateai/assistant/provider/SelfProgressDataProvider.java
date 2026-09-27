@@ -242,6 +242,26 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		data.put("totalAchievementsCount", 12);
 		data.put("unlockedAchievementTitles", unlockedAchievementTitles);
 
+		// Distinct speaking scenarios completed (for Confident Conversationalist badge tracking)
+		java.util.Set<String> distinctScenarios = sessions.stream()
+				.filter(s -> Boolean.TRUE.equals(s.getCompleted()) || (s.getOverallScore() != null && s.getOverallScore() > 0))
+				.map(s -> {
+					String sc = s.getScenario();
+					if (sc == null || sc.isBlank()) {
+						sc = s.getTopic();
+					}
+					return sc != null ? sc.trim() : "";
+				})
+				.filter(s -> !s.isBlank())
+				.collect(Collectors.toCollection(java.util.TreeSet::new));
+		int distinctScenariosCount = distinctScenarios.size();
+		int scenariosNeededForConfidentBadge = Math.max(0, 5 - distinctScenariosCount);
+
+		data.put("distinctScenariosCount", distinctScenariosCount);
+		data.put("distinctScenariosCompleted", new ArrayList<>(distinctScenarios));
+		data.put("scenariosNeededForConfidentBadge", scenariosNeededForConfidentBadge);
+		data.put("confidentConversationalistUnlocked", distinctScenariosCount >= 5);
+
 		// AI Avatars and Speaking Scenarios catalog
 		data.put("availableAvatars", List.of(
 				"Haru (Friendly English Tutor)",
@@ -259,6 +279,24 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 				"Doctor's Appointment",
 				"Business Meeting",
 				"Travel & Directions"
+		));
+
+		// Badges Roadmap & exact requirements
+		Map<String, String> badgesRoadmap = new LinkedHashMap<>();
+		badgesRoadmap.put("Confident Conversationalist", "Complete speaking sessions across 5 distinct conversation scenarios (e.g. Job Interview, Coffee Shop, Airport, Hotel, Daily Small Talk) to unlock the Silver badge and earn 120 XP.");
+		badgesRoadmap.put("Consistent Achiever", "Reach Level 5 strictly by earning 2,500 total XP through regular speaking and lesson practice.");
+		badgesRoadmap.put("Streak Master", "Maintain a 7-day practice streak.");
+		badgesRoadmap.put("Vocabulary Virtuoso", "Master 50 vocabulary words in the word bank.");
+		badgesRoadmap.put("Grammar Guru", "Complete 25 grammar checks with 80%+ accuracy.");
+		data.put("badgesRoadmap", badgesRoadmap);
+
+		data.put("aiTutorCapabilities", List.of(
+				"Grammar rules explanation & sentence structure correction",
+				"Vocabulary definitions, synonyms, antonyms & contextual idioms",
+				"Pronunciation guidance, phoneme drills & speaking fluency tips",
+				"Real-world scenario dialogue & conversational roleplay",
+				"Curriculum lessons review & school homework assistance",
+				"XP milestone roadmaps & badge unlocking requirements"
 		));
 
 		// Homework & Assignments (Student role)
@@ -350,6 +388,12 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		data.put("nextLevel", nextLevel);
 		data.put("nextLevelThreshold", nextLevelThreshold);
 		data.put("xpRemaining", xpRemaining);
+		int level5Threshold = 2500;
+		int xpNeededForLevel5 = Math.max(0, level5Threshold - currentXp);
+		boolean isLevel5Achieved = currentLevel >= 5;
+		data.put("level5Threshold", level5Threshold);
+		data.put("xpNeededForLevel5", xpNeededForLevel5);
+		data.put("isLevel5Achieved", isLevel5Achieved);
 		if (p != null) {
 			data.put("currentStreak", zeroIfNull(p.getCurrentStreak()));
 			data.put("longestStreak", zeroIfNull(p.getLongestStreak()));
