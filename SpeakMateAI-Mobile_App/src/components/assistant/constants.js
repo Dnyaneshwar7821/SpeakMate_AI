@@ -49,7 +49,7 @@ export const QUICK_SUGGESTIONS_BY_ROLE = Object.freeze({
     'What have I done across all modules?',
     'How do I unlock Confident Conversationalist badge?',
     'How much XP do I need to reach Level 5?',
-    'Correct this sentence: She don't like apples',
+    "Correct this sentence: She don't like apples",
     'What AI avatars and scenarios can I chat with?',
     'Give me tips to improve my speaking fluency and overcome hesitation',
     'Where should I focus to improve?',
