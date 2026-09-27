@@ -789,31 +789,26 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </Card>
 
-        {/* School Standard Curriculum (Locked - Exactly like Web App) */}
+        {/* School Standard Curriculum (Locked - Compact Web-App Style) */}
         {isStudent && (
-          <Card style={{ backgroundColor: cardBg, borderRadius: 24, padding: 18, marginBottom: 14 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={{ fontSize: 17, fontWeight: '900', color: labelColor, letterSpacing: -0.2 }}>
-                  🏫 School Curriculum Standard
-                </Text>
-                <Text style={{ fontSize: 12.5, color: sublabelColor, marginTop: 4, lineHeight: 17 }}>
-                  Your syllabus, grammar tests, and practice material are aligned with your assigned grade.
-                </Text>
-              </View>
+          <Card style={{ backgroundColor: cardBg, padding: 13, marginBottom: 12, borderRadius: 16 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <Text style={{ fontSize: 13.5, fontWeight: '800', color: labelColor }}>
+                🏫 School Curriculum Standard
+              </Text>
               <View style={{
-                paddingHorizontal: 10,
-                paddingVertical: 4.5,
-                borderRadius: 20,
+                paddingHorizontal: 8,
+                paddingVertical: 3,
+                borderRadius: 12,
                 backgroundColor: isDark ? 'rgba(16, 185, 129, 0.16)' : '#E6FBF2',
                 borderWidth: 1,
                 borderColor: isDark ? 'rgba(16, 185, 129, 0.35)' : '#A7F3D0',
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: 5
+                gap: 4,
               }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#059669' }} />
-                <Text style={{ fontSize: 11, fontWeight: '800', color: isDark ? '#34D399' : '#059669' }}>
+                <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: '#059669' }} />
+                <Text style={{ fontSize: 10, fontWeight: '800', color: isDark ? '#34D399' : '#059669' }}>
                   Admin Managed 🎓
                 </Text>
               </View>
@@ -822,32 +817,30 @@ export default function ProfileScreen({ navigation }) {
             <View style={{
               flexDirection: 'row',
               alignItems: 'center',
-              gap: 14,
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-              borderRadius: 18,
+              paddingHorizontal: 12,
+              paddingVertical: 8,
+              borderRadius: 12,
               backgroundColor: isDark ? '#0F172A' : '#F8FAFC',
               borderWidth: 1,
               borderColor: isDark ? '#334155' : '#E2E8F0',
+              gap: 10,
             }}>
               <View style={{
-                width: 48,
-                height: 48,
-                borderRadius: 16,
+                width: 32,
+                height: 32,
+                borderRadius: 8,
                 backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : '#EDE9FE',
-                borderWidth: 1,
-                borderColor: isDark ? 'rgba(99, 102, 241, 0.3)' : '#DDD6FE',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
               }}>
-                <Text style={{ fontSize: 24 }}>🎓</Text>
+                <Text style={{ fontSize: 16 }}>🎓</Text>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 18, fontWeight: '900', color: labelColor, letterSpacing: -0.3 }}>
+              <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={{ fontSize: 15, fontWeight: '900', color: labelColor }}>
                   {currentSchoolGrade}
                 </Text>
-                <Text style={{ fontSize: 11.5, color: sublabelColor, marginTop: 2, lineHeight: 16 }}>
-                  Assigned by your School / Super Admin. Contact your school administrator to change standard.
+                <Text style={{ fontSize: 11, color: sublabelColor, fontWeight: '600' }} numberOfLines={1}>
+                  Assigned by admin
                 </Text>
               </View>
             </View>
