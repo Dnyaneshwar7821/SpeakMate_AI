@@ -61,12 +61,12 @@ public class SpeakingSessionProgressSyncTest {
                 .build();
 
         Authentication auth = mock(Authentication.class);
-        when(auth.getName()).thenReturn("rohit.patel@example.com");
+        lenient().when(auth.getName()).thenReturn("rohit.patel@example.com");
         SecurityContext secCtx = mock(SecurityContext.class);
-        when(secCtx.getAuthentication()).thenReturn(auth);
+        lenient().when(secCtx.getAuthentication()).thenReturn(auth);
         SecurityContextHolder.setContext(secCtx);
 
-        when(userRepository.findByEmail("rohit.patel@example.com")).thenReturn(Optional.of(sampleUser));
+        lenient().when(userRepository.findByEmail("rohit.patel@example.com")).thenReturn(Optional.of(sampleUser));
     }
 
     @AfterEach
@@ -187,5 +187,58 @@ public class SpeakingSessionProgressSyncTest {
         StatisticsResponse stats = dashboardService.getStatistics();
 
         assertEquals(6, stats.getSpeakingSessions(), "Dashboard statistics must report 6 completed sessions, not 81 attempted.");
+    }
+
+    @Test
+    @DisplayName("ProgressService recalculateAllUsers heals inflated XP, level, and speaking sessions")
+    void testProgressService_RecalculateAllUsers() {
+        ProgressServiceImpl progressService = new ProgressServiceImpl(
+                progressRepository, userRepository,
+                speakingSessionRepository, vocabularyRepository, grammarHistoryRepository,
+                lessonProgressRepository, achievementRepository);
+
+        when(userRepository.findAll()).thenReturn(List.of(sampleUser));
+
+        Progress inflatedProgress = Progress.builder()
+                .id(1L)
+                .user(sampleUser)
+                .xp(2000)
+                .level(5)
+                .totalSpeakingSessions(81)
+                .totalPracticeMinutes(500)
+                .build();
+        when(progressRepository.findByUser(sampleUser)).thenReturn(Optional.of(inflatedProgress));
+        when(progressRepository.save(any(Progress.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<SpeakingSession> completedSessions = List.of(
+                SpeakingSession.builder().id(1L).xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(2L).xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(3L).xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(4L).xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(5L).xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(6L).xpEarned(20).duration(120).completed(true).build()
+        );
+        when(speakingSessionRepository.countByUserAndCompletedTrue(sampleUser)).thenReturn(6L);
+        when(speakingSessionRepository.findByUserAndCompletedTrue(sampleUser)).thenReturn(completedSessions);
+        when(lessonProgressRepository.findByUser(sampleUser)).thenReturn(List.of());
+
+        Achievement firstVoice = Achievement.builder().id(1L).user(sampleUser).title("First Voice Conversation").xpReward(50).unlocked(true).build();
+        Achievement confident = Achievement.builder().id(2L).user(sampleUser).title("Confident Conversationalist").xpReward(120).unlocked(true).build();
+        Achievement fluency = Achievement.builder().id(3L).user(sampleUser).title("Fluency Champion").xpReward(250).unlocked(true).build();
+        when(achievementRepository.findByUser(sampleUser)).thenReturn(List.of(firstVoice, confident, fluency));
+
+        when(vocabularyRepository.countByUser(sampleUser)).thenReturn(2L);
+        when(grammarHistoryRepository.countByUserId(152L)).thenReturn(1L);
+
+        java.util.Map<String, Object> result = progressService.recalculateAllUsers();
+
+        assertNotNull(result);
+        assertEquals(true, result.get("success"));
+        assertEquals(1, result.get("usersUpdated"));
+
+        assertFalse(fluency.getUnlocked(), "Fluency Champion (15 target) must be relocked for 6 sessions.");
+        assertEquals(305, inflatedProgress.getXp(), "XP should be exact sum: 120 speaking + 170 achievements + 10 vocab + 5 grammar = 305.");
+        assertEquals(1, inflatedProgress.getLevel());
+        assertEquals(6, inflatedProgress.getTotalSpeakingSessions());
     }
 }

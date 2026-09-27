@@ -13,4 +13,9 @@ public interface ProgressService {
 
 	void deleteProgress();
 
+	ProgressResponse syncProgress();
+
+	ProgressResponse recalculateUserProgress(Long userId);
+
+	java.util.Map<String, Object> recalculateAllUsers();
 }

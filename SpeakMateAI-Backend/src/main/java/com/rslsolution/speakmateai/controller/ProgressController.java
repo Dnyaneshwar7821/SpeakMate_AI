@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.springframework.web.bind.annotation.PathVariable;
+
 import com.rslsolution.speakmateai.dto.request.ProgressRequest;
 import com.rslsolution.speakmateai.dto.response.ProgressResponse;
 import com.rslsolution.speakmateai.service.ProgressService;
@@ -48,5 +50,20 @@ public class ProgressController {
 		progressService.deleteProgress();
 
 		return "Progress deleted successfully.";
+	}
+
+	@PostMapping("/sync")
+	public ProgressResponse syncProgress() {
+		return progressService.syncProgress();
+	}
+
+	@PostMapping("/recalculate-all")
+	public java.util.Map<String, Object> recalculateAllUsers() {
+		return progressService.recalculateAllUsers();
+	}
+
+	@PostMapping("/recalculate/{userId}")
+	public ProgressResponse recalculateUserProgress(@PathVariable Long userId) {
+		return progressService.recalculateUserProgress(userId);
 	}
 }
