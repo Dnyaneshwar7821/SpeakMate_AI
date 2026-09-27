@@ -42,7 +42,7 @@ const MASTER_ACHIEVEMENTS = [
     title: "Confident Conversationalist",
     description: "Complete 5 distinct AI speaking conversations.",
     target: 5,
-    metricKey: "speakingSessions",
+    metricKey: "distinctScenarios",
     xpReward: 120,
   },
   {
@@ -228,9 +228,9 @@ const MASTER_ACHIEVEMENTS = [
     tier: 2,
     tierName: "Silver",
     title: "Level 5 Achiever",
-    description: "Earn 500 XP and reach Level 5 Learner status.",
-    target: 500,
-    metricKey: "xp",
+    description: "Reach Level 5 Learner status by accumulating 2,000 XP.",
+    target: 5,
+    metricKey: "level",
     xpReward: 200,
   },
   {
@@ -289,6 +289,8 @@ export default function AchievementsScreen() {
   // Resolve dynamic live metrics from verified progress counter
   const liveMetrics = {
     speakingSessions: progress.totalSpeakingSessions != null ? progress.totalSpeakingSessions : (stats.speakingSessions || 0),
+    distinctScenarios: progress.distinctSpeakingScenarios != null ? progress.distinctSpeakingScenarios : (stats.distinctScenarios || 0),
+    level: progress.level != null ? progress.level : Math.max(1, Math.floor((progress.xp || 0) / 500) + 1),
     grammarExercises: progress.totalGrammarChecks != null ? progress.totalGrammarChecks : (stats.grammarExercises || 0),
     vocabularyLearned: progress.totalVocabularyWords != null ? progress.totalVocabularyWords : (stats.vocabularyLearned || 0),
     streak: Math.max(progress.currentStreak || 0, progress.longestStreak || 0),

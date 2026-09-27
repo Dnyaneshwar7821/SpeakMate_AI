@@ -25,7 +25,7 @@ const MASTER_ACHIEVEMENTS = [
     title: "Confident Conversationalist",
     description: "Complete 5 distinct AI speaking conversations.",
     target: 5,
-    metricKey: "speakingSessions",
+    metricKey: "distinctScenarios",
     xpReward: 120,
   },
   {
@@ -211,9 +211,9 @@ const MASTER_ACHIEVEMENTS = [
     tier: 2,
     tierName: "Silver",
     title: "Level 5 Achiever",
-    description: "Earn 500 XP and reach Level 5 Learner status.",
-    target: 500,
-    metricKey: "xp",
+    description: "Reach Level 5 Learner status by accumulating 2,000 XP.",
+    target: 5,
+    metricKey: "level",
     xpReward: 200,
   },
   {
@@ -283,7 +283,8 @@ export function Achievements() {
       const backendItem = backendAchievements.find(
         (b) => b.title && b.title.trim().toLowerCase() === ach.title.trim().toLowerCase()
       );
-      const unlocked = backendItem ? Boolean(backendItem.unlocked) : currentVal >= ach.target;
+      const meetsTarget = currentVal >= ach.target;
+      const unlocked = backendItem ? (Boolean(backendItem.unlocked) && meetsTarget) : meetsTarget;
       const progressPercent = Math.min(100, Math.max(0, (currentVal / ach.target) * 100));
 
       return {

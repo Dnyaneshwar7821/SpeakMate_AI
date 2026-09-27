@@ -68,6 +68,8 @@ export const getLiveProgressStats = (userContext = null) => {
     stored = {
       speakingMins: 0,
       speakingSessions: 0,
+      distinctScenarios: 0,
+      level: 1,
       wordsLearned: 0,
       grammarChecks: 0,
       lessonsCompleted: 0,
@@ -252,6 +254,7 @@ export const syncBackendProgress = (backendData, userContext = null) => {
   const rawBackendAvgScore = backendStats.averageScore ?? backendData.averageScore;
   const rawBackendVocab = backendStats.vocabularyLearned ?? backendData.progress?.totalVocabularyWords ?? backendData.profile?.totalVocabularyWords;
   const rawBackendSessions = backendStats.speakingSessions ?? backendData.progress?.totalSpeakingSessions ?? backendData.profile?.totalSpeakingSessions;
+  const rawBackendDistinctScenarios = backendStats.distinctScenarios ?? backendData.progress?.distinctSpeakingScenarios ?? backendData.distinctScenarios;
   const rawBackendGrammar = backendStats.grammarExercises ?? backendData.progress?.totalGrammarChecks ?? backendData.profile?.totalGrammarChecks;
   const rawBackendLessons = backendStats.completedLessons ?? backendData.completedLessons;
 
@@ -267,6 +270,10 @@ export const syncBackendProgress = (backendData, userContext = null) => {
     ? Number(rawBackendSessions)
     : Number(current.speakingSessions || 0);
 
+  const finalDistinctScenarios = rawBackendDistinctScenarios !== undefined && rawBackendDistinctScenarios !== null
+    ? Number(rawBackendDistinctScenarios)
+    : Number(current.distinctScenarios || 0);
+
   const finalGrammar = rawBackendGrammar !== undefined && rawBackendGrammar !== null
     ? Math.max(Number(current.grammarChecks || 0), Number(rawBackendGrammar))
     : Number(current.grammarChecks || 0);
@@ -278,11 +285,13 @@ export const syncBackendProgress = (backendData, userContext = null) => {
   const synced = {
     ...current,
     xp: finalXp,
+    level: Math.max(1, Math.floor((finalXp || 0) / 500) + 1),
     streak: finalStreak,
     speakingMins: finalMins,
     longestStreak: Math.max(current.longestStreak || 0, finalStreak),
     wordsLearned: finalWords,
     speakingSessions: finalSessions,
+    distinctScenarios: finalDistinctScenarios,
     grammarChecks: finalGrammar,
     lessonsCompleted: finalLessons,
     backendAccuracy,

@@ -122,7 +122,17 @@ async function runRecalculation() {
         grammarCount = gRes.rows[0].count;
       } catch (err) {}
 
-      // Re-evaluate speaking achievements
+      // Distinct scenarios completed
+      let distinctScenarios = 0;
+      try {
+        const distRes = await client.query(
+          "SELECT count(DISTINCT LOWER(TRIM(COALESCE(NULLIF(scenario, ''), topic))))::int as count FROM speaking_session WHERE user_id = $1 AND completed = true",
+          [u.id]
+        );
+        distinctScenarios = distRes.rows[0].count;
+      } catch (err) {}
+
+      // Re-evaluate achievements
       let achievementXp = 0;
       try {
         const achRes = await client.query("SELECT id, title, unlocked, xp_reward FROM achievement WHERE user_id = $1", [u.id]);
@@ -130,12 +140,16 @@ async function runRecalculation() {
           if (a.unlocked) {
             let relock = false;
             if (a.title === 'First Voice Conversation' && completedSpeakingCount < 1) relock = true;
-            if (a.title === 'Confident Conversationalist' && completedSpeakingCount < 5) relock = true;
+            if (a.title === 'Confident Conversationalist' && distinctScenarios < 5) relock = true;
             if (a.title === 'Fluency Champion' && completedSpeakingCount < 15) relock = true;
             if (a.title === 'Orator Supreme' && completedSpeakingCount < 30) relock = true;
+            if (a.title === 'Level 5 Achiever') {
+              const potentialXp = speakingXp + lessonXp + (vocabCount * 5) + (grammarCount * 5) + achievementXp + (a.xp_reward || 200);
+              if (Math.max(1, Math.floor(potentialXp / 500) + 1) < 5) relock = true;
+            }
 
             if (relock) {
-              console.log(`  [Relocking] Achievement "${a.title}" for ${fullName} (requires more than ${completedSpeakingCount} completed sessions)`);
+              console.log(`  [Relocking] Achievement "${a.title}" for ${fullName} (conditions not met)`);
               if (!isDryRun) {
                 await client.query("UPDATE achievement SET unlocked = false, unlocked_at = NULL WHERE id = $1", [a.id]);
               }

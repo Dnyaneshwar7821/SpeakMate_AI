@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.rslsolution.speakmateai.dto.request.AchievementRequest;
 import com.rslsolution.speakmateai.dto.response.AchievementResponse;
 import com.rslsolution.speakmateai.entity.Achievement;
+import com.rslsolution.speakmateai.entity.SpeakingSession;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.exception.AchievementNotFoundException;
 import com.rslsolution.speakmateai.exception.UserNotFoundException;
@@ -88,8 +89,21 @@ public class AchievementServiceImpl implements AchievementService {
 				.orElseGet(() -> com.rslsolution.speakmateai.entity.Progress.builder().user(user).xp(0).level(1).currentStreak(0).longestStreak(0).totalPracticeMinutes(0).totalSpeakingSessions(0).totalGrammarChecks(0).totalVocabularyWords(0).build());
 
 		// Synchronize speaking sessions with verified completed sessions count
+		int liveSpeakingSessions = 0;
+		int distinctScenarios = 0;
 		if (speakingSessionRepository != null) {
-			int liveSpeakingSessions = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+			List<SpeakingSession> completed = speakingSessionRepository.findByUserAndCompletedTrue(user);
+			liveSpeakingSessions = completed != null ? completed.size() : 0;
+			if (completed != null) {
+				distinctScenarios = (int) completed.stream()
+						.map(s -> {
+							String sc = s.getScenario() != null && !s.getScenario().trim().isEmpty() ? s.getScenario() : s.getTopic();
+							return sc != null ? sc.trim().toLowerCase() : "";
+						})
+						.filter(sc -> !sc.isEmpty())
+						.distinct()
+						.count();
+			}
 			if (progress.getTotalSpeakingSessions() == null || !progress.getTotalSpeakingSessions().equals(liveSpeakingSessions)) {
 				progress.setTotalSpeakingSessions(liveSpeakingSessions);
 				progressRepository.save(progress);
@@ -99,14 +113,18 @@ public class AchievementServiceImpl implements AchievementService {
 		boolean progressUpdated = false;
 
 		for (Achievement achievement : userAchievements) {
-			boolean conditionMet = checkUnlockCondition(achievement, progress);
+			boolean conditionMet = checkUnlockCondition(achievement, progress, distinctScenarios);
 
 			if (Boolean.TRUE.equals(achievement.getUnlocked())) {
-				// Re-validate in case speaking achievement was falsely unlocked with 0 or insufficient valid sessions
-				if (!conditionMet && isProgressDependent(achievement, progress)) {
+				// Re-validate in case achievement was falsely unlocked without satisfying targets
+				if (!conditionMet && isProgressDependent(achievement, progress, distinctScenarios)) {
 					achievement.setUnlocked(false);
 					achievement.setUnlockedAt(null);
 					achievementRepository.save(achievement);
+					int reward = achievement.getXpReward() == null ? 50 : achievement.getXpReward();
+					int currentXp = progress.getXp() == null ? 0 : progress.getXp();
+					progress.setXp(Math.max(0, currentXp - reward));
+					progressUpdated = true;
 				}
 			} else {
 				if (conditionMet) {
@@ -176,12 +194,12 @@ public class AchievementServiceImpl implements AchievementService {
 
 			// Mastery & Experience
 			Achievement.builder().user(user).tier(1).title("XP Explorer").description("Earn a total of 250 XP across all learning activities.").xpReward(75).unlocked(false).build(),
-			Achievement.builder().user(user).tier(2).title("Level 5 Achiever").description("Earn 500 XP and reach Level 5 Learner status.").xpReward(200).unlocked(false).build(),
+			Achievement.builder().user(user).tier(2).title("Level 5 Achiever").description("Reach Level 5 Learner status by accumulating 2,000 XP.").xpReward(200).unlocked(false).build(),
 			Achievement.builder().user(user).tier(4).title("Mastery Grandmaster").description("Accumulate 2,000 XP to establish true English mastery.").xpReward(1000).unlocked(false).build()
 		);
 	}
 
-	private boolean checkUnlockCondition(Achievement achievement, com.rslsolution.speakmateai.entity.Progress progress) {
+	private boolean checkUnlockCondition(Achievement achievement, com.rslsolution.speakmateai.entity.Progress progress, int distinctScenarios) {
 		String title = achievement.getTitle();
 		if (title == null || progress == null) return false;
 
@@ -190,10 +208,11 @@ public class AchievementServiceImpl implements AchievementService {
 		int vocab = progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : 0;
 		int streak = progress.getCurrentStreak() != null ? progress.getCurrentStreak() : (progress.getLongestStreak() != null ? progress.getLongestStreak() : 0);
 		int xp = progress.getXp() != null ? progress.getXp() : 0;
+		int userLevel = progress.getLevel() != null ? progress.getLevel() : Math.max(1, (xp / 500) + 1);
 
 		// Speaking
 		if ("First Voice Conversation".equalsIgnoreCase(title)) return speaking >= 1;
-		if ("Confident Conversationalist".equalsIgnoreCase(title)) return speaking >= 5;
+		if ("Confident Conversationalist".equalsIgnoreCase(title)) return distinctScenarios >= 5;
 		if ("Fluency Champion".equalsIgnoreCase(title)) return speaking >= 15;
 		if ("Orator Supreme".equalsIgnoreCase(title)) return speaking >= 30;
 
@@ -216,20 +235,24 @@ public class AchievementServiceImpl implements AchievementService {
 
 		// Mastery
 		if ("XP Explorer".equalsIgnoreCase(title)) return xp >= 250;
-		if ("Level 5 Achiever".equalsIgnoreCase(title)) return xp >= 500;
+		if ("Level 5 Achiever".equalsIgnoreCase(title)) return userLevel >= 5;
 		if ("Mastery Grandmaster".equalsIgnoreCase(title)) return xp >= 2000;
 
 		return false;
 	}
 
-	private boolean isProgressDependent(Achievement achievement, com.rslsolution.speakmateai.entity.Progress progress) {
+	private boolean isProgressDependent(Achievement achievement, com.rslsolution.speakmateai.entity.Progress progress, int distinctScenarios) {
 		String title = achievement.getTitle();
 		if (title == null || progress == null) return false;
 		int speaking = progress.getTotalSpeakingSessions() != null ? progress.getTotalSpeakingSessions() : 0;
+		int xp = progress.getXp() != null ? progress.getXp() : 0;
+		int userLevel = progress.getLevel() != null ? progress.getLevel() : Math.max(1, (xp / 500) + 1);
+
 		if ("First Voice Conversation".equalsIgnoreCase(title) && speaking == 0) return true;
-		if ("Confident Conversationalist".equalsIgnoreCase(title) && speaking < 5) return true;
+		if ("Confident Conversationalist".equalsIgnoreCase(title) && distinctScenarios < 5) return true;
 		if ("Fluency Champion".equalsIgnoreCase(title) && speaking < 15) return true;
 		if ("Orator Supreme".equalsIgnoreCase(title) && speaking < 30) return true;
+		if ("Level 5 Achiever".equalsIgnoreCase(title) && userLevel < 5) return true;
 		return false;
 	}
 

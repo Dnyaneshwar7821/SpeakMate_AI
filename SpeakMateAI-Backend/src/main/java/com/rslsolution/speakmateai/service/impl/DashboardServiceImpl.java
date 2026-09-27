@@ -177,6 +177,19 @@ public class DashboardServiceImpl implements DashboardService {
 				.build();
 
 		// 2. ProgressResponse
+		int distinctScenarios = 0;
+		if (speakingSessionRepository != null && user != null) {
+			List<SpeakingSession> completed = speakingSessionRepository.findByUserAndCompletedTrue(user);
+			distinctScenarios = (int) completed.stream()
+					.map(s -> {
+						String sc = s.getScenario() != null && !s.getScenario().trim().isEmpty() ? s.getScenario() : s.getTopic();
+						return sc != null ? sc.trim().toLowerCase() : "";
+					})
+					.filter(sc -> !sc.isEmpty())
+					.distinct()
+					.count();
+		}
+
 		ProgressResponse progressRes = null;
 		if (progress != null) {
 			if (progress.getLevel() == null || progress.getLevel() != calculatedLevel) {
@@ -192,6 +205,7 @@ public class DashboardServiceImpl implements DashboardService {
 					.longestStreak(progress.getLongestStreak())
 					.totalPracticeMinutes(progress.getTotalPracticeMinutes())
 					.totalSpeakingSessions(progress.getTotalSpeakingSessions())
+					.distinctSpeakingScenarios(distinctScenarios)
 					.totalGrammarChecks(progress.getTotalGrammarChecks())
 					.totalVocabularyWords(progress.getTotalVocabularyWords())
 					.createdAt(progress.getCreatedAt())
@@ -205,6 +219,7 @@ public class DashboardServiceImpl implements DashboardService {
 					.longestStreak(0)
 					.totalPracticeMinutes(0)
 					.totalSpeakingSessions(0)
+					.distinctSpeakingScenarios(0)
 					.totalGrammarChecks(0)
 					.totalVocabularyWords(0)
 					.build();
@@ -585,6 +600,14 @@ public class DashboardServiceImpl implements DashboardService {
 		int totalLessons = lessons.size();
 		int completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true).size();
 		int speakingSessions = completedSessions.size();
+		int distinctScenarios = (int) completedSessions.stream()
+				.map(s -> {
+					String sc = s.getScenario() != null && !s.getScenario().trim().isEmpty() ? s.getScenario() : s.getTopic();
+					return sc != null ? sc.trim().toLowerCase() : "";
+				})
+				.filter(sc -> !sc.isEmpty())
+				.distinct()
+				.count();
 		int vocabularyLearned = progress != null && progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : vocabs.size();
 		int grammarExercises = progress != null && progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : grammars.size();
 
@@ -605,6 +628,7 @@ public class DashboardServiceImpl implements DashboardService {
 				.totalLessons(totalLessons)
 				.completedLessons(completedLessons)
 				.speakingSessions(speakingSessions)
+				.distinctScenarios(distinctScenarios)
 				.vocabularyLearned(vocabularyLearned)
 				.grammarExercises(grammarExercises)
 				.totalStudyHours(totalStudyHours)

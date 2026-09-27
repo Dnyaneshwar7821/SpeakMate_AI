@@ -291,10 +291,11 @@ public class ProgressServiceImpl implements ProgressService {
 							.build());
 		}
 
-		// 1. Authoritative completed speaking sessions & minutes & XP
+		// 1. Authoritative completed speaking sessions & minutes & XP & distinct scenarios
 		int liveSpeakingSessions = 0;
 		int speakingMinutes = 0;
 		int speakingXp = 0;
+		int distinctScenarios = 0;
 
 		if (speakingSessionRepository != null) {
 			liveSpeakingSessions = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
@@ -309,6 +310,14 @@ public class ProgressServiceImpl implements ProgressService {
 					}
 					speakingXp += sxp;
 				}
+				distinctScenarios = (int) completedSessions.stream()
+						.map(s -> {
+							String sc = s.getScenario() != null && !s.getScenario().trim().isEmpty() ? s.getScenario() : s.getTopic();
+							return sc != null ? sc.trim().toLowerCase() : "";
+						})
+						.filter(sc -> !sc.isEmpty())
+						.distinct()
+						.count();
 			}
 		}
 
@@ -333,7 +342,13 @@ public class ProgressServiceImpl implements ProgressService {
 			}
 		}
 
-		// 3. Re-evaluate and re-lock speaking achievements if sessions < target
+		// 3. Vocabulary & Grammar counts & XP
+		int liveVocabWords = vocabularyRepository != null ? (int) vocabularyRepository.countByUser(user) : 0;
+		int liveGrammarChecks = grammarHistoryRepository != null ? (int) grammarHistoryRepository.countByUserId(user.getId()) : 0;
+		int vocabXp = liveVocabWords * 5;
+		int grammarXp = liveGrammarChecks * 5;
+
+		// 4. Re-evaluate and re-lock achievements if conditions are not legitimately met
 		int achievementXp = 0;
 		if (achievementRepository != null) {
 			List<Achievement> achievements = achievementRepository.findByUser(user);
@@ -343,9 +358,17 @@ public class ProgressServiceImpl implements ProgressService {
 						boolean relock = false;
 						String title = a.getTitle();
 						if ("First Voice Conversation".equalsIgnoreCase(title) && liveSpeakingSessions < 1) relock = true;
-						if ("Confident Conversationalist".equalsIgnoreCase(title) && liveSpeakingSessions < 5) relock = true;
+						if ("Confident Conversationalist".equalsIgnoreCase(title) && distinctScenarios < 5) relock = true;
 						if ("Fluency Champion".equalsIgnoreCase(title) && liveSpeakingSessions < 15) relock = true;
 						if ("Orator Supreme".equalsIgnoreCase(title) && liveSpeakingSessions < 30) relock = true;
+						if ("Level 5 Achiever".equalsIgnoreCase(title)) {
+							int reward = a.getXpReward() != null ? a.getXpReward() : 200;
+							int otherXp = speakingXp + lessonXp + vocabXp + grammarXp + achievementXp;
+							int potentialLevel = Math.max(1, ((otherXp + reward) / 500) + 1);
+							if (potentialLevel < 5) {
+								relock = true;
+							}
+						}
 
 						if (relock) {
 							a.setUnlocked(false);
@@ -358,12 +381,6 @@ public class ProgressServiceImpl implements ProgressService {
 				}
 			}
 		}
-
-		// 4. Vocabulary & Grammar counts & XP
-		int liveVocabWords = vocabularyRepository != null ? (int) vocabularyRepository.countByUser(user) : 0;
-		int liveGrammarChecks = grammarHistoryRepository != null ? (int) grammarHistoryRepository.countByUserId(user.getId()) : 0;
-		int vocabXp = liveVocabWords * 5;
-		int grammarXp = liveGrammarChecks * 5;
 
 		// 5. Total accurate XP & minutes calculation
 		int calculatedXp = speakingXp + lessonXp + achievementXp + vocabXp + grammarXp;
@@ -390,10 +407,25 @@ public class ProgressServiceImpl implements ProgressService {
 	private ProgressResponse mapToResponse(Progress progress) {
 		int totalXp = progress.getXp() != null ? progress.getXp() : 0;
 		int level = progress.getLevel() != null ? progress.getLevel() : Math.max(1, (totalXp / 500) + 1);
+		int distinctScenarios = 0;
+		if (progress.getUser() != null && speakingSessionRepository != null) {
+			List<SpeakingSession> completed = speakingSessionRepository.findByUserAndCompletedTrue(progress.getUser());
+			if (completed != null) {
+				distinctScenarios = (int) completed.stream()
+						.map(s -> {
+							String sc = s.getScenario() != null && !s.getScenario().trim().isEmpty() ? s.getScenario() : s.getTopic();
+							return sc != null ? sc.trim().toLowerCase() : "";
+						})
+						.filter(sc -> !sc.isEmpty())
+						.distinct()
+						.count();
+			}
+		}
 		return ProgressResponse.builder().id(progress.getId()).xp(totalXp).level(level)
 				.currentStreak(progress.getCurrentStreak()).longestStreak(progress.getLongestStreak())
 				.totalPracticeMinutes(progress.getTotalPracticeMinutes())
 				.totalSpeakingSessions(progress.getTotalSpeakingSessions())
+				.distinctSpeakingScenarios(distinctScenarios)
 				.totalGrammarChecks(progress.getTotalGrammarChecks())
 				.totalVocabularyWords(progress.getTotalVocabularyWords()).createdAt(progress.getCreatedAt())
 				.updatedAt(progress.getUpdatedAt()).build();

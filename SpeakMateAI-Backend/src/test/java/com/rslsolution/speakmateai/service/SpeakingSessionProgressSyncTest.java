@@ -107,7 +107,7 @@ public class SpeakingSessionProgressSyncTest {
     }
 
     @Test
-    @DisplayName("AchievementService re-locks higher speaking achievements when count is 6")
+    @DisplayName("AchievementService re-locks Confident Conversationalist (needs 5 distinct scenarios) and Level 5 Achiever")
     void testAchievementService_RelocksPrematureAchievements() {
         AchievementServiceImpl achievementService = new AchievementServiceImpl(
                 achievementRepository, userRepository, progressRepository,
@@ -117,19 +117,31 @@ public class SpeakingSessionProgressSyncTest {
                 .id(1L)
                 .user(sampleUser)
                 .xp(1000)
-                .totalSpeakingSessions(81) // previously inflated
+                .totalSpeakingSessions(6)
+                .level(3)
                 .build();
 
         when(progressRepository.findByUser(sampleUser)).thenReturn(Optional.of(progress));
         when(progressRepository.save(any(Progress.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(speakingSessionRepository.countByUserAndCompletedTrue(sampleUser)).thenReturn(6L);
+        lenient().when(speakingSessionRepository.countByUserAndCompletedTrue(sampleUser)).thenReturn(6L);
 
-        // All 4 achievements were previously unlocked due to 81
+        // 6 sessions across only 2 distinct scenarios: 4x "Daily Conversation", 2x "Show & Tell"
+        List<SpeakingSession> completedSessions = List.of(
+                SpeakingSession.builder().id(1L).scenario("Daily Conversation").completed(true).build(),
+                SpeakingSession.builder().id(2L).scenario("Daily Conversation").completed(true).build(),
+                SpeakingSession.builder().id(3L).scenario("Daily Conversation").completed(true).build(),
+                SpeakingSession.builder().id(4L).scenario("Daily Conversation").completed(true).build(),
+                SpeakingSession.builder().id(5L).scenario("Show & Tell").completed(true).build(),
+                SpeakingSession.builder().id(6L).scenario("Show & Tell").completed(true).build()
+        );
+        when(speakingSessionRepository.findByUserAndCompletedTrue(sampleUser)).thenReturn(completedSessions);
+
         List<Achievement> existingAchievements = List.of(
                 Achievement.builder().id(1L).user(sampleUser).tier(1).title("First Voice Conversation").xpReward(50).unlocked(true).build(),
                 Achievement.builder().id(2L).user(sampleUser).tier(2).title("Confident Conversationalist").xpReward(120).unlocked(true).build(),
                 Achievement.builder().id(3L).user(sampleUser).tier(3).title("Fluency Champion").xpReward(250).unlocked(true).build(),
-                Achievement.builder().id(4L).user(sampleUser).tier(4).title("Orator Supreme").xpReward(500).unlocked(true).build()
+                Achievement.builder().id(4L).user(sampleUser).tier(4).title("Orator Supreme").xpReward(500).unlocked(true).build(),
+                Achievement.builder().id(5L).user(sampleUser).tier(2).title("Level 5 Achiever").xpReward(200).unlocked(true).build()
         );
         when(achievementRepository.findByUser(sampleUser)).thenReturn(existingAchievements);
         when(achievementRepository.save(any(Achievement.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -140,21 +152,25 @@ public class SpeakingSessionProgressSyncTest {
         AchievementResponse first = results.stream().filter(a -> a.getTitle().equals("First Voice Conversation")).findFirst().orElseThrow();
         assertTrue(first.getUnlocked(), "1 session target should remain unlocked for 6 completed sessions.");
 
-        // 5 sessions -> Unlocked
+        // Confident Conversationalist -> Must be re-locked because 2 distinct scenarios < 5!
         AchievementResponse conf = results.stream().filter(a -> a.getTitle().equals("Confident Conversationalist")).findFirst().orElseThrow();
-        assertTrue(conf.getUnlocked(), "5 sessions target should remain unlocked for 6 completed sessions.");
+        assertFalse(conf.getUnlocked(), "Confident Conversationalist must be re-locked because user completed only 2 distinct scenarios (target: 5).");
 
-        // 15 sessions -> Re-locked!
+        // Fluency Champion -> Re-locked (6 < 15)
         AchievementResponse fluency = results.stream().filter(a -> a.getTitle().equals("Fluency Champion")).findFirst().orElseThrow();
         assertFalse(fluency.getUnlocked(), "15 sessions target should be re-locked since user has 6 completed sessions.");
 
-        // 30 sessions -> Re-locked!
+        // Orator Supreme -> Re-locked (6 < 30)
         AchievementResponse orator = results.stream().filter(a -> a.getTitle().equals("Orator Supreme")).findFirst().orElseThrow();
         assertFalse(orator.getUnlocked(), "30 sessions target should be re-locked since user has 6 completed sessions.");
+
+        // Level 5 Achiever -> Must be re-locked because user is only level 3 (< 5)!
+        AchievementResponse lvl5 = results.stream().filter(a -> a.getTitle().equals("Level 5 Achiever")).findFirst().orElseThrow();
+        assertFalse(lvl5.getUnlocked(), "Level 5 Achiever must be re-locked because user level is not 5.");
     }
 
     @Test
-    @DisplayName("DashboardService getStatistics reports only completed speaking sessions")
+    @DisplayName("DashboardService getStatistics reports completed speaking sessions and distinct scenarios")
     void testDashboardService_StatisticsOnlyCompleted() {
         DashboardServiceImpl dashboardService = new DashboardServiceImpl(
                 userRepository, progressRepository, onboardingRepository,
@@ -171,12 +187,12 @@ public class SpeakingSessionProgressSyncTest {
         when(progressRepository.findByUser(sampleUser)).thenReturn(Optional.of(progress));
 
         List<SpeakingSession> completedSessions = List.of(
-                SpeakingSession.builder().id(1L).overallScore(80.0).duration(120).completed(true).build(),
-                SpeakingSession.builder().id(2L).overallScore(85.0).duration(150).completed(true).build(),
-                SpeakingSession.builder().id(3L).overallScore(90.0).duration(180).completed(true).build(),
-                SpeakingSession.builder().id(4L).overallScore(75.0).duration(200).completed(true).build(),
-                SpeakingSession.builder().id(5L).overallScore(82.0).duration(160).completed(true).build(),
-                SpeakingSession.builder().id(6L).overallScore(88.0).duration(140).completed(true).build()
+                SpeakingSession.builder().id(1L).scenario("Daily Conversation").overallScore(80.0).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(2L).scenario("Daily Conversation").overallScore(85.0).duration(150).completed(true).build(),
+                SpeakingSession.builder().id(3L).scenario("Daily Conversation").overallScore(90.0).duration(180).completed(true).build(),
+                SpeakingSession.builder().id(4L).scenario("Daily Conversation").overallScore(75.0).duration(200).completed(true).build(),
+                SpeakingSession.builder().id(5L).scenario("Show & Tell").overallScore(82.0).duration(160).completed(true).build(),
+                SpeakingSession.builder().id(6L).scenario("Show & Tell").overallScore(88.0).duration(140).completed(true).build()
         );
         when(speakingSessionRepository.findByUserAndCompletedTrue(sampleUser)).thenReturn(completedSessions);
         when(vocabularyRepository.findByUser(sampleUser)).thenReturn(List.of());
@@ -187,10 +203,11 @@ public class SpeakingSessionProgressSyncTest {
         StatisticsResponse stats = dashboardService.getStatistics();
 
         assertEquals(6, stats.getSpeakingSessions(), "Dashboard statistics must report 6 completed sessions, not 81 attempted.");
+        assertEquals(2, stats.getDistinctScenarios(), "Dashboard statistics must report 2 distinct scenarios.");
     }
 
     @Test
-    @DisplayName("ProgressService recalculateAllUsers heals inflated XP, level, and speaking sessions")
+    @DisplayName("ProgressService recalculateAllUsers heals inflated XP, level, and re-locks unearned badges")
     void testProgressService_RecalculateAllUsers() {
         ProgressServiceImpl progressService = new ProgressServiceImpl(
                 progressRepository, userRepository,
@@ -210,13 +227,14 @@ public class SpeakingSessionProgressSyncTest {
         when(progressRepository.findByUser(sampleUser)).thenReturn(Optional.of(inflatedProgress));
         when(progressRepository.save(any(Progress.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
+        // 6 sessions across 2 scenarios
         List<SpeakingSession> completedSessions = List.of(
-                SpeakingSession.builder().id(1L).xpEarned(20).duration(120).completed(true).build(),
-                SpeakingSession.builder().id(2L).xpEarned(20).duration(120).completed(true).build(),
-                SpeakingSession.builder().id(3L).xpEarned(20).duration(120).completed(true).build(),
-                SpeakingSession.builder().id(4L).xpEarned(20).duration(120).completed(true).build(),
-                SpeakingSession.builder().id(5L).xpEarned(20).duration(120).completed(true).build(),
-                SpeakingSession.builder().id(6L).xpEarned(20).duration(120).completed(true).build()
+                SpeakingSession.builder().id(1L).scenario("Daily Conversation").xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(2L).scenario("Daily Conversation").xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(3L).scenario("Daily Conversation").xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(4L).scenario("Daily Conversation").xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(5L).scenario("Show & Tell").xpEarned(20).duration(120).completed(true).build(),
+                SpeakingSession.builder().id(6L).scenario("Show & Tell").xpEarned(20).duration(120).completed(true).build()
         );
         when(speakingSessionRepository.countByUserAndCompletedTrue(sampleUser)).thenReturn(6L);
         when(speakingSessionRepository.findByUserAndCompletedTrue(sampleUser)).thenReturn(completedSessions);
@@ -225,7 +243,8 @@ public class SpeakingSessionProgressSyncTest {
         Achievement firstVoice = Achievement.builder().id(1L).user(sampleUser).title("First Voice Conversation").xpReward(50).unlocked(true).build();
         Achievement confident = Achievement.builder().id(2L).user(sampleUser).title("Confident Conversationalist").xpReward(120).unlocked(true).build();
         Achievement fluency = Achievement.builder().id(3L).user(sampleUser).title("Fluency Champion").xpReward(250).unlocked(true).build();
-        when(achievementRepository.findByUser(sampleUser)).thenReturn(List.of(firstVoice, confident, fluency));
+        Achievement level5 = Achievement.builder().id(4L).user(sampleUser).title("Level 5 Achiever").xpReward(200).unlocked(true).build();
+        when(achievementRepository.findByUser(sampleUser)).thenReturn(List.of(firstVoice, confident, fluency, level5));
 
         when(vocabularyRepository.countByUser(sampleUser)).thenReturn(2L);
         when(grammarHistoryRepository.countByUserId(152L)).thenReturn(1L);
@@ -236,9 +255,20 @@ public class SpeakingSessionProgressSyncTest {
         assertEquals(true, result.get("success"));
         assertEquals(1, result.get("usersUpdated"));
 
-        assertFalse(fluency.getUnlocked(), "Fluency Champion (15 target) must be relocked for 6 sessions.");
-        assertEquals(305, inflatedProgress.getXp(), "XP should be exact sum: 120 speaking + 170 achievements + 10 vocab + 5 grammar = 305.");
-        assertEquals(1, inflatedProgress.getLevel());
+        // Only firstVoice (1 session) is legitimately earned
+        assertTrue(firstVoice.getUnlocked(), "First Voice Conversation remains unlocked.");
+        assertFalse(confident.getUnlocked(), "Confident Conversationalist (requires 5 distinct scenarios) must be re-locked (user has 2).");
+        assertFalse(fluency.getUnlocked(), "Fluency Champion (15 target) must be re-locked for 6 sessions.");
+        assertFalse(level5.getUnlocked(), "Level 5 Achiever must be re-locked because user does not reach 2000 XP / Level 5.");
+
+        // XP breakdown:
+        // Speaking: 6 * 20 = 120
+        // Achievements: 50 (only First Voice Conversation)
+        // Vocab: 2 * 5 = 10
+        // Grammar: 1 * 5 = 5
+        // Total = 185 XP -> Level 1
+        assertEquals(185, inflatedProgress.getXp(), "XP should strictly include legitimate sources: 120 speaking + 50 achievement + 10 vocab + 5 grammar = 185.");
+        assertEquals(1, inflatedProgress.getLevel(), "185 XP should correspond to Level 1.");
         assertEquals(6, inflatedProgress.getTotalSpeakingSessions());
     }
 }

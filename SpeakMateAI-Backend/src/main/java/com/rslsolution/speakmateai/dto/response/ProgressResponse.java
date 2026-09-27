@@ -31,6 +31,8 @@ public class ProgressResponse {
 
 	private Integer totalVocabularyWords;
 
+	private Integer distinctSpeakingScenarios;
+
 	private LocalDateTime createdAt;
 
 	private LocalDateTime updatedAt;
@@ -56,6 +58,9 @@ public class ProgressResponse {
 	public Integer getTotalSpeakingSessions() { return totalSpeakingSessions; }
 	public void setTotalSpeakingSessions(Integer totalSpeakingSessions) { this.totalSpeakingSessions = totalSpeakingSessions; }
 
+	public Integer getDistinctSpeakingScenarios() { return distinctSpeakingScenarios; }
+	public void setDistinctSpeakingScenarios(Integer distinctSpeakingScenarios) { this.distinctSpeakingScenarios = distinctSpeakingScenarios; }
+
 	public Integer getTotalGrammarChecks() { return totalGrammarChecks; }
 	public void setTotalGrammarChecks(Integer totalGrammarChecks) { this.totalGrammarChecks = totalGrammarChecks; }
 
@@ -80,6 +85,7 @@ public class ProgressResponse {
 		private Integer longestStreak;
 		private Integer totalPracticeMinutes;
 		private Integer totalSpeakingSessions;
+		private Integer distinctSpeakingScenarios;
 		private Integer totalGrammarChecks;
 		private Integer totalVocabularyWords;
 		private LocalDateTime createdAt;
@@ -92,6 +98,7 @@ public class ProgressResponse {
 		public ProgressResponseBuilder longestStreak(Integer longestStreak) { this.longestStreak = longestStreak; return this; }
 		public ProgressResponseBuilder totalPracticeMinutes(Integer totalPracticeMinutes) { this.totalPracticeMinutes = totalPracticeMinutes; return this; }
 		public ProgressResponseBuilder totalSpeakingSessions(Integer totalSpeakingSessions) { this.totalSpeakingSessions = totalSpeakingSessions; return this; }
+		public ProgressResponseBuilder distinctSpeakingScenarios(Integer distinctSpeakingScenarios) { this.distinctSpeakingScenarios = distinctSpeakingScenarios; return this; }
 		public ProgressResponseBuilder totalGrammarChecks(Integer totalGrammarChecks) { this.totalGrammarChecks = totalGrammarChecks; return this; }
 		public ProgressResponseBuilder totalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; return this; }
 		public ProgressResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
@@ -106,6 +113,7 @@ public class ProgressResponse {
             obj.setLongestStreak(longestStreak);
             obj.setTotalPracticeMinutes(totalPracticeMinutes);
             obj.setTotalSpeakingSessions(totalSpeakingSessions);
+            obj.setDistinctSpeakingScenarios(distinctSpeakingScenarios);
             obj.setTotalGrammarChecks(totalGrammarChecks);
             obj.setTotalVocabularyWords(totalVocabularyWords);
             obj.setCreatedAt(createdAt);

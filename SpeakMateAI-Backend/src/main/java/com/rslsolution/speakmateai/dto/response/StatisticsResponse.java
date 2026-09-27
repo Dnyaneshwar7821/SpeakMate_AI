@@ -29,6 +29,8 @@ public class StatisticsResponse {
 
 	private Integer averageScore;
 
+	private Integer distinctScenarios;
+
 	public Integer getTotalLessons() { return totalLessons; }
 	public void setTotalLessons(Integer totalLessons) { this.totalLessons = totalLessons; }
 
@@ -37,6 +39,9 @@ public class StatisticsResponse {
 
 	public Integer getSpeakingSessions() { return speakingSessions; }
 	public void setSpeakingSessions(Integer speakingSessions) { this.speakingSessions = speakingSessions; }
+
+	public Integer getDistinctScenarios() { return distinctScenarios; }
+	public void setDistinctScenarios(Integer distinctScenarios) { this.distinctScenarios = distinctScenarios; }
 
 	public Integer getVocabularyLearned() { return vocabularyLearned; }
 	public void setVocabularyLearned(Integer vocabularyLearned) { this.vocabularyLearned = vocabularyLearned; }
@@ -64,6 +69,7 @@ public class StatisticsResponse {
 		private Integer totalLessons;
 		private Integer completedLessons;
 		private Integer speakingSessions;
+		private Integer distinctScenarios;
 		private Integer vocabularyLearned;
 		private Integer grammarExercises;
 		private Double totalStudyHours;
@@ -74,6 +80,7 @@ public class StatisticsResponse {
 		public StatisticsResponseBuilder totalLessons(Integer totalLessons) { this.totalLessons = totalLessons; return this; }
 		public StatisticsResponseBuilder completedLessons(Integer completedLessons) { this.completedLessons = completedLessons; return this; }
 		public StatisticsResponseBuilder speakingSessions(Integer speakingSessions) { this.speakingSessions = speakingSessions; return this; }
+		public StatisticsResponseBuilder distinctScenarios(Integer distinctScenarios) { this.distinctScenarios = distinctScenarios; return this; }
 		public StatisticsResponseBuilder vocabularyLearned(Integer vocabularyLearned) { this.vocabularyLearned = vocabularyLearned; return this; }
 		public StatisticsResponseBuilder grammarExercises(Integer grammarExercises) { this.grammarExercises = grammarExercises; return this; }
 		public StatisticsResponseBuilder totalStudyHours(Double totalStudyHours) { this.totalStudyHours = totalStudyHours; return this; }
@@ -86,6 +93,7 @@ public class StatisticsResponse {
             obj.setTotalLessons(totalLessons);
             obj.setCompletedLessons(completedLessons);
             obj.setSpeakingSessions(speakingSessions);
+            obj.setDistinctScenarios(distinctScenarios);
             obj.setVocabularyLearned(vocabularyLearned);
             obj.setGrammarExercises(grammarExercises);
             obj.setTotalStudyHours(totalStudyHours);
