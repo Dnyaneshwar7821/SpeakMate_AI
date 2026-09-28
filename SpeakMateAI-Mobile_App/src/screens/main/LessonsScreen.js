@@ -525,67 +525,151 @@ export default function LessonsScreen({ navigation }) {
     }, [loadAll])
   );
 
-  // ── Search with debounce ───────────────────────────────────────────
-  useEffect(() => {
-    if (!searchText.trim()) {
+  // ── Instant Local Search + Debounced Server Sync ────────────────────
+  const executeLocalSearch = useCallback((query, cat, tab) => {
+    const q = (query || '').trim().toLowerCase();
+    if (!q) {
       setSearchResults(null);
       return;
     }
+
+    const profileInfo = getProfileCurriculum(user, userGrade, accountType, userAgeGroup);
+    const primaryLessons = profileInfo.curriculum || [];
+
+    const seenIds = new Set();
+    const candidateList = [];
+
+    // Prioritize user's active curriculum
+    primaryLessons.forEach((l) => {
+      if (l && l.id) {
+        seenIds.add(String(l.id));
+        candidateList.push({ ...l, isPrimary: true });
+      }
+    });
+
+    // Also include master curriculum for platform-wide topic discovery
+    (MASTER_LESSONS || []).forEach((l) => {
+      if (l && l.id && !seenIds.has(String(l.id))) {
+        seenIds.add(String(l.id));
+        candidateList.push({ ...l, isPrimary: false });
+      }
+    });
+
+    const matches = candidateList.filter((l) => {
+      // 1. Safe category filter
+      if (cat && cat !== 'All') {
+        const lessonCat = (l.category || '').toLowerCase();
+        if (lessonCat !== cat.toLowerCase()) return false;
+      }
+
+      // 2. Safe tab/level filter
+      if (tab && tab !== 'All') {
+        const lvl = (l.level || l.difficulty || '').toLowerCase();
+        if (!lvl.includes(tab.toLowerCase())) return false;
+      }
+
+      // 3. Match against title, description, category, cluster, skills, objectives, and practice
+      const title = (l.title || '').toLowerCase();
+      const desc = (l.description || '').toLowerCase();
+      const category = (l.category || '').toLowerCase();
+      const cluster = `${l.clusterTitle || ''} ${l.clusterName || ''} ${l.segment || ''}`.toLowerCase();
+      const skillsMatch = Array.isArray(l.skills) && l.skills.some((s) => String(s).toLowerCase().includes(q));
+      const objectivesMatch = Array.isArray(l.objectives) && l.objectives.some((o) => String(o).toLowerCase().includes(q));
+      const drillMatch = (l.speakingDrill?.sentence || '').toLowerCase().includes(q);
+      const guidedMatch = (l.guidedPractice?.sentence || '').toLowerCase().includes(q);
+
+      return (
+        title.includes(q) ||
+        desc.includes(q) ||
+        category.includes(q) ||
+        cluster.includes(q) ||
+        skillsMatch ||
+        objectivesMatch ||
+        drillMatch ||
+        guidedMatch
+      );
+    });
+
+    // Sort: 1) Title starts with query, 2) Title includes query, 3) Primary curriculum
+    matches.sort((a, b) => {
+      const aTitle = (a.title || '').toLowerCase();
+      const bTitle = (b.title || '').toLowerCase();
+      const aStarts = aTitle.startsWith(q);
+      const bStarts = bTitle.startsWith(q);
+      if (aStarts && !bStarts) return -1;
+      if (!aStarts && bStarts) return 1;
+
+      if (a.isPrimary && !b.isPrimary) return -1;
+      if (!a.isPrimary && b.isPrimary) return 1;
+
+      return 0;
+    });
+
+    setSearchResults(matches);
+  }, [user, userGrade, accountType, userAgeGroup]);
+
+  const handleSearchChange = useCallback((text) => {
+    setSearchText(text);
     clearTimeout(searchTimer.current);
+
+    if (!text.trim()) {
+      setSearchResults(null);
+      setSearching(false);
+      return;
+    }
+
+    // 1. Instant local search on frame 0
+    executeLocalSearch(text, selectedCategory, activeTab);
+
+    // 2. Non-blocking debounced server query
     setSearching(true);
     searchTimer.current = setTimeout(async () => {
       try {
-        const [results, storedCompleted] = await Promise.all([
-          lessonModuleService.search(
-            searchText.trim(),
-            selectedCategory !== 'All' ? selectedCategory : undefined,
-            activeTab !== 'All' ? activeTab : undefined
-          ).catch(() => []),
-          AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null),
-        ]);
-        const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted) : []);
-        const q = searchText.trim().toLowerCase();
-        const profileInfo = getProfileCurriculum(user, userGrade, accountType, userAgeGroup);
-        const allStandard = profileInfo.curriculum || [];
-        const matchedStandard = allStandard
-          .filter(
-            (l) =>
-              ((l.title && l.title.toLowerCase().includes(q)) ||
-                (l.description && l.description.toLowerCase().includes(q)) ||
-                (l.category && l.category.toLowerCase().includes(q))) &&
-              (selectedCategory === 'All' || l.category?.toLowerCase() === selectedCategory.toLowerCase()) &&
-              (activeTab === 'All' || (l.level || '').toLowerCase() === activeTab.toLowerCase())
-          )
-          .map((sl) => ({
-            ...sl,
-            completed: completedSet.has(String(sl.id)),
-            progressPercent: completedSet.has(String(sl.id)) ? 100 : (sl.progressPercent || 0),
-          }));
-        setSearchResults(matchedStandard);
+        const catParam = selectedCategory && selectedCategory !== 'All' ? selectedCategory : undefined;
+        const tabParam = activeTab && activeTab !== 'All' ? activeTab : undefined;
+        const serverResults = await lessonModuleService.search(text.trim(), catParam, tabParam).catch(() => []);
+        if (Array.isArray(serverResults) && serverResults.length > 0) {
+          setSearchResults((prev) => {
+            const current = prev || [];
+            const currentIds = new Set(current.map((l) => String(l.id)));
+            const newLessons = serverResults.filter((l) => l && l.id && !currentIds.has(String(l.id)));
+            return newLessons.length > 0 ? [...current, ...newLessons] : current;
+          });
+        }
       } catch {
-        setSearchResults([]);
+        // Keep instant local search results intact
       } finally {
         setSearching(false);
       }
-    }, 400);
-    return () => clearTimeout(searchTimer.current);
-  }, [searchText, selectedCategory, activeTab]);
+    }, 350);
+  }, [executeLocalSearch, selectedCategory, activeTab]);
+
+  const handleClearSearch = useCallback(() => {
+    clearTimeout(searchTimer.current);
+    setSearchText('');
+    setSearchResults(null);
+    setSearching(false);
+  }, []);
 
   // ── Filter by tab/category ─────────────────────────────────────────
   const handleTabChange = useCallback((tab) => {
     setActiveTab(tab);
-    setSearchResults(null);
-    setSearchText('');
-    applyFilter(selectedCategory, tab);
-  }, [selectedCategory, applyFilter]);
+    if (searchText.trim()) {
+      executeLocalSearch(searchText, selectedCategory, tab);
+    } else {
+      applyFilter(selectedCategory, tab);
+    }
+  }, [selectedCategory, searchText, executeLocalSearch, applyFilter]);
 
   const handleCategoryPress = useCallback((catName) => {
     const next = selectedCategory === catName ? null : catName;
     setSelectedCategory(next);
-    setSearchResults(null);
-    setSearchText('');
-    applyFilter(next, activeTab);
-  }, [selectedCategory, activeTab, applyFilter]);
+    if (searchText.trim()) {
+      executeLocalSearch(searchText, next, activeTab);
+    } else {
+      applyFilter(next, activeTab);
+    }
+  }, [selectedCategory, activeTab, searchText, executeLocalSearch, applyFilter]);
 
   // ── Navigate to detail ─────────────────────────────────────────────
   const openLesson = useCallback((lesson) => {
@@ -628,19 +712,21 @@ export default function LessonsScreen({ navigation }) {
 
             {/* Search bar */}
             <View style={styles.searchBar}>
-              <Ionicons name="search-outline" size={18} color="#94A3B8" style={{ marginRight: 8 }} />
+              <Ionicons name="search-outline" size={18} color="rgba(255,255,255,0.7)" style={{ marginRight: 8 }} />
               <TextInput
                 style={styles.searchInput}
                 placeholder="Search lessons, categories, topics…"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor="rgba(255,255,255,0.6)"
                 value={searchText}
-                onChangeText={setSearchText}
+                onChangeText={handleSearchChange}
                 returnKeyType="search"
+                autoCapitalize="none"
+                autoCorrect={false}
               />
-              {(searching) && <ActivityIndicator size="small" color={COLORS.primary} />}
-              {searchText.length > 0 && !searching && (
-                <TouchableOpacity onPress={() => { setSearchText(''); setSearchResults(null); }}>
-                  <Ionicons name="close-circle" size={18} color="#94A3B8" />
+              {searching && <ActivityIndicator size="small" color="#FFFFFF" style={{ marginRight: 6 }} />}
+              {searchText.length > 0 && (
+                <TouchableOpacity onPress={handleClearSearch} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <Ionicons name="close-circle" size={19} color="rgba(255,255,255,0.85)" />
                 </TouchableOpacity>
               )}
             </View>
@@ -711,15 +797,22 @@ export default function LessonsScreen({ navigation }) {
       {/* ── Search / filter heading ── */}
       {(searchResults !== null || selectedCategory || activeTab !== 'All') && (
         <View style={styles.section}>
-          <SectionHeader
-            title={
-              searchResults !== null
-                ? `Results for "${searchText}" (${displayedLessons.length})`
-                : selectedCategory
-                  ? `${selectedCategory} · ${activeTab}`
-                  : `${activeTab} Lessons`
-            }
-          />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <SectionHeader
+              title={
+                searchResults !== null
+                  ? `Results for "${searchText}" (${displayedLessons.length})`
+                  : selectedCategory
+                    ? `${selectedCategory} · ${activeTab}`
+                    : `${activeTab} Lessons`
+              }
+            />
+            {searchResults !== null && (
+              <TouchableOpacity onPress={handleClearSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Text style={{ color: COLORS.primary, fontWeight: '700', fontSize: 13 }}>Clear</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
       )}
 
@@ -730,7 +823,7 @@ export default function LessonsScreen({ navigation }) {
         </View>
       )}
     </View>
-  ), [categories, continueItems, recommended, searchResults, searchText, selectedCategory, activeTab, searching, headerOpacity, headerTranslate, isDark, theme]);
+  ), [categories, continueItems, recommended, searchResults, searchText, selectedCategory, activeTab, searching, headerOpacity, headerTranslate, isDark, theme, handleSearchChange, handleClearSearch, openLesson, handleCategoryPress, handleTabChange, displayedLessons.length]);
 
   // ── Main render ────────────────────────────────────────────────────
   if (loading && !refreshing) {
@@ -763,12 +856,30 @@ export default function LessonsScreen({ navigation }) {
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
           !loading && (
-            <View style={{ paddingHorizontal: 16 }}>
+            <View style={{ paddingHorizontal: 16, paddingTop: 16 }}>
               <EmptyState
                 icon={searchResults !== null ? 'search-outline' : 'book-outline'}
-                title={error || (searchResults !== null ? 'No lessons found' : 'No lessons yet')}
-                message={error ? 'Pull down to retry' : searchResults !== null ? 'Try different keywords' : undefined}
+                title={error || (searchResults !== null ? `No lessons found for "${searchText}"` : 'No lessons yet')}
+                message={
+                  error
+                    ? 'Pull down to retry'
+                    : searchResults !== null
+                      ? 'Try different keywords like "Grammar", "Speaking", "Vowels", or tap below to reset.'
+                      : undefined
+                }
               />
+              {searchResults !== null && (
+                <TouchableOpacity
+                  style={[styles.clearSearchBtn, { borderColor: COLORS.primary }]}
+                  onPress={handleClearSearch}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="refresh-outline" size={16} color={COLORS.primary} />
+                  <Text style={[styles.clearSearchBtnText, { color: COLORS.primary }]}>
+                    Clear Search & Show All Lessons
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )
         }
@@ -897,4 +1008,20 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: '#94A3B8', marginTop: 14, textAlign: 'center' },
   emptyMsg: { fontSize: 13, color: '#CBD5E1', marginTop: 6, textAlign: 'center' },
+  clearSearchBtn: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: 'rgba(79,70,229,0.06)',
+  },
+  clearSearchBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });
