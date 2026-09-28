@@ -21,7 +21,7 @@ import { settingsService, onboardingService, profileService } from '../../servic
 import { VoiceService, VOICE_PROFILES } from '../../services/VoiceService';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { COLORS } from '../../constants/colors';
-import { DashboardCache } from './DashboardScreen';
+import { DashboardCache } from '../../utils/dashboardCache';
 import { setCachedAvatarModel } from '../../config/AvatarCatalog';
 
 const AGE_OPTIONS = [

@@ -26,7 +26,7 @@ import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
 import { validateName, NAME_VALIDATION_ERROR, normalizeEmail, isValidEmail } from '../../utils/validation';
 import { COLORS } from '../../constants/colors';
-import { DashboardCache } from './DashboardScreen';
+import { DashboardCache } from '../../utils/dashboardCache';
 import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
 import { prepareAvatarAsync, isImageUri, AVATAR_CATEGORIES, PRESET_EMOJI_AVATARS } from '../../utils/imageUtils';
 import { VoiceService } from '../../services/VoiceService';

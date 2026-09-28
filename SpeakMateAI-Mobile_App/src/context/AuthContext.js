@@ -12,7 +12,7 @@ import { AppState } from "react-native";
 import { authService } from "../services/authService";
 import { setLogoutCallback, setAuthToken, clearAuthToken } from "../api/api";
 import { STORAGE_KEYS } from "../utils/storageKeys";
-import { DashboardCache } from "../screens/main/DashboardScreen";
+import { DashboardCache } from "../utils/dashboardCache";
 
 export const AuthContext = createContext();
 

@@ -50,30 +50,8 @@ import { StateView } from '../../components/ui';
 import { COLORS } from '../../constants/colors';
 import { openLearnerAssistant } from '../../components/assistant/assistantEvents';
 
-// Simple in-memory cache to make page transitions instant
-let cachedDashboardData = null;
-let cachedUserId = null;
-export const DashboardCache = {
-  get: (userId) => {
-    if (userId && cachedUserId && cachedUserId !== userId) {
-      return null;
-    }
-    return cachedDashboardData;
-  },
-  set: (data, userId) => {
-    cachedDashboardData = data;
-    if (userId) cachedUserId = userId;
-  },
-  updateProfileAvatar: (avatar) => {
-    if (cachedDashboardData && cachedDashboardData.profile) {
-      cachedDashboardData.profile.avatar = avatar;
-    }
-  },
-  clear: () => {
-    cachedDashboardData = null;
-    cachedUserId = null;
-  },
-};
+import { DashboardCache } from '../../utils/dashboardCache';
+export { DashboardCache };
 
 import { useToast } from '../../context/ToastContext';
 

@@ -15,7 +15,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { Card, Screen, StateView } from '../../components/ui';
 import { achievementService, dashboardService } from '../../services/appServices';
 import { AuthContext } from '../../context/AuthContext';
-import { DashboardCache } from './DashboardScreen';
+import { DashboardCache } from '../../utils/dashboardCache';
 import { COLORS } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
