@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
@@ -454,11 +455,25 @@ public class LessonServiceImpl implements LessonService {
 		List<Lesson> base = lessonRepository.findByActiveTrue();
 
 		if (query != null && !query.isBlank()) {
-			String q = query.toLowerCase();
+			String trimmed = query.trim();
+			String[] tokens = trimmed.toLowerCase().split("\\s+");
+			List<Pattern> patterns = Arrays.stream(tokens)
+					.filter(t -> !t.isBlank())
+					.map(t -> Pattern.compile("(?:^|[\\s\\-_/:(\\[])" + Pattern.quote(t), Pattern.CASE_INSENSITIVE))
+					.toList();
+
 			base = base.stream()
-					.filter(l -> (l.getTitle() != null && l.getTitle().toLowerCase().contains(q))
-							|| (l.getDescription() != null && l.getDescription().toLowerCase().contains(q))
-							|| (l.getCategory() != null && l.getCategory().toLowerCase().contains(q)))
+					.filter(l -> {
+						String title = l.getTitle() != null ? l.getTitle() : "";
+						String cat = l.getCategory() != null ? l.getCategory() : "";
+						String desc = l.getDescription() != null ? l.getDescription() : "";
+
+						return patterns.stream().allMatch(p ->
+								p.matcher(title).find()
+								|| p.matcher(cat).find()
+								|| (trimmed.length() >= 3 && p.matcher(desc).find())
+						);
+					})
 					.toList();
 		}
 		if (category != null && !category.isBlank() && !category.equalsIgnoreCase("All")) {

@@ -113,19 +113,51 @@ export function Lessons() {
   const handleSearch = useCallback(
     async (text, currentLessons = lessons) => {
       setSearchText(text);
-      if (!text.trim()) {
+      const trimmed = (text || '').trim();
+      if (!trimmed) {
         setSearchResults(null);
         return;
       }
       try {
-        const query = text.toLowerCase();
-        const localResults = currentLessons.filter(
-          (l) =>
-            l.title.toLowerCase().includes(query) ||
-            l.description?.toLowerCase().includes(query) ||
-            l.category?.toLowerCase().includes(query) ||
-            l.level?.toLowerCase().includes(query)
-        );
+        const words = trimmed
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(Boolean);
+
+        if (words.length === 0) {
+          setSearchResults(null);
+          return;
+        }
+
+        const wordRegexes = words.map((w) => {
+          const safe = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          return new RegExp('(?:^|[\\s\\-_/:(\\[])' + safe, 'i');
+        });
+
+        const localResults = currentLessons.filter((l) => {
+          if (!l) return false;
+          const title = l.title || '';
+          const cat = l.category || '';
+          const desc = l.description || '';
+
+          return wordRegexes.every((regex) => {
+            if (regex.test(title)) return true;
+            if (regex.test(cat)) return true;
+            if (trimmed.length >= 3 && regex.test(desc)) return true;
+            return false;
+          });
+        });
+
+        // Sort: title starts with query first
+        const lowerQ = trimmed.toLowerCase();
+        localResults.sort((a, b) => {
+          const aStarts = (a.title || '').toLowerCase().startsWith(lowerQ);
+          const bStarts = (b.title || '').toLowerCase().startsWith(lowerQ);
+          if (aStarts && !bStarts) return -1;
+          if (!aStarts && bStarts) return 1;
+          return 0;
+        });
+
         setSearchResults(localResults);
       } catch (e) {
         setSearchResults([]);

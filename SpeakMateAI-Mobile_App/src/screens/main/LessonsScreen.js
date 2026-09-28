@@ -377,6 +377,7 @@ export default function LessonsScreen({ navigation }) {
   const [error, setError] = useState('');
 
   const searchTimer = useRef(null);
+  const activeSearchQueryRef = useRef('');
   const headerOpacity = useRef(new Animated.Value(1)).current;
   const headerTranslate = useRef(new Animated.Value(0)).current;
 
@@ -525,10 +526,52 @@ export default function LessonsScreen({ navigation }) {
     }, [loadAll])
   );
 
+  // ── Helper: Build strict word-prefix matcher (compulsion: strictly related) ──
+  const buildWordPrefixMatcher = useCallback((query) => {
+    const trimmed = (query || '').trim();
+    if (!trimmed) return null;
+
+    const words = trimmed
+      .toLowerCase()
+      .split(/\s+/)
+      .filter(Boolean);
+
+    if (words.length === 0) return null;
+
+    const wordRegexes = words.map((w) => {
+      const safe = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return new RegExp('(?:^|[\\s\\-_/:(\\[])' + safe, 'i');
+    });
+
+    return (lesson) => {
+      if (!lesson) return false;
+      const title = lesson.title || '';
+      const cat = lesson.category || '';
+      const desc = lesson.description || '';
+
+      // Every word typed must match as a word prefix on a visible, relevant field
+      return wordRegexes.every((regex) => {
+        // 1. Strict word-prefix match on Title
+        if (regex.test(title)) return true;
+        // 2. Strict word-prefix match on Category
+        if (regex.test(cat)) return true;
+        // 3. For queries >= 3 characters, allow word-prefix match on description
+        if (trimmed.length >= 3 && regex.test(desc)) return true;
+        return false;
+      });
+    };
+  }, []);
+
   // ── Instant Local Search + Debounced Server Sync ────────────────────
   const executeLocalSearch = useCallback((query, cat, tab) => {
-    const q = (query || '').trim().toLowerCase();
+    const q = (query || '').trim();
     if (!q) {
+      setSearchResults(null);
+      return;
+    }
+
+    const matcher = buildWordPrefixMatcher(q);
+    if (!matcher) {
       setSearchResults(null);
       return;
     }
@@ -568,34 +611,15 @@ export default function LessonsScreen({ navigation }) {
         if (!lvl.includes(tab.toLowerCase())) return false;
       }
 
-      // 3. Match against title, description, category, cluster, skills, objectives, and practice
-      const title = (l.title || '').toLowerCase();
-      const desc = (l.description || '').toLowerCase();
-      const category = (l.category || '').toLowerCase();
-      const cluster = `${l.clusterTitle || ''} ${l.clusterName || ''} ${l.segment || ''}`.toLowerCase();
-      const skillsMatch = Array.isArray(l.skills) && l.skills.some((s) => String(s).toLowerCase().includes(q));
-      const objectivesMatch = Array.isArray(l.objectives) && l.objectives.some((o) => String(o).toLowerCase().includes(q));
-      const drillMatch = (l.speakingDrill?.sentence || '').toLowerCase().includes(q);
-      const guidedMatch = (l.guidedPractice?.sentence || '').toLowerCase().includes(q);
-
-      return (
-        title.includes(q) ||
-        desc.includes(q) ||
-        category.includes(q) ||
-        cluster.includes(q) ||
-        skillsMatch ||
-        objectivesMatch ||
-        drillMatch ||
-        guidedMatch
-      );
+      // 3. Compulsion: Strictly related lessons only (word-boundary prefix)
+      return matcher(l);
     });
 
-    // Sort: 1) Title starts with query, 2) Title includes query, 3) Primary curriculum
+    // Sort: 1) Title starts with query, 2) Primary curriculum
+    const lowerQ = q.toLowerCase();
     matches.sort((a, b) => {
-      const aTitle = (a.title || '').toLowerCase();
-      const bTitle = (b.title || '').toLowerCase();
-      const aStarts = aTitle.startsWith(q);
-      const bStarts = bTitle.startsWith(q);
+      const aStarts = (a.title || '').toLowerCase().startsWith(lowerQ);
+      const bStarts = (b.title || '').toLowerCase().startsWith(lowerQ);
       if (aStarts && !bStarts) return -1;
       if (!aStarts && bStarts) return 1;
 
@@ -606,13 +630,15 @@ export default function LessonsScreen({ navigation }) {
     });
 
     setSearchResults(matches);
-  }, [user, userGrade, accountType, userAgeGroup]);
+  }, [user, userGrade, accountType, userAgeGroup, buildWordPrefixMatcher]);
 
   const handleSearchChange = useCallback((text) => {
+    const trimmed = text.trim();
+    activeSearchQueryRef.current = trimmed;
     setSearchText(text);
     clearTimeout(searchTimer.current);
 
-    if (!text.trim()) {
+    if (!trimmed) {
       setSearchResults(null);
       setSearching(false);
       return;
@@ -621,31 +647,48 @@ export default function LessonsScreen({ navigation }) {
     // 1. Instant local search on frame 0
     executeLocalSearch(text, selectedCategory, activeTab);
 
-    // 2. Non-blocking debounced server query
+    // 2. Non-blocking debounced server query (with race-condition protection & strict filter)
     setSearching(true);
     searchTimer.current = setTimeout(async () => {
       try {
         const catParam = selectedCategory && selectedCategory !== 'All' ? selectedCategory : undefined;
         const tabParam = activeTab && activeTab !== 'All' ? activeTab : undefined;
-        const serverResults = await lessonModuleService.search(text.trim(), catParam, tabParam).catch(() => []);
+        const serverResults = await lessonModuleService.search(trimmed, catParam, tabParam).catch(() => []);
+
+        // Discard stale responses if user typed something else while request was in-flight
+        if (activeSearchQueryRef.current !== trimmed) {
+          return;
+        }
+
         if (Array.isArray(serverResults) && serverResults.length > 0) {
-          setSearchResults((prev) => {
-            const current = prev || [];
-            const currentIds = new Set(current.map((l) => String(l.id)));
-            const newLessons = serverResults.filter((l) => l && l.id && !currentIds.has(String(l.id)));
-            return newLessons.length > 0 ? [...current, ...newLessons] : current;
-          });
+          const matcher = buildWordPrefixMatcher(trimmed);
+          if (matcher) {
+            // COMPULSION: Strictly filter server results with the exact same word-prefix matcher
+            const strictlyRelated = serverResults.filter(matcher);
+            if (strictlyRelated.length > 0) {
+              setSearchResults((prev) => {
+                if (activeSearchQueryRef.current !== trimmed) return prev;
+                const current = prev || [];
+                const currentIds = new Set(current.map((l) => String(l.id)));
+                const newLessons = strictlyRelated.filter((l) => l && l.id && !currentIds.has(String(l.id)));
+                return newLessons.length > 0 ? [...current, ...newLessons] : current;
+              });
+            }
+          }
         }
       } catch {
         // Keep instant local search results intact
       } finally {
-        setSearching(false);
+        if (activeSearchQueryRef.current === trimmed) {
+          setSearching(false);
+        }
       }
     }, 350);
-  }, [executeLocalSearch, selectedCategory, activeTab]);
+  }, [executeLocalSearch, selectedCategory, activeTab, buildWordPrefixMatcher]);
 
   const handleClearSearch = useCallback(() => {
     clearTimeout(searchTimer.current);
+    activeSearchQueryRef.current = '';
     setSearchText('');
     setSearchResults(null);
     setSearching(false);
