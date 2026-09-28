@@ -33,7 +33,6 @@ import {
   DailyGoalCard,
   DashboardHeader,
   DashboardSkeleton,
-  EmptyDashboardState,
   QuickStatistics,
   QuoteCard,
   RecentActivityTimeline,
@@ -223,7 +222,6 @@ export default function DashboardScreen({ navigation }) {
         achievements: [],
         notifications: [],
         unreadCount: 0,
-        hasAnyData: false,
       };
     }
 
@@ -267,7 +265,6 @@ export default function DashboardScreen({ navigation }) {
       achievements: d.achievements || [],
       notifications: d.notifications || [],
       unreadCount: Number(d.unreadNotificationsCount) || 0,
-      hasAnyData: Boolean(d.progress || d.profile),
     };
   }, [state.dashboard, user, isStudentUser]);
 
@@ -385,7 +382,7 @@ export default function DashboardScreen({ navigation }) {
   const topSafeBg = '#0F172A';
   const contentBg = isDark ? '#0F172A' : '#F8FAFC';
 
-  if (state.loading) {
+  if (state.loading && !user && !state.dashboard) {
     return (
       <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
         <ScrollView style={[styles.scroll, { backgroundColor: contentBg }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -395,7 +392,7 @@ export default function DashboardScreen({ navigation }) {
     );
   }
 
-  if (state.error && !state.dashboard) {
+  if (state.error && !state.dashboard && !user) {
     return (
       <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
         <View style={styles.errorContainer}>
@@ -440,8 +437,6 @@ export default function DashboardScreen({ navigation }) {
           onChatbotPress={openLearnerAssistant}
           isDark={isDark}
         />
-
-        {!viewModel.hasAnyData && <EmptyDashboardState onRetry={() => loadDashboard(false)} />}
 
         {/* SECTION 2: TODAY'S GOAL */}
         <DailyGoalCard goal={viewModel.dailyGoal} onContinue={() => handleContinueLearningPress(viewModel.continueLearning)} isDark={isDark} />

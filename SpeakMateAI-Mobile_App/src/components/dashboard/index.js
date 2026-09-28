@@ -916,6 +916,9 @@ export const LearningStreakCard = memo(function LearningStreakCard({
 // SECTION 9: DAILY MOTIVATION
 export const DailyMotivationCard = memo(function DailyMotivationCard({ quote, tip, word }) {
   const theme = useTheme();
+  const effectiveQuote = quote || (!word && !tip ? QUOTES[new Date().getDay() % QUOTES.length] : null);
+  if (!effectiveQuote && !word && !tip) return null;
+
   return (
     <View style={[styles.card, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
       <Text style={[styles.sectionEyebrow, { color: theme.textSecondary }]}>Daily Motivation</Text>
@@ -945,11 +948,11 @@ export const DailyMotivationCard = memo(function DailyMotivationCard({ quote, ti
       )}
 
       {/* Quote */}
-      {quote && (
+      {effectiveQuote && (
         <View style={[styles.motivationSection, theme.isDark && { backgroundColor: '#334155' }]}>
           <Text style={[styles.motivationTitle, theme.isDark && { color: '#A5B4FC' }]}>Quote of the Day</Text>
-          <Text style={[styles.motivationText, theme.isDark && { color: '#E2E8F0' }]}>"{quote.text}"</Text>
-          <Text style={[styles.quoteAuthor, { color: theme.textSecondary, marginTop: 4 }]}>— {quote.author || 'SpeakMateAI'}</Text>
+          <Text style={[styles.motivationText, theme.isDark && { color: '#E2E8F0' }]}>"{effectiveQuote.text}"</Text>
+          <Text style={[styles.quoteAuthor, { color: theme.textSecondary, marginTop: 4 }]}>— {effectiveQuote.author || 'SpeakMateAI'}</Text>
         </View>
       )}
 
