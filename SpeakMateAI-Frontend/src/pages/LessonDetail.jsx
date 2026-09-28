@@ -167,20 +167,21 @@ export function LessonDetail() {
     lessonModuleService
       .detail(id)
       .then((data) => {
+        const effectiveCurr = (data?.title ? findCurriculumLesson(data.title) : null) || curr;
         setLesson((prev) => ({
-          ...(curr || {}),
+          ...(effectiveCurr || {}),
           ...data,
-          title: curr?.title || data?.title || prev?.title,
-          category: curr?.category || data?.category || prev?.category,
-          level: curr?.level || data?.level || prev?.level,
-          description: curr?.description || data?.description || prev?.description,
-          objectives: data?.objectives && parseArrayField(data.objectives).length > 0 ? parseArrayField(data.objectives) : curr?.objectives,
-          skills: data?.skills && parseArrayField(data.skills).length > 0 ? parseArrayField(data.skills) : curr?.skills,
-          checkQuestion: curr?.checkQuestion || prev?.checkQuestion,
-          guidedPractice: curr?.guidedPractice || prev?.guidedPractice,
-          speakingDrill: curr?.speakingDrill || prev?.speakingDrill,
-          speakingDrills: curr?.speakingDrills || prev?.speakingDrills,
-          quiz: curr?.quiz || prev?.quiz,
+          title: data?.title || effectiveCurr?.title || prev?.title,
+          category: data?.category || effectiveCurr?.category || prev?.category,
+          level: data?.level || effectiveCurr?.level || prev?.level,
+          description: data?.description || effectiveCurr?.description || prev?.description,
+          objectives: data?.objectives && parseArrayField(data.objectives).length > 0 ? parseArrayField(data.objectives) : effectiveCurr?.objectives,
+          skills: data?.skills && parseArrayField(data.skills).length > 0 ? parseArrayField(data.skills) : effectiveCurr?.skills,
+          checkQuestion: effectiveCurr?.checkQuestion || prev?.checkQuestion,
+          guidedPractice: effectiveCurr?.guidedPractice || prev?.guidedPractice,
+          speakingDrill: effectiveCurr?.speakingDrill || prev?.speakingDrill,
+          speakingDrills: effectiveCurr?.speakingDrills || prev?.speakingDrills,
+          quiz: effectiveCurr?.quiz || prev?.quiz,
         }));
       })
       .catch(() => {

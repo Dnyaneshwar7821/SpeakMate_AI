@@ -1,6 +1,6 @@
 [
   {
-    "id": 1,
+    "id": 21,
     "title": "Mastering Short & Long Vowels",
     "category": "Phonics",
     "level": "Beginner",
@@ -15,10 +15,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 21
   },
   {
-    "id": 2,
+    "id": 22,
     "title": "Sounds of Blends & Digraphs",
     "category": "Phonics",
     "level": "Beginner",
@@ -33,10 +34,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 22
   },
   {
-    "id": 3,
+    "id": 23,
     "title": "Naming Words: All About Nouns",
     "category": "Grammar",
     "level": "Beginner",
@@ -51,10 +53,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 23
   },
   {
-    "id": 4,
+    "id": 24,
     "title": "Common vs. Proper Nouns",
     "category": "Grammar",
     "level": "Beginner",
@@ -69,10 +72,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 24
   },
   {
-    "id": 5,
+    "id": 25,
     "title": "Singular & Plural Nouns",
     "category": "Grammar",
     "level": "Beginner",
@@ -87,10 +91,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 25
   },
   {
-    "id": 6,
+    "id": 26,
     "title": "Pronouns: Replacing Names",
     "category": "Grammar",
     "level": "Beginner",
@@ -105,10 +110,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 26
   },
   {
-    "id": 7,
+    "id": 27,
     "title": "Action Verbs in Motion",
     "category": "Grammar",
     "level": "Beginner",
@@ -123,10 +129,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 27
   },
   {
-    "id": 8,
+    "id": 28,
     "title": "Helping Verbs: Am, Is & Are",
     "category": "Grammar",
     "level": "Beginner",
@@ -141,10 +148,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 28
   },
   {
-    "id": 9,
+    "id": 29,
     "title": "Adjectives: Describing Words",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -159,10 +167,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 29
   },
   {
-    "id": 10,
+    "id": 30,
     "title": "Opposite Words & Antonyms",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -177,10 +186,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 30
   },
   {
-    "id": 11,
+    "id": 31,
     "title": "Prepositions of Place",
     "category": "Grammar",
     "level": "Beginner",
@@ -195,10 +205,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 31
   },
   {
-    "id": 12,
+    "id": 32,
     "title": "Building Complete Sentences",
     "category": "Syntax",
     "level": "Beginner",
@@ -213,10 +224,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 32
   },
   {
-    "id": 13,
+    "id": 33,
     "title": "Capitals & End Punctuation",
     "category": "Mechanics",
     "level": "Beginner",
@@ -231,10 +243,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 33
   },
   {
-    "id": 14,
+    "id": 34,
     "title": "The 5 WH-Question Words",
     "category": "Syntax",
     "level": "Beginner",
@@ -249,10 +262,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 34
   },
   {
-    "id": 15,
+    "id": 35,
     "title": "Using Articles: A, An & The",
     "category": "Grammar",
     "level": "Beginner",
@@ -267,10 +281,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 35
   },
   {
-    "id": 16,
+    "id": 36,
     "title": "Simple Present Tense & Habits",
     "category": "Tenses",
     "level": "Beginner",
@@ -285,10 +300,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 36
   },
   {
-    "id": 17,
+    "id": 37,
     "title": "Simple Past Tense Verbs",
     "category": "Tenses",
     "level": "Beginner",
@@ -303,10 +319,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 37
   },
   {
-    "id": 18,
+    "id": 38,
     "title": "Joining Words: Conjunctions",
     "category": "Syntax",
     "level": "Beginner",
@@ -321,10 +338,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 38
   },
   {
-    "id": 19,
+    "id": 39,
     "title": "Comparing with -er and -est",
     "category": "Grammar",
     "level": "Beginner",
@@ -339,10 +357,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 39
   },
   {
-    "id": 20,
+    "id": 40,
     "title": "Clear Speech & Voice Confidence",
     "category": "Spoken Mechanics",
     "level": "Beginner",
@@ -357,10 +376,11 @@
     "locked": false,
     "clusterId": "std_1_4",
     "clusterName": "1st to 4th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 40
   },
   {
-    "id": 21,
+    "id": 41,
     "title": "The 8 Parts of Speech",
     "category": "Grammar",
     "level": "Intermediate",
@@ -375,10 +395,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 41
   },
   {
-    "id": 22,
+    "id": 42,
     "title": "Subject-Verb Agreement Rules",
     "category": "Grammar",
     "level": "Intermediate",
@@ -393,10 +414,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 42
   },
   {
-    "id": 23,
+    "id": 43,
     "title": "Mastering the 12 Verb Tenses",
     "category": "Tenses",
     "level": "Intermediate",
@@ -411,10 +433,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 43
   },
   {
-    "id": 24,
+    "id": 44,
     "title": "Present Perfect vs. Simple Past",
     "category": "Tenses",
     "level": "Intermediate",
@@ -429,10 +452,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 44
   },
   {
-    "id": 25,
+    "id": 45,
     "title": "Past Continuous & Past Perfect",
     "category": "Tenses",
     "level": "Intermediate",
@@ -447,10 +471,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 45
   },
   {
-    "id": 26,
+    "id": 46,
     "title": "Future Forms: Will vs. Going To",
     "category": "Tenses",
     "level": "Intermediate",
@@ -465,10 +490,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 46
   },
   {
-    "id": 27,
+    "id": 47,
     "title": "Transitive & Intransitive Verbs",
     "category": "Grammar",
     "level": "Intermediate",
@@ -483,10 +509,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 47
   },
   {
-    "id": 28,
+    "id": 48,
     "title": "Simple, Compound & Complex Sentences",
     "category": "Syntax",
     "level": "Intermediate",
@@ -501,10 +528,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 48
   },
   {
-    "id": 29,
+    "id": 49,
     "title": "Active vs. Passive Voice",
     "category": "Grammar",
     "level": "Intermediate",
@@ -519,10 +547,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 49
   },
   {
-    "id": 30,
+    "id": 50,
     "title": "Direct and Indirect Speech",
     "category": "Grammar",
     "level": "Intermediate",
@@ -537,10 +566,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 50
   },
   {
-    "id": 31,
+    "id": 51,
     "title": "Reporting Questions & Requests",
     "category": "Grammar",
     "level": "Intermediate",
@@ -555,10 +585,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 51
   },
   {
-    "id": 32,
+    "id": 52,
     "title": "Modal Verbs: Can, May & Must",
     "category": "Grammar",
     "level": "Intermediate",
@@ -573,10 +604,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 52
   },
   {
-    "id": 33,
+    "id": 53,
     "title": "Word Roots, Prefixes & Suffixes",
     "category": "Vocabulary",
     "level": "Intermediate",
@@ -591,10 +623,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 53
   },
   {
-    "id": 34,
+    "id": 54,
     "title": "Relative Clauses & Pronouns",
     "category": "Syntax",
     "level": "Intermediate",
@@ -609,10 +642,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 54
   },
   {
-    "id": 35,
+    "id": 55,
     "title": "Advanced Degrees of Comparison",
     "category": "Grammar",
     "level": "Intermediate",
@@ -627,10 +661,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 55
   },
   {
-    "id": 36,
+    "id": 56,
     "title": "Punctuation: Commas & Semicolons",
     "category": "Mechanics",
     "level": "Intermediate",
@@ -645,10 +680,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 56
   },
   {
-    "id": 37,
+    "id": 57,
     "title": "Structuring Strong Paragraphs",
     "category": "Writing Mechanics",
     "level": "Intermediate",
@@ -663,10 +699,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 57
   },
   {
-    "id": 38,
+    "id": 58,
     "title": "Word Stress & Intonation",
     "category": "Phonology",
     "level": "Intermediate",
@@ -681,10 +718,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 58
   },
   {
-    "id": 39,
+    "id": 59,
     "title": "Expressive Oral Reading",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
@@ -699,10 +737,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 59
   },
   {
-    "id": 40,
+    "id": 60,
     "title": "Formal Letters & Email Writing",
     "category": "Writing Mechanics",
     "level": "Intermediate",
@@ -717,10 +756,11 @@
     "locked": false,
     "clusterId": "std_5_8",
     "clusterName": "5th to 8th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 60
   },
   {
-    "id": 41,
+    "id": 61,
     "title": "Board Exam Viva & Oral Prep",
     "category": "Board Prep",
     "level": "Advanced",
@@ -735,10 +775,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 61
   },
   {
-    "id": 42,
+    "id": 62,
     "title": "Advanced Subject-Verb Concord",
     "category": "Grammar",
     "level": "Advanced",
@@ -753,10 +794,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 62
   },
   {
-    "id": 43,
+    "id": 63,
     "title": "Conditionals: If-Clause Formulas",
     "category": "Grammar",
     "level": "Advanced",
@@ -771,10 +813,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 63
   },
   {
-    "id": 44,
+    "id": 64,
     "title": "Advanced & Impersonal Passive",
     "category": "Grammar",
     "level": "Advanced",
@@ -789,10 +832,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 64
   },
   {
-    "id": 45,
+    "id": 65,
     "title": "Advanced Reported Speech",
     "category": "Grammar",
     "level": "Advanced",
@@ -807,10 +851,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 65
   },
   {
-    "id": 46,
+    "id": 66,
     "title": "Noun, Adjective & Adverb Clauses",
     "category": "Syntax",
     "level": "Advanced",
@@ -825,10 +870,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 66
   },
   {
-    "id": 47,
+    "id": 67,
     "title": "Synthesis: Combining Sentences",
     "category": "Syntax",
     "level": "Advanced",
@@ -843,10 +889,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 67
   },
   {
-    "id": 48,
+    "id": 68,
     "title": "Transformation of Sentences",
     "category": "Syntax",
     "level": "Advanced",
@@ -861,10 +908,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 68
   },
   {
-    "id": 49,
+    "id": 69,
     "title": "Infinitives, Gerunds & Participles",
     "category": "Grammar",
     "level": "Advanced",
@@ -879,10 +927,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 69
   },
   {
-    "id": 50,
+    "id": 70,
     "title": "Modals of Past Deduction",
     "category": "Grammar",
     "level": "Advanced",
@@ -897,10 +946,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 70
   },
   {
-    "id": 51,
+    "id": 71,
     "title": "Academic Phrasal Verbs",
     "category": "Vocabulary",
     "level": "Advanced",
@@ -915,10 +965,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 71
   },
   {
-    "id": 52,
+    "id": 72,
     "title": "Figures of Speech & Imagery",
     "category": "Literary Devices",
     "level": "Advanced",
@@ -933,10 +984,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 72
   },
   {
-    "id": 53,
+    "id": 73,
     "title": "Fixing Common Grammar Errors",
     "category": "Grammar Error Fix",
     "level": "Advanced",
@@ -951,10 +1003,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 73
   },
   {
-    "id": 54,
+    "id": 74,
     "title": "Writing Analytical Paragraphs",
     "category": "Academic Writing",
     "level": "Advanced",
@@ -969,10 +1022,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 74
   },
   {
-    "id": 55,
+    "id": 75,
     "title": "Essay & Speech Structuring",
     "category": "Oratory & Writing",
     "level": "Advanced",
@@ -987,10 +1041,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 75
   },
   {
-    "id": 56,
+    "id": 76,
     "title": "Word Nuance: Tone & Connotation",
     "category": "Vocabulary",
     "level": "Advanced",
@@ -1005,10 +1060,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 76
   },
   {
-    "id": 57,
+    "id": 77,
     "title": "Rhetoric & Persuasive Devices",
     "category": "Oratory",
     "level": "Advanced",
@@ -1023,10 +1079,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 77
   },
   {
-    "id": 58,
+    "id": 78,
     "title": "Extempore Speaking: PREP Method",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -1041,10 +1098,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 78
   },
   {
-    "id": 59,
+    "id": 79,
     "title": "Voice Cadence & Eliminating Fillers",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -1059,10 +1117,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 79
   },
   {
-    "id": 60,
+    "id": 80,
     "title": "Formal Debate & Rebuttals",
     "category": "Oratory",
     "level": "Advanced",
@@ -1077,10 +1136,11 @@
     "locked": false,
     "clusterId": "std_9_10",
     "clusterName": "9th to 10th Standard",
-    "segment": "school"
+    "segment": "school",
+    "numericId": 80
   },
   {
-    "id": 61,
+    "id": 81,
     "title": "Rhyming Words & Word Families",
     "category": "Phonics",
     "level": "Beginner",
@@ -1095,10 +1155,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 81
   },
   {
-    "id": 62,
+    "id": 82,
     "title": "Discovering Silent Letters",
     "category": "Phonics",
     "level": "Beginner",
@@ -1113,10 +1174,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 82
   },
   {
-    "id": 63,
+    "id": 83,
     "title": "Top 100 Sight Words",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -1131,10 +1193,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 83
   },
   {
-    "id": 64,
+    "id": 84,
     "title": "Everyday Naming Words",
     "category": "Grammar",
     "level": "Beginner",
@@ -1149,10 +1212,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 84
   },
   {
-    "id": 65,
+    "id": 85,
     "title": "Action Words with -ing",
     "category": "Grammar",
     "level": "Beginner",
@@ -1167,10 +1231,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 85
   },
   {
-    "id": 66,
+    "id": 86,
     "title": "Sensory Describing Words",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -1185,10 +1250,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 86
   },
   {
-    "id": 67,
+    "id": 87,
     "title": "Singular & Plural Patterns",
     "category": "Grammar",
     "level": "Beginner",
@@ -1203,10 +1269,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 87
   },
   {
-    "id": 68,
+    "id": 88,
     "title": "Pronouns: He, She, It & They",
     "category": "Grammar",
     "level": "Beginner",
@@ -1221,10 +1288,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 88
   },
   {
-    "id": 69,
+    "id": 89,
     "title": "Position Words & Prepositions",
     "category": "Grammar",
     "level": "Beginner",
@@ -1239,10 +1307,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 89
   },
   {
-    "id": 70,
+    "id": 90,
     "title": "Capitals & Punctuation Marks",
     "category": "Mechanics",
     "level": "Beginner",
@@ -1257,10 +1326,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 90
   },
   {
-    "id": 71,
+    "id": 91,
     "title": "Asking Questions with 5 W's",
     "category": "Syntax",
     "level": "Beginner",
@@ -1275,10 +1345,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 91
   },
   {
-    "id": 72,
+    "id": 92,
     "title": "Connecting Ideas: And & Because",
     "category": "Syntax",
     "level": "Beginner",
@@ -1293,10 +1364,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 92
   },
   {
-    "id": 73,
+    "id": 93,
     "title": "Time Words: Past, Present & Future",
     "category": "Tenses",
     "level": "Beginner",
@@ -1311,10 +1383,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 93
   },
   {
-    "id": 74,
+    "id": 94,
     "title": "Past Action Verbs",
     "category": "Tenses",
     "level": "Beginner",
@@ -1329,10 +1402,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 94
   },
   {
-    "id": 75,
+    "id": 95,
     "title": "Comparing Sizes & Qualities",
     "category": "Grammar",
     "level": "Beginner",
@@ -1347,10 +1421,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 95
   },
   {
-    "id": 76,
+    "id": 96,
     "title": "Making Fun Compound Words",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -1365,10 +1440,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 96
   },
   {
-    "id": 77,
+    "id": 97,
     "title": "Opposites & Word Twins",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -1383,10 +1459,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 97
   },
   {
-    "id": 78,
+    "id": 98,
     "title": "Story Sequencing: First, Next, Last",
     "category": "Reading Skills",
     "level": "Beginner",
@@ -1401,10 +1478,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 98
   },
   {
-    "id": 79,
+    "id": 99,
     "title": "Tongue Twisters & Clear Speech",
     "category": "Spoken Mechanics",
     "level": "Beginner",
@@ -1419,10 +1497,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 99
   },
   {
-    "id": 80,
+    "id": 100,
     "title": "Telling Your Own Story",
     "category": "Spoken Mechanics",
     "level": "Beginner",
@@ -1437,10 +1516,11 @@
     "locked": false,
     "clusterId": "kids",
     "clusterName": "Kids (Age 6–12)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 100
   },
   {
-    "id": 81,
+    "id": 101,
     "title": "Fixing Run-ons & Fragments",
     "category": "Syntax",
     "level": "Intermediate",
@@ -1455,10 +1535,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 101
   },
   {
-    "id": 82,
+    "id": 102,
     "title": "Seamless Tense Transitions",
     "category": "Tenses",
     "level": "Intermediate",
@@ -1473,10 +1554,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 102
   },
   {
-    "id": 83,
+    "id": 103,
     "title": "Real & Unreal Conditionals",
     "category": "Grammar",
     "level": "Intermediate",
@@ -1491,10 +1573,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 103
   },
   {
-    "id": 84,
+    "id": 104,
     "title": "Complex Subject-Verb Agreement",
     "category": "Grammar",
     "level": "Intermediate",
@@ -1509,10 +1592,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 104
   },
   {
-    "id": 85,
+    "id": 105,
     "title": "Active Directness vs. Passive Tone",
     "category": "Grammar",
     "level": "Intermediate",
@@ -1527,10 +1611,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 105
   },
   {
-    "id": 86,
+    "id": 106,
     "title": "Modals of Advice & Certainty",
     "category": "Grammar",
     "level": "Intermediate",
@@ -1545,10 +1630,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 106
   },
   {
-    "id": 87,
+    "id": 107,
     "title": "Everyday Phrasal Verbs & Collocations",
     "category": "Vocabulary",
     "level": "Intermediate",
@@ -1563,10 +1649,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 107
   },
   {
-    "id": 88,
+    "id": 108,
     "title": "Discourse Markers & Smooth Flow",
     "category": "Syntax",
     "level": "Intermediate",
@@ -1581,10 +1668,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 108
   },
   {
-    "id": 89,
+    "id": 109,
     "title": "Relative Clauses & Conciseness",
     "category": "Syntax",
     "level": "Intermediate",
@@ -1599,10 +1687,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 109
   },
   {
-    "id": 90,
+    "id": 110,
     "title": "Idiomatic Expressions in Context",
     "category": "Vocabulary",
     "level": "Intermediate",
@@ -1617,10 +1706,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 110
   },
   {
-    "id": 91,
+    "id": 111,
     "title": "Natural Rhythm & The Schwa Sound",
     "category": "Phonology",
     "level": "Intermediate",
@@ -1635,10 +1725,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 111
   },
   {
-    "id": 92,
+    "id": 112,
     "title": "Sentence Stress & Rhythm",
     "category": "Phonology",
     "level": "Intermediate",
@@ -1653,10 +1744,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 112
   },
   {
-    "id": 93,
+    "id": 113,
     "title": "Eliminating Fillers & Crutch Words",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
@@ -1671,10 +1763,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 113
   },
   {
-    "id": 94,
+    "id": 114,
     "title": "College & Placement Vocabulary",
     "category": "Vocabulary",
     "level": "Intermediate",
@@ -1689,10 +1782,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 114
   },
   {
-    "id": 95,
+    "id": 115,
     "title": "Structuring Spoken Arguments",
     "category": "Oratory",
     "level": "Intermediate",
@@ -1707,10 +1801,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 115
   },
   {
-    "id": 96,
+    "id": 116,
     "title": "Formal Emails & Cover Letters",
     "category": "Writing Mechanics",
     "level": "Intermediate",
@@ -1725,10 +1820,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 116
   },
   {
-    "id": 97,
+    "id": 117,
     "title": "Summarizing & Paraphrasing",
     "category": "Academic Skills",
     "level": "Intermediate",
@@ -1743,10 +1839,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 117
   },
   {
-    "id": 98,
+    "id": 118,
     "title": "Spotting Bias & Critical Thinking",
     "category": "Critical Analysis",
     "level": "Intermediate",
@@ -1761,10 +1858,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 118
   },
   {
-    "id": 99,
+    "id": 119,
     "title": "Impromptu Speaking with PREP",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
@@ -1779,10 +1877,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 119
   },
   {
-    "id": 100,
+    "id": 120,
     "title": "Ace the Interview: STAR Method",
     "category": "Career Mechanics",
     "level": "Intermediate",
@@ -1797,10 +1896,11 @@
     "locked": false,
     "clusterId": "teens_young",
     "clusterName": "Teens & Young Adults (Age 13–24)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 120
   },
   {
-    "id": 101,
+    "id": 121,
     "title": "Executive Precision & Grammar",
     "category": "Grammar",
     "level": "Advanced",
@@ -1815,10 +1915,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 121
   },
   {
-    "id": 102,
+    "id": 122,
     "title": "The Power of Brevity & Plain English",
     "category": "Communication",
     "level": "Advanced",
@@ -1833,10 +1934,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 122
   },
   {
-    "id": 103,
+    "id": 123,
     "title": "Diplomatic Tone & Softening Directness",
     "category": "Grammar",
     "level": "Advanced",
@@ -1851,10 +1953,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 123
   },
   {
-    "id": 104,
+    "id": 124,
     "title": "Persuasive Requests & Modal Nuance",
     "category": "Grammar",
     "level": "Advanced",
@@ -1869,10 +1972,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 124
   },
   {
-    "id": 105,
+    "id": 125,
     "title": "Executive Transitions & Signposting",
     "category": "Syntax",
     "level": "Advanced",
@@ -1887,10 +1991,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 125
   },
   {
-    "id": 106,
+    "id": 126,
     "title": "Strategic Business Vocabulary",
     "category": "Vocabulary",
     "level": "Advanced",
@@ -1905,10 +2010,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 126
   },
   {
-    "id": 107,
+    "id": 127,
     "title": "Mastering Workplace Formality",
     "category": "Communication",
     "level": "Advanced",
@@ -1923,10 +2029,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 127
   },
   {
-    "id": 108,
+    "id": 128,
     "title": "Writing Impactful Executive Summaries",
     "category": "Writing Mechanics",
     "level": "Advanced",
@@ -1941,10 +2048,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 128
   },
   {
-    "id": 109,
+    "id": 129,
     "title": "Clear Articulation for Global Teams",
     "category": "Phonology",
     "level": "Advanced",
@@ -1959,10 +2067,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 129
   },
   {
-    "id": 110,
+    "id": 130,
     "title": "Vocal Authority & Pitch Modulation",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -1977,10 +2086,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 130
   },
   {
-    "id": 111,
+    "id": 131,
     "title": "Business Storytelling Frameworks",
     "category": "Communication",
     "level": "Advanced",
@@ -1995,10 +2105,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 131
   },
   {
-    "id": 112,
+    "id": 132,
     "title": "Thinking on Your Feet: Rule of 3",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -2013,10 +2124,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 132
   },
   {
-    "id": 113,
+    "id": 133,
     "title": "Diplomatic Disagreement & Pivoting",
     "category": "Communication",
     "level": "Advanced",
@@ -2031,10 +2143,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 133
   },
   {
-    "id": 114,
+    "id": 134,
     "title": "Active Listening & Paraphrasing",
     "category": "Communication",
     "level": "Advanced",
@@ -2049,10 +2162,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 134
   },
   {
-    "id": 115,
+    "id": 135,
     "title": "Global Cross-Cultural Communication",
     "category": "Communication",
     "level": "Advanced",
@@ -2067,10 +2181,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 135
   },
   {
-    "id": 116,
+    "id": 136,
     "title": "Digital Communication & Workplace Etiquette",
     "category": "Communication",
     "level": "Advanced",
@@ -2085,10 +2200,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 136
   },
   {
-    "id": 117,
+    "id": 137,
     "title": "Constructive Feedback: SBI Model",
     "category": "Management",
     "level": "Advanced",
@@ -2103,10 +2219,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 137
   },
   {
-    "id": 118,
+    "id": 138,
     "title": "Strategic Forecasting & Scenarios",
     "category": "Grammar",
     "level": "Advanced",
@@ -2121,10 +2238,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 138
   },
   {
-    "id": 119,
+    "id": 139,
     "title": "Small Talk & Executive Networking",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -2139,10 +2257,11 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 139
   },
   {
-    "id": 120,
+    "id": 140,
     "title": "Keynote Speaking & Executive Presence",
     "category": "Oratory",
     "level": "Advanced",
@@ -2157,6 +2276,7 @@
     "locked": false,
     "clusterId": "professionals_seniors",
     "clusterName": "Professionals & Seniors (Age 25+)",
-    "segment": "general"
+    "segment": "general",
+    "numericId": 140
   }
 ]

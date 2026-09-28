@@ -33,6 +33,8 @@ public class ProgressResponse {
 
 	private Integer distinctSpeakingScenarios;
 
+	private Integer streakFreezes;
+
 	private LocalDateTime createdAt;
 
 	private LocalDateTime updatedAt;
@@ -67,6 +69,9 @@ public class ProgressResponse {
 	public Integer getTotalVocabularyWords() { return totalVocabularyWords; }
 	public void setTotalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; }
 
+	public Integer getStreakFreezes() { return streakFreezes != null ? streakFreezes : 1; }
+	public void setStreakFreezes(Integer streakFreezes) { this.streakFreezes = streakFreezes; }
+
 	public LocalDateTime getCreatedAt() { return createdAt; }
 	public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -88,6 +93,7 @@ public class ProgressResponse {
 		private Integer distinctSpeakingScenarios;
 		private Integer totalGrammarChecks;
 		private Integer totalVocabularyWords;
+		private Integer streakFreezes;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
 
@@ -101,6 +107,7 @@ public class ProgressResponse {
 		public ProgressResponseBuilder distinctSpeakingScenarios(Integer distinctSpeakingScenarios) { this.distinctSpeakingScenarios = distinctSpeakingScenarios; return this; }
 		public ProgressResponseBuilder totalGrammarChecks(Integer totalGrammarChecks) { this.totalGrammarChecks = totalGrammarChecks; return this; }
 		public ProgressResponseBuilder totalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; return this; }
+		public ProgressResponseBuilder streakFreezes(Integer streakFreezes) { this.streakFreezes = streakFreezes; return this; }
 		public ProgressResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 		public ProgressResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
@@ -116,6 +123,7 @@ public class ProgressResponse {
             obj.setDistinctSpeakingScenarios(distinctSpeakingScenarios);
             obj.setTotalGrammarChecks(totalGrammarChecks);
             obj.setTotalVocabularyWords(totalVocabularyWords);
+            obj.setStreakFreezes(streakFreezes != null ? streakFreezes : 1);
             obj.setCreatedAt(createdAt);
             obj.setUpdatedAt(updatedAt);
             return obj;

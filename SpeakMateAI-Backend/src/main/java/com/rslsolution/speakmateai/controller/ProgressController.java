@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import org.springframework.web.bind.annotation.PathVariable;
 
+import org.springframework.web.bind.annotation.RequestParam;
+
 import com.rslsolution.speakmateai.dto.request.ProgressRequest;
+import com.rslsolution.speakmateai.dto.response.LeaderboardResponse;
 import com.rslsolution.speakmateai.dto.response.ProgressResponse;
 import com.rslsolution.speakmateai.service.ProgressService;
 
@@ -65,5 +68,15 @@ public class ProgressController {
 	@PostMapping("/recalculate/{userId}")
 	public ProgressResponse recalculateUserProgress(@PathVariable Long userId) {
 		return progressService.recalculateUserProgress(userId);
+	}
+
+	@PostMapping("/buy-freeze")
+	public ProgressResponse buyStreakFreeze() {
+		return progressService.buyStreakFreeze();
+	}
+
+	@GetMapping("/leaderboard")
+	public java.util.List<LeaderboardResponse> getLeaderboard(@RequestParam(defaultValue = "10") int limit) {
+		return progressService.getLeaderboard(limit);
 	}
 }

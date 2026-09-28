@@ -103,20 +103,20 @@ public class LessonServiceImpl implements LessonService {
 	}
 
 	public Lesson resolveLesson(Long id, String fallbackTitle) {
-		if (id != null) {
-			Optional<Lesson> found = lessonRepository.findById(id);
-			if (found.isPresent()) return found.get();
-		}
 		if (fallbackTitle != null && !fallbackTitle.isBlank()) {
 			Optional<Lesson> found = lessonRepository.findByTitleIgnoreCase(fallbackTitle.trim());
 			if (found.isPresent()) return found.get();
 		}
+		if (id != null) {
+			Optional<Lesson> found = lessonRepository.findById(id);
+			if (found.isPresent()) return found.get();
+		}
 
 		Map<String, Object> map = null;
-		if (id != null && curriculumById.containsKey(id)) {
-			map = curriculumById.get(id);
-		} else if (fallbackTitle != null && curriculumByTitle.containsKey(fallbackTitle.trim().toLowerCase())) {
+		if (fallbackTitle != null && curriculumByTitle.containsKey(fallbackTitle.trim().toLowerCase())) {
 			map = curriculumByTitle.get(fallbackTitle.trim().toLowerCase());
+		} else if (id != null && curriculumById.containsKey(id)) {
+			map = curriculumById.get(id);
 		}
 
 		if (map != null) {
@@ -441,11 +441,17 @@ public class LessonServiceImpl implements LessonService {
 	public List<LessonResponse> getContinueLearning() {
 		User user = currentUser();
 		if (user == null) return List.of();
-		// lessons started but not completed, ordered by last opened
+		// lessons started/opened but not completed, ordered by last opened
 		return progressRepository.findByUserOrderByLastOpenedAtDesc(user).stream()
-				.filter(p -> !Boolean.TRUE.equals(p.getCompleted()) && p.getProgressPercent() > 0)
-				.map(p -> mapToResponse(p.getLesson(), p))
-				.limit(5)
+				.filter(p -> p.getLesson() != null && !Boolean.TRUE.equals(p.getCompleted()) && (p.getProgressPercent() == null || p.getProgressPercent() < 100))
+				.map(p -> {
+					LessonResponse resp = mapToResponse(p.getLesson(), p);
+					if (resp.getProgressPercent() == null || resp.getProgressPercent() == 0) {
+						resp.setProgressPercent(11);
+					}
+					return resp;
+				})
+				.limit(30)
 				.toList();
 	}
 
@@ -519,12 +525,15 @@ public class LessonServiceImpl implements LessonService {
 				.orElseGet(() -> LessonProgress.builder()
 						.user(user)
 						.lesson(lesson)
-						.progressPercent(0)
+						.progressPercent(11)
 						.completed(false)
 						.lastSectionIndex(0)
 						.timeSpentMinutes(0)
 						.xpEarned(0)
 						.build());
+		if (progress.getProgressPercent() == null || progress.getProgressPercent() == 0) {
+			progress.setProgressPercent(11);
+		}
 		progress.setLastOpenedAt(LocalDateTime.now());
 		LessonProgress saved = progressRepository.save(progress);
 		return mapToResponse(lesson, saved);
@@ -548,8 +557,22 @@ public class LessonServiceImpl implements LessonService {
 						.xpEarned(0)
 						.build());
 
-		if (request.getProgressPercent() != null)
+		if (request.getProgressPercent() != null) {
 			progress.setProgressPercent(request.getProgressPercent());
+			if (request.getProgressPercent() >= 100 && !Boolean.TRUE.equals(progress.getCompleted())) {
+				progress.setCompleted(true);
+				progress.setCompletedAt(LocalDateTime.now());
+				int xp = lesson.getXpReward() != null ? lesson.getXpReward() : 35;
+				progress.setXpEarned(xp);
+				userProgressRepository.findByUser(user).ifPresent(up -> {
+					up.setXp((up.getXp() != null ? up.getXp() : 0) + xp);
+					int totalXp = up.getXp();
+					int newLevel = Math.max(1, totalXp / 500 + 1);
+					up.setLevel(newLevel);
+					userProgressRepository.save(up);
+				});
+			}
+		}
 		if (request.getLastSectionIndex() != null)
 			progress.setLastSectionIndex(request.getLastSectionIndex());
 		if (request.getTimeSpentMinutes() != null && request.getTimeSpentMinutes() > 0) {

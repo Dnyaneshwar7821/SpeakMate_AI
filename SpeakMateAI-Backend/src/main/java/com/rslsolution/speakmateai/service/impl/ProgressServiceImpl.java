@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.rslsolution.speakmateai.dto.request.ProgressRequest;
+import com.rslsolution.speakmateai.dto.response.LeaderboardResponse;
 import com.rslsolution.speakmateai.dto.response.ProgressResponse;
 import com.rslsolution.speakmateai.entity.Achievement;
 import com.rslsolution.speakmateai.entity.LessonProgress;
@@ -412,7 +413,85 @@ public class ProgressServiceImpl implements ProgressService {
 			progress.setLevel(Math.max(1, (currentXp / 500) + 1));
 		}
 
+
 		return progressRepository.save(progress);
+	}
+
+	@Override
+	public ProgressResponse buyStreakFreeze() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		User user = userRepository.findByEmail(authentication.getName())
+				.orElseThrow(() -> new UserNotFoundException("User not found"));
+
+		Progress progress = progressRepository.findByUserId(user.getId())
+				.or(() -> progressRepository.findByUser(user))
+				.orElseGet(() -> Progress.builder().user(user).xp(0).level(1).currentStreak(0).longestStreak(0).streakFreezes(1).build());
+
+		int currentXp = progress.getXp() != null ? progress.getXp() : 0;
+		if (currentXp < 100) {
+			throw new IllegalArgumentException("Insufficient XP to purchase a streak freeze. At least 100 XP required.");
+		}
+
+		progress.setXp(currentXp - 100);
+		progress.setLevel(Math.max(1, (progress.getXp() / 500) + 1));
+		int currentFreezes = progress.getStreakFreezes() != null ? progress.getStreakFreezes() : 1;
+		progress.setStreakFreezes(currentFreezes + 1);
+
+		Progress saved = progressRepository.save(progress);
+		return mapToResponse(saved);
+	}
+
+	@Override
+	public List<LeaderboardResponse> getLeaderboard(int limit) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		String currentUserEmail = authentication != null ? authentication.getName() : null;
+
+		List<Progress> topList = progressRepository.findTop50ByOrderByXpDesc();
+		List<LeaderboardResponse> result = new ArrayList<>();
+
+		int rank = 1;
+		int maxCount = limit > 0 ? Math.min(limit, 50) : 10;
+
+		for (Progress p : topList) {
+			if (p.getUser() == null) continue;
+			User u = p.getUser();
+			String name = (u.getFirstName() != null ? u.getFirstName() : "") + 
+					(u.getLastName() != null && !u.getLastName().trim().isEmpty() ? " " + u.getLastName() : "");
+			name = name.trim();
+			if (name.isEmpty()) name = u.getEmail() != null ? u.getEmail().split("@")[0] : "Learner";
+
+			int xp = p.getXp() != null ? p.getXp() : 0;
+			int streak = p.getCurrentStreak() != null ? p.getCurrentStreak() : 0;
+			boolean isCurrent = currentUserEmail != null && currentUserEmail.equalsIgnoreCase(u.getEmail());
+
+			String tier;
+			if (xp < 100) tier = "Bronze III";
+			else if (xp < 300) tier = "Bronze II";
+			else if (xp < 600) tier = "Bronze I";
+			else if (xp < 1000) tier = "Silver III";
+			else if (xp < 1500) tier = "Silver II";
+			else if (xp < 2200) tier = "Silver I";
+			else if (xp < 3000) tier = "Gold III";
+			else if (xp < 4000) tier = "Gold II";
+			else if (xp < 5000) tier = "Gold I";
+			else if (xp < 7000) tier = "Platinum Master";
+			else tier = "Diamond Orator";
+
+			result.add(LeaderboardResponse.builder()
+					.rank(rank++)
+					.userId(u.getId())
+					.name(name)
+					.avatar(u.getAvatar())
+					.xp(xp)
+					.streak(streak)
+					.rankTier(tier)
+					.isCurrentUser(isCurrent)
+					.build());
+
+			if (result.size() >= maxCount) break;
+		}
+
+		return result;
 	}
 
 	private ProgressResponse mapToResponse(Progress progress) {
@@ -438,7 +517,9 @@ public class ProgressServiceImpl implements ProgressService {
 				.totalSpeakingSessions(progress.getTotalSpeakingSessions())
 				.distinctSpeakingScenarios(distinctScenarios)
 				.totalGrammarChecks(progress.getTotalGrammarChecks())
-				.totalVocabularyWords(progress.getTotalVocabularyWords()).createdAt(progress.getCreatedAt())
+				.totalVocabularyWords(progress.getTotalVocabularyWords())
+				.streakFreezes(progress.getStreakFreezes() != null ? progress.getStreakFreezes() : 1)
+				.createdAt(progress.getCreatedAt())
 				.updatedAt(progress.getUpdatedAt()).build();
 	}
 }

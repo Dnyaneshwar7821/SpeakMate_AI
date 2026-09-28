@@ -13,6 +13,8 @@ public class WeeklyProgressResponse {
 
 	private String day;
 
+	private String date;
+
 	private Integer studyMinutes;
 
 	private Integer lessonsCompleted;
@@ -21,6 +23,9 @@ public class WeeklyProgressResponse {
 
 	public String getDay() { return day; }
 	public void setDay(String day) { this.day = day; }
+
+	public String getDate() { return date; }
+	public void setDate(String date) { this.date = date; }
 
 	public Integer getStudyMinutes() { return studyMinutes; }
 	public void setStudyMinutes(Integer studyMinutes) { this.studyMinutes = studyMinutes; }
@@ -37,11 +42,13 @@ public class WeeklyProgressResponse {
 
 	public static class WeeklyProgressResponseBuilder {
 		private String day;
+		private String date;
 		private Integer studyMinutes;
 		private Integer lessonsCompleted;
 		private Integer speakingSessions;
 
 		public WeeklyProgressResponseBuilder day(String day) { this.day = day; return this; }
+		public WeeklyProgressResponseBuilder date(String date) { this.date = date; return this; }
 		public WeeklyProgressResponseBuilder studyMinutes(Integer studyMinutes) { this.studyMinutes = studyMinutes; return this; }
 		public WeeklyProgressResponseBuilder lessonsCompleted(Integer lessonsCompleted) { this.lessonsCompleted = lessonsCompleted; return this; }
 		public WeeklyProgressResponseBuilder speakingSessions(Integer speakingSessions) { this.speakingSessions = speakingSessions; return this; }
@@ -49,6 +56,7 @@ public class WeeklyProgressResponse {
 		public WeeklyProgressResponse build() {
             WeeklyProgressResponse obj = new WeeklyProgressResponse();
             obj.setDay(day);
+            obj.setDate(date);
             obj.setStudyMinutes(studyMinutes);
             obj.setLessonsCompleted(lessonsCompleted);
             obj.setSpeakingSessions(speakingSessions);

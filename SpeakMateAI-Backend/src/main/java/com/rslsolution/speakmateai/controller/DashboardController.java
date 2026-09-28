@@ -27,9 +27,10 @@ public class DashboardController {
 		return dashboardService.getDailyGoal();
 	}
 
-	@GetMapping("/api/dashboard/weekly-progress")
-	public List<WeeklyProgressResponse> getWeeklyProgress() {
-		return dashboardService.getWeeklyProgress();
+	@GetMapping({"/api/dashboard/weekly-progress", "/api/dashboard/rhythm"})
+	public List<WeeklyProgressResponse> getWeeklyProgress(
+			@org.springframework.web.bind.annotation.RequestParam(defaultValue = "7") int days) {
+		return dashboardService.getRhythmProgress(days);
 	}
 
 	@GetMapping("/api/dashboard/statistics")

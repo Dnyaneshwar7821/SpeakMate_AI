@@ -40,6 +40,8 @@ public class Progress {
 
 	private Integer totalVocabularyWords;
 
+	private Integer streakFreezes = 1;
+
 	@Column(nullable = false, updatable = false)
 	private LocalDateTime createdAt;
 
@@ -86,6 +88,9 @@ public class Progress {
 	public Integer getTotalVocabularyWords() { return totalVocabularyWords; }
 	public void setTotalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; }
 
+	public Integer getStreakFreezes() { return streakFreezes != null ? streakFreezes : 1; }
+	public void setStreakFreezes(Integer streakFreezes) { this.streakFreezes = streakFreezes; }
+
 	public LocalDateTime getCreatedAt() { return createdAt; }
 	public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -107,6 +112,7 @@ public class Progress {
 		private Integer totalSpeakingSessions;
 		private Integer totalGrammarChecks;
 		private Integer totalVocabularyWords;
+		private Integer streakFreezes = 1;
 		private LocalDateTime createdAt;
 		private LocalDateTime updatedAt;
 
@@ -120,6 +126,7 @@ public class Progress {
 		public ProgressBuilder totalSpeakingSessions(Integer totalSpeakingSessions) { this.totalSpeakingSessions = totalSpeakingSessions; return this; }
 		public ProgressBuilder totalGrammarChecks(Integer totalGrammarChecks) { this.totalGrammarChecks = totalGrammarChecks; return this; }
 		public ProgressBuilder totalVocabularyWords(Integer totalVocabularyWords) { this.totalVocabularyWords = totalVocabularyWords; return this; }
+		public ProgressBuilder streakFreezes(Integer streakFreezes) { this.streakFreezes = streakFreezes; return this; }
 		public ProgressBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
 		public ProgressBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
@@ -135,6 +142,7 @@ public class Progress {
             obj.setTotalSpeakingSessions(totalSpeakingSessions);
             obj.setTotalGrammarChecks(totalGrammarChecks);
             obj.setTotalVocabularyWords(totalVocabularyWords);
+            obj.setStreakFreezes(streakFreezes != null ? streakFreezes : 1);
             obj.setCreatedAt(createdAt);
             obj.setUpdatedAt(updatedAt);
             return obj;

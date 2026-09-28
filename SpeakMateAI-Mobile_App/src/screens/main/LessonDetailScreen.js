@@ -122,8 +122,14 @@ export default function LessonDetailScreen({ navigation, route }) {
   const { isDark, theme } = useTheme();
   const { showToast, triggerConfetti } = useToast();
   const { lessonId } = route.params || {};
+  const targetTitle = (route.params?.lessonTitle || route.params?.title || route.params?.lesson?.title || '').trim();
+  const targetId = lessonId || route.params?.lesson?.id;
+  const standardLocal = (targetTitle ? findStandardLesson(targetTitle) : null) || (targetId ? findStandardLesson(targetId) : null);
 
-  const initialLesson = route.params?.lesson || findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle) || findStandardLesson(route.params?.title) || null;
+  const initialLesson = standardLocal
+    ? { ...standardLocal, ...(route.params?.lesson || {}) }
+    : (route.params?.lesson || null);
+
   const [lesson, setLesson] = useState(initialLesson);
   const [loading, setLoading] = useState(!initialLesson);
   const [actionLoading, setActionLoading] = useState(false);
@@ -276,10 +282,19 @@ export default function LessonDetailScreen({ navigation, route }) {
     if (!lesson && !initialLesson) setLoading(true);
     setError('');
     try {
-      const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle) || findStandardLesson(route.params?.title);
+      const curTitle = (route.params?.lessonTitle || route.params?.title || route.params?.lesson?.title || lesson?.title || '').trim();
+      const curId = lessonId || route.params?.lesson?.id || lesson?.id;
+      const local = (curTitle ? findStandardLesson(curTitle) : null) || (curId ? findStandardLesson(curId) : null);
+
       const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
-      const completedIds = stored ? JSON.parse(stored) : [];
-      const isDone = local ? completedIds.includes(String(local.id)) : false;
+      const completedList = stored ? JSON.parse(stored) : [];
+      const completedSet = new Set(completedList.map((x) => String(x).toLowerCase()));
+
+      const isDone = local
+        ? completedSet.has(String(local.id).toLowerCase()) ||
+          completedSet.has(String(curId).toLowerCase()) ||
+          completedSet.has((local.title || '').trim().toLowerCase())
+        : false;
 
       if (local) {
         setLesson({
@@ -290,30 +305,86 @@ export default function LessonDetailScreen({ navigation, route }) {
         Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }).start();
       }
 
-      if (typeof lessonId === 'number' || (/^\d+$/.test(String(lessonId)))) {
-        const data = await lessonModuleService.detail(lessonId);
-        if (data) {
-          setLesson((prev) => ({
-            ...(local || {}),
-            ...data,
-            title: local?.title || data?.title || prev?.title,
-            category: local?.category || data?.category || prev?.category,
-            level: local?.level || data?.level || prev?.level,
-            description: local?.description || data?.description || prev?.description,
-            checkQuestion: local?.checkQuestion || prev?.checkQuestion,
-            guidedPractice: local?.guidedPractice || prev?.guidedPractice,
-            speakingDrills: local?.speakingDrills || prev?.speakingDrills,
-            quiz: local?.quiz || prev?.quiz,
-          }));
+      const effectiveBackendId =
+        typeof curId === 'number' || /^\d+$/.test(String(curId)) ? curId : local?.numericId || null;
+
+      if (effectiveBackendId) {
+        try {
+          const data = await lessonModuleService.detail(effectiveBackendId);
+          if (data) {
+            const backendDone = isDone || Boolean(data.completed) || (data.progressPercent >= 100);
+            const backendProg = backendDone ? 100 : (data.progressPercent || local?.progressPercent || 0);
+
+            // Re-resolve matching standard lesson by backend data title if applicable
+            const matchedByData = (data.title ? findStandardLesson(data.title) : null) || local;
+
+            setLesson((prev) => ({
+              ...(matchedByData || {}),
+              ...data,
+              title: data.title || matchedByData?.title || prev?.title,
+              category: data.category || matchedByData?.category || prev?.category,
+              level: data.level || data.difficulty || matchedByData?.level || prev?.level,
+              description: data.description || matchedByData?.description || prev?.description,
+              checkQuestion: matchedByData?.checkQuestion || prev?.checkQuestion,
+              guidedPractice: matchedByData?.guidedPractice || prev?.guidedPractice,
+              speakingDrills: matchedByData?.speakingDrills || prev?.speakingDrills,
+              quiz: matchedByData?.quiz || prev?.quiz,
+              completed: backendDone,
+              progressPercent: backendProg,
+            }));
+          }
+        } catch (fetchErr) {
+          console.warn('Backend detail sync note (using local curriculum):', fetchErr?.message);
         }
       }
+
+      if (effectiveBackendId && !isDone) {
+        lessonModuleService.start(effectiveBackendId).catch(() => {});
+      }
+
+      if (!isDone) {
+        try {
+          const stored = await AsyncStorage.getItem('speakmate_in_progress_lessons').catch(() => null);
+          const inProg = stored ? JSON.parse(stored) : [];
+          const targetTitle = (local?.title || curTitle || '').trim().toLowerCase();
+          const targetId = String(local?.id || curId || '');
+          const existingIdx = inProg.findIndex(item =>
+            (targetTitle && (item?.title || '').trim().toLowerCase() === targetTitle) ||
+            (targetId && String(item?.id || '') === targetId)
+          );
+          const curProg = existingIdx !== -1 ? Math.max(11, inProg[existingIdx].progressPercent || 0) : Math.max(11, local?.progressPercent || 0);
+          const itemToSave = {
+            id: curId || local?.id,
+            numericId: local?.numericId,
+            title: local?.title || curTitle,
+            category: local?.category || 'General',
+            level: local?.level || 'Beginner',
+            xpReward: local?.xpReward || 35,
+            estimatedMinutes: local?.estimatedMinutes || local?.duration || 15,
+            progressPercent: curProg,
+            lastOpenedAt: new Date().toISOString(),
+          };
+          if (existingIdx !== -1) {
+            inProg[existingIdx] = { ...inProg[existingIdx], ...itemToSave };
+          } else {
+            inProg.unshift(itemToSave);
+          }
+          await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(inProg));
+        } catch (_) {}
+      }
+
       Animated.timing(fadeIn, { toValue: 1, duration: 500, useNativeDriver: true }).start();
     } catch (e) {
-      const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle) || findStandardLesson(route.params?.title);
+      const curTitle = (route.params?.lessonTitle || route.params?.title || route.params?.lesson?.title || '').trim();
+      const curId = lessonId || route.params?.lesson?.id;
+      const local = (curTitle ? findStandardLesson(curTitle) : null) || (curId ? findStandardLesson(curId) : null);
       if (local) {
         const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
-        const completedIds = stored ? JSON.parse(stored) : [];
-        const isDone = completedIds.includes(String(local.id));
+        const completedList = stored ? JSON.parse(stored) : [];
+        const completedSet = new Set(completedList.map((x) => String(x).toLowerCase()));
+        const isDone =
+          completedSet.has(String(local.id).toLowerCase()) ||
+          completedSet.has((local.title || '').trim().toLowerCase());
         setLesson({
           ...local,
           completed: isDone,
@@ -920,6 +991,25 @@ export default function LessonDetailScreen({ navigation, route }) {
     try {
       // Non-blocking backend notification
       lessonModuleService.start(lesson.id).catch(() => {});
+
+      // Record in local in-progress storage so it immediately shows up in Continue Learning if exited midway
+      try {
+        const stored = await AsyncStorage.getItem('speakmate_in_progress_lessons').catch(() => null);
+        const inProg = stored ? JSON.parse(stored) : [];
+        const filtered = inProg.filter(item => (item.title || '').toLowerCase() !== (lesson.title || '').toLowerCase());
+        const initialProg = Math.max(11, lesson.progressPercent || 0);
+        filtered.unshift({
+          id: lesson.id,
+          title: lesson.title,
+          category: lesson.category,
+          level: lesson.level,
+          xpReward: lesson.xpReward,
+          estimatedMinutes: lesson.estimatedMinutes || lesson.duration,
+          progressPercent: initialProg,
+          lastOpenedAt: new Date().toISOString(),
+        });
+        await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(filtered));
+      } catch (_) {}
       
       const defaultTeach = `Welcome to your detailed masterclass on "${lesson.title}"!\n\n` +
         `1. WHAT IS THIS CONCEPT:\nThis topic is a foundational pillar of ${lesson.category} in English. ${lesson.description || 'Mastering this will significantly boost your fluency, confidence, and grammatical accuracy.'}\n\n` +
@@ -1008,6 +1098,38 @@ export default function LessonDetailScreen({ navigation, route }) {
 
     let progressPercent = Math.min(100, Math.round(((nextStep + 1) / 9) * 100));
 
+    // Update in local in-progress storage so exiting midway preserves exact step
+    try {
+      const stored = await AsyncStorage.getItem('speakmate_in_progress_lessons').catch(() => null);
+      const inProg = stored ? JSON.parse(stored) : [];
+      const titleKey = (lesson?.title || '').trim().toLowerCase();
+      const idKey = String(lesson?.id || '');
+      const existingIdx = inProg.findIndex(item =>
+        (titleKey && (item?.title || '').trim().toLowerCase() === titleKey) ||
+        (idKey && String(item?.id || '') === idKey)
+      );
+      if (existingIdx !== -1) {
+        inProg[existingIdx] = {
+          ...inProg[existingIdx],
+          progressPercent: Math.max(inProg[existingIdx].progressPercent || 0, progressPercent),
+          lastOpenedAt: new Date().toISOString(),
+        };
+      } else {
+        inProg.unshift({
+          id: lesson?.id,
+          numericId: lesson?.numericId,
+          title: lesson?.title,
+          category: lesson?.category,
+          level: lesson?.level,
+          xpReward: lesson?.xpReward,
+          estimatedMinutes: lesson?.estimatedMinutes || lesson?.duration,
+          progressPercent,
+          lastOpenedAt: new Date().toISOString(),
+        });
+      }
+      await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(inProg));
+    } catch (_) {}
+
     const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
     if (isNumeric) {
       try {
@@ -1057,90 +1179,97 @@ export default function LessonDetailScreen({ navigation, route }) {
     }
   };
 
+  const markLessonAsDone = async (awardedXP) => {
+    try {
+      const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
+      if (isNumeric) {
+        try {
+          await lessonModuleService.complete(lesson.id);
+        } catch (backendErr) {
+          console.warn('Backend complete lesson sync warning:', backendErr?.message);
+        }
+      }
+
+      // Persist to local completed set with ID, numericId, and lowercase title
+      const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
+      const completedList = stored ? JSON.parse(stored) : [];
+      const updatedList = [...completedList];
+      if (lesson?.id && !updatedList.includes(String(lesson.id))) {
+        updatedList.push(String(lesson.id));
+      }
+      if (lesson?.numericId && !updatedList.includes(String(lesson.numericId))) {
+        updatedList.push(String(lesson.numericId));
+      }
+      if (lesson?.title) {
+        const lowerTitle = lesson.title.trim().toLowerCase();
+        if (!updatedList.includes(lowerTitle)) {
+          updatedList.push(lowerTitle);
+        }
+      }
+      await AsyncStorage.setItem('speakmate_completed_standard_lessons', JSON.stringify(updatedList));
+
+      // Remove this completed lesson from speakmate_in_progress_lessons
+      try {
+        const storedInProg = await AsyncStorage.getItem('speakmate_in_progress_lessons').catch(() => null);
+        if (storedInProg) {
+          const inProg = JSON.parse(storedInProg);
+          const curTitle = (lesson?.title || '').trim().toLowerCase();
+          const curId = String(lesson?.id || '');
+          const curNumId = String(lesson?.numericId || '');
+          const filteredInProg = inProg.filter(item => {
+            const itemTitle = (item?.title || '').trim().toLowerCase();
+            const itemId = String(item?.id || '');
+            const itemNumId = String(item?.numericId || '');
+            if (curTitle && itemTitle === curTitle) return false;
+            if (curId && itemId === curId) return false;
+            if (curNumId && (itemId === curNumId || itemNumId === curNumId)) return false;
+            return true;
+          });
+          await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(filteredInProg));
+        }
+      } catch (_) {}
+
+      // Update user overall progress XP & completed lessons count
+      const curProg = await progressService.get().catch(() => null);
+      if (curProg) {
+        await progressService.update({
+          ...curProg,
+          xp: (curProg.xp || 0) + (awardedXP || 0),
+          completedLessons: (curProg.completedLessons || 0) + 1,
+        }).catch(() => {});
+      }
+    } catch (e) {
+      console.warn('Failed to complete lesson record:', e);
+    }
+  };
+
   const finishDynamicQuiz = async () => {
     setQuizFinished(true);
     const finalScore = quizScoreRef.current;
     const totalQ = quizQuestions.length || 5;
 
-    if (listenedFullExplanation) {
-      const multiplier = quizLevel === 'Advanced' ? 20 : (quizLevel === 'Intermediate' ? 15 : 10);
-      const perfectBonusAmount = quizLevel === 'Advanced' ? 30 : (quizLevel === 'Intermediate' ? 25 : 20);
+    const multiplier = quizLevel === 'Advanced' ? 20 : (quizLevel === 'Intermediate' ? 15 : 10);
+    const perfectBonusAmount = quizLevel === 'Advanced' ? 30 : (quizLevel === 'Intermediate' ? 25 : 20);
 
-      const baseXP = finalScore * multiplier;
-      const perfectBonus = (finalScore === totalQ && totalQ > 0) ? perfectBonusAmount : 0;
-      const totalAwarded = Math.max(15, baseXP + perfectBonus - blankPenalty);
-      setEarnedXP(totalAwarded);
+    const baseXP = finalScore * multiplier;
+    const perfectBonus = (finalScore === totalQ && totalQ > 0) ? perfectBonusAmount : 0;
+    const totalAwarded = Math.max(15, baseXP + perfectBonus - blankPenalty);
+    setEarnedXP(totalAwarded);
 
-      triggerConfetti();
-      showToast(`Quiz Complete! +${totalAwarded} XP 🏆`, 'xp', `Score: ${finalScore}/${totalQ} correct!`);
-
-      try {
-        const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
-        if (isNumeric) {
-          await lessonModuleService.complete(lesson.id);
-        } else {
-          const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
-          const completedIds = stored ? JSON.parse(stored) : [];
-          if (lesson?.id && !completedIds.includes(String(lesson.id))) {
-            completedIds.push(String(lesson.id));
-            await AsyncStorage.setItem('speakmate_completed_standard_lessons', JSON.stringify(completedIds));
-          }
-          const curProg = await progressService.get().catch(() => null);
-          if (curProg) {
-            await progressService.update({
-              ...curProg,
-              xp: (curProg.xp || 0) + totalAwarded,
-              completedLessons: (curProg.completedLessons || 0) + 1,
-            });
-          }
-        }
-      } catch (e) {
-        console.warn("Failed to complete lesson on quiz finish:", e);
-      }
-    } else {
-      setEarnedXP(0);
-      showToast(`Session Complete (0 XP)`, 'info', `Listen to full explanation to earn XP.`);
-    }
+    await markLessonAsDone(totalAwarded);
+    triggerConfetti();
+    showToast(`Quiz Complete! +${totalAwarded} XP 🏆`, 'xp', `Score: ${finalScore}/${totalQ} correct!`);
+    setLesson((prev) => (prev ? { ...prev, completed: true, progressPercent: 100 } : prev));
   };
 
   const finishLesson = async () => {
     if (!lesson) return;
     setActionLoading(true);
     try {
-      if (listenedFullExplanation) {
-        const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
-        if (isNumeric) {
-          try {
-            await lessonModuleService.complete(lesson.id);
-          } catch (backendErr) {
-            console.warn('Backend complete lesson sync warning (using client fallback):', backendErr?.message);
-          }
-        } else {
-          try {
-            const stored = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
-            const completedIds = stored ? JSON.parse(stored) : [];
-            if (lesson?.id && !completedIds.includes(String(lesson.id))) {
-              completedIds.push(String(lesson.id));
-              await AsyncStorage.setItem('speakmate_completed_standard_lessons', JSON.stringify(completedIds));
-            }
-            const curProg = await progressService.get().catch(() => null);
-            const xpToAdd = earnedXP > 0 ? earnedXP : (lesson.xpReward || 50);
-            if (curProg) {
-              await progressService.update({
-                ...curProg,
-                xp: (curProg.xp || 0) + xpToAdd,
-                completedLessons: (curProg.completedLessons || 0) + 1,
-              });
-            }
-          } catch (e) {
-            console.warn('Failed to update standard lesson progress:', e);
-          }
-        }
-        triggerConfetti();
-        showToast('Lesson Mastered! 🎉', 'success', `Unlocked +${earnedXP > 0 ? earnedXP : (lesson.xpReward || 50)} XP`);
-      } else {
-        showToast('Practice Finished (0 XP)', 'info', 'Listen to full explanation next time to unlock XP!');
-      }
+      const xpToAdd = earnedXP > 0 ? earnedXP : (lesson.xpReward || 35);
+      await markLessonAsDone(xpToAdd);
+      triggerConfetti();
+      showToast('Lesson Mastered! 🎉', 'success', `Unlocked +${xpToAdd} XP`);
       setShowStudy(false);
       setLesson((prev) => (prev ? { ...prev, completed: true, progressPercent: 100 } : prev));
       await loadLesson().catch(() => {});

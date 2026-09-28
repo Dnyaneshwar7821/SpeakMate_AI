@@ -12,6 +12,8 @@ public interface DashboardService {
 
 	List<WeeklyProgressResponse> getWeeklyProgress();
 
+	List<WeeklyProgressResponse> getRhythmProgress(int days);
+
 	StatisticsResponse getStatistics();
 
 	QuoteResponse getQuote();

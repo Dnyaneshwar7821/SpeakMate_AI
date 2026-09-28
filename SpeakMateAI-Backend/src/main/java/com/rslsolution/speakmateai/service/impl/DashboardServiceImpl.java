@@ -3,6 +3,7 @@ package com.rslsolution.speakmateai.service.impl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -545,58 +546,94 @@ public class DashboardServiceImpl implements DashboardService {
 
 	@Override
 	public List<WeeklyProgressResponse> getWeeklyProgress() {
+		return getRhythmProgress(7);
+	}
+
+	@Override
+	public List<WeeklyProgressResponse> getRhythmProgress(int days) {
 		User user = getCurrentUser();
-		String[] dayNames = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-		List<WeeklyProgressResponse> weeklyProgress = new ArrayList<>();
-		for (String dayName : dayNames) {
-			weeklyProgress.add(WeeklyProgressResponse.builder()
-					.day(dayName)
-					.studyMinutes(0)
-					.lessonsCompleted(0)
-					.speakingSessions(0)
-					.build());
+		int totalDays = days > 0 ? (days <= 30 ? days : 30) : 7;
+		LocalDate today = LocalDate.now();
+
+		List<WeeklyProgressResponse> rhythmList = new ArrayList<>();
+		Map<LocalDate, WeeklyProgressResponse> dateMap = new HashMap<>();
+
+		if (totalDays == 7) {
+			// Monday to Sunday alignment for standard weekly rhythm
+			LocalDate monday = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
+			String[] dayNames = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+			for (int i = 0; i < 7; i++) {
+				LocalDate d = monday.plusDays(i);
+				WeeklyProgressResponse entry = WeeklyProgressResponse.builder()
+						.day(dayNames[i])
+						.date(d.toString())
+						.studyMinutes(0)
+						.lessonsCompleted(0)
+						.speakingSessions(0)
+						.build();
+				rhythmList.add(entry);
+				dateMap.put(d, entry);
+			}
+		} else {
+			// Multi-day rolling window (e.g. 30 days) ending today
+			for (int i = totalDays - 1; i >= 0; i--) {
+				LocalDate d = today.minusDays(i);
+				String shortDay = d.getDayOfWeek().getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH);
+				WeeklyProgressResponse entry = WeeklyProgressResponse.builder()
+						.day(shortDay)
+						.date(d.toString())
+						.studyMinutes(0)
+						.lessonsCompleted(0)
+						.speakingSessions(0)
+						.build();
+				rhythmList.add(entry);
+				dateMap.put(d, entry);
+			}
 		}
 
-		LocalDate today = LocalDate.now();
-		LocalDate monday = today.with(java.time.temporal.TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
-		LocalDate sunday = monday.plusDays(6);
+		LocalDate rangeStart = rhythmList.get(0).getDate() != null ? LocalDate.parse(rhythmList.get(0).getDate()) : today.minusDays(totalDays);
+		LocalDate rangeEnd = rhythmList.get(rhythmList.size() - 1).getDate() != null ? LocalDate.parse(rhythmList.get(rhythmList.size() - 1).getDate()) : today;
 
 		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
 		List<LessonProgress> completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true);
 
-		int[] studySeconds = new int[7];
-		int[] speakingSessions = new int[7];
-		int[] lessonsCompleted = new int[7];
+		Map<LocalDate, Integer> secondsMap = new HashMap<>();
 
 		for (SpeakingSession s : sessions) {
 			boolean isValid = Boolean.TRUE.equals(s.getCompleted()) && ((s.getScore() != null && s.getScore() > 0) || (s.getXpEarned() != null && s.getXpEarned() > 0) || (s.getDuration() != null && s.getDuration() >= 15));
 			if (!isValid) continue;
 			if (s.getCreatedAt() != null) {
 				LocalDate date = s.getCreatedAt().toLocalDate();
-				if (!date.isBefore(monday) && !date.isAfter(sunday)) {
-					int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1; // Mon=1 -> 0, Sun=7 -> 6
-					studySeconds[dayOfWeekIndex] += s.getDuration() != null ? s.getDuration() : 0;
-					speakingSessions[dayOfWeekIndex]++;
+				if (!date.isBefore(rangeStart) && !date.isAfter(rangeEnd)) {
+					WeeklyProgressResponse entry = dateMap.get(date);
+					if (entry != null) {
+						int dur = s.getDuration() != null ? s.getDuration() : 0;
+						secondsMap.put(date, secondsMap.getOrDefault(date, 0) + dur);
+						entry.setSpeakingSessions(entry.getSpeakingSessions() + 1);
+					}
 				}
 			}
 		}
 
 		for (LessonProgress lp : completedLessons) {
 			LocalDate date = lp.getCompletedAt() != null ? lp.getCompletedAt().toLocalDate() : (lp.getUpdatedAt() != null ? lp.getUpdatedAt().toLocalDate() : null);
-			if (date != null && !date.isBefore(monday) && !date.isAfter(sunday)) {
-				int dayOfWeekIndex = date.getDayOfWeek().getValue() - 1;
-				lessonsCompleted[dayOfWeekIndex]++;
+			if (date != null && !date.isBefore(rangeStart) && !date.isAfter(rangeEnd)) {
+				WeeklyProgressResponse entry = dateMap.get(date);
+				if (entry != null) {
+					entry.setLessonsCompleted(entry.getLessonsCompleted() + 1);
+				}
 			}
 		}
 
-		for (int i = 0; i < 7; i++) {
-			WeeklyProgressResponse dayRes = weeklyProgress.get(i);
-			dayRes.setStudyMinutes((int) Math.ceil(studySeconds[i] / 60.0));
-			dayRes.setSpeakingSessions(speakingSessions[i]);
-			dayRes.setLessonsCompleted(lessonsCompleted[i]);
+		for (WeeklyProgressResponse entry : rhythmList) {
+			if (entry.getDate() != null) {
+				LocalDate d = LocalDate.parse(entry.getDate());
+				int sec = secondsMap.getOrDefault(d, 0);
+				entry.setStudyMinutes((int) Math.ceil(sec / 60.0));
+			}
 		}
 
-		return weeklyProgress;
+		return rhythmList;
 	}
 
 	@Override

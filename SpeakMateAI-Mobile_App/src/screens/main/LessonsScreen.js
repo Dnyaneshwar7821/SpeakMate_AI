@@ -7,6 +7,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } 
 import {
   ActivityIndicator,
   Animated,
+  Dimensions,
   FlatList,
   Pressable,
   RefreshControl,
@@ -30,6 +31,9 @@ import { COLORS } from '../../constants/colors';
 import { STANDARD_LESSONS, GENERAL_LESSONS, MASTER_LESSONS } from '../../constants/standardLessons';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CONTINUE_CARD_WIDTH = Math.min(340, Math.round(SCREEN_WIDTH * 0.84));
 
 const DIFFICULTY_TABS = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
@@ -250,24 +254,30 @@ function LessonCard({ lesson, onPress }) {
 }
 
 function ContinueLearningCard({ lesson, onPress }) {
+  const percent = Math.min(100, Math.max(10, lesson.progressPercent || 11));
   return (
     <TouchableOpacity style={styles.continueCard} onPress={onPress} activeOpacity={0.85}>
       <LinearGradient colors={['#4F46E5', '#7C3AED']} style={styles.continueGradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
         <View style={styles.continueLeft}>
-          <Text style={styles.continueLabel}>Continue Learning</Text>
+          <View style={styles.continueBadgeRow}>
+            <Text style={styles.continueLabel}>Continue Learning</Text>
+            <View style={styles.continueProgressBadge}>
+              <Text style={styles.continueProgressBadgeText}>{percent}%</Text>
+            </View>
+          </View>
           <Text style={styles.continueTitle} numberOfLines={1}>{lesson.title}</Text>
-          <Text style={styles.continueCat}>{lesson.category} · {lesson.level}</Text>
+          <Text style={styles.continueCat}>{lesson.category} · {lesson.level || lesson.difficulty || 'All Levels'}</Text>
           <View style={styles.continueMeta}>
             <Ionicons name="star" size={13} color="#FCD34D" />
-            <Text style={styles.continueXP}>{lesson.xpReward || 0} XP</Text>
+            <Text style={styles.continueXP}>{lesson.xpReward || 35} XP</Text>
             <Text style={styles.continueDot}>·</Text>
             <Ionicons name="time-outline" size={13} color="rgba(255,255,255,0.8)" />
-            <Text style={styles.continueTime}>{lesson.estimatedMinutes || lesson.duration || '—'} min</Text>
+            <Text style={styles.continueTime}>{lesson.estimatedMinutes || lesson.duration || 15} min</Text>
           </View>
           <View style={styles.continueProg}>
-            <View style={[styles.continueProgFill, { width: `${lesson.progressPercent || 0}%` }]} />
+            <View style={[styles.continueProgFill, { width: `${percent}%` }]} />
           </View>
-          <Text style={styles.continueProgText}>{lesson.progressPercent || 0}% complete</Text>
+          <Text style={styles.continueProgText}>{percent}% complete</Text>
         </View>
         <View style={styles.continueRight}>
           <View style={styles.continuePlayBtn}>
@@ -279,11 +289,14 @@ function ContinueLearningCard({ lesson, onPress }) {
   );
 }
 
-function SectionHeader({ title, onSeeAll }) {
+function SectionHeader({ title, subtitle, onSeeAll }) {
   const { theme } = useTheme();
   return (
     <View style={styles.secHeader}>
-      <Text style={[styles.secTitle, { color: theme.textPrimary }]}>{title}</Text>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.secTitle, { color: theme.textPrimary }]}>{title}</Text>
+        {subtitle ? <Text style={[styles.secSubtitle, { color: theme.textSecondary }]}>{subtitle}</Text> : null}
+      </View>
       {onSeeAll && (
         <TouchableOpacity onPress={onSeeAll}>
           <Text style={styles.seeAll}>See all</Text>
@@ -432,23 +445,106 @@ export default function LessonsScreen({ navigation }) {
       const baseCurriculum = profileInfo.curriculum;
 
       // Categories from newly defined profile lessons
+      const storedCompletedRaw = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
+      const completedSet = new Set(storedCompletedRaw ? JSON.parse(storedCompletedRaw).map(x => String(x).toLowerCase()) : []);
+
       const catCounts = {};
+      const catCompletedCounts = {};
       baseCurriculum.forEach(l => {
         const c = l.category || 'General';
         catCounts[c] = (catCounts[c] || 0) + 1;
+        const titleKey = (l.title || '').trim().toLowerCase();
+        const idKey = String(l.id || '').toLowerCase();
+        if (completedSet.has(idKey) || completedSet.has(titleKey)) {
+          catCompletedCounts[c] = (catCompletedCounts[c] || 0) + 1;
+        }
       });
       const curatedCategories = Object.keys(catCounts).map(catName => ({
         name: catName,
         lessonCount: catCounts[catName],
-        completedCount: 0,
+        completedCount: catCompletedCounts[catName] || 0,
         icon: 'folder-outline',
       }));
       setCategories(curatedCategories);
 
-      // Continue learning from newly defined profile lessons
-      const targetTitles = new Set(baseCurriculum.map(t => (t.title || '').trim().toLowerCase()));
-      const matchedCont = (cont || []).filter(c => targetTitles.has((c.title || '').trim().toLowerCase()));
-      setContinueItems(matchedCont.length > 0 ? matchedCont : (baseCurriculum.length > 0 ? [baseCurriculum[0]] : []));
+      // Continue learning: include ALL lessons that have been opened/started but not completed
+      const storedInProgressRaw = await AsyncStorage.getItem('speakmate_in_progress_lessons').catch(() => null);
+      const localInProgressList = storedInProgressRaw ? JSON.parse(storedInProgressRaw) : [];
+
+      // Merge backend in-progress items and local in-progress items
+      const combinedCont = [...(cont || [])];
+      localInProgressList.forEach(localItem => {
+        if (!localItem) return;
+        const titleKey = (localItem?.title || '').trim().toLowerCase();
+        const idKey = String(localItem?.id || '');
+        const existingIdx = combinedCont.findIndex(c => 
+          (titleKey && (c.title || '').trim().toLowerCase() === titleKey) ||
+          (idKey && String(c.id || '') === idKey)
+        );
+        if (existingIdx === -1) {
+          combinedCont.push(localItem);
+        } else if ((localItem.progressPercent || 0) > (combinedCont[existingIdx].progressPercent || 0)) {
+          combinedCont[existingIdx] = { ...combinedCont[existingIdx], ...localItem };
+        }
+      });
+
+      // Keep lessons strictly present in THIS user's 20-lesson curriculum list (not random lessons)
+      const userCurriculumTitles = new Set(baseCurriculum.map(l => (l.title || '').trim().toLowerCase()));
+      const userCurriculumIds = new Set(baseCurriculum.flatMap(l => [String(l.id || '').toLowerCase(), String(l.numericId || '').toLowerCase()].filter(Boolean)));
+
+      const userSpecificInProgress = combinedCont.filter(c => {
+        if (!c) return false;
+        const titleKey = (c.title || '').trim().toLowerCase();
+        const idKey = String(c.id || '').toLowerCase();
+        const numIdKey = String(c.numericId || '').toLowerCase();
+        
+        // Compulsion: If title is present, it MUST match the user's specific curriculum titles.
+        if (titleKey) {
+          return userCurriculumTitles.has(titleKey);
+        }
+        return userCurriculumIds.has(idKey) || (numIdKey && userCurriculumIds.has(numIdKey));
+      });
+
+      // Filter to strictly non-completed lessons (progress < 100 and not marked done)
+      const activeCont = userSpecificInProgress.filter(c => {
+        const titleKey = (c.title || '').trim().toLowerCase();
+        const idKey = String(c.id || '').toLowerCase();
+        const isDone = Boolean(c.completed) || ((c.progressPercent || 0) >= 100) || completedSet.has(idKey) || completedSet.has(titleKey);
+        return !isDone;
+      });
+
+      // Enrich with metadata from user's curriculum item (so icons, xp, duration, level are exact)
+      const enrichedCont = activeCont.map(c => {
+        const titleKey = (c.title || '').trim().toLowerCase();
+        const matchedCurriculumLesson = baseCurriculum.find(l => 
+          (l.title || '').trim().toLowerCase() === titleKey
+        ) || baseCurriculum.find(l => 
+          String(l.id) === String(c.id) || 
+          String(l.numericId) === String(c.id) ||
+          String(l.numericId) === String(c.numericId)
+        );
+        return {
+          ...(matchedCurriculumLesson || {}),
+          ...c,
+          title: matchedCurriculumLesson?.title || c.title,
+          progressPercent: Math.min(100, Math.max(10, c.progressPercent || 11)),
+        };
+      });
+
+      if (enrichedCont.length > 0) {
+        // KEEP ALL opened incompleted lessons that are present in that user's 20-lesson list!
+        setContinueItems(enrichedCont);
+      } else {
+        // Fallback: pick the first uncompleted lesson in the user's 20-lesson curriculum
+        const nextLesson = baseCurriculum.find(l => {
+          const titleKey = (l.title || '').trim().toLowerCase();
+          const idKey = String(l.id || '').toLowerCase();
+          const isDone = Boolean(l.completed) || ((l.progressPercent || 0) >= 100) || completedSet.has(idKey) || completedSet.has(titleKey);
+          return !isDone;
+        }) || baseCurriculum[0];
+
+        setContinueItems(nextLesson ? [nextLesson] : []);
+      }
 
       // Recommended from newly defined profile lessons
       setRecommended(baseCurriculum.slice(0, 5));
@@ -473,7 +569,7 @@ export default function LessonsScreen({ navigation }) {
         lessonModuleService.list(params).catch(() => []),
         AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null),
       ]);
-      const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted) : []);
+      const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted).map(x => String(x).toLowerCase()) : []);
       
       const baseCurriculum = overrideCurriculum || getProfileCurriculum(user, userGrade, accountType, userAgeGroup).curriculum;
 
@@ -487,12 +583,15 @@ export default function LessonsScreen({ navigation }) {
 
       let list = baseCurriculum.map((sl) => {
         const backendMatch = backendMap.get((sl.title || '').trim().toLowerCase());
-        const isDone = completedSet.has(String(sl.id)) || Boolean(backendMatch?.completed);
+        const isDone = completedSet.has(String(sl.id).toLowerCase()) ||
+                       completedSet.has(String(backendMatch?.id).toLowerCase()) ||
+                       completedSet.has((sl.title || '').trim().toLowerCase()) ||
+                       Boolean(backendMatch?.completed);
         const prog = isDone ? 100 : (backendMatch?.progressPercent || sl.progressPercent || 0);
         return {
           ...sl,
           ...(backendMatch || {}),
-          id: sl.id,
+          id: backendMatch?.id || sl.id,
           title: sl.title,
           category: sl.category,
           level: sl.level,
@@ -715,7 +814,37 @@ export default function LessonsScreen({ navigation }) {
   }, [selectedCategory, activeTab, searchText, executeLocalSearch, applyFilter]);
 
   // ── Navigate to detail ─────────────────────────────────────────────
-  const openLesson = useCallback((lesson) => {
+  const openLesson = useCallback(async (lesson) => {
+    if (!lesson) return;
+    try {
+      const stored = await AsyncStorage.getItem('speakmate_in_progress_lessons').catch(() => null);
+      const inProg = stored ? JSON.parse(stored) : [];
+      const titleKey = (lesson.title || '').trim().toLowerCase();
+      const idKey = String(lesson.id || '');
+      const existingIdx = inProg.findIndex(item =>
+        (titleKey && (item?.title || '').trim().toLowerCase() === titleKey) ||
+        (idKey && String(item?.id || '') === idKey)
+      );
+      const curProg = existingIdx !== -1 ? Math.max(11, inProg[existingIdx].progressPercent || 0) : Math.max(11, lesson.progressPercent || 0);
+      const itemToSave = {
+        id: lesson.id,
+        numericId: lesson.numericId,
+        title: lesson.title,
+        category: lesson.category || 'General',
+        level: lesson.level || lesson.difficulty || 'Beginner',
+        xpReward: lesson.xpReward || 35,
+        estimatedMinutes: lesson.estimatedMinutes || lesson.duration || 15,
+        progressPercent: curProg,
+        lastOpenedAt: new Date().toISOString(),
+      };
+      if (existingIdx !== -1) {
+        inProg[existingIdx] = { ...inProg[existingIdx], ...itemToSave };
+      } else {
+        inProg.unshift(itemToSave);
+      }
+      await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(inProg));
+    } catch (_) {}
+
     navigation.navigate('LessonDetail', { lessonId: lesson.id, lessonTitle: lesson.title, lesson });
   }, [navigation]);
 
@@ -798,10 +927,31 @@ export default function LessonsScreen({ navigation }) {
       {/* ── Continue Learning ── */}
       {continueItems.length > 0 && searchResults === null && (
         <View style={styles.section}>
-          <SectionHeader title="📚 Continue Learning" />
-          {continueItems.map((lesson) => (
-            <ContinueLearningCard key={lesson.id} lesson={lesson} onPress={() => openLesson(lesson)} />
-          ))}
+          <SectionHeader
+            title={`📚 Continue Learning${continueItems.length > 1 ? ` (${continueItems.length})` : ''}`}
+            subtitle={continueItems.length > 1 ? "Swipe horizontally to resume" : undefined}
+          />
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.continueScrollContainer}
+            decelerationRate="fast"
+            snapToInterval={continueItems.length > 1 ? CONTINUE_CARD_WIDTH + 12 : undefined}
+            snapToAlignment="start"
+          >
+            {continueItems.map((lesson, idx) => (
+              <View
+                key={lesson.id ? `cont-${lesson.id}` : `cont-${lesson.title || idx}`}
+                style={[
+                  styles.continueSlideWrapper,
+                  { width: continueItems.length === 1 ? SCREEN_WIDTH - 32 : CONTINUE_CARD_WIDTH },
+                  idx === continueItems.length - 1 && { marginRight: 16 },
+                ]}
+              >
+                <ContinueLearningCard lesson={lesson} onPress={() => openLesson(lesson)} />
+              </View>
+            ))}
+          </ScrollView>
         </View>
       )}
 
@@ -1031,10 +1181,15 @@ const styles = StyleSheet.create({
   cardBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
 
   // Continue Learning
-  continueCard: { borderRadius: 20, overflow: 'hidden', marginBottom: 10, shadowColor: '#4F46E5', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 16, elevation: 5 },
+  continueScrollContainer: { paddingLeft: 16, paddingRight: 8, paddingBottom: 6 },
+  continueSlideWrapper: { marginRight: 12 },
+  continueCard: { borderRadius: 20, overflow: 'hidden', shadowColor: '#4F46E5', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.15, shadowRadius: 16, elevation: 5 },
   continueGradient: { flexDirection: 'row', padding: 18, alignItems: 'center' },
   continueLeft: { flex: 1 },
-  continueLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '600', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.8 },
+  continueBadgeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
+  continueLabel: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 },
+  continueProgressBadge: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8 },
+  continueProgressBadgeText: { color: '#FFF', fontSize: 10, fontWeight: '800' },
   continueTitle: { color: '#FFF', fontSize: 17, fontWeight: '900', marginBottom: 2 },
   continueCat: { color: 'rgba(255,255,255,0.75)', fontSize: 12, fontWeight: '500', marginBottom: 8 },
   continueMeta: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 10 },
@@ -1045,7 +1200,8 @@ const styles = StyleSheet.create({
   continueProgFill: { height: 4, backgroundColor: '#FFF', borderRadius: 2 },
   continueProgText: { color: 'rgba(255,255,255,0.7)', fontSize: 11, fontWeight: '500' },
   continueRight: { marginLeft: 14 },
-  continuePlayBtn: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
+  continuePlayBtn: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
+  secSubtitle: { fontSize: 12, fontWeight: '500', marginTop: 2 },
 
   // Empty state
   emptyState: { alignItems: 'center', paddingVertical: 48, paddingHorizontal: 32 },

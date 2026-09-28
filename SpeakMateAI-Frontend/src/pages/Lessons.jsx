@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Folder } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -52,6 +52,7 @@ export function Lessons() {
 
   const [lessons, setLessons] = useState(profileLessons);
   const [continueItems, setContinueItems] = useState(profileLessons.length > 0 ? [profileLessons[0]] : []);
+  const continueRowRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState(urlSearchQuery);
   const [searchResults, setSearchResults] = useState(null);
@@ -75,14 +76,56 @@ export function Lessons() {
         lessonModuleService.list({}).catch(() => null),
       ]);
 
+      // Target titles and IDs belonging strictly to this user's 20-lesson list
       const targetTitles = new Set(profileLessons.map((t) => (t.title || "").toLowerCase().trim()));
+      const userCurriculumTitles = targetTitles;
+      const userCurriculumIds = new Set(profileLessons.flatMap((t) => [String(t.id || "").toLowerCase(), String(t.numericId || "").toLowerCase()].filter(Boolean)));
 
       if (cont && Array.isArray(cont) && cont.length > 0) {
-        const matchedCont = cont.filter((c) => targetTitles.has((c.title || "").toLowerCase().trim()));
-        if (matchedCont.length > 0) {
-          setContinueItems(matchedCont);
+        // Keep ONLY incompleted lessons that are present in this user's 20-lesson list (not random lessons)
+        const userSpecificInProgress = cont.filter((c) => {
+          if (!c) return false;
+          const titleKey = (c.title || "").toLowerCase().trim();
+          const idKey = String(c.id || "").toLowerCase();
+          const numIdKey = String(c.numericId || "").toLowerCase();
+          
+          // Compulsion: If title is present, it MUST match the user's specific curriculum titles.
+          const belongsToUserList = titleKey
+            ? userCurriculumTitles.has(titleKey)
+            : (userCurriculumIds.has(idKey) || (numIdKey && userCurriculumIds.has(numIdKey)));
+          const isDone = Boolean(c.completed) || (c.progressPercent !== null && c.progressPercent >= 100);
+          return belongsToUserList && !isDone;
+        });
+
+        // Enrich with profileLesson data (xpReward, category, level, etc.)
+        const enrichedCont = userSpecificInProgress.map(c => {
+          const titleKey = (c.title || "").toLowerCase().trim();
+          const matched = profileLessons.find(p => 
+            (p.title || "").toLowerCase().trim() === titleKey
+          ) || profileLessons.find(p =>
+            String(p.id) === String(c.id) ||
+            String(p.numericId) === String(c.id) ||
+            String(p.numericId) === String(c.numericId)
+          );
+          return {
+            ...(matched || {}),
+            ...c,
+            title: matched?.title || c.title,
+            progressPercent: Math.min(100, Math.max(10, c.progressPercent || 11)),
+          };
+        });
+
+        if (enrichedCont.length > 0) {
+          setContinueItems(enrichedCont);
         } else if (profileLessons.length > 0) {
-          setContinueItems([profileLessons[0]]);
+          // Fallback to first uncompleted lesson in this user's 20-lesson list
+          const firstUncompleted = profileLessons.find(p => {
+            const titleKey = (p.title || "").toLowerCase().trim();
+            const idKey = String(p.id || "").toLowerCase();
+            return !cont.some(c => (Boolean(c.completed) || (c.progressPercent !== null && c.progressPercent >= 100)) && 
+              ((c.title || "").toLowerCase().trim() === titleKey || String(c.id || "").toLowerCase() === idKey));
+          }) || profileLessons[0];
+          setContinueItems([firstUncompleted]);
         }
       } else if (profileLessons.length > 0) {
         setContinueItems([profileLessons[0]]);
@@ -246,24 +289,106 @@ export function Lessons() {
         </div>
       </div>
 
-      {/* Continue Learning Banner */}
+      {/* Continue Learning Row (Horizontally Slideable Right or Left) */}
       {continueItems.length > 0 && searchResults === null && (
-        <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-[#6C63FF] via-[#7C74FF] to-[#FF6584] text-white shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-white/10">
-          <div className="space-y-2 text-center sm:text-left">
-            <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-3.5 py-1 rounded-full border border-white/20">
-              📚 Continue Learning
-            </span>
-            <h3 className="text-2xl font-black">{continueItems[0].title}</h3>
-            <p className="text-xs sm:text-sm font-semibold opacity-90">
-              Category: {continueItems[0].category} • Level: {continueItems[0].level} • +{continueItems[0].xpReward || 35} XP Reward
-            </p>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">📚</span>
+              <h2 className="text-2xl font-black text-[var(--text-primary)]">
+                Continue Learning
+                {continueItems.length > 1 && (
+                  <span className="text-xs font-bold text-[#6C63FF] ml-2 px-2.5 py-0.5 rounded-full bg-[#6C63FF]/10">
+                    {continueItems.length} in progress
+                  </span>
+                )}
+              </h2>
+            </div>
+            {continueItems.length > 1 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[var(--text-secondary)] font-medium hidden sm:inline">
+                  Slide or use arrows
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (continueRowRef.current) {
+                      continueRowRef.current.scrollBy({ left: -340, behavior: 'smooth' });
+                    }
+                  }}
+                  className="w-8 h-8 rounded-full bg-[var(--bg-surface)] hover:bg-[#6C63FF]/20 text-[var(--text-primary)] border border-white/10 flex items-center justify-center transition-all shadow-sm active:scale-95 text-xs font-bold"
+                  title="Slide Left"
+                >
+                  ◀
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (continueRowRef.current) {
+                      continueRowRef.current.scrollBy({ left: 340, behavior: 'smooth' });
+                    }
+                  }}
+                  className="w-8 h-8 rounded-full bg-[var(--bg-surface)] hover:bg-[#6C63FF]/20 text-[var(--text-primary)] border border-white/10 flex items-center justify-center transition-all shadow-sm active:scale-95 text-xs font-bold"
+                  title="Slide Right"
+                >
+                  ▶
+                </button>
+              </div>
+            )}
           </div>
-          <button
-            onClick={() => navigate(`/lessons/${continueItems[0].id}`)}
-            className="px-8 py-4 rounded-2xl bg-white text-[#6C63FF] font-black text-sm shadow-xl hover:scale-105 active:scale-95 transition-all shrink-0"
+
+          <div
+            ref={continueRowRef}
+            className="flex gap-4 overflow-x-auto pb-3 pt-1 scroll-smooth snap-x scrollbar-thin scrollbar-thumb-[#6C63FF]/30 scrollbar-track-transparent"
+            style={{ scrollbarWidth: 'thin' }}
           >
-            Start Masterclass ▶
-          </button>
+            {continueItems.map((item, idx) => {
+              const percent = Math.min(100, Math.max(10, item.progressPercent || 11));
+              return (
+                <div
+                  key={item.id ? `cont-${item.id}` : `cont-${item.title || idx}`}
+                  className="min-w-[290px] sm:min-w-[340px] max-w-[380px] flex-shrink-0 snap-start p-6 rounded-3xl bg-gradient-to-br from-[#4F46E5] via-[#6366F1] to-[#8B5CF6] text-white shadow-xl flex flex-col justify-between gap-4 border border-white/10 hover:shadow-2xl transition-all"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider bg-white/20 px-3 py-0.5 rounded-full border border-white/20">
+                        In Progress
+                      </span>
+                      <span className="text-xs font-bold text-[#FCD34D] flex items-center gap-1">
+                        ⭐ +{item.xpReward || 35} XP
+                      </span>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-black line-clamp-1">{item.title}</h3>
+                      <p className="text-xs font-semibold opacity-85 mt-0.5">
+                        {item.category} • {item.level || 'All Levels'} • {item.estimatedMinutes || item.duration || 15} min
+                      </p>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="pt-1 space-y-1">
+                      <div className="w-full h-2 rounded-full bg-white/25 overflow-hidden">
+                        <div
+                          className="h-full bg-white rounded-full transition-all duration-300"
+                          style={{ width: `${percent}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] font-semibold text-white/80 text-right">
+                        {percent}% complete
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => navigate(`/lessons/${item.id}`)}
+                    className="w-full py-3 rounded-2xl bg-white text-[#4F46E5] font-black text-sm shadow-md hover:bg-slate-100 hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2"
+                  >
+                    Resume Masterclass ▶
+                  </button>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

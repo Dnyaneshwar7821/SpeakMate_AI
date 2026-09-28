@@ -2,20 +2,20 @@
  * SpeakMate AI — Master 120 Academic Lessons Curriculum Dataset
  * 
  * Part 1: School Curriculums (60 Lessons)
- *   - Cluster 1: 1st to 4th Std (1-20)
- *   - Cluster 2: 5th to 8th Std (21-40)
- *   - Cluster 3: 9th to 10th Std (41-60)
+ *   - Cluster 1: 1st to 4th Std (21-40)
+ *   - Cluster 2: 5th to 8th Std (41-60)
+ *   - Cluster 3: 9th to 10th Std (61-80)
  * 
  * Part 2: General / Individual Users (60 Lessons)
- *   - Cluster 4: Kids Age 6-12 (61-80)
- *   - Cluster 5: Teens & Young Adults Age 13-24 (81-100)
- *   - Cluster 6: Professionals & Seniors Age 25+ (101-120)
+ *   - Cluster 4: Kids Age 6-12 (81-100)
+ *   - Cluster 5: Teens & Young Adults Age 13-24 (101-120)
+ *   - Cluster 6: Professionals & Seniors Age 25+ (121-140)
  */
 
 export const MASTER_LESSONS = [
   {
-    "id": "1",
-    "numericId": 1,
+    "id": "21",
+    "numericId": 21,
     "title": "Mastering Short & Long Vowels",
     "category": "Phonics",
     "level": "Beginner",
@@ -119,8 +119,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "2",
-    "numericId": 2,
+    "id": "22",
+    "numericId": 22,
     "title": "Sounds of Blends & Digraphs",
     "category": "Phonics",
     "level": "Beginner",
@@ -224,8 +224,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "3",
-    "numericId": 3,
+    "id": "23",
+    "numericId": 23,
     "title": "Naming Words: All About Nouns",
     "category": "Grammar",
     "level": "Beginner",
@@ -329,8 +329,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "4",
-    "numericId": 4,
+    "id": "24",
+    "numericId": 24,
     "title": "Common vs. Proper Nouns",
     "category": "Grammar",
     "level": "Beginner",
@@ -434,8 +434,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "5",
-    "numericId": 5,
+    "id": "25",
+    "numericId": 25,
     "title": "Singular & Plural Nouns",
     "category": "Grammar",
     "level": "Beginner",
@@ -539,8 +539,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "6",
-    "numericId": 6,
+    "id": "26",
+    "numericId": 26,
     "title": "Pronouns: Replacing Names",
     "category": "Grammar",
     "level": "Beginner",
@@ -644,8 +644,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "7",
-    "numericId": 7,
+    "id": "27",
+    "numericId": 27,
     "title": "Action Verbs in Motion",
     "category": "Grammar",
     "level": "Beginner",
@@ -749,8 +749,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "8",
-    "numericId": 8,
+    "id": "28",
+    "numericId": 28,
     "title": "Helping Verbs: Am, Is & Are",
     "category": "Grammar",
     "level": "Beginner",
@@ -854,8 +854,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "9",
-    "numericId": 9,
+    "id": "29",
+    "numericId": 29,
     "title": "Adjectives: Describing Words",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -959,8 +959,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "10",
-    "numericId": 10,
+    "id": "30",
+    "numericId": 30,
     "title": "Opposite Words & Antonyms",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -1064,8 +1064,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "11",
-    "numericId": 11,
+    "id": "31",
+    "numericId": 31,
     "title": "Prepositions of Place",
     "category": "Grammar",
     "level": "Beginner",
@@ -1169,8 +1169,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "12",
-    "numericId": 12,
+    "id": "32",
+    "numericId": 32,
     "title": "Building Complete Sentences",
     "category": "Syntax",
     "level": "Beginner",
@@ -1274,8 +1274,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "13",
-    "numericId": 13,
+    "id": "33",
+    "numericId": 33,
     "title": "Capitals & End Punctuation",
     "category": "Mechanics",
     "level": "Beginner",
@@ -1379,8 +1379,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "14",
-    "numericId": 14,
+    "id": "34",
+    "numericId": 34,
     "title": "The 5 WH-Question Words",
     "category": "Syntax",
     "level": "Beginner",
@@ -1484,8 +1484,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "15",
-    "numericId": 15,
+    "id": "35",
+    "numericId": 35,
     "title": "Using Articles: A, An & The",
     "category": "Grammar",
     "level": "Beginner",
@@ -1589,8 +1589,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "16",
-    "numericId": 16,
+    "id": "36",
+    "numericId": 36,
     "title": "Simple Present Tense & Habits",
     "category": "Tenses",
     "level": "Beginner",
@@ -1694,8 +1694,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "17",
-    "numericId": 17,
+    "id": "37",
+    "numericId": 37,
     "title": "Simple Past Tense Verbs",
     "category": "Tenses",
     "level": "Beginner",
@@ -1799,8 +1799,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "18",
-    "numericId": 18,
+    "id": "38",
+    "numericId": 38,
     "title": "Joining Words: Conjunctions",
     "category": "Syntax",
     "level": "Beginner",
@@ -1904,8 +1904,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "19",
-    "numericId": 19,
+    "id": "39",
+    "numericId": 39,
     "title": "Comparing with -er and -est",
     "category": "Grammar",
     "level": "Beginner",
@@ -2009,8 +2009,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "20",
-    "numericId": 20,
+    "id": "40",
+    "numericId": 40,
     "title": "Clear Speech & Voice Confidence",
     "category": "Spoken Mechanics",
     "level": "Beginner",
@@ -2114,8 +2114,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "21",
-    "numericId": 21,
+    "id": "41",
+    "numericId": 41,
     "title": "The 8 Parts of Speech",
     "category": "Grammar",
     "level": "Intermediate",
@@ -2219,8 +2219,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "22",
-    "numericId": 22,
+    "id": "42",
+    "numericId": 42,
     "title": "Subject-Verb Agreement Rules",
     "category": "Grammar",
     "level": "Intermediate",
@@ -2324,8 +2324,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "23",
-    "numericId": 23,
+    "id": "43",
+    "numericId": 43,
     "title": "Mastering the 12 Verb Tenses",
     "category": "Tenses",
     "level": "Intermediate",
@@ -2429,8 +2429,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "24",
-    "numericId": 24,
+    "id": "44",
+    "numericId": 44,
     "title": "Present Perfect vs. Simple Past",
     "category": "Tenses",
     "level": "Intermediate",
@@ -2534,8 +2534,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "25",
-    "numericId": 25,
+    "id": "45",
+    "numericId": 45,
     "title": "Past Continuous & Past Perfect",
     "category": "Tenses",
     "level": "Intermediate",
@@ -2639,8 +2639,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "26",
-    "numericId": 26,
+    "id": "46",
+    "numericId": 46,
     "title": "Future Forms: Will vs. Going To",
     "category": "Tenses",
     "level": "Intermediate",
@@ -2744,8 +2744,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "27",
-    "numericId": 27,
+    "id": "47",
+    "numericId": 47,
     "title": "Transitive & Intransitive Verbs",
     "category": "Grammar",
     "level": "Intermediate",
@@ -2849,8 +2849,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "28",
-    "numericId": 28,
+    "id": "48",
+    "numericId": 48,
     "title": "Simple, Compound & Complex Sentences",
     "category": "Syntax",
     "level": "Intermediate",
@@ -2954,8 +2954,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "29",
-    "numericId": 29,
+    "id": "49",
+    "numericId": 49,
     "title": "Active vs. Passive Voice",
     "category": "Grammar",
     "level": "Intermediate",
@@ -3059,8 +3059,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "30",
-    "numericId": 30,
+    "id": "50",
+    "numericId": 50,
     "title": "Direct and Indirect Speech",
     "category": "Grammar",
     "level": "Intermediate",
@@ -3164,8 +3164,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "31",
-    "numericId": 31,
+    "id": "51",
+    "numericId": 51,
     "title": "Reporting Questions & Requests",
     "category": "Grammar",
     "level": "Intermediate",
@@ -3269,8 +3269,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "32",
-    "numericId": 32,
+    "id": "52",
+    "numericId": 52,
     "title": "Modal Verbs: Can, May & Must",
     "category": "Grammar",
     "level": "Intermediate",
@@ -3374,8 +3374,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "33",
-    "numericId": 33,
+    "id": "53",
+    "numericId": 53,
     "title": "Word Roots, Prefixes & Suffixes",
     "category": "Vocabulary",
     "level": "Intermediate",
@@ -3479,8 +3479,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "34",
-    "numericId": 34,
+    "id": "54",
+    "numericId": 54,
     "title": "Relative Clauses & Pronouns",
     "category": "Syntax",
     "level": "Intermediate",
@@ -3584,8 +3584,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "35",
-    "numericId": 35,
+    "id": "55",
+    "numericId": 55,
     "title": "Advanced Degrees of Comparison",
     "category": "Grammar",
     "level": "Intermediate",
@@ -3689,8 +3689,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "36",
-    "numericId": 36,
+    "id": "56",
+    "numericId": 56,
     "title": "Punctuation: Commas & Semicolons",
     "category": "Mechanics",
     "level": "Intermediate",
@@ -3794,8 +3794,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "37",
-    "numericId": 37,
+    "id": "57",
+    "numericId": 57,
     "title": "Structuring Strong Paragraphs",
     "category": "Writing Mechanics",
     "level": "Intermediate",
@@ -3899,8 +3899,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "38",
-    "numericId": 38,
+    "id": "58",
+    "numericId": 58,
     "title": "Word Stress & Intonation",
     "category": "Phonology",
     "level": "Intermediate",
@@ -4004,8 +4004,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "39",
-    "numericId": 39,
+    "id": "59",
+    "numericId": 59,
     "title": "Expressive Oral Reading",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
@@ -4109,8 +4109,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "40",
-    "numericId": 40,
+    "id": "60",
+    "numericId": 60,
     "title": "Formal Letters & Email Writing",
     "category": "Writing Mechanics",
     "level": "Intermediate",
@@ -4214,8 +4214,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "41",
-    "numericId": 41,
+    "id": "61",
+    "numericId": 61,
     "title": "Board Exam Viva & Oral Prep",
     "category": "Board Prep",
     "level": "Advanced",
@@ -4319,8 +4319,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "42",
-    "numericId": 42,
+    "id": "62",
+    "numericId": 62,
     "title": "Advanced Subject-Verb Concord",
     "category": "Grammar",
     "level": "Advanced",
@@ -4424,8 +4424,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "43",
-    "numericId": 43,
+    "id": "63",
+    "numericId": 63,
     "title": "Conditionals: If-Clause Formulas",
     "category": "Grammar",
     "level": "Advanced",
@@ -4529,8 +4529,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "44",
-    "numericId": 44,
+    "id": "64",
+    "numericId": 64,
     "title": "Advanced & Impersonal Passive",
     "category": "Grammar",
     "level": "Advanced",
@@ -4634,8 +4634,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "45",
-    "numericId": 45,
+    "id": "65",
+    "numericId": 65,
     "title": "Advanced Reported Speech",
     "category": "Grammar",
     "level": "Advanced",
@@ -4739,8 +4739,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "46",
-    "numericId": 46,
+    "id": "66",
+    "numericId": 66,
     "title": "Noun, Adjective & Adverb Clauses",
     "category": "Syntax",
     "level": "Advanced",
@@ -4844,8 +4844,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "47",
-    "numericId": 47,
+    "id": "67",
+    "numericId": 67,
     "title": "Synthesis: Combining Sentences",
     "category": "Syntax",
     "level": "Advanced",
@@ -4949,8 +4949,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "48",
-    "numericId": 48,
+    "id": "68",
+    "numericId": 68,
     "title": "Transformation of Sentences",
     "category": "Syntax",
     "level": "Advanced",
@@ -5054,8 +5054,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "49",
-    "numericId": 49,
+    "id": "69",
+    "numericId": 69,
     "title": "Infinitives, Gerunds & Participles",
     "category": "Grammar",
     "level": "Advanced",
@@ -5159,8 +5159,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "50",
-    "numericId": 50,
+    "id": "70",
+    "numericId": 70,
     "title": "Modals of Past Deduction",
     "category": "Grammar",
     "level": "Advanced",
@@ -5264,8 +5264,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "51",
-    "numericId": 51,
+    "id": "71",
+    "numericId": 71,
     "title": "Academic Phrasal Verbs",
     "category": "Vocabulary",
     "level": "Advanced",
@@ -5369,8 +5369,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "52",
-    "numericId": 52,
+    "id": "72",
+    "numericId": 72,
     "title": "Figures of Speech & Imagery",
     "category": "Literary Devices",
     "level": "Advanced",
@@ -5474,8 +5474,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "53",
-    "numericId": 53,
+    "id": "73",
+    "numericId": 73,
     "title": "Fixing Common Grammar Errors",
     "category": "Grammar Error Fix",
     "level": "Advanced",
@@ -5579,8 +5579,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "54",
-    "numericId": 54,
+    "id": "74",
+    "numericId": 74,
     "title": "Writing Analytical Paragraphs",
     "category": "Academic Writing",
     "level": "Advanced",
@@ -5684,8 +5684,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "55",
-    "numericId": 55,
+    "id": "75",
+    "numericId": 75,
     "title": "Essay & Speech Structuring",
     "category": "Oratory & Writing",
     "level": "Advanced",
@@ -5789,8 +5789,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "56",
-    "numericId": 56,
+    "id": "76",
+    "numericId": 76,
     "title": "Word Nuance: Tone & Connotation",
     "category": "Vocabulary",
     "level": "Advanced",
@@ -5894,8 +5894,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "57",
-    "numericId": 57,
+    "id": "77",
+    "numericId": 77,
     "title": "Rhetoric & Persuasive Devices",
     "category": "Oratory",
     "level": "Advanced",
@@ -5999,8 +5999,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "58",
-    "numericId": 58,
+    "id": "78",
+    "numericId": 78,
     "title": "Extempore Speaking: PREP Method",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -6104,8 +6104,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "59",
-    "numericId": 59,
+    "id": "79",
+    "numericId": 79,
     "title": "Voice Cadence & Eliminating Fillers",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -6209,8 +6209,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "60",
-    "numericId": 60,
+    "id": "80",
+    "numericId": 80,
     "title": "Formal Debate & Rebuttals",
     "category": "Oratory",
     "level": "Advanced",
@@ -6314,8 +6314,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "61",
-    "numericId": 61,
+    "id": "81",
+    "numericId": 81,
     "title": "Rhyming Words & Word Families",
     "category": "Phonics",
     "level": "Beginner",
@@ -6419,8 +6419,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "62",
-    "numericId": 62,
+    "id": "82",
+    "numericId": 82,
     "title": "Discovering Silent Letters",
     "category": "Phonics",
     "level": "Beginner",
@@ -6524,8 +6524,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "63",
-    "numericId": 63,
+    "id": "83",
+    "numericId": 83,
     "title": "Top 100 Sight Words",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -6629,8 +6629,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "64",
-    "numericId": 64,
+    "id": "84",
+    "numericId": 84,
     "title": "Everyday Naming Words",
     "category": "Grammar",
     "level": "Beginner",
@@ -6734,8 +6734,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "65",
-    "numericId": 65,
+    "id": "85",
+    "numericId": 85,
     "title": "Action Words with -ing",
     "category": "Grammar",
     "level": "Beginner",
@@ -6839,8 +6839,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "66",
-    "numericId": 66,
+    "id": "86",
+    "numericId": 86,
     "title": "Sensory Describing Words",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -6944,8 +6944,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "67",
-    "numericId": 67,
+    "id": "87",
+    "numericId": 87,
     "title": "Singular & Plural Patterns",
     "category": "Grammar",
     "level": "Beginner",
@@ -7049,8 +7049,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "68",
-    "numericId": 68,
+    "id": "88",
+    "numericId": 88,
     "title": "Pronouns: He, She, It & They",
     "category": "Grammar",
     "level": "Beginner",
@@ -7154,8 +7154,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "69",
-    "numericId": 69,
+    "id": "89",
+    "numericId": 89,
     "title": "Position Words & Prepositions",
     "category": "Grammar",
     "level": "Beginner",
@@ -7259,8 +7259,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "70",
-    "numericId": 70,
+    "id": "90",
+    "numericId": 90,
     "title": "Capitals & Punctuation Marks",
     "category": "Mechanics",
     "level": "Beginner",
@@ -7364,8 +7364,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "71",
-    "numericId": 71,
+    "id": "91",
+    "numericId": 91,
     "title": "Asking Questions with 5 W's",
     "category": "Syntax",
     "level": "Beginner",
@@ -7469,8 +7469,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "72",
-    "numericId": 72,
+    "id": "92",
+    "numericId": 92,
     "title": "Connecting Ideas: And & Because",
     "category": "Syntax",
     "level": "Beginner",
@@ -7574,8 +7574,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "73",
-    "numericId": 73,
+    "id": "93",
+    "numericId": 93,
     "title": "Time Words: Past, Present & Future",
     "category": "Tenses",
     "level": "Beginner",
@@ -7679,8 +7679,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "74",
-    "numericId": 74,
+    "id": "94",
+    "numericId": 94,
     "title": "Past Action Verbs",
     "category": "Tenses",
     "level": "Beginner",
@@ -7784,8 +7784,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "75",
-    "numericId": 75,
+    "id": "95",
+    "numericId": 95,
     "title": "Comparing Sizes & Qualities",
     "category": "Grammar",
     "level": "Beginner",
@@ -7889,8 +7889,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "76",
-    "numericId": 76,
+    "id": "96",
+    "numericId": 96,
     "title": "Making Fun Compound Words",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -7994,8 +7994,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "77",
-    "numericId": 77,
+    "id": "97",
+    "numericId": 97,
     "title": "Opposites & Word Twins",
     "category": "Vocabulary",
     "level": "Beginner",
@@ -8099,8 +8099,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "78",
-    "numericId": 78,
+    "id": "98",
+    "numericId": 98,
     "title": "Story Sequencing: First, Next, Last",
     "category": "Reading Skills",
     "level": "Beginner",
@@ -8204,8 +8204,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "79",
-    "numericId": 79,
+    "id": "99",
+    "numericId": 99,
     "title": "Tongue Twisters & Clear Speech",
     "category": "Spoken Mechanics",
     "level": "Beginner",
@@ -8309,8 +8309,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "80",
-    "numericId": 80,
+    "id": "100",
+    "numericId": 100,
     "title": "Telling Your Own Story",
     "category": "Spoken Mechanics",
     "level": "Beginner",
@@ -8414,8 +8414,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "81",
-    "numericId": 81,
+    "id": "101",
+    "numericId": 101,
     "title": "Fixing Run-ons & Fragments",
     "category": "Syntax",
     "level": "Intermediate",
@@ -8519,8 +8519,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "82",
-    "numericId": 82,
+    "id": "102",
+    "numericId": 102,
     "title": "Seamless Tense Transitions",
     "category": "Tenses",
     "level": "Intermediate",
@@ -8624,8 +8624,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "83",
-    "numericId": 83,
+    "id": "103",
+    "numericId": 103,
     "title": "Real & Unreal Conditionals",
     "category": "Grammar",
     "level": "Intermediate",
@@ -8729,8 +8729,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "84",
-    "numericId": 84,
+    "id": "104",
+    "numericId": 104,
     "title": "Complex Subject-Verb Agreement",
     "category": "Grammar",
     "level": "Intermediate",
@@ -8834,8 +8834,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "85",
-    "numericId": 85,
+    "id": "105",
+    "numericId": 105,
     "title": "Active Directness vs. Passive Tone",
     "category": "Grammar",
     "level": "Intermediate",
@@ -8939,8 +8939,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "86",
-    "numericId": 86,
+    "id": "106",
+    "numericId": 106,
     "title": "Modals of Advice & Certainty",
     "category": "Grammar",
     "level": "Intermediate",
@@ -9044,8 +9044,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "87",
-    "numericId": 87,
+    "id": "107",
+    "numericId": 107,
     "title": "Everyday Phrasal Verbs & Collocations",
     "category": "Vocabulary",
     "level": "Intermediate",
@@ -9149,8 +9149,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "88",
-    "numericId": 88,
+    "id": "108",
+    "numericId": 108,
     "title": "Discourse Markers & Smooth Flow",
     "category": "Syntax",
     "level": "Intermediate",
@@ -9254,8 +9254,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "89",
-    "numericId": 89,
+    "id": "109",
+    "numericId": 109,
     "title": "Relative Clauses & Conciseness",
     "category": "Syntax",
     "level": "Intermediate",
@@ -9359,8 +9359,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "90",
-    "numericId": 90,
+    "id": "110",
+    "numericId": 110,
     "title": "Idiomatic Expressions in Context",
     "category": "Vocabulary",
     "level": "Intermediate",
@@ -9464,8 +9464,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "91",
-    "numericId": 91,
+    "id": "111",
+    "numericId": 111,
     "title": "Natural Rhythm & The Schwa Sound",
     "category": "Phonology",
     "level": "Intermediate",
@@ -9569,8 +9569,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "92",
-    "numericId": 92,
+    "id": "112",
+    "numericId": 112,
     "title": "Sentence Stress & Rhythm",
     "category": "Phonology",
     "level": "Intermediate",
@@ -9674,8 +9674,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "93",
-    "numericId": 93,
+    "id": "113",
+    "numericId": 113,
     "title": "Eliminating Fillers & Crutch Words",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
@@ -9779,8 +9779,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "94",
-    "numericId": 94,
+    "id": "114",
+    "numericId": 114,
     "title": "College & Placement Vocabulary",
     "category": "Vocabulary",
     "level": "Intermediate",
@@ -9884,8 +9884,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "95",
-    "numericId": 95,
+    "id": "115",
+    "numericId": 115,
     "title": "Structuring Spoken Arguments",
     "category": "Oratory",
     "level": "Intermediate",
@@ -9989,8 +9989,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "96",
-    "numericId": 96,
+    "id": "116",
+    "numericId": 116,
     "title": "Formal Emails & Cover Letters",
     "category": "Writing Mechanics",
     "level": "Intermediate",
@@ -10094,8 +10094,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "97",
-    "numericId": 97,
+    "id": "117",
+    "numericId": 117,
     "title": "Summarizing & Paraphrasing",
     "category": "Academic Skills",
     "level": "Intermediate",
@@ -10199,8 +10199,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "98",
-    "numericId": 98,
+    "id": "118",
+    "numericId": 118,
     "title": "Spotting Bias & Critical Thinking",
     "category": "Critical Analysis",
     "level": "Intermediate",
@@ -10304,8 +10304,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "99",
-    "numericId": 99,
+    "id": "119",
+    "numericId": 119,
     "title": "Impromptu Speaking with PREP",
     "category": "Spoken Mechanics",
     "level": "Intermediate",
@@ -10409,8 +10409,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "100",
-    "numericId": 100,
+    "id": "120",
+    "numericId": 120,
     "title": "Ace the Interview: STAR Method",
     "category": "Career Mechanics",
     "level": "Intermediate",
@@ -10514,8 +10514,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "101",
-    "numericId": 101,
+    "id": "121",
+    "numericId": 121,
     "title": "Executive Precision & Grammar",
     "category": "Grammar",
     "level": "Advanced",
@@ -10619,8 +10619,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "102",
-    "numericId": 102,
+    "id": "122",
+    "numericId": 122,
     "title": "The Power of Brevity & Plain English",
     "category": "Communication",
     "level": "Advanced",
@@ -10724,8 +10724,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "103",
-    "numericId": 103,
+    "id": "123",
+    "numericId": 123,
     "title": "Diplomatic Tone & Softening Directness",
     "category": "Grammar",
     "level": "Advanced",
@@ -10829,8 +10829,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "104",
-    "numericId": 104,
+    "id": "124",
+    "numericId": 124,
     "title": "Persuasive Requests & Modal Nuance",
     "category": "Grammar",
     "level": "Advanced",
@@ -10934,8 +10934,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "105",
-    "numericId": 105,
+    "id": "125",
+    "numericId": 125,
     "title": "Executive Transitions & Signposting",
     "category": "Syntax",
     "level": "Advanced",
@@ -11039,8 +11039,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "106",
-    "numericId": 106,
+    "id": "126",
+    "numericId": 126,
     "title": "Strategic Business Vocabulary",
     "category": "Vocabulary",
     "level": "Advanced",
@@ -11144,8 +11144,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "107",
-    "numericId": 107,
+    "id": "127",
+    "numericId": 127,
     "title": "Mastering Workplace Formality",
     "category": "Communication",
     "level": "Advanced",
@@ -11249,8 +11249,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "108",
-    "numericId": 108,
+    "id": "128",
+    "numericId": 128,
     "title": "Writing Impactful Executive Summaries",
     "category": "Writing Mechanics",
     "level": "Advanced",
@@ -11354,8 +11354,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "109",
-    "numericId": 109,
+    "id": "129",
+    "numericId": 129,
     "title": "Clear Articulation for Global Teams",
     "category": "Phonology",
     "level": "Advanced",
@@ -11459,8 +11459,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "110",
-    "numericId": 110,
+    "id": "130",
+    "numericId": 130,
     "title": "Vocal Authority & Pitch Modulation",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -11564,8 +11564,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "111",
-    "numericId": 111,
+    "id": "131",
+    "numericId": 131,
     "title": "Business Storytelling Frameworks",
     "category": "Communication",
     "level": "Advanced",
@@ -11669,8 +11669,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "112",
-    "numericId": 112,
+    "id": "132",
+    "numericId": 132,
     "title": "Thinking on Your Feet: Rule of 3",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -11774,8 +11774,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "113",
-    "numericId": 113,
+    "id": "133",
+    "numericId": 133,
     "title": "Diplomatic Disagreement & Pivoting",
     "category": "Communication",
     "level": "Advanced",
@@ -11879,8 +11879,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "114",
-    "numericId": 114,
+    "id": "134",
+    "numericId": 134,
     "title": "Active Listening & Paraphrasing",
     "category": "Communication",
     "level": "Advanced",
@@ -11984,8 +11984,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "115",
-    "numericId": 115,
+    "id": "135",
+    "numericId": 135,
     "title": "Global Cross-Cultural Communication",
     "category": "Communication",
     "level": "Advanced",
@@ -12089,8 +12089,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "116",
-    "numericId": 116,
+    "id": "136",
+    "numericId": 136,
     "title": "Digital Communication & Workplace Etiquette",
     "category": "Communication",
     "level": "Advanced",
@@ -12194,8 +12194,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "117",
-    "numericId": 117,
+    "id": "137",
+    "numericId": 137,
     "title": "Constructive Feedback: SBI Model",
     "category": "Management",
     "level": "Advanced",
@@ -12299,8 +12299,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "118",
-    "numericId": 118,
+    "id": "138",
+    "numericId": 138,
     "title": "Strategic Forecasting & Scenarios",
     "category": "Grammar",
     "level": "Advanced",
@@ -12404,8 +12404,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "119",
-    "numericId": 119,
+    "id": "139",
+    "numericId": 139,
     "title": "Small Talk & Executive Networking",
     "category": "Spoken Mechanics",
     "level": "Advanced",
@@ -12509,8 +12509,8 @@ export const MASTER_LESSONS = [
     ]
   },
   {
-    "id": "120",
-    "numericId": 120,
+    "id": "140",
+    "numericId": 140,
     "title": "Keynote Speaking & Executive Presence",
     "category": "Oratory",
     "level": "Advanced",
@@ -12630,42 +12630,6 @@ export const CLUSTERS = [
     ],
     "ageGroup": null,
     "lessonIds": [
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "10",
-      "11",
-      "12",
-      "13",
-      "14",
-      "15",
-      "16",
-      "17",
-      "18",
-      "19",
-      "20"
-    ]
-  },
-  {
-    "clusterId": "std_5_8",
-    "clusterName": "5th to 8th Standard",
-    "clusterTitle": "Middle School Curriculum",
-    "segment": "school",
-    "level": "Intermediate",
-    "grades": [
-      "5th Std",
-      "6th Std",
-      "7th Std",
-      "8th Std"
-    ],
-    "ageGroup": null,
-    "lessonIds": [
       "21",
       "22",
       "23",
@@ -12689,14 +12653,16 @@ export const CLUSTERS = [
     ]
   },
   {
-    "clusterId": "std_9_10",
-    "clusterName": "9th to 10th Standard",
-    "clusterTitle": "High School & Board Exam Prep",
+    "clusterId": "std_5_8",
+    "clusterName": "5th to 8th Standard",
+    "clusterTitle": "Middle School Curriculum",
     "segment": "school",
-    "level": "Advanced",
+    "level": "Intermediate",
     "grades": [
-      "9th Std",
-      "10th Std"
+      "5th Std",
+      "6th Std",
+      "7th Std",
+      "8th Std"
     ],
     "ageGroup": null,
     "lessonIds": [
@@ -12723,13 +12689,16 @@ export const CLUSTERS = [
     ]
   },
   {
-    "clusterId": "kids",
-    "clusterName": "Kids (Age 6–12)",
-    "clusterTitle": "General Kids Language Foundation",
-    "segment": "general",
-    "level": "Beginner",
-    "grades": null,
-    "ageGroup": "Kids (Age 6–12)",
+    "clusterId": "std_9_10",
+    "clusterName": "9th to 10th Standard",
+    "clusterTitle": "High School & Board Exam Prep",
+    "segment": "school",
+    "level": "Advanced",
+    "grades": [
+      "9th Std",
+      "10th Std"
+    ],
+    "ageGroup": null,
     "lessonIds": [
       "61",
       "62",
@@ -12754,13 +12723,13 @@ export const CLUSTERS = [
     ]
   },
   {
-    "clusterId": "teens_young",
-    "clusterName": "Teens & Young Adults (Age 13–24)",
-    "clusterTitle": "Teens & Young Adults Fluency",
+    "clusterId": "kids",
+    "clusterName": "Kids (Age 6–12)",
+    "clusterTitle": "General Kids Language Foundation",
     "segment": "general",
-    "level": "Intermediate",
+    "level": "Beginner",
     "grades": null,
-    "ageGroup": "Teens & Young Adults (Age 13–24)",
+    "ageGroup": "Kids (Age 6–12)",
     "lessonIds": [
       "81",
       "82",
@@ -12785,13 +12754,13 @@ export const CLUSTERS = [
     ]
   },
   {
-    "clusterId": "professionals_seniors",
-    "clusterName": "Professionals & Seniors (Age 25+)",
-    "clusterTitle": "Executive & Lifelong Mastery",
+    "clusterId": "teens_young",
+    "clusterName": "Teens & Young Adults (Age 13–24)",
+    "clusterTitle": "Teens & Young Adults Fluency",
     "segment": "general",
-    "level": "Advanced",
+    "level": "Intermediate",
     "grades": null,
-    "ageGroup": "Professionals & Seniors (Age 25+)",
+    "ageGroup": "Teens & Young Adults (Age 13–24)",
     "lessonIds": [
       "101",
       "102",
@@ -12813,6 +12782,37 @@ export const CLUSTERS = [
       "118",
       "119",
       "120"
+    ]
+  },
+  {
+    "clusterId": "professionals_seniors",
+    "clusterName": "Professionals & Seniors (Age 25+)",
+    "clusterTitle": "Executive & Lifelong Mastery",
+    "segment": "general",
+    "level": "Advanced",
+    "grades": null,
+    "ageGroup": "Professionals & Seniors (Age 25+)",
+    "lessonIds": [
+      "121",
+      "122",
+      "123",
+      "124",
+      "125",
+      "126",
+      "127",
+      "128",
+      "129",
+      "130",
+      "131",
+      "132",
+      "133",
+      "134",
+      "135",
+      "136",
+      "137",
+      "138",
+      "139",
+      "140"
     ]
   }
 ];
@@ -12855,9 +12855,12 @@ export function getCuratedLessons(accountType, grade, ageGroup) {
 export function findCurriculumLesson(idOrTitle) {
   if (!idOrTitle) return null;
   const target = String(idOrTitle).trim().toLowerCase();
+  // 1. Exact title match takes absolute top precedence to prevent cross-cluster ID collision
+  const byTitle = MASTER_LESSONS.find(l => (l.title || '').trim().toLowerCase() === target);
+  if (byTitle) return byTitle;
+  // 2. Exact ID match (string id or numericId)
   return MASTER_LESSONS.find(l => 
     String(l.id) === target || 
-    String(l.numericId) === target || 
-    l.title.toLowerCase() === target
+    String(l.numericId) === target
   ) || null;
 }
