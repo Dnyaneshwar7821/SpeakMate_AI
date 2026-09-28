@@ -30,22 +30,28 @@ export const AuthProvider = ({ children }) => {
     try {
       const rawGrd = userData.schoolGrade || userData.standard || userData.grade;
       if (rawGrd) {
-        const normalized = normalizeGradeKey(rawGrd);
+        const normalized = typeof normalizeGradeKey === 'function' ? normalizeGradeKey(rawGrd) : String(rawGrd);
         await AsyncStorage.setItem('speakmate_school_grade', normalized);
-        CurriculumCache.setGrade(normalized);
+        if (CurriculumCache && typeof CurriculumCache.setGrade === 'function') {
+          CurriculumCache.setGrade(normalized);
+        }
       } else if (userData.accountType !== "STUDENT" && !userData.isSchoolStudent) {
         await AsyncStorage.removeItem('speakmate_school_grade');
       }
       if (userData.ageGroup) {
         await AsyncStorage.setItem('speakmate_age_group', userData.ageGroup);
-        CurriculumCache.setAgeGroup(userData.ageGroup);
+        if (CurriculumCache && typeof CurriculumCache.setAgeGroup === 'function') {
+          CurriculumCache.setAgeGroup(userData.ageGroup);
+        }
       }
       if (userData.englishLevel) {
         await AsyncStorage.setItem('speakmate_english_level', userData.englishLevel);
       }
       if (userData.accountType) {
         await AsyncStorage.setItem('speakmate_account_type', userData.accountType);
-        CurriculumCache.setAccountType(userData.accountType);
+        if (CurriculumCache && typeof CurriculumCache.setAccountType === 'function') {
+          CurriculumCache.setAccountType(userData.accountType);
+        }
       }
       if (userData.preferredAccent || userData.aiVoice) {
         await AsyncStorage.setItem('speakmate_ai_voice', userData.preferredAccent || userData.aiVoice);

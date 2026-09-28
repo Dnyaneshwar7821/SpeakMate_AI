@@ -12817,6 +12817,19 @@ export const CLUSTERS = [
   }
 ];
 
+export function normalizeGradeKey(grade) {
+  if (!grade) return '1st Std';
+  const str = String(grade).trim();
+  if (!str) return '1st Std';
+  const numMatch = str.match(/\b(10|[1-9])\b/) || str.match(/\d+/);
+  if (numMatch) {
+    const num = parseInt(numMatch[0], 10);
+    const suffix = num === 1 ? 'st' : num === 2 ? 'nd' : num === 3 ? 'rd' : 'th';
+    return `${num}${suffix} Std`;
+  }
+  return '1st Std';
+}
+
 export function getLessonsForSchoolGrade(grade) {
   const g = String(grade || '').trim().toLowerCase();
   const numMatch = g.match(/\b(10|[1-9])\b/) || g.match(/\d+/);

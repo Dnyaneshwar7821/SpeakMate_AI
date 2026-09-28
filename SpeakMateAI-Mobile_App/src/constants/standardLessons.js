@@ -2,7 +2,7 @@
  * Standard-Curated Lessons Dataset (1st Std to 10th Std & General Tracks)
  * Backed by the Master 120 Academic Curriculum
  */
-import { MASTER_LESSONS, getLessonsForSchoolGrade, getLessonsForAgeGroup, findCurriculumLesson } from './masterCurriculum';
+import { MASTER_LESSONS, getLessonsForSchoolGrade, getLessonsForAgeGroup, findCurriculumLesson, normalizeGradeKey } from './masterCurriculum';
 
 export const STANDARD_LESSONS = {
   '1st Std': getLessonsForSchoolGrade('1st Std'),
@@ -27,4 +27,4 @@ export function findStandardLesson(idOrTitle) {
   return findCurriculumLesson(idOrTitle);
 }
 
-export { MASTER_LESSONS, getLessonsForSchoolGrade, getLessonsForAgeGroup };
+export { MASTER_LESSONS, getLessonsForSchoolGrade, getLessonsForAgeGroup, normalizeGradeKey };
