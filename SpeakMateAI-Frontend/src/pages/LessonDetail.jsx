@@ -4,7 +4,7 @@ import ROUTES from "../constants/routes";
 import { speakGlobalText } from "../utils/speechHelper";
 import { lessonModuleService, aiService } from "../services/appServices";
 import { recordLessonCompleted } from "../utils/progressTracker";
-import { findCurriculumLesson } from "../constants/masterCurriculum";
+import { findCurriculumLesson, MASTER_LESSONS } from "../constants/masterCurriculum";
 
 // Helper to safely parse objectives and skills arrays regardless of API response type
 const parseArrayField = (field, fallback = []) => {
@@ -185,22 +185,23 @@ export function LessonDetail() {
       })
       .catch(() => {
         if (!curr) {
-          setLesson({
-            id: id || "1",
-            title: "Present Tenses Mastery",
-            category: "Grammar",
+          const fallback = MASTER_LESSONS?.[0] || {
+            id: "1",
+            title: "Mastering Short & Long Vowels",
+            category: "Phonics",
             level: "Beginner",
             estimatedMinutes: 15,
             xpReward: 35,
-            description: "Master present simple vs continuous tenses with real-world sentence drills and voice audio exercises.",
+            description: "Identifying short vowel sounds (/a/, /e/, /i/, /o/, /u/) vs long vowel sounds (CVC rule).",
             objectives: [
-              "Understand present simple vs continuous rules",
-              "Identify stative vs action verbs",
-              "Form correct positive, negative, and question sentences",
-              "Practice speaking full sentences confidently out loud",
+              "Master the foundational rules of Mastering Short & Long Vowels",
+              "Identify and correct frequent errors in Phonics",
+              "Construct grammatically sound spoken and written sentences",
+              "Practice confident oral delivery and articulation with AI feedback",
             ],
-            skills: ["Grammar Accuracy", "Speaking Fluency", "Sentence Structure"],
-          });
+            skills: ["Phonics Precision", "Spoken Fluency", "Sentence Mechanics"],
+          };
+          setLesson(fallback);
         }
       })
       .finally(() => {

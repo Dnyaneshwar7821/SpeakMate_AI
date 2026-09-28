@@ -7,6 +7,7 @@ import { getLiveProgressStats } from "../../utils/progressTracker";
 import { StreakModal } from "../dashboard/StreakModal";
 import { AdminLoginModal } from "../common/AdminLoginModal";
 import { notificationService } from "../../services/appServices";
+import { MASTER_LESSONS } from "../../constants/masterCurriculum";
 
 export const Navbar = memo(function Navbar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -39,26 +40,17 @@ export const Navbar = memo(function Navbar() {
     []
   );
 
-  // Searchable Lessons
+  // Searchable Lessons dynamically mapped from Master Curriculum
   const SEARCHABLE_LESSONS = useMemo(
-    () => [
-      { id: "l-1", title: "Present Tenses Mastery", category: "Grammar", level: "Beginner", route: "/lessons/1", icon: "✨" },
-      { id: "l-2", title: "Professional Email & Business Writing", category: "Business", level: "Intermediate", route: "/lessons/2", icon: "💼" },
-      { id: "l-3", title: "Job Interview Speaking Drills", category: "Business", level: "Advanced", route: "/lessons/3", icon: "🎯" },
-      { id: "l-4", title: "Essential Everyday Vocabulary (Top 500 Words)", category: "Vocabulary", level: "Beginner", route: "/lessons/4", icon: "📖" },
-      { id: "l-5", title: "Idioms & Phrasal Verbs for Natural Speech", category: "Speaking", level: "Intermediate", route: "/lessons/5", icon: "🗣️" },
-      { id: "l-6", title: "Past & Present Perfect Tense Drills", category: "Grammar", level: "Intermediate", route: "/lessons/6", icon: "⏳" },
-      { id: "l-7", title: "10th Board Oral Exam & Public Speaking Prep", category: "Academic", level: "Advanced", route: "/lessons/7", icon: "🎓" },
-      { id: "l-8", title: "Social Small Talk & Networking Confidence", category: "Speaking", level: "Beginner", route: "/lessons/8", icon: "☕" },
-      { id: "l-9", title: "Conditionals: Real & Unreal 'If' Scenarios", category: "Grammar", level: "Intermediate", route: "/lessons/9", icon: "🧩" },
-      { id: "l-10", title: "English Vowel Minimal Pairs & Accent Clarity", category: "Phonics", level: "Beginner", route: "/lessons/10", icon: "🔊" },
-      { id: "l-11", title: "Overcoming Hesitation & Eliminating Fillers", category: "Speaking", level: "Intermediate", route: "/lessons/11", icon: "⚡" },
-      { id: "l-12", title: "Executive Presentation & Pitch Strategy", category: "Business", level: "Advanced", route: "/lessons/12", icon: "📈" },
-      { id: "l-13", title: "Word Stress & Sentence Intonation Rhythm", category: "Phonics", level: "Intermediate", route: "/lessons/13", icon: "🎵" },
-      { id: "l-14", title: "Active vs Passive Voice in Formal Contexts", category: "Grammar", level: "Advanced", route: "/lessons/14", icon: "🏛️" },
-      { id: "l-15", title: "Debate, Negotiation & Persuasive Rhetoric", category: "Speaking", level: "Advanced", route: "/lessons/15", icon: "🤝" },
-      { id: "l-16", title: "Academic Essay Rhetoric & Spoken Summaries", category: "Academic", level: "Advanced", route: "/lessons/16", icon: "📜" },
-    ],
+    () =>
+      MASTER_LESSONS.slice(0, 30).map((l) => ({
+        id: `l-${l.id}`,
+        title: l.title,
+        category: l.category,
+        level: l.level,
+        route: `/lessons/${l.id}`,
+        icon: "📚",
+      })),
     []
   );
 

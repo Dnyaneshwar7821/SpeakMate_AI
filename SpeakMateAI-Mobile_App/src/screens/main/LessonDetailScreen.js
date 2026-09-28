@@ -41,129 +41,6 @@ const DIFF_COLORS = {
   Advanced: { bg: '#FEE2E2', text: '#DC2626' },
 };
 
-const LESSON_QUIZZES = {
-  "Present Tenses Mastery": {
-    question: "Select the sentence in the Present Continuous tense:",
-    options: ["She plays tennis every Tuesday.", "She is playing tennis right now.", "She played tennis yesterday.", "She will play tennis tomorrow."],
-    answerIndex: 1,
-    explanation: "Present Continuous is formed with subject + be + verb-ing, used for actions happening now."
-  },
-  "Past Tenses Deep Dive": {
-    question: "Choose the correct sentence comparing simple past and past continuous:",
-    options: ["While I was cooking, the phone rang.", "While I cooked, the phone was ringing.", "While I had cooked, the phone rang.", "I was cooking when the phone was ringing."],
-    answerIndex: 0,
-    explanation: "We use the past continuous for the longer background action, and simple past for the shorter interrupting action."
-  },
-  "Conditionals: If Sentences": {
-    question: "Which of the following is a Second Conditional (hypothetical present/future) sentence?",
-    options: ["If it rains, we will stay home.", "If I won the lottery, I would buy a house.", "If you heat ice, it melts.", "If I had studied, I would have passed."],
-    answerIndex: 1,
-    explanation: "Second conditional uses 'if + simple past, would + base verb' for hypothetical or unlikely situations."
-  },
-  "Essential 500 Words": {
-    question: "Which word is a synonym for 'essential'?",
-    options: ["Optional", "Crucial", "Secondary", "Trivial"],
-    answerIndex: 1,
-    explanation: "'Essential' means absolutely necessary or extremely important; 'crucial' is a direct synonym."
-  },
-  "Idioms and Phrases": {
-    question: "What does the idiom 'bite the bullet' mean?",
-    options: ["To eat something hard", "To face a difficult situation with courage", "To get angry quickly", "To make a minor mistake"],
-    answerIndex: 1,
-    explanation: "'Bite the bullet' means to endure a painful or difficult situation that is unavoidable."
-  },
-  "Business Vocabulary": {
-    question: "What does it mean to 'postpone' a meeting?",
-    options: ["To cancel it permanently", "To delay it to a later time", "To hold it earlier than scheduled", "To start it on time"],
-    answerIndex: 1,
-    explanation: "To postpone is to arrange for something to take place at a time later than that first planned."
-  },
-  "Speak with Confidence": {
-    question: "Which is the most polite way to ask someone to repeat themselves?",
-    options: ["What?", "Repeat that.", "Could you say that again, please?", "I didn't hear."],
-    answerIndex: 2,
-    explanation: "'Could you say that again, please?' is formal, polite, and clear."
-  },
-  "Storytelling in English": {
-    question: "Which word is a transition marker used to indicate a sudden turn of events?",
-    options: ["Furthermore", "Suddenly", "In conclusion", "Likewise"],
-    answerIndex: 1,
-    explanation: "'Suddenly' is used to show that something happens quickly and unexpectedly in a story."
-  },
-  "English Vowel Sounds": {
-    question: "Which pair of words contains a 'minimal pair' for vowel sounds?",
-    options: ["Ship and Sheep", "Cat and Dog", "Run and Walk", "Big and Large"],
-    answerIndex: 0,
-    explanation: "Minimal pairs differ by only one sound. 'Ship' (/ɪ/) and 'Sheep' (/iː/) differ only by the vowel sound."
-  },
-  "Word Stress Patterns": {
-    question: "In the word 'RECORD' (noun, as in 'a music record'), where is the stress?",
-    options: ["On the first syllable: RE-cord", "On the second syllable: re-CORD", "Both syllables are stressed equally", "No syllable is stressed"],
-    answerIndex: 0,
-    explanation: "For most two-syllable nouns, the stress is on the first syllable (RE-cord). For verbs, it's on the second (re-CORD)."
-  },
-  "Everyday Conversations": {
-    question: "What is the natural response to 'How's it going?'",
-    options: ["I go to the store.", "Pretty good, thanks! How about you?", "Yes, it is going.", "Fine. How do you do."],
-    answerIndex: 1,
-    explanation: "'Pretty good, thanks!' is a natural, friendly, and common response to the casual greeting 'How's it going?'."
-  },
-  "Debate and Persuasion": {
-    question: "Which phrase is used to disagree politely in a discussion?",
-    options: ["You are completely wrong.", "I see your point, but I have a different view.", "That makes no sense.", "Whatever you say."],
-    answerIndex: 1,
-    explanation: "'I see your point, but...' acknowledges the other person's input while politely offering a contrasting opinion."
-  },
-  "Listen and Understand: Accents": {
-    question: "In Australian English, what does the slang word 'Arvo' mean?",
-    options: ["Morning", "Afternoon", "Evening", "Night"],
-    answerIndex: 1,
-    explanation: "'Arvo' is a very common Australian slang term for afternoon."
-  },
-  "Professional Email Writing": {
-    question: "Which of the following is the most professional email greeting for a client?",
-    options: ["Hey there,", "Dear Mr. Smith,", "What's up,", "Yo Smith,"],
-    answerIndex: 1,
-    explanation: "'Dear [Title] [Lastname],' is the standard, most respected formal greeting in business email communication."
-  },
-  "Presentations in English": {
-    question: "What is a good phrase to transition to a new slide or topic?",
-    options: ["Look at this.", "Now, let's move on to the next point.", "I am done with that.", "Stop talking about this."],
-    answerIndex: 1,
-    explanation: "'Let's move on to...' is a clear, standard signpost transition phrase in presentations."
-  },
-  "Common Interview Questions": {
-    question: "When asked 'What is your greatest weakness?', how should you respond?",
-    options: ["Say you don't have any weaknesses.", "Mention a weakness and explain how you are working to improve it.", "State a major flaw that would prevent you from doing the job.", "Joke about it to avoid answering."],
-    answerIndex: 1,
-    explanation: "The best strategy is to show self-awareness by naming a real but manageable weakness, followed by a positive step you are taking to fix it."
-  },
-  "At the Airport": {
-    question: "Where do you go to get your boarding pass and drop off large bags?",
-    options: ["Security Control", "Check-in Desk", "Duty Free", "Gate 14"],
-    answerIndex: 1,
-    explanation: "You go to the check-in/bag-drop desk of your airline to get your boarding pass and check in large luggage."
-  },
-  "Hotel and Accommodation": {
-    question: "If you want to request a room with a single large bed for two people, you should ask for a:",
-    options: ["Single Room", "Double Room / King Room", "Twin Room", "Suite"],
-    answerIndex: 1,
-    explanation: "A Twin room has two separate single beds. A Double or King room has a single large bed suitable for two people."
-  },
-  "Morning Routines": {
-    question: "Choose the correct sentence describing a routine:",
-    options: ["I am waking up at 7 AM every day.", "I wake up at 7 AM every day.", "I wakes up at 7 AM every day.", "I woke up at 7 AM every day."],
-    answerIndex: 1,
-    explanation: "For habitual actions or daily routines, we use the simple present tense: 'I wake up...'."
-  },
-  "Talking About Food": {
-    question: "If a dish is described as 'savory', it means it is:",
-    options: ["Very sweet", "Salty or spicy, not sweet", "Sour like a lemon", "Bitter and burnt"],
-    answerIndex: 1,
-    explanation: "'Savory' refers to food that is salty, spicy, or generally non-sweet."
-  }
-};
-
 const DEFAULT_QUIZ = {
   question: "Which of the following is crucial for English learning success?",
   options: ["Avoiding practice", "Consistent daily speaking", "Only reading books", "Memorizing grammar tables only"],
@@ -1296,12 +1173,17 @@ export default function LessonDetailScreen({ navigation, route }) {
   ] : [];
 
   // Get active quiz definition
-  const quiz = lesson ? (lesson.quiz?.[0] ? {
+  const quiz = lesson ? (lesson.checkQuestion ? {
+    question: lesson.checkQuestion.question,
+    options: lesson.checkQuestion.options,
+    answerIndex: lesson.checkQuestion.correctIndex ?? 0,
+    explanation: lesson.checkQuestion.explanation,
+  } : lesson.quiz?.[0] ? {
     question: lesson.quiz[0].question,
     options: lesson.quiz[0].options,
     answerIndex: lesson.quiz[0].options ? Math.max(0, lesson.quiz[0].options.indexOf(lesson.quiz[0].correctAnswer)) : 0,
     explanation: lesson.quiz[0].explanation,
-  } : (LESSON_QUIZZES[lesson.title] || DEFAULT_QUIZ)) : DEFAULT_QUIZ;
+  } : DEFAULT_QUIZ) : DEFAULT_QUIZ;
 
   // ── Skeleton ────────────────────────────────────────────────────────
   if (loading) {
