@@ -401,7 +401,7 @@ export default function LessonsScreen({ navigation }) {
       name: catName,
       lessonCount: catCounts[catName],
       completedCount: 0,
-      icon: 'book-outline',
+      icon: 'folder-outline',
     }));
     setCategories(freshCats);
     setLessons(fresh.curriculum);
@@ -441,7 +441,7 @@ export default function LessonsScreen({ navigation }) {
         name: catName,
         lessonCount: catCounts[catName],
         completedCount: 0,
-        icon: 'book-outline',
+        icon: 'folder-outline',
       }));
       setCategories(curatedCategories);
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Folder } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { lessonModuleService } from "../services/appServices";
 import {
@@ -292,7 +293,16 @@ export function Lessons() {
                     : "glass-card glass-card-hover border-[var(--border-default)]"
                 }`}
               >
-                <p className="font-black text-xs truncate">{cat.name}</p>
+                <div className="flex items-center justify-center gap-1.5 min-w-0">
+                  <Folder
+                    className={`w-3.5 h-3.5 shrink-0 transition-colors ${
+                      selectedCategory === cat.name
+                        ? "text-white"
+                        : "text-[#6C63FF]"
+                    }`}
+                  />
+                  <p className="font-black text-xs truncate">{cat.name}</p>
+                </div>
                 <p className="text-[10px] opacity-80 font-black">{cat.lessonCount} lessons</p>
               </div>
             ))}
