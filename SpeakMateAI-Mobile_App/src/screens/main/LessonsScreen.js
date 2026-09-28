@@ -310,11 +310,12 @@ function EmptyState({ icon = 'search-outline', title, message }) {
 
 export default function LessonsScreen({ navigation }) {
   const { isDark, theme } = useTheme();
+  const defaultCurriculum = GENERAL_LESSONS['Professionals & Seniors (Age 25+)'] || MASTER_LESSONS;
   const [categories, setCategories] = useState([]);
-  const [lessons, setLessons] = useState([]);
-  const [continueItems, setContinueItems] = useState([]);
-  const [recommended, setRecommended] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [lessons, setLessons] = useState(defaultCurriculum);
+  const [continueItems, setContinueItems] = useState(() => defaultCurriculum.slice(0, 1));
+  const [recommended, setRecommended] = useState(() => defaultCurriculum.slice(0, 5));
+  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [searchResults, setSearchResults] = useState(null); // null = not searching
@@ -324,8 +325,8 @@ export default function LessonsScreen({ navigation }) {
   const [error, setError] = useState('');
 
   const searchTimer = useRef(null);
-  const headerOpacity = useRef(new Animated.Value(0)).current;
-  const headerTranslate = useRef(new Animated.Value(-20)).current;
+  const headerOpacity = useRef(new Animated.Value(1)).current;
+  const headerTranslate = useRef(new Animated.Value(0)).current;
 
   const [userGrade, setUserGrade] = useState('1st Std');
   const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
@@ -333,7 +334,7 @@ export default function LessonsScreen({ navigation }) {
 
   // ── Load data ──────────────────────────────────────────────────────
   const loadAll = useCallback(async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && lessons.length === 0) setLoading(true);
     setError('');
     try {
       const [cats, recs, cont, savedGrade, savedAccType, savedAgeGroup] = await Promise.all([
@@ -464,12 +465,12 @@ export default function LessonsScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      loadAll();
+      loadAll(true);
       Animated.parallel([
-        Animated.timing(headerOpacity, { toValue: 1, duration: 500, useNativeDriver: true }),
-        Animated.timing(headerTranslate, { toValue: 0, duration: 500, useNativeDriver: true }),
+        Animated.timing(headerOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+        Animated.timing(headerTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
       ]).start();
-    }, [])
+    }, [loadAll])
   );
 
   // ── Search with debounce ───────────────────────────────────────────
@@ -544,7 +545,7 @@ export default function LessonsScreen({ navigation }) {
 
   // ── Navigate to detail ─────────────────────────────────────────────
   const openLesson = useCallback((lesson) => {
-    navigation.navigate('LessonDetail', { lessonId: lesson.id, lessonTitle: lesson.title });
+    navigation.navigate('LessonDetail', { lessonId: lesson.id, lessonTitle: lesson.title, lesson });
   }, [navigation]);
 
   // ── Displayed lessons ──────────────────────────────────────────────

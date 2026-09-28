@@ -178,30 +178,23 @@ function DrawerItem({ item, isActive, onPress, isDark, badge }) {
 
 // ─── Drawer Header ────────────────────────────────────────────────────────────
 function DrawerHeader({ user, profile, progress, isLoading, isDark, topInset = 0 }) {
+  const userFullName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+  const profileFullName = `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim();
+  const displayName = userFullName || profileFullName || 'Learner';
+
   const getInitials = () => {
-    const name = profile
-      ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
-      : user
-      ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-      : 'SM';
-    if (!name) return 'SM';
-    const parts = name.split(' ');
+    if (!displayName || displayName === 'Learner') return 'SM';
+    const parts = displayName.split(' ');
     return parts.length > 1
       ? (parts[0][0] + parts[1][0]).toUpperCase()
       : parts[0].slice(0, 2).toUpperCase();
   };
 
-  const displayName = profile
-    ? `${profile.firstName || ''} ${profile.lastName || ''}`.trim()
-    : user
-    ? `${user.firstName || ''} ${user.lastName || ''}`.trim()
-    : 'Learner';
-
-  const email   = profile?.email   || user?.email   || '';
+  const email   = user?.email   || profile?.email   || '';
   const xp      = progress?.xp ?? profile?.xp ?? user?.xp ?? 0;
   const level   = progress?.level ?? profile?.level ?? user?.level ?? 1;
   const streak  = progress?.currentStreak ?? profile?.currentStreak ?? user?.currentStreak ?? 0;
-  const avatar  = profile?.avatar  || user?.avatar;
+  const avatar  = user?.avatar  || profile?.avatar;
   const [avatarImgError, setAvatarImgError] = useState(false);
 
   useEffect(() => {

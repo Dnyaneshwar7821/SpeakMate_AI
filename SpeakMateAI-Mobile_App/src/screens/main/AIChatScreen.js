@@ -50,8 +50,8 @@ export default function AIChatScreen({ navigation }) {
   const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
   const [userGrade, setUserGrade] = useState('1st Std');
 
-  const fetchHistory = async () => {
-    setLoading(true);
+  const fetchHistory = async (silent = false) => {
+    if (!silent && history.length === 0) setLoading(true);
     try {
       const data = await chatService.history();
       setHistory(data || []);
@@ -70,7 +70,7 @@ export default function AIChatScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      fetchHistory();
+      fetchHistory(true);
     }, [])
   );
 

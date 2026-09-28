@@ -10,9 +10,9 @@ import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppState } from "react-native";
 import { authService } from "../services/authService";
-import { subscriptionService } from "../services/subscriptionService";
-import { setLogoutCallback } from "../api/api";
+import { setLogoutCallback, setAuthToken, clearAuthToken } from "../api/api";
 import { STORAGE_KEYS } from "../utils/storageKeys";
+import { DashboardCache } from "../screens/main/DashboardScreen";
 
 export const AuthContext = createContext();
 
@@ -60,6 +60,7 @@ export const AuthProvider = ({ children }) => {
       ]);
 
       if (storedToken && storedToken !== "null" && storedToken !== "undefined" && storedUser) {
+        setAuthToken(storedToken);
         const parsedUser = JSON.parse(storedUser);
         const me = await authService.me().catch(() => null);
         const activeUser = me || parsedUser;
@@ -202,6 +203,9 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async () => {
     try {
+      clearAuthToken();
+      DashboardCache.clear();
+
       const email = (user?.email || "").toLowerCase();
       await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
       await AsyncStorage.removeItem(STORAGE_KEYS.user);
@@ -209,6 +213,22 @@ export const AuthProvider = ({ children }) => {
       if (email) {
         await AsyncStorage.removeItem(`speakmate_onboarding_${email}`);
       }
+
+      // Remove all user-specific settings so next account is 100% clean
+      const userSpecificKeys = [
+        'speakmate_school_grade',
+        'speakmate_age_group',
+        'speakmate_english_level',
+        'speakmate_account_type',
+        'speakmate_ai_voice',
+        'speakmate_avatar_model',
+        'speakmate_selected_voice',
+        'speakmate_voice_code',
+        'speakmate_voice_gender',
+        'speakmate_voice_pitch',
+        'speakmate_completed_standard_lessons',
+      ];
+      await AsyncStorage.multiRemove(userSpecificKeys).catch(() => {});
 
       // Clear all assistant chatbot conversation history & sessions so next login is 100% fresh
       try {
@@ -244,6 +264,8 @@ export const AuthProvider = ({ children }) => {
     async (credentials) => {
       try {
         const response = await authService.login(credentials);
+        DashboardCache.clear();
+        setAuthToken(response.token);
         const userEmail = (response.user?.email || credentials.email || "").toLowerCase();
         const isCompleted = Boolean(response.user?.onboardingCompleted === true);
         const nextOnboardingCompleted = Boolean(isCompleted);
@@ -281,6 +303,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const response = await authService.register(payload);
         if (response && response.token) {
+          DashboardCache.clear();
+          setAuthToken(response.token);
           const userEmail = (response.user?.email || payload.email || "").toLowerCase();
           const isCompleted = Boolean(
             response.user?.onboardingCompleted === true

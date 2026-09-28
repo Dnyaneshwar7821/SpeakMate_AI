@@ -53,10 +53,17 @@ import { openLearnerAssistant } from '../../components/assistant/assistantEvents
 
 // Simple in-memory cache to make page transitions instant
 let cachedDashboardData = null;
+let cachedUserId = null;
 export const DashboardCache = {
-  get: () => cachedDashboardData,
-  set: (data) => {
+  get: (userId) => {
+    if (userId && cachedUserId && cachedUserId !== userId) {
+      return null;
+    }
+    return cachedDashboardData;
+  },
+  set: (data, userId) => {
     cachedDashboardData = data;
+    if (userId) cachedUserId = userId;
   },
   updateProfileAvatar: (avatar) => {
     if (cachedDashboardData && cachedDashboardData.profile) {
@@ -65,6 +72,7 @@ export const DashboardCache = {
   },
   clear: () => {
     cachedDashboardData = null;
+    cachedUserId = null;
   },
 };
 
@@ -82,27 +90,29 @@ export default function DashboardScreen({ navigation }) {
     user?.schoolId ||
     user?.schoolCode
   );
-  
+
+  const currentUserId = user?.id || user?._id;
+  const initialCache = DashboardCache.get(currentUserId);
   const [state, setState] = useState(() => ({
-    loading: !DashboardCache.get(),
+    loading: !initialCache && !user,
     refreshing: false,
     error: '',
-    dashboard: DashboardCache.get(),
+    dashboard: initialCache,
   }));
 
   const [assignments, setAssignments] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
 
   const loadDashboard = useCallback(async (refreshing = false) => {
+    const cached = DashboardCache.get(currentUserId);
     setState((current) => ({
       ...current,
-      loading: refreshing ? current.loading : !current.dashboard,
+      loading: refreshing ? false : (!current.dashboard && !cached && !user),
       refreshing,
       error: '',
     }));
 
     try {
-
       const [dashboard, myAssignments, schoolAnnouncements] = await Promise.all([
         dashboardService.summary(),
         isStudentUser ? assignmentService.myAssignments().catch(() => []) : Promise.resolve([]),
@@ -131,8 +141,8 @@ export default function DashboardScreen({ navigation }) {
         if (dashboard.progress) {
           setProgress(dashboard.progress);
         }
-        // Save to cache
-        DashboardCache.set(dashboard);
+        // Save to cache scoped by userId
+        DashboardCache.set(dashboard, currentUserId);
       }
 
       setState({
@@ -146,10 +156,10 @@ export default function DashboardScreen({ navigation }) {
         ...current,
         loading: false,
         refreshing: false,
-        error: error.userMessage || 'Unable to load dashboard. Check your connection and try again.',
+        error: current.dashboard ? '' : (error.userMessage || 'Unable to load dashboard. Check your connection and try again.'),
       }));
     }
-  }, [setProfile, setProgress, isStudentUser, updateUser]);
+  }, [currentUserId, setProfile, setProgress, isStudentUser, updateUser, user]);
 
   useFocusEffect(
     useCallback(() => {
@@ -220,8 +230,9 @@ export default function DashboardScreen({ navigation }) {
     const d = state.dashboard;
     const profile = d.profile || {};
     const progress = d.progress || {};
-    const fullName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
-    const name = fullName || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Learner';
+    const userFullName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+    const profileFullName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
+    const name = userFullName || profileFullName || 'Learner';
 
     const effectiveGrade = isStudentUser ? (profile.schoolGrade || user?.schoolGrade || '1st Std') : null;
     const effectiveAge = isStudentUser ? null : (profile.ageGroup || user?.ageGroup || 'Professional');
@@ -261,7 +272,7 @@ export default function DashboardScreen({ navigation }) {
   }, [state.dashboard, user, isStudentUser]);
 
   const handleLessonPress = useCallback((lesson) => {
-    navigation.navigate('Lessons', { screen: 'LessonDetail', params: { lessonId: lesson?.id, lessonTitle: lesson?.title } });
+    navigation.navigate('Lessons', { screen: 'LessonDetail', params: { lessonId: lesson?.id, lessonTitle: lesson?.title, lesson } });
   }, [navigation]);
 
   const handleNotificationsNav = useCallback(() => {

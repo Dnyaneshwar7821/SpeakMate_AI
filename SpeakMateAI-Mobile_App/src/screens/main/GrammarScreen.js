@@ -117,21 +117,23 @@ export default function GrammarScreen() {
     }
   };
 
-  const loadHistory = async () => {
-    setState((current) => ({ ...current, loading: true, error: '' }));
+  const loadHistory = async (silent = false) => {
+    if (!silent && (!state.history || state.history.length === 0)) {
+      setState((current) => ({ ...current, loading: true, error: '' }));
+    }
     try {
       const history = await grammarService.history();
       setState({ loading: false, error: '', history: Array.isArray(history) ? history : [] });
     } catch {
-      setState({ loading: false, error: '', history: [] });
+      setState((current) => ({ ...current, loading: false }));
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      loadHistory();
+      loadHistory(Boolean(state.history && state.history.length > 0));
       loadSettingsAndVoices();
-    }, [])
+    }, [state.history])
   );
 
   const check = async (overrideText) => {

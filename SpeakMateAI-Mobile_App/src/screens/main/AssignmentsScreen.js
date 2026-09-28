@@ -35,9 +35,9 @@ export default function AssignmentsScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('ALL'); // 'ALL', 'PENDING', 'SUBMITTED'
 
-  const loadAssignments = useCallback(async () => {
+  const loadAssignments = useCallback(async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent && assignments.length === 0) setLoading(true);
       const data = await assignmentService.myAssignments();
       setAssignments(data || []);
     } catch (err) {
@@ -46,10 +46,10 @@ export default function AssignmentsScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [assignments.length]);
 
   useEffect(() => {
-    loadAssignments();
+    loadAssignments(assignments.length > 0);
   }, [loadAssignments]);
 
   const filteredAssignments = assignments.filter((item) => {

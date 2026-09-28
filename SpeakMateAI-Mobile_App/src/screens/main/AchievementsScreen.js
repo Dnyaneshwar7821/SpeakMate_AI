@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useContext, useState, useMemo } from 'react';
 import {
   Text,
   View,
@@ -14,6 +14,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 import { Card, Screen, StateView } from '../../components/ui';
 import { achievementService, dashboardService } from '../../services/appServices';
+import { AuthContext } from '../../context/AuthContext';
+import { DashboardCache } from './DashboardScreen';
 import { COLORS } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
@@ -258,27 +260,43 @@ const CATEGORIES = [
 
 export default function AchievementsScreen() {
   const { isDark, theme } = useTheme();
-  const [state, setState] = useState({ loading: true, error: '', dashboard: null });
+  const { user } = useContext(AuthContext);
+  const cachedDashboard = DashboardCache.get(user?.id);
+  const [state, setState] = useState(() => ({
+    loading: false,
+    error: '',
+    dashboard: cachedDashboard,
+    backendAchievements: [],
+  }));
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [selectedFilter, setSelectedFilter] = useState('ALL'); // 'ALL' | 'UNLOCKED' | 'LOCKED'
   const [searchQuery, setSearchQuery] = useState('');
 
-  const load = async () => {
-    setState((curr) => ({ ...curr, loading: true, error: '' }));
+  const load = async (silent = false) => {
+    if (!silent && !state.dashboard) {
+      setState((curr) => ({ ...curr, loading: true, error: '' }));
+    }
     try {
       const [backendAchievements, dashboard] = await Promise.all([
         achievementService.all().catch(() => []),
         dashboardService.summary().catch(() => null),
       ]);
+      if (dashboard && user?.id) {
+        DashboardCache.set(dashboard, user.id);
+      }
       setState({ loading: false, error: '', dashboard, backendAchievements });
     } catch (error) {
-      setState({ loading: false, error: error.userMessage || 'Unable to load achievements.', dashboard: null });
+      setState((curr) => ({
+        ...curr,
+        loading: false,
+        error: curr.dashboard ? '' : (error.userMessage || 'Unable to load achievements.'),
+      }));
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      load();
+      load(true);
     }, [])
   );
 

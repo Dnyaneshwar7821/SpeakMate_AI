@@ -343,7 +343,8 @@ export default function SpeakingHomeScreen({ navigation }) {
   const { isDark, theme } = useTheme();
   const { showToast } = useToast();
   const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [startingScenario, setStartingScenario] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -358,7 +359,7 @@ export default function SpeakingHomeScreen({ navigation }) {
   const streak = history.length > 0 ? 3 : 0; // Simulated active streak
 
   const loadData = async (silent = false) => {
-    if (!silent) setLoading(true);
+    if (!silent && history.length === 0) setLoading(true);
     try {
       const [rawHistory, onboardingData, savedAccType] = await Promise.all([
         speakingService.history().catch(() => []),
@@ -403,7 +404,7 @@ export default function SpeakingHomeScreen({ navigation }) {
   const triggerStart = async (scenarioName, scenario) => {
     const defaultGreeting = getScenarioInitialGreeting(scenarioName);
     try {
-      setLoading(true);
+      setStartingScenario(true);
       const durationNum = typeof scenario?.duration === 'number'
         ? scenario.duration
         : parseInt(String(scenario?.duration || '5').replace(/\D/g, ''), 10) || 5;
@@ -447,7 +448,7 @@ export default function SpeakingHomeScreen({ navigation }) {
         avatarModel: activeAvatar,
       });
     } finally {
-      setLoading(false);
+      setStartingScenario(false);
     }
   };
 
@@ -573,31 +574,28 @@ export default function SpeakingHomeScreen({ navigation }) {
       <View style={styles.sectionHeader}>
         <Text style={[styles.secTitle, { color: theme.textPrimary }]}>Conversation Scenarios</Text>
       </View>
-      {loading ? (
-        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginVertical: 20 }} />
-      ) : (
-        <View style={styles.grid}>
-          {filteredScenarios.map((sc) => (
-            <TouchableOpacity 
-              key={sc.id} 
-              style={[styles.scCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }]} 
-              onPress={() => startScenario(sc)}
-            >
-              <View style={styles.scHeader}>
-                <View style={[styles.scIconBg, isDark && { backgroundColor: 'rgba(99,102,241,0.2)' }]}>
-                  <Ionicons name={sc.icon} size={22} color={COLORS.primary} />
-                </View>
+      <View style={styles.grid}>
+        {filteredScenarios.map((sc) => (
+          <TouchableOpacity 
+            key={sc.id} 
+            disabled={startingScenario}
+            style={[styles.scCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }, startingScenario && { opacity: 0.7 }]} 
+            onPress={() => startScenario(sc)}
+          >
+            <View style={styles.scHeader}>
+              <View style={[styles.scIconBg, isDark && { backgroundColor: 'rgba(99,102,241,0.2)' }]}>
+                <Ionicons name={sc.icon} size={22} color={COLORS.primary} />
               </View>
-              <Text style={[styles.scTitle, { color: theme.textPrimary }]} numberOfLines={1}>{sc.title}</Text>
-              <Text style={[styles.scDesc, { color: theme.textSecondary }]} numberOfLines={2}>{sc.desc}</Text>
-              <View style={[styles.scFooter, { borderTopColor: theme.cardBorder }]}>
-                <Text style={[styles.scInfo, { color: theme.textSecondary }]}>{sc.duration} min · +{sc.xp} XP</Text>
-                <Ionicons name="chevron-forward-circle" size={20} color={COLORS.primary} />
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+            </View>
+            <Text style={[styles.scTitle, { color: theme.textPrimary }]} numberOfLines={1}>{sc.title}</Text>
+            <Text style={[styles.scDesc, { color: theme.textSecondary }]} numberOfLines={2}>{sc.desc}</Text>
+            <View style={[styles.scFooter, { borderTopColor: theme.cardBorder }]}>
+              <Text style={[styles.scInfo, { color: theme.textSecondary }]}>{sc.duration} min · +{sc.xp} XP</Text>
+              <Ionicons name="chevron-forward-circle" size={20} color={COLORS.primary} />
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* ── Recent Conversations / History ── */}
       <View style={styles.sectionHeader}>

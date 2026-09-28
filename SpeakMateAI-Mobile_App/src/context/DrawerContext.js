@@ -5,16 +5,30 @@
 // Official React Navigation Drawer handles the drawer gesture and history,
 // but the existing UI/animations in DrawerSidebar rely on this context.
 
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { profileService, progressService } from '../services/appServices';
+import { AuthContext } from './AuthContext';
 
 export const DrawerContext = createContext();
 
 export const DrawerProvider = ({ children }) => {
+  const auth = useContext(AuthContext);
+  const user = auth?.user;
+  const isAuthenticated = auth?.isAuthenticated;
+
   const [isOpen, setIsOpen] = useState(false);
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState(() => user || null);
   const [progress, setProgress] = useState(null);
   const [isSyncing, setIsSyncing] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      setProfile(null);
+      setProgress(null);
+    } else {
+      setProfile((prev) => (prev && prev.id === user.id ? prev : user));
+    }
+  }, [isAuthenticated, user?.id]);
 
   const openDrawer = useCallback(() => setIsOpen(true), []);
   const closeDrawer = useCallback(() => setIsOpen(false), []);
@@ -36,6 +50,12 @@ export const DrawerProvider = ({ children }) => {
     }
   }, []);
 
+  const clearDrawerState = useCallback(() => {
+    setProfile(null);
+    setProgress(null);
+    setIsOpen(false);
+  }, []);
+
   const value = useMemo(
     () => ({
       isOpen,
@@ -48,6 +68,7 @@ export const DrawerProvider = ({ children }) => {
       setProgress,
       isSyncing,
       refreshSummary,
+      clearDrawerState,
     }),
     [
       isOpen,
@@ -58,6 +79,7 @@ export const DrawerProvider = ({ children }) => {
       progress,
       isSyncing,
       refreshSummary,
+      clearDrawerState,
     ],
   );
 

@@ -123,8 +123,9 @@ export default function LessonDetailScreen({ navigation, route }) {
   const { showToast, triggerConfetti } = useToast();
   const { lessonId } = route.params || {};
 
-  const [lesson, setLesson] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const initialLesson = route.params?.lesson || findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle) || findStandardLesson(route.params?.title) || null;
+  const [lesson, setLesson] = useState(initialLesson);
+  const [loading, setLoading] = useState(!initialLesson);
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -201,7 +202,7 @@ export default function LessonDetailScreen({ navigation, route }) {
   const [explanationSkippedMidway, setExplanationSkippedMidway] = useState(false);
 
   const scrollY = useRef(new Animated.Value(0)).current;
-  const fadeIn = useRef(new Animated.Value(0)).current;
+  const fadeIn = useRef(new Animated.Value(initialLesson ? 1 : 0)).current;
 
   // ── Load ────────────────────────────────────────────────────────────
   const loadSettingsAndVoices = async () => {
@@ -272,7 +273,7 @@ export default function LessonDetailScreen({ navigation, route }) {
   }, [navigation, audioRecorder]);
 
   const loadLesson = async () => {
-    setLoading(true);
+    if (!lesson && !initialLesson) setLoading(true);
     setError('');
     try {
       const local = findStandardLesson(lessonId) || findStandardLesson(route.params?.lessonTitle) || findStandardLesson(route.params?.title);

@@ -43,11 +43,11 @@ export default function NotificationsScreen() {
     user?.schoolCode
   );
 
-  const load = async (isRef = false) => {
-    if (!isRef) {
-      setState((curr) => ({ ...curr, loading: true, error: '' }));
-    } else {
+  const load = async (isRef = false, silent = false) => {
+    if (isRef) {
       setRefreshing(true);
+    } else if (!silent && state.items.length === 0) {
+      setState((curr) => ({ ...curr, loading: true, error: '' }));
     }
     try {
       const [items, schoolAnnouncements] = await Promise.all([
@@ -55,9 +55,13 @@ export default function NotificationsScreen() {
         isStudentUser ? announcementService.list().catch(() => []) : Promise.resolve([]),
       ]);
       setAnnouncements(isStudentUser ? (schoolAnnouncements || []) : []);
-      setState({ loading: false, error: '', items });
+      setState({ loading: false, error: '', items: items || [] });
     } catch (error) {
-      setState({ loading: false, error: error.userMessage || 'Unable to load notifications.', items: [] });
+      setState((curr) => ({
+        ...curr,
+        loading: false,
+        error: curr.items.length > 0 ? '' : (error.userMessage || 'Unable to load notifications.'),
+      }));
     } finally {
       setRefreshing(false);
     }
@@ -65,7 +69,7 @@ export default function NotificationsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      load();
+      load(false, true);
     }, [])
   );
 

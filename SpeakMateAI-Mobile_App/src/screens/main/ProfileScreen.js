@@ -61,8 +61,22 @@ export default function ProfileScreen({ navigation }) {
     user?.schoolCode
   );
   
-  const [state, setState] = useState({ loading: true, error: '', profile: null });
-  const [form, setForm] = useState({ firstName: '', lastName: '', email: '' });
+  const [state, setState] = useState(() => ({
+    loading: false,
+    error: '',
+    profile: user ? {
+      ...user,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email || '',
+      avatar: user.avatar,
+    } : null,
+  }));
+  const [form, setForm] = useState(() => ({
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.email || '',
+  }));
   const [originalForm, setOriginalForm] = useState(null);
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [infoErrors, setInfoErrors] = useState({});
@@ -320,7 +334,10 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
-  const load = async () => {
+  const load = async (silent = false) => {
+    if (!silent && !state.profile && !user) {
+      setState((curr) => ({ ...curr, loading: true }));
+    }
     try {
       const [profile, savedAccType, savedVoice, savedGender, savedAvatarModel, savedAgeGroup, savedGrade] = await Promise.all([
         profileService.get().catch(() => null),
@@ -433,7 +450,7 @@ export default function ProfileScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
-      load();
+      load(true);
     }, [])
   );
 

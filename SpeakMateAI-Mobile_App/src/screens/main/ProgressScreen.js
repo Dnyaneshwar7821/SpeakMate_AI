@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useContext, useState } from 'react';
 import {
   Text,
   View,
@@ -13,6 +13,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Card, Screen, StateView } from '../../components/ui';
 import { dashboardService } from '../../services/appServices';
 import { useTheme } from '../../context/ThemeContext';
+import { AuthContext } from '../../context/AuthContext';
+import { DashboardCache } from './DashboardScreen';
 import { COLORS } from '../../constants/colors';
 
 const { width } = Dimensions.get('window');
@@ -29,23 +31,38 @@ const CEFR_LEVELS = [
 
 export default function ProgressScreen({ navigation }) {
   const { isDark, theme } = useTheme();
-  const [state, setState] = useState({ loading: true, error: '', dashboard: null });
+  const { user } = useContext(AuthContext);
+  const cachedDashboard = DashboardCache.get(user?.id);
+  const [state, setState] = useState(() => ({
+    loading: !cachedDashboard,
+    error: '',
+    dashboard: cachedDashboard,
+  }));
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d'); // '7d' | '30d'
 
-  const load = async () => {
-    setState((current) => ({ ...current, loading: true, error: '' }));
+  const load = async (silent = false) => {
+    if (!silent && !state.dashboard) {
+      setState((current) => ({ ...current, loading: true, error: '' }));
+    }
     try {
       const dashboard = await dashboardService.summary();
+      if (dashboard && user?.id) {
+        DashboardCache.set(dashboard, user.id);
+      }
       setState({ loading: false, error: '', dashboard });
     } catch (error) {
-      setState({ loading: false, error: error.userMessage || 'Unable to load progress analytics.', dashboard: null });
+      setState((current) => ({
+        ...current,
+        loading: false,
+        error: current.dashboard ? '' : (error.userMessage || 'Unable to load progress analytics.'),
+      }));
     }
   };
 
   useFocusEffect(
     useCallback(() => {
-      load();
-    }, [])
+      load(Boolean(DashboardCache.get(user?.id)));
+    }, [user?.id])
   );
 
   const d = state.dashboard;

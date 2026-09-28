@@ -4,9 +4,18 @@ import { STORAGE_KEYS } from '../utils/storageKeys';
 import { BASE_URL } from '../constants/config';
 
 let logoutCallback = null;
+let cachedAuthToken = null;
 
 export const setLogoutCallback = (cb) => {
   logoutCallback = cb;
+};
+
+export const setAuthToken = (token) => {
+  cachedAuthToken = token && token !== 'null' && token !== 'undefined' ? token : null;
+};
+
+export const clearAuthToken = () => {
+  cachedAuthToken = null;
 };
 
 const api = axios.create({
@@ -24,8 +33,16 @@ if (__DEV__) {
 api.interceptors.request.use(
   async (config) => {
     try {
-      const token = await SecureStore.getItemAsync(STORAGE_KEYS.token);
-      if (token && token !== 'null' && token !== 'undefined') {
+      let token = cachedAuthToken;
+      if (!token) {
+        token = await SecureStore.getItemAsync(STORAGE_KEYS.token);
+        if (token && token !== 'null' && token !== 'undefined') {
+          cachedAuthToken = token;
+        } else {
+          token = null;
+        }
+      }
+      if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
     } catch (error) {
@@ -73,6 +90,7 @@ api.interceptors.response.use(
     }
 
     if (status === 401) {
+      cachedAuthToken = null;
       try {
         await SecureStore.deleteItemAsync(STORAGE_KEYS.token);
       } catch (_) {}
