@@ -51,10 +51,20 @@ export function areListsIdentical(a, b) {
 }
 
 export const CurriculumCache = {
-  getContinueItems(userId, profileKey) {
+  getContinueItems(userId, profileKey, allowedCurriculum = null) {
     const key = getCacheKey(userId, profileKey);
+    const allowedTitles = allowedCurriculum && Array.isArray(allowedCurriculum) && allowedCurriculum.length > 0
+      ? new Set(allowedCurriculum.map((l) => (l.title || '').toLowerCase().trim()))
+      : null;
+
     if (_continueItemsMap.has(key)) {
-      return _continueItemsMap.get(key);
+      const items = _continueItemsMap.get(key);
+      if (allowedTitles && items && Array.isArray(items)) {
+        const valid = items.filter((x) => x && allowedTitles.has((x.title || '').toLowerCase().trim()));
+        if (valid.length > 0) return valid;
+      } else if (items && items.length > 0) {
+        return items;
+      }
     }
     // Attempt hydration from localStorage
     try {
@@ -67,6 +77,7 @@ export const CurriculumCache = {
             if (!item) return false;
             const tKey = (item.title || '').toLowerCase().trim();
             const idKey = String(item.id || '').toLowerCase();
+            if (allowedTitles && !allowedTitles.has(tKey)) return false;
             return !completedSet.has(tKey) && !completedSet.has(idKey) && !item.completed && (item.progressPercent || 0) < 100;
           });
           if (filtered.length > 0) {

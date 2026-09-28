@@ -25,10 +25,22 @@ export function Lessons() {
   const urlSearchQuery = searchParams.get("search") || "";
 
   // User Profile
-  const accountType = user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
-  const schoolGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std";
-  const rawAge = user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Professional";
-  const isStudent = accountType === "STUDENT" || Boolean(user?.schoolGrade);
+  const accountType = localStorage.getItem("speakmate_account_type") || user?.accountType || user?.role || "INDIVIDUAL_USER";
+  const rawGrade = localStorage.getItem("speakmate_school_grade") || localStorage.getItem("speakmate_standard") || user?.schoolGrade || user?.standard || "1st Std";
+  const rawAge = localStorage.getItem("speakmate_age_group") || user?.ageGroup || "Professional";
+  const isStudent = accountType === "STUDENT" || user?.role === "STUDENT" || Boolean(user?.isSchoolStudent) || Boolean(user?.schoolGrade) || Boolean(user?.standard) || Boolean(localStorage.getItem("speakmate_school_grade"));
+
+  const normalizeGradeStr = (raw) => {
+    const s = String(raw || '').trim().toLowerCase();
+    const numMatch = s.match(/\b(10|[1-9])\b/) || s.match(/\d+/);
+    if (numMatch) {
+      const num = parseInt(numMatch[0], 10);
+      const suffix = num === 1 ? 'st' : num === 2 ? 'nd' : num === 3 ? 'rd' : 'th';
+      return `${num}${suffix} Std`;
+    }
+    return '1st Std';
+  };
+  const schoolGrade = normalizeGradeStr(rawGrade);
 
   const normalizeAgeGroup = (raw) => {
     if (!raw) return "Professional";
@@ -58,15 +70,8 @@ export function Lessons() {
   });
 
   const [continueItems, setContinueItems] = useState(() => {
-    const cached = CurriculumCache.getContinueItems(user?.id, profileKey);
-    if (cached && cached.length > 0) return cached;
-    const completedSet = CurriculumCache.getCompletedSet();
-    const firstUncompleted = profileLessons.find((p) => {
-      const titleKey = (p.title || "").toLowerCase().trim();
-      const idKey = String(p.id || "").toLowerCase();
-      return !completedSet.has(titleKey) && !completedSet.has(idKey) && !p.completed && (p.progressPercent || 0) < 100;
-    });
-    return firstUncompleted ? [firstUncompleted] : (profileLessons.length > 0 ? [profileLessons[0]] : []);
+    const cached = CurriculumCache.getContinueItems(user?.id, profileKey, profileLessons);
+    return (cached && cached.length > 0) ? cached : [];
   });
 
   const continueRowRef = useRef(null);
@@ -202,19 +207,11 @@ export function Lessons() {
 
   useEffect(() => {
     // 1. Instantly check cache on profile change so there is ZERO ms lag/flash
-    const cachedCont = CurriculumCache.getContinueItems(user?.id, profileKey);
+    const cachedCont = CurriculumCache.getContinueItems(user?.id, profileKey, profileLessons);
     if (cachedCont && cachedCont.length > 0) {
       setContinueItems((prev) => areListsIdentical(prev, cachedCont) ? prev : cachedCont);
     } else {
-      const completedSet = CurriculumCache.getCompletedSet();
-      const firstUncompleted = profileLessons.find((p) => {
-        const titleKey = (p.title || "").toLowerCase().trim();
-        const idKey = String(p.id || "").toLowerCase();
-        return !completedSet.has(titleKey) && !completedSet.has(idKey) && !p.completed && (p.progressPercent || 0) < 100;
-      });
-      if (firstUncompleted) {
-        setContinueItems([firstUncompleted]);
-      }
+      setContinueItems([]);
     }
 
     const cachedLessons = CurriculumCache.getLessons(user?.id, profileKey);
@@ -224,9 +221,17 @@ export function Lessons() {
       setLessons(profileLessons);
     }
 
-    // 2. Fetch latest server state silently in background
     loadData();
   }, [profileLessons, profileKey, user?.id]);
+
+  useEffect(() => {
+    const handleSettingsUpdated = () => {
+      CurriculumCache.clear();
+      loadData();
+    };
+    window.addEventListener("speakmate_settings_updated", handleSettingsUpdated);
+    return () => window.removeEventListener("speakmate_settings_updated", handleSettingsUpdated);
+  }, []);
 
   const handleOpenLesson = useCallback((lessonItem) => {
     if (!lessonItem) return;

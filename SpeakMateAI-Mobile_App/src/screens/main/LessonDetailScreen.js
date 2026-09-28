@@ -1010,6 +1010,11 @@ export default function LessonDetailScreen({ navigation, route }) {
           lastOpenedAt: new Date().toISOString(),
         });
         await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(filtered));
+        CurriculumCache.updateLessonProgress(lesson.id, lesson.title, initialProg, {
+          category: lesson.category,
+          level: lesson.level,
+          xpReward: lesson.xpReward,
+        });
       } catch (_) {}
       
       const defaultTeach = `Welcome to your detailed masterclass on "${lesson.title}"!\n\n` +
@@ -1234,6 +1239,8 @@ export default function LessonDetailScreen({ navigation, route }) {
           await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(filteredInProg));
         }
       } catch (_) {}
+
+      CurriculumCache.markLessonCompleted(lesson?.id, lesson?.title);
 
       // Update user overall progress XP & completed lessons count
       const curProg = await progressService.get().catch(() => null);

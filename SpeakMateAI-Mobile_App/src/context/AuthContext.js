@@ -12,7 +12,8 @@ import { AppState } from "react-native";
 import { authService } from "../services/authService";
 import { setLogoutCallback, setAuthToken, clearAuthToken } from "../api/api";
 import { STORAGE_KEYS } from "../utils/storageKeys";
-import { DashboardCache } from "../utils/dashboardCache";
+import { DashboardCache, CurriculumCache } from "../utils/dashboardCache";
+import { normalizeGradeKey } from "../constants/masterCurriculum";
 
 export const AuthContext = createContext();
 
@@ -27,19 +28,24 @@ export const AuthProvider = ({ children }) => {
   const syncUserProfile = useCallback(async (userData) => {
     if (!userData) return;
     try {
-      if (userData.schoolGrade && userData.schoolGrade.includes("Std")) {
-        await AsyncStorage.setItem('speakmate_school_grade', userData.schoolGrade);
+      const rawGrd = userData.schoolGrade || userData.standard || userData.grade;
+      if (rawGrd) {
+        const normalized = normalizeGradeKey(rawGrd);
+        await AsyncStorage.setItem('speakmate_school_grade', normalized);
+        CurriculumCache.setGrade(normalized);
       } else if (userData.accountType !== "STUDENT" && !userData.isSchoolStudent) {
         await AsyncStorage.removeItem('speakmate_school_grade');
       }
       if (userData.ageGroup) {
         await AsyncStorage.setItem('speakmate_age_group', userData.ageGroup);
+        CurriculumCache.setAgeGroup(userData.ageGroup);
       }
       if (userData.englishLevel) {
         await AsyncStorage.setItem('speakmate_english_level', userData.englishLevel);
       }
       if (userData.accountType) {
         await AsyncStorage.setItem('speakmate_account_type', userData.accountType);
+        CurriculumCache.setAccountType(userData.accountType);
       }
       if (userData.preferredAccent || userData.aiVoice) {
         await AsyncStorage.setItem('speakmate_ai_voice', userData.preferredAccent || userData.aiVoice);

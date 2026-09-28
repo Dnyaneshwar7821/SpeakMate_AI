@@ -26,7 +26,7 @@ import { authService } from '../../services/authService';
 import { getDisplayName } from '../../utils/format';
 import { validateName, NAME_VALIDATION_ERROR, normalizeEmail, isValidEmail } from '../../utils/validation';
 import { COLORS } from '../../constants/colors';
-import { DashboardCache } from '../../utils/dashboardCache';
+import { DashboardCache, CurriculumCache } from '../../utils/dashboardCache';
 import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
 import { prepareAvatarAsync, isImageUri, AVATAR_CATEGORIES, PRESET_EMOJI_AVATARS } from '../../utils/imageUtils';
 import { VoiceService } from '../../services/VoiceService';
@@ -599,6 +599,7 @@ export default function ProfileScreen({ navigation }) {
         const updated = await profileService.updateAvatar(processed.dataUri);
         DashboardCache.updateProfileAvatar(processed.dataUri);
         DashboardCache.clear();
+        CurriculumCache.clear();
         setState((curr) => ({ ...curr, profile: updated }));
         if (updateUser) updateUser(updated);
         showToast('Photo Updated 📸', 'success', `Avatar updated successfully (${processed.approxKb} KB)!`);
@@ -620,6 +621,7 @@ export default function ProfileScreen({ navigation }) {
       const updated = await profileService.updateAvatar(avatarItem);
       DashboardCache.updateProfileAvatar(avatarItem);
       DashboardCache.clear();
+      CurriculumCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
       const isEmoji = !isImageUri(avatarItem);
@@ -647,6 +649,7 @@ export default function ProfileScreen({ navigation }) {
         englishLevel: newLevel,
       });
       DashboardCache.clear();
+      CurriculumCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
       showToast('Proficiency Updated 🎯', 'success', `AI Tutor level set to ${newLevel}`);
@@ -670,6 +673,7 @@ export default function ProfileScreen({ navigation }) {
       });
       await onboardingService.update({ ageGroup: newAge }).catch(() => {});
       DashboardCache.clear();
+      CurriculumCache.clear();
       setState((curr) => ({
         ...curr,
         profile: {

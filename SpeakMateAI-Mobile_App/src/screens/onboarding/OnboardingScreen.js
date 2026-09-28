@@ -27,6 +27,7 @@ import {
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { PrimaryButton, ErrorMessage } from '../../components/auth';
 import { prepareAvatarAsync, AVATAR_CATEGORIES } from '../../utils/imageUtils';
+import { DashboardCache, CurriculumCache } from '../../utils/dashboardCache';
 
 const { width } = Dimensions.get('window');
 
@@ -466,6 +467,12 @@ export default function OnboardingScreen({ navigation }) {
       if (dailyGoal) {
         await AsyncStorage.setItem('speakmate_daily_goal', String(dailyGoal));
       }
+
+      DashboardCache.clear();
+      CurriculumCache.clear();
+      if (finalGrade) CurriculumCache.setGrade(finalGrade);
+      if (finalAgeGroup) CurriculumCache.setAgeGroup(finalAgeGroup);
+      CurriculumCache.setAccountType(isStudentMode ? 'STUDENT' : 'INDIVIDUAL_USER');
 
       // 1. Sync onboarding details (Avoids any 404 blockages)
       await onboardingService.update({

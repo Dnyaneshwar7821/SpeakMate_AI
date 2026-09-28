@@ -11,6 +11,7 @@ import { AVATAR_LIST, getAvatarById } from "../config/AvatarCatalog";
 import { Link } from "react-router-dom";
 import ROUTES from "../constants/routes";
 import { speakGlobalText } from "../utils/speechHelper";
+import { CurriculumCache } from "../utils/curriculumCache";
 
 const PRESET_AVATARS = [
   "🎓", "🦁", "🚀", "🦉", "👑", "⚡",
@@ -281,6 +282,7 @@ export function Profile() {
     const val = normalizeAgeGroup(newAge);
     setAgeGroup(val);
     localStorage.setItem("speakmate_age_group", val);
+    CurriculumCache.clear();
     try {
       await Promise.allSettled([
         profileService.update({
@@ -303,6 +305,7 @@ export function Profile() {
   const handleSelectSchoolGrade = async (newGrade) => {
     setSchoolGrade(newGrade);
     localStorage.setItem("speakmate_school_grade", newGrade);
+    CurriculumCache.clear();
     try {
       await Promise.allSettled([
         profileService.update({

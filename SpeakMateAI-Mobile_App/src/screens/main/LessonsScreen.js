@@ -318,18 +318,45 @@ function EmptyState({ icon = 'search-outline', title, message }) {
   );
 }
 
+// Helper to normalize grade key into standard curriculum keys
+const normalizeGradeKey = (grade) => {
+  if (!grade) return '1st Std';
+  const str = String(grade).trim();
+  if (!str) return '1st Std';
+  if (STANDARD_LESSONS[str]) return str;
+  const numMatch = str.match(/\b(10|[1-9])\b/) || str.match(/\d+/);
+  if (numMatch) {
+    const num = parseInt(numMatch[0], 10);
+    const suffix = num === 1 ? 'st' : num === 2 ? 'nd' : num === 3 ? 'rd' : 'th';
+    const key = `${num}${suffix} Std`;
+    if (STANDARD_LESSONS[key]) return key;
+  }
+  return '1st Std';
+};
+
 // Helper to get curriculum tailored to student grade or general age group
 const getProfileCurriculum = (user, savedGrade, savedAccType, savedAgeGroup) => {
+  const cachedGrade = CurriculumCache.getGrade();
+  const cachedAccType = CurriculumCache.getAccountType();
+  const cachedAgeGroup = CurriculumCache.getAgeGroup();
+
   const isStudent = Boolean(
     savedAccType === 'STUDENT' ||
+    cachedAccType === 'STUDENT' ||
     user?.accountType === 'STUDENT' ||
     user?.role === 'STUDENT' ||
+    user?.isSchoolStudent ||
     user?.schoolId ||
-    user?.schoolCode
+    user?.schoolCode ||
+    user?.schoolGrade ||
+    user?.standard ||
+    savedGrade ||
+    cachedGrade
   );
 
   if (isStudent) {
-    const grade = savedGrade || user?.schoolGrade || '1st Std';
+    const rawGrd = savedGrade || cachedGrade || user?.schoolGrade || user?.standard || user?.grade;
+    const grade = normalizeGradeKey(rawGrd);
     return {
       curriculum: STANDARD_LESSONS[grade] || STANDARD_LESSONS['1st Std'],
       isStudent: true,
@@ -338,7 +365,7 @@ const getProfileCurriculum = (user, savedGrade, savedAccType, savedAgeGroup) => 
     };
   }
 
-  const rawAge = String(savedAgeGroup || user?.ageGroup || 'Professional').toLowerCase();
+  const rawAge = String(savedAgeGroup || cachedAgeGroup || user?.ageGroup || 'Professional').toLowerCase();
   let targetGroup = 'Professionals & Seniors (Age 25+)';
   if (rawAge.includes('kid') || rawAge.includes('6-12')) {
     targetGroup = 'Kids (Age 6–12)';
@@ -378,7 +405,7 @@ export default function LessonsScreen({ navigation }) {
 
   const initialProfile = useMemo(
     () => getProfileCurriculum(user),
-    [user?.id, user?.schoolGrade, user?.ageGroup, user?.accountType, user?.role]
+    [user?.id, user?.schoolGrade, user?.standard, user?.ageGroup, user?.accountType, user?.role]
   );
   const initialProfileKey = initialProfile.grade || initialProfile.ageGroup;
 
@@ -402,15 +429,8 @@ export default function LessonsScreen({ navigation }) {
   });
 
   const [continueItems, setContinueItems] = useState(() => {
-    const cached = CurriculumCache.getContinueItems(user?.id, initialProfileKey);
-    if (cached && cached.length > 0) return cached;
-    const completedSet = CurriculumCache.getCompletedSet();
-    const firstUncompleted = initialProfile.curriculum.find((l) => {
-      const titleKey = (l.title || '').trim().toLowerCase();
-      const idKey = String(l.id || '').toLowerCase();
-      return !l.completed && (l.progressPercent || 0) < 100 && !completedSet.has(idKey) && !completedSet.has(titleKey);
-    });
-    return firstUncompleted ? [firstUncompleted] : initialProfile.curriculum.slice(0, 1);
+    const cached = CurriculumCache.getContinueItems(user?.id, initialProfileKey, initialProfile.curriculum);
+    return (cached && cached.length > 0) ? cached : [];
   });
 
   const [recommended, setRecommended] = useState(() => initialProfile.curriculum.slice(0, 5));
@@ -456,20 +476,14 @@ export default function LessonsScreen({ navigation }) {
     const cachedLessons = CurriculumCache.getLessons(user?.id, freshKey);
     setLessons(cachedLessons && cachedLessons.length > 0 ? cachedLessons : fresh.curriculum);
 
-    const cachedCont = CurriculumCache.getContinueItems(user?.id, freshKey);
+    const cachedCont = CurriculumCache.getContinueItems(user?.id, freshKey, fresh.curriculum);
     if (cachedCont && cachedCont.length > 0) {
       setContinueItems(cachedCont);
     } else {
-      const completedSet = CurriculumCache.getCompletedSet();
-      const firstUncompleted = fresh.curriculum.find((l) => {
-        const titleKey = (l.title || '').trim().toLowerCase();
-        const idKey = String(l.id || '').toLowerCase();
-        return !l.completed && (l.progressPercent || 0) < 100 && !completedSet.has(idKey) && !completedSet.has(titleKey);
-      });
-      setContinueItems(firstUncompleted ? [firstUncompleted] : fresh.curriculum.slice(0, 1));
+      setContinueItems([]);
     }
     setRecommended(fresh.curriculum.slice(0, 5));
-  }, [user?.id, user?.schoolGrade, user?.ageGroup, user?.accountType, user?.role]);
+  }, [user?.id, user?.schoolGrade, user?.standard, user?.ageGroup, user?.accountType, user?.role]);
 
   // ── Load data ──────────────────────────────────────────────────────
   const loadAll = useCallback(async (silent = false) => {
@@ -490,6 +504,10 @@ export default function LessonsScreen({ navigation }) {
       setAccountType(effAccType);
       if (profileInfo.grade) setUserGrade(profileInfo.grade);
       if (profileInfo.ageGroup) setUserAgeGroup(profileInfo.ageGroup);
+
+      CurriculumCache.setGrade(profileInfo.grade);
+      CurriculumCache.setAccountType(effAccType);
+      CurriculumCache.setAgeGroup(profileInfo.ageGroup);
 
       const baseCurriculum = profileInfo.curriculum;
       const profileKey = profileInfo.grade || profileInfo.ageGroup;
@@ -688,8 +706,9 @@ export default function LessonsScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       // 1. Instantly sync in-memory cache to UI state with ZERO lag
-      const profileKey = userGrade || userAgeGroup;
-      const cachedCont = CurriculumCache.getContinueItems(user?.id, profileKey);
+      const profileInfo = getProfileCurriculum(user, userGrade, accountType, userAgeGroup);
+      const profileKey = profileInfo.grade || profileInfo.ageGroup;
+      const cachedCont = CurriculumCache.getContinueItems(user?.id, profileKey, profileInfo.curriculum);
       if (cachedCont && cachedCont.length > 0) {
         setContinueItems(prev => areListsIdentical(prev, cachedCont) ? prev : cachedCont);
       }
@@ -704,7 +723,7 @@ export default function LessonsScreen({ navigation }) {
         Animated.timing(headerOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.timing(headerTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
       ]).start();
-    }, [loadAll, user?.id, userGrade, userAgeGroup])
+    }, [loadAll, user?.id, userGrade, userAgeGroup, accountType])
   );
 
   // ── Helper: Build strict word-prefix matcher (compulsion: strictly related) ──

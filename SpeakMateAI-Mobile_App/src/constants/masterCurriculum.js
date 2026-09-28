@@ -12819,6 +12819,13 @@ export const CLUSTERS = [
 
 export function getLessonsForSchoolGrade(grade) {
   const g = String(grade || '').trim().toLowerCase();
+  const numMatch = g.match(/\b(10|[1-9])\b/) || g.match(/\d+/);
+  if (numMatch) {
+    const num = parseInt(numMatch[0], 10);
+    if (num <= 4) return MASTER_LESSONS.filter(l => l.clusterId === 'std_1_4');
+    if (num <= 8) return MASTER_LESSONS.filter(l => l.clusterId === 'std_5_8');
+    if (num <= 10) return MASTER_LESSONS.filter(l => l.clusterId === 'std_9_10');
+  }
   if (g.includes('1st') || g.includes('2nd') || g.includes('3rd') || g.includes('4th')) {
     return MASTER_LESSONS.filter(l => l.clusterId === 'std_1_4');
   }

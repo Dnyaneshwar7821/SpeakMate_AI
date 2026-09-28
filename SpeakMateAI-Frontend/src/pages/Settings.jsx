@@ -7,6 +7,7 @@ import { speakGlobalText, VOICE_PROFILES, ACCENT_LIST } from "../utils/speechHel
 import { EventBus, AVATAR_EVENTS } from "../services/live2d/EventBus";
 import { settingsService, onboardingService, profileService } from "../services/appServices";
 import { getAvatarById } from "../config/AvatarCatalog";
+import { CurriculumCache } from "../utils/curriculumCache";
 
 const LANGUAGE_OPTIONS = [
   { code: "English", label: "English", native: "English", flag: "🇺🇸" },
@@ -216,6 +217,7 @@ export function Settings() {
         });
       }
 
+      CurriculumCache.clear();
       window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: selectedAgeGroup } }));
       window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: selectedAgeGroup } }));
       window.dispatchEvent(new Event("speakmate_progress_updated"));
@@ -233,6 +235,7 @@ export function Settings() {
 
   const handleClearCache = () => {
     localStorage.removeItem("speakmate_cached_dashboard");
+    CurriculumCache.clear();
     toast.success("Local learning cache cleared successfully! 🧹");
     setShowResetModal(false);
   };

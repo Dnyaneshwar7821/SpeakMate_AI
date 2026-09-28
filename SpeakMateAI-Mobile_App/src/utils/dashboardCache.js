@@ -30,25 +30,69 @@ let cachedLessonsList = null;
 let cachedCompletedSet = new Set();
 let cachedCurriculumUserId = null;
 let cachedCurriculumGrade = null;
+let cachedCurriculumAccountType = null;
+let cachedCurriculumAgeGroup = null;
 
 export const CurriculumCache = {
-  getContinueItems: (userId, grade) => {
+  getGrade: () => cachedCurriculumGrade,
+  setGrade: (grade) => {
+    cachedCurriculumGrade = grade;
+  },
+  getAccountType: () => cachedCurriculumAccountType,
+  setAccountType: (type) => {
+    cachedCurriculumAccountType = type;
+  },
+  getAgeGroup: () => cachedCurriculumAgeGroup,
+  setAgeGroup: (age) => {
+    cachedCurriculumAgeGroup = age;
+  },
+  getContinueItems: (userId, grade, allowedCurriculum = null) => {
     if (userId && cachedCurriculumUserId && String(cachedCurriculumUserId) !== String(userId)) return null;
-    if (grade && cachedCurriculumGrade && String(cachedCurriculumGrade) !== String(grade)) return null;
+    if (grade && cachedCurriculumGrade && String(cachedCurriculumGrade).toLowerCase() !== String(grade).toLowerCase()) return null;
+    if (!cachedContinueItems || !Array.isArray(cachedContinueItems)) return null;
+
+    if (allowedCurriculum && Array.isArray(allowedCurriculum) && allowedCurriculum.length > 0) {
+      const allowedTitles = new Set(allowedCurriculum.map(l => (l.title || '').trim().toLowerCase()));
+      const valid = cachedContinueItems.filter(item => {
+        const t = (item?.title || item?.lessonTitle || '').trim().toLowerCase();
+        return allowedTitles.has(t);
+      });
+      return valid.length > 0 ? valid : null;
+    }
     return cachedContinueItems;
   },
-  setContinueItems: (items, userId, grade) => {
-    cachedContinueItems = items;
+  setContinueItems: (a, b, c) => {
+    let items, userId, grade;
+    if (Array.isArray(a)) {
+      items = a;
+      userId = b;
+      grade = c;
+    } else {
+      userId = a;
+      grade = b;
+      items = c;
+    }
+    cachedContinueItems = items || [];
     if (userId) cachedCurriculumUserId = userId;
     if (grade) cachedCurriculumGrade = grade;
   },
   getLessons: (userId, grade) => {
     if (userId && cachedCurriculumUserId && String(cachedCurriculumUserId) !== String(userId)) return null;
-    if (grade && cachedCurriculumGrade && String(cachedCurriculumGrade) !== String(grade)) return null;
+    if (grade && cachedCurriculumGrade && String(cachedCurriculumGrade).toLowerCase() !== String(grade).toLowerCase()) return null;
     return cachedLessonsList;
   },
-  setLessons: (lessons, userId, grade) => {
-    cachedLessonsList = lessons;
+  setLessons: (a, b, c) => {
+    let lessons, userId, grade;
+    if (Array.isArray(a)) {
+      lessons = a;
+      userId = b;
+      grade = c;
+    } else {
+      userId = a;
+      grade = b;
+      lessons = c;
+    }
+    cachedLessonsList = lessons || [];
     if (userId) cachedCurriculumUserId = userId;
     if (grade) cachedCurriculumGrade = grade;
   },
@@ -102,25 +146,27 @@ export const CurriculumCache = {
     }
 
     // Update in cached continue items
-    if (cachedContinueItems && Array.isArray(cachedContinueItems)) {
-      let found = false;
-      cachedContinueItems = cachedContinueItems.map(item => {
-        const iId = String(item.id || item.lessonId || '').toLowerCase();
-        const iTitle = (item.title || item.lessonTitle || '').trim().toLowerCase();
-        if ((idKey && iId === idKey) || (titleKey && iTitle === titleKey)) {
-          found = true;
-          return { ...item, progressPercent, ...extraData };
-        }
-        return item;
-      });
-      if (!found && extraData && (extraData.title || titleKey)) {
-        cachedContinueItems.unshift({
-          id: lessonId,
-          title: extraData.title || lessonTitle,
-          progressPercent,
-          ...extraData,
-        });
+    if (!cachedContinueItems || !Array.isArray(cachedContinueItems)) {
+      cachedContinueItems = [];
+    }
+
+    let found = false;
+    cachedContinueItems = cachedContinueItems.map(item => {
+      const iId = String(item.id || item.lessonId || '').toLowerCase();
+      const iTitle = (item.title || item.lessonTitle || '').trim().toLowerCase();
+      if ((idKey && iId === idKey) || (titleKey && iTitle === titleKey)) {
+        found = true;
+        return { ...item, progressPercent, ...extraData };
       }
+      return item;
+    });
+    if (!found) {
+      cachedContinueItems.unshift({
+        id: lessonId,
+        title: extraData.title || lessonTitle,
+        progressPercent,
+        ...extraData,
+      });
     }
   },
   clear: () => {
@@ -129,6 +175,8 @@ export const CurriculumCache = {
     cachedCompletedSet = new Set();
     cachedCurriculumUserId = null;
     cachedCurriculumGrade = null;
+    cachedCurriculumAccountType = null;
+    cachedCurriculumAgeGroup = null;
   },
 };
 
