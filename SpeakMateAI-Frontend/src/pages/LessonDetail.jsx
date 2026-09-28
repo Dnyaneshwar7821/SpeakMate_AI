@@ -5,6 +5,7 @@ import { speakGlobalText } from "../utils/speechHelper";
 import { lessonModuleService, aiService } from "../services/appServices";
 import { recordLessonCompleted } from "../utils/progressTracker";
 import { findCurriculumLesson, MASTER_LESSONS } from "../constants/masterCurriculum";
+import { CurriculumCache } from "../utils/curriculumCache";
 
 // Helper to safely parse objectives and skills arrays regardless of API response type
 const parseArrayField = (field, fallback = []) => {
@@ -162,6 +163,15 @@ export function LessonDetail() {
     const curr = findCurriculumLesson(id);
     if (curr) {
       setLesson(curr);
+      CurriculumCache.updateLessonProgress(
+        curr.id,
+        curr.title,
+        curr.progressPercent || 11,
+        curr.category,
+        curr.level,
+        curr.xpReward,
+        curr.estimatedMinutes
+      );
     }
 
     lessonModuleService
@@ -269,10 +279,19 @@ export function LessonDetail() {
     }
   }, [showStudy, studyStep, aiTeachContent]);
 
-  // Sync step progress with backend
+  // Sync step progress with backend and instant cache
   useEffect(() => {
     if (showStudy && lesson?.id && studyStep > 0 && studyStep < 8) {
       const progressPercent = Math.min(95, Math.round(((studyStep + 1) / 9) * 100));
+      CurriculumCache.updateLessonProgress(
+        lesson.id,
+        lesson.title,
+        progressPercent,
+        lesson.category,
+        lesson.level,
+        lesson.xpReward,
+        lesson.estimatedMinutes
+      );
       lessonModuleService
         .updateProgress({
           lessonId: Number(lesson.id) || lesson.id,
@@ -282,7 +301,7 @@ export function LessonDetail() {
         })
         .catch(() => null);
     }
-  }, [showStudy, studyStep, lesson?.id]);
+  }, [showStudy, studyStep, lesson?.id, lesson?.title, lesson?.category, lesson?.level, lesson?.xpReward, lesson?.estimatedMinutes]);
 
   // Step 2: Auto AI Teaching Concept background enhancement with topic-specific prompt
   useEffect(() => {
@@ -561,6 +580,15 @@ export function LessonDetail() {
     setExplanationSkippedMidway(false);
     setShowStudy(true);
     setStudyStep(0); // Starts at Step 0 (Overview & Objectives)
+    CurriculumCache.updateLessonProgress(
+      lesson?.id,
+      lesson?.title,
+      15,
+      lesson?.category,
+      lesson?.level,
+      lesson?.xpReward,
+      lesson?.estimatedMinutes
+    );
   };
 
   // Toggle voice playback in Step 2 with XP tracking
@@ -1535,6 +1563,7 @@ export function LessonDetail() {
                             const total = Math.max(20, baseXP + bonus - blankPenalty);
                             setEarnedXP(total);
                             recordLessonCompleted(lesson?.title || "English Lesson");
+                            CurriculumCache.markLessonCompleted(lesson?.id, lesson?.title);
                             if (lesson?.id) {
                               lessonModuleService.complete(Number(lesson.id) || lesson.id).catch((err) => {
                                 console.warn("Backend lesson complete sync error:", err);
@@ -1542,6 +1571,7 @@ export function LessonDetail() {
                             }
                           } else {
                             setEarnedXP(0);
+                            CurriculumCache.markLessonCompleted(lesson?.id, lesson?.title);
                           }
                           setQuizFinished(true);
                           setStudyStep(8);

@@ -8,6 +8,7 @@ import {
   getLessonsForSchoolGrade,
   getLessonsForAgeGroup,
 } from "../constants/masterCurriculum";
+import { CurriculumCache, areListsIdentical } from "../utils/curriculumCache";
 
 const DIFFICULTY_TABS = ["All", "Beginner", "Intermediate", "Advanced"];
 
@@ -39,6 +40,7 @@ export function Lessons() {
     return "Professional";
   };
   const effectiveAge = normalizeAgeGroup(rawAge);
+  const profileKey = isStudent ? schoolGrade : effectiveAge;
 
   // Exact profile-scoped 20 academic lessons
   const profileLessons = useMemo(() => {
@@ -50,8 +52,23 @@ export function Lessons() {
     return getLessonsForAgeGroup("Professionals & Seniors (Age 25+)");
   }, [isStudent, schoolGrade, effectiveAge]);
 
-  const [lessons, setLessons] = useState(profileLessons);
-  const [continueItems, setContinueItems] = useState(profileLessons.length > 0 ? [profileLessons[0]] : []);
+  const [lessons, setLessons] = useState(() => {
+    const cached = CurriculumCache.getLessons(user?.id, profileKey);
+    return cached && cached.length > 0 ? cached : profileLessons;
+  });
+
+  const [continueItems, setContinueItems] = useState(() => {
+    const cached = CurriculumCache.getContinueItems(user?.id, profileKey);
+    if (cached && cached.length > 0) return cached;
+    const completedSet = CurriculumCache.getCompletedSet();
+    const firstUncompleted = profileLessons.find((p) => {
+      const titleKey = (p.title || "").toLowerCase().trim();
+      const idKey = String(p.id || "").toLowerCase();
+      return !completedSet.has(titleKey) && !completedSet.has(idKey) && !p.completed && (p.progressPercent || 0) < 100;
+    });
+    return firstUncompleted ? [firstUncompleted] : (profileLessons.length > 0 ? [profileLessons[0]] : []);
+  });
+
   const continueRowRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState(urlSearchQuery);
@@ -80,79 +97,151 @@ export function Lessons() {
       const targetTitles = new Set(profileLessons.map((t) => (t.title || "").toLowerCase().trim()));
       const userCurriculumTitles = targetTitles;
       const userCurriculumIds = new Set(profileLessons.flatMap((t) => [String(t.id || "").toLowerCase(), String(t.numericId || "").toLowerCase()].filter(Boolean)));
+      const completedSet = CurriculumCache.getCompletedSet();
 
-      if (cont && Array.isArray(cont) && cont.length > 0) {
-        // Keep ONLY incompleted lessons that are present in this user's 20-lesson list (not random lessons)
-        const userSpecificInProgress = cont.filter((c) => {
-          if (!c) return false;
-          const titleKey = (c.title || "").toLowerCase().trim();
-          const idKey = String(c.id || "").toLowerCase();
-          const numIdKey = String(c.numericId || "").toLowerCase();
-          
-          // Compulsion: If title is present, it MUST match the user's specific curriculum titles.
-          const belongsToUserList = titleKey
-            ? userCurriculumTitles.has(titleKey)
-            : (userCurriculumIds.has(idKey) || (numIdKey && userCurriculumIds.has(numIdKey)));
-          const isDone = Boolean(c.completed) || (c.progressPercent !== null && c.progressPercent >= 100);
-          return belongsToUserList && !isDone;
-        });
-
-        // Enrich with profileLesson data (xpReward, category, level, etc.)
-        const enrichedCont = userSpecificInProgress.map(c => {
-          const titleKey = (c.title || "").toLowerCase().trim();
-          const matched = profileLessons.find(p => 
-            (p.title || "").toLowerCase().trim() === titleKey
-          ) || profileLessons.find(p =>
-            String(p.id) === String(c.id) ||
-            String(p.numericId) === String(c.id) ||
-            String(p.numericId) === String(c.numericId)
-          );
-          return {
-            ...(matched || {}),
-            ...c,
-            title: matched?.title || c.title,
-            progressPercent: Math.min(100, Math.max(10, c.progressPercent || 11)),
-          };
-        });
-
-        if (enrichedCont.length > 0) {
-          setContinueItems(enrichedCont);
-        } else if (profileLessons.length > 0) {
-          // Fallback to first uncompleted lesson in this user's 20-lesson list
-          const firstUncompleted = profileLessons.find(p => {
-            const titleKey = (p.title || "").toLowerCase().trim();
-            const idKey = String(p.id || "").toLowerCase();
-            return !cont.some(c => (Boolean(c.completed) || (c.progressPercent !== null && c.progressPercent >= 100)) && 
-              ((c.title || "").toLowerCase().trim() === titleKey || String(c.id || "").toLowerCase() === idKey));
-          }) || profileLessons[0];
-          setContinueItems([firstUncompleted]);
+      // Retrieve and sanitize local in-progress items from localStorage
+      let localInProgress = [];
+      try {
+        const raw = localStorage.getItem("speakmate_in_progress_lessons");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            localInProgress = parsed.filter((item) => {
+              if (!item) return false;
+              const titleKey = (item.title || "").toLowerCase().trim();
+              const idKey = String(item.id || "").toLowerCase();
+              const isDone = completedSet.has(titleKey) || completedSet.has(idKey) || Boolean(item.completed) || ((item.progressPercent || 0) >= 100);
+              return userCurriculumTitles.has(titleKey) && !isDone;
+            });
+            if (localInProgress.length !== parsed.length) {
+              localStorage.setItem("speakmate_in_progress_lessons", JSON.stringify(localInProgress));
+            }
+          }
         }
+      } catch (_) {}
+
+      // Combine backend and local in-progress items
+      const combinedCont = [...(cont || [])];
+      localInProgress.forEach((localItem) => {
+        if (!localItem) return;
+        const titleKey = (localItem.title || "").toLowerCase().trim();
+        const idKey = String(localItem.id || "");
+        const existingIdx = combinedCont.findIndex(
+          (c) =>
+            (titleKey && (c.title || "").toLowerCase().trim() === titleKey) ||
+            (idKey && String(c.id || "") === idKey)
+        );
+        if (existingIdx === -1) {
+          combinedCont.push(localItem);
+        } else if ((localItem.progressPercent || 0) > (combinedCont[existingIdx].progressPercent || 0)) {
+          combinedCont[existingIdx] = { ...combinedCont[existingIdx], ...localItem };
+        }
+      });
+
+      const userSpecificInProgress = combinedCont.filter((c) => {
+        if (!c) return false;
+        const titleKey = (c.title || "").toLowerCase().trim();
+        const idKey = String(c.id || "").toLowerCase();
+        const numIdKey = String(c.numericId || "").toLowerCase();
+        
+        const belongsToUserList = titleKey
+          ? userCurriculumTitles.has(titleKey)
+          : (userCurriculumIds.has(idKey) || (numIdKey && userCurriculumIds.has(numIdKey)));
+        const isDone = Boolean(c.completed) || ((c.progressPercent || 0) >= 100) || completedSet.has(titleKey) || completedSet.has(idKey);
+        return belongsToUserList && !isDone;
+      });
+
+      // Enrich with profileLesson data (xpReward, category, level, etc.)
+      const enrichedCont = userSpecificInProgress.map((c) => {
+        const titleKey = (c.title || "").toLowerCase().trim();
+        const matched = profileLessons.find(
+          (p) => (p.title || "").toLowerCase().trim() === titleKey
+        ) || profileLessons.find(
+          (p) => String(p.id) === String(c.id) || String(p.numericId) === String(c.id) || String(p.numericId) === String(c.numericId)
+        );
+        return {
+          ...(matched || {}),
+          ...c,
+          title: matched?.title || c.title,
+          progressPercent: Math.min(100, Math.max(10, c.progressPercent || 11)),
+        };
+      });
+
+      let finalCont = [];
+      if (enrichedCont.length > 0) {
+        finalCont = enrichedCont;
       } else if (profileLessons.length > 0) {
-        setContinueItems([profileLessons[0]]);
+        // Fallback to first uncompleted lesson in this user's 20-lesson list
+        const firstUncompleted = profileLessons.find((p) => {
+          const titleKey = (p.title || "").toLowerCase().trim();
+          const idKey = String(p.id || "").toLowerCase();
+          return !completedSet.has(titleKey) && !completedSet.has(idKey) && !p.completed && (p.progressPercent || 0) < 100;
+        }) || profileLessons[0];
+        finalCont = [firstUncompleted];
       }
 
+      CurriculumCache.setContinueItems(user?.id, profileKey, finalCont);
+      setContinueItems((prev) => areListsIdentical(prev, finalCont) ? prev : finalCont);
+
+      let finalLessons = profileLessons;
       if (list && Array.isArray(list) && list.length > 0) {
         const matchedBackend = list.filter((b) => targetTitles.has((b.title || "").toLowerCase().trim()));
         const backendTitles = new Set(matchedBackend.map((b) => (b.title || "").toLowerCase().trim()));
         const unseeded = profileLessons.filter((t) => !backendTitles.has((t.title || "").toLowerCase().trim()));
-        setLessons([...matchedBackend, ...unseeded]);
-      } else {
-        setLessons(profileLessons);
+        finalLessons = [...matchedBackend, ...unseeded];
       }
+      CurriculumCache.setLessons(user?.id, profileKey, finalLessons);
+      setLessons((prev) => areListsIdentical(prev, finalLessons) ? prev : finalLessons);
     } catch {
-      setLessons(profileLessons);
+      CurriculumCache.setLessons(user?.id, profileKey, profileLessons);
+      setLessons((prev) => areListsIdentical(prev, profileLessons) ? prev : profileLessons);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    setLessons(profileLessons);
-    if (profileLessons.length > 0) {
-      setContinueItems([profileLessons[0]]);
+    // 1. Instantly check cache on profile change so there is ZERO ms lag/flash
+    const cachedCont = CurriculumCache.getContinueItems(user?.id, profileKey);
+    if (cachedCont && cachedCont.length > 0) {
+      setContinueItems((prev) => areListsIdentical(prev, cachedCont) ? prev : cachedCont);
+    } else {
+      const completedSet = CurriculumCache.getCompletedSet();
+      const firstUncompleted = profileLessons.find((p) => {
+        const titleKey = (p.title || "").toLowerCase().trim();
+        const idKey = String(p.id || "").toLowerCase();
+        return !completedSet.has(titleKey) && !completedSet.has(idKey) && !p.completed && (p.progressPercent || 0) < 100;
+      });
+      if (firstUncompleted) {
+        setContinueItems([firstUncompleted]);
+      }
     }
+
+    const cachedLessons = CurriculumCache.getLessons(user?.id, profileKey);
+    if (cachedLessons && cachedLessons.length > 0) {
+      setLessons((prev) => areListsIdentical(prev, cachedLessons) ? prev : cachedLessons);
+    } else {
+      setLessons(profileLessons);
+    }
+
+    // 2. Fetch latest server state silently in background
     loadData();
-  }, [profileLessons]);
+  }, [profileLessons, profileKey, user?.id]);
+
+  const handleOpenLesson = useCallback((lessonItem) => {
+    if (!lessonItem) return;
+    const curProg = Math.max(11, lessonItem.progressPercent || 0);
+    CurriculumCache.updateLessonProgress(
+      lessonItem.id,
+      lessonItem.title,
+      curProg,
+      lessonItem.category,
+      lessonItem.level,
+      lessonItem.xpReward,
+      lessonItem.estimatedMinutes || lessonItem.duration
+    );
+    navigate(`/lessons/${lessonItem.id}`);
+  }, [navigate]);
 
   const handleSearch = useCallback(
     async (text, currentLessons = lessons) => {
@@ -380,7 +469,7 @@ export function Lessons() {
                   </div>
 
                   <button
-                    onClick={() => navigate(`/lessons/${item.id}`)}
+                    onClick={() => handleOpenLesson(item)}
                     className="w-full py-3 rounded-2xl bg-white text-[#4F46E5] font-black text-sm shadow-md hover:bg-slate-100 hover:scale-[1.02] active:scale-95 transition-all text-center flex items-center justify-center gap-2"
                   >
                     Resume Masterclass ▶
@@ -464,9 +553,7 @@ export function Lessons() {
               return (
                 <div
                   key={l.id}
-                  onClick={() => {
-                    navigate(`/lessons/${l.id}`);
-                  }}
+                  onClick={() => handleOpenLesson(l)}
                   className="group glass-card glass-card-hover p-6 rounded-3xl space-y-4 flex flex-col justify-between cursor-pointer border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all duration-300"
                 >
                   <div className="space-y-3">

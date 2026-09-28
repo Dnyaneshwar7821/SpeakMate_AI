@@ -29,6 +29,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lessonModuleService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
 import { STANDARD_LESSONS, GENERAL_LESSONS, MASTER_LESSONS } from '../../constants/standardLessons';
+import { CurriculumCache } from '../../utils/dashboardCache';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -352,6 +353,23 @@ const getProfileCurriculum = (user, savedGrade, savedAccType, savedAgeGroup) => 
   };
 };
 
+function areListsIdentical(a, b) {
+  if (a === b) return true;
+  if (!Array.isArray(a) || !Array.isArray(b)) return false;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    const itemA = a[i];
+    const itemB = b[i];
+    if (!itemA || !itemB) return false;
+    if (String(itemA.id || '') !== String(itemB.id || '')) return false;
+    if ((itemA.title || '').trim() !== (itemB.title || '').trim()) return false;
+    if (Boolean(itemA.completed) !== Boolean(itemB.completed)) return false;
+    if (Boolean(itemA.locked) !== Boolean(itemB.locked)) return false;
+    if (Number(itemA.progressPercent || 0) !== Number(itemB.progressPercent || 0)) return false;
+  }
+  return true;
+}
+
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
 export default function LessonsScreen({ navigation }) {
@@ -362,6 +380,7 @@ export default function LessonsScreen({ navigation }) {
     () => getProfileCurriculum(user),
     [user?.id, user?.schoolGrade, user?.ageGroup, user?.accountType, user?.role]
   );
+  const initialProfileKey = initialProfile.grade || initialProfile.ageGroup;
 
   const [categories, setCategories] = useState(() => {
     const catCounts = {};
@@ -377,8 +396,23 @@ export default function LessonsScreen({ navigation }) {
     }));
   });
 
-  const [lessons, setLessons] = useState(initialProfile.curriculum);
-  const [continueItems, setContinueItems] = useState(() => initialProfile.curriculum.slice(0, 1));
+  const [lessons, setLessons] = useState(() => {
+    const cached = CurriculumCache.getLessons(user?.id, initialProfileKey);
+    return cached && cached.length > 0 ? cached : initialProfile.curriculum;
+  });
+
+  const [continueItems, setContinueItems] = useState(() => {
+    const cached = CurriculumCache.getContinueItems(user?.id, initialProfileKey);
+    if (cached && cached.length > 0) return cached;
+    const completedSet = CurriculumCache.getCompletedSet();
+    const firstUncompleted = initialProfile.curriculum.find((l) => {
+      const titleKey = (l.title || '').trim().toLowerCase();
+      const idKey = String(l.id || '').toLowerCase();
+      return !l.completed && (l.progressPercent || 0) < 100 && !completedSet.has(idKey) && !completedSet.has(titleKey);
+    });
+    return firstUncompleted ? [firstUncompleted] : initialProfile.curriculum.slice(0, 1);
+  });
+
   const [recommended, setRecommended] = useState(() => initialProfile.curriculum.slice(0, 5));
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -405,6 +439,7 @@ export default function LessonsScreen({ navigation }) {
     if (fresh.grade) setUserGrade(fresh.grade);
     if (fresh.ageGroup) setUserAgeGroup(fresh.ageGroup);
 
+    const freshKey = fresh.grade || fresh.ageGroup;
     const catCounts = {};
     fresh.curriculum.forEach((l) => {
       const c = l.category || 'General';
@@ -417,8 +452,22 @@ export default function LessonsScreen({ navigation }) {
       icon: 'folder-outline',
     }));
     setCategories(freshCats);
-    setLessons(fresh.curriculum);
-    setContinueItems(fresh.curriculum.slice(0, 1));
+
+    const cachedLessons = CurriculumCache.getLessons(user?.id, freshKey);
+    setLessons(cachedLessons && cachedLessons.length > 0 ? cachedLessons : fresh.curriculum);
+
+    const cachedCont = CurriculumCache.getContinueItems(user?.id, freshKey);
+    if (cachedCont && cachedCont.length > 0) {
+      setContinueItems(cachedCont);
+    } else {
+      const completedSet = CurriculumCache.getCompletedSet();
+      const firstUncompleted = fresh.curriculum.find((l) => {
+        const titleKey = (l.title || '').trim().toLowerCase();
+        const idKey = String(l.id || '').toLowerCase();
+        return !l.completed && (l.progressPercent || 0) < 100 && !completedSet.has(idKey) && !completedSet.has(titleKey);
+      });
+      setContinueItems(firstUncompleted ? [firstUncompleted] : fresh.curriculum.slice(0, 1));
+    }
     setRecommended(fresh.curriculum.slice(0, 5));
   }, [user?.id, user?.schoolGrade, user?.ageGroup, user?.accountType, user?.role]);
 
@@ -443,10 +492,12 @@ export default function LessonsScreen({ navigation }) {
       if (profileInfo.ageGroup) setUserAgeGroup(profileInfo.ageGroup);
 
       const baseCurriculum = profileInfo.curriculum;
+      const profileKey = profileInfo.grade || profileInfo.ageGroup;
 
       // Categories from newly defined profile lessons
       const storedCompletedRaw = await AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null);
       const completedSet = new Set(storedCompletedRaw ? JSON.parse(storedCompletedRaw).map(x => String(x).toLowerCase()) : []);
+      CurriculumCache.setCompletedSet(completedSet);
 
       const catCounts = {};
       const catCompletedCounts = {};
@@ -471,9 +522,25 @@ export default function LessonsScreen({ navigation }) {
       const storedInProgressRaw = await AsyncStorage.getItem('speakmate_in_progress_lessons').catch(() => null);
       const localInProgressList = storedInProgressRaw ? JSON.parse(storedInProgressRaw) : [];
 
-      // Merge backend in-progress items and local in-progress items
+      // Keep lessons strictly present in THIS user's 20-lesson curriculum list (not random lessons)
+      const userCurriculumTitles = new Set(baseCurriculum.map(l => (l.title || '').trim().toLowerCase()));
+      const userCurriculumIds = new Set(baseCurriculum.flatMap(l => [String(l.id || '').toLowerCase(), String(l.numericId || '').toLowerCase()].filter(Boolean)));
+
+      // Sanitize stored in-progress lessons so stale cross-cluster or completed items are permanently purged
+      const validLocalInProgress = localInProgressList.filter(item => {
+        if (!item) return false;
+        const titleKey = (item.title || '').trim().toLowerCase();
+        const idKey = String(item.id || '').toLowerCase();
+        const isCompleted = completedSet.has(idKey) || completedSet.has(titleKey) || Boolean(item.completed) || ((item.progressPercent || 0) >= 100);
+        return userCurriculumTitles.has(titleKey) && !isCompleted;
+      });
+      if (validLocalInProgress.length !== localInProgressList.length) {
+        AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(validLocalInProgress)).catch(() => {});
+      }
+
+      // Merge backend in-progress items and sanitized local in-progress items
       const combinedCont = [...(cont || [])];
-      localInProgressList.forEach(localItem => {
+      validLocalInProgress.forEach(localItem => {
         if (!localItem) return;
         const titleKey = (localItem?.title || '').trim().toLowerCase();
         const idKey = String(localItem?.id || '');
@@ -487,10 +554,6 @@ export default function LessonsScreen({ navigation }) {
           combinedCont[existingIdx] = { ...combinedCont[existingIdx], ...localItem };
         }
       });
-
-      // Keep lessons strictly present in THIS user's 20-lesson curriculum list (not random lessons)
-      const userCurriculumTitles = new Set(baseCurriculum.map(l => (l.title || '').trim().toLowerCase()));
-      const userCurriculumIds = new Set(baseCurriculum.flatMap(l => [String(l.id || '').toLowerCase(), String(l.numericId || '').toLowerCase()].filter(Boolean)));
 
       const userSpecificInProgress = combinedCont.filter(c => {
         if (!c) return false;
@@ -531,9 +594,9 @@ export default function LessonsScreen({ navigation }) {
         };
       });
 
+      let finalContinueList = [];
       if (enrichedCont.length > 0) {
-        // KEEP ALL opened incompleted lessons that are present in that user's 20-lesson list!
-        setContinueItems(enrichedCont);
+        finalContinueList = enrichedCont;
       } else {
         // Fallback: pick the first uncompleted lesson in the user's 20-lesson curriculum
         const nextLesson = baseCurriculum.find(l => {
@@ -543,8 +606,11 @@ export default function LessonsScreen({ navigation }) {
           return !isDone;
         }) || baseCurriculum[0];
 
-        setContinueItems(nextLesson ? [nextLesson] : []);
+        finalContinueList = nextLesson ? [nextLesson] : [];
       }
+
+      CurriculumCache.setContinueItems(user?.id, profileKey, finalContinueList);
+      setContinueItems(prev => areListsIdentical(prev, finalContinueList) ? prev : finalContinueList);
 
       // Recommended from newly defined profile lessons
       setRecommended(baseCurriculum.slice(0, 5));
@@ -570,8 +636,10 @@ export default function LessonsScreen({ navigation }) {
         AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null),
       ]);
       const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted).map(x => String(x).toLowerCase()) : []);
+      CurriculumCache.setCompletedSet(completedSet);
       
       const baseCurriculum = overrideCurriculum || getProfileCurriculum(user, userGrade, accountType, userAgeGroup).curriculum;
+      const profileKey = userGrade || userAgeGroup;
 
       // Map any backend completion/progress into the newly defined profile lessons
       const backendMap = new Map();
@@ -607,9 +675,11 @@ export default function LessonsScreen({ navigation }) {
       if (difficulty && difficulty !== 'All') {
         list = list.filter((l) => (l.level || '').toLowerCase() === difficulty.toLowerCase());
       }
-      setLessons(list);
+      CurriculumCache.setLessons(user?.id, profileKey, list);
+      setLessons(prev => areListsIdentical(prev, list) ? prev : list);
     } catch {
-      setLessons(overrideCurriculum || getProfileCurriculum(user, userGrade, accountType, userAgeGroup).curriculum);
+      const fallbackList = overrideCurriculum || getProfileCurriculum(user, userGrade, accountType, userAgeGroup).curriculum;
+      setLessons(prev => areListsIdentical(prev, fallbackList) ? prev : fallbackList);
     } finally {
       if (!silent) setLoading(false);
     }
@@ -617,12 +687,24 @@ export default function LessonsScreen({ navigation }) {
 
   useFocusEffect(
     useCallback(() => {
+      // 1. Instantly sync in-memory cache to UI state with ZERO lag
+      const profileKey = userGrade || userAgeGroup;
+      const cachedCont = CurriculumCache.getContinueItems(user?.id, profileKey);
+      if (cachedCont && cachedCont.length > 0) {
+        setContinueItems(prev => areListsIdentical(prev, cachedCont) ? prev : cachedCont);
+      }
+      const cachedLessons = CurriculumCache.getLessons(user?.id, profileKey);
+      if (cachedLessons && cachedLessons.length > 0) {
+        setLessons(prev => areListsIdentical(prev, cachedLessons) ? prev : cachedLessons);
+      }
+
+      // 2. Fetch fresh server data silently in background
       loadAll(true);
       Animated.parallel([
         Animated.timing(headerOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
         Animated.timing(headerTranslate, { toValue: 0, duration: 300, useNativeDriver: true }),
       ]).start();
-    }, [loadAll])
+    }, [loadAll, user?.id, userGrade, userAgeGroup])
   );
 
   // ── Helper: Build strict word-prefix matcher (compulsion: strictly related) ──
@@ -843,6 +925,13 @@ export default function LessonsScreen({ navigation }) {
         inProg.unshift(itemToSave);
       }
       await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(inProg));
+      CurriculumCache.updateLessonProgress(
+        lesson.id,
+        lesson.title,
+        curProg,
+        lesson.category || 'General',
+        lesson.level || lesson.difficulty || 'Beginner'
+      );
     } catch (_) {}
 
     navigation.navigate('LessonDetail', { lessonId: lesson.id, lessonTitle: lesson.title, lesson });

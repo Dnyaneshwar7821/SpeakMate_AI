@@ -32,6 +32,7 @@ import { lessonModuleService, settingsService, aiService, progressService, speec
 import { VoiceService } from '../../services/VoiceService';
 import { COLORS } from '../../constants/colors';
 import { findStandardLesson } from '../../constants/standardLessons';
+import { CurriculumCache } from '../../utils/dashboardCache';
 
 // ─── Helpers & Quizzes ────────────────────────────────────────────────────────
 
@@ -1128,6 +1129,11 @@ export default function LessonDetailScreen({ navigation, route }) {
         });
       }
       await AsyncStorage.setItem('speakmate_in_progress_lessons', JSON.stringify(inProg));
+      CurriculumCache.updateLessonProgress(lesson?.id, lesson?.title, progressPercent, {
+        category: lesson?.category,
+        level: lesson?.level,
+        xpReward: lesson?.xpReward,
+      });
     } catch (_) {}
 
     const isNumeric = lesson?.id && (/^\d+$/.test(String(lesson.id)));
