@@ -3,7 +3,7 @@
  * Full-featured lesson browser: categories, difficulty tabs, search,
  * continue-learning, recommended, lesson cards, filters.
  */
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Animated,
@@ -23,6 +23,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../../context/ThemeContext';
+import { AuthContext } from '../../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { lessonModuleService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
@@ -303,18 +304,69 @@ function EmptyState({ icon = 'search-outline', title, message }) {
   );
 }
 
-// STANDARD_LESSONS is imported from '../../constants/standardLessons'
+// Helper to get curriculum tailored to student grade or general age group
+const getProfileCurriculum = (user, savedGrade, savedAccType, savedAgeGroup) => {
+  const isStudent = Boolean(
+    savedAccType === 'STUDENT' ||
+    user?.accountType === 'STUDENT' ||
+    user?.role === 'STUDENT' ||
+    user?.schoolId ||
+    user?.schoolCode
+  );
 
+  if (isStudent) {
+    const grade = savedGrade || user?.schoolGrade || '1st Std';
+    return {
+      curriculum: STANDARD_LESSONS[grade] || STANDARD_LESSONS['1st Std'],
+      isStudent: true,
+      grade,
+      ageGroup: null,
+    };
+  }
+
+  const rawAge = String(savedAgeGroup || user?.ageGroup || 'Professional').toLowerCase();
+  let targetGroup = 'Professionals & Seniors (Age 25+)';
+  if (rawAge.includes('kid') || rawAge.includes('6-12')) {
+    targetGroup = 'Kids (Age 6–12)';
+  } else if (rawAge.includes('teen') || rawAge.includes('young') || rawAge.includes('13-24')) {
+    targetGroup = 'Teens & Young Adults (Age 13–24)';
+  }
+  return {
+    curriculum: GENERAL_LESSONS[targetGroup] || GENERAL_LESSONS['Professionals & Seniors (Age 25+)'],
+    isStudent: false,
+    grade: null,
+    ageGroup: targetGroup,
+  };
+};
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
 
 export default function LessonsScreen({ navigation }) {
   const { isDark, theme } = useTheme();
-  const defaultCurriculum = GENERAL_LESSONS['Professionals & Seniors (Age 25+)'] || MASTER_LESSONS;
-  const [categories, setCategories] = useState([]);
-  const [lessons, setLessons] = useState(defaultCurriculum);
-  const [continueItems, setContinueItems] = useState(() => defaultCurriculum.slice(0, 1));
-  const [recommended, setRecommended] = useState(() => defaultCurriculum.slice(0, 5));
+  const { user } = useContext(AuthContext);
+
+  const initialProfile = useMemo(
+    () => getProfileCurriculum(user),
+    [user?.id, user?.schoolGrade, user?.ageGroup, user?.accountType, user?.role]
+  );
+
+  const [categories, setCategories] = useState(() => {
+    const catCounts = {};
+    initialProfile.curriculum.forEach((l) => {
+      const c = l.category || 'General';
+      catCounts[c] = (catCounts[c] || 0) + 1;
+    });
+    return Object.keys(catCounts).map((catName) => ({
+      name: catName,
+      lessonCount: catCounts[catName],
+      completedCount: 0,
+      icon: 'book-outline',
+    }));
+  });
+
+  const [lessons, setLessons] = useState(initialProfile.curriculum);
+  const [continueItems, setContinueItems] = useState(() => initialProfile.curriculum.slice(0, 1));
+  const [recommended, setRecommended] = useState(() => initialProfile.curriculum.slice(0, 5));
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
@@ -328,9 +380,33 @@ export default function LessonsScreen({ navigation }) {
   const headerOpacity = useRef(new Animated.Value(1)).current;
   const headerTranslate = useRef(new Animated.Value(0)).current;
 
-  const [userGrade, setUserGrade] = useState('1st Std');
-  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
-  const [userAgeGroup, setUserAgeGroup] = useState('Professional');
+  const [userGrade, setUserGrade] = useState(() => initialProfile.grade || '1st Std');
+  const [accountType, setAccountType] = useState(() => initialProfile.isStudent ? 'STUDENT' : 'INDIVIDUAL_USER');
+  const [userAgeGroup, setUserAgeGroup] = useState(() => initialProfile.ageGroup || user?.ageGroup || 'Professional');
+
+  // React immediately whenever logged in user changes
+  useEffect(() => {
+    const fresh = getProfileCurriculum(user);
+    setAccountType(fresh.isStudent ? 'STUDENT' : 'INDIVIDUAL_USER');
+    if (fresh.grade) setUserGrade(fresh.grade);
+    if (fresh.ageGroup) setUserAgeGroup(fresh.ageGroup);
+
+    const catCounts = {};
+    fresh.curriculum.forEach((l) => {
+      const c = l.category || 'General';
+      catCounts[c] = (catCounts[c] || 0) + 1;
+    });
+    const freshCats = Object.keys(catCounts).map((catName) => ({
+      name: catName,
+      lessonCount: catCounts[catName],
+      completedCount: 0,
+      icon: 'book-outline',
+    }));
+    setCategories(freshCats);
+    setLessons(fresh.curriculum);
+    setContinueItems(fresh.curriculum.slice(0, 1));
+    setRecommended(fresh.curriculum.slice(0, 5));
+  }, [user?.id, user?.schoolGrade, user?.ageGroup, user?.accountType, user?.role]);
 
   // ── Load data ──────────────────────────────────────────────────────
   const loadAll = useCallback(async (silent = false) => {
@@ -345,26 +421,14 @@ export default function LessonsScreen({ navigation }) {
         AsyncStorage.getItem('speakmate_account_type'),
         AsyncStorage.getItem('speakmate_age_group'),
       ]);
-      const effAccType = savedAccType || 'INDIVIDUAL_USER';
-      setAccountType(effAccType);
-      if (savedGrade) {
-        setUserGrade(savedGrade);
-      }
-      if (savedAgeGroup) {
-        setUserAgeGroup(savedAgeGroup);
-      }
 
-      // Compute baseCurriculum for user profile
-      let baseCurriculum = [];
-      if (effAccType === 'STUDENT') {
-        baseCurriculum = STANDARD_LESSONS[savedGrade || userGrade] || STANDARD_LESSONS['1st Std'];
-      } else {
-        const effAge = String(savedAgeGroup || userAgeGroup || 'Professional').toLowerCase();
-        let targetGroup = 'Professionals & Seniors (Age 25+)';
-        if (effAge.includes('kid') || effAge.includes('6-12')) targetGroup = 'Kids (Age 6–12)';
-        else if (effAge.includes('teen') || effAge.includes('young') || effAge.includes('13-24')) targetGroup = 'Teens & Young Adults (Age 13–24)';
-        baseCurriculum = GENERAL_LESSONS[targetGroup] || GENERAL_LESSONS['Professionals & Seniors (Age 25+)'];
-      }
+      const profileInfo = getProfileCurriculum(user, savedGrade, savedAccType, savedAgeGroup);
+      const effAccType = profileInfo.isStudent ? 'STUDENT' : 'INDIVIDUAL_USER';
+      setAccountType(effAccType);
+      if (profileInfo.grade) setUserGrade(profileInfo.grade);
+      if (profileInfo.ageGroup) setUserAgeGroup(profileInfo.ageGroup);
+
+      const baseCurriculum = profileInfo.curriculum;
 
       // Categories from newly defined profile lessons
       const catCounts = {};
@@ -389,40 +453,28 @@ export default function LessonsScreen({ navigation }) {
       setRecommended(baseCurriculum.slice(0, 5));
 
       // Load lessons based on current filter
-      await applyFilter(selectedCategory, activeTab, silent);
+      await applyFilter(selectedCategory, activeTab, silent, baseCurriculum);
     } catch (e) {
       setError('Unable to load lessons. Check your connection.');
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [selectedCategory, activeTab, userGrade, userAgeGroup, accountType]);
+  }, [user, selectedCategory, activeTab, lessons.length]);
 
-  const applyFilter = useCallback(async (category, difficulty, silent = false) => {
+  const applyFilter = useCallback(async (category, difficulty, silent = false, overrideCurriculum = null) => {
     if (!silent) setLoading(true);
     try {
       const params = {};
       if (category && category !== 'All') params.category = category;
       if (difficulty && difficulty !== 'All') params.difficulty = difficulty;
-      const [data, storedCompleted, savedAccType, savedAgeGroup] = await Promise.all([
+      const [data, storedCompleted] = await Promise.all([
         lessonModuleService.list(params).catch(() => []),
         AsyncStorage.getItem('speakmate_completed_standard_lessons').catch(() => null),
-        AsyncStorage.getItem('speakmate_account_type').catch(() => null),
-        AsyncStorage.getItem('speakmate_age_group').catch(() => null),
       ]);
       const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted) : []);
       
-      let baseCurriculum = [];
-      const effType = savedAccType || accountType;
-      if (effType === 'STUDENT') {
-        baseCurriculum = STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std'];
-      } else {
-        const effAge = String(savedAgeGroup || userAgeGroup || 'Professional').toLowerCase();
-        let targetGroup = 'Professionals & Seniors (Age 25+)';
-        if (effAge.includes('kid') || effAge.includes('6-12')) targetGroup = 'Kids (Age 6–12)';
-        else if (effAge.includes('teen') || effAge.includes('young') || effAge.includes('13-24')) targetGroup = 'Teens & Young Adults (Age 13–24)';
-        baseCurriculum = GENERAL_LESSONS[targetGroup] || GENERAL_LESSONS['Professionals & Seniors (Age 25+)'];
-      }
+      const baseCurriculum = overrideCurriculum || getProfileCurriculum(user, userGrade, accountType, userAgeGroup).curriculum;
 
       // Map any backend completion/progress into the newly defined profile lessons
       const backendMap = new Map();
@@ -457,11 +509,11 @@ export default function LessonsScreen({ navigation }) {
       }
       setLessons(list);
     } catch {
-      setLessons(accountType === 'STUDENT' ? (STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std']) : (GENERAL_LESSONS['Professionals & Seniors (Age 25+)'] || MASTER_LESSONS));
+      setLessons(overrideCurriculum || getProfileCurriculum(user, userGrade, accountType, userAgeGroup).curriculum);
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [userGrade, accountType]);
+  }, [user, userGrade, accountType, userAgeGroup]);
 
   useFocusEffect(
     useCallback(() => {
@@ -493,16 +545,8 @@ export default function LessonsScreen({ navigation }) {
         ]);
         const completedSet = new Set(storedCompleted ? JSON.parse(storedCompleted) : []);
         const q = searchText.trim().toLowerCase();
-        const effAge = String(userAgeGroup || 'Professional').toLowerCase();
-        let targetCurriculum = GENERAL_LESSONS['Professionals & Seniors (Age 25+)'];
-        if (accountType === 'STUDENT') {
-          targetCurriculum = STANDARD_LESSONS[userGrade] || STANDARD_LESSONS['1st Std'];
-        } else if (effAge.includes('kid') || effAge.includes('6-12')) {
-          targetCurriculum = GENERAL_LESSONS['Kids (Age 6–12)'];
-        } else if (effAge.includes('teen') || effAge.includes('young') || effAge.includes('13-24')) {
-          targetCurriculum = GENERAL_LESSONS['Teens & Young Adults (Age 13–24)'];
-        }
-        const allStandard = targetCurriculum || [];
+        const profileInfo = getProfileCurriculum(user, userGrade, accountType, userAgeGroup);
+        const allStandard = profileInfo.curriculum || [];
         const matchedStandard = allStandard
           .filter(
             (l) =>

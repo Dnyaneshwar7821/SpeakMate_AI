@@ -345,6 +345,7 @@ export default function SpeakingHomeScreen({ navigation }) {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [startingScenario, setStartingScenario] = useState(false);
+  const [startingScenarioId, setStartingScenarioId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -398,6 +399,7 @@ export default function SpeakingHomeScreen({ navigation }) {
   );
 
   const startScenario = async (scenario) => {
+    setStartingScenarioId(scenario?.id || scenario?.title);
     triggerStart(scenario.title, scenario);
   };
 
@@ -449,6 +451,7 @@ export default function SpeakingHomeScreen({ navigation }) {
       });
     } finally {
       setStartingScenario(false);
+      setStartingScenarioId(null);
     }
   };
 
@@ -591,7 +594,11 @@ export default function SpeakingHomeScreen({ navigation }) {
             <Text style={[styles.scDesc, { color: theme.textSecondary }]} numberOfLines={2}>{sc.desc}</Text>
             <View style={[styles.scFooter, { borderTopColor: theme.cardBorder }]}>
               <Text style={[styles.scInfo, { color: theme.textSecondary }]}>{sc.duration} min · +{sc.xp} XP</Text>
-              <Ionicons name="chevron-forward-circle" size={20} color={COLORS.primary} />
+              {startingScenarioId === (sc.id || sc.title) ? (
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              ) : (
+                <Ionicons name="chevron-forward-circle" size={20} color={COLORS.primary} />
+              )}
             </View>
           </TouchableOpacity>
         ))}
