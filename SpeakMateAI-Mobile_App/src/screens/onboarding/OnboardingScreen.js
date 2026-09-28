@@ -26,7 +26,7 @@ import {
 } from '../../services/appServices';
 import { OnboardingVoiceService } from '../../services/OnboardingVoiceService';
 import { PrimaryButton, ErrorMessage } from '../../components/auth';
-import { prepareAvatarAsync } from '../../utils/imageUtils';
+import { prepareAvatarAsync, AVATAR_CATEGORIES } from '../../utils/imageUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -133,93 +133,6 @@ const REMINDER_TIMES = [
   { key: 'Evening', label: 'Evening', time: '6:00 PM', icon: 'moon-outline' },
   { key: 'Night', label: 'Night', time: '9:00 PM', icon: 'star-outline' },
   { key: 'None', label: 'No Reminder', time: '—', icon: 'notifications-off-outline' },
-];
-
-const AVATAR_CATEGORIES = [
-  {
-    key: 'illustrated',
-    label: 'Illustrated',
-    avatars: [
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Felix&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Aneka&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Jack&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Sophia&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Luna&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Marco&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Zoe&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Leo&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Chloe&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Max&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Mia&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/avataaars/png?seed=Oliver&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-    ],
-  },
-  {
-    key: 'anime',
-    label: 'Anime',
-    avatars: [
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Kaito&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Akira&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Hana&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Ryo&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Miku&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Taro&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Yuki&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Kenji&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Sora&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Ren&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Aoi&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/lorelei/png?seed=Haruto&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-    ],
-  },
-  {
-    key: 'adventurer',
-    label: 'Adventurer',
-    avatars: [
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Oliver&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Alexander&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Sophia&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Emily&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=James&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Lucas&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Mia&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Benjamin&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Charlotte&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Zoe&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Daniel&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/adventurer/png?seed=Grace&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-    ],
-  },
-  {
-    key: 'pixel',
-    label: 'Pixel',
-    avatars: [
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelA&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelB&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelC&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelD&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelE&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelF&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelG&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelH&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelI&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelJ&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelK&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/pixel-art/png?seed=PixelL&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-    ],
-  },
-  {
-    key: 'cartoon',
-    label: 'Cartoon & Kids',
-    avatars: [
-      'https://api.dicebear.com/7.x/bottts/png?seed=RoboPaws&backgroundType=gradientLinear&backgroundColor=b6e3f4,c0aede',
-      'https://api.dicebear.com/7.x/bottts/png?seed=Bolt&backgroundType=gradientLinear&backgroundColor=ffd5dc,ffdfbf',
-      'https://api.dicebear.com/7.x/bottts/png?seed=Sparky&backgroundType=gradientLinear&backgroundColor=d1d4f9,b6e3f4',
-      'https://api.dicebear.com/7.x/bottts/png?seed=Echo&backgroundType=gradientLinear&backgroundColor=ffdfbf,ffd5dc',
-      'https://api.dicebear.com/7.x/bottts/png?seed=LunaBot&backgroundType=gradientLinear&backgroundColor=c0aede,ffd5dc',
-      'https://api.dicebear.com/7.x/bottts/png?seed=Gizmo&backgroundType=gradientLinear&backgroundColor=b6e3f4,ffd5dc',
-    ],
-  },
 ];
 
 export default function OnboardingScreen({ navigation }) {

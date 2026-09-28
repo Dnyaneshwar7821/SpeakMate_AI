@@ -28,10 +28,10 @@ import { validateName, NAME_VALIDATION_ERROR, normalizeEmail, isValidEmail } fro
 import { COLORS } from '../../constants/colors';
 import { DashboardCache } from './DashboardScreen';
 import { AVATAR_LIST, getAvatarById, setCachedAvatarModel } from '../../config/AvatarCatalog';
-import { prepareAvatarAsync } from '../../utils/imageUtils';
+import { prepareAvatarAsync, isImageUri, AVATAR_CATEGORIES, PRESET_EMOJI_AVATARS } from '../../utils/imageUtils';
 import { VoiceService } from '../../services/VoiceService';
 
-const PRESET_AVATARS = ['🎓', '🦁', '🚀', '🦉', '👑', '⚡', '🦊', '🎯', '💎', '🌟', '🔥', '🏆'];
+const PRESET_AVATARS = PRESET_EMOJI_AVATARS;
 
 const getRankTier = (xp = 0) => {
   if (xp < 100) return { name: 'Bronze III', icon: '🥉', colors: ['#CD7F32', '#A0522D'] };
@@ -69,6 +69,7 @@ export default function ProfileScreen({ navigation }) {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [showAvatarModal, setShowAvatarModal] = useState(false);
+  const [selectedAvatarCategory, setSelectedAvatarCategory] = useState('emojis');
   const [updatingLevel, setUpdatingLevel] = useState(false);
   const [tutorGender, setTutorGender] = useState('female');
   const [selectedAvatarId, setSelectedAvatarId] = useState('haru');
@@ -579,6 +580,8 @@ export default function ProfileScreen({ navigation }) {
 
       try {
         const updated = await profileService.updateAvatar(processed.dataUri);
+        DashboardCache.updateProfileAvatar(processed.dataUri);
+        DashboardCache.clear();
         setState((curr) => ({ ...curr, profile: updated }));
         if (updateUser) updateUser(updated);
         showToast('Photo Updated 📸', 'success', `Avatar updated successfully (${processed.approxKb} KB)!`);
@@ -593,14 +596,21 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const handleSelectPresetAvatar = async (emoji) => {
+  const handleSelectPresetAvatar = async (avatarItem) => {
     setShowAvatarModal(false);
     setUploadingPhoto(true);
     try {
-      const updated = await profileService.updateAvatar(emoji);
+      const updated = await profileService.updateAvatar(avatarItem);
+      DashboardCache.updateProfileAvatar(avatarItem);
+      DashboardCache.clear();
       setState((curr) => ({ ...curr, profile: updated }));
       if (updateUser) updateUser(updated);
-      showToast('Avatar Changed 🎉', 'success', `Avatar set to ${emoji}`);
+      const isEmoji = !isImageUri(avatarItem);
+      showToast(
+        'Avatar Changed 🎉',
+        'success',
+        isEmoji ? `Avatar set to ${avatarItem}` : 'Profile avatar updated successfully!'
+      );
     } catch (uploadError) {
       showToast('Avatar Update Failed', 'error', uploadError.userMessage || 'Unable to update avatar.');
     } finally {
@@ -677,8 +687,8 @@ export default function ProfileScreen({ navigation }) {
     );
   };
 
-  const avatarValue = state.profile?.avatar || '🎓';
-  const isPhotoUri = avatarValue.startsWith('data:') || avatarValue.startsWith('http') || avatarValue.startsWith('file:');
+  const avatarValue = state.profile?.avatar || user?.avatar || '🎓';
+  const isPhotoUri = isImageUri(avatarValue);
 
   // Math for Level Progress Bar (500 XP per Level)
   const xp = state.profile?.xp || 0;
@@ -1497,7 +1507,7 @@ export default function ProfileScreen({ navigation }) {
               <View style={{ flex: 1, paddingLeft: 12 }}>
                 <Text style={[styles.modalTitle, { color: isDark ? '#F8FAFC' : '#0F172A' }]}>Choose Avatar</Text>
                 <Text style={[styles.modalSubtitle, { color: isDark ? '#94A3B8' : '#64748B' }]}>
-                  Select a learning avatar or upload a custom photo
+                  Select a preset avatar, emoji, or upload custom photo
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setShowAvatarModal(false)} style={styles.modalCloseBtn}>
@@ -1521,22 +1531,100 @@ export default function ProfileScreen({ navigation }) {
               <Ionicons name="chevron-forward" size={16} color={sublabelColor} />
             </TouchableOpacity>
 
-            <Text style={[styles.inputLabel, { color: isDark ? '#CBD5E1' : '#475569', marginTop: 16, marginBottom: 10 }]}>
-              Or Pick an Avatar Emoji
+            <Text style={[styles.inputLabel, { color: isDark ? '#CBD5E1' : '#475569', marginTop: 14, marginBottom: 8 }]}>
+              Avatar Collections
             </Text>
 
-            {/* Avatar Emojis Grid */}
-            <View style={styles.avatarGrid}>
-              {PRESET_AVATARS.map((emoji) => (
-                <TouchableOpacity
-                  key={emoji}
-                  style={[styles.avatarGridItem, { backgroundColor: isDark ? '#0F172A' : '#F1F5F9' }]}
-                  onPress={() => handleSelectPresetAvatar(emoji)}
-                >
-                  <Text style={{ fontSize: 32 }}>{emoji}</Text>
-                </TouchableOpacity>
-              ))}
+            {/* Category tabs */}
+            <View style={{ marginBottom: 6 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.avatarCategoryRow}>
+                {[
+                  { key: 'emojis', label: '🎓 Emojis' },
+                  ...AVATAR_CATEGORIES.map((c) => ({
+                    key: c.key,
+                    label: `${c.key === 'illustrated' ? '🎨 ' : c.key === 'anime' ? '🌸 ' : c.key === 'adventurer' ? '🧭 ' : c.key === 'pixel' ? '👾 ' : '🤖 '}${c.label}`,
+                  })),
+                ].map((cat) => {
+                  const isActive = selectedAvatarCategory === cat.key;
+                  return (
+                    <TouchableOpacity
+                      key={cat.key}
+                      style={[
+                        styles.avatarCategoryTab,
+                        { backgroundColor: isDark ? '#0F172A' : '#F1F5F9' },
+                        isActive && styles.avatarCategoryTabActive,
+                      ]}
+                      onPress={() => setSelectedAvatarCategory(cat.key)}
+                    >
+                      <Text
+                        style={[
+                          styles.avatarCategoryTabText,
+                          { color: isDark ? '#94A3B8' : '#64748B' },
+                          isActive && styles.avatarCategoryTabTextActive,
+                        ]}
+                      >
+                        {cat.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
             </View>
+
+            {/* Avatar Grid inside scrollview */}
+            <ScrollView showsVerticalScrollIndicator={false} style={styles.avatarScrollGrid}>
+              <View style={styles.avatarGrid}>
+                {selectedAvatarCategory === 'emojis' ? (
+                  PRESET_AVATARS.map((emoji) => {
+                    const isSelected = avatarValue === emoji;
+                    return (
+                      <TouchableOpacity
+                        key={emoji}
+                        style={[
+                          styles.avatarGridItem,
+                          { backgroundColor: isDark ? '#0F172A' : '#F1F5F9' },
+                          isSelected && {
+                            borderWidth: 2,
+                            borderColor: COLORS.primary,
+                            backgroundColor: isDark ? '#312E81' : '#EEF2FF',
+                          },
+                        ]}
+                        onPress={() => handleSelectPresetAvatar(emoji)}
+                      >
+                        <Text style={{ fontSize: 30 }}>{emoji}</Text>
+                        {isSelected && (
+                          <View style={styles.avatarCheckBadge}>
+                            <Ionicons name="checkmark" size={10} color="#FFF" />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })
+                ) : (
+                  AVATAR_CATEGORIES.find((c) => c.key === selectedAvatarCategory)?.avatars.map((url, i) => {
+                    const isSelected = avatarValue === url;
+                    return (
+                      <TouchableOpacity
+                        key={url || i}
+                        style={[
+                          styles.avatarImgCard,
+                          { backgroundColor: isDark ? '#0F172A' : '#F8FAFC' },
+                          isSelected && { borderWidth: 2.5, borderColor: COLORS.primary },
+                        ]}
+                        onPress={() => handleSelectPresetAvatar(url)}
+                      >
+                        <Image source={{ uri: url }} style={styles.avatarImgPreview} />
+                        {isSelected && (
+                          <View style={styles.avatarCheckBadge}>
+                            <Ionicons name="checkmark" size={10} color="#FFF" />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })
+                )}
+              </View>
+            </ScrollView>
           </View>
         </View>
       </Modal>
@@ -2030,6 +2118,59 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginTop: 8,
   },
+  avatarCategoryRow: {
+    paddingVertical: 4,
+    gap: 8,
+  },
+  avatarCategoryTab: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  avatarCategoryTabActive: {
+    backgroundColor: '#4F46E5',
+    borderColor: '#6366F1',
+  },
+  avatarCategoryTabText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  avatarCategoryTabTextActive: {
+    color: '#FFFFFF',
+  },
+  avatarScrollGrid: {
+    maxHeight: 280,
+  },
+  avatarImgCard: {
+    width: 62,
+    height: 62,
+    borderRadius: 31,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    elevation: 2,
+  },
+  avatarImgPreview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 31,
+  },
+  avatarCheckBadge: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
   avatarGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -2038,12 +2179,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   avatarGridItem: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 2,
+    position: 'relative',
   },
   activeTutorHighlightCard: {
     padding: 14,

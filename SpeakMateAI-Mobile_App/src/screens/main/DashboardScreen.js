@@ -58,6 +58,11 @@ export const DashboardCache = {
   set: (data) => {
     cachedDashboardData = data;
   },
+  updateProfileAvatar: (avatar) => {
+    if (cachedDashboardData && cachedDashboardData.profile) {
+      cachedDashboardData.profile.avatar = avatar;
+    }
+  },
   clear: () => {
     cachedDashboardData = null;
   },
@@ -224,7 +229,7 @@ export default function DashboardScreen({ navigation }) {
 
     return {
       name,
-      avatar: profile.avatar || user?.avatar,
+      avatar: user?.avatar || profile.avatar,
       isStudent: isStudentUser,
       schoolGrade: effectiveGrade,
       ageGroup: effectiveAge,

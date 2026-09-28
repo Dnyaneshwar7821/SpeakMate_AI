@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { useIsFocused } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isImageUri } from '../../utils/imageUtils';
 
 const useTheme = () => {
   const [isDark, setIsDark] = useState(false);
@@ -131,12 +132,58 @@ export const ProgressBar = memo(function ProgressBar({ progress, color = COLORS.
 });
 
 function Avatar({ name, uri, size = 56 }) {
+  const [imgError, setImgError] = useState(false);
   const radius = Math.round(size / 2);
-  if (uri) {
-    return <Image source={{ uri }} style={{ width: size, height: size, borderRadius: radius }} />;
+
+  useEffect(() => {
+    setImgError(false);
+  }, [uri]);
+
+  if (isImageUri(uri) && !imgError) {
+    return (
+      <Image
+        source={{ uri }}
+        style={{ width: size, height: size, borderRadius: radius }}
+        resizeMode="cover"
+        onError={() => setImgError(true)}
+      />
+    );
   }
+
+  if (uri && typeof uri === 'string' && uri.trim().length > 0 && !imgError) {
+    const emojiFontSize = Math.round(size * 0.52);
+    return (
+      <LinearGradient
+        colors={['#4F46E5', '#7C3AED']}
+        style={[
+          styles.avatarFallback,
+          {
+            width: size,
+            height: size,
+            borderRadius: radius,
+            borderWidth: 1.5,
+            borderColor: 'rgba(255, 255, 255, 0.3)',
+          },
+        ]}
+      >
+        <Text
+          style={{
+            fontSize: emojiFontSize,
+            textAlign: 'center',
+            includeFontPadding: false,
+          }}
+        >
+          {uri}
+        </Text>
+      </LinearGradient>
+    );
+  }
+
   return (
-    <LinearGradient colors={[COLORS.primary, COLORS.secondary]} style={[styles.avatarFallback, { width: size, height: size, borderRadius: radius }]}>
+    <LinearGradient
+      colors={[COLORS.primary, COLORS.secondary]}
+      style={[styles.avatarFallback, { width: size, height: size, borderRadius: radius }]}
+    >
       <Text style={styles.avatarFallbackText}>{initials(name)}</Text>
     </LinearGradient>
   );

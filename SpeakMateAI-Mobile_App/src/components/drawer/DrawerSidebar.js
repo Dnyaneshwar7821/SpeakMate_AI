@@ -22,6 +22,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { AuthContext } from '../../context/AuthContext';
 import { useDrawer } from '../../context/DrawerContext';
 import { useNotifications } from '../../context/NotificationContext';
+import { isImageUri } from '../../utils/imageUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const DRAWER_WIDTH = Math.min(SCREEN_WIDTH * 0.82, 340);
@@ -201,6 +202,12 @@ function DrawerHeader({ user, profile, progress, isLoading, isDark, topInset = 0
   const level   = progress?.level ?? profile?.level ?? user?.level ?? 1;
   const streak  = progress?.currentStreak ?? profile?.currentStreak ?? user?.currentStreak ?? 0;
   const avatar  = profile?.avatar  || user?.avatar;
+  const [avatarImgError, setAvatarImgError] = useState(false);
+
+  useEffect(() => {
+    setAvatarImgError(false);
+  }, [avatar]);
+
   const levelProgressPct = Math.min(100, Math.max(0, Math.round(((xp % 500) / 500) * 100)));
 
   const gradientColors = isDark
@@ -222,8 +229,18 @@ function DrawerHeader({ user, profile, progress, isLoading, isDark, topInset = 0
         {/* Avatar Ring */}
         <View style={styles.avatarRingContainer}>
           <View style={styles.avatarRing}>
-            {avatar ? (
-              <Image source={{ uri: avatar }} style={styles.avatarImg} />
+            {isImageUri(avatar) && !avatarImgError ? (
+              <Image
+                source={{ uri: avatar }}
+                style={styles.avatarImg}
+                onError={() => setAvatarImgError(true)}
+              />
+            ) : avatar && typeof avatar === 'string' && avatar.trim().length > 0 && !avatarImgError ? (
+              <LinearGradient colors={['#818CF8', '#4F46E5']} style={styles.avatarFallback}>
+                <Text style={{ fontSize: 28, textAlign: 'center', includeFontPadding: false }}>
+                  {avatar}
+                </Text>
+              </LinearGradient>
             ) : (
               <LinearGradient colors={['#818CF8', '#4F46E5']} style={styles.avatarFallback}>
                 <Text style={styles.avatarInitials}>{getInitials()}</Text>
