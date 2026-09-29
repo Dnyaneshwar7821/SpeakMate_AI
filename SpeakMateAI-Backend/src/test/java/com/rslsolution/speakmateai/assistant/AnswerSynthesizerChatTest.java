@@ -1571,6 +1571,59 @@ public class AnswerSynthesizerChatTest {
 			assertNotNull(answer);
 			assertEquals(expectedResponse, answer.getMarkdown());
 		}
+	}
 
+	@Test
+	void testAvailableLessonsMatches120Curriculum() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("studentName", "Test Student");
+		data.put("totalAvailableLessons", 120);
+		data.put("curriculumBreakdown", "120 Academic Lessons across Beginner (1-40), Intermediate (41-80), and Advanced (81-120)");
+		data.put("recommendedNextLesson", "Mastering Short & Long Vowels");
+		data.put("availableLessonTitles", List.of("Mastering Short & Long Vowels", "Sounds of Blends & Digraphs", "Naming Words: All About Nouns"));
+
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.STUDENT_PERFORMANCE,
+				null,
+				"What lessons can I do?",
+				Map.of("scope", "SELF"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		String md = answer.getMarkdown();
+		assertTrue(md.contains("120 academic lessons"), "Must report 120 lessons catalog");
+		assertTrue(md.contains("Mastering Short & Long Vowels"), "Must recommend Mastering Short & Long Vowels");
+		assertTrue(md.contains("Foundational Curriculum Lessons"), "Must list foundational curriculum lessons");
+	}
+
+	@Test
+	void testAvailableScenariosMatches100PlusCatalog() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("studentName", "Test Student");
+
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.STUDENT_PERFORMANCE,
+				null,
+				"What conversation scenarios can I practice?",
+				Map.of("scope", "SELF"),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		String md = answer.getMarkdown();
+		assertTrue(md.contains("100+ Scenarios Library"), "Must mention 100+ Scenarios Library");
+		assertTrue(md.contains("Age Categories (50 Scenarios)"), "Must break down 50 Age Categories");
+		assertTrue(md.contains("School Standards 1st to 10th (100 Scenarios)"), "Must break down 100 School Standard scenarios");
+		assertTrue(md.contains("Job Interview Practice"), "Must include Career scenarios");
+		assertTrue(md.contains("10th Board Oral Exam Simulation"), "Must include 10th Board simulation");
 	}
 }

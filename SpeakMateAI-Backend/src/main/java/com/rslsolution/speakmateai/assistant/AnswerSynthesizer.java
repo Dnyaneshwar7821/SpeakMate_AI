@@ -286,7 +286,7 @@ public class AnswerSynthesizer {
 					+ "  ⚡ XP & Streaks (Level, XP, streak days)\n"
 					+ "  🏆 Achievements (unlockedAchievementsCount out of totalAchievementsCount)\n"
 					+ "  📋 School Homework (for students: report pending homework tasks and deadlines, or '0 pending tasks (All caught up!)' if pendingHomework is 0).\n"
-					+ "  CRITICAL ZERO-PROGRESS RULE: A student or learner who has 0 completed sessions or 0 XP is a brand new learner starting their learning journey. You MUST NEVER apologize, say 'I don't have any data about your progress at the moment', or claim information is unavailable! Always output the complete multi-module snapshot with 0 counts (e.g. 'Sessions completed: 0', 'Fluency: Not yet evaluated', 'Completed: 0 / 15', 'XP: 0', 'Pending homework: 0'), recommend their first lesson or speaking session to get started, and provide enthusiastic encouragement! In 'stats', include cards for 'Level' (minimum Level 1), 'XP', 'Streak', and 'Speaking Sessions'. In 'suggestDeepLink', use '/progress'. IMPORTANT: Level is 1-based (every user starts at Level 1, NEVER report Level 0). Total available lessons in catalog is at least 15 (never output 0 / 0). Total achievements is 12 (never output 0 / 0).\n"
+					+ "  CRITICAL ZERO-PROGRESS RULE: A student or learner who has 0 completed sessions or 0 XP is a brand new learner starting their learning journey. You MUST NEVER apologize, say 'I don't have any data about your progress at the moment', or claim information is unavailable! Always output the complete multi-module snapshot with 0 counts (e.g. 'Sessions completed: 0', 'Fluency: Not yet evaluated', 'Completed: 0 / 120', 'XP: 0', 'Pending homework: 0'), recommend their first lesson or speaking session to get started, and provide enthusiastic encouragement! In 'stats', include cards for 'Level' (minimum Level 1), 'XP', 'Streak', and 'Speaking Sessions'. In 'suggestDeepLink', use '/progress'. IMPORTANT: Level is 1-based (every user starts at Level 1, NEVER report Level 0). Total available lessons in catalog is 120 (never output 0 / 0 or 15). Total achievements is 12 (never output 0 / 0).\n"
 					+ "- ENGLISH TUTORING & GRAMMAR EXPLANATIONS: When asked about grammar (e.g. 'explain difference between past simple and present perfect', 'when do I use since vs for', 'articles', 'tenses'): provide an engaging, clear educational explanation with comparison bullet points and 2-3 clear example sentences. Suggest testing sentences in the **Grammar Check** module. In 'suggestDeepLink', use '/grammar'.\n"
 					+ "- SENTENCE CORRECTIONS: When asked to correct a sentence (e.g. 'correct this sentence: She don't like apples'):\n"
 					+ "  1. Show the **Corrected Sentence** clearly in bold.\n"
@@ -295,11 +295,11 @@ public class AnswerSynthesizer {
 					+ "  4. In 'suggestDeepLink', use '/grammar'.\n"
 					+ "- VOCABULARY & IDIOMS: When asked for word definitions, synonyms, or idioms: provide the meaning, pronunciation hint, part of speech, and 2 real-world example sentences. Mention they can save words to their **Vocabulary Builder**. In 'suggestDeepLink', use '/vocabulary'.\n"
 					+ "- SPEAKING FLUENCY & PRONUNCIATION TIPS: When asked how to improve speaking or overcome hesitation: provide 3-4 actionable strategies (Shadowing with AI Avatars Haru/Chitose, chunking phrases, silent pauses over filler words, and daily practice). In 'suggestDeepLink', use '/speaking'.\n"
-					+ "- BADGES & LEVEL 5 ROADMAP: When asked about badges, particularly 'Confident Conversationalist': explain that it requires completing speaking sessions across **5 distinct conversation scenarios** (e.g. Job Interview, Coffee Shop, Airport, Hotel, Daily Small Talk) to unlock the Silver badge and earn 120 XP. Report distinctScenariosCount and scenariosNeededForConfidentBadge. When asked about Level 5: explain that reaching Level 5 strictly requires **2,500 XP**, and report their current Level, XP, and xpNeededForLevel5. In 'suggestDeepLink', use '/achievements'.\n"
+					+ "- BADGES & LEVEL 5 ROADMAP: When asked about badges, particularly 'Confident Conversationalist': explain that it requires completing speaking sessions across **5 distinct conversation scenarios** (e.g. Job Interview Practice, Campus Coffee Shop, Show & Tell, Airport Customs, Business Meeting) to unlock the Silver badge and earn 120 XP. Report distinctScenariosCount and scenariosNeededForConfidentBadge. When asked about Level 5: explain that reaching Level 5 strictly requires **2,500 XP**, and report their current Level, XP, and xpNeededForLevel5. In 'suggestDeepLink', use '/achievements'.\n"
 					+ "- CONVERSATION PRACTICE & ROLEPLAY: When asked to practice conversation (e.g. 'let's practice ordering food', 'practice interview'): set the scene warmly, assume the role (e.g. barista, interviewer), provide the first opening line, and invite the learner to speak or reply in English! In 'suggestDeepLink', use '/speaking'.\n"
-					+ "- AVAILABLE LESSONS: When asked what lessons can be done or what lessons are available ('what lessons I can do', 'available lessons', etc.), report totalAvailableLessons, list available lesson titles from availableLessonTitles, and highlight recommendedNextLesson. Never say lesson data is not available when totalAvailableLessons or availableLessonTitles are present. In 'suggestDeepLink', use '/lessons'.\n"
+					+ "- AVAILABLE LESSONS: When asked what lessons can be done or what lessons are available ('what lessons I can do', 'available lessons', 'what lessons can i take', etc.), report totalAvailableLessons (120 academic lessons organized across Beginner 1-40, Intermediate 41-80, and Advanced 81-120), list available lesson titles from availableLessonTitles, and highlight recommendedNextLesson (e.g. 'Mastering Short & Long Vowels'). Emphasize that the curriculum covers both school standards (1st to 10th Std) and general tracks (Kids, Teens, Professionals). Never say lesson data is not available when totalAvailableLessons or availableLessonTitles are present. In 'suggestDeepLink', use '/lessons'.\n"
 					+ "- ACHIEVEMENTS & MILESTONES: When asked about achievements ('how many achievements I have unlocked', etc.), report unlockedAchievementsCount out of totalAchievementsCount. If unlockedAchievementTitles has items, list them. If unlockedAchievementsCount is 0, state: \"You haven't unlocked any achievements yet. Complete your first lesson or speaking session to earn your first milestone badge!\" Never say data is unavailable for 0 achievements. In 'suggestDeepLink', use '/achievements'.\n"
-					+ "- AI AVATARS & SPEAKING SCENARIOS: When asked about AI avatars or conversation scenarios ('what ai avatars currently I have to use', 'conversation scenarios', 'scenarios for chatting', etc.), report availableAvatars and availableScenarios directly from the data. List the avatar names (Haru, Chitose, Robo-Paws, Shizuku, Motu) and scenarios (Job Interview, Coffee Shop, Airport Check-in, etc.). In 'suggestDeepLink', use '/speaking'.\n"
+					+ "- AI AVATARS & SPEAKING SCENARIOS: When asked about AI avatars or conversation scenarios ('what ai avatars currently I have to use', 'conversation scenarios', 'scenarios for chatting', etc.), report availableAvatars and availableScenarios directly from the data. Explain that SpeakMate AI features a 100+ interactive scenarios library: 50 Age-wise scenarios across Kids, Teens, Young Adult, Professional, and Senior categories, plus 100 School Standard scenarios from 1st Std to 10th Std. List avatar names (Haru, Chitose, Robo-Paws, Shizuku, Motu) and representative scenarios (e.g. Job Interview Practice, Campus Coffee Shop, Show & Tell, Science Project Idea Pitch, 10th Board Oral Exam Simulation, Business Meeting, etc.). In 'suggestDeepLink', use '/speaking'.\n"
 					+ "- GRAMMAR PRACTICE & CHECKS: When asked about grammar practice or checking sentences ('how do I practice grammar checks for sentences', etc.), explain that they can submit sentences in the Grammar Check module for instant AI grammatical corrections, phrasing tips, and accuracy scores, and report their current totalGrammarChecks. In 'suggestDeepLink', use '/grammar'.\n"
 					+ "- HOMEWORK & ASSIGNMENTS: When a student asks about homework ('what homework do I have due', 'assignments', etc.), report totalAssignedHomework, completedHomework, pendingHomework, and list any pending assignments with due dates and passing scores. In 'suggestDeepLink', use '/assignments'.\n"
 					+ "- WHAT SHOULD I FOCUS ON: When asked where to focus or what to practice next, compare their real scores (Fluency vs Pronunciation vs Grammar), pinpoint their lowest area, and give a specific reason and module recommendation (e.g. \"Focus on Pronunciation (68%) by practicing repeat drills with Haru\").\n"
@@ -1918,15 +1918,25 @@ public class AnswerSynthesizer {
 				sb.append("- **Completed Lesson Modules:** ").append(String.join(", ", titles.stream().map(String::valueOf).toList())).append("\n");
 				matched = true;
 			}
-			if (containsWord(m, "can", "available", "do", "start", "take", "what lesson", "what lessons")) {
-				if (d.get("totalAvailableLessons") != null) {
-					sb.append("- **Total Available Lessons:** ").append(d.get("totalAvailableLessons")).append("\n");
+			if (containsWord(m, "can", "available", "do", "start", "take", "what", "which", "list", "show", "catalog", "syllabus", "curriculum")
+					|| m.contains("what lesson") || m.contains("which lesson") || m.contains("available lesson") || m.contains("lessons to do") || m.contains("lessons can i do")) {
+				Object totL = d.get("totalAvailableLessons");
+				sb.append("- **Total Available Lessons:** ").append(totL != null ? totL : 120).append(" academic lessons\n");
+				if (d.get("curriculumBreakdown") != null) {
+					sb.append("- **Curriculum Structure:** ").append(d.get("curriculumBreakdown")).append("\n");
+				} else {
+					sb.append("- **Curriculum Structure:** 120 Academic Lessons across Beginner (1-40), Intermediate (41-80), and Advanced (81-120)\n");
 				}
 				if (d.get("recommendedNextLesson") != null) {
 					sb.append("- **Recommended Next Lesson:** **").append(d.get("recommendedNextLesson")).append("**\n");
+				} else {
+					sb.append("- **Recommended Next Lesson:** **Mastering Short & Long Vowels**\n");
 				}
 				if (d.get("availableLessonTitles") instanceof List<?> aList && !aList.isEmpty()) {
-					sb.append("- **Available Lessons Catalog:** ").append(String.join(", ", aList.stream().limit(6).map(String::valueOf).toList())).append("\n");
+					sb.append("- **Foundational Curriculum Lessons:**\n");
+					for (Object title : aList.stream().limit(8).toList()) {
+						sb.append("  - ").append(title).append("\n");
+					}
 				}
 				matched = true;
 			}
@@ -2206,13 +2216,19 @@ if (containsWord(m, "achievement", "achievements")) {
 		}
 
 		if (containsWord(m, "scenario", "scenarios")) {
-			if (d.get("availableScenarios") instanceof List<?> scList && !scList.isEmpty()) {
-				sb.append("\n**Available Conversation Scenarios**\n");
-				for (Object sc : scList) {
-					sb.append("- ").append(sc).append("\n");
-				}
-				matched = true;
-			}
+			sb.append("\n**Available Conversation Scenarios (100+ Scenarios Library)**\n");
+			sb.append("SpeakMate AI offers **100+ interactive conversation scenarios** across **Age Groups (50 scenarios)** and **School Standards 1st–10th (100 scenarios)**:\n\n");
+			sb.append("- **Age Categories (50 Scenarios):**\n");
+			sb.append("  - **Kids (6–12):** Show & Tell, At the Zoo, Ordering Ice Cream, My Favorite Superhero, Space Adventure\n");
+			sb.append("  - **Teens (13–18):** First Day at High School, Ordering Fast Food, Gaming & Hobbies, School Club Interview\n");
+			sb.append("  - **Young Adult (18–24):** Campus Coffee Shop, College Admission Interview, Backpacking & Travel, Tech Fest\n");
+			sb.append("  - **Professional (25+):** Business Meeting, Job Interview Practice, Salary Negotiation, Executive Coaching\n");
+			sb.append("  - **Senior:** Relaxed Daily Conversation, Tea Time & Gardening, Guided Museum Tour, Life Stories\n\n");
+			sb.append("- **School Standards 1st to 10th (100 Scenarios):**\n");
+			sb.append("  - **Primary (1st–4th Std):** Alphabet Phonics, Classroom Objects, Friendly Doctor Visit, School Canteen Order\n");
+			sb.append("  - **Middle School (5th–8th Std):** Science Project Pitch, Robotics Club, Inter-School Debate, MUN Resolution\n");
+			sb.append("  - **High School (9th–10th Std):** High School Admission, Keynote Speech, 10th Board Oral Exam Simulation\n");
+			matched = true;
 		}
 
 		if (containsWord(m, "homework", "assignment", "assignments")) {
@@ -2245,7 +2261,7 @@ if (containsWord(m, "achievement", "achievements")) {
 			} else if (gra > 0 && gra <= flu && gra <= pro) {
 				sb.append("Your **Grammar (").append(gra).append("%)** is an area to strengthen. Practice sentence structure checks in the Grammar module.\n");
 			} else {
-				sb.append("Explore your next lesson: **").append(d.getOrDefault("recommendedNextLesson", "Everyday Introductions")).append("** to build momentum!\n");
+				sb.append("Explore your next lesson: **").append(d.getOrDefault("recommendedNextLesson", "Mastering Short & Long Vowels")).append("** to build momentum!\n");
 			}
 			matched = true;
 		}
@@ -2257,7 +2273,7 @@ if (containsWord(m, "achievement", "achievements")) {
 			Object neededForConfident = d.get("scenariosNeededForConfidentBadge");
 			Boolean confidentUnlocked = (Boolean) d.get("confidentConversationalistUnlocked");
 			if (distinctCount != null) {
-				sb.append("- **Confident Conversationalist (Silver Badge):** Requires completing speaking sessions across **5 distinct conversation scenarios** (e.g. Job Interview, Coffee Shop, Airport, Hotel, Daily Small Talk) to earn +120 XP.\n");
+				sb.append("- **Confident Conversationalist (Silver Badge):** Requires completing speaking sessions across **5 distinct conversation scenarios** (e.g. Job Interview Practice, Campus Coffee Shop, Show & Tell, Airport Customs, Business Meeting) to earn +120 XP.\n");
 				sb.append("  - Distinct Scenarios Completed: **").append(distinctCount).append(" / 5**\n");
 				if (Boolean.TRUE.equals(confidentUnlocked)) {
 					sb.append("  - Status: 🎉 **Unlocked!** You have mastered 5+ conversation scenarios.\n");
@@ -2379,7 +2395,7 @@ if (containsWord(m, "achievement", "achievements")) {
 		}
 
 		sb.append("\n**📚 Curriculum Lessons**\n");
-		sb.append("- **Lessons Completed:** ").append(zeroIfBlank(num(d, "lessonsCompleted"))).append(" (of ").append(d.getOrDefault("totalAvailableLessons", 15)).append(" in catalog)\n");
+		sb.append("- **Lessons Completed:** ").append(zeroIfBlank(num(d, "lessonsCompleted"))).append(" (of ").append(d.getOrDefault("totalAvailableLessons", 120)).append(" in catalog)\n");
 		if (d.get("recommendedNextLesson") != null) {
 			sb.append("- **Recommended Next:** ").append(d.get("recommendedNextLesson")).append("\n");
 		}
@@ -2414,7 +2430,7 @@ if (containsWord(m, "achievement", "achievements")) {
 
 		if (Boolean.TRUE.equals(d.get("isNewLearner")) || !Boolean.TRUE.equals(d.get("hasStartedLearning"))) {
 			sb.append("\n🌟 **Welcome to SpeakMate AI!** You are at the start of your English learning journey. Start with your first curriculum lesson: **")
-			  .append(d.getOrDefault("recommendedNextLesson", "Everyday Introductions & Small Talk"))
+			  .append(d.getOrDefault("recommendedNextLesson", "Mastering Short & Long Vowels"))
 			  .append("** or jump into a conversation in **Speaking Practice**!\n");
 		}
 	}

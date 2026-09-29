@@ -97,6 +97,8 @@ export const QUICK_SUGGESTIONS_BY_ROLE = Object.freeze({
     ],
     STUDENT: [
         "What have I done across all modules?",
+        "What curriculum lessons can I do?",
+        "What conversation scenarios can I practice?",
         "How do I unlock Confident Conversationalist badge?",
         "How much XP is needed for Level 5?",
         "Explain the difference between Past Simple and Present Perfect",
@@ -106,10 +108,11 @@ export const QUICK_SUGGESTIONS_BY_ROLE = Object.freeze({
     ],
     USER: [
         "What have I done across all modules?",
+        "What curriculum lessons can I do?",
+        "What AI avatars and conversation scenarios can I chat with?",
         "How do I unlock Confident Conversationalist badge?",
         "How much XP do I need to reach Level 5?",
         "Correct this sentence: She don't like apples",
-        "What AI avatars and conversation scenarios can I chat with?",
         "Give me tips to improve my speaking fluency and overcome hesitation",
         "Where should I focus to improve?",
     ],
