@@ -477,7 +477,7 @@ public class AnswerSynthesizer {
 			case SCHOOL_DASHBOARD -> renderDashboard(data);
 			case RESULTS_ANALYTICS -> renderResults(data);
 			case AI_INSIGHTS -> renderAiInsights(data);
-			case PROFILE_SETTINGS -> renderProfile(data);
+			case PROFILE_SETTINGS -> renderProfile(data, userMessage);
 			case SCHOOL_ROSTER -> renderRoster(data);
 			case PLATFORM_USERS -> renderUsers(data);
 			case BILLING -> renderBilling(data);
@@ -1030,6 +1030,52 @@ public class AnswerSynthesizer {
 	}
 
 	private String renderProfile(Map<String, Object> d) {
+		return renderProfile(d, null);
+	}
+
+	private String renderProfile(Map<String, Object> d, String userMessage) {
+		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();
+		if (isJoiningDateQuery(m)) {
+			String joinedAt = str(d, "joinedAt");
+			if (!joinedAt.isBlank()) {
+				return "**You joined SpeakMateAI on " + joinedAt + ".**";
+			} else {
+				return "**Your account joining date is not available.**";
+			}
+		}
+		if (isDailySpeakingTargetQuery(m)) {
+			Object targetObj = d.get("dailyGoalMinutes");
+			int minutes = 15;
+			if (targetObj instanceof Number) {
+				minutes = ((Number) targetObj).intValue();
+			} else if (targetObj != null && !targetObj.toString().isBlank()) {
+				try {
+					minutes = Integer.parseInt(targetObj.toString().replaceAll("[^0-9]", ""));
+				} catch (Exception ignored) {}
+			}
+			return "**Your daily speaking target is " + minutes + " minutes.**";
+		}
+		if (isXpQuery(m)) {
+			Object xpObj = d.get("xp");
+			if (xpObj == null) {
+				xpObj = d.get("totalXp");
+			}
+			int xpVal = 0;
+			if (xpObj instanceof Number) {
+				xpVal = ((Number) xpObj).intValue();
+			} else if (xpObj != null && !xpObj.toString().isBlank()) {
+				try {
+					xpVal = Integer.parseInt(xpObj.toString().replaceAll("[^0-9]", ""));
+				} catch (Exception ignored) {}
+			}
+			return "**You currently have " + xpVal + " XP.**";
+		}
+		if (isCurrentStreakQuery(m)) {
+			return renderCurrentStreakResponse(d);
+		}
+		if (isLongestStreakQuery(m)) {
+			return renderLongestStreakResponse(d);
+		}
 		StringBuilder sb = new StringBuilder("**Your profile**\n");
 		addLine(sb, "Name", str(d, "name"));
 		addLine(sb, "Email", str(d, "email"));
@@ -1349,6 +1395,130 @@ public class AnswerSynthesizer {
 					+ "- Review platform enrollment, school analytics, and subscriptions";
 		}
 		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();
+
+		if (isJoiningDateQuery(m)) {
+			String joinedAt = str(d, "joinedAt");
+			if (!joinedAt.isBlank()) {
+				return "**You joined SpeakMateAI on " + joinedAt + ".**";
+			} else {
+				return "**Your account joining date is not available.**";
+			}
+		}
+
+		if (isDailySpeakingTargetQuery(m)) {
+			Object targetObj = d.get("dailyGoalMinutes");
+			int minutes = 15;
+			if (targetObj instanceof Number) {
+				minutes = ((Number) targetObj).intValue();
+			} else if (targetObj != null && !targetObj.toString().isBlank()) {
+				try {
+					minutes = Integer.parseInt(targetObj.toString().replaceAll("[^0-9]", ""));
+				} catch (Exception ignored) {}
+			}
+			return "**Your daily speaking target is " + minutes + " minutes.**";
+		}
+
+		if (isXpQuery(m)) {
+			Object xpObj = d.get("totalXp");
+			if (xpObj == null) {
+				xpObj = d.get("xp");
+			}
+			int xpVal = 0;
+			if (xpObj instanceof Number) {
+				xpVal = ((Number) xpObj).intValue();
+			} else if (xpObj != null && !xpObj.toString().isBlank()) {
+				try {
+					xpVal = Integer.parseInt(xpObj.toString().replaceAll("[^0-9]", ""));
+				} catch (Exception ignored) {}
+			}
+			return "**You currently have " + xpVal + " XP.**";
+		}
+
+		if (isCurrentStreakQuery(m)) {
+			return renderCurrentStreakResponse(d);
+		}
+
+		if (isLongestStreakQuery(m)) {
+			return renderLongestStreakResponse(d);
+		}
+
+		if (isNameQuery(m)) {
+			String name = str(d, "displayName");
+			if (!name.isBlank()) {
+				return "**Your name is " + name + ".**";
+			} else {
+				return "**Your name is not set on your profile.**";
+			}
+		}
+
+		if (isEmailQuery(m)) {
+			String email = str(d, "email");
+			if (!email.isBlank()) {
+				return "**Your logged-in email is " + email + ".**";
+			} else {
+				return "**Your email is not available.**";
+			}
+		}
+
+		if (isPhoneQuery(m)) {
+			String phone = str(d, "phone");
+			if (!phone.isBlank()) {
+				return "**Your phone number is " + phone + ".**";
+			} else {
+				return "**You don't have a phone number on file.**";
+			}
+		}
+
+		if (isRoleQuery(m)) {
+			String role = str(d, "role").replace('_', ' ');
+			if (!role.isBlank()) {
+				return "**Your role is " + role + ".**";
+			}
+		}
+
+		if (isStandardQuery(m)) {
+			String standard = str(d, "standard");
+			if (!standard.isBlank()) {
+				return "**You are in Standard " + standard + ".**";
+			} else {
+				return "**Your standard is not set.**";
+			}
+		}
+
+		if (isDivisionQuery(m)) {
+			String division = str(d, "division");
+			if (!division.isBlank()) {
+				return "**You are assigned to Division " + division + ".**";
+			} else {
+				return "**Your division is not set.**";
+			}
+		}
+
+		if (isRollNumberQuery(m)) {
+			String roll = str(d, "rollNumber");
+			if (!roll.isBlank()) {
+				return "**Your roll number is " + roll + ".**";
+			} else {
+				return "**Your roll number is not set.**";
+			}
+		}
+
+		if (isLocationQuery(m)) {
+			String location = str(d, "location");
+			if (!location.isBlank()) {
+				return "**Your location is " + location + ".**";
+			} else {
+				return "**Your location is not set.**";
+			}
+		}
+
+		if (isSubscriptionQuery(m)) {
+			String sub = str(d, "subscriptionPlan");
+			if (!sub.isBlank()) {
+				return "**Your current subscription plan is " + sub + ".**";
+			}
+		}
+
 		if (containsWord(m, "school", "study", "studying", "enrolled", "belong")) {
 			String r = str(d, "role").toUpperCase(Locale.ROOT);
 			if ("USER".equals(r) || (actor != null && actor.getRole() == com.rslsolution.speakmateai.enums.Role.USER)) {
@@ -1396,6 +1566,197 @@ public class AnswerSynthesizer {
 			sb.append('\n').append(summary).append('\n');
 		}
 		return trimOrNull(sb);
+	}
+
+	private boolean isJoiningDateQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"join date", "joined date", "joining date", "date of joining",
+				"when did i join", "when i joined", "when did i register", "when i registered",
+				"registration date", "when did i create my account", "when was my account created",
+				"account creation date", "tell me when i joined", "date my account was created",
+				"when i created my account", "when my account was created", "date of registration",
+				"when did i sign up", "when i signed up", "sign up date", "signup date"
+		));
+	}
+
+	private boolean isDailySpeakingTargetQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"daily speaking target", "speaking target", "daily speaking goal",
+				"speaking goal", "practice target", "daily practice target",
+				"learning goal", "minutes should i speak", "practice speaking daily",
+				"practice speaking each day", "practice should i do"
+		));
+	}
+
+	private boolean isXpQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		if (containsAny(m, List.of("remaining", "need", "needed", "left", "to reach", "to complete", "next level"))) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"how much xp", "how many xp", "what is my xp", "my xp",
+				"experience points", "experience score", "points have i earned",
+				"points earned", "tell me my xp", "current xp", "earned points",
+				"my xp total", "xp total", "what are my experience points"
+		));
+	}
+
+	private boolean isCurrentStreakQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		if (containsAny(m, List.of("longest", "best", "highest", "max", "maximum"))) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"current streak", "active streak", "how many days is my streak",
+				"how long is my current streak", "how long is my streak", "what is my streak",
+				"practiced continuously", "continuous days", "streak do i have",
+				"tell me my current streak", "tell me my streak", "my current streak",
+				"what is my active streak", "my active streak"
+		)) || (m.equals("my streak") || m.equals("streak") || m.equals("my streak?") || m.equals("streak?"));
+	}
+
+	private boolean isLongestStreakQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"longest streak", "best streak", "highest streak", "max streak",
+				"maximum streak", "my longest streak", "my best streak", "my highest streak",
+				"what is my longest streak", "tell me my longest streak", "how long is my longest streak",
+				"what is my best streak", "tell me my best streak"
+		));
+	}
+
+	private String renderCurrentStreakResponse(Map<String, Object> d) {
+		Object streakObj = d.get("currentStreak");
+		if (streakObj == null) {
+			streakObj = d.get("streak");
+		}
+		int streakVal = 0;
+		if (streakObj instanceof Number n) {
+			streakVal = n.intValue();
+		} else if (streakObj != null && !streakObj.toString().isBlank()) {
+			try {
+				streakVal = Integer.parseInt(streakObj.toString().replaceAll("[^0-9]", ""));
+			} catch (Exception ignored) {}
+		}
+		String unit = (streakVal == 1) ? "day" : "days";
+		return "**Your current streak is " + streakVal + " " + unit + ".**";
+	}
+
+	private String renderLongestStreakResponse(Map<String, Object> d) {
+		Object streakObj = d.get("longestStreak");
+		int streakVal = 0;
+		if (streakObj instanceof Number n) {
+			streakVal = n.intValue();
+		} else if (streakObj != null && !streakObj.toString().isBlank()) {
+			try {
+				streakVal = Integer.parseInt(streakObj.toString().replaceAll("[^0-9]", ""));
+			} catch (Exception ignored) {}
+		}
+		String unit = (streakVal == 1) ? "day" : "days";
+		return "**Your longest streak is " + streakVal + " " + unit + ".**";
+	}
+
+	private boolean isNameQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"what is my name", "tell me my name", "do you know my name",
+				"my display name", "my full name", "what's my name"
+		)) || (m.equals("my name") || m.equals("who am i"));
+	}
+
+	private boolean isEmailQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"what is my email", "my email address", "logged in email",
+				"logged-in email", "login email", "which email do i use",
+				"what email am i logged in with", "my e-mail", "my mail"
+		)) || m.equals("my email");
+	}
+
+	private boolean isPhoneQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"my phone number", "my mobile number", "my contact number",
+				"what is my phone number", "what is my phone", "my mobile", "my contact"
+		)) || m.equals("my phone");
+	}
+
+	private boolean isRoleQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"what is my role", "which role do i have", "what role am i", "my user role"
+		)) || m.equals("my role");
+	}
+
+	private boolean isStandardQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"what is my standard", "what standard am i in", "my standard",
+				"what grade am i in", "my grade"
+		));
+	}
+
+	private boolean isDivisionQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"what is my division", "which division am i in", "my division", "my section"
+		));
+	}
+
+	private boolean isRollNumberQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"what is my roll number", "my roll number", "my roll no",
+				"what is my roll no", "my roll", "tell me my roll num",
+				"tell me my roll number", "tell my roll number", "tell my roll num",
+				"roll number", "roll no", "roll num", "rool number", "my rool number"
+		));
+	}
+
+	private boolean isLocationQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"what is my location", "my location", "my current location",
+				"my address", "where am i located", "my city", "my town", "my state"
+		));
+	}
+
+	private boolean isSubscriptionQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"what is my subscription", "what is my plan", "my current subscription",
+				"my current plan", "my subscription plan", "current subscription", "current plan"
+		)) || (m.equals("my subscription") || m.equals("my plan"));
 	}
 
 	private String renderNavigation(Map<String, Object> d, String userMessage) {
@@ -1560,8 +1921,8 @@ public class AnswerSynthesizer {
 				matched = true;
 			}
 		}
-		if (containsWord(m, "lesson", "lessons", "completed", "complete", "finished", "finish",
-				"completion", "remaining", "pending", "done")) {
+		if (containsWord(m, "lesson", "lessons") || (containsWord(m, "completed", "complete", "finished", "finish",
+				"completion", "pending", "done") && !containsWord(m, "xp", "level"))) {
 			matched |= metric(sb, d, "Lessons Completed", "lessonsCompleted");
 			matched |= metric(sb, d, "Lessons Started", "lessonsStarted");
 			matched |= metric(sb, d, "Lessons Pending", "lessonsPending");
@@ -1582,32 +1943,35 @@ public class AnswerSynthesizer {
 				matched = true;
 			}
 		}
-		if (containsWord(m, "xp", "exp", "experience", "points", "level", "levels", "beginner", "intermediate", "advanced", "good", "proficiency")) {
-			int lvl = 1;
-			if (d.get("level") != null) {
-				try { lvl = Integer.parseInt(d.get("level").toString()); } catch (Exception e) {}
+		if (isXpQuery(m)) {
+			Object xpObj = d.get("xp");
+			if (xpObj == null) {
+				xpObj = d.get("totalXp");
 			}
-			String label = d.get("englishLevelLabel") != null ? d.get("englishLevelLabel").toString() : (lvl <= 2 ? "Beginner" : (lvl <= 4 ? "Intermediate" : "Advanced"));
-			int currentXp = d.get("xp") != null ? Integer.parseInt(d.get("xp").toString()) : 0;
-			int rem = d.get("xpRemaining") != null ? Integer.parseInt(d.get("xpRemaining").toString()) : Math.max(0, (lvl * 500) - currentXp);
-			int nxtLvl = d.get("nextLevel") != null ? Integer.parseInt(d.get("nextLevel").toString()) : (lvl + 1);
-
-			if (containsWord(m, "level", "levels", "beginner", "intermediate", "advanced", "good", "proficiency")) {
-				sb.append("Your current English level is **").append(label).append("**. You are currently at Level ").append(lvl).append(" with ").append(currentXp).append(" XP.");
-				if (rem > 0) {
-					sb.append(" You need ").append(rem).append(" more XP to reach Level ").append(nxtLvl).append(".");
-				}
-				sb.append("\n");
-			} else {
-				matched |= metric(sb, d, "XP", "xp");
-				sb.append("- **English Level:** **").append(label).append("** (Level ").append(lvl).append(")\n");
+			int xpVal = 0;
+			if (xpObj instanceof Number) {
+				xpVal = ((Number) xpObj).intValue();
+			} else if (xpObj != null && !xpObj.toString().isBlank()) {
+				try {
+					xpVal = Integer.parseInt(xpObj.toString().replaceAll("[^0-9]", ""));
+				} catch (Exception ignored) {}
 			}
-			if (d.get("xpRemaining") != null && containsWord(m, "remaining", "need", "needs", "needed", "left", "complete", "completion", "finish", "reach")) {
-				int thresh = d.get("nextLevelThreshold") != null ? Integer.parseInt(d.get("nextLevelThreshold").toString()) : (nxtLvl * 500);
-				sb.append("- **XP Needed for Level ").append(nxtLvl).append(":** ")
-				  .append(rem).append(" XP (needs ").append(rem).append(" more XP to reach Level ").append(nxtLvl).append(" at ").append(thresh).append(" XP threshold)\n");
+			return "**You currently have " + xpVal + " XP.**";
+		}
+		if (isCurrentStreakQuery(m)) {
+			return renderCurrentStreakResponse(d);
+		}
+		if (isLongestStreakQuery(m)) {
+			return renderLongestStreakResponse(d);
+		}
+		if (containsWord(m, "xp", "level", "point", "points", "threshold", "remaining", "needed", "need")) {
+			matched |= metric(sb, d, "Current XP", "xp");
+			if (d.get("xp") == null) {
+				matched |= metric(sb, d, "Current XP", "totalXp");
 			}
-			matched = true;
+			matched |= metric(sb, d, "Current Level", "level");
+			matched |= metric(sb, d, "XP Remaining for Next Level", "xpRemaining");
+			matched |= metric(sb, d, "Next Level Threshold", "nextLevelThreshold");
 		}
 		if (containsWord(m, "streak", "streaks")) {
 			matched |= metric(sb, d, "Current Streak", "currentStreak");
@@ -2588,6 +2952,10 @@ if (containsWord(m, "achievement", "achievements")) {
 		if (answer == null || intent != AssistantIntent.STUDENT_PERFORMANCE) {
 			return;
 		}
+		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();
+		if (isXpQuery(m) || isCurrentStreakQuery(m) || isLongestStreakQuery(m) || isJoiningDateQuery(m) || isDailySpeakingTargetQuery(m)) {
+			return;
+		}
 		Map<String, Object> data = parseData(dataJson);
 		if (data.isEmpty()) {
 			return;
@@ -2915,5 +3283,17 @@ if (containsWord(m, "achievement", "achievements")) {
 			case "STUDENT": return "Student";
 			default: return "User";
 		}
+	}
+
+	private boolean containsAny(String text, List<String> candidates) {
+		if (text == null || candidates == null) {
+			return false;
+		}
+		for (String c : candidates) {
+			if (c != null && text.contains(c)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }

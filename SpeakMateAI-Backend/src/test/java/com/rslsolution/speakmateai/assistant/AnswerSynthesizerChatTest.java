@@ -1,10 +1,13 @@
 package com.rslsolution.speakmateai.assistant;
 
+import java.util.List;
 import java.util.Map;
+import static java.util.Map.entry;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1139,5 +1142,435 @@ public class AnswerSynthesizerChatTest {
 		assertTrue(answer.getStats().stream().anyMatch(s -> "XP".equals(s.getLabel()) && "0 XP".equals(s.getValue())));
 		assertTrue(answer.getStats().stream().anyMatch(s -> "Streak".equals(s.getLabel()) && "0 days".equals(s.getValue())));
 		assertTrue(answer.getStats().stream().anyMatch(s -> "Speaking Sessions".equals(s.getLabel()) && "0".equals(s.getValue())));
+	}
+
+	@Test
+		void testJoiningDateQueryReturnsOnlyJoiningDate() throws Exception {
+		Map<String, Object> accountData = Map.ofEntries(
+				Map.entry("displayName", "Siddhi Narke"),
+				Map.entry("email", "siddhi@speakmate.ai"),
+				Map.entry("role", "STUDENT"),
+				Map.entry("standard", "Standard 10"),
+				Map.entry("division", "Division A"),
+				Map.entry("rollNumber", "101"),
+				Map.entry("phone", "9876543210"),
+				Map.entry("schoolName", "Ekvira High School"),
+				Map.entry("subscriptionPlan", "PRO Plan"),
+				Map.entry("location", "Mumbai"),
+				Map.entry("joinedAt", "07 Sep 2026")
+		);
+		String dataJson = objectMapper.writeValueAsString(accountData);
+
+		String[] joiningQueries = {
+			"When did I join SpeakMateAI?",
+			"When did I join?",
+			"What is my joining date?",
+			"When did I register?",
+			"When did I create my account?",
+			"When was my account created?",
+			"Tell me when I joined."
+		};
+
+		for (String q : joiningQueries) {
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.ACCOUNT_INFO,
+					null,
+					q,
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer);
+			assertEquals("**You joined SpeakMateAI on 07 Sep 2026.**", answer.getMarkdown());
+
+			// Must NOT contain full account header or other personal fields
+			assertFalse(answer.getMarkdown().contains("**Your account**"));
+			assertFalse(answer.getMarkdown().contains("siddhi@speakmate.ai"));
+			assertFalse(answer.getMarkdown().contains("Standard 10"));
+			assertFalse(answer.getMarkdown().contains("Division A"));
+			assertFalse(answer.getMarkdown().contains("9876543210"));
+			assertFalse(answer.getMarkdown().contains("Ekvira High School"));
+			assertFalse(answer.getMarkdown().contains("PRO Plan"));
+			assertFalse(answer.getMarkdown().contains("Mumbai"));
+		}
+	}
+
+	@Test
+	void testMultipleUsersReceiveOwnJoiningDate() throws Exception {
+		Map<String, String> testUsers = Map.of(
+				"07 Sep 2026", "**You joined SpeakMateAI on 07 Sep 2026.**",
+				"15 Jan 2025", "**You joined SpeakMateAI on 15 Jan 2025.**",
+				"01 Oct 2024", "**You joined SpeakMateAI on 01 Oct 2024.**"
+		);
+
+		for (Map.Entry<String, String> entry : testUsers.entrySet()) {
+			String joinedAt = entry.getKey();
+			String expectedResponse = entry.getValue();
+
+			Map<String, Object> accountData = Map.of(
+					"displayName", "Test User",
+					"email", "test@speakmate.ai",
+					"role", "STUDENT",
+					"joinedAt", joinedAt
+			);
+			String dataJson = objectMapper.writeValueAsString(accountData);
+
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.ACCOUNT_INFO,
+					null,
+					"When did I join SpeakMateAI?",
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer);
+			assertEquals(expectedResponse, answer.getMarkdown());
+		}
+	}
+
+	@Test
+	void testRollNumberQueryReturnsOnlyRollNumber() throws Exception {
+		Map<String, Object> accountData = Map.of(
+				"displayName", "Student User",
+				"email", "student@speakmate.ai",
+				"role", "STUDENT",
+				"rollNumber", "23"
+		);
+		String dataJson = objectMapper.writeValueAsString(accountData);
+
+		String[] rollQueries = {
+			"What is my roll number?",
+			"Tell me my roll num",
+			"Tell me my roll number",
+			"What is my roll no?",
+			"My roll number",
+			"My roll no",
+			"Roll number",
+			"Roll no"
+		};
+
+		for (String q : rollQueries) {
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.ACCOUNT_INFO,
+					null,
+					q,
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer);
+			assertEquals("**Your roll number is 23.**", answer.getMarkdown());
+
+			// Must NOT contain performance metrics or activity modules
+			assertFalse(answer.getMarkdown().contains("Learning Activity"));
+			assertFalse(answer.getMarkdown().contains("Total activity count"));
+			assertFalse(answer.getMarkdown().contains("Speaking"));
+			assertFalse(answer.getMarkdown().contains("Lessons"));
+			assertFalse(answer.getMarkdown().contains("Grammar"));
+			assertFalse(answer.getMarkdown().contains("Vocabulary"));
+			assertFalse(answer.getMarkdown().contains("View my progress"));
+		}
+	}
+
+	@Test
+	void testDailySpeakingTargetQueryReturnsOnlyTarget() throws Exception {
+		Map<String, Object> accountData = Map.of(
+				"displayName", "Siddhi Narke",
+				"email", "siddhi@speakmate.ai",
+				"role", "STUDENT",
+				"dailyGoalMinutes", 15
+		);
+		String dataJson = objectMapper.writeValueAsString(accountData);
+
+		String[] targetQueries = {
+			"What is my daily speaking target?",
+			"How many minutes should I speak every day?",
+			"What is my daily speaking goal?",
+			"How much speaking practice should I do each day?",
+			"How long should I practice speaking daily?",
+			"What is my speaking target?",
+			"What is my daily practice target?"
+		};
+
+		for (String q : targetQueries) {
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.ACCOUNT_INFO,
+					null,
+					q,
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer);
+			assertEquals("**Your daily speaking target is 15 minutes.**", answer.getMarkdown());
+
+			// Must NOT contain unrelated learning metrics, cards, or activity details
+			assertFalse(answer.getMarkdown().contains("Learning Activity"));
+			assertFalse(answer.getMarkdown().contains("Total activity"));
+			assertFalse(answer.getMarkdown().contains("Lessons"));
+			assertFalse(answer.getMarkdown().contains("Grammar"));
+			assertFalse(answer.getMarkdown().contains("Vocabulary"));
+			assertFalse(answer.getMarkdown().contains("XP"));
+			assertFalse(answer.getMarkdown().contains("Streak"));
+			assertFalse(answer.getMarkdown().contains("View my progress"));
+			assertFalse(answer.getMarkdown().contains("Practice speaking"));
+			assertFalse(answer.getMarkdown().contains("**Your account**"));
+		}
+	}
+
+	@Test
+	void testMultipleUsersDailySpeakingTargets() throws Exception {
+		Map<Integer, String> testTargets = Map.of(
+				15, "**Your daily speaking target is 15 minutes.**",
+				20, "**Your daily speaking target is 20 minutes.**",
+				30, "**Your daily speaking target is 30 minutes.**"
+		);
+
+		for (Map.Entry<Integer, String> entry : testTargets.entrySet()) {
+			int minutes = entry.getKey();
+			String expectedResponse = entry.getValue();
+
+			Map<String, Object> accountData = Map.of(
+					"displayName", "Student User",
+					"email", "student" + minutes + "@speakmate.ai",
+					"role", "STUDENT",
+					"dailyGoalMinutes", minutes
+			);
+			String dataJson = objectMapper.writeValueAsString(accountData);
+
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.ACCOUNT_INFO,
+					null,
+					"What is my daily speaking target?",
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer);
+			assertEquals(expectedResponse, answer.getMarkdown());
+		}
+	}
+
+	@Test
+	void testXpQueryReturnsOnlyXp() throws Exception {
+		Map<String, Object> accountData = Map.of(
+				"displayName", "Siddhi Narke",
+				"email", "siddhi@speakmate.ai",
+				"role", "STUDENT",
+				"totalXp", 1795,
+				"xp", 1795,
+				"level", 4,
+				"currentStreak", 7
+		);
+		String dataJson = objectMapper.writeValueAsString(accountData);
+
+		String[] xpQueries = {
+			"How much XP do I have?",
+			"What is my XP?",
+			"How many XP do I have?",
+			"How much experience points do I have?",
+			"What are my experience points?",
+			"How many experience points have I earned?",
+			"Tell me my XP."
+		};
+
+		for (String q : xpQueries) {
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.ACCOUNT_INFO,
+					null,
+					q,
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer);
+			assertEquals("**You currently have 1795 XP.**", answer.getMarkdown());
+
+			// Must NOT contain level, streak, activity modules, or action cards
+			assertFalse(answer.getMarkdown().contains("Level 4"));
+			assertFalse(answer.getMarkdown().contains("Intermediate"));
+			assertFalse(answer.getMarkdown().contains("XP needed"));
+			assertFalse(answer.getMarkdown().contains("Current Streak"));
+			assertFalse(answer.getMarkdown().contains("Learning Activity"));
+			assertFalse(answer.getMarkdown().contains("Total activity"));
+			assertFalse(answer.getMarkdown().contains("View my progress"));
+			assertFalse(answer.getMarkdown().contains("Practice speaking"));
+			assertFalse(answer.getMarkdown().contains("Lessons"));
+			assertFalse(answer.getMarkdown().contains("Grammar"));
+			assertFalse(answer.getMarkdown().contains("Vocabulary"));
+		}
+	}
+
+	@Test
+	void testMultipleUsersDynamicXp() throws Exception {
+		Map<Integer, String> testXpValues = Map.of(
+				1795, "**You currently have 1795 XP.**",
+				2450, "**You currently have 2450 XP.**",
+				500, "**You currently have 500 XP.**"
+		);
+
+		for (Map.Entry<Integer, String> entry : testXpValues.entrySet()) {
+			int xp = entry.getKey();
+			String expectedResponse = entry.getValue();
+
+			Map<String, Object> accountData = Map.of(
+					"displayName", "Student User",
+					"email", "student" + xp + "@speakmate.ai",
+					"role", "STUDENT",
+					"totalXp", xp,
+					"xp", xp
+			);
+			String dataJson = objectMapper.writeValueAsString(accountData);
+
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.ACCOUNT_INFO,
+					null,
+					"How much XP do I have?",
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer);
+			assertEquals(expectedResponse, answer.getMarkdown());
+		}
+	}
+
+	@Test
+	void testCurrentStreakQueryReturnsOnlyCurrentStreak() throws Exception {
+		List<String> queries = List.of(
+				"What is my current streak?",
+				"How many days is my current streak?",
+				"What is my streak?",
+				"How long is my current streak?",
+				"Tell me my current streak.",
+				"How many days have I practiced continuously?",
+				"What is my active streak?"
+		);
+
+		Map<String, Object> data = Map.ofEntries(
+				entry("studentName", "Student User"),
+				entry("email", "student@speakmate.ai"),
+				entry("role", "STUDENT"),
+				entry("currentStreak", 1),
+				entry("longestStreak", 5),
+				entry("xp", 1795),
+				entry("level", 4),
+				entry("englishLevelLabel", "Intermediate"),
+				entry("totalSpeakingSessions", 12),
+				entry("lessonsCompleted", 8),
+				entry("totalGrammarChecks", 15),
+				entry("totalVocabularyWords", 20)
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		for (String q : queries) {
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.STUDENT_PERFORMANCE,
+					null,
+					q,
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer, "Answer should not be null for query: " + q);
+			assertEquals("**Your current streak is 1 day.**", answer.getMarkdown(),
+					"Failed for query: " + q);
+			assertNull(answer.getChart(), "Chart should be null for query: " + q);
+
+			// Must NOT contain longest streak, level, XP, activity modules, or action cards
+			assertFalse(answer.getMarkdown().contains("5 days"));
+			assertFalse(answer.getMarkdown().contains("Longest streak"));
+			assertFalse(answer.getMarkdown().contains("1795"));
+			assertFalse(answer.getMarkdown().contains("Level 4"));
+			assertFalse(answer.getMarkdown().contains("Intermediate"));
+			assertFalse(answer.getMarkdown().contains("Learning Activity"));
+			assertFalse(answer.getMarkdown().contains("Total activity"));
+			assertFalse(answer.getMarkdown().contains("View my progress"));
+			assertFalse(answer.getMarkdown().contains("Practice speaking"));
+			assertFalse(answer.getMarkdown().contains("Lessons"));
+			assertFalse(answer.getMarkdown().contains("Grammar"));
+			assertFalse(answer.getMarkdown().contains("Vocabulary"));
+		}
+	}
+
+	@Test
+	void testLongestStreakQueryReturnsOnlyLongestStreak() throws Exception {
+		List<String> queries = List.of(
+				"What is my longest streak?",
+				"How long is my longest streak?",
+				"What is my best streak?",
+				"Tell me my longest streak."
+		);
+
+		Map<String, Object> data = Map.of(
+				"studentName", "Student User",
+				"email", "student@speakmate.ai",
+				"role", "STUDENT",
+				"currentStreak", 1,
+				"longestStreak", 5,
+				"xp", 1795,
+				"level", 4
+		);
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		for (String q : queries) {
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.STUDENT_PERFORMANCE,
+					null,
+					q,
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer, "Answer should not be null for query: " + q);
+			assertEquals("**Your longest streak is 5 days.**", answer.getMarkdown(),
+					"Failed for query: " + q);
+			assertNull(answer.getChart(), "Chart should be null for query: " + q);
+			assertFalse(answer.getMarkdown().contains("Your current streak"));
+		}
+	}
+
+	@Test
+	void testMultipleUsersDynamicStreak() throws Exception {
+		Map<Integer, String> testStreakValues = Map.of(
+				1, "**Your current streak is 1 day.**",
+				5, "**Your current streak is 5 days.**",
+				0, "**Your current streak is 0 days.**"
+		);
+
+		for (Map.Entry<Integer, String> entry : testStreakValues.entrySet()) {
+			int streak = entry.getKey();
+			String expectedResponse = entry.getValue();
+
+			Map<String, Object> accountData = Map.of(
+					"displayName", "Student User",
+					"email", "student" + streak + "@speakmate.ai",
+					"role", "STUDENT",
+					"currentStreak", streak
+			);
+			String dataJson = objectMapper.writeValueAsString(accountData);
+
+			SynthesizedAnswer answer = synthesizer.synthesize(
+					AssistantIntent.STUDENT_PERFORMANCE,
+					null,
+					"What is my current streak?",
+					Map.of(),
+					dataJson,
+					null
+			);
+
+			assertNotNull(answer);
+			assertEquals(expectedResponse, answer.getMarkdown());
+		}
+
 	}
 }

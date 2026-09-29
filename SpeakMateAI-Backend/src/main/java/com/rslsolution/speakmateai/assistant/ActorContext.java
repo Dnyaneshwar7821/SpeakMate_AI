@@ -25,6 +25,10 @@ public class ActorContext {
 	private final String standard;
 	private final String division;
 	private final String rollNumber;
+	private final Integer dailyGoalMinutes;
+	private final Integer xp;
+	private final Integer currentStreak;
+	private final Integer longestStreak;
 
 	private ActorContext(Builder b) {
 		this.email = b.email;
@@ -41,6 +45,10 @@ public class ActorContext {
 		this.standard = b.standard;
 		this.division = b.division;
 		this.rollNumber = b.rollNumber;
+		this.dailyGoalMinutes = b.dailyGoalMinutes;
+		this.xp = b.xp;
+		this.currentStreak = b.currentStreak;
+		this.longestStreak = b.longestStreak;
 	}
 
 	public static Builder builder() {
@@ -61,6 +69,10 @@ public class ActorContext {
 	public String getStandard() { return standard; }
 	public String getDivision() { return division; }
 	public String getRollNumber() { return rollNumber; }
+	public Integer getDailyGoalMinutes() { return dailyGoalMinutes; }
+	public Integer getXp() { return xp; }
+	public Integer getCurrentStreak() { return currentStreak; }
+	public Integer getLongestStreak() { return longestStreak; }
 
 	public static class Builder {
 		private String email;
@@ -77,6 +89,10 @@ public class ActorContext {
 		private String standard;
 		private String division;
 		private String rollNumber;
+		private Integer dailyGoalMinutes;
+		private Integer xp;
+		private Integer currentStreak;
+		private Integer longestStreak;
 
 		public Builder email(String v) { this.email = v; return this; }
 		public Builder role(Role v) { this.role = v; return this; }
@@ -92,6 +108,10 @@ public class ActorContext {
 		public Builder standard(String v) { this.standard = v; return this; }
 		public Builder division(String v) { this.division = v; return this; }
 		public Builder rollNumber(String v) { this.rollNumber = v; return this; }
+		public Builder dailyGoalMinutes(Integer v) { this.dailyGoalMinutes = v; return this; }
+		public Builder xp(Integer v) { this.xp = v; return this; }
+		public Builder currentStreak(Integer v) { this.currentStreak = v; return this; }
+		public Builder longestStreak(Integer v) { this.longestStreak = v; return this; }
 
 		public ActorContext build() {
 			return new ActorContext(this);

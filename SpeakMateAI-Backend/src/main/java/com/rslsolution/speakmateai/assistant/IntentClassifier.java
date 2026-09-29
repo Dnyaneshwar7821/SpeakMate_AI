@@ -724,6 +724,7 @@ public class IntentClassifier {
 		if (containsAny(m, List.of("roll number", "my roll number", "roll no", "my roll no", "my rool number", "rool number", "roll number tell",
 				"my roll", "what is my roll number", "tell my roll number", "tell me my roll number",
 				"my class", "which class do i belong", "what class am i in", "my standard", "my division",
+
 				"my grade"))) {
 			return new IntentResult(AssistantIntent.STUDENT_PERFORMANCE, Map.of("scope", "SELF"), null);
 		}
@@ -2915,7 +2916,28 @@ public class IntentClassifier {
 				"my phone", "my mobile", "my contact", "my contact number",
 				"my phone number", "my mobile number", "my telephone",
 				"my joined date", "my joining date", "my join date",
-				"my date of joining", "when did i join", "when i joined"));
+				"my date of joining", "when did i join", "when i joined",
+				"when did i join speakmateai", "when did i join speakmate ai",
+				"what is my joining date", "what is my join date",
+				"when did i register", "when i registered", "my registration date", "what is my registration date",
+				"when did i create my account", "when was my account created", "account creation date",
+				"date my account was created", "when i created my account", "when my account was created",
+				"tell me when i joined", "when did i sign up", "when i signed up", "my sign up date", "my signup date",
+				"what is my daily speaking target", "my daily speaking target", "daily speaking target", "speaking target", "what is my speaking target",
+				"how many minutes should i speak every day", "how many minutes should i speak daily", "what is my daily speaking goal", "my daily speaking goal",
+				"daily speaking goal", "speaking goal", "my speaking goal", "what is my speaking goal", "how much speaking practice should i do each day",
+				"how much speaking practice should i do daily", "how long should i practice speaking daily", "how long should i practice speaking each day",
+				"what is my daily practice target", "my daily practice target", "daily practice target", "my practice target", "my learning goal",
+				"what is my learning goal", "learning goal",
+				"how much xp do i have", "how many xp do i have", "what is my xp", "how much experience points do i have",
+				"what are my experience points", "how many experience points have i earned", "tell me my xp", "my xp",
+				"current xp", "experience points", "experience score", "points earned", "how many points have i earned",
+				"what is my current xp", "my xp total", "xp total", "earned points", "xp?", "my xp?",
+				"what is my current streak", "how many days is my current streak", "what is my streak",
+				"how long is my current streak", "how many days have i practiced continuously", "tell me my current streak",
+				"what is my active streak", "my current streak", "my active streak", "tell me my streak", "continuous days", "streak do i have",
+				"what is my longest streak", "how long is my longest streak", "what is my best streak", "tell me my longest streak",
+				"what is my highest streak", "my longest streak", "my best streak", "my highest streak"));
 		// Bare (un-anchored) location token. A user may type just "location"
 		// (or "address"/"city") with no "my ..." prefix; the LLM then returns
 		// NAVIGATION_HELP and the chatbot replies with the navigation page list
@@ -3262,6 +3284,9 @@ public class IntentClassifier {
 						"achievement", "achievements", "avatar", "avatars", "scenario", "scenarios", "homework", "assignment", "assignments",
 						"done", "finished", "completed", "module", "modules", "app", "all modules", "across all", "focus on", "practice next",
 						"what lessons", "available lessons", "checks for sentences", "grammar checks", "sentence", "sentences", "what have i done",
+
+						"roll", "rool", "roll number", "roll no", "roll num", "standard", "division",
+
 						"weak", "weakness", "weaknesses", "improve", "improvement", "improvements", "area", "areas", "work on", "gap", "gaps", "spot", "spots"));
 				if (selfEntity) {
 					return AssistantIntent.STUDENT_PERFORMANCE;
