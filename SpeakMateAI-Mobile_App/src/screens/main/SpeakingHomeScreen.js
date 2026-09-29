@@ -3,7 +3,7 @@
  * Speaking Practice dashboard with statistics, Streak, Scenarios categorized,
  * and History. Includes custom prompt simulation and scenario search.
  */
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
