@@ -12884,3 +12884,321 @@ export function findCurriculumLesson(idOrTitle) {
     String(l.numericId) === target
   ) || null;
 }
+
+export function getMasterclassForLesson(lesson) {
+  if (!lesson) return null;
+  if (lesson.masterclass) return lesson.masterclass;
+
+  const title = (lesson.title || 'English Fundamentals').trim();
+  const category = (lesson.category || 'Grammar').trim();
+  const level = (lesson.level || lesson.difficulty || 'Beginner').trim();
+  const desc = (lesson.description || 'Master foundational English language communication and mechanics.').trim();
+  const drillSentence = lesson.speakingDrill?.sentence || `I practice ${title.toLowerCase()} with confidence every day.`;
+  const guided = lesson.guidedPractice;
+
+  const tLower = title.toLowerCase();
+  const cLower = category.toLowerCase();
+
+  let rulePattern = 'Subject + Verb + Contextual Modifier';
+  let breakdown = [
+    { badge: 'Foundation', label: 'Sentence Anchor', detail: 'Identifies the focal point or subject of the thought.' },
+    { badge: 'Mechanism', label: 'Core Rule', detail: `Applies the grammatical concord or phonetic rule of ${title}.` },
+    { badge: 'Delivery', label: 'Natural Expression', detail: 'Completes the phrase with fluent cadence and clear intonation.' }
+  ];
+  let mistakes = [
+    {
+      incorrect: 'Translating word-for-word from your first language without standard English syntax.',
+      correct: 'Constructing the sentence using natural English word order and collocations.',
+      why: 'Direct translation disrupts sentence rhythm and often misplaces auxiliary verbs or articles.'
+    }
+  ];
+  let fluencyTip = {
+    title: 'Tutor Pro Fluency Tip',
+    tip: 'Take a relaxed breath before speaking and stress the key content words rather than rushing through small helper words.',
+    practicePhrase: drillSentence
+  };
+
+  // Domain 1: Phonics & Phonology
+  if (cLower.includes('phonic') || cLower.includes('phonol') || tLower.includes('vowel') || tLower.includes('blend') || tLower.includes('digraph') || tLower.includes('consonant') || tLower.includes('silent letter')) {
+    rulePattern = 'Letter Combination → Articulation Point → Distinct Phoneme Sound';
+    breakdown = [
+      { badge: 'Sound Target', label: 'Target Phoneme', detail: `Isolate the specific vowel or consonant sound in ${title}.` },
+      { badge: 'Mouth Shape', label: 'Vocal Positioning', detail: 'Position your lips, tongue, and teeth accurately before releasing breath.' },
+      { badge: 'Word Flow', label: 'Syllabic Cadence', detail: 'Blend the target sound smoothly into full words and connected speech.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Rushing through syllables without rounding vowels or releasing final consonant stops.',
+        correct: 'Deliberately articulating vowel duration and finishing final consonant stops cleanly.',
+        why: 'In English, vowel length and crisp consonant stops determine meaning (e.g., ship vs. sheep, bat vs. bet).'
+      }
+    ];
+    fluencyTip = {
+      title: 'Acoustic Articulation Tip',
+      tip: 'Look in a mirror while repeating this sound. Check your jaw drop and lip shape to ensure full vocal resonance.',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 2: Continuous / Progressive Tenses
+  else if (tLower.includes('continuous') || tLower.includes('progressive')) {
+    rulePattern = 'Subject + Auxiliary (am / is / are / was / were / will be) + Verb-ing';
+    breakdown = [
+      { badge: 'Time Anchor', label: 'Subject + Be Verb', detail: 'Establishes the actor and fixes the time frame in the present, past, or future.' },
+      { badge: 'Active Verb', label: 'Base Verb + -ing', detail: 'Signals that the action is actively unfolding at the reference moment.' },
+      { badge: 'Context', label: 'Time Modifier', detail: 'Specifies ongoing duration, current time, or contextual setting.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Dropping the "be" auxiliary (e.g., "She working right now").',
+        correct: 'Always including the auxiliary: "She is working right now."',
+        why: 'The auxiliary verb "is/are/was" carries the vital tense and grammatical agreement.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Smooth Auxiliary Contraction',
+      tip: 'In natural speech, contract the auxiliary: "I am" becomes "I\'m", "They are" becomes "They\'re", "She is" becomes "She\'s".',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 3: Perfect & Perfect Continuous Tenses
+  else if (tLower.includes('perfect')) {
+    rulePattern = tLower.includes('continuous')
+      ? 'Subject + have / has / had + been + Verb-ing + (for / since)'
+      : 'Subject + have / has / had + Past Participle (V3)';
+    breakdown = [
+      { badge: 'Auxiliary', label: 'have / has / had', detail: 'Bridges past actions to the current conversation or anchors earlier events.' },
+      { badge: 'Participle', label: 'Participle Form', detail: tLower.includes('continuous') ? 'been + verb-ing' : 'Past Participle (V3)' },
+      { badge: 'Connection', label: 'Relevance / Duration', detail: 'Highlights the ongoing outcome, experience, or duration.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Using simple past for actions with present relevance, or misusing "since" with durations.',
+        correct: 'Using present perfect for life experiences: "I have lived here for two years" (not "since two years").',
+        why: '"Since" marks a specific starting point in time; "for" marks the duration.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Connected Participle Rhythm',
+      tip: 'Native speakers link "have" and "has" smoothly: "I have" sounds like "I\'ve" /aɪv/, and "have you" sounds like /hævjə/.',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 4: General Tenses (Simple Past, Present, Future)
+  else if (cLower.includes('tense') || tLower.includes('past') || tLower.includes('present') || tLower.includes('future')) {
+    rulePattern = tLower.includes('past')
+      ? 'Subject + Past Form (V2 / -ed) + Object / Time Marker'
+      : tLower.includes('future')
+      ? 'Subject + will / be going to + Base Verb + Complement'
+      : 'Subject (Singular/Plural) + Verb (Base / -s / -es) + Object';
+    breakdown = [
+      { badge: 'Subject', label: 'Actor', detail: 'The individual or entity initiating the action.' },
+      { badge: 'Tense Marker', label: 'Verb Inflection', detail: 'Applies correct inflection (-s, -ed, or auxiliary "will").' },
+      { badge: 'Circumstance', label: 'Time & Place', detail: 'Supplies specific context, habitual frequency, or time indicators.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Forgetting the 3rd person singular "-s" (e.g., "He walk to work every day").',
+        correct: 'Adding "-s" for singular subjects: "He walks to work every day."',
+        why: 'In present simple, third-person singular (he, she, it) requires the "-s" or "-es" suffix.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Past Tense Ending Clarity',
+      tip: 'The "-ed" ending has three distinct sounds: /t/ (walked), /d/ (played), and /ɪd/ (wanted). Master which one to apply.',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 5: Passive Voice
+  else if (tLower.includes('passive') || tLower.includes('active vs. passive') || tLower.includes('active and passive')) {
+    rulePattern = 'Object (Receiver) + Form of "Be" + Past Participle (V3) + (by + Agent)';
+    breakdown = [
+      { badge: 'New Subject', label: 'Action Receiver', detail: 'The person or item affected by the action becomes the sentence focus.' },
+      { badge: 'Passive Verb', label: 'Be + Participle (V3)', detail: 'Matches the tense of the original active verb (e.g., is completed, was written).' },
+      { badge: 'Agent (Optional)', label: 'by + Performer', detail: 'Included only when the performer is relevant or surprising.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Using the base verb instead of the past participle (e.g., "The letter was write yesterday").',
+        correct: 'Using the past participle: "The letter was written yesterday."',
+        why: 'Passive voice strictly requires the past participle (V3) following the "be" verb.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Formal Objectivity Delivery',
+      tip: 'Passive voice is standard in academic reports and news. Emphasize the result rather than the agent.',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 6: Direct & Indirect / Reported Speech
+  else if (tLower.includes('indirect') || tLower.includes('reported') || tLower.includes('direct')) {
+    rulePattern = 'Reporting Subject + Reporting Verb (said / told) + that + Shifted Tense Clause';
+    breakdown = [
+      { badge: 'Reporter', label: 'Speaker & Verb', detail: 'States who spoke (e.g., "He said that..." or "She told me that...").' },
+      { badge: 'Tense Backshift', label: 'Time Adjustment', detail: 'Shifts present tenses into past tenses (e.g., "is" -> "was", "will" -> "would").' },
+      { badge: 'Pronouns', label: 'Perspective Shift', detail: 'Updates pronouns and time indicators (e.g., "now" -> "then", "here" -> "there").' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Saying "He said me" instead of "He told me" or forgetting to backshift tenses.',
+        correct: 'Use "told" with an object: "He told me that he was ready."',
+        why: '"Say" does not take a direct personal object without "to", whereas "tell" requires a recipient.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Conversational Reporting Cadence',
+      tip: 'In spoken English, "that" is frequently omitted: "She said she was coming" sounds completely natural.',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 7: Modals & Conditionals
+  else if (tLower.includes('modal') || tLower.includes('conditional') || tLower.includes('if clause') || tLower.includes('can') || tLower.includes('could') || tLower.includes('should') || tLower.includes('would')) {
+    rulePattern = tLower.includes('conditional')
+      ? 'If + Condition Clause, + Result Clause (with modal will / would / could)'
+      : 'Subject + Modal Auxiliary (can / could / should / would / may / must) + Base Verb';
+    breakdown = [
+      { badge: 'Subject', label: 'Actor / Condition', detail: 'The person expressing ability, advice, permission, or hypothetical premise.' },
+      { badge: 'Modal / Pivot', label: 'Attitude Marker', detail: 'Reflects the degree of probability, advice, or polite softening.' },
+      { badge: 'Bare Verb', label: 'Root Verb (No "to")', detail: 'Always remains in root dictionary form without suffixes.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Adding "to" or "-s" after the modal (e.g., "He should to go" or "She can swims").',
+        correct: 'Keeping the verb in base form: "He should go", "She can swim."',
+        why: 'Modal verbs are defective auxiliaries that directly govern a bare infinitive.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Polite Conversational Softening',
+      tip: 'Use "would you mind" or "could you please" instead of direct commands to sound diplomatic and polished.',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 8: Nouns, Pronouns & Articles
+  else if (tLower.includes('noun') || tLower.includes('pronoun') || tLower.includes('article')) {
+    rulePattern = 'Determiner (a / an / the / possessive) + Adjective + Head Noun / Pronoun';
+    breakdown = [
+      { badge: 'Determiner', label: 'Article / Pointer', detail: 'Clarifies whether the noun is specific, general, singular, or plural.' },
+      { badge: 'Core Entity', label: 'Head Noun / Pronoun', detail: 'Names the person, place, thing, concept, or replaces a known referent.' },
+      { badge: 'Concord', label: 'Number Agreement', detail: 'Ensures following verbs match singular vs. plural forms correctly.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Omitting required articles before singular countable nouns (e.g., "I bought car yesterday").',
+        correct: 'Including the correct article: "I bought a car yesterday."',
+        why: 'Singular countable nouns cannot stand alone in English without a determiner or article.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Vowel-Sound Article Linking',
+      tip: 'Use "an" before vowel sounds (not just vowel letters!): "an hour" (silent h), but "a university" (/juː/ consonant sound).',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 9: Prepositions & Conjunctions
+  else if (tLower.includes('preposition') || tLower.includes('conjunction') || tLower.includes('connector') || tLower.includes('transition')) {
+    rulePattern = 'Clause 1 + Preposition / Conjunction + Noun Phrase / Clause 2';
+    breakdown = [
+      { badge: 'Primary Thought', label: 'Main Clause', detail: 'Establishes the core statement or independent idea.' },
+      { badge: 'Linker', label: 'Relational Connector', detail: 'Specifies the time, location, reason, contrast, or condition.' },
+      { badge: 'Secondary Context', label: 'Dependent Element', detail: 'Provides the spatial target or supporting justification.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Using "in" for specific days or using double connectors (e.g., "Although it rained, but we went").',
+        correct: 'Use one connector: "Although it rained, we went" and use "on" for days: "on Monday".',
+        why: 'Subordinating conjunctions like "although" already introduce dependency; adding "but" creates a dangling fragment.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Unstressed Preposition Rhythm',
+      tip: 'Prepositions are unstressed function words in English. Pronounce "at", "in", "to", and "for" quickly without lingering.',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 10: Questions & Inversions
+  else if (tLower.includes('question') || tLower.includes('interrogative') || tLower.includes('tag')) {
+    rulePattern = 'Question Word (Wh-) + Auxiliary Verb + Subject + Main Verb + ?';
+    breakdown = [
+      { badge: 'Inquiry', label: 'Wh- Word', detail: 'Specifies what information is sought (Who, What, Where, When, Why, How).' },
+      { badge: 'Inversion', label: 'Auxiliary + Subject', detail: 'Inverts the standard subject-verb order (e.g., "are you", "do they", "is he").' },
+      { badge: 'Action', label: 'Main Verb', detail: 'Completes the inquiry in root or participle form.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Forgetting subject-auxiliary inversion (e.g., "Where you are going?" or "Why he did that?").',
+        correct: 'Inverting auxiliary and subject: "Where are you going?" or "Why did he do that?"',
+        why: 'Direct questions in English strictly require the auxiliary verb before the subject.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Intonation Rise & Fall',
+      tip: 'Yes/No questions end with a rising intonation (↗), while Wh- information questions end with a falling pitch (↘).',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 11: Professional, Business & Career Communication
+  else if (cLower.includes('profession') || cLower.includes('career') || cLower.includes('communicat') || cLower.includes('manage') || tLower.includes('email') || tLower.includes('interview') || tLower.includes('meeting') || tLower.includes('presentation')) {
+    rulePattern = 'Courteous Framing + Direct Value Proposition + Actionable Next Step';
+    breakdown = [
+      { badge: 'Framing', label: 'Executive Tone', detail: 'Opens the communication with warmth, professional respect, and presence.' },
+      { badge: 'Core Message', label: 'Concise Value', detail: 'Delivers your insight or proposal directly without filler phrases.' },
+      { badge: 'Call to Action', label: 'Clear Outcome', detail: 'Specifies the mutually agreed timeline, deliverable, or next step.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Using overly blunt commands or timid apologies ("Sorry to bother you, I need this now").',
+        correct: 'Using collaborative diplomatic language: "Could we align on these action items by 3 PM?"',
+        why: 'Diplomatic phrasing establishes executive confidence while maintaining warm stakeholder rapport.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Executive Strategic Pause',
+      tip: 'Pause for one beat after stating your primary business proposal. Strategic silence projects authority and lets listeners absorb.',
+      practicePhrase: drillSentence
+    };
+  }
+  // Domain 12: Vocabulary, Idioms & Figurative Language
+  else if (cLower.includes('vocab') || tLower.includes('idiom') || tLower.includes('phrasal') || tLower.includes('metaphor') || tLower.includes('collocation')) {
+    rulePattern = 'Contextual Topic Anchor + Target Idiomatic Expression + Natural Spoken Cadence';
+    breakdown = [
+      { badge: 'Context', label: 'Situational Setup', detail: 'Establishes the scenario where this expression naturally applies.' },
+      { badge: 'Expression', label: 'Idiomatic Collocation', detail: 'Uses the fixed word combination without altering individual words.' },
+      { badge: 'Impact', label: 'Figurative Meaning', detail: 'Delivers vivid, native-level color to spoken or written thoughts.' }
+    ];
+    mistakes = [
+      {
+        incorrect: 'Altering words in fixed idiomatic expressions or translating them literally.',
+        correct: 'Using the exact set phrase in natural conversational context.',
+        why: 'Idioms and collocations are fixed linguistic chunks whose meaning cannot be deduced from isolated word translations.'
+      }
+    ];
+    fluencyTip = {
+      title: 'Chunking & Stress Rhythm',
+      tip: 'Speak idiomatic phrases as a single continuous sound unit ("chunk") rather than pausing between each individual word.',
+      practicePhrase: drillSentence
+    };
+  }
+
+  const examples = [
+    drillSentence,
+    guided?.sentence ? guided.sentence.replace('______', guided.correctWord || 'accurately') : `Mastering ${title.toLowerCase()} builds effortless fluency.`,
+    `Native speakers apply ${title.toLowerCase()} naturally in everyday dialogue.`
+  ];
+
+  return {
+    coreConcept: {
+      title: `Understanding ${title}`,
+      summary: `${title} is a foundational topic in ${category} at the ${level} level. ${desc}`,
+      context: `When native English speakers communicate, they use ${title.toLowerCase()} to express thoughts with clarity and confidence. Practicing this core structure builds spontaneous speech habits.`,
+      takeaway: 'Focus on understanding the structural pattern, speak full sentences aloud, and connect words smoothly.'
+    },
+    formula: {
+      title: 'Golden Rule & Structural Formula',
+      rule: rulePattern,
+      breakdown,
+      examples
+    },
+    mistakes,
+    fluencyTip
+  };
+}
