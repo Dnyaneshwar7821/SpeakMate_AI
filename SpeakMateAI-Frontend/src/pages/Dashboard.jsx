@@ -17,6 +17,7 @@ import {
   getLocalDateStr,
 } from "../utils/progressTracker";
 import { StreakModal } from "../components/dashboard/StreakModal";
+import { LeaderboardModal } from "../components/dashboard/LeaderboardModal";
 
 const getRankTier = (xp = 0) => {
   if (xp < 100) return { name: "Bronze III", icon: "🥉", badgeColor: "bg-amber-700/20 text-amber-500 border-amber-600/30" };
@@ -85,6 +86,7 @@ export function Dashboard() {
 
   const [stats, setStats] = useState(() => getLiveProgressStats(user));
   const [streakModalOpen, setStreakModalOpen] = useState(false);
+  const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
 
   const [timerActive, setTimerActive] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300);
@@ -265,18 +267,22 @@ export function Dashboard() {
     }
   };
 
-  const handleBuyFreeze = () => {
-    const res = buyStreakFreeze(100, user);
-    if (res.success) {
-      setStats((prev) => ({
-        ...prev,
-        ...res.stats,
-        xp: Number(res.stats.xp ?? prev.xp ?? 0),
-        streakFreezes: Number(res.stats.streakFreezes ?? prev.streakFreezes ?? 0),
-      }));
-      toast.success(res.message);
-    } else {
-      toast.error(res.message);
+  const handleBuyFreeze = async () => {
+    try {
+      const res = await buyStreakFreeze(100, user);
+      if (res.success) {
+        setStats((prev) => ({
+          ...prev,
+          ...res.stats,
+          xp: Number(res.stats.xp ?? prev.xp ?? 0),
+          streakFreezes: Number(res.stats.streakFreezes ?? prev.streakFreezes ?? 0),
+        }));
+        toast.success(res.message);
+      } else {
+        toast.error(res.message);
+      }
+    } catch (e) {
+      toast.error("Failed to purchase streak freeze");
     }
   };
 
@@ -323,14 +329,16 @@ export function Dashboard() {
 
               {/* Unified Gamification Metrics Capsule */}
               <div className="flex items-center rounded-full bg-black/20 backdrop-blur-md border border-white/15 p-0.5 shadow-inner">
-                {/* Rank */}
-                <div
-                  className="text-xs font-bold px-3 py-1 text-white/90 flex items-center gap-1.5"
-                  title="Current Rank"
+                {/* Rank Pill Interactive Button */}
+                <button
+                  type="button"
+                  onClick={() => setLeaderboardModalOpen(true)}
+                  className="text-xs font-bold px-3 py-1 rounded-full hover:bg-white/15 text-white/90 hover:text-white transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                  title="View Global Leaderboard"
                 >
                   <span className="text-sm">{currentRankIcon}</span>
                   <span>{currentRankName}</span>
-                </div>
+                </button>
 
                 <div className="h-3.5 w-[1px] bg-white/15" />
 
@@ -860,6 +868,12 @@ export function Dashboard() {
           refreshStats();
         }}
         userContext={user}
+      />
+
+      <LeaderboardModal
+        isOpen={leaderboardModalOpen}
+        onClose={() => setLeaderboardModalOpen(false)}
+        currentUser={user}
       />
     </div>
   );

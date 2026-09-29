@@ -41,8 +41,8 @@ export function StreakModal({ isOpen, onClose, userContext, stats: propStats, on
   const canRepair = Boolean(stats.brokenStreakSnapshot?.streak);
   const currentXp = stats.xp || 0;
 
-  const handleBuyFreeze = () => {
-    const res = buyStreakFreeze(100, effectiveUser);
+  const handleBuyFreeze = async () => {
+    const res = await buyStreakFreeze(100, effectiveUser);
     if (res.success) {
       setStats(res.stats);
       onRefresh?.();

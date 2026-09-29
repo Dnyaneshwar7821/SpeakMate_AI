@@ -282,6 +282,11 @@ export const syncBackendProgress = (backendData, userContext = null) => {
     ? Math.max(Number(current.lessonsCompleted || 0), Number(rawBackendLessons))
     : Number(current.lessonsCompleted || 0);
 
+  const rawBackendFreezes = backendData.streakFreezes ?? backendData.progress?.streakFreezes ?? backendData.profile?.streakFreezes;
+  const finalFreezes = rawBackendFreezes !== undefined && rawBackendFreezes !== null
+    ? Number(rawBackendFreezes)
+    : Number(current.streakFreezes ?? 1);
+
   const synced = {
     ...current,
     xp: finalXp,
@@ -295,6 +300,7 @@ export const syncBackendProgress = (backendData, userContext = null) => {
     grammarChecks: finalGrammar,
     lessonsCompleted: finalLessons,
     backendAccuracy,
+    streakFreezes: finalFreezes,
   };
 
   saveProgressStats(synced, userContext, false);
@@ -428,17 +434,32 @@ export const recordQuizCompleted = (quizType = "grammar", score = 8, total = 8, 
 };
 
 // 8. Buy Streak Freeze using XP (100 XP per Freeze)
-export const buyStreakFreeze = (costXP = 100, userContext = null) => {
+export const buyStreakFreeze = async (costXP = 100, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
-  if (stats.xp >= costXP) {
-    stats.xp -= costXP;
-    stats.streakFreezes = (stats.streakFreezes || 0) + 1;
-    stats.lastUpdatedTime = Date.now();
-    stats.lastSpentAt = Date.now();
-    saveProgressStats(stats, userContext);
-    return { success: true, stats, message: "Streak Freeze ❄️ added to your reserve!" };
+  if (stats.xp < costXP) {
+    return { success: false, stats, message: `Insufficient XP. You need ${costXP} XP to buy a Streak Freeze.` };
   }
-  return { success: false, stats, message: `Insufficient XP. You need ${costXP} XP to buy a Streak Freeze.` };
+
+  try {
+    const backendRes = await progressService.buyFreeze();
+    if (backendRes) {
+      stats.xp = backendRes.xp !== undefined && backendRes.xp !== null ? backendRes.xp : (stats.xp - costXP);
+      stats.streakFreezes = backendRes.streakFreezes !== undefined && backendRes.streakFreezes !== null ? backendRes.streakFreezes : ((stats.streakFreezes || 0) + 1);
+      stats.lastUpdatedTime = Date.now();
+      stats.lastSpentAt = Date.now();
+      saveProgressStats(stats, userContext, false);
+      return { success: true, stats, message: "Streak Freeze ❄️ added to your reserve!" };
+    }
+  } catch (err) {
+    console.warn("Backend buyFreeze offline fallback:", err);
+  }
+
+  stats.xp -= costXP;
+  stats.streakFreezes = (stats.streakFreezes || 0) + 1;
+  stats.lastUpdatedTime = Date.now();
+  stats.lastSpentAt = Date.now();
+  saveProgressStats(stats, userContext, true);
+  return { success: true, stats, message: "Streak Freeze ❄️ added to your reserve!" };
 };
 
 // 9. Repair Broken Streak with XP (150 XP to recover lost streak within 48 hours)

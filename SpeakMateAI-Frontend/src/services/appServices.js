@@ -121,6 +121,9 @@ export const progressService = {
   get: () => optionalGet("/api/progress/get-progress", { xp: 0, level: 1, currentStreak: 0, longestStreak: 0, totalPracticeMinutes: 0, totalSpeakingSessions: 0, totalGrammarChecks: 0, totalVocabularyWords: 0 }),
   create: (payload) => api.post("/api/progress/create-progress", payload).then((res) => res.data),
   update: (payload) => api.put("/api/progress/update-progress", payload).then((res) => res.data),
+  buyFreeze: () => api.post("/api/progress/buy-freeze").then((res) => res.data),
+  useFreeze: () => api.post("/api/progress/use-freeze").then((res) => res.data),
+  leaderboard: (limit = 10) => optionalGet(`/api/progress/leaderboard?limit=${limit}`, []),
 };
 
 export const achievementService = {
@@ -143,7 +146,8 @@ export const notificationService = {
 export const dashboardService = {
   summary: () => optionalGet("/api/dashboard/summary", null),
   recentActivity: () => optionalGet("/api/activity/recent", []),
-  weeklyProgress: () => optionalGet("/api/dashboard/weekly-progress", []),
+  weeklyProgress: (days = 7) => optionalGet(`/api/dashboard/rhythm?days=${days}`, []),
+  rhythm: (days = 7) => optionalGet(`/api/dashboard/rhythm?days=${days}`, []),
   dailyGoal: () => optionalGet("/api/dashboard/daily-goal", null),
   statistics: () => optionalGet("/api/dashboard/statistics", null),
   quote: () => optionalGet("/api/dashboard/quote", null),

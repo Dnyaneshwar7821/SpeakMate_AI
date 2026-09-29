@@ -8,30 +8,22 @@ export function SpeakingHistoryDetail() {
   const { id } = useParams();
   const [sessionData, setSessionData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
+    setError(false);
     speakingService
       .detail(id)
       .then((data) => {
-        setSessionData(data);
+        if (data && (data.id || data.scenario)) {
+          setSessionData(data);
+        } else {
+          setError(true);
+        }
       })
       .catch(() => {
-        // Fallback mock history detail if offline
-        setSessionData({
-          id: id || "1",
-          scenario: "Software Job Interview",
-          duration: 360,
-          score: 88,
-          createdAt: new Date().toISOString(),
-          messages: [
-            { sender: "ai", message: "Hello! Tell me about a challenging software project you led recently." },
-            { sender: "user", message: "I led a team of four developers to rebuild our web frontend application." },
-            { sender: "ai", message: "That sounds impressive! What technologies did you use for the migration?" },
-          ],
-          grammarCorrections: "Great usage of past tense verbs. Minor tip: use 'lead' in past as 'led'.",
-          vocabularyLearned: "Migration, Architecture, Optimization",
-          betterSentences: "I managed a team of four software engineers to re-architect our web app.",
-        });
+        setError(true);
       })
       .finally(() => setLoading(false));
   }, [id]);
@@ -44,6 +36,32 @@ export function SpeakingHistoryDetail() {
     return (
       <div className="p-12 text-center text-[var(--text-secondary)] font-bold">
         Loading conversation transcript...
+      </div>
+    );
+  }
+
+  if (error || !sessionData) {
+    return (
+      <div className="max-w-xl mx-auto py-16 px-4 text-center space-y-5">
+        <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-3xl flex items-center justify-center mx-auto shadow-sm">
+          ⚠️
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)]">
+            Unable to Load Session Replay
+          </h2>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] font-medium leading-relaxed">
+            The requested speaking practice transcript could not be found or you are currently offline.
+          </p>
+        </div>
+        <div>
+          <Link
+            to={ROUTES.SPEAKING}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-[#6C63FF] hover:bg-[#5B52E0] text-white text-xs font-black shadow-lg shadow-[#6C63FF]/25 transition-all"
+          >
+            ← Back to Speaking Practice
+          </Link>
+        </div>
       </div>
     );
   }
