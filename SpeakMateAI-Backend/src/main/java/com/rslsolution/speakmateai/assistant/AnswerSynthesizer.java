@@ -1029,10 +1029,6 @@ public class AnswerSynthesizer {
 		return trimOrNull(sb);
 	}
 
-	private String renderProfile(Map<String, Object> d) {
-		return renderProfile(d, null);
-	}
-
 	private String renderProfile(Map<String, Object> d, String userMessage) {
 		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();
 		if (isJoiningDateQuery(m)) {
@@ -1357,14 +1353,6 @@ public class AnswerSynthesizer {
 			}
 		}
 		return trimOrNull(sb);
-	}
-
-	private String renderAccount(Map<String, Object> d) {
-		return renderAccount(d, null, null);
-	}
-
-	private String renderAccount(Map<String, Object> d, String userMessage) {
-		return renderAccount(d, userMessage, null);
 	}
 
 	private String renderAccount(Map<String, Object> d, String userMessage, ActorContext actor) {

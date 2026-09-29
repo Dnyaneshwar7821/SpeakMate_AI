@@ -40,7 +40,6 @@ import com.rslsolution.speakmateai.repository.AssignmentRepository;
 import com.rslsolution.speakmateai.repository.LessonRepository;
 
 import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Caller's own learning progress, available to both STUDENT and USER (Learner) roles.
