@@ -22,6 +22,7 @@ import {
   getLessonsForAgeGroup,
 } from "../constants/masterCurriculum";
 import { CurriculumCache } from "../utils/curriculumCache";
+import { getCachedDashboardData, setCachedDashboardData } from "../utils/dashboardCache";
 import { StreakModal } from "../components/dashboard/StreakModal";
 import { LeaderboardModal } from "../components/dashboard/LeaderboardModal";
 
@@ -121,28 +122,6 @@ const safeString = (val, fallback = "") => {
   return String(val);
 };
 
-const DASHBOARD_CACHE_KEY = "speakmate_dashboard_data_cache";
-let inMemoryDashboardCache = null;
-
-function getCachedDashboardData() {
-  if (inMemoryDashboardCache) return inMemoryDashboardCache;
-  try {
-    const stored = sessionStorage.getItem(DASHBOARD_CACHE_KEY);
-    if (stored) {
-      inMemoryDashboardCache = JSON.parse(stored);
-      return inMemoryDashboardCache;
-    }
-  } catch (_) {}
-  return null;
-}
-
-function setCachedDashboardData(data) {
-  inMemoryDashboardCache = data;
-  try {
-    sessionStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(data));
-  } catch (_) {}
-}
-
 export function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -182,18 +161,40 @@ export function Dashboard() {
     if (user?.englishLevel) setActiveEnglishLevel(safeString(user.englishLevel, "Beginner"));
   }, [user?.accountType, user?.schoolGrade, user?.ageGroup, user?.englishLevel]);
 
-  // Initial stats with safe fallbacks
+  const [dashboardData, setDashboardData] = useState(() => getCachedDashboardData(user?.email));
+
+  // Initial stats with safe fallbacks and preloaded dashboard metrics
   const [stats, setStats] = useState(() => {
     const live = getLiveProgressStats(user);
-    const initialGoal = parseInt(user?.dailyGoalMinutes || localStorage.getItem("speakmate_daily_goal") || "15", 10);
+    const cached = getCachedDashboardData(user?.email);
+    const initialGoal = parseInt(
+      user?.dailyGoalMinutes || localStorage.getItem("speakmate_daily_goal") || "15",
+      10
+    );
+    const backendStats = cached?.statistics || {};
+    const synced = cached ? syncBackendProgress(cached, user) : {};
+
+    const accuracyVal = synced.accuracy ?? (backendStats.averageScore > 0 ? backendStats.averageScore : null);
+    const totalHoursVal = backendStats.totalStudyHours != null ? backendStats.totalStudyHours : synced.totalHours;
+    const wordsVal = backendStats.vocabularyLearned ?? cached?.progress?.totalVocabularyWords ?? synced.wordsLearned;
+
     return {
       ...live,
+      ...(cached || {}),
+      ...(synced || {}),
+      accuracy: accuracyVal,
+      totalHours: totalHoursVal,
+      wordsLearned: wordsVal,
+      speakingSessions: backendStats.speakingSessions ?? synced.speakingSessions,
+      completedLessons: backendStats.completedLessons ?? synced.completedLessons,
+      streak: Number(synced.streak ?? cached?.streak ?? cached?.progress?.streak ?? live.streak ?? 0),
+      xp: Number(synced.xp ?? cached?.progress?.xp ?? cached?.xp ?? live.xp ?? 0),
+      streakFreezes: Number(synced.streakFreezes ?? live.streakFreezes ?? 0),
+      todayMins: live.todayMins || 0,
       completedMins: live.todayMins || 0,
-      dailyGoalMins: initialGoal,
+      dailyGoalMins: cached?.dailyGoal?.targetSpeakingMinutes || cached?.dailyGoal?.dailyGoalMinutes || initialGoal,
     };
   });
-
-  const [dashboardData, setDashboardData] = useState(() => getCachedDashboardData());
   const [isLoading, setIsLoading] = useState(false);
   const [streakModalOpen, setStreakModalOpen] = useState(false);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
@@ -242,7 +243,7 @@ export function Dashboard() {
       .then((data) => {
         if (data) {
           setDashboardData(data);
-          setCachedDashboardData(data);
+          setCachedDashboardData(data, user?.email);
           if (data.quote) {
             setDailyQuote(fetchOrGetDailyQuote(data.quote));
           }

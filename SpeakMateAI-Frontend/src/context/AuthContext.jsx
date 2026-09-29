@@ -211,11 +211,11 @@ export function AuthProvider({ children }) {
       }
       keysToRemove.forEach((k) => localStorage.removeItem(k));
 
-      // Clear assistant chat history in sessionStorage
+      // Clear all speakmate cache and assistant chat history in sessionStorage
       const sessionKeysToRemove = [];
       for (let i = 0; i < sessionStorage.length; i++) {
         const key = sessionStorage.key(i);
-        if (key && key.startsWith("speakmate_assistant_")) {
+        if (key && key.startsWith("speakmate_")) {
           sessionKeysToRemove.push(key);
         }
       }
@@ -233,6 +233,9 @@ export function AuthProvider({ children }) {
 
   const login = async (credentials) => {
     try {
+      try {
+        sessionStorage.removeItem("speakmate_dashboard_data_cache");
+      } catch (_) {}
       const response = await authService.login(credentials);
       if (response && response.token) {
         localStorage.setItem(STORAGE_KEYS.token, response.token);
