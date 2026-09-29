@@ -366,58 +366,6 @@ export function Dashboard() {
     targetRoute: ROUTES.SPEAKING,
   };
 
-  // Recent activity list
-  const recentActivities = dashboardData?.recentActivity && dashboardData.recentActivity.length > 0
-    ? dashboardData.recentActivity
-    : [
-        {
-          id: 1,
-          title: "AI Voice Speaking Practice",
-          module: "Speaking Session",
-          time: "Today",
-          score: stats.accuracy ? `${stats.accuracy}% accuracy` : "Completed",
-          icon: "🎙️",
-        },
-        {
-          id: 2,
-          title: "Daily Vocabulary Review",
-          module: "Vocabulary",
-          time: "Recent",
-          score: `${stats.wordsLearned || 0} words mastered`,
-          icon: "📚",
-        },
-      ];
-
-  // Curated recommendations
-  const recommendations = dashboardData?.recommendations && dashboardData.recommendations.length > 0
-    ? dashboardData.recommendations
-    : [
-        {
-          id: "rec-1",
-          title: isStudent ? `${activeGrade} Oral Expression & Fluency` : "Executive Presentation & Pitching",
-          subtitle: isStudent ? "Master school debate & recitation" : "Speak with executive poise and clarity",
-          type: "Speaking",
-          icon: "🎙️",
-          route: ROUTES.SPEAKING,
-        },
-        {
-          id: "rec-2",
-          title: "Mastering Tenses & Prepositions",
-          subtitle: "Clear common grammatical hesitations",
-          type: "Grammar",
-          icon: "✍️",
-          route: ROUTES.GRAMMAR,
-        },
-        {
-          id: "rec-3",
-          title: "Advanced Conversational Vocabulary",
-          subtitle: "Learn 10 high-impact descriptive idioms",
-          type: "Vocabulary",
-          icon: "📚",
-          route: ROUTES.VOCABULARY,
-        },
-      ];
-
   const weeklyHabit = stats.weeklyData || [];
 
   return (
@@ -949,11 +897,11 @@ export function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ── MAIN 2-COLUMN DESKTOP SPLIT: LEFT CONTENT (8 COLS) + RIGHT SIDEBAR (4 COLS) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column (8 cols): Weekly Habit Rhythm, Recent Activity, Curated Recommendations */}
-        <div className="lg:col-span-8 space-y-8">
-          {/* SECTION 6: WEEKLY HABIT RHYTHM (Matching Mobile App WeeklyProgressChart) */}
+      {/* ── 2-COLUMN BALANCED DESKTOP GRID: HABIT RHYTHM & MILESTONES (LEFT) + MOTIVATION & FREEZE PROTECTION (RIGHT) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column: Weekly Practice Rhythm & Achievements */}
+        <div className="space-y-8">
+          {/* SECTION 6: WEEKLY HABIT RHYTHM */}
           <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
             <div className="flex items-center justify-between">
               <div>
@@ -1007,96 +955,52 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* SECTION 8: RECENT ACTIVITY TIMELINE (Matching Mobile App RecentActivityTimeline) */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-4 border border-[var(--border-default)] shadow-xl">
+          {/* SECTION 11: MILESTONES & ACHIEVEMENTS CARD */}
+          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
             <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">History</span>
-                <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] mt-0.5">
-                  Recent Activity
-                </h3>
-              </div>
-              <Link to={ROUTES.PROGRESS} className="text-xs font-black text-[#6C63FF] hover:underline">
-                View All Activity →
+              <h3 className="font-black text-lg text-[var(--text-primary)]">Milestones</h3>
+              <Link to={ROUTES.ACHIEVEMENTS} className="text-xs font-black text-[#6C63FF] hover:underline">
+                View All →
               </Link>
             </div>
 
-            <div className="space-y-3">
-              {recentActivities.map((act) => (
-                <div
-                  key={act.id}
-                  className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between gap-4 transition-all hover:border-[#6C63FF]/30"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-2xl p-2 rounded-xl bg-[var(--bg-base)] shrink-0">
-                      {act.icon || "🎙️"}
-                    </span>
-                    <div className="min-w-0">
-                      <h4 className="text-sm font-black text-[var(--text-primary)] truncate">
-                        {act.title}
-                      </h4>
-                      <p className="text-xs text-[var(--text-secondary)] font-medium">
-                        {act.module} • {act.time}
-                      </p>
-                    </div>
-                  </div>
-
-                  <span className="text-xs font-black px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 shrink-0">
-                    {act.score}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* SECTION 10: CURATED RECOMMENDATIONS (Matching Mobile App UpcomingRecommendations) */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-4 border border-[var(--border-default)] shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">Recommended For You</span>
-                <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] mt-0.5">
-                  Next Step Lessons
-                </h3>
-              </div>
-              <span className="text-xs font-bold text-[var(--text-secondary)]">Personalized</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {recommendations.map((rec) => (
-                <div
-                  key={rec.id}
-                  onClick={() => navigate(rec.route || ROUTES.LESSONS)}
-                  className="p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] space-y-3 hover:border-[#6C63FF]/50 transition-all cursor-pointer group shadow-sm flex flex-col justify-between"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl p-2 rounded-xl bg-[#6C63FF]/10 group-hover:scale-110 transition-transform">
-                        {rec.icon}
-                      </span>
-                      <span className="text-[10px] font-black uppercase text-[#6C63FF] px-2 py-0.5 rounded bg-[#6C63FF]/10">
-                        {rec.type}
-                      </span>
-                    </div>
-                    <h4 className="text-sm font-black text-[var(--text-primary)] group-hover:text-[#6C63FF] transition-colors">
-                      {rec.title}
-                    </h4>
-                    <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed">
-                      {rec.subtitle}
+            <div className="space-y-3.5">
+              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl p-2 rounded-xl bg-amber-500/10">🔥</span>
+                  <div>
+                    <p className="font-black text-xs text-[var(--text-primary)]">3-Day Streak Master</p>
+                    <p className={`text-[11px] font-bold mt-0.5 ${(stats.streak || 0) >= 3 ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
+                      {(stats.streak || 0) >= 3 ? "Unlocked ✓" : `${Math.min(3, stats.streak || 0)} / 3 days`}
                     </p>
                   </div>
-
-                  <span className="text-xs font-black text-[#6C63FF] group-hover:translate-x-1 transition-transform inline-flex items-center gap-1 pt-1">
-                    Start Exercise →
-                  </span>
                 </div>
-              ))}
+                <span className={`text-xs font-black px-2.5 py-1 rounded-full ${(stats.streak || 0) >= 3 ? "text-amber-500 bg-amber-500/10" : "text-[var(--text-muted)] bg-[var(--bg-base)]"}`}>
+                  +50 XP
+                </span>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className="text-2xl p-2 rounded-xl bg-[#6C63FF]/10">📚</span>
+                  <div>
+                    <p className="font-black text-xs text-[var(--text-primary)]">Vocabulary Virtuoso</p>
+                    <p className={`text-[11px] font-bold mt-0.5 ${(stats.wordsLearned || 0) >= 20 ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
+                      {(stats.wordsLearned || 0) >= 20 ? "Unlocked ✓" : `${Math.min(20, stats.wordsLearned || 0)} / 20 words`}
+                    </p>
+                  </div>
+                </div>
+                <span className={`text-xs font-black px-2.5 py-1 rounded-full ${(stats.wordsLearned || 0) >= 20 ? "text-amber-500 bg-amber-500/10" : "text-[var(--text-muted)] bg-[var(--bg-base)]"}`}>
+                  +50 XP
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Right Column (4 cols): Motivation Quote, Streak & Freeze Protection, Milestones */}
-        <div className="lg:col-span-4 space-y-8">
-          {/* ── DAILY MOTIVATION & AUDIO QUOTE CARD (Kept per instruction) ── */}
+        {/* Right Column: Daily Motivation Quote & Streak Freeze Protection */}
+        <div className="space-y-8">
+          {/* DAILY MOTIVATION & AUDIO QUOTE CARD */}
           <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#6C63FF]/30 space-y-5 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">Daily Inspiration</span>
@@ -1139,7 +1043,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* ── STREAK & FREEZE PROTECTION CARD (Kept per instruction) ── */}
+          {/* STREAK & FREEZE PROTECTION CARD */}
           <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-4 border border-cyan-500/30 bg-gradient-to-br from-[var(--bg-surface)] to-cyan-500/5 shadow-xl">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-cyan-500 uppercase tracking-wider">Streak Protection</span>
@@ -1191,48 +1095,6 @@ export function Dashboard() {
             >
               <span>❄️ Buy 1 Freeze (100 XP)</span>
             </button>
-          </div>
-
-          {/* ── SECTION 11: MILESTONES & ACHIEVEMENTS CARD (Matching Mobile App AchievementsCard) ── */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
-            <div className="flex items-center justify-between">
-              <h3 className="font-black text-lg text-[var(--text-primary)]">Milestones</h3>
-              <Link to={ROUTES.ACHIEVEMENTS} className="text-xs font-black text-[#6C63FF] hover:underline">
-                View All →
-              </Link>
-            </div>
-
-            <div className="space-y-3.5">
-              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl p-2 rounded-xl bg-amber-500/10">🔥</span>
-                  <div>
-                    <p className="font-black text-xs text-[var(--text-primary)]">3-Day Streak Master</p>
-                    <p className={`text-[11px] font-bold mt-0.5 ${(stats.streak || 0) >= 3 ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                      {(stats.streak || 0) >= 3 ? "Unlocked ✓" : `${Math.min(3, stats.streak || 0)} / 3 days`}
-                    </p>
-                  </div>
-                </div>
-                <span className={`text-xs font-black px-2.5 py-1 rounded-full ${(stats.streak || 0) >= 3 ? "text-amber-500 bg-amber-500/10" : "text-[var(--text-muted)] bg-[var(--bg-base)]"}`}>
-                  +50 XP
-                </span>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl p-2 rounded-xl bg-[#6C63FF]/10">📚</span>
-                  <div>
-                    <p className="font-black text-xs text-[var(--text-primary)]">Vocabulary Virtuoso</p>
-                    <p className={`text-[11px] font-bold mt-0.5 ${(stats.wordsLearned || 0) >= 20 ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                      {(stats.wordsLearned || 0) >= 20 ? "Unlocked ✓" : `${Math.min(20, stats.wordsLearned || 0)} / 20 words`}
-                    </p>
-                  </div>
-                </div>
-                <span className={`text-xs font-black px-2.5 py-1 rounded-full ${(stats.wordsLearned || 0) >= 20 ? "text-amber-500 bg-amber-500/10" : "text-[var(--text-muted)] bg-[var(--bg-base)]"}`}>
-                  +50 XP
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
