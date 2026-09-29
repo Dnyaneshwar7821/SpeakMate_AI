@@ -24,6 +24,7 @@ import {
 import { CurriculumCache } from "../utils/curriculumCache";
 import { StreakModal } from "../components/dashboard/StreakModal";
 import { LeaderboardModal } from "../components/dashboard/LeaderboardModal";
+import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 const getRankTier = (xp = 0) => {
   if (xp < 100) return { name: "Bronze III", icon: "🥉", badgeColor: "bg-amber-700/20 text-amber-500 border-amber-600/30" };
@@ -172,6 +173,7 @@ export function Dashboard() {
   });
 
   const [dashboardData, setDashboardData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [streakModalOpen, setStreakModalOpen] = useState(false);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
 
@@ -252,7 +254,10 @@ export function Dashboard() {
           }));
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, [user]);
 
   const [studentAssignments, setStudentAssignments] = useState([]);
@@ -316,8 +321,13 @@ export function Dashboard() {
       }));
     };
 
+    const handleCurriculumEvent = () => {
+      refreshStats();
+    };
+
     window.addEventListener("focus", refreshStats);
     window.addEventListener("speakmate_progress_updated", handleProgressEvent);
+    window.addEventListener("speakmate_curriculum_updated", handleCurriculumEvent);
     window.addEventListener("speakmate_settings_updated", handleSettingsEvent);
     window.addEventListener("speakmate_age_group_changed", handleAgeEvent);
     window.addEventListener("storage", handleStorage);
@@ -325,6 +335,7 @@ export function Dashboard() {
     return () => {
       window.removeEventListener("focus", refreshStats);
       window.removeEventListener("speakmate_progress_updated", handleProgressEvent);
+      window.removeEventListener("speakmate_curriculum_updated", handleCurriculumEvent);
       window.removeEventListener("speakmate_settings_updated", handleSettingsEvent);
       window.removeEventListener("speakmate_age_group_changed", handleAgeEvent);
       window.removeEventListener("storage", handleStorage);
@@ -589,6 +600,17 @@ export function Dashboard() {
       route: ROUTES.PROGRESS,
     },
   ], [totalLessonsCount, actualCompletedLessons, backendStats, stats]);
+
+  if (isLoading && !dashboardData) {
+    return (
+      <div className="w-full max-w-7xl mx-auto px-4 py-20 flex items-center justify-center">
+        <SpeakMateLoader
+          message="Loading your personalized dashboard..."
+          subMessage="Synchronizing syllabus and learning statistics"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">

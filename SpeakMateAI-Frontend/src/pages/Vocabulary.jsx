@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
 import { recordVocabularyMastered, recordWordAdded, recordQuizCompleted } from "../utils/progressTracker";
+import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 // =========================================================================
 // ONBOARDING CALIBRATED VOCABULARY CURRICULUMS (STUDENTS & INDIVIDUAL USERS)
@@ -600,7 +601,11 @@ export function Vocabulary() {
           </div>
 
           {/* Word Cards Grid with Favorite Stars */}
-          {filteredItems.length === 0 ? (
+          {loading ? (
+            <div className="py-12">
+              <SpeakMateLoader message="Loading your vocabulary bank..." subMessage="Fetching words and definitions" />
+            </div>
+          ) : filteredItems.length === 0 ? (
             <div className="text-center py-16 bg-[var(--bg-surface)] border border-dashed border-[var(--border-default)] rounded-3xl shadow-sm">
               <span className="text-4xl mb-3 block">📖</span>
               <h3 className="text-lg font-bold text-[var(--text-primary)]">No Words Found</h3>

@@ -8,6 +8,7 @@ import { useModal } from "../context/ModalContext";
 import { useToast } from "../context/ToastContext";
 import { warmupSpeechAutoplay } from "../utils/speechHelper";
 import { getLiveProgressStats } from "../utils/progressTracker";
+import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 // ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 const AGE_SCENARIOS = {
@@ -276,14 +277,26 @@ export function SpeakingPractice() {
 
   useEffect(() => {
     loadData();
-    const handleProgressUpdate = () => {
-      const storedAge = user?.ageGroup || localStorage.getItem("speakmate_age_group");
-      if (storedAge) setSelectedAgeGroup(normalizeAgeGroup(storedAge));
+    const handleProgressUpdate = (e) => {
+      const d = e?.detail;
+      if (d?.schoolGrade) {
+        setSelectedGrade(d.schoolGrade);
+        localStorage.setItem("speakmate_school_grade", d.schoolGrade);
+      }
+      if (d?.ageGroup) {
+        const norm = normalizeAgeGroup(d.ageGroup);
+        setSelectedAgeGroup(norm);
+        localStorage.setItem("speakmate_age_group", norm);
+      }
       loadData();
     };
     const handleAgeChange = (e) => {
       const newAge = e?.detail?.ageGroup || user?.ageGroup || localStorage.getItem("speakmate_age_group");
-      if (newAge) setSelectedAgeGroup(normalizeAgeGroup(newAge));
+      if (newAge) {
+        const norm = normalizeAgeGroup(newAge);
+        setSelectedAgeGroup(norm);
+        localStorage.setItem("speakmate_age_group", norm);
+      }
     };
 
     window.addEventListener("focus", handleProgressUpdate);
