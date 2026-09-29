@@ -289,6 +289,7 @@ export const DashboardHeader = memo(function DashboardHeader({
                 </View>
               )}
             </View>
+            <View style={styles.heroMetaRow}>
               <TouchableOpacity
                 onPress={onLeaderboardPress}
                 activeOpacity={0.8}
