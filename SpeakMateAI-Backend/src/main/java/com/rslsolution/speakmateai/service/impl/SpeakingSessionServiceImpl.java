@@ -1228,14 +1228,19 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	@Override
 	public List<SpeakingHistoryResponse> getSessionHistory() {
 		User user = currentUser();
-		return speakingSessionRepository.findByUserOrderByCreatedAtDesc(user).stream()
-				.filter(s -> Boolean.TRUE.equals(s.getCompleted()))
+		if (user == null || user.getId() == null) {
+			return List.of();
+		}
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCompletedTrueOrderByCreatedAtDesc(user.getId());
+		return sessions.stream()
 				.map(s -> {
 					String preview = "";
-					if (s.getMessages() != null && !s.getMessages().isEmpty()) {
-						preview = s.getMessages().get(s.getMessages().size() - 1).getMessage();
-					} else if (s.getTranscript() != null) {
+					if (s.getFeedback() != null && !s.getFeedback().isBlank()) {
+						preview = s.getFeedback();
+					} else if (s.getTranscript() != null && !s.getTranscript().isBlank()) {
 						preview = s.getTranscript();
+					} else if (s.getTopic() != null && !s.getTopic().isBlank()) {
+						preview = s.getTopic();
 					}
 					if (preview.length() > 100)
 						preview = preview.substring(0, 97) + "...";

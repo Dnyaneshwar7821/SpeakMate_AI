@@ -54,10 +54,10 @@ function SectionHeading({ title, icon, color }) {
 
 export default function SpeakingHistoryDetailScreen({ navigation, route }) {
   const { isDark, theme } = useTheme();
-  const { sessionId } = route.params || {};
+  const { sessionId, item } = route.params || {};
 
-  const [detail, setDetail] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [detail, setDetail] = useState(() => item || null);
+  const [loading, setLoading] = useState(() => !item?.messages);
   const [activeTab, setActiveTab] = useState('Transcript'); // 'Transcript' or 'Feedback'
 
   useEffect(() => {
@@ -66,19 +66,23 @@ export default function SpeakingHistoryDetailScreen({ navigation, route }) {
   }, [sessionId]);
 
   const loadDetail = async () => {
-    setLoading(true);
+    if (!item?.messages) setLoading(true);
     try {
       const data = await speakingService.detail(sessionId);
-      setDetail(data);
+      if (data) {
+        setDetail(data);
+      }
     } catch {
-      Alert.alert('Error', 'Could not load speaking session details.');
-      navigation.goBack();
+      if (!detail) {
+        Alert.alert('Error', 'Could not load speaking session details.');
+        navigation.goBack();
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
+  if (loading && !detail) {
     return (
       <View style={[styles.root, { backgroundColor: theme.bg }]}>
         <HeaderBar title="Loading Session…" onBack={() => navigation.goBack()} />

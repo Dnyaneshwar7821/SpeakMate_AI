@@ -547,7 +547,7 @@ export function SpeakingPractice() {
             {history.map((item) => (
               <div
                 key={item.id}
-                onClick={() => navigate(`${ROUTES.SPEAKING_HISTORY_DETAIL}?sessionId=${item.id}`)}
+                onClick={() => navigate(`/speaking/history/${item.id}`, { state: { session: item } })}
                 className="group p-5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] hover:border-[#6C63FF]/50 transition-all flex items-start justify-between gap-4 cursor-pointer shadow-sm hover:shadow-md"
               >
                 <div className="flex items-start gap-3.5 min-w-0">

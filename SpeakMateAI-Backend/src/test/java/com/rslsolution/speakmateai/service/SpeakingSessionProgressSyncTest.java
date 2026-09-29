@@ -197,7 +197,7 @@ public class SpeakingSessionProgressSyncTest {
         when(speakingSessionRepository.findByUserAndCompletedTrue(sampleUser)).thenReturn(completedSessions);
         when(vocabularyRepository.findByUser(sampleUser)).thenReturn(List.of());
         when(grammarHistoryRepository.findByUser(sampleUser)).thenReturn(List.of());
-        when(lessonRepository.findByActiveTrue()).thenReturn(List.of());
+        lenient().when(lessonRepository.findByActiveTrue()).thenReturn(List.of());
         when(lessonProgressRepository.findByUserAndCompleted(sampleUser, true)).thenReturn(List.of());
 
         StatisticsResponse stats = dashboardService.getStatistics();

@@ -646,7 +646,7 @@ export default function SpeakingHomeScreen({ navigation }) {
             <View key={h.id} style={[styles.historyItem, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder, borderWidth: isDark ? 1 : 0 }]}>
               <TouchableOpacity
                 style={styles.historyClick}
-                onPress={() => navigation.navigate('SpeakingHistoryDetail', { sessionId: h.id })}
+                onPress={() => navigation.navigate('SpeakingHistoryDetail', { sessionId: h.id, item: h })}
               >
                 <View style={styles.historyLeft}>
                   <View style={[styles.historyIconBg, isDark && { backgroundColor: 'rgba(124,58,237,0.2)' }]}>

@@ -72,6 +72,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import Dashboard from "../pages/Dashboard";
 import SpeakingPractice from "../pages/SpeakingPractice";
+import SpeakingHistoryDetail from "../pages/SpeakingHistoryDetail";
 import NotFound from "../pages/NotFound";
 
 // Lazy-loaded heavy learner pages (bundle splitting & instant initial load)
@@ -80,7 +81,6 @@ const AiChat = lazy(() => import("../pages/AiChat"));
 const ConversationChat = lazy(() => import("../pages/ConversationChat"));
 const ConversationSession = lazy(() => import("../pages/ConversationSession"));
 const SpeakingSummary = lazy(() => import("../pages/SpeakingSummary"));
-const SpeakingHistoryDetail = lazy(() => import("../pages/SpeakingHistoryDetail"));
 const Lessons = lazy(() => import("../pages/Lessons"));
 const LessonDetail = lazy(() => import("../pages/LessonDetail"));
 const GrammarPractice = lazy(() => import("../pages/GrammarPractice"));
