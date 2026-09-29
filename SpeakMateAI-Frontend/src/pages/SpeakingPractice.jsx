@@ -211,17 +211,33 @@ const normalizeAgeGroup = (rawAge) => {
   return "Professional";
 };
 
+const SPEAKING_HISTORY_CACHE_KEY = "speakmate_speaking_history_cache";
+
+const getCachedSpeakingHistory = () => {
+  try {
+    const raw = localStorage.getItem(SPEAKING_HISTORY_CACHE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+};
+
+const setCachedSpeakingHistory = (data) => {
+  try {
+    localStorage.setItem(SPEAKING_HISTORY_CACHE_KEY, JSON.stringify(data));
+  } catch {}
+};
+
 export function SpeakingPractice() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { showConfirm } = useModal();
   const toast = useToast();
 
-  const accountType = localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
-  const isStudent = accountType === "STUDENT" || Boolean(user?.schoolGrade);
+  const accountType = localStorage.getItem("speakmate_account_type") || user?.accountType || "INDIVIDUAL_USER";
+  const isStudent = accountType === "STUDENT" || Boolean(user?.schoolGrade) || Boolean(user?.isSchoolStudent);
 
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [history, setHistory] = useState(() => getCachedSpeakingHistory());
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
 
@@ -233,32 +249,25 @@ export function SpeakingPractice() {
   );
 
   const loadData = async () => {
-    setLoading(true);
     try {
-      const [rawHistory, meData] = await Promise.all([
-        speakingService.history().catch(() => []),
-        authService.me().catch(() => null),
-      ]);
+      const rawHistory = await speakingService.history().catch(() => []);
       const validHistory = Array.isArray(rawHistory)
         ? rawHistory.filter(item => item && (item.completed === true || item.status === 'COMPLETED' || (item.duration && item.duration > 0 && (item.overallScore > 0 || item.score > 0))))
         : [];
       setHistory(validHistory);
+      setCachedSpeakingHistory(validHistory);
 
-      const effectiveAge = meData?.ageGroup || user?.ageGroup || localStorage.getItem("speakmate_age_group");
+      const effectiveAge = user?.ageGroup || localStorage.getItem("speakmate_age_group");
       if (effectiveAge) {
         const norm = normalizeAgeGroup(effectiveAge);
         setSelectedAgeGroup(norm);
-        localStorage.setItem("speakmate_age_group", norm);
       }
-      const effectiveGrade = meData?.schoolGrade || user?.schoolGrade || localStorage.getItem("speakmate_school_grade");
+      const effectiveGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade");
       if (effectiveGrade) {
         setSelectedGrade(effectiveGrade);
-        localStorage.setItem("speakmate_school_grade", effectiveGrade);
       }
     } catch (e) {
       console.warn("Failed to load speaking data", e);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -310,10 +319,14 @@ export function SpeakingPractice() {
     };
   }, []);
 
-  const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
-  const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
-  const totalSessions = history.length;
-  const streakDays = Number(getLiveProgressStats().streak ?? 0);
+  const liveStats = getLiveProgressStats(user);
+  const historyMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
+  const totalMinutes = Math.max(Number(liveStats.speakingMins || 0), historyMinutes);
+  const historyXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
+  const totalXP = Math.max(Number(liveStats.xp || 0), historyXP);
+  const historySessions = history.length;
+  const totalSessions = Math.max(Number(liveStats.speakingSessions || 0), historySessions);
+  const streakDays = Number(liveStats.streak ?? 0);
 
   const effAge = normalizeAgeGroup(selectedAgeGroup);
   const currentScenarios = isStudent
@@ -363,7 +376,11 @@ export function SpeakingPractice() {
     if (confirmed) {
       try {
         await speakingService.deleteHistory(id);
-        setHistory((prev) => prev.filter((h) => h.id !== id));
+        setHistory((prev) => {
+          const updated = prev.filter((h) => h.id !== id);
+          setCachedSpeakingHistory(updated);
+          return updated;
+        });
         toast.success("Practice record deleted successfully!");
       } catch (err) {
         console.error("Failed to delete history item:", err);

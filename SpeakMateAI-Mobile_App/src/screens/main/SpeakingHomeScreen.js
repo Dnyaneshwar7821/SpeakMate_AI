@@ -21,11 +21,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { speakingService, onboardingService } from '../../services/appServices';
 import { COLORS } from '../../constants/colors';
 import LevelSegmentedControl from '../../components/common/LevelSegmentedControl';
 import { getCachedAvatarModel } from '../../config/AvatarCatalog';
+import { DashboardCache } from '../../utils/dashboardCache';
 
 // ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 
@@ -339,51 +341,70 @@ export const getScenarioInitialGreeting = (title = '') => {
   return `Hello! Welcome to our ${scenarioLabel}conversation practice. How can I assist you today?`;
 };
 
+let cachedMobileSpeakingHistory = null;
+const SPEAKING_HISTORY_KEY = 'speakmate_speaking_history_cache';
+
 export default function SpeakingHomeScreen({ navigation }) {
   const { isDark, theme } = useTheme();
   const { showToast } = useToast();
-  const [history, setHistory] = useState([]);
+  const { user } = useAuth();
+
+  const [history, setHistory] = useState(() => cachedMobileSpeakingHistory || []);
   const [loading, setLoading] = useState(false);
   const [startingScenario, setStartingScenario] = useState(false);
   const [startingScenarioId, setStartingScenarioId] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [selectedGrade, setSelectedGrade] = useState('1st Std');
-  const [userAgeGroup, setUserAgeGroup] = useState('Professional');
-  const [accountType, setAccountType] = useState('INDIVIDUAL_USER');
+  const [selectedGrade, setSelectedGrade] = useState(() => user?.schoolGrade || '1st Std');
+  const [userAgeGroup, setUserAgeGroup] = useState(() => user?.ageGroup || 'Professional');
+  const [accountType, setAccountType] = useState(() => user?.accountType || (user?.schoolGrade ? 'STUDENT' : 'INDIVIDUAL_USER'));
 
-  // Stats calculation
-  const totalMinutes = history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60;
-  const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
-  const totalSessions = history.length;
-  const streak = history.length > 0 ? 3 : 0; // Simulated active streak
+  // Immediate cached disk read on first load
+  useEffect(() => {
+    AsyncStorage.getItem(SPEAKING_HISTORY_KEY).then((raw) => {
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            cachedMobileSpeakingHistory = parsed;
+            setHistory(parsed);
+          }
+        } catch {}
+      }
+    }).catch(() => {});
+  }, []);
+
+  // Sync profile when user updates
+  useEffect(() => {
+    if (user?.schoolGrade) setSelectedGrade(user.schoolGrade);
+    if (user?.ageGroup) setUserAgeGroup(user.ageGroup);
+    if (user?.accountType) setAccountType(user.accountType);
+  }, [user?.schoolGrade, user?.ageGroup, user?.accountType]);
+
+  // Stats calculation - seamlessly combines Dashboard progress stats and session history
+  const dashData = DashboardCache.get(user?.id);
+  const histMins = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
+  const totalMinutes = Math.max(Number(dashData?.progress?.totalPracticeMinutes || 0), histMins);
+  const histXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
+  const totalXP = Math.max(Number(dashData?.progress?.xp || dashData?.profile?.xp || 0), histXP);
+  const histSessions = history.length;
+  const totalSessions = Math.max(Number(dashData?.progress?.totalSpeakingSessions || dashData?.profile?.totalSpeakingSessions || 0), histSessions);
+  const streak = Number(dashData?.progress?.currentStreak || dashData?.profile?.streak || (history.length > 0 ? 3 : 0));
 
   const loadData = async (silent = false) => {
-    if (!silent && history.length === 0) setLoading(true);
     try {
-      const [rawHistory, onboardingData, savedAccType] = await Promise.all([
-        speakingService.history().catch(() => []),
-        onboardingService.get().catch(() => null),
-        AsyncStorage.getItem('speakmate_account_type'),
-      ]);
+      const rawHistory = await speakingService.history().catch(() => []);
       const validHistory = Array.isArray(rawHistory)
         ? rawHistory.filter(item => item && (item.completed === true || item.status === 'COMPLETED' || (item.duration && item.duration > 0 && (item.overallScore > 0 || item.score > 0))))
         : [];
       setHistory(validHistory);
-      const effectiveAccType = savedAccType || onboardingData?.accountType || 'INDIVIDUAL_USER';
-      setAccountType(effectiveAccType);
+      cachedMobileSpeakingHistory = validHistory;
+      AsyncStorage.setItem(SPEAKING_HISTORY_KEY, JSON.stringify(validHistory)).catch(() => {});
 
-      const savedGrade = await AsyncStorage.getItem('speakmate_school_grade');
-      const backendGrade = onboardingData?.schoolGrade;
-      const effectiveGrade = (effectiveAccType === 'STUDENT')
-        ? (savedGrade || (backendGrade && backendGrade.includes('Std') ? backendGrade : null) || '1st Std')
-        : (savedGrade || '1st Std');
-      setSelectedGrade(effectiveGrade);
-
-      if (onboardingData?.ageGroup) {
-        setUserAgeGroup(onboardingData.ageGroup);
-      }
+      if (user?.accountType) setAccountType(user.accountType);
+      if (user?.schoolGrade) setSelectedGrade(user.schoolGrade);
+      if (user?.ageGroup) setUserAgeGroup(user.ageGroup);
     } catch (e) {
       console.warn('Failed to load speaking dashboard data', e);
     } finally {
@@ -467,7 +488,12 @@ export default function SpeakingHomeScreen({ navigation }) {
           onPress: async () => {
             try {
               await speakingService.deleteHistory(id);
-              setHistory((prev) => prev.filter((h) => h.id !== id));
+              setHistory((prev) => {
+                const updated = prev.filter((h) => h.id !== id);
+                cachedMobileSpeakingHistory = updated;
+                AsyncStorage.setItem(SPEAKING_HISTORY_KEY, JSON.stringify(updated)).catch(() => {});
+                return updated;
+              });
               showToast('History Deleted', 'success', 'Speaking session removed.');
             } catch (err) {
               console.error('Delete speaking session error:', err);

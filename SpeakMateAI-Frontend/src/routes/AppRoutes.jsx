@@ -71,13 +71,13 @@ import Register from "../pages/Register";
 import ForgotPassword from "../pages/ForgotPassword";
 import ResetPassword from "../pages/ResetPassword";
 import Dashboard from "../pages/Dashboard";
+import SpeakingPractice from "../pages/SpeakingPractice";
 import NotFound from "../pages/NotFound";
 
 // Lazy-loaded heavy learner pages (bundle splitting & instant initial load)
 const Onboarding = lazy(() => import("../pages/Onboarding"));
 const AiChat = lazy(() => import("../pages/AiChat"));
 const ConversationChat = lazy(() => import("../pages/ConversationChat"));
-const SpeakingPractice = lazy(() => import("../pages/SpeakingPractice"));
 const ConversationSession = lazy(() => import("../pages/ConversationSession"));
 const SpeakingSummary = lazy(() => import("../pages/SpeakingSummary"));
 const SpeakingHistoryDetail = lazy(() => import("../pages/SpeakingHistoryDetail"));
