@@ -11,6 +11,8 @@ import {
   Minus,
   ArrowUpRight
 } from "lucide-react";
+import { getEnglishLevelLabel } from "@utils/formatters";
+
 
 export function ProgressKpiGrid({ summary, speaking, grammar, vocabulary, onScrollToSection }) {
   if (!summary) return null;
@@ -60,7 +62,7 @@ export function ProgressKpiGrid({ summary, speaking, grammar, vocabulary, onScro
       id: "section-overview",
       title: "Total XP",
       value: (summary.totalXP ?? 0).toLocaleString(),
-      subtitle: `Level ${summary.currentLevel ?? 1} Progression`,
+      subtitle: `${getEnglishLevelLabel(summary.currentLevel ?? 1)} Progression (Level ${summary.currentLevel ?? 1})`,
       details: "Lifetime XP earned across all activities",
       icon: Zap,
       color: "text-amber-600 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/30",
@@ -81,14 +83,15 @@ export function ProgressKpiGrid({ summary, speaking, grammar, vocabulary, onScro
     {
       id: "section-overview",
       title: "Platform Level",
-      value: `Level ${summary.currentLevel ?? 1}`,
-      subtitle: `${(summary.totalXP ?? 0).toLocaleString()} XP milestone`,
-      details: "Gamified platform progression (not CEFR)",
+      value: getEnglishLevelLabel(summary.currentLevel ?? 1),
+      subtitle: `Level ${summary.currentLevel ?? 1} • ${(summary.totalXP ?? 0).toLocaleString()} XP milestone`,
+      details: "Gamified platform progression level",
       icon: Trophy,
       color: "text-purple-600 bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-900/30",
       accent: "hover:border-purple-400 dark:hover:border-purple-600",
       trend: null,
     },
+
     {
       id: "section-speaking",
       title: "Speaking Practice",

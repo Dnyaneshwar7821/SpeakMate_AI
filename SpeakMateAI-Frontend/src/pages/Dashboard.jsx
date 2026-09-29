@@ -7,6 +7,8 @@ import { useToast } from "../context/ToastContext";
 import ROUTES from "../constants/routes";
 import { dashboardService, assignmentService, announcementService } from "../services/appServices";
 import { speakGlobalText } from "../utils/speechHelper";
+import { getEnglishLevelLabel } from "../utils/formatters";
+
 import {
   getLiveProgressStats,
   recordSpeakingSession,
@@ -322,7 +324,8 @@ export function Dashboard() {
                     <span>👤</span>
                     <span>{safeString(activeAgeGroup, "Professional")}</span>
                     <span className="opacity-40">·</span>
-                    <span>🎯 {safeString(activeEnglishLevel, "Beginner")}</span>
+                    <span>🎯 Your English Level: {getEnglishLevelLabel(user?.englishLevel || activeEnglishLevel || stats?.level)}</span>
+
                   </>
                 )}
               </span>

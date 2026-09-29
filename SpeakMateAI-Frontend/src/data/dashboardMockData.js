@@ -21,7 +21,7 @@ export const dashboardMockData = {
     totalXp: 1250,
     todayXp: 45,
     level: 4,
-    levelName: "Intermediate Speaker",
+    levelName: "Intermediate",
     currentXpInLevel: 150,
     xpToNextLevel: 200, // XP needed to go from level 4 to 5
     percentage: 75, // (150/200) * 100

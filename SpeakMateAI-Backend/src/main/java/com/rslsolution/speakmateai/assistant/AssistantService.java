@@ -78,6 +78,13 @@ public class AssistantService {
 				return roleOverrideOrInjectionDenial(request, actor);
 			}
 
+			// Domain boundary hardening: general-purpose, non-SpeakMate AI questions (coding tutorials,
+			// general math, general science, weather, recipes, jokes, etc.) are strictly refused
+			// across all roles without calling any data provider or general LLM response synthesis.
+			if (isUnrelatedDomainRequest(request.getMessage())) {
+				return unrelatedDomainRefusalResponse(request, actor);
+			}
+
 			IntentResult classified = intentClassifier.classify(request.getMessage(), actor.getRole(), request.getHistory());
 			AssistantIntent intent = classified.getIntent();
 
@@ -88,20 +95,22 @@ public class AssistantService {
 			}
 
 			// Graceful denial for out-of-scope / unrecognized questions (no data, no Groq answer call).
-			// A Super Admin can access every dataset the web app exposes, so a Super Admin
-			// must NEVER be shown the role-scope denial: re-route the question to the
-			// closest platform-wide provider instead of returning denialResponse.
 			if (intent == AssistantIntent.ACCESS_DENIED || !registry.isRoleAllowed(intent, actor.getRole())) {
-				if (actor.getRole() == Role.SUPER_ADMIN) {
+				if (actor.getRole() == Role.SUPER_ADMIN && isExplicitRoleScopeViolation(request.getMessage(), actor.getRole())) {
 					intent = superAdminFallbackIntent(request.getMessage());
-				} else {
+				} else if (isExplicitRoleScopeViolation(request.getMessage(), actor.getRole()) || isSpeakMateEntityQuery(request.getMessage())) {
 					return denialResponse(request, actor);
+				} else {
+					return unrelatedDomainRefusalResponse(request, actor);
 				}
 			}
 
 			Optional<AssistantDataProvider> provider = registry.providerFor(intent, actor.getRole());
 			if (provider.isEmpty()) {
-				return denialResponse(request, actor);
+				if (isExplicitRoleScopeViolation(request.getMessage(), actor.getRole()) || isSpeakMateEntityQuery(request.getMessage())) {
+					return denialResponse(request, actor);
+				}
+				return unrelatedDomainRefusalResponse(request, actor);
 			}
 
 			String dataJson;
@@ -222,6 +231,286 @@ public class AssistantService {
 			}
 		}
 		return false;
+	}
+
+	private AssistantResponse unrelatedDomainRefusalResponse(AssistantRequest request, ActorContext actor) {
+		return AssistantResponse.builder()
+				.markdown("### 🤖 SpeakMate AI Assistant\n\nI can help only with questions related to SpeakMate AI, such as students, teachers, schools, classes, progress, reports, analytics, and available SpeakMate features.")
+				.intent(AssistantIntent.ACCESS_DENIED.name())
+				.accessDenied(false)
+				.sessionId(request != null ? request.getSessionId() : null)
+				.suggestions(suggestionsFor(AssistantIntent.NAVIGATION_HELP, actor != null ? actor.getRole() : Role.USER, false))
+				.build();
+	}
+
+	private static final java.util.regex.Pattern ARITHMETIC_PATTERN = java.util.regex.Pattern.compile(
+			"\\b\\d+\\s*(?:[\\*\\x7d\\xd7\\u00d7xX\\/+\\-]|times|multiplied\\s+by|divided\\s+by|plus|minus)\\s*\\d+\\b",
+			java.util.regex.Pattern.CASE_INSENSITIVE);
+
+	private static final Set<String> SPEAKMATE_DOMAIN_KEYWORDS = Set.of(
+			"speakmate", "student", "students", "teacher", "teachers", "school", "schools",
+			"class", "classes", "std", "standard", "grade", "division", "section",
+			"xp", "points", "streak", "streaks", "level", "levels", "progress",
+			"speaking", "pronunciation", "fluency", "grammar", "vocabulary", "word", "words",
+			"lesson", "lessons", "curriculum", "roster", "analytics", "reports", "results",
+			"insights", "dashboard", "revenue", "billing", "subscription", "plan", "plans", "payment", "payments", "invoice", "profile",
+			"settings", "account", "user", "users", "role", "roles", "department", "qualification",
+			"joining", "roll", "assigned", "my", "our", "performance", "score",
+			"scores", "activity", "activities", "leaderboard", "navigation", "page", "pages",
+			"admin", "admins", "superadmin", "super admin", "school admin", "school admins", "learner", "learners", "educator", "educators"
+	);
+
+	private boolean isSpeakMateEntityQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (intentClassifier != null && !intentClassifier.extractSchoolName(message).isEmpty()) {
+			return true;
+		}
+		return containsAnyPhrase(m, List.of(
+				"student", "students", "teacher", "teachers", "school", "schools",
+				"class", "classes", "std", "standard", "grade", "division", "section",
+				"xp", "streak", "streaks", "level", "levels", "progress", "roster",
+				"speaking", "pronunciation", "fluency", "grammar", "vocabulary",
+				"lesson", "lessons", "result", "results", "exam", "report", "reports",
+				"dy patil", "jspm", "greenwood"));
+	}
+
+	private boolean isUnrelatedDomainRequest(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		return containsExplicitUnrelatedTopic(m);
+	}
+
+	private boolean containsExplicitUnrelatedTopic(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+
+		// 1. General Person / Celebrity / Public Figure Inquiries: "who is X", "who was X", "tell me about X", "where is X from"
+		if (isGeneralPersonQuery(m)) {
+			return true;
+		}
+
+		// 2. General Concept / Definition Inquiries: "what is X", "what are X", "define X", "explain X", "meaning of X", "how does X work"
+		if (isGeneralConceptQuery(m)) {
+			return true;
+		}
+
+		// 3. Programming & Technology Tutorials
+		if (isProgrammingOrTechQuery(m)) {
+			return true;
+		}
+
+		// 4. General Science Topics
+		if (isScienceQuery(m)) {
+			return true;
+		}
+
+		// 5. General Math / Arithmetic Calculations
+		if (isMathQuery(m)) {
+			return true;
+		}
+
+		// 6. Weather, Jokes, Stories, Poems, Songs, Recipes, Sports, Entertainment & News Trivia
+		if (isGeneralEntertainmentOrTriviaQuery(m)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean isGeneralPersonQuery(String m) {
+		boolean hasPersonMarker = m.contains("who is ") || m.contains("who was ")
+				|| m.contains("tell me about ") || m.contains("tell me who ")
+				|| (m.contains("where is ") && m.endsWith(" from"))
+				|| m.contains("who won yesterday") || m.contains("who is the best cricket") || m.contains("who is the president")
+				|| m.contains("who is prime minister") || m.contains("who founded");
+		if (!hasPersonMarker) {
+			return false;
+		}
+		if (hasSpeakMateDomainContext(m)) {
+			if (m.contains("virat kohli") || m.contains("ms dhoni") || m.contains("elon musk") || m.contains("albert einstein") || m.contains("rohit sharma")) {
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isGeneralConceptQuery(String m) {
+		boolean conceptQuestionStart = m.startsWith("what is ") || m.startsWith("what are ")
+				|| m.startsWith("define ") || m.startsWith("explain ") || m.startsWith("meaning of ")
+				|| (m.startsWith("how does ") && m.endsWith(" work"));
+		if (!conceptQuestionStart) {
+			return false;
+		}
+		if (hasSpeakMateDomainContext(m)) {
+			return false;
+		}
+		return true;
+	}
+
+	private boolean hasSpeakMateDomainContext(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		for (String kw : SPEAKMATE_DOMAIN_KEYWORDS) {
+			if (m.contains(kw)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isProgrammingOrTechQuery(String m) {
+		return containsAnyPhrase(m, List.of(
+				"python", "javascript", "c++", "cpp", "c#", "csharp", "typescript", "html", "css",
+				"sql", "react", "reactjs", "angular", "vue", "vuejs", "ruby", "php", "rust language", "golang",
+				"docker", "kubernetes", "blockchain", "machine learning", "write code", "write a code",
+				"write a program", "write python", "write java", "learn programming", "coding tutorial",
+				"how to code", "hello world", "syntax of", "data structures", "algorithm", "algorithms",
+				"program in python", "program in java", "create an api", "api endpoint"))
+				|| (m.contains("java") && (m.contains("what is java") || m.contains("explain java") || m.contains("learn java")
+				|| m.contains("java code") || m.contains("java program") || m.contains("java programming")
+				|| m.contains("write java") || m.contains("teach java") || m.startsWith("java")));
+	}
+
+	private boolean isScienceQuery(String m) {
+		return containsAnyPhrase(m, List.of(
+				"photosynthesis", "quantum physics", "solar system", "thermodynamics",
+				"theory of relativity", "speed of light", "dna structure", "periodic table",
+				"black hole", "gravitational force", "gravity", "electromagnetism",
+				"mitosis", "meiosis", "plate tectonics", "organic chemistry", "chemistry",
+				"how plants make food", "how plants convert sunlight", "why is the sky blue"));
+	}
+
+	private boolean isMathQuery(String m) {
+		return containsAnyPhrase(m, List.of(
+				"quadratic equation", "pythagorean theorem", "square root of", "sqrt of",
+				"solve math", "solve equation", "calculate equation", "solve 25", "calculate 25",
+				"25 times 40", "25 multiplied by 40", "calculate this for me", "math problem",
+				"percentage of 500", "calculate 125"))
+				|| isArithmeticQuery(m);
+	}
+
+	private boolean isGeneralEntertainmentOrTriviaQuery(String m) {
+		return containsAnyPhrase(m, List.of(
+				"weather", "today's weather", "todays weather", "weather today", "weather forecast",
+				"temperature today", "today's temperature",
+				"tell me a joke", "tell a joke", "make me laugh", "say a joke", "funny joke", "crack a joke", "joke",
+				"write a poem", "write me a poem", "poem", "write a song", "write me a song", "song", "write a story", "write me a story", "tell a story", "tell me a story", "sing a song",
+				"recipe for", "give me a recipe", "how to cook", "how to bake", "bake a cake", "cook pasta", "recipe", "recipes",
+				"cricket match", "football match", "football score", "who won yesterday", "today's news", "todays news",
+				"ipl", "best cricket player", "indian cricket team", "favorite actor", "latest movie", "movie recommendation",
+				"capital of france", "population of",
+				"tell me about google", "tell me about apple", "tell me about microsoft", "tell me about amazon",
+				"aptitude exam", "generic resume", "help me write a resume", "write a birthday message",
+				"essay about cricket", "write a short story"));
+	}
+
+	private boolean isSelfAccountOrProfileQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		if (m.contains("where can i access") || m.contains("where can i find") || m.contains("where do i find") || m.contains("how do i access")) {
+			return false;
+		}
+		boolean showMySchool = m.contains("show my school")
+				&& !m.contains("school's") && !m.contains("school details")
+				&& !m.contains("school info") && !m.contains("school report");
+		return m.contains("what is my school") || m.contains("what's my school") || m.contains("tell me my school")
+				|| showMySchool || m.contains("my school name") || m.contains("school am i")
+				|| m.contains("school do i") || m.contains("where do i study") || m.contains("where i study")
+				|| m.contains("which school am i") || m.contains("what school am i") || m.contains("which school do i")
+				|| m.contains("what school do i") || m.contains("school i study") || m.contains("school i am in")
+				|| m.contains("school i belong") || m.contains("school am i from") || m.contains("school am i enrolled")
+				|| m.contains("school do i study") || m.contains("school am i in") || m.contains("which school am i from")
+				|| m.contains("what school am i from") || m.contains("my email") || m.contains("my profile")
+				|| m.contains("my account") || m.contains("who am i") || m.contains("my details") || m.contains("my info")
+				|| m.contains("my name") || m.contains("my phone");
+	}
+
+	private boolean isExplicitRoleScopeViolation(String message, Role role) {
+		if (message == null) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (isSelfAccountOrProfileQuery(m)) {
+			return false;
+		}
+		if (m.contains("another school") || m.contains("other school") || m.contains("different school")
+				|| m.contains("outside your school") || m.contains("outside my school")
+				|| m.contains("another teacher") || m.contains("other teacher") || m.contains("outside my class")
+				|| m.contains("different class") || m.contains("all users") || m.contains("platform users")
+				|| ((role == Role.STUDENT || role == Role.USER) && (containsOtherStudentReference(message)
+						|| m.contains("another student") || m.contains("other student") || m.contains("other students")
+						|| m.contains("different student") || m.contains("all students") || m.contains("every student")
+						|| m.contains("school roster") || m.contains("another student's") || m.contains("other student's")
+						|| m.contains("school") || m.contains("teacher") || m.contains("admin") || m.contains("super admin")
+						|| m.contains("roster") || m.contains("revenue") || m.contains("billing") || m.contains("class")))
+				|| (role == Role.TEACHER && (m.contains("revenue") || m.contains("billing") || m.contains("finances")))
+				|| (role == Role.SCHOOL_ADMIN && (m.contains("platform revenue") || m.contains("across all schools") || m.contains("entire platform") || m.contains("all schools")))
+				|| isCredentialOrSecretRequest(message)
+				|| isRoleOverrideOrInjectionAttempt(message)) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean containsOtherStudentReference(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (isSelfAccountOrProfileQuery(m) || containsExplicitUnrelatedTopic(m)) {
+			return false;
+		}
+		if (m.contains("another student") || m.contains("other student") || m.contains("other students")
+				|| m.contains("different student") || m.contains("all students") || m.contains("every student")
+				|| m.contains("school roster") || m.contains("someone else") || m.contains("anyone else")
+				|| m.contains("students in my school") || m.contains("students' progress") || m.contains("students progress")
+				|| m.contains("another student's") || m.contains("other student's")) {
+			return true;
+		}
+		java.util.regex.Matcher possessiveMatcher = java.util.regex.Pattern.compile("\\b([A-Za-z]{3,})'s\\b", java.util.regex.Pattern.CASE_INSENSITIVE).matcher(message);
+		while (possessiveMatcher.find()) {
+			String word = possessiveMatcher.group(1).toLowerCase(Locale.ROOT);
+			if (!Set.of("my", "today", "yesterday", "week", "month", "year", "session", "lesson",
+					"school", "class", "course", "user", "student", "teacher", "one", "everyone",
+					"someone", "speakmate", "app", "platform", "system", "feature").contains(word)) {
+				return true;
+			}
+		}
+		String targetName = intentClassifier != null ? intentClassifier.extractStudentMetricName(message) : "";
+		if (targetName != null && !targetName.isBlank()) {
+			String t = targetName.trim().toLowerCase(Locale.ROOT);
+			Set<String> selfOrDomainTerms = Set.of(
+					"my", "me", "myself", "self", "own", "i", "my progress", "my xp", "my level", "my stats",
+					"progress", "work", "speakmate", "ai", "lesson", "lessons", "speaking", "session", "sessions",
+					"grammar", "vocabulary", "vocab", "words", "word", "score", "scores", "streak", "streaks",
+					"performance", "practice", "accuracy", "feature", "features", "app", "system",
+					"weak", "weakness", "weaknesses", "improve", "improvement", "improvements", "area", "areas", "gap", "gaps", "spot", "spots"
+			);
+			boolean containsDomainTerm = selfOrDomainTerms.stream().anyMatch(term -> t.contains(term));
+			if (!containsDomainTerm) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isArithmeticQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		if (m.contains("-") && m.matches(".*\\b\\d{4}\\s*-\\s*\\d{4}\\b.*")) {
+			return false;
+		}
+		return ARITHMETIC_PATTERN.matcher(m).find();
 	}
 
 	private AssistantResponse credentialDenialResponse(AssistantRequest request, ActorContext actor) {

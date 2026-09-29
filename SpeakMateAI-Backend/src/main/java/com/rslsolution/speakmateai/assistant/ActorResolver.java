@@ -10,7 +10,9 @@ import org.springframework.stereotype.Component;
 import com.rslsolution.speakmateai.entity.Admin;
 import com.rslsolution.speakmateai.entity.User;
 import com.rslsolution.speakmateai.enums.Role;
+import com.rslsolution.speakmateai.entity.Progress;
 import com.rslsolution.speakmateai.repository.AdminRepository;
+import com.rslsolution.speakmateai.repository.ProgressRepository;
 import com.rslsolution.speakmateai.repository.UserRepository;
 
 /**
@@ -29,10 +31,12 @@ public class ActorResolver {
 
 	private final UserRepository userRepository;
 	private final AdminRepository adminRepository;
+	private final ProgressRepository progressRepository;
 
-	public ActorResolver(UserRepository userRepository, AdminRepository adminRepository) {
+	public ActorResolver(UserRepository userRepository, AdminRepository adminRepository, ProgressRepository progressRepository) {
 		this.userRepository = userRepository;
 		this.adminRepository = adminRepository;
+		this.progressRepository = progressRepository;
 	}
 
 	public ActorContext resolve(String email) {
@@ -54,6 +58,10 @@ public class ActorResolver {
 			// "my phone number" answers "I don't have your phone number" even
 			// though the Profile page displays it.
 			Admin fallback = (role == Role.ADMIN || role == Role.SUPER_ADMIN) ? admin.orElse(null) : null;
+			Optional<Progress> progress = progressRepository.findByUser(u);
+			int userXp = (progress.isPresent() && progress.get().getXp() != null) ? progress.get().getXp() : 0;
+			int currentStreak = (progress.isPresent() && progress.get().getCurrentStreak() != null) ? progress.get().getCurrentStreak() : 0;
+			int longestStreak = (progress.isPresent() && progress.get().getLongestStreak() != null) ? progress.get().getLongestStreak() : 0;
 			return ActorContext.builder()
 					.email(email)
 					.role(role)
@@ -69,6 +77,10 @@ public class ActorResolver {
 					.standard(u.getStandard())
 					.division(u.getDivision())
 					.rollNumber(u.getRollNumber())
+					.dailyGoalMinutes(u.getDailyGoalMinutes() != null ? u.getDailyGoalMinutes() : 15)
+					.xp(userXp)
+					.currentStreak(currentStreak)
+					.longestStreak(longestStreak)
 					.build();
 		}
 

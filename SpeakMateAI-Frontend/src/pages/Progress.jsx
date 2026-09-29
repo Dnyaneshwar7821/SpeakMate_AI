@@ -6,6 +6,8 @@ import { progressService, dashboardService } from "../services/appServices";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
 import { speakGlobalText } from "../utils/speechHelper";
+import { getEnglishLevelLabel } from "../utils/formatters";
+
 
 const CEFR_LEVELS = [
   { code: "A1", name: "Beginner", minXp: 0, maxXp: 500, color: "from-blue-500 to-indigo-600", desc: "Can understand basic everyday expressions and introduce oneself." },
@@ -148,9 +150,11 @@ export function Progress() {
 
   // Level & XP calculations (500 XP per level)
   const level = Math.floor(xp / 500) + 1;
+  const englishLevelLabel = getEnglishLevelLabel(level);
   const currentLevelBaseXp = (level - 1) * 500;
   const nextLevelXp = level * 500;
   const levelXpProgress = Math.max(0, xp - currentLevelBaseXp);
+  const xpToNextLevel = 500 - levelXpProgress;
   const levelPercentage = Math.min(100, Math.max(0, (levelXpProgress / 500) * 100));
 
   // CEFR calculations
@@ -516,18 +520,19 @@ export function Progress() {
                   {currentCefr.code}
                 </div>
                 <div className="space-y-1">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <h2 className={`text-xl sm:text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>
-                      {currentCefr.name} CEFR Speaker
+                      Your English Level: <span className="text-[#6C63FF]">{englishLevelLabel}</span>
                     </h2>
                     <span className="text-[10px] font-black px-2.5 py-1 rounded-md bg-indigo-500/15 text-[#6C63FF] uppercase">
-                      Level {level}
+                      {englishLevelLabel}
                     </span>
                   </div>
                   <p className={`text-xs font-medium max-w-md ${isDark ? "text-slate-400" : "text-slate-600"}`}>
                     {currentCefr.desc}
                   </p>
                 </div>
+
               </div>
 
               <div className="flex items-center gap-4">
@@ -544,6 +549,25 @@ export function Progress() {
                   <p className={`text-[10px] font-bold uppercase ${isDark ? "text-slate-400" : "text-slate-500"}`}>Accuracy</p>
                 </div>
               </div>
+            </div>
+
+            {/* Level XP Progress */}
+            <div className={`space-y-2 pt-4 border-t ${isDark ? "border-white/10" : "border-slate-100"}`}>
+              <div className="flex items-center justify-between text-xs font-black">
+                <span className={isDark ? "text-slate-300" : "text-slate-700"}>
+                  Level Progress: Current XP: <strong>{xp}</strong> (XP to next level: <strong>{xpToNextLevel}</strong>)
+                </span>
+                <span className="text-[#6C63FF]">{levelPercentage.toFixed(0)}%</span>
+              </div>
+              <div className={`h-3 w-full rounded-full overflow-hidden ${isDark ? "bg-slate-800" : "bg-slate-100"}`}>
+                <div
+                  className="h-full bg-gradient-to-r from-[#6C63FF] via-indigo-500 to-emerald-400 transition-all duration-500 rounded-full"
+                  style={{ width: `${levelPercentage}%` }}
+                />
+              </div>
+              <p className={`text-[11px] font-semibold text-right ${isDark ? "text-slate-400" : "text-slate-500"}`}>
+                {xpToNextLevel} XP remaining to Level {level + 1}
+              </p>
             </div>
 
             {nextCefr && (

@@ -136,7 +136,22 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 		// a Super Admin asking about one by name must still get a data-backed answer.
 		List<User> others;
 		String schoolLabel;
-		if (school != null) {
+		String reqSchoolName = strParam(params, "schoolName").trim();
+		if (school == null && !reqSchoolName.isEmpty()) {
+			Map<String, Object> empty = new LinkedHashMap<>();
+			empty.put("message", "NO DATA");
+			if (actor.getRole() == Role.SCHOOL_ADMIN) {
+				empty.put("reason", "Access denied: You are only authorized to view roster data for your own school.");
+				if (actor.getSchoolId() != null) {
+					schoolRepository.findById(actor.getSchoolId()).ifPresent(s -> empty.put("availableSchools", List.of(displayName(s))));
+				}
+			} else {
+				empty.put("reason", "School not found");
+				empty.put("requestedSchool", reqSchoolName);
+				empty.put("availableSchools", availableSchoolNames());
+			}
+			return toJson(empty);
+		} else if (school != null) {
 			schoolId = school.getId();
 			schoolLabel = displayName(school);
 			teachers = userRepository.findBySchoolIdAndRole(schoolId, Role.TEACHER);

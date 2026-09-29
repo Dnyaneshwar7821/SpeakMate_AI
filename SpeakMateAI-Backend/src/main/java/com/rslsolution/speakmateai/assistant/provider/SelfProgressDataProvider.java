@@ -5,8 +5,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -97,6 +99,7 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 	}
 
 	@Override
+	@Transactional
 	public String provide(ActorContext actor, Map<String, Object> params) {
 		Long targetUserId = actor.getUserId() != null ? actor.getUserId() : actor.getStudentId();
 		Optional<User> me = userRepository.findById(targetUserId == null ? -1L : targetUserId);
@@ -137,13 +140,15 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			requestedTarget = strParam(params, "email");
 		}
 		if (!requestedTarget.isEmpty() && !isCallerIdentity(user, requestedTarget)) {
-			Map<String, Object> denial = new LinkedHashMap<>();
-			denial.put("accessDenied", true);
-			denial.put("reason", "CROSS_STUDENT_DENIED");
-			denial.put("requestedTarget", requestedTarget);
-			denial.put("scope", "SELF");
-			denial.put("message", "You do not have permission to view other students' learning progress.");
-			return toJson(denial);
+			if (isValidOtherStudentIdentity(requestedTarget)) {
+				Map<String, Object> denial = new LinkedHashMap<>();
+				denial.put("accessDenied", true);
+				denial.put("reason", "CROSS_STUDENT_DENIED");
+				denial.put("requestedTarget", requestedTarget);
+				denial.put("scope", "SELF");
+				denial.put("message", "You do not have permission to view other students' learning progress.");
+				return toJson(denial);
+			}
 		}
 
 		Progress p = null;
@@ -151,7 +156,24 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 			p = progressRepository.findByUserId(targetUserId).orElse(null);
 		}
 		if (p == null) {
-			p = progressRepository.findByUser(user).orElse(null);
+			p = progressRepository.findByUser(user).orElseGet(() -> {
+				Progress defaultProgress = Progress.builder()
+						.user(user)
+						.xp(0)
+						.level(1)
+						.currentStreak(0)
+						.longestStreak(0)
+						.totalPracticeMinutes(0)
+						.totalSpeakingSessions(0)
+						.totalGrammarChecks(0)
+						.totalVocabularyWords(0)
+						.build();
+				try {
+					return progressRepository.save(defaultProgress);
+				} catch (Exception ex) {
+					return defaultProgress;
+				}
+			});
 		}
 
 		// Lesson metrics
@@ -256,15 +278,20 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		}
 		double avgGrammarScore = scoredGrammarCount > 0 ? Math.round((totalGrammarScore / scoredGrammarCount) * 10.0) / 10.0 : 0.0;
 
-		List<String> completedLessonTitles = new ArrayList<>();
-		try {
-			completedLessonTitles = lessonRows.stream()
-					.filter(lp -> Boolean.TRUE.equals(lp.getCompleted()) && lp.getLesson() != null && lp.getLesson().getTitle() != null && !lp.getLesson().getTitle().isBlank())
-					.map(lp -> lp.getLesson().getTitle().trim())
-					.distinct()
-					.collect(Collectors.toList());
-		} catch (Exception ignored) {
-			// defensive fallback against detached/lazy entities
+		List<String> completedLessonTitles = new java.util.ArrayList<>();
+		for (LessonProgress lp : lessonRows) {
+			if (Boolean.TRUE.equals(lp.getCompleted())) {
+				try {
+					if (lp.getLesson() != null && lp.getLesson().getTitle() != null && !lp.getLesson().getTitle().isBlank()) {
+						String title = lp.getLesson().getTitle().trim();
+						if (!completedLessonTitles.contains(title)) {
+							completedLessonTitles.add(title);
+						}
+					}
+				} catch (Exception ex) {
+					// Guard against lazy proxy resolution issues
+				}
+			}
 		}
 		data.put("completedLessonTitles", completedLessonTitles);
 
@@ -479,8 +506,20 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		int nextLevelThreshold = currentLevel * 500;
 		int xpRemaining = Math.max(0, nextLevelThreshold - currentXp);
 
+		String englishLevelLabel;
+		if (currentLevel <= 2) {
+			englishLevelLabel = "Beginner";
+		} else if (currentLevel <= 4) {
+			englishLevelLabel = "Intermediate";
+		} else {
+			englishLevelLabel = "Advanced";
+		}
+
 		data.put("xp", currentXp);
 		data.put("level", currentLevel);
+		data.put("englishLevelLabel", englishLevelLabel);
+		data.put("englishLevel", englishLevelLabel);
+		data.put("proficiencyLevel", englishLevelLabel);
 		data.put("nextLevel", nextLevel);
 		data.put("nextLevelThreshold", nextLevelThreshold);
 		data.put("xpRemaining", xpRemaining);
@@ -503,6 +542,8 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		data.put("totalSpeakingSessions", completedSessions);
 		data.put("attemptedSpeakingSessions", totalSessions);
 		data.put("completedSpeakingSessions", completedSessions);
+		data.put("aiEvaluatedSpeakingSessions", scoredCount);
+		data.put("evaluatedSpeakingSessions", scoredCount);
 		data.put("totalVocabularyWords", totalVocabularyWords);
 		data.put("wordsAdded", totalVocabularyWords);
 		data.put("masteredVocabularyWords", masteredVocabularyWords);
@@ -613,9 +654,60 @@ public class SelfProgressDataProvider implements AssistantDataProvider {
 		if (user.getRollNumber() != null && user.getRollNumber().equalsIgnoreCase(requested.trim())) {
 			return true;
 		}
-		if (String.valueOf(user.getId()).equals(requested.trim())) {
+		return false;
+	}
+
+	private boolean isValidOtherStudentIdentity(String requested) {
+		if (requested == null || requested.isBlank()) {
+			return false;
+		}
+		String req = requested.trim().toLowerCase(java.util.Locale.ROOT);
+		if (req.equals("my") || req.equals("me") || req.equals("myself") || req.equals("self")
+				|| req.equals("own") || req.equals("i")) {
+			return false;
+		}
+		Set<String> domainTerms = Set.of(
+				"achievement", "achievements", "word", "words", "fluency", "speaking", "lesson", "lessons",
+				"xp", "level", "levels", "avatar", "avatars", "scenario", "scenarios", "grammar", "progress",
+				"sentence", "sentences", "vocab", "vocabulary", "score", "scores", "streak", "streaks",
+				"history", "check", "checks", "practice", "accuracy", "performance", "stat", "stats", "session", "sessions",
+				"weak", "weakness", "weaknesses", "improve", "improvement", "improvements", "area", "areas", "spot", "spots", "gap", "gaps", "need", "work"
+		);
+		if (domainTerms.contains(req)) {
+			return false;
+		}
+
+		if (req.contains("another student") || req.contains("other student") || req.contains("someone else")) {
 			return true;
 		}
+
+		if (userRepository.findByEmailIgnoreCase(requested.trim()).isPresent()) {
+			return true;
+		}
+		if (userRepository.existsStudentByStudentId(requested.trim())) {
+			return true;
+		}
+		try {
+			List<User> students = userRepository.findAllStudents();
+			for (User s : students) {
+				String first = s.getFirstName() != null ? s.getFirstName().trim().toLowerCase(java.util.Locale.ROOT) : "";
+				String last = s.getLastName() != null ? s.getLastName().trim().toLowerCase(java.util.Locale.ROOT) : "";
+				String full = (first + " " + last).trim();
+				if (!full.isEmpty() && (full.equals(req) || req.equals(full) || first.equals(req))) {
+					return true;
+				}
+				if (s.getEmail() != null && s.getEmail().equalsIgnoreCase(req)) {
+					return true;
+				}
+			}
+		} catch (Exception e) {
+			// ignore
+		}
+
+		if (requested.trim().matches("^[A-Z][a-zA-Z]*(\\s+[A-Z][a-zA-Z]*)*$")) {
+			return true;
+		}
+
 		return false;
 	}
 

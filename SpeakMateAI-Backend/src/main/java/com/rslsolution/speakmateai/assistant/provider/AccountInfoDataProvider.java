@@ -172,6 +172,16 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 			}
 		}
 
+
+		data.put("dailyGoalMinutes", actor.getDailyGoalMinutes() != null ? actor.getDailyGoalMinutes() : 15);
+		int currentXp = actor.getXp() != null ? actor.getXp() : 0;
+		data.put("xp", currentXp);
+		data.put("totalXp", currentXp);
+		int currentStreak = actor.getCurrentStreak() != null ? actor.getCurrentStreak() : 0;
+		int longestStreak = actor.getLongestStreak() != null ? actor.getLongestStreak() : 0;
+		data.put("currentStreak", currentStreak);
+		data.put("longestStreak", longestStreak);
+
 		String subPlan = data.get("subscriptionPlan") != null ? String.valueOf(data.get("subscriptionPlan")) : null;
 		data.put("summary", accountSummary(actor, schoolName, location, subPlan, assignedTeacherName));
 		return toJson(data);

@@ -279,8 +279,20 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		int nextLevelThreshold = currentLevel * 500;
 		int xpRemaining = Math.max(0, nextLevelThreshold - currentXp);
 
+		String englishLevelLabel;
+		if (currentLevel <= 2) {
+			englishLevelLabel = "Beginner";
+		} else if (currentLevel <= 4) {
+			englishLevelLabel = "Intermediate";
+		} else {
+			englishLevelLabel = "Advanced";
+		}
+
 		data.put("xp", currentXp);
 		data.put("level", currentLevel);
+		data.put("englishLevelLabel", englishLevelLabel);
+		data.put("englishLevel", englishLevelLabel);
+		data.put("proficiencyLevel", englishLevelLabel);
 		data.put("nextLevel", nextLevel);
 		data.put("nextLevelThreshold", nextLevelThreshold);
 		data.put("xpRemaining", xpRemaining);

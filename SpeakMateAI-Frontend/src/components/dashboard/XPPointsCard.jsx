@@ -1,8 +1,11 @@
 import { motion } from "framer-motion";
 import Card from "@components/common/Card";
+import { getEnglishLevelLabel } from "@utils/formatters";
 
 export function XPPointsCard({ xpStats }) {
   if (!xpStats) return null;
+
+  const englishLevelLabel = getEnglishLevelLabel(xpStats.level || xpStats.levelName);
 
   return (
     <motion.div
@@ -30,13 +33,14 @@ export function XPPointsCard({ xpStats }) {
           
           <div>
             <h4 className="text-base font-bold text-slate-900 leading-tight">
-              {xpStats.levelName}
+              Your English Level: {englishLevelLabel}
             </h4>
             <p className="text-xs text-slate-500 mt-1">
               Earn more XP to level up your English skills.
             </p>
           </div>
         </div>
+
 
         {/* Stats Grid */}
         <div className="mt-6 grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4 border border-slate-100">
