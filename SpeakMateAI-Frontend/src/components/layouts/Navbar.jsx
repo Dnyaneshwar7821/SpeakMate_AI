@@ -25,17 +25,99 @@ export const Navbar = memo(function Navbar() {
   const [liveStats, setLiveStats] = useState(() => getLiveProgressStats(user));
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Searchable Quick Pages & Modules
+  // Searchable Quick Pages & Modules with exact sidebar titles and full keyword mappings
   const SEARCHABLE_PAGES = useMemo(
     () => [
-      { id: "p-speaking", title: "AI Speaking Practice", subtitle: "Real-time voice conversation & pronunciation", route: ROUTES.SPEAKING, icon: "🎙️", category: "Features" },
-      { id: "p-lessons", title: "CEFR Lessons Explorer", subtitle: "Structured grammar, vocabulary & phonics", route: ROUTES.LESSONS, icon: "📚", category: "Features" },
-      { id: "p-grammar", title: "Grammar Masterclass", subtitle: "Tenses, conditionals, active/passive voice", route: ROUTES.GRAMMAR, icon: "📝", category: "Topics" },
-      { id: "p-vocab", title: "Vocabulary Builder", subtitle: "Top 500 words, idioms & phrasal verbs", route: ROUTES.VOCABULARY, icon: "📖", category: "Topics" },
-      { id: "p-achieve", title: "Achievements & Badges", subtitle: "View fluency milestones and earned trophies", route: ROUTES.ACHIEVEMENTS, icon: "🏆", category: "Progress" },
-      { id: "p-progress", title: "Fluency Analytics & Stats", subtitle: "Track daily streaks, XP & vocabulary mastery", route: ROUTES.PROGRESS, icon: "📊", category: "Progress" },
-      { id: "p-profile", title: "Profile & Avatar Voice", subtitle: "Customize accent, speed & AI avatar", route: ROUTES.PROFILE, icon: "👤", category: "Account" },
-      { id: "p-settings", title: "Settings & AI Persona", subtitle: "Adjust difficulty, speech feedback & theme", route: ROUTES.SETTINGS, icon: "⚙️", category: "Account" },
+      {
+        id: "p-speaking",
+        title: "Live AI Speaking",
+        subtitle: "Real-time AI voice conversation & pronunciation",
+        route: ROUTES.SPEAKING,
+        icon: "🎙️",
+        category: "Practice Hub",
+        keywords: ["speaking", "speak", "voice", "conversation", "live speaking", "practice", "audio", "mic", "talk"],
+      },
+      {
+        id: "p-aichat",
+        title: "AI Chat Coach",
+        subtitle: "Interactive text & speech conversation tutor",
+        route: ROUTES.AI_CHAT,
+        icon: "💬",
+        category: "Practice Hub",
+        keywords: ["ai chat", "chat", "coach", "ai coach", "chat coach", "assistant", "bot", "message", "text"],
+      },
+      {
+        id: "p-lessons",
+        title: "CEFR Lessons",
+        subtitle: "Structured curriculum, vocabulary & phonics",
+        route: ROUTES.LESSONS,
+        icon: "📚",
+        category: "Curriculum",
+        keywords: ["lesson", "lessons", "cefr", "cefr lessons", "curriculum", "course", "study", "units"],
+      },
+      {
+        id: "p-grammar",
+        title: "Grammar Doctor",
+        subtitle: "Tenses, conditionals, active/passive voice mastery",
+        route: ROUTES.GRAMMAR,
+        icon: "📝",
+        category: "Curriculum",
+        keywords: ["grammar", "grammar doctor", "doctor", "tenses", "rule", "rules", "verbs"],
+      },
+      {
+        id: "p-vocab",
+        title: "Vocabulary Builder",
+        subtitle: "Top 500 words, idioms & phrasal verbs",
+        route: ROUTES.VOCABULARY,
+        icon: "📖",
+        category: "Curriculum",
+        keywords: ["vocabulary", "vocab", "vocabulary builder", "words", "idioms", "phrasal", "flashcards"],
+      },
+      {
+        id: "p-progress",
+        title: "Analytics & Fluency",
+        subtitle: "Track daily streaks, XP & vocabulary mastery",
+        route: ROUTES.PROGRESS,
+        icon: "📊",
+        category: "Practice Hub",
+        keywords: ["progress", "analytics", "fluency", "stats", "statistics", "streak", "analytics & fluency"],
+      },
+      {
+        id: "p-achieve",
+        title: "Badges & Rewards",
+        subtitle: "View fluency milestones and earned trophies",
+        route: ROUTES.ACHIEVEMENTS,
+        icon: "🏆",
+        category: "Curriculum",
+        keywords: ["achievements", "achievement", "badges", "rewards", "trophies", "milestones", "badges & rewards"],
+      },
+      {
+        id: "p-profile",
+        title: "Profile & Persona",
+        subtitle: "Customize accent, speed & AI avatar",
+        route: ROUTES.PROFILE,
+        icon: "👤",
+        category: "Account",
+        keywords: ["profile", "avatar", "persona", "account", "voice", "profile & persona"],
+      },
+      {
+        id: "p-settings",
+        title: "Settings & Speech",
+        subtitle: "Adjust difficulty, speech feedback & theme",
+        route: ROUTES.SETTINGS,
+        icon: "⚙️",
+        category: "Account",
+        keywords: ["settings", "preferences", "config", "speech settings", "theme", "settings & speech"],
+      },
+      {
+        id: "p-dashboard",
+        title: "Dashboard",
+        subtitle: "Overview of your daily learning journey",
+        route: ROUTES.DASHBOARD,
+        icon: "🧭",
+        category: "Main",
+        keywords: ["dashboard", "home", "main"],
+      },
     ],
     []
   );
@@ -54,14 +136,29 @@ export const Navbar = memo(function Navbar() {
     []
   );
 
+  // Directly matched module for fast Enter navigation & dynamic CTA
+  const matchedModuleDirectly = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return null;
+    return (
+      SEARCHABLE_PAGES.find((p) => {
+        const titleLower = p.title.toLowerCase();
+        if (titleLower === q) return true;
+        if (p.keywords && p.keywords.some((k) => k === q || q === `${k}s` || `${q}s` === k)) return true;
+        if (q.length >= 3 && (titleLower.includes(q) || p.keywords?.some((k) => k.includes(q)))) return true;
+        return false;
+      }) || null
+    );
+  }, [searchQuery, SEARCHABLE_PAGES]);
+
   // Filtered dropdown results
   const filteredResults = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) {
       return {
-        pages: SEARCHABLE_PAGES.slice(0, 4),
+        pages: SEARCHABLE_PAGES.slice(0, 6),
         lessons: SEARCHABLE_LESSONS.slice(0, 4),
-        totalCount: 8,
+        totalCount: 10,
       };
     }
 
@@ -69,7 +166,8 @@ export const Navbar = memo(function Navbar() {
       (p) =>
         p.title.toLowerCase().includes(q) ||
         p.subtitle.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
+        p.category.toLowerCase().includes(q) ||
+        (p.keywords && p.keywords.some((k) => k.includes(q) || q.includes(k)))
     );
 
     const matchedLessons = SEARCHABLE_LESSONS.filter(
@@ -233,9 +331,31 @@ export const Navbar = memo(function Navbar() {
     const query = searchQuery.trim();
     if (!query) {
       navigate(ROUTES.LESSONS);
-    } else {
-      navigate(`${ROUTES.LESSONS}?search=${encodeURIComponent(query)}`);
+      return;
     }
+
+    // 1. If direct module match was found for the query, navigate to it immediately
+    if (matchedModuleDirectly) {
+      navigate(matchedModuleDirectly.route);
+      return;
+    }
+
+    // 2. If first item in filtered dropdown is an exact or strong page/module match
+    if (filteredResults.pages.length > 0) {
+      const topPage = filteredResults.pages[0];
+      const qLower = query.toLowerCase();
+      const topTitle = topPage.title.toLowerCase();
+      if (
+        topTitle === qLower ||
+        (topPage.keywords && topPage.keywords.some((k) => k === qLower || qLower.startsWith(k)))
+      ) {
+        navigate(topPage.route);
+        return;
+      }
+    }
+
+    // 3. Fallback: Keep current search functionality (navigate to lessons search)
+    navigate(`${ROUTES.LESSONS}?search=${encodeURIComponent(query)}`);
   };
 
   const handleClearSearch = () => {
@@ -322,11 +442,11 @@ export const Navbar = memo(function Navbar() {
                   ) : (
                     <div className="space-y-3">
 
-                      {/* Section 1: Features & Pages */}
+                      {/* Section 1: Modules & Features */}
                       {filteredResults.pages.length > 0 && (
                         <div>
                           <div className="px-3 py-1.5 flex items-center justify-between text-[10px] font-black uppercase tracking-wider text-[var(--text-muted)]">
-                            <span>{searchQuery ? "Features & Tools" : "Quick Shortcuts"}</span>
+                            <span>{searchQuery ? "Modules & Features" : "Quick Modules"}</span>
                             <span>{filteredResults.pages.length}</span>
                           </div>
                           <div className="space-y-1">
@@ -355,9 +475,9 @@ export const Navbar = memo(function Navbar() {
                                       </p>
                                     </div>
                                   </div>
-                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${isSelected ? "bg-white/20 text-white" : "bg-[var(--bg-elevated)] text-[var(--text-muted)] border border-[var(--border-default)]"
+                                  <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full shrink-0 ml-2 tracking-wider ${isSelected ? "bg-white/20 text-white" : "bg-[#6C63FF]/10 text-[#6C63FF] border border-[#6C63FF]/20"
                                     }`}>
-                                    {item.category}
+                                    Module
                                   </span>
                                 </button>
                               );
@@ -411,7 +531,7 @@ export const Navbar = memo(function Navbar() {
                         </div>
                       )}
 
-                      {/* Dropdown Footer: Full Search Action */}
+                      {/* Dropdown Footer: Full Search Action / Direct Module Action */}
                       {searchQuery.trim() && (
                         <div className="pt-2 border-t border-[var(--border-default)]">
                           <button
@@ -419,8 +539,14 @@ export const Navbar = memo(function Navbar() {
                             onClick={handleSearchSubmit}
                             className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF]/10 via-[#8B5CF6]/10 to-[#FF6584]/10 hover:from-[#6C63FF]/20 hover:to-[#8B5CF6]/20 border border-[#6C63FF]/25 text-xs font-black text-[#6C63FF] transition-all cursor-pointer"
                           >
-                            <span>Search all lessons for "{searchQuery.trim()}"</span>
-                            <span>Press Enter ↵</span>
+                            <span>
+                              {matchedModuleDirectly
+                                ? `Open ${matchedModuleDirectly.title} ➔`
+                                : `Search all lessons for "${searchQuery.trim()}"`}
+                            </span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-[var(--bg-elevated)] border border-[var(--border-default)]">
+                              Enter ↵
+                            </span>
                           </button>
                         </div>
                       )}
