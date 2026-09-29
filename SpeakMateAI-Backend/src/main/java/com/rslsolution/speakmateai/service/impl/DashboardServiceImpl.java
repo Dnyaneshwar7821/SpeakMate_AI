@@ -645,10 +645,17 @@ public class DashboardServiceImpl implements DashboardService {
 		List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
 		List<GrammarHistory> grammars = grammarHistoryRepository.findByUser(user);
 		Progress progress = progressRepository.findByUser(user).orElse(null);
-		List<Lesson> lessons = lessonRepository.findByActiveTrue();
 
-		int totalLessons = lessons.size();
-		int completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true).size();
+		// Every user's personalized curriculum track consists of exactly 20 lessons
+		int totalLessons = 20;
+		int completedLessons = 0;
+		if (user != null && user.getId() != null) {
+			List<LessonProgress> comp = lessonProgressRepository.findByUserIdAndCompleted(user.getId(), true);
+			if (comp.isEmpty()) {
+				comp = lessonProgressRepository.findByUserAndCompleted(user, true);
+			}
+			completedLessons = Math.min(totalLessons, comp.size());
+		}
 		int speakingSessions = completedSessions.size();
 		int distinctScenarios = (int) completedSessions.stream()
 				.map(s -> {

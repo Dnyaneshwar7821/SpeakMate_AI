@@ -17,6 +17,11 @@ import {
   claimDailyQuoteXP,
   getLocalDateStr,
 } from "../utils/progressTracker";
+import {
+  getLessonsForSchoolGrade,
+  getLessonsForAgeGroup,
+} from "../constants/masterCurriculum";
+import { CurriculumCache } from "../utils/curriculumCache";
 import { StreakModal } from "../components/dashboard/StreakModal";
 import { LeaderboardModal } from "../components/dashboard/LeaderboardModal";
 
@@ -463,12 +468,44 @@ export function Dashboard() {
     });
   }, [stats.weeklyData, stats.streakHistory, stats.todayMins, stats.completedMins]);
 
+  // Backend statistics
+  const backendStats = useMemo(() => dashboardData?.statistics || {}, [dashboardData?.statistics]);
+
+  // Exact profile-scoped lessons for this user (strictly 20 lessons per track)
+  const userTrackLessons = useMemo(() => {
+    if (isStudent) {
+      return getLessonsForSchoolGrade(activeGrade);
+    }
+    if (activeAgeGroup === "Kids") return getLessonsForAgeGroup("Kids (Age 6–12)");
+    if (activeAgeGroup === "Teens") return getLessonsForAgeGroup("Teens & Young Adults (Age 13–24)");
+    return getLessonsForAgeGroup("Professionals & Seniors (Age 25+)");
+  }, [isStudent, activeGrade, activeAgeGroup]);
+
+  const totalLessonsCount = userTrackLessons?.length || 20;
+
+  // Real completed lessons count calculated from user's progress
+  const actualCompletedLessons = useMemo(() => {
+    const completedSet = CurriculumCache.getCompletedSet();
+    const trackTitles = new Set((userTrackLessons || []).map((l) => (l.title || "").toLowerCase().trim()));
+    const trackIds = new Set((userTrackLessons || []).map((l) => String(l.id || "").toLowerCase().trim()));
+    let count = 0;
+    completedSet.forEach((item) => {
+      if (trackTitles.has(item) || trackIds.has(item)) count++;
+    });
+    if (backendStats.completedLessons !== undefined && backendStats.completedLessons !== null) {
+      count = Math.max(count, Number(backendStats.completedLessons));
+    }
+    if (stats.lessonsCompleted !== undefined && stats.lessonsCompleted !== null) {
+      count = Math.max(count, Number(stats.lessonsCompleted));
+    }
+    return Math.min(totalLessonsCount, count);
+  }, [userTrackLessons, backendStats.completedLessons, stats.lessonsCompleted, totalLessonsCount]);
+
   // Comprehensive 9-metric statistics matching mobile app QuickStatistics
-  const backendStats = dashboardData?.statistics || {};
   const mobileStyleStats = useMemo(() => [
     {
       label: "Total Lessons",
-      value: backendStats.totalLessons || 12,
+      value: totalLessonsCount, // Exactly 20 lessons for the user's specific assigned syllabus
       emoji: "📚",
       color: "#6C63FF",
       bg: "rgba(108, 99, 255, 0.12)",
@@ -477,7 +514,7 @@ export function Dashboard() {
     },
     {
       label: "Completed Lessons",
-      value: backendStats.completedLessons ?? stats.lessonsCompleted ?? 0,
+      value: actualCompletedLessons,
       emoji: "✅",
       color: "#10B981",
       bg: "rgba(16, 185, 129, 0.12)",
@@ -486,7 +523,7 @@ export function Dashboard() {
     },
     {
       label: "Speaking Sessions",
-      value: backendStats.speakingSessions ?? stats.speakingSessions ?? 0,
+      value: Number(backendStats.speakingSessions ?? stats.speakingSessions ?? 0),
       emoji: "🎙️",
       color: "#0284C7",
       bg: "rgba(2, 132, 199, 0.12)",
@@ -495,7 +532,7 @@ export function Dashboard() {
     },
     {
       label: "Vocabulary Learned",
-      value: backendStats.vocabularyLearned ?? stats.wordsLearned ?? 0,
+      value: Number(backendStats.vocabularyLearned ?? stats.wordsLearned ?? 0),
       emoji: "📖",
       color: "#7C3AED",
       bg: "rgba(124, 58, 237, 0.12)",
@@ -504,7 +541,7 @@ export function Dashboard() {
     },
     {
       label: "Grammar Exercises",
-      value: backendStats.grammarExercises ?? stats.grammarChecks ?? 0,
+      value: Number(backendStats.grammarExercises ?? stats.grammarChecks ?? 0),
       emoji: "✍️",
       color: "#DB2777",
       bg: "rgba(219, 39, 119, 0.12)",
@@ -523,7 +560,7 @@ export function Dashboard() {
     },
     {
       label: "Current Streak",
-      value: stats.streak || 0,
+      value: Number(stats.streak ?? backendStats.currentStreak ?? 0),
       suffix: " days",
       emoji: "🔥",
       color: "#EA580C",
@@ -533,7 +570,7 @@ export function Dashboard() {
     },
     {
       label: "Longest Streak",
-      value: stats.longestStreak || stats.streak || 0,
+      value: Number(stats.longestStreak ?? backendStats.longestStreak ?? stats.streak ?? 0),
       suffix: " days",
       emoji: "🏆",
       color: "#CA8A04",
@@ -543,7 +580,7 @@ export function Dashboard() {
     },
     {
       label: "Average Score",
-      value: stats.accuracy != null && stats.accuracy > 0 ? stats.accuracy : (backendStats.averageScore || 0),
+      value: Number((stats.accuracy != null && stats.accuracy > 0) ? stats.accuracy : (backendStats.averageScore || 0)),
       suffix: "%",
       emoji: "📊",
       color: "#059669",
@@ -551,7 +588,7 @@ export function Dashboard() {
       borderColor: "rgba(5, 150, 105, 0.25)",
       route: ROUTES.PROGRESS,
     },
-  ], [backendStats, stats]);
+  ], [totalLessonsCount, actualCompletedLessons, backendStats, stats]);
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
