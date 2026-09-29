@@ -484,11 +484,72 @@ export function Dashboard() {
         </div>
       </motion.div>
 
-      {/* ── SECTION 2: TODAY'S PRACTICE GOAL CARD (Connected directly with Onboarding Time Selection, No 15-min hardcode, No timer) ── */}
+      {/* ── SECTION 2: LEARNING STATISTICS / METRIC HIGHLIGHTS ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.05 }}
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
+      >
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-[#6C63FF]/15">🗣️</span>
+            <span className="text-[10px] font-black uppercase text-[#6C63FF] tracking-wider px-2.5 py-1 rounded-full bg-[#6C63FF]/10">
+              Practice Time
+            </span>
+          </div>
+          <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider pt-1">Total Hours</p>
+          <p className="text-2xl sm:text-3xl font-black text-[#6C63FF]">
+            {stats.totalHours != null ? `${Number(stats.totalHours).toFixed(1)} hrs` : "0.0 hrs"}
+          </p>
+        </div>
+
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-emerald-500/15">🎯</span>
+            <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10">
+              Fluency Rate
+            </span>
+          </div>
+          <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider pt-1">Accuracy Score</p>
+          {stats.accuracy != null && stats.accuracy > 0 ? (
+            <p className="text-2xl sm:text-3xl font-black text-emerald-500">{stats.accuracy}%</p>
+          ) : (
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl sm:text-3xl font-black text-[var(--text-muted)]">--%</p>
+              <span className="text-[10px] font-bold text-[var(--text-muted)]">No sessions yet</span>
+            </div>
+          )}
+        </div>
+
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-amber-500/15">📚</span>
+            <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider px-2.5 py-1 rounded-full bg-amber-500/10">
+              Vocabulary
+            </span>
+          </div>
+          <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider pt-1">Words Mastered</p>
+          <p className="text-2xl sm:text-3xl font-black text-amber-500">{stats.wordsLearned || 0}</p>
+        </div>
+
+        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-lg">
+          <div className="flex items-center justify-between">
+            <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-rose-500/15">🏆</span>
+            <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider px-2.5 py-1 rounded-full bg-rose-500/10">
+              Milestones
+            </span>
+          </div>
+          <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider pt-1">Badges Unlocked</p>
+          <p className="text-2xl sm:text-3xl font-black text-rose-500">{stats.badgesUnlocked || 0} / 6</p>
+        </div>
+      </motion.div>
+
+      {/* ── SECTION 3: TODAY'S PRACTICE GOAL CARD (Connected directly with Onboarding Time Selection, No 15-min hardcode, No timer) ── */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, delay: 0.05 }}
+        transition={{ duration: 0.35, delay: 0.08 }}
         className="glass-card p-6 sm:p-8 rounded-3xl space-y-6 border border-[var(--border-default)] shadow-xl"
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -835,67 +896,6 @@ export function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* ── SECTION 5: LEARNING STATISTICS (QuickStatistics, Matching Mobile App) ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 15 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.15 }}
-        className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
-      >
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-[#6C63FF]/15">🗣️</span>
-            <span className="text-[10px] font-black uppercase text-[#6C63FF] tracking-wider px-2.5 py-1 rounded-full bg-[#6C63FF]/10">
-              Practice Time
-            </span>
-          </div>
-          <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider pt-1">Total Hours</p>
-          <p className="text-2xl sm:text-3xl font-black text-[#6C63FF]">
-            {stats.totalHours != null ? `${Number(stats.totalHours).toFixed(1)} hrs` : "0.0 hrs"}
-          </p>
-        </div>
-
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-emerald-500/15">🎯</span>
-            <span className="text-[10px] font-black uppercase text-emerald-500 tracking-wider px-2.5 py-1 rounded-full bg-emerald-500/10">
-              Fluency Rate
-            </span>
-          </div>
-          <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider pt-1">Accuracy Score</p>
-          {stats.accuracy != null && stats.accuracy > 0 ? (
-            <p className="text-2xl sm:text-3xl font-black text-emerald-500">{stats.accuracy}%</p>
-          ) : (
-            <div className="flex items-baseline gap-2">
-              <p className="text-2xl sm:text-3xl font-black text-[var(--text-muted)]">--%</p>
-              <span className="text-[10px] font-bold text-[var(--text-muted)]">No sessions yet</span>
-            </div>
-          )}
-        </div>
-
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-amber-500/15">📚</span>
-            <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider px-2.5 py-1 rounded-full bg-amber-500/10">
-              Vocabulary
-            </span>
-          </div>
-          <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider pt-1">Words Mastered</p>
-          <p className="text-2xl sm:text-3xl font-black text-amber-500">{stats.wordsLearned || 0}</p>
-        </div>
-
-        <div className="glass-card glass-card-hover p-6 rounded-3xl space-y-2 border border-[var(--border-default)] shadow-lg">
-          <div className="flex items-center justify-between">
-            <span className="text-2xl sm:text-3xl p-2.5 rounded-2xl bg-rose-500/15">🏆</span>
-            <span className="text-[10px] font-black uppercase text-rose-500 tracking-wider px-2.5 py-1 rounded-full bg-rose-500/10">
-              Milestones
-            </span>
-          </div>
-          <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-wider pt-1">Badges Unlocked</p>
-          <p className="text-2xl sm:text-3xl font-black text-rose-500">{stats.badgesUnlocked || 0} / 6</p>
-        </div>
-      </motion.div>
 
       {/* ── 2-COLUMN BALANCED DESKTOP GRID: HABIT RHYTHM & MILESTONES (LEFT) + MOTIVATION & FREEZE PROTECTION (RIGHT) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
