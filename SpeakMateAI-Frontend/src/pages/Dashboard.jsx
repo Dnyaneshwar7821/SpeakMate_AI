@@ -24,7 +24,6 @@ import {
 import { CurriculumCache } from "../utils/curriculumCache";
 import { StreakModal } from "../components/dashboard/StreakModal";
 import { LeaderboardModal } from "../components/dashboard/LeaderboardModal";
-import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 const getRankTier = (xp = 0) => {
   if (xp < 100) return { name: "Bronze III", icon: "🥉", badgeColor: "bg-amber-700/20 text-amber-500 border-amber-600/30" };
@@ -122,6 +121,28 @@ const safeString = (val, fallback = "") => {
   return String(val);
 };
 
+const DASHBOARD_CACHE_KEY = "speakmate_dashboard_data_cache";
+let inMemoryDashboardCache = null;
+
+function getCachedDashboardData() {
+  if (inMemoryDashboardCache) return inMemoryDashboardCache;
+  try {
+    const stored = sessionStorage.getItem(DASHBOARD_CACHE_KEY);
+    if (stored) {
+      inMemoryDashboardCache = JSON.parse(stored);
+      return inMemoryDashboardCache;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function setCachedDashboardData(data) {
+  inMemoryDashboardCache = data;
+  try {
+    sessionStorage.setItem(DASHBOARD_CACHE_KEY, JSON.stringify(data));
+  } catch (_) {}
+}
+
 export function Dashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -172,8 +193,8 @@ export function Dashboard() {
     };
   });
 
-  const [dashboardData, setDashboardData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(() => getCachedDashboardData());
+  const [isLoading, setIsLoading] = useState(false);
   const [streakModalOpen, setStreakModalOpen] = useState(false);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
 
@@ -221,6 +242,7 @@ export function Dashboard() {
       .then((data) => {
         if (data) {
           setDashboardData(data);
+          setCachedDashboardData(data);
           if (data.quote) {
             setDailyQuote(fetchOrGetDailyQuote(data.quote));
           }
@@ -600,17 +622,6 @@ export function Dashboard() {
       route: ROUTES.PROGRESS,
     },
   ], [totalLessonsCount, actualCompletedLessons, backendStats, stats]);
-
-  if (isLoading && !dashboardData) {
-    return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-20 flex items-center justify-center">
-        <SpeakMateLoader
-          message="Loading your personalized dashboard..."
-          subMessage="Synchronizing syllabus and learning statistics"
-        />
-      </div>
-    );
-  }
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">

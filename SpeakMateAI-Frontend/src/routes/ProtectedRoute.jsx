@@ -9,7 +9,7 @@ export function ProtectedRoute({ children }) {
 
   const hasToken = Boolean(localStorage.getItem("speakmate_token"));
 
-  if (loading) {
+  if (loading && !user) {
     return <SpeakMateLoader fullScreen message="Verifying session..." subMessage="Setting up your personalized learning environment" />;
   }
 

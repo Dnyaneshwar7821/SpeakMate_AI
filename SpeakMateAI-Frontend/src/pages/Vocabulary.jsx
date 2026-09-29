@@ -601,7 +601,7 @@ export function Vocabulary() {
           </div>
 
           {/* Word Cards Grid with Favorite Stars */}
-          {loading ? (
+          {loading && filteredItems.length === 0 ? (
             <div className="py-12">
               <SpeakMateLoader message="Loading your vocabulary bank..." subMessage="Fetching words and definitions" />
             </div>

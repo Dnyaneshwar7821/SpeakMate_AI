@@ -587,7 +587,7 @@ export function Lessons() {
           </span>
         </div>
 
-        {loading ? (
+        {loading && filteredLessons.length === 0 ? (
           <div className="py-12">
             <SpeakMateLoader message="Loading your 20-lesson curriculum..." subMessage="Fetching progress and lesson modules" />
           </div>

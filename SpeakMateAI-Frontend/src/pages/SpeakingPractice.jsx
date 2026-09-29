@@ -8,7 +8,6 @@ import { useModal } from "../context/ModalContext";
 import { useToast } from "../context/ToastContext";
 import { warmupSpeechAutoplay } from "../utils/speechHelper";
 import { getLiveProgressStats } from "../utils/progressTracker";
-import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 // ─── Age-Wise Scenarios Data (10 scenarios per age group) ───────────────────
 const AGE_SCENARIOS = {
