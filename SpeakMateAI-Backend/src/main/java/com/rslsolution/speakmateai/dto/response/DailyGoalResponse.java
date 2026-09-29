@@ -25,6 +25,10 @@ public class DailyGoalResponse {
 
 	private Integer remainingLessons;
 
+	private Integer dailyGoalMinutes;
+
+	private Integer targetSpeakingMinutes;
+
 	public String getTitle() { return title; }
 	public void setTitle(String title) { this.title = title; }
 
@@ -46,6 +50,12 @@ public class DailyGoalResponse {
 	public Integer getRemainingLessons() { return remainingLessons; }
 	public void setRemainingLessons(Integer remainingLessons) { this.remainingLessons = remainingLessons; }
 
+	public Integer getDailyGoalMinutes() { return dailyGoalMinutes; }
+	public void setDailyGoalMinutes(Integer dailyGoalMinutes) { this.dailyGoalMinutes = dailyGoalMinutes; }
+
+	public Integer getTargetSpeakingMinutes() { return targetSpeakingMinutes; }
+	public void setTargetSpeakingMinutes(Integer targetSpeakingMinutes) { this.targetSpeakingMinutes = targetSpeakingMinutes; }
+
 	public static DailyGoalResponseBuilder builder() {
 		return new DailyGoalResponseBuilder();
 	}
@@ -58,6 +68,8 @@ public class DailyGoalResponse {
 		private Integer vocabularyTarget;
 		private Double percentage;
 		private Integer remainingLessons;
+		private Integer dailyGoalMinutes;
+		private Integer targetSpeakingMinutes;
 
 		public DailyGoalResponseBuilder title(String title) { this.title = title; return this; }
 		public DailyGoalResponseBuilder lessonsCompletedToday(Integer lessonsCompletedToday) { this.lessonsCompletedToday = lessonsCompletedToday; return this; }
@@ -66,6 +78,8 @@ public class DailyGoalResponse {
 		public DailyGoalResponseBuilder vocabularyTarget(Integer vocabularyTarget) { this.vocabularyTarget = vocabularyTarget; return this; }
 		public DailyGoalResponseBuilder percentage(Double percentage) { this.percentage = percentage; return this; }
 		public DailyGoalResponseBuilder remainingLessons(Integer remainingLessons) { this.remainingLessons = remainingLessons; return this; }
+		public DailyGoalResponseBuilder dailyGoalMinutes(Integer dailyGoalMinutes) { this.dailyGoalMinutes = dailyGoalMinutes; return this; }
+		public DailyGoalResponseBuilder targetSpeakingMinutes(Integer targetSpeakingMinutes) { this.targetSpeakingMinutes = targetSpeakingMinutes; return this; }
 
 		public DailyGoalResponse build() {
             DailyGoalResponse obj = new DailyGoalResponse();
@@ -76,6 +90,8 @@ public class DailyGoalResponse {
             obj.setVocabularyTarget(vocabularyTarget);
             obj.setPercentage(percentage);
             obj.setRemainingLessons(remainingLessons);
+            obj.setDailyGoalMinutes(dailyGoalMinutes);
+            obj.setTargetSpeakingMinutes(targetSpeakingMinutes);
             return obj;
         }
 	}

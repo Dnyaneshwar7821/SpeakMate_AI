@@ -271,6 +271,7 @@ export function Onboarding() {
     await completeOnboarding({
       nativeLanguage: language,
       goal: whyLearning.join(", "),
+      learningGoal: whyLearning.join(", "),
       ageGroup: isStudent ? null : ageGroup,
       level: finalLevel,
       englishLevel: finalLevel,
@@ -278,6 +279,7 @@ export function Onboarding() {
       interests,
       aiVoice,
       commitment: `${dailyGoal} min`,
+      dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
       reminderTime,
       avatar: selectedAvatar,
       heardAbout,

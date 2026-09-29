@@ -176,6 +176,8 @@ export default function DashboardScreen({ navigation }) {
           title: "Today Practice Goal",
           lessonsCompletedToday: 0,
           speakingMinutesToday: 0,
+          dailyGoalMinutes: Number(user?.dailyGoalMinutes || 15),
+          targetSpeakingMinutes: Number(user?.dailyGoalMinutes || 15),
           vocabularyCompleted: 0,
           vocabularyTarget: 5,
           percentage: 0,
@@ -229,8 +231,11 @@ export default function DashboardScreen({ navigation }) {
       streakFreezes: Number(progress.streakFreezes ?? d.streakFreezes ?? user?.streakFreezes ?? 1),
       rank: d.rank,
       activeLesson: d.activeLessons?.[0] || null,
-      upcomingLessons: d.upcomingLessons || [],
-      dailyGoal: d.dailyGoal || {},
+      dailyGoal: {
+        ...(d.dailyGoal || {}),
+        dailyGoalMinutes: Number(d.dailyGoal?.dailyGoalMinutes || d.dailyGoal?.targetSpeakingMinutes || user?.dailyGoalMinutes || 15),
+        targetSpeakingMinutes: Number(d.dailyGoal?.dailyGoalMinutes || d.dailyGoal?.targetSpeakingMinutes || user?.dailyGoalMinutes || 15),
+      },
       weeklyProgress: d.weeklyProgress || [],
       recentActivity: d.recentActivity || [],
       statistics: {

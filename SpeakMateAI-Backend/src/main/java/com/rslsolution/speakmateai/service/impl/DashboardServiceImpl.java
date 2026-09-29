@@ -524,7 +524,7 @@ public class DashboardServiceImpl implements DashboardService {
 
 		int dailyGoalMinutes = (onboarding != null && onboarding.getDailyGoalMinutes() != null)
 				? onboarding.getDailyGoalMinutes()
-				: 15;
+				: (user != null && user.getDailyGoalMinutes() != null ? user.getDailyGoalMinutes() : 15);
 
 		double minutesScore = dailyGoalMinutes > 0 ? (double) speakingMinutesToday / dailyGoalMinutes : 0;
 		double vocabScore = (double) vocabularyCompleted / 5.0;
@@ -541,6 +541,8 @@ public class DashboardServiceImpl implements DashboardService {
 				.vocabularyTarget(5)
 				.percentage(percentage)
 				.remainingLessons(remainingLessons)
+				.dailyGoalMinutes(dailyGoalMinutes)
+				.targetSpeakingMinutes(dailyGoalMinutes)
 				.build();
 	}
 
