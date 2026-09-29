@@ -6,6 +6,7 @@ import {
   ScrollView,
   Dimensions,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -39,6 +40,8 @@ export default function ProgressScreen({ navigation }) {
     dashboard: cachedDashboard,
   }));
   const [selectedTimeframe, setSelectedTimeframe] = useState('7d'); // '7d' | '30d'
+  const [rhythmData, setRhythmData] = useState([]);
+  const [loadingRhythm, setLoadingRhythm] = useState(false);
 
   const load = async (silent = false) => {
     if (!silent && !state.dashboard) {
@@ -65,18 +68,31 @@ export default function ProgressScreen({ navigation }) {
     }, [user?.id])
   );
 
+  const fetchRhythm = useCallback(async (timeframe) => {
+    try {
+      setLoadingRhythm(true);
+      const days = timeframe === '30d' ? 30 : 7;
+      const res = await dashboardService.rhythm(days);
+      if (Array.isArray(res) && res.length > 0) {
+        setRhythmData(res);
+      } else {
+        setRhythmData(state.dashboard?.weeklyProgress || []);
+      }
+    } catch {
+      setRhythmData(state.dashboard?.weeklyProgress || []);
+    } finally {
+      setLoadingRhythm(false);
+    }
+  }, [state.dashboard?.weeklyProgress]);
+
+  useEffect(() => {
+    fetchRhythm(selectedTimeframe);
+  }, [selectedTimeframe, fetchRhythm]);
+
   const d = state.dashboard;
   const progress = d?.progress || {};
   const stats = d?.statistics || {};
-  const weeklyData = d?.weeklyProgress || [
-    { day: 'Mon', studyMinutes: 20 },
-    { day: 'Tue', studyMinutes: 35 },
-    { day: 'Wed', studyMinutes: 15 },
-    { day: 'Thu', studyMinutes: 40 },
-    { day: 'Fri', studyMinutes: 25 },
-    { day: 'Sat', studyMinutes: 50 },
-    { day: 'Sun', studyMinutes: 30 },
-  ];
+  const activeRhythm = rhythmData.length > 0 ? rhythmData : (d?.weeklyProgress || []);
 
   // Level & XP calculations (500 XP per level)
   const xp = progress.xp || 0;
@@ -93,26 +109,55 @@ export default function ProgressScreen({ navigation }) {
   const cefrRange = currentCefr.maxXp - currentCefr.minXp;
   const cefrProgress = Math.min(100, Math.max(0, ((xp - currentCefr.minXp) / cefrRange) * 100));
 
-  // 6-Dimensional Skill Breakdown calculations
-  const speakingScore = Math.min(98, Math.max(65, 70 + (stats.speakingSessions || 0) * 3));
-  const grammarScore = Math.min(96, Math.max(60, 68 + (stats.grammarExercises || 0) * 4));
-  const vocabScore = Math.min(95, Math.max(55, 62 + (stats.vocabularyLearned || 0) * 2));
-  const pronunciationScore = Math.min(98, Math.max(72, 75 + (stats.speakingSessions || 0) * 2.5));
-  const listeningScore = Math.min(97, Math.max(70, 74 + (stats.completedLessons || 0) * 4));
-  const staminaScore = Math.min(99, Math.max(50, 60 + (stats.totalStudyHours || 0) * 5));
+  // Calibrated 6-Dimensional Skill Breakdown calculations
+  const hasActivity = (stats.speakingSessions || 0) > 0 || (stats.grammarExercises || 0) > 0 || (stats.vocabularyLearned || 0) > 0 || (stats.completedLessons || 0) > 0 || (stats.totalStudyHours || 0) > 0;
+  const accuracy = stats.averageScore || 0;
+
+  const speakingScore = hasActivity
+    ? Math.min(100, Math.round(accuracy ? (accuracy * 0.7 + Math.min(30, (stats.speakingSessions || 0) * 3)) : Math.min(85, Math.max(15, (stats.speakingSessions || 0) * 10))))
+    : 0;
+
+  const grammarScore = hasActivity
+    ? Math.min(100, Math.round((stats.grammarExercises || 0) > 0 ? Math.min(95, 35 + (stats.grammarExercises || 0) * 5) : 0))
+    : 0;
+
+  const vocabScore = hasActivity
+    ? Math.min(100, Math.round((stats.vocabularyLearned || 0) > 0 ? Math.min(95, 25 + (stats.vocabularyLearned || 0) * 2.5) : 0))
+    : 0;
+
+  const pronunciationScore = hasActivity
+    ? Math.min(100, Math.round((stats.speakingSessions || 0) > 0 ? (accuracy ? accuracy * 0.95 : Math.min(90, 40 + (stats.speakingSessions || 0) * 4)) : 0))
+    : 0;
+
+  const listeningScore = hasActivity
+    ? Math.min(100, Math.round((stats.completedLessons || 0) > 0 ? Math.min(95, 30 + (stats.completedLessons || 0) * 5) : 0))
+    : 0;
+
+  const currentStreak = Number(progress.currentStreak || progress.streak || stats.currentStreak || 0);
+  const staminaScore = hasActivity
+    ? Math.min(100, Math.round(Math.min(99, currentStreak * 8 + (stats.totalStudyHours || 0) * 6)))
+    : 0;
+
+  const getSkillStatus = (score) => {
+    if (score === 0) return 'Calibrating';
+    if (score >= 85) return 'Strong';
+    if (score >= 70) return 'Proficient';
+    if (score >= 45) return 'Developing';
+    return 'Starting';
+  };
 
   const skillMatrix = [
-    { name: 'Speaking Fluency', score: Math.round(speakingScore), icon: 'mic', color: '#6366F1', status: speakingScore > 85 ? 'Strong' : 'Developing' },
-    { name: 'Grammar Accuracy', score: Math.round(grammarScore), icon: 'text', color: '#10B981', status: grammarScore > 85 ? 'Advanced' : 'Improving' },
-    { name: 'Vocabulary Lexicon', score: Math.round(vocabScore), icon: 'library', color: '#F59E0B', status: vocabScore > 80 ? 'Rich' : 'Expanding' },
-    { name: 'Pronunciation Clarity', score: Math.round(pronunciationScore), icon: 'volume-high', color: '#EC4899', status: pronunciationScore > 85 ? 'Clear' : 'Refining' },
-    { name: 'Audio Comprehension', score: Math.round(listeningScore), icon: 'ear', color: '#06B6D4', status: listeningScore > 85 ? 'Sharp' : 'Practicing' },
-    { name: 'Conversation Stamina', score: Math.round(staminaScore), icon: 'speedometer', color: '#8B5CF6', status: staminaScore > 80 ? 'High' : 'Building' },
+    { name: 'Speaking Fluency', score: speakingScore, icon: 'mic', color: '#6366F1', status: getSkillStatus(speakingScore) },
+    { name: 'Grammar Accuracy', score: grammarScore, icon: 'text', color: '#10B981', status: getSkillStatus(grammarScore) },
+    { name: 'Vocabulary Lexicon', score: vocabScore, icon: 'library', color: '#F59E0B', status: getSkillStatus(vocabScore) },
+    { name: 'Pronunciation Clarity', score: pronunciationScore, icon: 'volume-high', color: '#EC4899', status: getSkillStatus(pronunciationScore) },
+    { name: 'Audio Comprehension', score: listeningScore, icon: 'ear', color: '#06B6D4', status: getSkillStatus(listeningScore) },
+    { name: 'Conversation Stamina', score: staminaScore, icon: 'speedometer', color: '#8B5CF6', status: getSkillStatus(staminaScore) },
   ];
 
   // Scale chart
-  const maxMins = Math.max(10, ...weeklyData.map((d) => d.studyMinutes || 0));
-  const totalWeeklyMinutes = weeklyData.reduce((acc, curr) => acc + (curr.studyMinutes || 0), 0);
+  const maxMins = Math.max(20, ...activeRhythm.map((d) => d.studyMinutes || 0));
+  const totalRhythmMinutes = activeRhythm.reduce((acc, curr) => acc + (curr.studyMinutes || 0), 0);
 
   return (
     <Screen title="Progress & Analytics" subtitle="Track your CEFR proficiency, skills, and learning rhythm.">
@@ -227,7 +272,7 @@ export default function ProgressScreen({ navigation }) {
           {/* Weekly Practice Rhythm & Goal Tracker */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 18, marginBottom: 10 }}>
             <Text style={[styles.sectionTitle, { color: theme.textPrimary, marginBottom: 0, marginTop: 0 }]}>
-              Weekly Rhythm ({totalWeeklyMinutes} mins)
+              {selectedTimeframe === '30d' ? '30-Day Rhythm' : 'Weekly Rhythm'} ({totalRhythmMinutes} mins)
             </Text>
             <View style={[styles.timeframeToggle, { backgroundColor: isDark ? '#1E293B' : '#E2E8F0' }]}>
               <TouchableOpacity
@@ -247,34 +292,73 @@ export default function ProgressScreen({ navigation }) {
 
           <Card style={[styles.chartCard, { backgroundColor: theme.cardBg, borderColor: theme.cardBorder }]}>
             <View style={styles.chartHeader}>
-              <Text style={[styles.chartSubtitle, { color: theme.textSecondary }]}>Daily Speaking & Practice Minutes</Text>
+              <Text style={[styles.chartSubtitle, { color: theme.textSecondary }]}>
+                {selectedTimeframe === '30d' ? '30-Day Daily Speaking & Practice' : 'Daily Speaking & Practice Minutes'}
+              </Text>
               <Text style={{ fontSize: 11, fontWeight: '800', color: '#10B981' }}>🎯 Daily Goal: 20m</Text>
             </View>
-            <View style={styles.barChartContainer}>
-              {weeklyData.map((item, index) => {
-                const barHeight = ((item.studyMinutes || 0) / maxMins) * 110;
-                const isGoalMet = (item.studyMinutes || 0) >= 20;
-                return (
-                  <View key={index} style={styles.chartColumn}>
-                    <View style={styles.barWrapper}>
-                      <View
-                        style={[
-                          styles.bar,
-                          {
-                            height: Math.max(6, barHeight),
-                            backgroundColor: isGoalMet ? '#10B981' : COLORS.primary,
-                          },
-                        ]}
-                      />
+
+            {loadingRhythm ? (
+              <View style={{ height: 140, alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator size="small" color={COLORS.primary} />
+              </View>
+            ) : selectedTimeframe === '7d' ? (
+              <View style={styles.barChartContainer}>
+                {activeRhythm.map((item, index) => {
+                  const barHeight = ((item.studyMinutes || 0) / maxMins) * 110;
+                  const isGoalMet = (item.studyMinutes || 0) >= 20;
+                  return (
+                    <View key={index} style={styles.chartColumn}>
+                      <View style={styles.barWrapper}>
+                        <View
+                          style={[
+                            styles.bar,
+                            {
+                              height: Math.max(6, barHeight),
+                              backgroundColor: isGoalMet ? '#10B981' : COLORS.primary,
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text style={[styles.chartDayText, { color: theme.textSecondary }]}>{item.day || `D${index + 1}`}</Text>
+                      <Text style={[styles.chartMinText, { color: isGoalMet ? '#10B981' : theme.textSecondary }]}>
+                        {item.studyMinutes || 0}m
+                      </Text>
                     </View>
-                    <Text style={[styles.chartDayText, { color: theme.textSecondary }]}>{item.day}</Text>
-                    <Text style={[styles.chartMinText, { color: isGoalMet ? '#10B981' : theme.textSecondary }]}>
-                      {item.studyMinutes || 0}m
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 4, paddingVertical: 10, alignItems: 'flex-end' }}>
+                {activeRhythm.map((item, index) => {
+                  const barHeight = ((item.studyMinutes || 0) / maxMins) * 105;
+                  const isGoalMet = (item.studyMinutes || 0) >= 20;
+                  const dateLabel = item.date ? item.date.split('-').slice(1).join('/') : `${index + 1}`;
+                  return (
+                    <View key={index} style={{ alignItems: 'center', minWidth: 26, marginHorizontal: 3 }}>
+                      <Text style={{ fontSize: 9, fontWeight: '700', color: isGoalMet ? '#10B981' : theme.textSecondary, marginBottom: 4 }}>
+                        {item.studyMinutes || 0}m
+                      </Text>
+                      <View style={[styles.barWrapper, { width: 14, height: 110 }]}>
+                        <View
+                          style={[
+                            styles.bar,
+                            {
+                              width: 14,
+                              height: Math.max(6, barHeight),
+                              backgroundColor: isGoalMet ? '#10B981' : COLORS.primary,
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text style={[styles.chartDayText, { fontSize: 9, color: theme.textSecondary, marginTop: 4 }]}>
+                        {dateLabel}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </ScrollView>
+            )}
           </Card>
 
           {/* Lifetime Learning Statistics */}

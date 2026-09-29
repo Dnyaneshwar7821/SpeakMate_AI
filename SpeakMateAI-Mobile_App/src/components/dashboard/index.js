@@ -206,6 +206,7 @@ export const DashboardHeader = memo(function DashboardHeader({
   onProfilePress,
   onMenuPress,
   onChatbotPress,
+  onLeaderboardPress,
 }) {
   const entrance = useRef(new Animated.Value(0)).current;
   const bellScale = useRef(new Animated.Value(1)).current;
@@ -288,11 +289,16 @@ export const DashboardHeader = memo(function DashboardHeader({
                 </View>
               )}
             </View>
-            <View style={styles.heroMetaRow}>
-              <View style={styles.heroChip}>
-                <Ionicons name="trophy" size={12} color="#818CF8" />
-                <Text style={styles.heroChipText}>Level {level || 1}</Text>
-              </View>
+              <TouchableOpacity
+                onPress={onLeaderboardPress}
+                activeOpacity={0.8}
+                style={[styles.heroChip, { backgroundColor: 'rgba(245,158,11,0.25)' }]}
+              >
+                <Ionicons name="trophy" size={12} color="#FCD34D" />
+                <Text style={[styles.heroChipText, { color: '#FDE68A', fontWeight: '800' }]}>
+                  {rank || `Level ${level || 1}`} 🏆
+                </Text>
+              </TouchableOpacity>
               <View style={styles.heroChip}>
                 <Ionicons name="flash" size={12} color="#FCD34D" />
                 <Text style={styles.heroChipText}>{formatNumber(xp)} XP</Text>
@@ -549,7 +555,10 @@ function LessonImage({ lesson, size }) {
 }
 
 export const WeeklyProgressChart = memo(function WeeklyProgressChart({ data }) {
-  const maxValue = Math.max(30, ...data.map((item) => (item.studyMinutes || 0) + (item.lessonsCompleted || 0) * 12 + (item.speakingSessions || 0) * 10));
+  const maxValue = Math.max(
+    30,
+    ...data.map((item) => (item.studyMinutes || 0) + (item.lessonsCompleted || 0) * 5 + (item.speakingSessions || 0) * 5)
+  );
   const theme = useTheme();
 
   return (
@@ -577,21 +586,39 @@ export const WeeklyProgressChart = memo(function WeeklyProgressChart({ data }) {
 
 function ChartColumn({ item, maxValue }) {
   const heightAnim = useRef(new Animated.Value(0)).current;
-  const total = (item.studyMinutes || 0) + (item.lessonsCompleted || 0) * 12 + (item.speakingSessions || 0) * 10;
-  const target = Math.max(8, Math.round((total / maxValue) * 110));
   const theme = useTheme();
+  const studyMins = item.studyMinutes || 0;
+  const lessons = item.lessonsCompleted || 0;
+  const speaking = item.speakingSessions || 0;
+
+  const total = studyMins + lessons * 5 + speaking * 5;
+  const target = Math.max(total > 0 ? 8 : 4, Math.round((total / maxValue) * 110));
 
   useEffect(() => {
     Animated.spring(heightAnim, { toValue: target, tension: 35, friction: 8, useNativeDriver: false }).start();
   }, [heightAnim, target]);
 
+  const studyHeight = total > 0 ? Math.round((studyMins / total) * target) : 0;
+  const lessonHeight = total > 0 ? Math.round(((lessons * 5) / total) * target) : 0;
+  const speakingHeight = Math.max(0, target - studyHeight - lessonHeight);
+
   return (
     <View style={styles.chartColumn}>
       <View style={[styles.chartBarTrack, theme.isDark && { backgroundColor: '#334155' }]}>
-        <Animated.View style={[styles.chartBar, { height: heightAnim }]} />
+        <Animated.View style={{ width: '100%', height: heightAnim, overflow: 'hidden', borderRadius: 999, justifyContent: 'flex-end' }}>
+          {speakingHeight > 0 && (
+            <View style={{ width: '100%', height: speakingHeight, backgroundColor: COLORS.warning }} />
+          )}
+          {lessonHeight > 0 && (
+            <View style={{ width: '100%', height: lessonHeight, backgroundColor: COLORS.success }} />
+          )}
+          {studyHeight > 0 && (
+            <View style={{ width: '100%', height: studyHeight, backgroundColor: COLORS.primary }} />
+          )}
+        </Animated.View>
       </View>
       <Text style={[styles.chartDay, { color: theme.textSecondary }]}>{item.day}</Text>
-      <Text style={[styles.chartValue, { color: theme.textPrimary }]}>{item.studyMinutes || 0}m</Text>
+      <Text style={[styles.chartValue, { color: theme.textPrimary }]}>{studyMins}m</Text>
     </View>
   );
 }
@@ -2082,5 +2109,7 @@ export const SchoolAnnouncementsCard = memo(({ announcements = [] }) => {
     </View>
   );
 });
+
+export { LeaderboardSheet } from './LeaderboardSheet';
 
 

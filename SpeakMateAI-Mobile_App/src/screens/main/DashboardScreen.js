@@ -45,6 +45,7 @@ import {
   AchievementsCard,
   AssignmentsCard,
   SchoolAnnouncementsCard,
+  LeaderboardSheet,
 } from '../../components/dashboard';
 import { StateView } from '../../components/ui';
 import { COLORS } from '../../constants/colors';
@@ -167,6 +168,7 @@ export default function DashboardScreen({ navigation }) {
         level: 1,
         xp: Number(user?.xp) || 0,
         streak: Number(user?.streak) || 0,
+        streakFreezes: Number(user?.streakFreezes ?? 1),
         rank: user?.rank || null,
         activeLesson: null,
         upcomingLessons: [],
@@ -224,6 +226,7 @@ export default function DashboardScreen({ navigation }) {
       level: Number(progress.level) || 1,
       xp: Number(progress.xp) || 0,
       streak: Number(progress.currentStreak ?? progress.streak ?? d.streak ?? user?.streak ?? 0),
+      streakFreezes: Number(progress.streakFreezes ?? d.streakFreezes ?? user?.streakFreezes ?? 1),
       rank: d.rank,
       activeLesson: d.activeLessons?.[0] || null,
       upcomingLessons: d.upcomingLessons || [],
@@ -283,44 +286,36 @@ export default function DashboardScreen({ navigation }) {
     }
   }, [navigation]);
 
-  const [purchasedFreezes, setPurchasedFreezes] = useState(0);
-
-  // Load persisted streak freezes from local storage
-  useEffect(() => {
-    const loadFreezes = async () => {
-      try {
-        const freezeKey = `@speakmate_streak_freezes_${user?.id || 'default'}`;
-        const stored = await AsyncStorage.getItem(freezeKey);
-        if (stored !== null) {
-          setPurchasedFreezes(Number(stored) || 0);
-        }
-      } catch {
-        // ignore
-      }
-    };
-    loadFreezes();
-  }, [user?.id]);
+  const [leaderboardVisible, setLeaderboardVisible] = useState(false);
 
   const handleBuyFreeze = useCallback(async () => {
-    const currentXp = viewModel.xp;
-    if (currentXp >= 100) {
-      const nextFreezes = purchasedFreezes + 1;
-      setPurchasedFreezes(nextFreezes);
-      try {
-        const freezeKey = `@speakmate_streak_freezes_${user?.id || 'default'}`;
-        await AsyncStorage.setItem(freezeKey, String(nextFreezes));
+    try {
+      const res = await progressService.buyFreeze();
+      if (res) {
         if (updateUser) {
-          updateUser({ ...user, xp: Math.max(0, currentXp - 100) });
+          updateUser({ ...user, xp: res.xp, streakFreezes: res.streakFreezes });
         }
-      } catch {
-        // ignore
+        setState((prev) => {
+          if (!prev.dashboard) return prev;
+          const updated = {
+            ...prev.dashboard,
+            progress: {
+              ...(prev.dashboard.progress || {}),
+              xp: res.xp,
+              streakFreezes: res.streakFreezes,
+            },
+          };
+          if (user?.id) DashboardCache.set(updated, user.id);
+          return { ...prev, dashboard: updated };
+        });
+        triggerConfetti();
+        showToast('Streak Freeze Purchased! ❄️', 'success', '1 Streak Freeze added to your reserve (-100 XP)');
       }
-      triggerConfetti();
-      showToast('Streak Freeze Purchased! ❄️', 'warning', '1 Streak Freeze added to your reserve (-100 XP)');
-    } else {
-      showToast('Earn More XP ❄️', 'info', 'You need at least 100 XP to buy a Streak Freeze');
+    } catch (err) {
+      const msg = err.response?.data?.message || err.userMessage || 'You need at least 100 XP to buy a Streak Freeze';
+      showToast('Streak Freeze ❄️', 'info', msg);
     }
-  }, [viewModel.xp, purchasedFreezes, user, updateUser, showToast, triggerConfetti]);
+  }, [user, updateUser, showToast, triggerConfetti]);
 
   const handleRecommendationPress = useCallback((rec) => {
     if (!rec) return;
@@ -413,6 +408,7 @@ export default function DashboardScreen({ navigation }) {
           onNotificationPress={handleNotificationsNav}
           onProfilePress={() => navigation.navigate('BottomTabs', { screen: 'Profile' })}
           onChatbotPress={openLearnerAssistant}
+          onLeaderboardPress={() => setLeaderboardVisible(true)}
           isDark={isDark}
         />
 
@@ -463,7 +459,7 @@ export default function DashboardScreen({ navigation }) {
         <LearningStreakCard
           streak={viewModel.streak}
           longestStreak={viewModel.statistics?.longestStreak || 0}
-          streakFreezes={1 + purchasedFreezes}
+          streakFreezes={viewModel.streakFreezes}
           xp={viewModel.xp}
           onBuyFreeze={handleBuyFreeze}
           isDark={isDark}
@@ -494,6 +490,13 @@ export default function DashboardScreen({ navigation }) {
           isDark={isDark}
         />
       </ScrollView>
+
+      <LeaderboardSheet
+        visible={leaderboardVisible}
+        onClose={() => setLeaderboardVisible(false)}
+        currentUser={user}
+        isDark={isDark}
+      />
     </SafeAreaView>
   );
 }
