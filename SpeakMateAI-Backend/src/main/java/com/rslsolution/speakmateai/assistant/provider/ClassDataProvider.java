@@ -226,6 +226,73 @@ public class ClassDataProvider implements AssistantDataProvider {
 		data.put("totalStudentsAcrossClasses", !uniqueEnrolledStudentIds.isEmpty() ? uniqueEnrolledStudentIds.size() : students.size());
 		data.put("assignedClassesList", assignedClassesList);
 		data.put("totalAssignedClasses", classes.size());
+		if (params != null) {
+			if (params.get("field") != null) data.put("field", params.get("field"));
+			if (Boolean.TRUE.equals(params.get("myClasses"))) data.put("myClasses", true);
+			if (Boolean.TRUE.equals(params.get("myDivisions"))) data.put("myDivisions", true);
+			if (Boolean.TRUE.equals(params.get("teacherStudentPerformance"))) data.put("teacherStudentPerformance", true);
+			if (Boolean.TRUE.equals(params.get("activeLearnersCount"))) data.put("activeLearnersCount", true);
+			if (Boolean.TRUE.equals(params.get("totalLessonsCompleted"))) data.put("totalLessonsCompleted", true);
+		}
+
+		// Compute total lessons completed across all assigned students
+		List<Long> allEvalUserIds = evalStudents.stream().map(Student::getId).filter(Objects::nonNull).collect(Collectors.toList());
+		if (!allEvalUserIds.isEmpty() && lessonProgressRepository != null) {
+			try {
+				long totalLessons = 0;
+				for (Long uid : allEvalUserIds) {
+					totalLessons += lessonProgressRepository.countByUserIdAndCompletedTrue(uid);
+				}
+				data.put("totalLessonsCompletedCount", totalLessons);
+			} catch (Exception ignored) {
+				data.put("totalLessonsCompletedCount", 0);
+			}
+		} else {
+			data.put("totalLessonsCompletedCount", 0);
+		}
+
+		// Compute active learners count: students with speaking sessions OR lesson completions in the last 7 days
+		// This mirrors the established definition in TeacherServiceImpl (practicedThisWeek check)
+		// allEvalUserIds is already declared above in the lesson completion section
+		if (!allEvalUserIds.isEmpty()) {
+			try {
+				java.time.LocalDateTime sevenDaysAgo = java.time.LocalDateTime.now().minusDays(7);
+				java.time.LocalDateTime now = java.time.LocalDateTime.now();
+				java.util.Set<Long> activeUserIds = new java.util.HashSet<>();
+
+				// Batch query: speaking sessions in last 7 days
+				if (speakingSessionRepository != null) {
+					List<com.rslsolution.speakmateai.entity.SpeakingSession> recentSessions =
+							speakingSessionRepository.findByUserIdsAndCreatedAtBetween(allEvalUserIds, sevenDaysAgo, now);
+					if (recentSessions != null) {
+						for (com.rslsolution.speakmateai.entity.SpeakingSession sess : recentSessions) {
+							if (sess.getUser() != null && sess.getUser().getId() != null) {
+								activeUserIds.add(sess.getUser().getId());
+							}
+						}
+					}
+				}
+
+				// Batch query: lesson completions in last 7 days (for students not already counted)
+				if (lessonProgressRepository != null) {
+					List<com.rslsolution.speakmateai.entity.LessonProgress> recentLessons =
+							lessonProgressRepository.findByUserIdsAndCompletedAtBetween(allEvalUserIds, sevenDaysAgo, now);
+					if (recentLessons != null) {
+						for (com.rslsolution.speakmateai.entity.LessonProgress lp : recentLessons) {
+							if (lp.getUser() != null && lp.getUser().getId() != null) {
+								activeUserIds.add(lp.getUser().getId());
+							}
+						}
+					}
+				}
+
+				data.put("activelyLearningCount", activeUserIds.size());
+			} catch (Exception ignored) {
+				data.put("activelyLearningCount", 0);
+			}
+		} else {
+			data.put("activelyLearningCount", 0);
+		}
 
 		// Query speech evaluation scores for evalStudents
 		List<Long> evalUserIds = evalStudents.stream().map(Student::getId).filter(Objects::nonNull).collect(Collectors.toList());
@@ -411,7 +478,10 @@ public class ClassDataProvider implements AssistantDataProvider {
 
 		String filter = strParam(params, "filter");
 		String summary;
-		if (params != null && Boolean.TRUE.equals(params.get("myClasses"))) {
+		if (params != null && Boolean.TRUE.equals(params.get("teacherStudentPerformance"))) {
+			int totalS = !allAssigned.isEmpty() ? allAssigned.size() : students.size();
+			summary = "Performance summary across " + totalS + " assigned student" + (totalS == 1 ? "" : "s") + " in " + classes.size() + " class" + (classes.size() == 1 ? "" : "es") + ".";
+		} else if (params != null && Boolean.TRUE.equals(params.get("myClasses"))) {
 			int totalS = !allAssigned.isEmpty() ? allAssigned.size() : students.size();
 			summary = "You are currently assigned to " + classes.size() + " classes with " + totalS + " enrolled students.";
 		} else if ("struggling".equalsIgnoreCase(filter)) {

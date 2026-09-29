@@ -747,11 +747,167 @@ public class AnswerSynthesizerChatTest {
 
 		assertNotNull(answer);
 		assertNotNull(answer.getMarkdown());
-		assertTrue(answer.getMarkdown().contains("Assigned Classes (8)"));
+		assertTrue(answer.getMarkdown().contains("You are assigned to these 8 classes"));
 		assertTrue(answer.getMarkdown().contains("Grade 9 - A"));
 		assertTrue(answer.getMarkdown().contains("Grade 6 - A"));
-		assertTrue(answer.getMarkdown().contains("Total Enrolled Students Across Your Classes"));
+		// Assigned classes query should NOT include student counts or analytics
+		assertFalse(answer.getMarkdown().contains("Total Enrolled Students"));
+	}
+
+	@Test
+	void testTeacherStudentPerformanceSynthesis() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("totalStudentsAcrossClasses", 4);
+		data.put("totalAssignedClasses", 2);
+		data.put("averageXpPerStudent", 307);
+		data.put("totalXp", 1229);
+		data.put("classAverageSpeakingScore", 45.6);
+		data.put("classAverageFluencyScore", 42.3);
+		data.put("classAveragePronunciationScore", 48.9);
+		data.put("classAverageGrammarScore", 55.2);
+		data.put("classAverageVocabularyScore", 38.7);
+		data.put("averagePracticeMinutesPerStudent", 12.5);
+		data.put("studentsWithActiveStreak", 2);
+		data.put("teacherStudentPerformance", true);
+		data.put("field", "teacher_student_performance");
+		data.put("strugglingStudents", java.util.List.of(
+				Map.of("name", "Siddhi Narke", "reason", "Low speaking score")
+		));
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"How are my students performing?",
+				Map.of("teacherStudentPerformance", true),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("Your students are making progress"));
+		assertTrue(answer.getMarkdown().contains("Students assigned:"));
 		assertTrue(answer.getMarkdown().contains("4"));
+		assertTrue(answer.getMarkdown().contains("Average XP:"));
+		assertTrue(answer.getMarkdown().contains("307"));
+		assertTrue(answer.getMarkdown().contains("Speaking performance:"));
+		assertTrue(answer.getMarkdown().contains("45.6%"));
+		assertTrue(answer.getMarkdown().contains("Grammar performance:"));
+		assertTrue(answer.getMarkdown().contains("55.2%"));
+		assertTrue(answer.getMarkdown().contains("may need additional attention"));
+		// Should NOT include generic dashboard navigation
+		assertFalse(answer.getMarkdown().contains("View my students"));
+		assertFalse(answer.getMarkdown().contains("View class analytics"));
+	}
+
+	@Test
+	void testActiveLearnersCountSynthesis() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("activelyLearningCount", 5);
+		data.put("totalStudentsAcrossClasses", 8);
+		data.put("activeLearnersCount", true);
+		data.put("field", "active_learners_count");
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"How many students are actively learning?",
+				Map.of("activeLearnersCount", true),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("5"));
+		assertTrue(answer.getMarkdown().contains("actively learning"));
+		// Single-metric: must NOT contain performance analytics
+		assertFalse(answer.getMarkdown().contains("Average XP"));
+		assertFalse(answer.getMarkdown().contains("Speaking performance"));
+		assertFalse(answer.getMarkdown().contains("View my students"));
+		assertFalse(answer.getMarkdown().contains("View class analytics"));
+	}
+
+	@Test
+	void testActiveLearnersCountZeroSynthesis() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("activelyLearningCount", 0);
+		data.put("totalStudentsAcrossClasses", 4);
+		data.put("activeLearnersCount", true);
+		data.put("field", "active_learners_count");
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"How many students are actively learning?",
+				Map.of("activeLearnersCount", true),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().toLowerCase().contains("none") ||
+				answer.getMarkdown().contains("0"));
+		assertFalse(answer.getMarkdown().contains("View my students"));
+	}
+
+	@Test
+	void testTeacherLessonsCompletedSynthesis() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("totalLessonsCompletedCount", 47);
+		data.put("totalStudentsAcrossClasses", 4);
+		data.put("totalLessonsCompleted", true);
+		data.put("field", "teacher_lessons_completed");
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"How many lessons have my students completed?",
+				Map.of("totalLessonsCompleted", true),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().contains("47"));
+		assertTrue(answer.getMarkdown().contains("lesson"));
+		// Single-metric response — no analytics appended
+		assertFalse(answer.getMarkdown().contains("Average XP"));
+		assertFalse(answer.getMarkdown().contains("Speaking performance"));
+		assertFalse(answer.getMarkdown().contains("View my students"));
+		assertFalse(answer.getMarkdown().contains("View class analytics"));
+	}
+
+	@Test
+	void testTeacherLessonsCompletedZeroSynthesis() throws Exception {
+		Map<String, Object> data = new java.util.LinkedHashMap<>();
+		data.put("totalLessonsCompletedCount", 0);
+		data.put("totalStudentsAcrossClasses", 4);
+		data.put("totalLessonsCompleted", true);
+		data.put("field", "teacher_lessons_completed");
+		String dataJson = objectMapper.writeValueAsString(data);
+
+		SynthesizedAnswer answer = synthesizer.synthesize(
+				AssistantIntent.CLASS_PERFORMANCE,
+				null,
+				"How many lessons have my students completed?",
+				Map.of("totalLessonsCompleted", true),
+				dataJson,
+				null
+		);
+
+		assertNotNull(answer);
+		assertNotNull(answer.getMarkdown());
+		assertTrue(answer.getMarkdown().toLowerCase().contains("not completed") ||
+				answer.getMarkdown().contains("0"));
+		assertFalse(answer.getMarkdown().contains("View my students"));
+		assertFalse(answer.getMarkdown().contains("View class analytics"));
 	}
 
 	@Test

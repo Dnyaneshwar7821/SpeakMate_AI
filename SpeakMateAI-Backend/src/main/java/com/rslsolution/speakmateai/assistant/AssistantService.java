@@ -636,8 +636,25 @@ public class AssistantService {
 			switch (intent) {
 				case CLASS_PERFORMANCE -> {
 					if (role == Role.TEACHER) {
-						candidates.add(suggestion("View class analytics", "/teacher/analytics", "TEACHER"));
-						candidates.add(suggestion("View class reports", "/teacher/reports", "TEACHER"));
+						if (m.contains("which classes") || m.contains("classes do i teach") || m.contains("assigned classes")
+								|| m.contains("my classes") || m.contains("classes assigned") || m.contains("which divisions")
+								|| m.contains("divisions do i teach") || m.contains("assigned divisions") || m.contains("my divisions")
+								|| m.contains("grades do i teach") || m.contains("divisions am i teaching") || m.contains("what classes")
+								|| m.contains("show my assigned") || m.contains("what divisions")
+								|| m.contains("students performing") || m.contains("students doing")
+								|| m.contains("students' performance") || m.contains("students performance")
+								|| m.contains("performance of my students") || m.contains("progress of my students")
+								|| m.contains("student performance summary") || m.contains("overall student performance")
+								|| m.contains("actively learning") || m.contains("active learners")
+								|| m.contains("active students") || m.contains("currently active")
+								|| m.contains("currently learning") || m.contains("number of active")
+								|| (m.contains("lesson") && m.contains("my students") && (m.contains("completed") || m.contains("finished")))
+								|| m.contains("lessons completed by my students") || m.contains("lessons my students")) {
+							// For specific class/division lookup queries, performance summaries, active learner counts, and lesson completion counts, do NOT append analytics/reports action buttons
+						} else {
+							candidates.add(suggestion("View class analytics", "/teacher/analytics", "TEACHER"));
+							candidates.add(suggestion("View class reports", "/teacher/reports", "TEACHER"));
+						}
 					} else if (role == Role.SCHOOL_ADMIN) {
 						candidates.add(suggestion("View school insights", "/school-admin/insights", "SCHOOL_ADMIN"));
 						candidates.add(suggestion("View students", "/school-admin/students", "SCHOOL_ADMIN"));
