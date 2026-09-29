@@ -382,14 +382,11 @@ export default function SpeakingHomeScreen({ navigation }) {
     if (user?.accountType) setAccountType(user.accountType);
   }, [user?.schoolGrade, user?.ageGroup, user?.accountType]);
 
-  // Stats calculation - seamlessly combines Dashboard progress stats and session history
+  // Stats calculation - strictly speaking-specific metrics (speaking practice minutes & speaking session XP)
   const dashData = DashboardCache.get(user?.id);
-  const histMins = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
-  const totalMinutes = Math.max(Number(dashData?.progress?.totalPracticeMinutes || 0), histMins);
-  const histXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
-  const totalXP = Math.max(Number(dashData?.progress?.xp || dashData?.profile?.xp || 0), histXP);
-  const histSessions = history.length;
-  const totalSessions = Math.max(Number(dashData?.progress?.totalSpeakingSessions || dashData?.profile?.totalSpeakingSessions || 0), histSessions);
+  const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
+  const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
+  const totalSessions = history.length;
   const streak = Number(dashData?.progress?.currentStreak || dashData?.profile?.streak || (history.length > 0 ? 3 : 0));
 
   const loadData = async (silent = false) => {

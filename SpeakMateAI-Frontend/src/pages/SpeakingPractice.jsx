@@ -320,12 +320,10 @@ export function SpeakingPractice() {
   }, []);
 
   const liveStats = getLiveProgressStats(user);
-  const historyMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
-  const totalMinutes = Math.max(Number(liveStats.speakingMins || 0), historyMinutes);
-  const historyXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
-  const totalXP = Math.max(Number(liveStats.xp || 0), historyXP);
-  const historySessions = history.length;
-  const totalSessions = Math.max(Number(liveStats.speakingSessions || 0), historySessions);
+  // Strictly speaking-specific stats: minutes spent on speaking, XP earned from speaking sessions, and completed sessions
+  const totalMinutes = Math.round(history.reduce((sum, item) => sum + (item.duration || 0), 0) / 60);
+  const totalXP = history.reduce((sum, item) => sum + (item.xpEarned || 0), 0);
+  const totalSessions = history.length;
   const streakDays = Number(liveStats.streak ?? 0);
 
   const effAge = normalizeAgeGroup(selectedAgeGroup);
