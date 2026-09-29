@@ -34,12 +34,71 @@ const getRankTier = (xp = 0) => {
   return { name: "Diamond Orator", icon: "👑", badgeColor: "bg-purple-500/20 text-purple-300 border-purple-400/30" };
 };
 
-const MOTIVATIONAL_QUOTES = [
-  { quote: "The limits of my language mean the limits of my world.", author: "Ludwig Wittgenstein" },
-  { quote: "Language is the road map of a culture. It tells you where its people come from and where they are going.", author: "Rita Mae Brown" },
-  { quote: "To have another language is to possess a second soul.", author: "Charlemagne" },
-  { quote: "Learning another language is not only learning different words for the same things, but learning another way to think about things.", author: "Flora Lewis" },
-];
+// Dynamic date-based quote resolver (1 new dynamic quote per calendar day)
+const fetchOrGetDailyQuote = (backendQuote) => {
+  const todayStr = getLocalDateStr();
+  const cacheKey = `speakmate_daily_quote_${todayStr}`;
+
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed?.quote && parsed?.author) return parsed;
+    }
+  } catch (e) {}
+
+  if (backendQuote?.text || backendQuote?.quote) {
+    const q = {
+      quote: backendQuote.text || backendQuote.quote,
+      author: backendQuote.author || "SpeakMate AI",
+    };
+    try { localStorage.setItem(cacheKey, JSON.stringify(q)); } catch (e) {}
+    return q;
+  }
+
+  // Curated diverse global inspirational quote repository (dynamically seeded by calendar date)
+  const DYNAMIC_QUOTE_POOL = [
+    { quote: "The limits of my language mean the limits of my world.", author: "Ludwig Wittgenstein" },
+    { quote: "If you talk to a man in a language he understands, that goes to his head. If you talk to him in his language, that goes to his heart.", author: "Nelson Mandela" },
+    { quote: "To have another language is to possess a second soul.", author: "Charlemagne" },
+    { quote: "Change your language and you change your thoughts.", author: "Karl Albrecht" },
+    { quote: "Language is the road map of a culture. It tells you where its people come from and where they are going.", author: "Rita Mae Brown" },
+    { quote: "Learning another language is not only learning different words for the same things, but learning another way to think about things.", author: "Flora Lewis" },
+    { quote: "A different language is a different vision of life.", author: "Federico Fellini" },
+    { quote: "Knowledge of languages is the doorway to wisdom.", author: "Roger Bacon" },
+    { quote: "You can never understand one language until you understand at least two.", author: "Geoffrey Willans" },
+    { quote: "With languages, you are at home anywhere.", author: "Edward De Waal" },
+    { quote: "One language sets you in a corridor for life. Two languages open every door along the way.", author: "Frank Smith" },
+    { quote: "Do you know what a foreign accent is? It's a sign of bravery.", author: "Amy Chua" },
+    { quote: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+    { quote: "Live as if you were to die tomorrow. Learn as if you were to live forever.", author: "Mahatma Gandhi" },
+    { quote: "Tell me and I forget. Teach me and I remember. Involve me and I learn.", author: "Benjamin Franklin" },
+    { quote: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
+    { quote: "An investment in knowledge pays the best interest.", author: "Benjamin Franklin" },
+    { quote: "Education is not the learning of facts, but the training of the mind to think.", author: "Albert Einstein" },
+    { quote: "The beautiful thing about learning is that nobody can take it away from you.", author: "B.B. King" },
+    { quote: "Continuous effort—not strength or intelligence—is the key to unlocking our potential.", author: "Winston Churchill" },
+    { quote: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+    { quote: "The expert in anything was once a beginner.", author: "Helen Hayes" },
+    { quote: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+    { quote: "Small disciplines repeated with consistency every day lead to great achievements.", author: "John C. Maxwell" },
+    { quote: "Action is the foundational key to all success.", author: "Pablo Picasso" },
+    { quote: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
+    { quote: "Courage is like a muscle. We strengthen it by use.", author: "Ruth Gordon" },
+    { quote: "Discipline is the bridge between goals and accomplishment.", author: "Jim Rohn" },
+    { quote: "It is not that I'm so smart. But I stay with the questions much longer.", author: "Albert Einstein" },
+    { quote: "Words are the most powerful drug used by mankind.", author: "Rudyard Kipling" },
+  ];
+
+  let hash = 0;
+  for (let i = 0; i < todayStr.length; i++) {
+    hash = (hash * 31 + todayStr.charCodeAt(i)) >>> 0;
+  }
+  const dayIndex = hash % DYNAMIC_QUOTE_POOL.length;
+  const selected = DYNAMIC_QUOTE_POOL[dayIndex];
+  try { localStorage.setItem(cacheKey, JSON.stringify(selected)); } catch (e) {}
+  return selected;
+};
 
 const safeString = (val, fallback = "") => {
   if (val === null || val === undefined) return fallback;
@@ -111,7 +170,7 @@ export function Dashboard() {
   const [streakModalOpen, setStreakModalOpen] = useState(false);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
 
-  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [dailyQuote, setDailyQuote] = useState(() => fetchOrGetDailyQuote(null));
   const [challengeClaimed, setChallengeClaimed] = useState(() => {
     const st = getLiveProgressStats(user);
     return st.lastQuoteClaimDate === getLocalDateStr();
@@ -155,6 +214,9 @@ export function Dashboard() {
       .then((data) => {
         if (data) {
           setDashboardData(data);
+          if (data.quote) {
+            setDailyQuote(fetchOrGetDailyQuote(data.quote));
+          }
           if (data.profile) {
             if (data.profile.ageGroup) setActiveAgeGroup(safeString(data.profile.ageGroup, "Professional"));
             if (data.profile.schoolGrade) setActiveGrade(safeString(data.profile.schoolGrade, "1st Std"));
@@ -269,14 +331,13 @@ export function Dashboard() {
   };
 
   const handleAcceptChallenge = () => {
-    const res = claimDailyQuoteXP(50, user);
+    const res = claimDailyQuoteXP(20, user);
     if (res.success) {
       setChallengeClaimed(true);
       setStats((prev) => ({
         ...prev,
         ...res.stats,
         xp: Number(res.stats.xp ?? prev.xp ?? 0),
-        streakFreezes: Number(res.stats.streakFreezes ?? prev.streakFreezes ?? 0),
       }));
       toast.success(res.message);
     } else {
@@ -284,42 +345,6 @@ export function Dashboard() {
       toast.info(res.message);
     }
   };
-
-  const handleBuyFreeze = async () => {
-    try {
-      const res = await buyStreakFreeze(100, user);
-      if (res.success) {
-        setStats((prev) => ({
-          ...prev,
-          ...res.stats,
-          xp: Number(res.stats.xp ?? prev.xp ?? 0),
-          streakFreezes: Number(res.stats.streakFreezes ?? prev.streakFreezes ?? 0),
-        }));
-        toast.success(res.message);
-      } else {
-        toast.error(res.message);
-      }
-    } catch (e) {
-      toast.error("Failed to purchase streak freeze");
-    }
-  };
-
-  const handleRepairStreak = () => {
-    const res = repairBrokenStreak(150, user);
-    if (res.success) {
-      setStats((prev) => ({
-        ...prev,
-        ...res.stats,
-        streak: Number(res.stats.streak ?? prev.streak ?? 0),
-        xp: Number(res.stats.xp ?? prev.xp ?? 0),
-      }));
-      toast.success(res.message);
-    } else {
-      toast.error(res.message);
-    }
-  };
-
-  const currentQuote = MOTIVATIONAL_QUOTES[quoteIndex];
 
   // Daily practice goal metrics connected directly to user's onboarding choice
   const dailyTargetMins = Number(
@@ -366,7 +391,167 @@ export function Dashboard() {
     targetRoute: ROUTES.SPEAKING,
   };
 
-  const weeklyHabit = stats.weeklyData || [];
+  const formattedToday = useMemo(() => {
+    return new Date().toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "short",
+      day: "numeric",
+    });
+  }, []);
+
+  // 7-day visual practice rhythm strictly aligned Monday to Sunday of the current week
+  const weeklyHabit = useMemo(() => {
+    const daysOfWeek = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    const todayStr = getLocalDateStr();
+    const curr = new Date();
+    const currentDay = curr.getDay(); // 0 is Sun, 1 is Mon...
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(curr);
+    monday.setDate(curr.getDate() + mondayOffset);
+
+    const existingByDate = {};
+    if (Array.isArray(stats.weeklyData)) {
+      stats.weeklyData.forEach((d) => {
+        if (d.dateStr) existingByDate[d.dateStr] = d;
+        if (d.date) existingByDate[d.date] = d;
+      });
+    }
+    if (stats.streakHistory) {
+      Object.entries(stats.streakHistory).forEach(([dateStr, record]) => {
+        if (!existingByDate[dateStr]) {
+          existingByDate[dateStr] = {
+            dateStr,
+            studyMinutes: record?.mins || 0,
+            status: record?.status,
+          };
+        }
+      });
+    }
+
+    return daysOfWeek.map((dayName, idx) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + idx);
+      const dStr = getLocalDateStr(d);
+      const isToday = dStr === todayStr;
+      const record = existingByDate[dStr];
+      const mins = isToday
+        ? (stats.todayMins || stats.completedMins || record?.studyMinutes || 0)
+        : (record?.studyMinutes || record?.mins || 0);
+
+      const isCompleted = record?.status === "completed" || mins >= 15 || (mins > 0 && !isToday);
+      const isFrozen = record?.status === "frozen";
+      const isFuture = d > curr && !isToday;
+      const status = isCompleted
+        ? "completed"
+        : isFrozen
+        ? "frozen"
+        : isToday
+        ? (mins >= 15 ? "completed" : "active")
+        : isFuture
+        ? "upcoming"
+        : "missed";
+
+      return {
+        dateStr: dStr,
+        day: dayName,
+        studyMinutes: mins,
+        status,
+        isToday,
+        isFuture,
+        isGoalMet: mins >= 15,
+      };
+    });
+  }, [stats.weeklyData, stats.streakHistory, stats.todayMins, stats.completedMins]);
+
+  // Comprehensive 9-metric statistics matching mobile app QuickStatistics
+  const backendStats = dashboardData?.statistics || {};
+  const mobileStyleStats = useMemo(() => [
+    {
+      label: "Total Lessons",
+      value: backendStats.totalLessons || 12,
+      emoji: "📚",
+      color: "#6C63FF",
+      bg: "rgba(108, 99, 255, 0.12)",
+      borderColor: "rgba(108, 99, 255, 0.25)",
+      route: ROUTES.LESSONS,
+    },
+    {
+      label: "Completed Lessons",
+      value: backendStats.completedLessons ?? stats.lessonsCompleted ?? 0,
+      emoji: "✅",
+      color: "#10B981",
+      bg: "rgba(16, 185, 129, 0.12)",
+      borderColor: "rgba(16, 185, 129, 0.25)",
+      route: ROUTES.LESSONS,
+    },
+    {
+      label: "Speaking Sessions",
+      value: backendStats.speakingSessions ?? stats.speakingSessions ?? 0,
+      emoji: "🎙️",
+      color: "#0284C7",
+      bg: "rgba(2, 132, 199, 0.12)",
+      borderColor: "rgba(2, 132, 199, 0.25)",
+      route: ROUTES.SPEAKING,
+    },
+    {
+      label: "Vocabulary Learned",
+      value: backendStats.vocabularyLearned ?? stats.wordsLearned ?? 0,
+      emoji: "📖",
+      color: "#7C3AED",
+      bg: "rgba(124, 58, 237, 0.12)",
+      borderColor: "rgba(124, 58, 237, 0.25)",
+      route: ROUTES.VOCABULARY,
+    },
+    {
+      label: "Grammar Exercises",
+      value: backendStats.grammarExercises ?? stats.grammarChecks ?? 0,
+      emoji: "✍️",
+      color: "#DB2777",
+      bg: "rgba(219, 39, 119, 0.12)",
+      borderColor: "rgba(219, 39, 119, 0.25)",
+      route: ROUTES.GRAMMAR,
+    },
+    {
+      label: "Study Hours",
+      value: backendStats.totalStudyHours != null ? Number(backendStats.totalStudyHours).toFixed(1) : Number(stats.totalHours || 0).toFixed(1),
+      suffix: " hrs",
+      emoji: "⏱️",
+      color: "#F59E0B",
+      bg: "rgba(245, 158, 11, 0.12)",
+      borderColor: "rgba(245, 158, 11, 0.25)",
+      route: ROUTES.PROGRESS,
+    },
+    {
+      label: "Current Streak",
+      value: stats.streak || 0,
+      suffix: " days",
+      emoji: "🔥",
+      color: "#EA580C",
+      bg: "rgba(234, 88, 12, 0.12)",
+      borderColor: "rgba(234, 88, 12, 0.25)",
+      onClick: () => setStreakModalOpen(true),
+    },
+    {
+      label: "Longest Streak",
+      value: stats.longestStreak || stats.streak || 0,
+      suffix: " days",
+      emoji: "🏆",
+      color: "#CA8A04",
+      bg: "rgba(202, 138, 4, 0.12)",
+      borderColor: "rgba(202, 138, 4, 0.25)",
+      route: ROUTES.ACHIEVEMENTS,
+    },
+    {
+      label: "Average Score",
+      value: stats.accuracy != null && stats.accuracy > 0 ? stats.accuracy : (backendStats.averageScore || 0),
+      suffix: "%",
+      emoji: "📊",
+      color: "#059669",
+      bg: "rgba(5, 150, 105, 0.12)",
+      borderColor: "rgba(5, 150, 105, 0.25)",
+      route: ROUTES.PROGRESS,
+    },
+  ], [backendStats, stats]);
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">
@@ -897,204 +1082,206 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* ── 2-COLUMN BALANCED DESKTOP GRID: HABIT RHYTHM & MILESTONES (LEFT) + MOTIVATION & FREEZE PROTECTION (RIGHT) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column: Weekly Practice Rhythm & Achievements */}
-        <div className="space-y-8">
-          {/* SECTION 6: WEEKLY HABIT RHYTHM */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">Consistency</span>
-                <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] mt-0.5">
-                  7-Day Practice Rhythm
-                </h3>
+      {/* ── SECTION 5: STATISTICS (Matching Mobile App QuickStatistics) ── */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">Performance Analytics</span>
+            <h2 className="text-xl sm:text-2xl font-black text-[var(--text-primary)] mt-0.5">
+              Statistics
+            </h2>
+          </div>
+          <span className="text-xs font-bold text-[var(--text-secondary)]">
+            9 Core Metrics • Live Sync
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 sm:gap-4">
+          {mobileStyleStats.map((item, idx) => (
+            <motion.div
+              key={item.label}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: idx * 0.02 }}
+              onClick={() => {
+                if (item.onClick) item.onClick();
+                else if (item.route) navigate(item.route);
+              }}
+              className="glass-card glass-card-hover p-4 sm:p-5 rounded-2xl border border-[var(--border-default)] shadow-sm flex items-center gap-3 sm:gap-4 cursor-pointer transition-all hover:scale-[1.02]"
+              style={{
+                borderColor: item.borderColor,
+              }}
+            >
+              <div
+                className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 transition-transform group-hover:scale-110"
+                style={{ backgroundColor: item.bg, color: item.color }}
+              >
+                {item.emoji}
               </div>
-              <span className="text-xs font-bold text-[var(--text-secondary)]">
-                {weeklyHabit.filter((d) => d.status === "completed").length}/7 Days Active
-              </span>
-            </div>
-
-            <div className="grid grid-cols-7 gap-2 text-center">
-              {weeklyHabit.map((item, idx) => {
-                const isCompleted = item.status === "completed";
-                const isFrozen = item.status === "frozen";
-                const isToday = item.isToday;
-
-                return (
-                  <div
-                    key={idx}
-                    className={`py-3 px-1 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
-                      isToday
-                        ? "border-[#6C63FF] bg-[#6C63FF]/10 ring-2 ring-[#6C63FF]/30 shadow-sm"
-                        : "bg-[var(--bg-elevated)] border-[var(--border-default)]"
-                    }`}
-                  >
-                    <span className={`text-[10px] font-extrabold uppercase ${isToday ? "text-[#6C63FF]" : "text-[var(--text-secondary)]"}`}>
-                      {item.day}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-lg sm:text-2xl font-black text-[var(--text-primary)]">
+                    {item.value}
+                  </span>
+                  {item.suffix && (
+                    <span className="text-xs font-black" style={{ color: item.color }}>
+                      {item.suffix}
                     </span>
+                  )}
+                </div>
+                <p className="text-xs font-bold text-[var(--text-secondary)] truncate mt-0.5">
+                  {item.label}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
 
-                    <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-sm ${
-                        isCompleted
-                          ? "bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-orange-500/30"
-                          : isFrozen
-                          ? "bg-gradient-to-tr from-cyan-400 to-blue-500 text-white shadow-cyan-500/30"
-                          : "bg-[var(--bg-base)] text-[var(--text-muted)]"
-                      }`}
-                    >
-                      {isCompleted ? "🔥" : isFrozen ? "❄️" : "·"}
-                    </div>
-
-                    <span className={`text-[10px] font-bold ${isCompleted ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                      {item.studyMinutes > 0 ? `${item.studyMinutes}m` : "-"}
-                    </span>
-                  </div>
-                );
-              })}
+      {/* ── 2-COLUMN BALANCED DESKTOP GRID: HABIT RHYTHM (LEFT) + DAILY INSPIRATION QUOTE (RIGHT) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+        {/* Left Column: Weekly Practice Rhythm (Monday to Sunday) */}
+        <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">Consistency</span>
+              <h3 className="text-lg sm:text-xl font-black text-[var(--text-primary)] mt-0.5">
+                7-Day Practice Rhythm
+              </h3>
             </div>
+            <span className="text-xs font-bold text-[var(--text-secondary)]">
+              {weeklyHabit.filter((d) => d.status === "completed").length}/7 Days Active
+            </span>
           </div>
 
-          {/* SECTION 11: MILESTONES & ACHIEVEMENTS CARD */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
-            <div className="flex items-center justify-between">
-              <h3 className="font-black text-lg text-[var(--text-primary)]">Milestones</h3>
-              <Link to={ROUTES.ACHIEVEMENTS} className="text-xs font-black text-[#6C63FF] hover:underline">
-                View All →
-              </Link>
-            </div>
+          <div className="grid grid-cols-7 gap-2 text-center">
+            {weeklyHabit.map((item, idx) => {
+              const isCompleted = item.status === "completed";
+              const isFrozen = item.status === "frozen";
+              const isToday = item.isToday;
 
-            <div className="space-y-3.5">
-              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl p-2 rounded-xl bg-amber-500/10">🔥</span>
-                  <div>
-                    <p className="font-black text-xs text-[var(--text-primary)]">3-Day Streak Master</p>
-                    <p className={`text-[11px] font-bold mt-0.5 ${(stats.streak || 0) >= 3 ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                      {(stats.streak || 0) >= 3 ? "Unlocked ✓" : `${Math.min(3, stats.streak || 0)} / 3 days`}
-                    </p>
-                  </div>
-                </div>
-                <span className={`text-xs font-black px-2.5 py-1 rounded-full ${(stats.streak || 0) >= 3 ? "text-amber-500 bg-amber-500/10" : "text-[var(--text-muted)] bg-[var(--bg-base)]"}`}>
-                  +50 XP
-                </span>
-              </div>
+              return (
+                <div
+                  key={idx}
+                  className={`py-3 px-1 rounded-2xl border flex flex-col items-center gap-1.5 transition-all ${
+                    isToday
+                      ? "border-[#6C63FF] bg-[#6C63FF]/10 ring-2 ring-[#6C63FF]/30 shadow-sm"
+                      : "bg-[var(--bg-elevated)] border-[var(--border-default)]"
+                  }`}
+                >
+                  <span className={`text-[10px] font-extrabold uppercase ${isToday ? "text-[#6C63FF]" : "text-[var(--text-secondary)]"}`}>
+                    {item.day}
+                  </span>
 
-              <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl p-2 rounded-xl bg-[#6C63FF]/10">📚</span>
-                  <div>
-                    <p className="font-black text-xs text-[var(--text-primary)]">Vocabulary Virtuoso</p>
-                    <p className={`text-[11px] font-bold mt-0.5 ${(stats.wordsLearned || 0) >= 20 ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
-                      {(stats.wordsLearned || 0) >= 20 ? "Unlocked ✓" : `${Math.min(20, stats.wordsLearned || 0)} / 20 words`}
-                    </p>
+                  <div
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black shadow-sm ${
+                      isCompleted
+                        ? "bg-gradient-to-tr from-amber-500 to-orange-500 text-white shadow-orange-500/30"
+                        : isFrozen
+                        ? "bg-gradient-to-tr from-cyan-400 to-blue-500 text-white shadow-cyan-500/30"
+                        : "bg-[var(--bg-base)] text-[var(--text-muted)]"
+                    }`}
+                  >
+                    {isCompleted ? "🔥" : isFrozen ? "❄️" : "·"}
                   </div>
+
+                  <span className={`text-[10px] font-bold ${isCompleted ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
+                    {item.studyMinutes > 0 ? `${item.studyMinutes}m` : "-"}
+                  </span>
                 </div>
-                <span className={`text-xs font-black px-2.5 py-1 rounded-full ${(stats.wordsLearned || 0) >= 20 ? "text-amber-500 bg-amber-500/10" : "text-[var(--text-muted)] bg-[var(--bg-base)]"}`}>
-                  +50 XP
-                </span>
-              </div>
-            </div>
+              );
+            })}
+          </div>
+
+          <div className="pt-2 flex items-center justify-between text-xs text-[var(--text-secondary)] border-t border-[var(--border-default)]">
+            <span className="font-bold">Monday – Sunday cycle</span>
+            <span className="font-extrabold text-[#6C63FF]">Keep the streak glowing 🔥</span>
           </div>
         </div>
 
-        {/* Right Column: Daily Motivation Quote & Streak Freeze Protection */}
-        <div className="space-y-8">
-          {/* DAILY MOTIVATION & AUDIO QUOTE CARD */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#6C63FF]/30 space-y-5 shadow-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">Daily Inspiration</span>
-              <button
-                onClick={() => setQuoteIndex((i) => (i + 1) % MOTIVATIONAL_QUOTES.length)}
-                className="text-xs font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
-                title="Next Quote"
-              >
-                ↻ Next Quote
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-base font-extrabold text-[var(--text-primary)] italic leading-relaxed">
-                "{currentQuote.quote}"
-              </p>
-              <p className="text-xs font-black text-[#6C63FF]">— {currentQuote.author}</p>
-            </div>
-
-            <div className="pt-2 flex items-center justify-between gap-3 flex-wrap">
-              <button
-                onClick={() => handleSpeakQuote(currentQuote.quote)}
-                className="px-4 py-2.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-black text-[var(--text-primary)] hover:bg-[#6C63FF] hover:text-white transition-all flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer"
-              >
-                <span>🔊 Listen Quote</span>
-              </button>
-
-              {!challengeClaimed ? (
-                <button
-                  onClick={handleAcceptChallenge}
-                  className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#FF6584] text-white text-xs font-black shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
-                >
-                  Accept (+50 XP)
-                </button>
-              ) : (
-                <span className="text-xs font-black text-emerald-500 bg-emerald-500/15 px-4 py-1.5 rounded-full border border-emerald-500/20">
-                  ✓ Goal Accepted!
-                </span>
-              )}
-            </div>
+        {/* Right Column: Daily Motivation Quote (1 Dynamic Quote/Day, +20 XP) */}
+        <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[#6C63FF]/30 space-y-5 shadow-xl flex flex-col justify-between">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">
+              Daily Inspiration • {formattedToday}
+            </span>
+            <span className="text-[10px] font-bold bg-[#6C63FF]/10 px-2.5 py-1 rounded-full text-[#6C63FF]">
+              1 Quote Per Day
+            </span>
           </div>
 
-          {/* STREAK & FREEZE PROTECTION CARD */}
-          <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-4 border border-cyan-500/30 bg-gradient-to-br from-[var(--bg-surface)] to-cyan-500/5 shadow-xl">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-black text-cyan-500 uppercase tracking-wider">Streak Protection</span>
-              <span className="text-xs font-black text-cyan-500 bg-cyan-500/10 px-3 py-1 rounded-full border border-cyan-500/20">
-                ❄️ {stats.streakFreezes || 0} Freezes Active
-              </span>
-            </div>
+          <div className="space-y-3">
+            <p className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] italic leading-relaxed">
+              "{dailyQuote.quote}"
+            </p>
+            <p className="text-xs font-black text-[#6C63FF]">— {dailyQuote.author}</p>
+          </div>
 
-            <div className="space-y-1.5">
-              <h3 className="font-extrabold text-lg text-[var(--text-primary)]">Protect Your Streak ❄️</h3>
-              <p className="text-xs text-[var(--text-secondary)] font-medium leading-relaxed">
-                Missed a day? A Streak Freeze automatically saves your streak! Spend 100 XP to add a Freeze to your reserve.
-              </p>
-            </div>
-
-            {/* Broken Streak Grace Alert */}
-            {stats.brokenStreakSnapshot?.streak && (
-              <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-amber-500 uppercase tracking-wider">
-                    ⚠️ Recovery Available
-                  </span>
-                  <span className="text-[10px] font-black text-amber-500 bg-amber-500/20 px-2 py-0.5 rounded-full">
-                    Restores {stats.brokenStreakSnapshot.streak} Days
-                  </span>
-                </div>
-                <button
-                  onClick={handleRepairStreak}
-                  disabled={Number(stats.xp || 0) < 150}
-                  className={`w-full py-2.5 rounded-xl font-black text-xs transition-all flex items-center justify-center gap-2 shadow-sm ${
-                    Number(stats.xp || 0) >= 150
-                      ? "bg-gradient-to-r from-amber-400 to-orange-500 text-slate-950 hover:brightness-110 cursor-pointer"
-                      : "bg-slate-700/20 text-slate-400 cursor-not-allowed border border-slate-700/30"
-                  }`}
-                >
-                  <span>🔥 Restore Streak (150 XP)</span>
-                </button>
-              </div>
-            )}
-
+          <div className="pt-2 flex items-center justify-between gap-3 flex-wrap">
             <button
-              onClick={handleBuyFreeze}
-              disabled={Number(stats.xp || 0) < 100}
-              className={`w-full py-3.5 rounded-2xl font-black text-xs shadow-md transition-all flex items-center justify-center gap-2 ${
-                Number(stats.xp || 0) >= 100
-                  ? "bg-gradient-to-r from-cyan-500 to-[#6C63FF] text-white hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-                  : "bg-gray-400/20 text-gray-400 cursor-not-allowed border border-gray-400/20"
-              }`}
+              onClick={() => handleSpeakQuote(dailyQuote.quote)}
+              className="px-4 py-2.5 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] text-xs font-black text-[var(--text-primary)] hover:bg-[#6C63FF] hover:text-white transition-all flex items-center gap-2 shadow-sm active:scale-95 cursor-pointer"
             >
-              <span>❄️ Buy 1 Freeze (100 XP)</span>
+              <span>🔊 Listen Quote</span>
             </button>
+
+            {!challengeClaimed ? (
+              <button
+                onClick={handleAcceptChallenge}
+                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] text-white text-xs font-black shadow-md transition-all hover:scale-105 active:scale-95 cursor-pointer"
+              >
+                Accept (+20 XP)
+              </button>
+            ) : (
+              <span className="text-xs font-black text-emerald-500 bg-emerald-500/15 px-4 py-1.5 rounded-full border border-emerald-500/20">
+                ✓ Goal Accepted! (+20 XP)
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SECTION: MILESTONES & ACHIEVEMENTS ── */}
+      <div className="glass-card p-6 sm:p-8 rounded-3xl space-y-5 border border-[var(--border-default)] shadow-xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-xs font-black text-[#6C63FF] uppercase tracking-wider">Progress</span>
+            <h3 className="font-black text-lg sm:text-xl text-[var(--text-primary)] mt-0.5">Milestones & Achievements</h3>
+          </div>
+          <Link to={ROUTES.ACHIEVEMENTS} className="text-xs font-black text-[#6C63FF] hover:underline">
+            View All Achievements →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl p-2 rounded-xl bg-amber-500/10">🔥</span>
+              <div>
+                <p className="font-black text-xs text-[var(--text-primary)]">3-Day Streak Master</p>
+                <p className={`text-[11px] font-bold mt-0.5 ${(stats.streak || 0) >= 3 ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
+                  {(stats.streak || 0) >= 3 ? "Unlocked ✓" : `${Math.min(3, stats.streak || 0)} / 3 days`}
+                </p>
+              </div>
+            </div>
+            <span className={`text-xs font-black px-2.5 py-1 rounded-full ${(stats.streak || 0) >= 3 ? "text-amber-500 bg-amber-500/10" : "text-[var(--text-muted)] bg-[var(--bg-base)]"}`}>
+              +50 XP
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[var(--bg-elevated)] border border-[var(--border-default)] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl p-2 rounded-xl bg-[#6C63FF]/10">📚</span>
+              <div>
+                <p className="font-black text-xs text-[var(--text-primary)]">Vocabulary Virtuoso</p>
+                <p className={`text-[11px] font-bold mt-0.5 ${(stats.wordsLearned || 0) >= 20 ? "text-emerald-500" : "text-[var(--text-muted)]"}`}>
+                  {(stats.wordsLearned || 0) >= 20 ? "Unlocked ✓" : `${Math.min(20, stats.wordsLearned || 0)} / 20 words`}
+                </p>
+              </div>
+            </div>
+            <span className={`text-xs font-black px-2.5 py-1 rounded-full ${(stats.wordsLearned || 0) >= 20 ? "text-amber-500 bg-amber-500/10" : "text-[var(--text-muted)] bg-[var(--bg-base)]"}`}>
+              +50 XP
+            </span>
           </div>
         </div>
       </div>
