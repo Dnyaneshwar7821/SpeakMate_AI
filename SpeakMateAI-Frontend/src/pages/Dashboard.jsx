@@ -1099,7 +1099,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          {/* Module 4: 3D Flashcards & Vocab */}
+          {/* Module 4: Vocabulary Builder */}
           <div
             onClick={() => navigate(ROUTES.VOCABULARY)}
             className="glass-card glass-card-hover p-6 rounded-3xl space-y-3 cursor-pointer group border border-[var(--border-default)] hover:border-amber-500/50 transition-all shadow-sm"
@@ -1109,7 +1109,7 @@ export function Dashboard() {
               <span className="text-xs font-black text-amber-500 group-hover:translate-x-1 transition-transform">Explore →</span>
             </div>
             <div>
-              <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-amber-500 transition-colors">3D Flashcards & Word Bank</h3>
+              <h3 className="font-extrabold text-base sm:text-lg text-[var(--text-primary)] group-hover:text-amber-500 transition-colors">Vocabulary Builder & Word Bank</h3>
               <p className="text-xs text-[var(--text-secondary)] font-medium mt-1 leading-relaxed">
                 Master definitions, phonetics, audio pronunciations, and spaced repetition.
               </p>

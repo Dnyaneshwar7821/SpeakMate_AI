@@ -4,7 +4,7 @@ import { speakGlobalText } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
-import { recordVocabularyMastered, recordWordAdded, recordQuizCompleted } from "../utils/progressTracker";
+import { recordVocabularyMastered, recordWordAdded, recordQuizCompleted, recordWordDeleted } from "../utils/progressTracker";
 import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 // =========================================================================
@@ -102,13 +102,73 @@ const CURRICULUM_DATA = {
   ],
 };
 
+const DELETED_VOCAB_STORAGE_KEY = "speakmate_deleted_vocab_words";
+
+const getDeletedVocabSet = () => {
+  try {
+    const raw = localStorage.getItem(DELETED_VOCAB_STORAGE_KEY);
+    if (!raw) return new Set();
+    const list = JSON.parse(raw);
+    return new Set((Array.isArray(list) ? list : []).map((w) => String(w).toLowerCase().trim()));
+  } catch {
+    return new Set();
+  }
+};
+
+const markVocabWordDeleted = (item) => {
+  try {
+    const raw = localStorage.getItem(DELETED_VOCAB_STORAGE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    const arr = Array.isArray(list) ? list : [];
+    const wordKey = (item?.word || "").toLowerCase().trim();
+    const idKey = String(item?.id || "").toLowerCase().trim();
+    if (wordKey && !arr.includes(wordKey)) arr.push(wordKey);
+    if (idKey && !arr.includes(idKey)) arr.push(idKey);
+    localStorage.setItem(DELETED_VOCAB_STORAGE_KEY, JSON.stringify(arr));
+  } catch {}
+};
+
+const unmarkVocabWordDeleted = (word) => {
+  try {
+    const raw = localStorage.getItem(DELETED_VOCAB_STORAGE_KEY);
+    if (!raw) return;
+    const list = JSON.parse(raw);
+    const wordKey = (word || "").toLowerCase().trim();
+    const nextList = (Array.isArray(list) ? list : []).filter((w) => String(w).toLowerCase().trim() !== wordKey);
+    localStorage.setItem(DELETED_VOCAB_STORAGE_KEY, JSON.stringify(nextList));
+  } catch {}
+};
+
 export function Vocabulary() {
   const { user } = useAuth();
   const { isDark } = useTheme();
   const toast = useToast();
   const [activeTab, setActiveTab] = useState("list"); // 'list', 'flashcards', 'quiz'
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const getInitialCurated = () => {
+    const savedAccType = user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
+    const savedGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std";
+    const savedAge = user?.ageGroup || localStorage.getItem("speakmate_age_group") || "Young Adult";
+
+    let profileKey = "1st Std";
+    if (savedAccType === "STUDENT" || Boolean(user?.isSchoolStudent)) {
+      profileKey = savedGrade;
+    } else {
+      if (savedAge.toLowerCase().includes("kid")) profileKey = "Kids";
+      else if (savedAge.toLowerCase().includes("teen")) profileKey = "Teens";
+      else if (savedAge.toLowerCase().includes("senior")) profileKey = "Senior";
+      else if (savedAge.toLowerCase().includes("pro") || savedAge.toLowerCase().includes("work")) profileKey = "Professional";
+      else profileKey = "Young Adult";
+    }
+    const curated = CURRICULUM_DATA[profileKey] || CURRICULUM_DATA["1st Std"];
+    const deletedSet = getDeletedVocabSet();
+    return curated.filter(
+      (w) => !deletedSet.has((w.word || "").toLowerCase().trim()) && !deletedSet.has(String(w.id || "").toLowerCase().trim())
+    );
+  };
+
+  const [items, setItems] = useState(() => getInitialCurated());
+  const [loading, setLoading] = useState(false);
   const [wordInput, setWordInput] = useState("");
   const [adding, setAdding] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -132,7 +192,6 @@ export function Vocabulary() {
   const [showMistakes, setShowMistakes] = useState(false);
 
   const loadVocabulary = async () => {
-    setLoading(true);
     try {
       const savedAccType = user?.accountType || localStorage.getItem("speakmate_account_type") || "INDIVIDUAL_USER";
       const savedGrade = user?.schoolGrade || localStorage.getItem("speakmate_school_grade") || "1st Std";
@@ -158,16 +217,26 @@ export function Vocabulary() {
       const curatedBase = CURRICULUM_DATA[profileKey] || CURRICULUM_DATA["1st Std"];
       const backendWords = await vocabularyService.all().catch(() => []);
 
+      const deletedSet = getDeletedVocabSet();
+
       const combined = [...(backendWords || [])];
       for (const cw of curatedBase) {
-        if (!combined.some((w) => w.word.toLowerCase() === cw.word.toLowerCase())) {
+        if (!combined.some((w) => (w.word || "").toLowerCase() === (cw.word || "").toLowerCase())) {
           combined.push(cw);
         }
       }
 
-      setItems(combined);
+      const activeWords = combined.filter((w) => {
+        const wordKey = (w.word || "").toLowerCase().trim();
+        const idKey = String(w.id || "").toLowerCase().trim();
+        return !deletedSet.has(wordKey) && !deletedSet.has(idKey);
+      });
+
+      setItems(activeWords);
     } catch (e) {
-      setItems(CURRICULUM_DATA["1st Std"]);
+      const curatedBase = CURRICULUM_DATA["1st Std"];
+      const deletedSet = getDeletedVocabSet();
+      setItems(curatedBase.filter((w) => !deletedSet.has((w.word || "").toLowerCase().trim())));
     } finally {
       setLoading(false);
     }
@@ -220,30 +289,64 @@ export function Vocabulary() {
   const currentCard = filteredItems[cardIndex] || filteredItems[0];
 
   const handleAddWord = async () => {
-    if (!wordInput.trim()) return;
+    const rawWord = wordInput.trim();
+    if (!rawWord) return;
     setAdding(true);
+    unmarkVocabWordDeleted(rawWord);
     try {
-      const res = await vocabularyService.add(wordInput.trim());
+      const res = await vocabularyService.add(rawWord);
       setWordInput("");
-      setItems((prev) => [res, ...prev]);
-      recordWordAdded(1);
+      setItems((prev) => [res, ...prev.filter((w) => (w.word || "").toLowerCase().trim() !== rawWord.toLowerCase())]);
+      recordWordAdded(1, user);
       toast.success(`"${res.word}" added with AI definition! (+5 XP ✨)`);
     } catch (e) {
       const fallback = {
         id: "loc_" + Date.now(),
-        word: wordInput.trim(),
+        word: rawWord,
         partOfSpeech: "word",
-        meaning: `Definition and conversational usage for ${wordInput.trim()}`,
-        exampleSentence: `Practice using "${wordInput.trim()}" in daily English.`,
+        meaning: `Definition and conversational usage for ${rawWord}`,
+        exampleSentence: `Practice using "${rawWord}" in daily English.`,
         favorite: false,
       };
-      setItems((prev) => [fallback, ...prev]);
+      setItems((prev) => [fallback, ...prev.filter((w) => (w.word || "").toLowerCase().trim() !== rawWord.toLowerCase())]);
       setWordInput("");
-      recordWordAdded(1);
+      recordWordAdded(1, user);
       toast.success(`"${fallback.word}" added! (+5 XP ✨)`);
     } finally {
       setAdding(false);
     }
+  };
+
+  const handleDeleteWord = async (item, e) => {
+    if (e && e.stopPropagation) e.stopPropagation();
+    if (!item) return;
+
+    const wordName = item.word || "Word";
+
+    // 1. Remove from local items state immediately for instantaneous, fluid UX
+    setItems((prev) =>
+      prev.filter((w) => {
+        const sameId = w.id && item.id && String(w.id) === String(item.id);
+        const sameWord = w.word && item.word && (w.word || "").toLowerCase().trim() === (item.word || "").toLowerCase().trim();
+        return !sameId && !sameWord;
+      })
+    );
+
+    // 2. Blacklist in localStorage so curated base won't restore it on next reload
+    markVocabWordDeleted(item);
+
+    // 3. Decrement user vocabulary stats
+    recordWordDeleted(1, user);
+
+    // 4. Adjust card index if user is currently on flashcards
+    setCardIndex((prev) => Math.max(0, prev > 0 ? prev - 1 : 0));
+
+    // 5. Call backend if id exists and is not a static local curated id
+    if (item.id && (typeof item.id === "number" || !String(item.id).startsWith("v"))) {
+      vocabularyService.remove(item.id).catch(() => {});
+    }
+
+    toast.success(`"${wordName}" removed from your vocabulary.`);
   };
 
   const handleMasterWord = async (item) => {
@@ -315,6 +418,7 @@ export function Vocabulary() {
     setShowMistakes(false);
     setEarnedXP(0);
 
+    const deletedSet = getDeletedVocabSet();
     const allPools = [
       ...items,
       ...CURRICULUM_DATA["1st Std"],
@@ -329,8 +433,9 @@ export function Vocabulary() {
     const uniquePool = [];
     const seenWords = new Set();
     for (const w of allPools) {
-      if (w.word && !seenWords.has(w.word.toLowerCase().trim())) {
-        seenWords.add(w.word.toLowerCase().trim());
+      const wKey = (w.word || "").toLowerCase().trim();
+      if (wKey && !seenWords.has(wKey) && !deletedSet.has(wKey)) {
+        seenWords.add(wKey);
         uniquePool.push(w);
       }
     }
@@ -482,10 +587,10 @@ export function Vocabulary() {
             <span className="p-2.5 rounded-2xl bg-indigo-500/15 text-[#6C63FF] text-2xl shadow-sm">
               📚
             </span>
-            Vocabulary Master
+            Vocabulary Builder
           </h1>
           <p className="text-[var(--text-secondary)] mt-1 font-semibold text-sm">
-            {userProfileTitle} • 3D Flashcards & Interactive AI Quizzes
+            {userProfileTitle} • Interactive Practice Cards & AI Quizzes
           </p>
         </div>
 
@@ -499,12 +604,12 @@ export function Vocabulary() {
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            📖 My List
+            📖 Word Bank
           </button>
           <button
             onClick={() => {
               if (!filteredItems.length) {
-                toast.warning("Please add vocabulary words to start flashcards.");
+                toast.warning("Please add vocabulary words to start practice cards.");
                 return;
               }
               setCardIndex(0);
@@ -517,7 +622,7 @@ export function Vocabulary() {
                 : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             }`}
           >
-            🃏 3D Flashcards
+            🎴 Practice Cards
           </button>
           <button
             onClick={startQuiz}
@@ -648,6 +753,26 @@ export function Vocabulary() {
                         >
                           {item.favorite ? "⭐" : "☆"}
                         </button>
+                        <button
+                          onClick={(e) => handleDeleteWord(item, e)}
+                          className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 hover:text-rose-600 flex items-center justify-center hover:scale-105 transition-all text-xs shadow-sm border border-rose-500/20"
+                          title="Delete Word"
+                          aria-label={`Delete ${item.word}`}
+                        >
+                          <svg
+                            className="w-3.5 h-3.5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                            />
+                          </svg>
+                        </button>
                       </div>
                     </div>
 
@@ -686,12 +811,35 @@ export function Vocabulary() {
             <span className="bg-indigo-500/15 text-[#6C63FF] px-3 py-1 rounded-xl font-extrabold text-xs border border-indigo-500/20">
               CARD {cardIndex + 1} OF {filteredItems.length}
             </span>
-            <button
-              onClick={() => toggleFavorite(currentCard)}
-              className="text-2xl hover:scale-110 transition-all p-1 text-amber-500"
-            >
-              {currentCard.favorite ? "⭐" : "☆"}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => toggleFavorite(currentCard)}
+                className="text-2xl hover:scale-110 transition-all p-1 text-amber-500"
+                title="Toggle Favorite"
+              >
+                {currentCard.favorite ? "⭐" : "☆"}
+              </button>
+              <button
+                onClick={(e) => handleDeleteWord(currentCard, e)}
+                className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500/20 hover:text-rose-600 flex items-center justify-center hover:scale-105 transition-all text-xs border border-rose-500/20 shadow-sm"
+                title="Delete Word"
+                aria-label={`Delete ${currentCard.word}`}
+              >
+                <svg
+                  className="w-3.5 h-3.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Progress Bar */}

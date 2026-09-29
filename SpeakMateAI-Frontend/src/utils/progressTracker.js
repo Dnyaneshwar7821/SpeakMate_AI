@@ -396,6 +396,14 @@ export const recordWordAdded = (count = 1, userContext = null) => {
   return stats;
 };
 
+// 4b. Record Word Deleted
+export const recordWordDeleted = (count = 1, userContext = null) => {
+  const stats = getLiveProgressStats(userContext);
+  stats.wordsLearned = Math.max(0, (stats.wordsLearned || 0) - count);
+  saveProgressStats(stats, userContext);
+  return stats;
+};
+
 // 5. Record AI Chat Message (+5 XP)
 export const recordChatMessage = (count = 1, userContext = null) => {
   const stats = getLiveProgressStats(userContext);
