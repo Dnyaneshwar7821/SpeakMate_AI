@@ -14,9 +14,14 @@
   1. Fetch/check `origin/develop` and `origin/main`.
   2. Pull latest `develop` into the local branch (`git pull origin develop`).
   3. Merge team changes with current changes so `main` has everything.
-  4. Push to `main`.
-  5. Merge and push `main` back into `develop` (`git checkout develop && git merge main && git push origin develop`).
+  4. Push to `main` on `origin` (`git push origin main`).
+  5. Merge and push `main` back into `develop` on `origin` (`git checkout develop && git merge main && git push origin develop`).
+  6. Push both `main` and `develop` to `backup` repo (`git push backup main develop`).
+- **Backup Repository Policy:**
+  - `backup` repository strictly maintains **only 2 branches**: `main` and `develop`. Never push or add any feature/individual branches to `backup`.
+- **Teammate / Feature Branches (`ayush`, `kaushtubh`, `nandini`, etc.):**
+  - Do NOT push to these branches during regular work. They will receive consolidated updates only at the end of the project.
 - **Preserve Team Changes:**
   - Never `--force` push or `git reset --hard` to overwrite `develop` or `main`.
   - Keep all team commits intact alongside incoming changes.
-  - Both branches must end up 100% in sync every time.
+  - Both branches (`main` and `develop`) must end up 100% in sync on both `origin` and `backup` every time.
