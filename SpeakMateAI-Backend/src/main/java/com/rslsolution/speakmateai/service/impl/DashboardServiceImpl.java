@@ -641,7 +641,15 @@ public class DashboardServiceImpl implements DashboardService {
 	@Override
 	public StatisticsResponse getStatistics() {
 		User user = getCurrentUser();
-		List<SpeakingSession> completedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
+		List<SpeakingSession> rawCompletedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
+		List<SpeakingSession> completedSessions = (rawCompletedSessions != null)
+				? rawCompletedSessions.stream()
+						.filter(s -> s != null && Boolean.TRUE.equals(s.getCompleted())
+								&& (s.getDuration() != null && s.getDuration() > 0)
+								&& (s.getOverallScore() == null || s.getOverallScore() > 0)
+								&& (s.getFeedback() == null || !s.getFeedback().contains("no speaking activity")))
+						.toList()
+				: List.of();
 		List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
 		List<GrammarHistory> grammars = grammarHistoryRepository.findByUser(user);
 		Progress progress = progressRepository.findByUser(user).orElse(null);

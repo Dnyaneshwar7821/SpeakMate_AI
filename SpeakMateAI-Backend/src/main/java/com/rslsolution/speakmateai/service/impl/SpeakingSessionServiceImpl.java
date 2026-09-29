@@ -1149,7 +1149,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		session.setFluencyScore(fluencyScore);
 		session.setPronunciationScore(pronunciationScore);
 		session.setFeedback(summary);
-		session.setCompleted(true);
+		boolean isLegitimateSession = userMessageCount > 0 && userWordCount > 0 && xp > 0;
+		session.setCompleted(isLegitimateSession);
 		speakingSessionRepository.save(session);
 
 		// Update user's progress ONLY if the user actively practiced (XP > 0)
@@ -1233,6 +1234,10 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		}
 		List<SpeakingSession> sessions = speakingSessionRepository.findByUserIdAndCompletedTrueOrderByCreatedAtDesc(user.getId());
 		return sessions.stream()
+				.filter(s -> s != null && Boolean.TRUE.equals(s.getCompleted())
+						&& (s.getDuration() != null && s.getDuration() > 0)
+						&& (s.getOverallScore() == null || s.getOverallScore() > 0)
+						&& (s.getFeedback() == null || !s.getFeedback().contains("no speaking activity")))
 				.map(s -> {
 					String preview = "";
 					if (s.getFeedback() != null && !s.getFeedback().isBlank()) {

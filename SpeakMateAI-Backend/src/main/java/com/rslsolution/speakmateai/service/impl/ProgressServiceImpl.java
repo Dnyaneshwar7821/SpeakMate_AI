@@ -115,6 +115,18 @@ public class ProgressServiceImpl implements ProgressService {
 		if (liveSpeakingSessions == 0) {
 			liveSpeakingSessions = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
 		}
+		List<SpeakingSession> rawSpeaking = speakingSessionRepository.findByUserIdAndCompletedTrueOrderByCreatedAtDesc(user.getId());
+		if (rawSpeaking == null || rawSpeaking.isEmpty()) {
+			rawSpeaking = speakingSessionRepository.findByUserAndCompletedTrue(user);
+		}
+		if (rawSpeaking != null && !rawSpeaking.isEmpty()) {
+			liveSpeakingSessions = (int) rawSpeaking.stream()
+					.filter(s -> s != null && Boolean.TRUE.equals(s.getCompleted())
+							&& (s.getDuration() != null && s.getDuration() > 0)
+							&& (s.getOverallScore() == null || s.getOverallScore() > 0)
+							&& (s.getFeedback() == null || !s.getFeedback().contains("no speaking activity")))
+					.count();
+		}
 		int liveVocabWords = (int) vocabularyRepository.countByUserId(user.getId());
 		if (liveVocabWords == 0) {
 			liveVocabWords = (int) vocabularyRepository.countByUser(user);
@@ -311,8 +323,19 @@ public class ProgressServiceImpl implements ProgressService {
 
 		if (speakingSessionRepository != null) {
 			liveSpeakingSessions = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
-			List<SpeakingSession> completedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
-			if (completedSessions != null) {
+			List<SpeakingSession> rawCompletedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
+			List<SpeakingSession> completedSessions = (rawCompletedSessions != null)
+					? rawCompletedSessions.stream()
+							.filter(s -> s != null && Boolean.TRUE.equals(s.getCompleted())
+									&& (s.getDuration() != null && s.getDuration() > 0)
+									&& (s.getOverallScore() == null || s.getOverallScore() > 0)
+									&& (s.getFeedback() == null || !s.getFeedback().contains("no speaking activity")))
+							.toList()
+					: List.of();
+			if (!completedSessions.isEmpty()) {
+				liveSpeakingSessions = completedSessions.size();
+			}
+			if (!completedSessions.isEmpty()) {
 				for (SpeakingSession s : completedSessions) {
 					int duration = s.getDuration() != null ? s.getDuration() : 0;
 					speakingMinutes += (int) Math.max(1, Math.ceil(duration / 60.0));

@@ -252,7 +252,7 @@ export function SpeakingPractice() {
     try {
       const rawHistory = await speakingService.history().catch(() => []);
       const validHistory = Array.isArray(rawHistory)
-        ? rawHistory.filter(item => item && (item.completed === true || item.status === 'COMPLETED' || (item.duration && item.duration > 0 && (item.overallScore > 0 || item.score > 0))))
+        ? rawHistory.filter(item => item && (Number(item.overallScore || item.score || 0) > 0) && !String(item.previewMessage || '').includes('no speaking activity'))
         : [];
       setHistory(validHistory);
       setCachedSpeakingHistory(validHistory);
