@@ -14,6 +14,8 @@ import { setLogoutCallback, setAuthToken, clearAuthToken } from "../api/api";
 import { STORAGE_KEYS } from "../utils/storageKeys";
 import { DashboardCache, CurriculumCache } from "../utils/dashboardCache";
 import { normalizeGradeKey } from "../constants/masterCurriculum";
+import { dashboardService } from "../services/appServices";
+import { subscriptionService } from "../services/subscriptionService";
 
 export const AuthContext = createContext();
 
@@ -132,6 +134,21 @@ export const AuthProvider = ({ children }) => {
             ? AsyncStorage.setItem(`speakmate_onboarding_${userEmail}`, "true")
             : Promise.resolve(),
         ]);
+
+        // Pre-fetch dashboard summary so DashboardScreen has instant data on startup
+        if (nextOnboardingCompleted && enrichedUser) {
+          const userId = enrichedUser.id || enrichedUser._id;
+          try {
+            const prefetchPromise = dashboardService.summary();
+            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2000));
+            const dashboardData = await Promise.race([prefetchPromise, timeoutPromise]);
+            if (dashboardData) {
+              DashboardCache.set(dashboardData, userId);
+            }
+          } catch (e) {
+            console.warn("Mobile restoreSession dashboard prefetch note:", e);
+          }
+        }
 
         // Batch all state updates together synchronously (no async gap)
         setToken(storedToken);
@@ -294,6 +311,21 @@ export const AuthProvider = ({ children }) => {
         ]);
 
         await syncUserProfile(response.user);
+
+        // Approach 1: Pre-fetch dashboard summary while login spinner is active so DashboardScreen renders real data immediately
+        if (nextOnboardingCompleted && response.user) {
+          const userId = response.user.id || response.user._id;
+          try {
+            const prefetchPromise = dashboardService.summary();
+            const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2500));
+            const dashboardData = await Promise.race([prefetchPromise, timeoutPromise]);
+            if (dashboardData) {
+              DashboardCache.set(dashboardData, userId);
+            }
+          } catch (e) {
+            console.warn("Mobile dashboard prefetch note:", e);
+          }
+        }
 
         // Synchronous batch update in the exact same microtask:
         setToken(response.token);
