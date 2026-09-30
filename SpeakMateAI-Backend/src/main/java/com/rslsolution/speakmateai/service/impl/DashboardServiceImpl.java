@@ -114,15 +114,11 @@ public class DashboardServiceImpl implements DashboardService {
 		Progress progress = progressRepository.findByUserId(user.getId())
 				.or(() -> progressRepository.findByUser(user))
 				.orElse(null);
-
-		// Single fetch of user's speaking sessions ordered by newest first
-		List<SpeakingSession> userSessions = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
-		List<SpeakingSession> completedSessions = userSessions.stream()
-				.filter(s -> Boolean.TRUE.equals(s.getCompleted()))
-				.toList();
-
 		if (progress != null) {
-			int completedCount = completedSessions.size();
+			int completedCount = (int) speakingSessionRepository.countByUserIdAndCompletedTrue(user.getId());
+			if (completedCount == 0) {
+				completedCount = (int) speakingSessionRepository.countByUserAndCompletedTrue(user);
+			}
 			if (progress.getTotalSpeakingSessions() == null || !progress.getTotalSpeakingSessions().equals(completedCount)) {
 				progress.setTotalSpeakingSessions(completedCount);
 				progress = progressRepository.save(progress);
@@ -139,16 +135,18 @@ public class DashboardServiceImpl implements DashboardService {
 		else rank = "Gold I";
 
 		// 1. ProfileResponse
-		Onboarding onboarding = (onboardingRepository != null) ? onboardingRepository.findByUser(user).orElse(null) : null;
 		String effectiveGrade = user.getSchoolGrade();
 		String effectiveAge = user.getAgeGroup();
-		if (onboarding != null) {
-			if (effectiveGrade == null || effectiveGrade.trim().isEmpty()) {
-				effectiveGrade = onboarding.getSchoolGrade();
-			}
-			if (effectiveAge == null || effectiveAge.trim().isEmpty() || "Professional".equalsIgnoreCase(effectiveAge)) {
-				if (onboarding.getAgeGroup() != null && !onboarding.getAgeGroup().trim().isEmpty()) {
-					effectiveAge = onboarding.getAgeGroup();
+		if (onboardingRepository != null) {
+			java.util.Optional<com.rslsolution.speakmateai.entity.Onboarding> ob = onboardingRepository.findByUser(user);
+			if (ob.isPresent()) {
+				if (effectiveGrade == null || effectiveGrade.trim().isEmpty()) {
+					effectiveGrade = ob.get().getSchoolGrade();
+				}
+				if (effectiveAge == null || effectiveAge.trim().isEmpty() || "Professional".equalsIgnoreCase(effectiveAge)) {
+					if (ob.get().getAgeGroup() != null && !ob.get().getAgeGroup().trim().isEmpty()) {
+						effectiveAge = ob.get().getAgeGroup();
+					}
 				}
 			}
 		}
@@ -185,14 +183,21 @@ public class DashboardServiceImpl implements DashboardService {
 				.build();
 
 		// 2. ProgressResponse
-		int distinctScenarios = (int) completedSessions.stream()
-				.map(s -> {
-					String sc = s.getScenario() != null && !s.getScenario().trim().isEmpty() ? s.getScenario() : s.getTopic();
-					return sc != null ? sc.trim().toLowerCase() : "";
-				})
-				.filter(sc -> !sc.isEmpty())
-				.distinct()
-				.count();
+		int distinctScenarios = 0;
+		if (speakingSessionRepository != null && user != null) {
+			List<SpeakingSession> completed = speakingSessionRepository.findByUserIdAndCompletedTrueOrderByCreatedAtDesc(user.getId());
+			if (completed.isEmpty()) {
+				completed = speakingSessionRepository.findByUserAndCompletedTrue(user);
+			}
+			distinctScenarios = (int) completed.stream()
+					.map(s -> {
+						String sc = s.getScenario() != null && !s.getScenario().trim().isEmpty() ? s.getScenario() : s.getTopic();
+						return sc != null ? sc.trim().toLowerCase() : "";
+					})
+					.filter(sc -> !sc.isEmpty())
+					.distinct()
+					.count();
+		}
 
 		ProgressResponse progressRes = null;
 		if (progress != null) {
@@ -229,34 +234,26 @@ public class DashboardServiceImpl implements DashboardService {
 					.build();
 		}
 
-		// Single fetch of user's vocabs, grammars, and lesson progress
-		List<Vocabulary> userVocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(user);
-		List<GrammarHistory> userGrammars = grammarHistoryRepository.findByUserOrderByCreatedAtDesc(user);
-		List<LessonProgress> userProgressList = lessonProgressRepository.findByUserId(user.getId());
-		if (userProgressList.isEmpty()) {
-			userProgressList = lessonProgressRepository.findByUser(user);
-		}
-		List<LessonProgress> userCompletedLessons = userProgressList.stream()
-				.filter(p -> Boolean.TRUE.equals(p.getCompleted()))
-				.toList();
+		// 3. DailyGoalResponse
+		DailyGoalResponse dailyGoalRes = getDailyGoal();
 
-		// 3. DailyGoalResponse (computed in-memory)
-		DailyGoalResponse dailyGoalRes = computeDailyGoal(user, userSessions, userVocabs, onboarding, userCompletedLessons);
+		// 4. WeeklyProgressResponse
+		List<WeeklyProgressResponse> weeklyProgressRes = getWeeklyProgress();
 
-		// 4. WeeklyProgressResponse (computed in-memory)
-		List<WeeklyProgressResponse> weeklyProgressRes = computeRhythmProgress(userSessions, userCompletedLessons, 7);
-
-		// 5. StatisticsResponse (computed in-memory)
-		StatisticsResponse statisticsRes = computeStatistics(user, completedSessions, userVocabs, userGrammars, userCompletedLessons, progress);
+		// 5. StatisticsResponse
+		StatisticsResponse statisticsRes = getStatistics();
 
 		// 6. QuoteResponse
 		QuoteResponse quoteRes = getQuote();
 
-		// 7. RecentActivityResponse (computed in-memory)
-		List<ChatHistory> userChats = chatHistoryRepository.findByUser(user);
-		List<RecentActivityResponse> recentActivityRes = computeRecentActivity(completedSessions, userVocabs, userGrammars, userChats);
+		// 7. RecentActivityResponse
+		List<RecentActivityResponse> recentActivityRes = getRecentActivity();
 
 		// 8. Active and Upcoming Lessons
+		List<LessonProgress> userProgressList = lessonProgressRepository.findByUserId(user.getId());
+		if (userProgressList.isEmpty()) {
+			userProgressList = lessonProgressRepository.findByUser(user);
+		}
 		Map<Long, LessonProgress> progressMap = userProgressList.stream()
 				.collect(Collectors.toMap(p -> p.getLesson().getId(), p -> p, (a, b) -> a));
 
@@ -306,11 +303,12 @@ public class DashboardServiceImpl implements DashboardService {
 				.limit(3)
 				.toList();
 
-		// 11. ContinueLearningResponse (Priority check using already-loaded lists)
+		// 11. ContinueLearningResponse (Priority check)
 		ContinueLearningResponse continueLearning = null;
 
 		// Priority 1: Speaking Session in progress
-		SpeakingSession activeSession = userSessions.stream()
+		List<SpeakingSession> sessionsList = speakingSessionRepository.findByUserOrderByCreatedAtDesc(user);
+		SpeakingSession activeSession = sessionsList.stream()
 				.filter(s -> s.getOverallScore() == null || s.getOverallScore() == 0.0 || s.getDuration() == 0)
 				.findFirst()
 				.orElse(null);
@@ -330,48 +328,49 @@ public class DashboardServiceImpl implements DashboardService {
 		// Priority 2: Lesson in progress
 		if (continueLearning == null) {
 			List<LessonProgress> inProgressLessons = userProgressList.stream()
-					.filter(p -> !Boolean.TRUE.equals(p.getCompleted()) && p.getProgressPercent() != null && p.getProgressPercent() > 0 && p.getProgressPercent() < 100)
-					.sorted((a, b) -> {
-						if (a.getLastOpenedAt() == null && b.getLastOpenedAt() == null) return 0;
-						if (a.getLastOpenedAt() == null) return 1;
-						if (b.getLastOpenedAt() == null) return -1;
-						return b.getLastOpenedAt().compareTo(a.getLastOpenedAt());
-					})
+					.filter(p -> !Boolean.TRUE.equals(p.getCompleted()) && p.getProgressPercent() > 0 && p.getProgressPercent() < 100)
+					.sorted((a, b) -> b.getLastOpenedAt().compareTo(a.getLastOpenedAt()))
 					.toList();
 
 			if (!inProgressLessons.isEmpty()) {
 				LessonProgress lp = inProgressLessons.get(0);
-				int est = (lp.getLesson() != null && lp.getLesson().getEstimatedMinutes() != null) ? lp.getLesson().getEstimatedMinutes() : 10;
+				int est = lp.getLesson().getEstimatedMinutes() != null ? lp.getLesson().getEstimatedMinutes() : 10;
 				continueLearning = ContinueLearningResponse.builder()
 						.module("Lesson")
-						.title(lp.getLesson() != null ? lp.getLesson().getTitle() : "Lesson")
+						.title(lp.getLesson().getTitle())
 						.progressPercent(lp.getProgressPercent())
 						.estimatedMinutesRemaining(Math.max(1, (int) Math.round((100 - lp.getProgressPercent()) / 100.0 * est)))
-						.targetId(lp.getLesson() != null ? lp.getLesson().getId() : null)
+						.targetId(lp.getLesson().getId())
 						.build();
 			}
 		}
 
 		// Priority 3: Vocabulary Quiz (if they have vocabulary words)
-		if (continueLearning == null && !userVocabs.isEmpty()) {
-			continueLearning = ContinueLearningResponse.builder()
-					.module("Vocabulary Quiz")
-					.title("Review Saved Words (" + userVocabs.size() + " words)")
-					.progressPercent(0)
-					.estimatedMinutesRemaining(3)
-					.targetId(null)
-					.build();
+		if (continueLearning == null) {
+			List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
+			if (!vocabs.isEmpty()) {
+				continueLearning = ContinueLearningResponse.builder()
+						.module("Vocabulary Quiz")
+						.title("Review Saved Words (" + vocabs.size() + " words)")
+						.progressPercent(0)
+						.estimatedMinutesRemaining(3)
+						.targetId(null)
+						.build();
+			}
 		}
 
 		// Priority 4: Grammar Exercise (if they have grammar check history)
-		if (continueLearning == null && !userGrammars.isEmpty()) {
-			continueLearning = ContinueLearningResponse.builder()
-					.module("Grammar Exercise")
-					.title("Review Grammar Corrections")
-					.progressPercent(0)
-					.estimatedMinutesRemaining(4)
-					.targetId(null)
-					.build();
+		if (continueLearning == null) {
+			List<GrammarHistory> grammars = grammarHistoryRepository.findByUser(user);
+			if (!grammars.isEmpty()) {
+				continueLearning = ContinueLearningResponse.builder()
+						.module("Grammar Exercise")
+						.title("Review Grammar Corrections")
+						.progressPercent(0)
+						.estimatedMinutesRemaining(4)
+						.targetId(null)
+						.build();
+			}
 		}
 
 		// Priority 5: AI Chat in progress
@@ -497,24 +496,31 @@ public class DashboardServiceImpl implements DashboardService {
 				.build();
 	}
 
-	private DailyGoalResponse computeDailyGoal(User user, List<SpeakingSession> sessions, List<Vocabulary> vocabs, Onboarding onboarding, List<LessonProgress> completedLessons) {
+	@Override
+	public DailyGoalResponse getDailyGoal() {
+		User user = getCurrentUser();
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
+		List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
+		Onboarding onboarding = onboardingRepository.findByUser(user).orElse(null);
+
 		LocalDate today = LocalDate.now();
 
-		List<SpeakingSession> todaySessions = sessions != null ? sessions.stream()
+		List<SpeakingSession> todaySessions = sessions.stream()
 				.filter(s -> s.getCreatedAt() != null && s.getCreatedAt().toLocalDate().isEqual(today))
-				.toList() : List.of();
+				.toList();
 
 		int totalSecondsToday = todaySessions.stream().mapToInt(s -> s.getDuration() != null ? s.getDuration() : 0).sum();
 		int speakingMinutesToday = (int) Math.ceil(totalSecondsToday / 60.0);
-
-		int lessonsCompletedToday = (int) (completedLessons != null ? completedLessons.stream()
+		
+		List<LessonProgress> userCompletedLessons = lessonProgressRepository.findByUserAndCompleted(user, true);
+		int lessonsCompletedToday = (int) userCompletedLessons.stream()
 				.filter(lp -> (lp.getCompletedAt() != null && lp.getCompletedAt().toLocalDate().isEqual(today))
 						|| (lp.getUpdatedAt() != null && lp.getUpdatedAt().toLocalDate().isEqual(today)))
-				.count() : 0);
+				.count();
 
-		long vocabularyCompleted = vocabs != null ? vocabs.stream()
+		long vocabularyCompleted = vocabs.stream()
 				.filter(v -> v.getCreatedAt() != null && v.getCreatedAt().toLocalDate().isEqual(today))
-				.count() : 0;
+				.count();
 
 		int dailyGoalMinutes = (onboarding != null && onboarding.getDailyGoalMinutes() != null)
 				? onboarding.getDailyGoalMinutes()
@@ -541,21 +547,13 @@ public class DashboardServiceImpl implements DashboardService {
 	}
 
 	@Override
-	public DailyGoalResponse getDailyGoal() {
-		User user = getCurrentUser();
-		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
-		List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
-		Onboarding onboarding = (onboardingRepository != null) ? onboardingRepository.findByUser(user).orElse(null) : null;
-		List<LessonProgress> userCompletedLessons = lessonProgressRepository.findByUserAndCompleted(user, true);
-		return computeDailyGoal(user, sessions, vocabs, onboarding, userCompletedLessons);
-	}
-
-	@Override
 	public List<WeeklyProgressResponse> getWeeklyProgress() {
 		return getRhythmProgress(7);
 	}
 
-	private List<WeeklyProgressResponse> computeRhythmProgress(List<SpeakingSession> sessions, List<LessonProgress> completedLessons, int days) {
+	@Override
+	public List<WeeklyProgressResponse> getRhythmProgress(int days) {
+		User user = getCurrentUser();
 		int totalDays = days > 0 ? (days <= 30 ? days : 30) : 7;
 		LocalDate today = LocalDate.now();
 
@@ -598,34 +596,33 @@ public class DashboardServiceImpl implements DashboardService {
 		LocalDate rangeStart = rhythmList.get(0).getDate() != null ? LocalDate.parse(rhythmList.get(0).getDate()) : today.minusDays(totalDays);
 		LocalDate rangeEnd = rhythmList.get(rhythmList.size() - 1).getDate() != null ? LocalDate.parse(rhythmList.get(rhythmList.size() - 1).getDate()) : today;
 
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
+		List<LessonProgress> completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true);
+
 		Map<LocalDate, Integer> secondsMap = new HashMap<>();
 
-		if (sessions != null) {
-			for (SpeakingSession s : sessions) {
-				boolean isValid = Boolean.TRUE.equals(s.getCompleted()) && ((s.getScore() != null && s.getScore() > 0) || (s.getXpEarned() != null && s.getXpEarned() > 0) || (s.getDuration() != null && s.getDuration() >= 15));
-				if (!isValid) continue;
-				if (s.getCreatedAt() != null) {
-					LocalDate date = s.getCreatedAt().toLocalDate();
-					if (!date.isBefore(rangeStart) && !date.isAfter(rangeEnd)) {
-						WeeklyProgressResponse entry = dateMap.get(date);
-						if (entry != null) {
-							int dur = s.getDuration() != null ? s.getDuration() : 0;
-							secondsMap.put(date, secondsMap.getOrDefault(date, 0) + dur);
-							entry.setSpeakingSessions(entry.getSpeakingSessions() + 1);
-						}
+		for (SpeakingSession s : sessions) {
+			boolean isValid = Boolean.TRUE.equals(s.getCompleted()) && ((s.getScore() != null && s.getScore() > 0) || (s.getXpEarned() != null && s.getXpEarned() > 0) || (s.getDuration() != null && s.getDuration() >= 15));
+			if (!isValid) continue;
+			if (s.getCreatedAt() != null) {
+				LocalDate date = s.getCreatedAt().toLocalDate();
+				if (!date.isBefore(rangeStart) && !date.isAfter(rangeEnd)) {
+					WeeklyProgressResponse entry = dateMap.get(date);
+					if (entry != null) {
+						int dur = s.getDuration() != null ? s.getDuration() : 0;
+						secondsMap.put(date, secondsMap.getOrDefault(date, 0) + dur);
+						entry.setSpeakingSessions(entry.getSpeakingSessions() + 1);
 					}
 				}
 			}
 		}
 
-		if (completedLessons != null) {
-			for (LessonProgress lp : completedLessons) {
-				LocalDate date = lp.getCompletedAt() != null ? lp.getCompletedAt().toLocalDate() : (lp.getUpdatedAt() != null ? lp.getUpdatedAt().toLocalDate() : null);
-				if (date != null && !date.isBefore(rangeStart) && !date.isAfter(rangeEnd)) {
-					WeeklyProgressResponse entry = dateMap.get(date);
-					if (entry != null) {
-						entry.setLessonsCompleted(entry.getLessonsCompleted() + 1);
-					}
+		for (LessonProgress lp : completedLessons) {
+			LocalDate date = lp.getCompletedAt() != null ? lp.getCompletedAt().toLocalDate() : (lp.getUpdatedAt() != null ? lp.getUpdatedAt().toLocalDate() : null);
+			if (date != null && !date.isBefore(rangeStart) && !date.isAfter(rangeEnd)) {
+				WeeklyProgressResponse entry = dateMap.get(date);
+				if (entry != null) {
+					entry.setLessonsCompleted(entry.getLessonsCompleted() + 1);
 				}
 			}
 		}
@@ -642,14 +639,9 @@ public class DashboardServiceImpl implements DashboardService {
 	}
 
 	@Override
-	public List<WeeklyProgressResponse> getRhythmProgress(int days) {
+	public StatisticsResponse getStatistics() {
 		User user = getCurrentUser();
-		List<SpeakingSession> sessions = speakingSessionRepository.findByUser(user);
-		List<LessonProgress> completedLessons = lessonProgressRepository.findByUserAndCompleted(user, true);
-		return computeRhythmProgress(sessions, completedLessons, days);
-	}
-
-	private StatisticsResponse computeStatistics(User user, List<SpeakingSession> rawCompletedSessions, List<Vocabulary> vocabs, List<GrammarHistory> grammars, List<LessonProgress> completedLessonProgress, Progress progress) {
+		List<SpeakingSession> rawCompletedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
 		List<SpeakingSession> completedSessions = (rawCompletedSessions != null)
 				? rawCompletedSessions.stream()
 						.filter(s -> s != null && Boolean.TRUE.equals(s.getCompleted())
@@ -658,10 +650,20 @@ public class DashboardServiceImpl implements DashboardService {
 								&& (s.getFeedback() == null || !s.getFeedback().contains("no speaking activity")))
 						.toList()
 				: List.of();
+		List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
+		List<GrammarHistory> grammars = grammarHistoryRepository.findByUser(user);
+		Progress progress = progressRepository.findByUser(user).orElse(null);
 
 		// Every user's personalized curriculum track consists of exactly 20 lessons
 		int totalLessons = 20;
-		int completedLessons = Math.min(totalLessons, completedLessonProgress != null ? completedLessonProgress.size() : 0);
+		int completedLessons = 0;
+		if (user != null && user.getId() != null) {
+			List<LessonProgress> comp = lessonProgressRepository.findByUserIdAndCompleted(user.getId(), true);
+			if (comp.isEmpty()) {
+				comp = lessonProgressRepository.findByUserAndCompleted(user, true);
+			}
+			completedLessons = Math.min(totalLessons, comp.size());
+		}
 		int speakingSessions = completedSessions.size();
 		int distinctScenarios = (int) completedSessions.stream()
 				.map(s -> {
@@ -671,8 +673,8 @@ public class DashboardServiceImpl implements DashboardService {
 				.filter(sc -> !sc.isEmpty())
 				.distinct()
 				.count();
-		int vocabularyLearned = progress != null && progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : (vocabs != null ? vocabs.size() : 0);
-		int grammarExercises = progress != null && progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : (grammars != null ? grammars.size() : 0);
+		int vocabularyLearned = progress != null && progress.getTotalVocabularyWords() != null ? progress.getTotalVocabularyWords() : vocabs.size();
+		int grammarExercises = progress != null && progress.getTotalGrammarChecks() != null ? progress.getTotalGrammarChecks() : grammars.size();
 
 		int totalPracticeSeconds = completedSessions.stream().mapToInt(s -> s.getDuration() != null ? s.getDuration() : 0).sum();
 		double totalStudyHours = Math.round((totalPracticeSeconds / 3600.0) * 10.0) / 10.0;
@@ -702,23 +704,6 @@ public class DashboardServiceImpl implements DashboardService {
 	}
 
 	@Override
-	public StatisticsResponse getStatistics() {
-		User user = getCurrentUser();
-		List<SpeakingSession> rawCompletedSessions = speakingSessionRepository.findByUserAndCompletedTrue(user);
-		List<Vocabulary> vocabs = vocabularyRepository.findByUser(user);
-		List<GrammarHistory> grammars = grammarHistoryRepository.findByUser(user);
-		Progress progress = progressRepository.findByUser(user).orElse(null);
-
-		List<LessonProgress> comp = (user != null && user.getId() != null)
-				? lessonProgressRepository.findByUserIdAndCompleted(user.getId(), true)
-				: List.of();
-		if (comp.isEmpty() && user != null) {
-			comp = lessonProgressRepository.findByUserAndCompleted(user, true);
-		}
-		return computeStatistics(user, rawCompletedSessions, vocabs, grammars, comp, progress);
-	}
-
-	@Override
 	public QuoteResponse getQuote() {
 		String[][] quotes = {
 				{"The secret of getting ahead is getting started.", "Mark Twain"},
@@ -736,82 +721,65 @@ public class DashboardServiceImpl implements DashboardService {
 				.build();
 	}
 
-	private List<RecentActivityResponse> computeRecentActivity(List<SpeakingSession> completedSessions, List<Vocabulary> vocabs, List<GrammarHistory> grammars, List<ChatHistory> chats) {
+	@Override
+	public List<RecentActivityResponse> getRecentActivity() {
+		User user = getCurrentUser();
 		List<RecentActivityResponse> activities = new ArrayList<>();
 
-		if (completedSessions != null) {
-			for (SpeakingSession s : completedSessions.stream().limit(10).toList()) {
-				activities.add(RecentActivityResponse.builder()
-						.id("speaking-" + s.getId())
-						.type("speaking")
-						.icon("mic")
-						.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
-						.time(s.getCreatedAt())
-						.xp(s.getXpEarned() != null && s.getXpEarned() > 0 ? s.getXpEarned() : 15)
-						.build());
-			}
+		List<SpeakingSession> sessions = speakingSessionRepository.findByUserAndCompletedTrueOrderByCreatedAtDesc(user);
+		for (SpeakingSession s : sessions) {
+			activities.add(RecentActivityResponse.builder()
+					.id("speaking-" + s.getId())
+					.type("speaking")
+					.icon("mic")
+					.title(s.getTopic() != null ? "Speaking Session: " + s.getTopic() : "Speaking Session")
+					.time(s.getCreatedAt())
+					.xp(s.getXpEarned() != null && s.getXpEarned() > 0 ? s.getXpEarned() : 15)
+					.build());
 		}
 
-		if (vocabs != null) {
-			for (Vocabulary v : vocabs.stream().limit(10).toList()) {
-				activities.add(RecentActivityResponse.builder()
-						.id("vocabulary-" + v.getId())
-						.type("vocabulary")
-						.icon("library")
-						.title(v.getWord() != null ? "Vocabulary Practice: " + v.getWord() : "Vocabulary Practice")
-						.time(v.getCreatedAt())
-						.xp(8)
-						.build());
-			}
+		List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(user);
+		for (Vocabulary v : vocabs) {
+			activities.add(RecentActivityResponse.builder()
+					.id("vocabulary-" + v.getId())
+					.type("vocabulary")
+					.icon("library")
+					.title(v.getWord() != null ? "Vocabulary Practice: " + v.getWord() : "Vocabulary Practice")
+					.time(v.getCreatedAt())
+					.xp(8)
+					.build());
 		}
 
-		if (grammars != null) {
-			for (GrammarHistory g : grammars.stream().limit(10).toList()) {
-				activities.add(RecentActivityResponse.builder()
-						.id("grammar-" + g.getId())
-						.type("grammar")
-						.icon("text")
-						.title("Grammar Practice")
-						.time(g.getCreatedAt())
-						.xp(10)
-						.build());
-			}
+		List<GrammarHistory> grammars = grammarHistoryRepository.findByUserOrderByCreatedAtDesc(user);
+		for (GrammarHistory g : grammars) {
+			activities.add(RecentActivityResponse.builder()
+					.id("grammar-" + g.getId())
+					.type("grammar")
+					.icon("text")
+					.title("Grammar Practice")
+					.time(g.getCreatedAt())
+					.xp(10)
+					.build());
 		}
 
-		if (chats != null) {
-			for (ChatHistory c : chats.stream().limit(10).toList()) {
-				activities.add(RecentActivityResponse.builder()
-						.id("chat-" + c.getId())
-						.type("chat")
-						.icon("chatbubbles")
-						.title("AI Conversation")
-						.time(c.getCreatedAt())
-						.xp(6)
-						.build());
-			}
+		List<ChatHistory> chats = chatHistoryRepository.findByUser(user);
+		for (ChatHistory c : chats) {
+			activities.add(RecentActivityResponse.builder()
+					.id("chat-" + c.getId())
+					.type("chat")
+					.icon("chatbubbles")
+					.title("AI Conversation")
+					.time(c.getCreatedAt())
+					.xp(6)
+					.build());
 		}
 
-		activities.sort((a, b) -> {
-			if (a.getTime() == null && b.getTime() == null) return 0;
-			if (a.getTime() == null) return 1;
-			if (b.getTime() == null) return -1;
-			return b.getTime().compareTo(a.getTime());
-		});
+		activities.sort((a, b) -> b.getTime().compareTo(a.getTime()));
 
 		if (activities.size() > 10) {
 			return activities.subList(0, 10);
 		}
 		return activities;
-	}
-
-	@Override
-	public List<RecentActivityResponse> getRecentActivity() {
-		User user = getCurrentUser();
-		List<SpeakingSession> sessions = speakingSessionRepository.findByUserAndCompletedTrueOrderByCreatedAtDesc(user);
-		List<Vocabulary> vocabs = vocabularyRepository.findByUserOrderByCreatedAtDesc(user);
-		List<GrammarHistory> grammars = grammarHistoryRepository.findByUserOrderByCreatedAtDesc(user);
-		List<ChatHistory> chats = chatHistoryRepository.findByUser(user);
-		return computeRecentActivity(sessions, vocabs, grammars, chats);
 	}
 
 }

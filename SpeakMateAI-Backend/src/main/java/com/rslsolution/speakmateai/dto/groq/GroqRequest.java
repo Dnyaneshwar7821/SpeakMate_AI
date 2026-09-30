@@ -2,7 +2,6 @@ package com.rslsolution.speakmateai.dto.groq;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,25 +13,11 @@ public class GroqRequest {
 	private List<Message> messages;
 	private double temperature;
 
-	@JsonProperty("max_tokens")
-	private Integer maxTokens = 250;
-
 	public GroqRequest(String model, List<Message> messages, double temperature) {
 		this.model = model;
 		this.messages = messages;
 		this.temperature = temperature;
-		this.maxTokens = 250;
 	}
-
-	public GroqRequest(String model, List<Message> messages, double temperature, Integer maxTokens) {
-		this.model = model;
-		this.messages = messages;
-		this.temperature = temperature;
-		this.maxTokens = maxTokens != null ? maxTokens : 250;
-	}
-
-	public Integer getMaxTokens() { return maxTokens; }
-	public void setMaxTokens(Integer maxTokens) { this.maxTokens = maxTokens; }
 
 	public String getModel() { return model; }
 	public void setModel(String model) { this.model = model; }

@@ -260,7 +260,6 @@ export default function ConversationChatScreen({ navigation, route }) {
   }, [route.params?.avatarModel]);
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Long-press Actions Modal
   const [menuVisible, setMenuVisible] = useState(false);
@@ -277,36 +276,25 @@ export default function ConversationChatScreen({ navigation, route }) {
   const stoppingRef = useRef(false);
   const startingRef = useRef(false);
   const isRecordingRef = useRef(false);
-  const isSendingRef = useRef(false);
   const recordingSessionIdRef = useRef(0);
 
-  // Auto-collapse top avatar on keyboard show to maximize chat view & dynamically shift content above keyboard
+  // Auto-collapse top avatar on keyboard show to maximize chat view
   useEffect(() => {
-    const onShow = (e) => {
-      const h = e?.endCoordinates?.height || 0;
-      setKeyboardHeight(h);
-      setKeyboardVisible(true);
-      try {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      } catch (_) {}
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 280);
-    };
-
-    const onHide = () => {
-      setKeyboardHeight(0);
-      setKeyboardVisible(false);
-      try {
+        setKeyboardVisible(true);
+        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      } catch (_) {}
-    };
-
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSub = Keyboard.addListener(showEvent, onShow);
-    const hideSub = Keyboard.addListener(hideEvent, onHide);
-
+        setKeyboardVisible(false);
+      }
+    );
     return () => {
       showSub.remove();
       hideSub.remove();
@@ -491,35 +479,23 @@ export default function ConversationChatScreen({ navigation, route }) {
 
   const getSpeakableText = (msg) => {
     if (!msg) return '';
-    let raw = msg.message || '';
-    if (raw.includes('[REPLY]')) {
-      const match = raw.match(/\[REPLY\]\s*([\s\S]*?)(?=\[(?:EXPLANATION|FOLLOWUP|BETTER|GRAMMAR|VOCABULARY)\]|$)/i);
-      if (match && match[1]?.trim()) {
-        raw = match[1].trim();
+    let text = msg.message || '';
+    const isCorrect = msg.grammarCorrection && (msg.grammarCorrection.includes('✅') || msg.grammarCorrection.toLowerCase().includes('correct'));
+    if (msg.grammarCorrection && !isCorrect) {
+      text += `. A better way to say that is: "${msg.grammarCorrection}".`;
+      if (msg.explanation) {
+        text += ` ${msg.explanation}`;
+      }
+    } else if (msg.betterSentence) {
+      text += `. You could also express it as: "${msg.betterSentence}".`;
+      if (msg.explanation) {
+        text += ` ${msg.explanation}`;
       }
     }
-    // Remove markdown symbols, brackets, and bullet numbering
-    let text = raw
-      .replace(/\|.*\|/g, ' ')
-      .replace(/#+\s*/g, '')
-      .replace(/\*\*/g, '')
-      .replace(/\*/g, '')
-      .replace(/\[.*?\]/g, '')
-      .replace(/\(.*?\)/g, '')
-      .replace(/^[\s*\-•\d.]+/gm, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    // Limit to strictly 1–2 short conversational sentences (maximum ~35–45 words)
-    const sentences = text.match(/[^.!?]+[.!?]+|\S+/g) || [text];
-    if (sentences.length > 2) {
-      text = sentences.slice(0, 2).join(' ').trim();
+    if (msg.followUpQuestion) {
+      text += ` ${msg.followUpQuestion}`;
     }
-    const words = text.split(/\s+/);
-    if (words.length > 45) {
-      text = words.slice(0, 40).join(' ') + '...';
-    }
-    return text.trim();
+    return text;
   };
 
   const avatarGender = VoiceService.getAvatarGender(preferredVoice, onboardingVoiceStyle);
@@ -556,10 +532,40 @@ export default function ConversationChatScreen({ navigation, route }) {
     // Stop any in-flight voice immediately
     VoiceService.stop();
 
-    const mainReply = getSpeakableText(aiMsg);
-    if (!mainReply) return;
+    let mainReply = aiMsg.message || '';
+    if (aiMsg.followUpQuestion && !mainReply.includes(aiMsg.followUpQuestion)) {
+      mainReply += ` ${aiMsg.followUpQuestion}`;
+    }
 
-    // Speak ONLY the concise conversational tutor reply (1-2 sentences)
+    // Determine if there is a coaching tip to speak
+    const isGrammarCorrect = !aiMsg.grammarCorrection ||
+      aiMsg.grammarCorrection.includes('✅') ||
+      aiMsg.grammarCorrection.toLowerCase().includes('correct') ||
+      aiMsg.grammarCorrection.toLowerCase() === 'none';
+
+    const cleanBetter = aiMsg.betterSentence && typeof aiMsg.betterSentence === 'string'
+      ? aiMsg.betterSentence.replace(/[\[\]"]/g, '').trim()
+      : null;
+    const hasBetter = cleanBetter &&
+      cleanBetter.toLowerCase() !== 'null' &&
+      cleanBetter.toLowerCase() !== 'none' &&
+      !cleanBetter.includes('✅');
+
+    let coachingPhrase = null;
+    if (!isGrammarCorrect && aiMsg.grammarCorrection) {
+      const cleanCorrection = aiMsg.grammarCorrection.replace(/^👉\s*/, '').replace(/[\[\]"]/g, '').trim();
+      coachingPhrase = `A better way to say that is: "${cleanCorrection}"`;
+      if (aiMsg.explanation && aiMsg.explanation.toLowerCase() !== 'none' && !aiMsg.explanation.toLowerCase().includes('null')) {
+        coachingPhrase += `. ${aiMsg.explanation}`;
+      }
+    } else if (hasBetter) {
+      coachingPhrase = `A better way to say that is: "${cleanBetter}"`;
+      if (aiMsg.explanation && aiMsg.explanation.toLowerCase() !== 'none' && !aiMsg.explanation.toLowerCase().includes('null')) {
+        coachingPhrase += `. ${aiMsg.explanation}`;
+      }
+    }
+
+    // Stage 1: Speak ONLY the conversational tutor reply
     setCurrentSpokenText(mainReply);
     VoiceService.speak(mainReply, {
       isMuted,
@@ -572,10 +578,43 @@ export default function ConversationChatScreen({ navigation, route }) {
         setIsSpeaking(true);
       },
       onDone: () => {
-        setStatusText('Waiting for Response');
-        setIsSpeaking(false);
-        setCurrentSpokenText('');
-        wasSpeakingOnPause.current = false;
+        // Stage 2: EXACT 0.45s (450ms) natural gap before speaking coaching tip
+        if (coachingPhrase && !isMuted) {
+          setStatusText('Coaching Tip');
+          setTimeout(() => {
+            if (!isMuted) {
+              setCurrentSpokenText(coachingPhrase);
+              VoiceService.speak(coachingPhrase, {
+                isMuted,
+                avatarId: selectedAvatarModel,
+                voiceType: preferredVoice,
+                speechSpeed,
+                availableVoices,
+                onStart: () => {
+                  setStatusText('Coaching Tip');
+                  setIsSpeaking(true);
+                },
+                onDone: () => {
+                  setStatusText('Waiting for Response');
+                  setIsSpeaking(false);
+                  setCurrentSpokenText('');
+                  wasSpeakingOnPause.current = false;
+                },
+                onError: () => {
+                  setStatusText('Waiting for Response');
+                  setIsSpeaking(false);
+                  setCurrentSpokenText('');
+                  wasSpeakingOnPause.current = false;
+                },
+              });
+            }
+          }, 450); // 0.45 second conversational gap
+        } else {
+          setStatusText('Waiting for Response');
+          setIsSpeaking(false);
+          setCurrentSpokenText('');
+          wasSpeakingOnPause.current = false;
+        }
       },
       onError: () => {
         setStatusText('Waiting for Response');
@@ -587,18 +626,13 @@ export default function ConversationChatScreen({ navigation, route }) {
   };
 
   const handleSendMessage = async (textToSend = inputText) => {
-    const cleanText = (textToSend || '').trim();
-    if (!cleanText || isSendingRef.current || evaluating) return;
+    const cleanText = textToSend.trim();
+    if (!cleanText) return;
 
-    isSendingRef.current = true;
     setInputText('');
     setHints([]);
     setEvaluating(true);
     setStatusText('Thinking');
-
-    // Cancel any active AI speech immediately when user takes their turn
-    VoiceService.stop();
-    setIsSpeaking(false);
 
     // Optimistically push user message
     const tempUserMsg = {
@@ -609,125 +643,24 @@ export default function ConversationChatScreen({ navigation, route }) {
     };
     setMessages((prev) => [...prev, tempUserMsg]);
 
-  const generateMobileChatContextualReply = (userText, currentMode = 'General English', recentMessages = []) => {
-    const lower = (userText || '').toLowerCase().trim();
-    let message = '';
-    let followUpQuestion = '';
-    let suggestions = [];
-
-    const recentQuestions = (recentMessages || [])
-      .filter((m) => m?.sender === 'ai' && (m?.followUpQuestion || m?.message?.includes('?')))
-      .map((m) => (m.followUpQuestion || m.message).toLowerCase());
-
-    if (lower.includes('pune') || lower.includes('mumbai') || lower.includes('delhi') || lower.includes('travel') || lower.includes('trip') || lower.includes('visited') || lower.includes('went to')) {
-      let place = 'there';
-      if (lower.includes('pune')) place = 'Pune';
-      else if (lower.includes('mumbai')) place = 'Mumbai';
-      else if (lower.includes('delhi')) place = 'Delhi';
-      message = 'That sounds like a wonderful trip! Exploring new places is always refreshing.';
-      followUpQuestion = `What did you do in ${place}?`;
-      suggestions = ['I visited famous spots.', 'I spent time with friends.', 'The local food was amazing.'];
-    } else if (lower.includes('movie') || lower.includes('film') || lower.includes('cinema') || lower.includes('watched') || lower.includes('series')) {
-      message = 'Nice! Watching movies is a great way to relax and absorb natural expressions.';
-      followUpQuestion = 'What did you think of the movie?';
-      suggestions = ['It had a gripping story.', 'The acting was impressive.', 'It was a bit slow-paced.'];
-    } else if (lower.includes('java') || lower.includes('python') || lower.includes('coding') || lower.includes('programming') || lower.includes('developer') || lower.includes('software')) {
-      message = 'Interesting! Learning programming builds strong logic and problem-solving abilities.';
-      followUpQuestion = 'What are you currently building with it?';
-      suggestions = ['A full-stack web project.', 'Working on data structures.', 'Practicing backend APIs.'];
-    } else if (lower.includes('tired') || lower.includes('exhausted') || lower.includes('sleepy') || lower.includes('drained')) {
-      message = 'I understand. Busy schedules and intense work can really drain your energy.';
-      followUpQuestion = 'What made you feel so tired?';
-      suggestions = ['I had a very long workday.', 'I stayed up late working.', 'I was busy studying all day.'];
-    } else if (lower.includes('cricket') || lower.includes('football') || lower.includes('sport') || lower.includes('match') || lower.includes('play')) {
-      message = 'That sounds exciting! Playing sports is great for both fitness and mental focus.';
-      followUpQuestion = 'Do you play regularly with friends?';
-      suggestions = ['We play every weekend.', 'I play whenever free.', 'I enjoy bowling the most.'];
-    } else if (lower.includes('cooking') || lower.includes('food') || lower.includes('eat') || lower.includes('restaurant') || lower.includes('dinner')) {
-      if (lower.includes("don't like") || lower.includes("dont like") || lower.includes('hate') || lower.includes('not really')) {
-        message = "That's completely fine! Cooking isn't for everyone.";
-        followUpQuestion = 'What kind of food do you enjoy eating?';
-        suggestions = ['I love Italian pasta.', 'Traditional spicy dishes.', 'Fresh salads and smoothies.'];
-      } else {
-        message = 'That sounds delicious! Good food always brings comfort and joy.';
-        followUpQuestion = 'What is your favorite dish to prepare?';
-        suggestions = ['I make quick easy snacks.', 'I enjoy baking desserts.', 'I like trying new curries.'];
-      }
-    } else if (lower.includes('pronunciation') || lower.includes('accent') || lower.includes('speaking') || lower.includes('fluency')) {
-      message = 'Speaking out loud every single day builds natural muscle memory and confidence.';
-      followUpQuestion = 'Which specific English sounds feel trickiest for you?';
-      suggestions = ['Linking words smoothly.', 'Clear vowel sounds.', 'Pacing my sentences naturally.'];
-    } else if (lower.includes('great') || lower.includes('awesome') || lower.includes('wonderful') || lower.includes('good') || lower.includes('fantastic')) {
-      message = "That sounds great! It's always wonderful when things turn out so well.";
-      followUpQuestion = 'What made it feel so special?';
-      suggestions = ['I accomplished my goals.', 'Had quality family time.', 'Everything went smoothly.'];
-    } else if (lower.includes('terrible') || lower.includes('bad') || lower.includes('awful') || lower.includes('tough') || lower.includes('rough')) {
-      message = "I'm sorry to hear that. Difficult periods happen, but tomorrow brings a fresh start.";
-      followUpQuestion = 'What was the toughest part of it?';
-      suggestions = ['Too many unexpected delays.', 'Heavy stress at work.', 'Hoping for a smoother tomorrow.'];
-    } else if (lower.includes('friend') || lower.includes('friends') || lower.includes('visited')) {
-      message = 'Spending time with good friends is always heartwarming and memorable.';
-      followUpQuestion = 'What did you and your friend do together?';
-      suggestions = ['We caught up over coffee.', 'We went out exploring.', 'Talked about our future plans.'];
-    } else {
-      const questions = [
-        'What inspired you to think about that today?',
-        'How do you usually approach that in your daily routine?',
-        'What do you think is the best next step?',
-        'Could you share a quick example from your experience?',
-        'What part of that do you find most interesting?'
-      ];
-      followUpQuestion = questions[0];
-      for (const q of questions) {
-        if (!recentQuestions.some((rq) => rq.includes(q.toLowerCase().slice(0, 15)))) {
-          followUpQuestion = q;
-          break;
-        }
-      }
-      message = 'That makes a lot of sense! Expressing your thoughts clearly is great practice.';
-      suggestions = ['Let me give you an example.', 'I was reflecting on it earlier.', 'That reminds me of something.'];
-    }
-
-    return {
-      message,
-      followUpQuestion,
-      suggestions,
-      grammarCorrection: '✅ Your sentence is correct.',
-      betterSentence: null,
-      vocabularySuggestions: null,
-      explanation: null,
-    };
-  };
-
     try {
       let response;
       if (sessionId && !String(sessionId).startsWith('sim_')) {
         response = await chatService.send(sessionId, cleanText, !isMuted, chatLevel);
       } else {
-        const contextual = generateMobileChatContextualReply(cleanText, mode, messages);
+        const aiRes = await aiService.chat(cleanText);
         response = {
           id: Date.now() + 1,
           sender: 'ai',
-          message: contextual.message,
+          message: aiRes?.response || 'That is a great point! Can you tell me more about that?',
           grammarCorrection: '✅ Your sentence is correct.',
           betterSentence: null,
           vocabularySuggestions: null,
           explanation: null,
-          followUpQuestion: contextual.followUpQuestion,
+          followUpQuestion: 'What else would you like to explore?',
           createdAt: new Date().toISOString(),
         };
       }
-
-      // Guard against generic repetitive fallback strings from server
-      if (!response || !response.message || response.message.toLowerCase().includes('great thought') || response.message.toLowerCase().includes('share more')) {
-        const contextual = generateMobileChatContextualReply(cleanText, mode, messages);
-        response = {
-          ...response,
-          message: contextual.message,
-          followUpQuestion: contextual.followUpQuestion,
-        };
-      }
-
       setMessages((prev) => [...prev, response]);
 
       const isCorrect = response.grammarCorrection && (
@@ -739,20 +672,20 @@ export default function ConversationChatScreen({ navigation, route }) {
         setTimeout(() => setAvatarExpression(undefined), 3500);
       }
 
-      // Automatically play TTS: short conversational reply only
+      // Automatically play TTS with 0.45s coaching pause
       speakAiWithCoaching(response);
     } catch {
       try {
-        const contextual = generateMobileChatContextualReply(cleanText, mode, messages);
+        const aiRes = await aiService.chat(cleanText);
         const fallbackMsg = {
           id: Date.now() + 1,
           sender: 'ai',
-          message: contextual.message,
+          message: aiRes?.response || 'That is a great thought! Can you share more about that?',
           grammarCorrection: '✅ Your sentence is correct.',
           betterSentence: null,
           vocabularySuggestions: null,
           explanation: null,
-          followUpQuestion: contextual.followUpQuestion,
+          followUpQuestion: null,
           createdAt: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, fallbackMsg]);
@@ -763,18 +696,14 @@ export default function ConversationChatScreen({ navigation, route }) {
       }
     } finally {
       setEvaluating(false);
-      isSendingRef.current = false;
       setStatusText('Waiting for Response');
     }
   };
 
   const startRecording = async () => {
-    if (evaluating || isSendingRef.current) return;
     try {
-      // Cut off AI speech immediately so mic never records tutor voice
       VoiceService.stop();
       setIsSpeaking(false);
-      setCurrentSpokenText('');
 
       const granted = await VoiceRecorder.requestPermissions();
       if (!granted) {
@@ -795,10 +724,10 @@ export default function ConversationChatScreen({ navigation, route }) {
       initialSilenceTimerRef.current = 0;
       stoppingRef.current = false;
 
-      const SILENCE_THRESHOLD_MS = 2400; // 2.4s post-speech silence auto-stop
-      const INITIAL_SILENCE_THRESHOLD_MS = 7500; // 7.5s initial silence before user speaks
-      const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes hard limit
-      const METERING_SPEECH_THRESHOLD = -48; // dB volume threshold for speech detection
+      const SILENCE_THRESHOLD_MS = 3200; // 3.2s post-speech silence auto-stop (allows natural thinking pauses without premature cutoff)
+      const INITIAL_SILENCE_THRESHOLD_MS = 8000; // 8s initial silence before user speaks
+      const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes generous hard limit for long speech
+      const METERING_SPEECH_THRESHOLD = -48; // dB volume threshold for speech detection (higher sensitivity for soft speaking)
 
       const recorder = new VoiceRecorder((status) => {
         if (!status.isRecording || stoppingRef.current || recordingSessionIdRef.current !== currentSessionId) return;
@@ -815,7 +744,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           silenceTimerRef.current = 0;
         } else if (speechDetectedRef.current) {
           silenceTimerRef.current += 250;
-          if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) {
+          if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) { // 3.2s silence auto stop
             stopRecordingAndSend();
           }
         } else {
@@ -843,7 +772,7 @@ export default function ConversationChatScreen({ navigation, route }) {
   };
 
   const stopRecordingAndSend = async () => {
-    if (stoppingRef.current || isSendingRef.current) return;
+    if (stoppingRef.current) return;
     stoppingRef.current = true;
     isRecordingRef.current = false;
 
@@ -874,15 +803,15 @@ export default function ConversationChatScreen({ navigation, route }) {
       });
 
       if (res && res.transcript && res.transcript.trim()) {
-        const transcriptText = res.transcript.trim();
-        setInputText(transcriptText);
-        handleSendMessage(transcriptText);
+        setInputText(res.transcript.trim());
+        handleSendMessage(res.transcript.trim());
       } else {
-        // Safe idle reset: user stayed silent or no speech was recognized
+        Alert.alert('Silence Detected', 'Could not hear any speech. Please try speaking again.');
         setStatusText('Waiting for Response');
       }
     } catch (err) {
-      console.warn('Voice chat transcription note:', err);
+      console.warn('Voice chat transcription failed:', err);
+      Alert.alert('Transcription Failed', 'Make sure you have an active internet connection.');
       setStatusText('Waiting for Response');
     } finally {
       setLoading(false);
@@ -992,80 +921,78 @@ export default function ConversationChatScreen({ navigation, route }) {
     : '✨ Tap mic to speak';
 
   return (
-    <KeyboardAvoidingView
-      style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={0}
-    >
-      <LinearGradient
-        colors={['#0B0F19', '#111827', '#1E1B4B']}
-        style={[styles.root, { paddingBottom: Platform.OS === 'android' ? keyboardHeight : 0 }]}
-      >
-        <StatusBar barStyle="light-content" />
-        {/* ─── Header ─── */}
-        <View style={styles.header}>
-          <SafeAreaView edges={['top']}>
-            <View style={styles.headerRow}>
-              <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-                <Ionicons name="chevron-back" size={24} color="#FFF" />
-              </TouchableOpacity>
-              <View style={{ flex: 1, alignItems: 'center' }}>
-                <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                  <TouchableOpacity
-                    onPress={() => {
-                      const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
-                      const nextIdx = (LEVELS.indexOf(chatLevel) + 1) % LEVELS.length;
-                      setChatLevel(LEVELS[nextIdx]);
-                    }}
-                    style={{
-                      backgroundColor: 'rgba(99, 102, 241, 0.25)',
-                      paddingHorizontal: 8,
-                      paddingVertical: 2,
-                      borderRadius: 10,
-                      borderWidth: 1,
-                      borderColor: 'rgba(99, 102, 241, 0.4)',
-                    }}
-                  >
-                    <Text style={{ fontSize: 10, color: '#A5B4FC', fontWeight: '800' }}>⚡ {chatLevel}</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.headerSubtitle}>{subtitleText}</Text>
-                </View>
+    <LinearGradient colors={['#0B0F19', '#111827', '#1E1B4B']} style={styles.root}>
+      <StatusBar barStyle="light-content" />
+
+      {/* ─── Header ─── */}
+      <View style={styles.header}>
+        <SafeAreaView edges={['top']}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+              <Ionicons name="chevron-back" size={24} color="#FFF" />
+            </TouchableOpacity>
+            <View style={{ flex: 1, alignItems: 'center' }}>
+              <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+                    const nextIdx = (LEVELS.indexOf(chatLevel) + 1) % LEVELS.length;
+                    setChatLevel(LEVELS[nextIdx]);
+                  }}
+                  style={{
+                    backgroundColor: 'rgba(99, 102, 241, 0.25)',
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: 'rgba(99, 102, 241, 0.4)',
+                  }}
+                >
+                  <Text style={{ fontSize: 10, color: '#A5B4FC', fontWeight: '800' }}>⚡ {chatLevel}</Text>
+                </TouchableOpacity>
+                <Text style={styles.headerSubtitle}>{subtitleText}</Text>
               </View>
-              <TouchableOpacity
-                style={styles.muteBtn}
-                onPress={() => {
-                  if (!isMuted) VoiceService.stop();
-                  setIsMuted(!isMuted);
-                }}
-              >
-                <Ionicons name={isMuted ? 'volume-mute' : 'volume-high'} size={20} color="#FFF" />
-              </TouchableOpacity>
             </View>
-          </SafeAreaView>
-        </View>
+            <TouchableOpacity
+              style={styles.muteBtn}
+              onPress={() => {
+                if (!isMuted) VoiceService.stop();
+                setIsMuted(!isMuted);
+              }}
+            >
+              <Ionicons name={isMuted ? 'volume-mute' : 'volume-high'} size={20} color="#FFF" />
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      </View>
 
-        {/* ─── 3D AI Tutor Avatar (collapses height when typing without unmounting) ─── */}
-        <View
-          style={[
-            styles.avatarContainer,
-            isKeyboardVisible && styles.avatarContainerCollapsed,
-          ]}
-          pointerEvents={isKeyboardVisible ? 'none' : 'auto'}
-        >
-          <AIAvatar
-            model={selectedAvatarModel}
-            gender={getAvatarById(selectedAvatarModel).gender}
-            isSpeaking={isSpeaking}
-            spokenText={currentSpokenText}
-            speechSpeed={speechSpeed}
-            state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
-            expression={avatarExpression}
-            style={styles.avatar3d}
-            hideStatusPill={true}
-          />
-        </View>
+      {/* ─── 3D AI Tutor Avatar (collapses height when typing without unmounting) ─── */}
+      <View
+        style={[
+          styles.avatarContainer,
+          isKeyboardVisible && styles.avatarContainerCollapsed,
+        ]}
+        pointerEvents={isKeyboardVisible ? 'none' : 'auto'}
+      >
+        <AIAvatar
+          model={selectedAvatarModel}
+          gender={getAvatarById(selectedAvatarModel).gender}
+          isSpeaking={isSpeaking}
+          spokenText={currentSpokenText}
+          speechSpeed={speechSpeed}
+          state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
+          expression={avatarExpression}
+          style={styles.avatar3d}
+          hideStatusPill={true}
+        />
+      </View>
 
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
         {/* ─── Messages List ─── */}
         <FlatList
           ref={flatListRef}
@@ -1073,11 +1000,9 @@ export default function ConversationChatScreen({ navigation, route }) {
           style={{ flex: 1 }}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.chatScroll}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-          renderItem={({ item }) => {
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        renderItem={({ item }) => {
           const isUser = item.sender === 'user';
 
           // Helper to check if feedback exists and is not "None"
@@ -1087,15 +1012,12 @@ export default function ConversationChatScreen({ navigation, route }) {
             return clean !== 'none' && clean !== 'null' && clean !== '' && !clean.includes('[better_sentence] none') && !clean.includes('[vocabulary] none');
           };
 
-          // Only display grammar if there's an actual correction needed (not when already correct)
-          const showGrammar = hasFeedbackText(item.grammarCorrection) && 
-            !item.grammarCorrection.includes('✅') && 
-            !item.grammarCorrection.toLowerCase().includes('correct');
+          const showGrammar = hasFeedbackText(item.grammarCorrection);
           const showBetter = hasFeedbackText(item.betterSentence);
           const showVocab = hasFeedbackText(item.vocabularySuggestions);
           const showFollowup = hasFeedbackText(item.followUpQuestion);
 
-          const hasCoachingTips = !isUser && (showGrammar || showBetter || showVocab);
+          const hasAnyFeedback = !isUser && (showGrammar || showBetter || showVocab || showFollowup);
 
           return (
             <AnimatedChatBubble isUser={isUser} onLongPress={() => handleOpenMenu(item)}>
@@ -1111,34 +1033,35 @@ export default function ConversationChatScreen({ navigation, route }) {
                   <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
                     {item.message}
                   </Text>
-                  {showFollowup && (
-                    <Text style={[styles.bubbleText, { marginTop: 6, color: '#A5B4FC', fontWeight: '600', fontSize: 13 }]}>
-                      ❓ {item.followUpQuestion}
-                    </Text>
-                  )}
                   {item.bookmarked && (
                     <Ionicons name="star" size={12} color="#F59E0B" style={styles.starIcon} />
                   )}
                 </View>
 
-                {/* Tutor Feedback Card (Only shown when there are genuine corrections or upgrades) */}
-                {hasCoachingTips && (
+                {/* Tutor Feedback Card */}
+                {hasAnyFeedback && (
                   <View style={styles.evalCard}>
                     <View style={styles.evalHeader}>
-                      <Ionicons name="bulb-outline" size={13} color={COLORS.primary} />
-                      <Text style={styles.evalTitle}>Tutor Coaching Tips</Text>
+                      <Ionicons name="school" size={14} color={COLORS.primary} />
+                      <Text style={styles.evalTitle}>Tutor Corrections & Feedback</Text>
                     </View>
                     
                     {showGrammar && (
                       <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Grammar Fix</Text>
-                        <Text style={styles.evalContent}>👉 {item.grammarCorrection}</Text>
+                        <Text style={styles.evalLabel}>Grammar Correction</Text>
+                        {item.grammarCorrection.includes('✅') || item.grammarCorrection.toLowerCase().includes('correct') ? (
+                          <Text style={[styles.evalContent, { color: '#10B981', fontWeight: '700' }]}>
+                            {item.grammarCorrection}
+                          </Text>
+                        ) : (
+                          <Text style={styles.evalContent}>👉 {item.grammarCorrection}</Text>
+                        )}
                       </View>
                     )}
 
                     {showBetter && (
                       <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Better Phrasing</Text>
+                        <Text style={styles.evalLabel}>Better Sentence</Text>
                         <Text style={styles.evalContent}>💡 "{item.betterSentence}"</Text>
                       </View>
                     )}
@@ -1152,6 +1075,21 @@ export default function ConversationChatScreen({ navigation, route }) {
 
                     {hasFeedbackText(item.explanation) && (
                       <Text style={styles.evalExplanation}>{item.explanation}</Text>
+                    )}
+
+                    {showFollowup && (
+                      <TouchableOpacity
+                        style={styles.followUpBadge}
+                        onPress={async () => {
+                          try {
+                            await Share.share({ message: item.followUpQuestion });
+                          } catch (e) {
+                            Alert.alert('Follow-up Question', item.followUpQuestion);
+                          }
+                        }}
+                      >
+                        <Text style={styles.followUpText}>❓ Follow-up: "{item.followUpQuestion}"</Text>
+                      </TouchableOpacity>
                     )}
                   </View>
                 )}
@@ -1193,7 +1131,7 @@ export default function ConversationChatScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.hintsScroll}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hintsScroll}>
             {hints.map((hint, idx) => (
               <View key={idx} style={styles.hintChipWrapper}>
                 <TouchableOpacity
@@ -1229,7 +1167,7 @@ export default function ConversationChatScreen({ navigation, route }) {
       )}
 
       {/* ─── Bottom Input Bar ─── */}
-      <View style={[styles.inputContainer, isKeyboardVisible && styles.inputContainerKeyboard]}>
+      <View style={styles.inputContainer}>
         {/* Controls row */}
         <View style={styles.controlsRow}>
           <TouchableOpacity style={styles.controlBtn} onPress={handleAdjustSpeed}>
@@ -1284,10 +1222,6 @@ export default function ConversationChatScreen({ navigation, route }) {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
-            onFocus={() => {
-              setKeyboardVisible(true);
-              setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
-            }}
             placeholder={recording ? "Listening to speak..." : "Type response to tutor..."}
             placeholderTextColor="#94A3B8"
             editable={!recording && !evaluating}
@@ -1304,6 +1238,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
+    </KeyboardAvoidingView>
 
       {/* ─── Long-press Menu Modal ─── */}
       <Modal visible={menuVisible} transparent animationType="fade">
@@ -1346,8 +1281,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           </View>
         </TouchableOpacity>
       </Modal>
-      </LinearGradient>
-    </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
@@ -1370,7 +1304,6 @@ const styles = StyleSheet.create({
     opacity: 0,
     marginTop: 0,
     marginBottom: 0,
-    overflow: 'hidden',
   },
   avatar3d: {
     width: '100%',
@@ -1425,7 +1358,6 @@ const styles = StyleSheet.create({
 
   // Input Container
   inputContainer: { backgroundColor: '#090E1A', paddingHorizontal: 16, paddingTop: 10, paddingBottom: Platform.OS === 'ios' ? 34 : 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)' },
-  inputContainerKeyboard: { paddingBottom: Platform.OS === 'ios' ? 12 : 12 },
   controlsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   controlBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   controlText: { fontSize: 11, fontWeight: '700', color: '#9CA3AF' },

@@ -59,9 +59,6 @@ public class AIChatServiceImpl implements AIChatService {
 	@Value("${groq.model.chat:${groq.model:openai/gpt-oss-120b}}")
 	private String model;
 
-	@Value("${groq.max-tokens.chat:250}")
-	private Integer maxTokens;
-
 	private final ProgressRepository progressRepository;
 
 	public AIChatServiceImpl(
@@ -272,65 +269,38 @@ public class AIChatServiceImpl implements AIChatService {
 		}
 
 
-		// 3. Fetch last 10 messages for context and collect recent questions
+		// 3. Fetch last 10 messages for context
 		List<ChatMessage> history = chatMessageRepository.findBySessionOrderByCreatedAtAsc(session);
-		List<String> recentAiQuestions = new ArrayList<>();
-		for (ChatMessage m : history) {
-			if ("ai".equalsIgnoreCase(m.getSender()) && m.getFollowUpQuestion() != null && !m.getFollowUpQuestion().trim().isEmpty()) {
-				recentAiQuestions.add(m.getFollowUpQuestion().trim());
-			}
-		}
-
-		StringBuilder antiRepetitionInstruction = new StringBuilder();
-		if (!recentAiQuestions.isEmpty()) {
-			antiRepetitionInstruction.append("\nRECENT QUESTIONS ASKED IN THIS CHAT (DO NOT REPEAT ANY OF THESE OR USE SIMILAR FORMULAS):\n");
-			int qStart = Math.max(0, recentAiQuestions.size() - 6);
-			for (int i = qStart; i < recentAiQuestions.size(); i++) {
-				antiRepetitionInstruction.append("- \"").append(recentAiQuestions.get(i)).append("\"\n");
-			}
-		}
 
 		String userContextInstruction = buildUserContextInstruction(user, session.getMode());
 
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
-				"You are SpeakMateAI, a friendly, encouraging personal AI English Tutor having a real-time face-to-face spoken conversation.\n" +
-				"You speak as a human tutor in a live conversation, NOT an article writer or ChatGPT essay generator.\n\n" +
+				"You are SpeakMateAI, a world-class personal AI English Tutor having a live one-on-one conversation.\n" +
+				"Your personality is warm, enthusiastic, empathetic, and extremely conversational.\n\n" +
 				"LEARNER CONTEXT & SCENARIO:\n" +
 				"Active Tutoring Mode: %s\n" +
 				"%s\n" +
-				"%s\n" +
 				"%s\n\n" +
-				"STRICT CONVERSATIONAL & RELEVANCE RULES (MANDATORY ON EVERY TURN):\n" +
-				"1. CONTEXT-AWARE SPOKEN REPLY: [REPLY] must directly reference what the learner just said (their specific experience, activity, feeling, place, or topic). Acknowledge their exact words. Tailor your 1-2 short sentences (strictly under 35-45 words total, prefer 15-30 words) specifically to them.\n" +
-				"2. NATURAL CONTEXTUAL FOLLOW-UP: In [FOLLOWUP], ask ONE natural, context-aware question (under 12-15 words) derived directly from the learner's message:\n" +
-				"   - If they mentioned a place (e.g. Pune, Mumbai, park): ask what they did or saw there.\n" +
-				"   - If they mentioned an activity or movie: ask what they thought or enjoyed most about it.\n" +
-				"   - If they mentioned learning a skill (e.g. Java, English): ask what they are building or find interesting.\n" +
-				"   - If they mentioned feelings (e.g. tired, excited, terrible week): ask what caused that feeling.\n" +
-				"   - If their statement completes a thought (e.g. 'I don't like cooking'), respond briefly and naturally introduce a related topic (e.g. 'What kind of food do you enjoy eating?').\n" +
-				"3. STRICTLY FORBIDDEN GENERIC REPETITIONS: NEVER generate repetitive clichés such as:\n" +
-				"   - 'Can you share more about that?'\n" +
-				"   - 'Tell me more about that.'\n" +
-				"   - 'What else can you tell me?'\n" +
-				"   - 'Can you elaborate?'\n" +
-				"   - 'That's interesting! Tell me more.'\n" +
-				"   Every turn MUST have a distinct, personalized question derived from their specific words.\n" +
-				"4. NO ESSAYS OR LISTS: NEVER generate bullet points (-), numbered lists (1.), or tutorials. Speak directly like a real speaking partner.\n" +
-				"5. MINIMAL EXPLANATION: [EXPLANATION] is max 1 short sentence, used ONLY if there was an actual error. Otherwise 'None'.\n" +
-				"6. CONVERSATION MEMORY: Never ask for information the learner already gave earlier in the chat.\n\n" +
+				"KEY TEACHING GUIDELINES:\n" +
+				"1. React directly to what the user said with real human-like engagement (1-3 natural sentences).\n" +
+				"2. Always ask ONE engaging, open-ended follow-up question perfectly suited to the student's age/standard and topic to keep the conversation flowing smoothly.\n" +
+				"3. Provide polite, supportive grammar corrections only when there are actual errors.\n" +
+				"4. Suggest a more fluent, natural phrasing that a native speaker would actually say.\n" +
+				"5. Suggest 1-2 rich vocabulary words or idioms relevant to what you are talking about.\n" +
+				"6. Tailor your tone, vocabulary, and pacing strictly to the learner's English level and age/standard.\n" +
+				"7. Never output JSON, code blocks, or raw markdown headers. Stick strictly to the tag format.\n\n" +
 				"RESPONSE FORMAT (STRICT):\n" +
-				"[REPLY] Exactly 1-2 short conversational sentences (strictly under 35-45 words). Speak directly to the learner as if talking in person.\n" +
-				"[GRAMMAR] The corrected sentence if there was an error, or 'None' if already correct.\n" +
-				"[BETTER_SENTENCE] One natural native phrasing alternative ('How a native speaker says it'), or 'None'.\n" +
-				"[VOCABULARY] 1 useful topic-related word or idiom with a short 3-word meaning, or 'None'.\n" +
-				"[EXPLANATION] Maximum 1 short sentence explaining the tip, or 'None'.\n" +
-				"[FOLLOWUP] Exactly ONE context-specific follow-up question (maximum 12 words) relating directly to the learner's words.\n" +
-				"[SUGGESTIONS] EXACTLY 3 short alternative responses (each under 10 words) separated by ' | ' that the student could say next to answer your question.",
+				"[REPLY] Your warm in-character conversational response to the learner.\n" +
+				"[GRAMMAR] The corrected version of their sentence with a kind explanation, or 'None' if already correct.\n" +
+				"[BETTER_SENTENCE] How a native speaker would express the same idea naturally, or 'None'.\n" +
+				"[VOCABULARY] 1-2 useful topic-related words or idioms with short definitions, or 'None'.\n" +
+				"[EXPLANATION] A friendly 1-sentence tip explaining the nuance or phrasing, or 'None'.\n" +
+				"[FOLLOWUP] Your natural follow-up question to keep the conversation moving forward.\n\n" +
+				"[SUGGESTIONS] EXACTLY 3 short, realistic alternative responses (each under 10 words) separated by ' | ' that the student could say next to answer your question.",
 				session.getMode(),
 				levelInstruction,
-				userContextInstruction,
-				antiRepetitionInstruction.toString()
+				userContextInstruction
 		);
 		groqMessages.add(new GroqRequest.Message("system", systemPrompt));
 
@@ -346,10 +316,10 @@ public class AIChatServiceImpl implements AIChatService {
 		try {
 			rawResponse = callGroqChat(groqMessages);
 			if (rawResponse == null || rawResponse.trim().isEmpty()) {
-				rawResponse = generateDynamicContextualChatFallback(request.getMessage(), session.getMode(), recentAiQuestions);
+				rawResponse = "[REPLY] That's a great thought! Can you share more about that?\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] What else comes to mind?\n[SUGGESTIONS] I'd love to tell you more. | Could you give me an example? | What do you recommend?";
 			}
 		} catch (Exception e) {
-			rawResponse = generateDynamicContextualChatFallback(request.getMessage(), session.getMode(), recentAiQuestions);
+			rawResponse = "[REPLY] That's a great thought! Can you tell me a little more about that?\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] What would you like to explore next?\n[SUGGESTIONS] I'd love to share more. | What should we discuss next? | Could you give me an example?";
 		}
 
 		// 4. Parse tag contents
@@ -360,18 +330,6 @@ public class AIChatServiceImpl implements AIChatService {
 		String explanation = extractTagContent(rawResponse, "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]");
 		String followup = extractTagContent(rawResponse, "[FOLLOWUP]", "[SUGGESTIONS]");
 		String suggestionsRaw = extractTagContent(rawResponse, "[SUGGESTIONS]");
-
-		// Guard against LLM generating generic forbidden phrases in follow-up
-		if (followup != null) {
-			String fLower = followup.toLowerCase().trim();
-			if (fLower.contains("share more about that") || fLower.contains("tell me more about that")
-					|| fLower.contains("tell me more") || fLower.contains("can you elaborate")
-					|| fLower.contains("what else can you tell me") || fLower.equals("what else comes to mind?")) {
-				followup = deriveContextualFollowup(request.getMessage(), recentAiQuestions);
-			}
-		} else {
-			followup = deriveContextualFollowup(request.getMessage(), recentAiQuestions);
-		}
 
 		// Parse dynamic suggestions
 		List<String> suggestedList = new ArrayList<>();
@@ -390,49 +348,21 @@ public class AIChatServiceImpl implements AIChatService {
 			suggestedList = generateContextualFallbacks(session.getMode(), reply, followup);
 		}
 
-		// Clean up defaults and apply backend safety guard
+		// Clean up defaults
 		if (reply == null || reply.trim().isEmpty()) {
-			String firstChunk = rawResponse != null ? rawResponse : "";
-			for (String tag : new String[]{"[GRAMMAR]", "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]"}) {
-				int idx = firstChunk.indexOf(tag);
-				if (idx != -1) {
-					firstChunk = firstChunk.substring(0, idx);
-				}
-			}
-			reply = sanitizeAndTrimConversationalReply(firstChunk, request.getMessage());
-		} else {
-			reply = sanitizeAndTrimConversationalReply(reply, request.getMessage());
+			reply = rawResponse; // Fallback
 		}
-
 		if (better != null && (better.equalsIgnoreCase("none") || better.equalsIgnoreCase("null") || better.trim().isEmpty())) {
 			better = null;
 		}
 		if (vocab != null && (vocab.equalsIgnoreCase("none") || vocab.equalsIgnoreCase("null") || vocab.trim().isEmpty())) {
 			vocab = null;
 		}
-		if (explanation != null) {
-			explanation = explanation.replaceAll("(?m)^\\s*[-*•]\\s+", "").replaceAll("\\r?\\n+", " ").trim();
-			if (explanation.equalsIgnoreCase("none") || explanation.equalsIgnoreCase("null") || explanation.isEmpty()) {
-				explanation = null;
-			} else {
-				// Sentence-aware limit for explanation: max 1 short sentence
-				java.util.regex.Matcher m = java.util.regex.Pattern.compile("[^.!?]+[.!?]+").matcher(explanation);
-				if (m.find()) {
-					explanation = m.group().trim();
-				}
-			}
+		if (explanation != null && (explanation.equalsIgnoreCase("none") || explanation.equalsIgnoreCase("null") || explanation.trim().isEmpty())) {
+			explanation = null;
 		}
-		if (followup != null) {
-			followup = followup.replaceAll("(?m)^\\s*[-*•]\\s+", "").replaceAll("\\r?\\n+", " ").trim();
-			if (followup.equalsIgnoreCase("none") || followup.equalsIgnoreCase("null") || followup.isEmpty()) {
-				followup = null;
-			} else {
-				// Keep only the single first question
-				java.util.regex.Matcher m = java.util.regex.Pattern.compile("[^?]+[?]").matcher(followup);
-				if (m.find()) {
-					followup = m.group().trim();
-				}
-			}
+		if (followup != null && (followup.equalsIgnoreCase("none") || followup.equalsIgnoreCase("null") || followup.trim().isEmpty())) {
+			followup = null;
 		}
 
 		// Grammar Correction logic
@@ -645,170 +575,9 @@ public class AIChatServiceImpl implements AIChatService {
 
 	// ── Helpers ───────────────────────────────────────────────────────
 
-	private String sanitizeAndTrimConversationalReply(String rawReply) {
-		return sanitizeAndTrimConversationalReply(rawReply, null);
-	}
-
-	private String sanitizeAndTrimConversationalReply(String rawReply, String userMessage) {
-		if (rawReply == null || rawReply.trim().isEmpty() || rawReply.toLowerCase().contains("share more about that") || rawReply.toLowerCase().contains("tell me more about that")) {
-			return deriveContextualReply(userMessage);
-		}
-
-		String clean = rawReply.trim();
-
-		// Remove accidental markdown headers and code blocks
-		clean = clean.replaceAll("(?m)^#{1,6}\\s+.*$", "");
-		clean = clean.replaceAll("```[a-zA-Z]*", "").replaceAll("```", "");
-
-		// Remove bullet points and numbered list markers
-		clean = clean.replaceAll("(?m)^\\s*[-*•]\\s+", "");
-		clean = clean.replaceAll("(?m)^\\s*\\d+[.)]\\s+", "");
-
-		// Collapse newlines and multiple spaces
-		clean = clean.replaceAll("\\r?\\n+", " ").replaceAll("\\s+", " ").trim();
-
-		// Sentence-aware trimming to approximately 35-45 words max
-		String[] words = clean.split("\\s+");
-		if (words.length > 45) {
-			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("[^.!?]+[.!?]+").matcher(clean);
-			StringBuilder trimmed = new StringBuilder();
-			int wordCount = 0;
-			int sentenceCount = 0;
-
-			while (matcher.find() && sentenceCount < 2) {
-				String sentence = matcher.group().trim();
-				int sWords = sentence.split("\\s+").length;
-				if (wordCount + sWords <= 45 || sentenceCount == 0) {
-					if (trimmed.length() > 0) trimmed.append(" ");
-					trimmed.append(sentence);
-					wordCount += sWords;
-					sentenceCount++;
-				} else {
-					break;
-				}
-			}
-
-			if (trimmed.length() > 0) {
-				clean = trimmed.toString();
-			} else {
-				StringBuilder sb = new StringBuilder();
-				for (int i = 0; i < Math.min(words.length, 35); i++) {
-					if (i > 0) sb.append(" ");
-					sb.append(words[i]);
-				}
-				String s = sb.toString();
-				if (!s.endsWith(".") && !s.endsWith("!") && !s.endsWith("?")) {
-					s += ".";
-				}
-				clean = s;
-			}
-		}
-
-		return clean;
-	}
-
-	private String deriveContextualReply(String userMessage) {
-		String lower = (userMessage != null ? userMessage.toLowerCase().trim() : "");
-		if (lower.contains("pune") || lower.contains("mumbai") || lower.contains("delhi") || lower.contains("trip") || lower.contains("travel") || lower.contains("went to")) {
-			return "That sounds like a wonderful trip! Exploring new cities always broadens your horizons.";
-		} else if (lower.contains("movie") || lower.contains("film") || lower.contains("cinema") || lower.contains("watched")) {
-			return "Nice! Watching movies is a fantastic and entertaining way to absorb natural English dialogue.";
-		} else if (lower.contains("java") || lower.contains("python") || lower.contains("coding") || lower.contains("programming") || lower.contains("software")) {
-			return "Interesting! Learning programming requires great problem-solving skills and persistent practice.";
-		} else if (lower.contains("tired") || lower.contains("exhausted") || lower.contains("sleepy")) {
-			return "I understand completely. Demanding schedules can really drain your physical and mental energy.";
-		} else if (lower.contains("cricket") || lower.contains("football") || lower.contains("sports") || lower.contains("play")) {
-			return "That sounds exciting! Participating in sports is great for both fitness and teamwork.";
-		} else if (lower.contains("cooking") || lower.contains("food") || lower.contains("eat")) {
-			if (lower.contains("don't like") || lower.contains("dont like") || lower.contains("hate")) {
-				return "That's completely fine! Everyone has their own preferences and talents.";
-			}
-			return "That sounds delicious! Good food always brings comfort and brings friends together.";
-		} else if (lower.contains("pronunciation") || lower.contains("accent") || lower.contains("speaking")) {
-			return "Speaking clearly with focused daily practice is the quickest way to build natural fluency.";
-		} else if (lower.contains("great") || lower.contains("awesome") || lower.contains("wonderful")) {
-			return "That sounds great! Having positive milestones gives you incredible momentum.";
-		} else if (lower.contains("terrible") || lower.contains("bad") || lower.contains("awful") || lower.contains("tough")) {
-			return "I'm sorry to hear that. Difficult periods happen, but tomorrow brings a fresh start.";
-		} else if (lower.contains("friend") || lower.contains("friends") || lower.contains("visited")) {
-			return "Spending quality time with good friends is always heartwarming and memorable.";
-		}
-		return "That makes a lot of sense! Expressing your thoughts clearly is great speaking practice.";
-	}
-
-	private String deriveContextualFollowup(String userMessage, List<String> recentAiQuestions) {
-		String lower = (userMessage != null ? userMessage.toLowerCase().trim() : "");
-		String q;
-
-		if (lower.contains("pune")) {
-			q = "What did you do in Pune?";
-		} else if (lower.contains("mumbai")) {
-			q = "What did you enjoy most while visiting Mumbai?";
-		} else if (lower.contains("travel") || lower.contains("visited") || lower.contains("trip") || lower.contains("went to")) {
-			q = "What was the most exciting thing you did there?";
-		} else if (lower.contains("movie") || lower.contains("film") || lower.contains("cinema") || lower.contains("watched")) {
-			q = "Nice! What did you think of the movie?";
-		} else if (lower.contains("java") || lower.contains("python") || lower.contains("coding")) {
-			q = "Interesting! What are you currently building with it?";
-		} else if (lower.contains("tired") || lower.contains("exhausted")) {
-			q = "I see. What made you feel so tired?";
-		} else if (lower.contains("cricket") || lower.contains("football") || lower.contains("sport") || lower.contains("match")) {
-			q = "Do you prefer playing offensively or defensively?";
-		} else if (lower.contains("cooking") || lower.contains("food") || lower.contains("eat")) {
-			if (lower.contains("don't like") || lower.contains("dont like") || lower.contains("hate")) {
-				q = "What kind of food do you enjoy eating?";
-			} else {
-				q = "What is your favorite dish to prepare?";
-			}
-		} else if (lower.contains("pronunciation") || lower.contains("speaking")) {
-			q = "Which specific English sounds feel trickiest for you?";
-		} else if (lower.contains("great") || lower.contains("awesome") || lower.contains("wonderful")) {
-			q = "What made it feel so special?";
-		} else if (lower.contains("terrible") || lower.contains("bad") || lower.contains("awful")) {
-			q = "What happened that made it so tough?";
-		} else if (lower.contains("friend") || lower.contains("friends")) {
-			q = "What did you and your friend do together?";
-		} else {
-			List<String> fallbacks = List.of(
-				"What inspired you to focus on this topic today?",
-				"How do you usually handle this in your daily routine?",
-				"What do you think is the best next step?",
-				"Could you give an example from your personal experience?",
-				"How would you like to continue practicing this?"
-			);
-			q = fallbacks.get(0);
-			if (recentAiQuestions != null) {
-				for (String fb : fallbacks) {
-					boolean used = false;
-					for (String rq : recentAiQuestions) {
-						if (rq.toLowerCase().contains(fb.toLowerCase().substring(0, 15))) {
-							used = true;
-							break;
-						}
-					}
-					if (!used) {
-						q = fb;
-						break;
-					}
-				}
-			}
-		}
-		return q;
-	}
-
-	private String generateDynamicContextualChatFallback(String userMessage, String mode, List<String> recentAiQuestions) {
-		String reply = deriveContextualReply(userMessage);
-		String followup = deriveContextualFollowup(userMessage, recentAiQuestions);
-		List<String> hints = generateContextualFallbacks(mode, reply, followup);
-		String suggestions = String.join(" | ", hints);
-		return String.format("[REPLY] %s\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] %s\n[SUGGESTIONS] %s",
-				reply, followup, suggestions);
-	}
-
 	private String callGroqChat(List<GroqRequest.Message> messages) {
-		int tokenLimit = (maxTokens != null && maxTokens > 0) ? maxTokens : 250;
 		try {
-			GroqRequest request = new GroqRequest(model, messages, 0.7, tokenLimit);
+			GroqRequest request = new GroqRequest(model, messages, 0.7);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
@@ -826,7 +595,7 @@ public class AIChatServiceImpl implements AIChatService {
 		} catch (Exception e) {
 			if (!"qwen/qwen3.6-27b".equals(model)) {
 				try {
-					GroqRequest request = new GroqRequest("qwen/qwen3.6-27b", messages, 0.7, tokenLimit);
+					GroqRequest request = new GroqRequest("qwen/qwen3.6-27b", messages, 0.7);
 					HttpHeaders headers = new HttpHeaders();
 					headers.setContentType(MediaType.APPLICATION_JSON);
 					headers.setBearerAuth(apiKey);

@@ -33,118 +33,15 @@ public class AiServiceImpl implements AiService {
 	@Value("${groq.model.analysis:${groq.model:qwen/qwen3.6-27b}}")
 	private String analysisModel;
 
-	@Value("${groq.max-tokens.chat:250}")
-	private Integer maxTokens;
-
 	private final RestTemplate restTemplate;
 
 	public AiServiceImpl(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
 
-	private static final String CONVERSATIONAL_FALLBACK_SYSTEM_PROMPT = """
-You are SpeakMateAI, a warm, friendly real-time English speaking coach.
-CRITICAL CONVERSATIONAL RULES:
-1. Speak in only 1–2 short conversational sentences (strictly under 35–45 words total, prefer 15–30 words).
-2. NEVER generate essays, bullet points (-), numbered lists (1.), multi-step tutorials, or long textbook explanations.
-3. Keep the conversation interactive and encourage the student to speak.
-4. Speak as a real human tutor in a live conversation, not an article writer.
-""";
-
-	private String sanitizeConversationalFallback(String text) {
-		return sanitizeConversationalFallback(text, null);
-	}
-
-	private String sanitizeConversationalFallback(String text, String userPrompt) {
-		if (text == null || text.trim().isEmpty() || text.toLowerCase().contains("share more about that") || text.toLowerCase().contains("tell me more about that")) {
-			return deriveContextualFallback(userPrompt);
-		}
-		String clean = text.replaceAll("(?s)<think>.*?</think>", "").replaceAll("(?s)<think>.*", "");
-		clean = clean.replaceAll("(?m)^#{1,6}\\s+.*$", "");
-		clean = clean.replaceAll("```[a-zA-Z]*", "").replaceAll("```", "");
-		clean = clean.replaceAll("(?m)^\\s*[-*•]\\s+", "");
-		clean = clean.replaceAll("(?m)^\\s*\\d+[.)]\\s+", "");
-		clean = clean.replaceAll("\\r?\\n+", " ").replaceAll("\\s+", " ").trim();
-
-		String[] words = clean.split("\\s+");
-		if (words.length > 45) {
-			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("[^.!?]+[.!?]+").matcher(clean);
-			StringBuilder trimmed = new StringBuilder();
-			int wordCount = 0;
-			int sentenceCount = 0;
-			while (matcher.find() && sentenceCount < 2) {
-				String sentence = matcher.group().trim();
-				int sWords = sentence.split("\\s+").length;
-				if (wordCount + sWords <= 45 || sentenceCount == 0) {
-					if (trimmed.length() > 0) trimmed.append(" ");
-					trimmed.append(sentence);
-					wordCount += sWords;
-					sentenceCount++;
-				} else {
-					break;
-				}
-			}
-			if (trimmed.length() > 0) {
-				clean = trimmed.toString();
-			} else {
-				StringBuilder sb = new StringBuilder();
-				for (int i = 0; i < Math.min(words.length, 35); i++) {
-					if (i > 0) sb.append(" ");
-					sb.append(words[i]);
-				}
-				String s = sb.toString();
-				if (!s.endsWith(".") && !s.endsWith("!") && !s.endsWith("?")) s += ".";
-				clean = s;
-			}
-		}
-		return clean;
-	}
-
 	@Override
 	public AiResponse chat(AiRequest request) {
-		String prompt = (request != null && request.getPrompt() != null) ? request.getPrompt().trim() : "";
-		if (prompt.isEmpty()) {
-			return AiResponse.builder().response("Hello! What would you like to practice speaking today?").build();
-		}
-		try {
-			AiResponse response = callGroqWithSystem(chatModel, CONVERSATIONAL_FALLBACK_SYSTEM_PROMPT, prompt);
-			if (response != null && response.getResponse() != null) {
-				String sanitized = sanitizeConversationalFallback(response.getResponse(), prompt);
-				return AiResponse.builder().response(sanitized).build();
-			}
-			return response;
-		} catch (Exception e) {
-			return AiResponse.builder().response(deriveContextualFallback(prompt)).build();
-		}
-	}
-
-	private String deriveContextualFallback(String prompt) {
-		String lower = (prompt != null ? prompt.toLowerCase().trim() : "");
-		if (lower.contains("pune") || lower.contains("mumbai") || lower.contains("delhi") || lower.contains("trip") || lower.contains("travel") || lower.contains("went to")) {
-			return "That sounds like a wonderful trip! What was your favorite memory from while you were there?";
-		} else if (lower.contains("movie") || lower.contains("film") || lower.contains("cinema") || lower.contains("watched")) {
-			return "Nice! What movie did you watch, and what did you think of it?";
-		} else if (lower.contains("java") || lower.contains("python") || lower.contains("coding") || lower.contains("programming")) {
-			return "Interesting! What are you currently building with it?";
-		} else if (lower.contains("tired") || lower.contains("exhausted")) {
-			return "I see. What made you feel so tired yesterday?";
-		} else if (lower.contains("cricket") || lower.contains("football") || lower.contains("sports") || lower.contains("play")) {
-			return "Cricket is fantastic! Do you prefer batting or bowling?";
-		} else if (lower.contains("cooking") || lower.contains("food") || lower.contains("eat")) {
-			if (lower.contains("don't like") || lower.contains("dont like") || lower.contains("hate")) {
-				return "That's completely fine! What kind of food do you enjoy eating?";
-			}
-			return "That sounds delicious! What is your favorite dish to prepare?";
-		} else if (lower.contains("pronunciation") || lower.contains("speaking")) {
-			return "Which specific English sounds feel trickiest for you to pronounce?";
-		} else if (lower.contains("great") || lower.contains("awesome") || lower.contains("wonderful")) {
-			return "That sounds great! What made your week so special?";
-		} else if (lower.contains("terrible") || lower.contains("bad") || lower.contains("awful")) {
-			return "I'm sorry to hear that. What was the toughest part of your week?";
-		} else if (lower.contains("friend") || lower.contains("friends") || lower.contains("visited")) {
-			return "That sounds fun! What did you and your friend do together?";
-		}
-		return "That makes a lot of sense! How do you usually approach that in your daily routine?";
+		return callGroq(chatModel, request.getPrompt(), 0.7);
 	}
 
 	private static final String GRAMMAR_CORRECTION_SYSTEM_PROMPT = """
@@ -374,7 +271,7 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 
 	private AiResponse executeGroqCall(String modelName, List<GroqRequest.Message> messages, double temperature) {
 		try {
-			GroqRequest request = new GroqRequest(modelName, messages, temperature, maxTokens != null ? maxTokens : 250);
+			GroqRequest request = new GroqRequest(modelName, messages, temperature);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
