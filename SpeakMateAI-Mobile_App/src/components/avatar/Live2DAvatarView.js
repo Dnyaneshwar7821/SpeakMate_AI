@@ -3,6 +3,7 @@ import { StyleSheet, View, ActivityIndicator, Image } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { getPixiPuppetHtml } from '../../utils/puppetHtmlEngine';
 import { AVATAR_IMAGES, getAvatarById } from '../../config/AvatarCatalog';
+import { TEACHER_DATA_URI } from '../../utils/puppets/TeacherBase64';
 
 export const Live2DAvatarView = memo(function Live2DAvatarView({
   isSpeaking = false,
@@ -22,6 +23,9 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
 
   const assetUri = useMemo(() => {
     try {
+      if (normalizedModel === 'haru' || normalizedModel === 'teacher') {
+        return TEACHER_DATA_URI;
+      }
       const avatarMeta = getAvatarById(normalizedModel);
       const img = AVATAR_IMAGES[avatarMeta.id] || AVATAR_IMAGES[normalizedModel];
       if (img) {

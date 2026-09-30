@@ -20,6 +20,7 @@ import { NinjaHattoriPuppetCode } from './puppets/NinjaHattoriPuppetCode';
 import { TomPuppetCode } from './puppets/TomPuppetCode';
 import { BenTenPuppetCode } from './puppets/BenTenPuppetCode';
 import { PuppyPuppetCode } from './puppets/PuppyPuppetCode';
+import { TEACHER_DATA_URI } from './puppets/TeacherBase64';
 
 const ALIAS_MAP = {
   haru: 'haru',
@@ -123,6 +124,9 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
   const normKey = (modelKey || 'haru').toLowerCase();
   const canonicalId = ALIAS_MAP[normKey] || 'haru';
   const puppetInfo = PUPPET_REGISTRY[canonicalId] || PUPPET_REGISTRY.haru;
+  const finalAssetUri = canonicalId === 'haru'
+    ? (assetUri && assetUri.startsWith('data:') ? assetUri : TEACHER_DATA_URI)
+    : (assetUri || '');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -166,7 +170,7 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
   <div id="stage-container"></div>
 
   <script>
-    window.__PUPPET_IMAGE_URI = ${JSON.stringify(assetUri)};
+    window.__PUPPET_IMAGE_URI = ${JSON.stringify(finalAssetUri)};
     window.__ACTIVE_MODEL = ${JSON.stringify(canonicalId)};
 
     // ── 1. Injected Puppet Class Definition ──
