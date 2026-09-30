@@ -282,11 +282,14 @@ export default function ConversationChatScreen({ navigation, route }) {
   // Auto-collapse top avatar on keyboard show and smoothly lift chat input bar
   useEffect(() => {
     const handleKeyboardShow = (e) => {
-      const height = e?.endCoordinates?.height || 0;
+      const rawHeight = e?.endCoordinates?.height || 0;
+      // On Android with translucent status bar and navigation bar, raw keyboard height is short by system insets (~80px)
+      const androidSystemOffset = Platform.OS === 'android' ? 80 : 0;
+      const targetHeight = rawHeight > 0 ? rawHeight + androidSystemOffset : 0;
       LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setKeyboardVisible(true);
       Animated.timing(keyboardHeightAnim, {
-        toValue: height,
+        toValue: targetHeight,
         duration: Platform.OS === 'ios' ? (e.duration || 250) : 150,
         useNativeDriver: false,
       }).start();
