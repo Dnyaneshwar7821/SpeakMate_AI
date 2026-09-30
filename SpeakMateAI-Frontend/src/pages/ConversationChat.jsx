@@ -610,10 +610,10 @@ export function ConversationChat() {
     : "AI Coach Ready ✨";
 
   return (
-    <div className="h-[calc(100vh-80px)] max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 p-2 sm:p-4 overflow-hidden">
+    <div className="h-[calc(100dvh-80px)] min-h-0 max-w-7xl mx-auto flex flex-col lg:flex-row gap-4 p-2 sm:p-4 overflow-hidden">
       
       {/* ── LEFT COLUMN: SEPARATE AVATAR STAGE STUDIO ── */}
-      <div className={`lg:w-5/12 h-[320px] lg:h-full backdrop-blur-2xl border rounded-3xl overflow-hidden relative shadow-xl flex flex-col shrink-0 transition-colors ${
+      <div className={`lg:w-5/12 h-[200px] sm:h-[260px] lg:h-full backdrop-blur-2xl border rounded-3xl overflow-hidden relative shadow-xl flex flex-col shrink-0 transition-all ${
         isDark ? "bg-slate-900/80 border-white/10" : "bg-white border-slate-200/90"
       }`}>
         
@@ -746,7 +746,7 @@ export function ConversationChat() {
         <div className="flex-1 overflow-y-auto space-y-3.5 p-4">
           {messages.map((m) => {
             const isUser = m.sender === "user";
-            const hasGrammar = m.grammarCorrection && m.grammarCorrection !== "none";
+            const hasGrammar = m.grammarCorrection && m.grammarCorrection !== "none" && !m.grammarCorrection.includes("✅") && !m.grammarCorrection.toLowerCase().includes("correct");
             const hasBetter = m.betterSentence && m.betterSentence !== "none";
             const hasVocab = m.vocabularySuggestions && m.vocabularySuggestions !== "none";
 
@@ -839,33 +839,41 @@ export function ConversationChat() {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Dynamic AI Smart Suggestions Tray */}
-        {(() => {
-          const lastAi = [...messages].reverse().find((m) => m.sender === "ai" || m.role === "assistant");
-          const activeHints = hints.length > 0 ? hints : getModeHints(mode, lastAi);
-          return (
-            <div className={`p-2.5 border-t flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none ${
-              isDark ? "border-white/10 bg-slate-800/40" : "border-slate-200 bg-slate-50"
-            }`}>
-              <span className="text-[10px] font-black text-[#6c63ff] shrink-0 flex items-center gap-1">
-                💡 Suggestions:
-              </span>
-              {activeHints.map((hint, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSendMessage(hint)}
-                  className={`px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition-all border shadow-sm ${
-                    isDark
-                      ? "bg-slate-700/60 hover:bg-[#6c63ff] hover:text-white text-slate-200 border-white/10"
-                      : "bg-white hover:bg-[#6c63ff] hover:text-white text-slate-700 border-slate-200"
-                  }`}
-                >
-                  {hint}
-                </button>
-              ))}
-            </div>
-          );
-        })()}
+        {/* Dynamic AI Smart Suggestions Tray (On-demand when AI Hint clicked) */}
+        {hints.length > 0 && (
+          <div className={`p-2.5 border-t flex items-center gap-2 overflow-x-auto shrink-0 scrollbar-none ${
+            isDark ? "border-white/10 bg-slate-800/40" : "border-slate-200 bg-slate-50"
+          }`}>
+            <span className="text-[10px] font-black text-[#6c63ff] shrink-0 flex items-center gap-1">
+              💡 Suggestions:
+            </span>
+            {hints.map((hint, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  setInputText(hint);
+                  setHints([]);
+                }}
+                className={`px-3 py-1 rounded-xl text-xs font-semibold shrink-0 transition-all border shadow-sm ${
+                  isDark
+                    ? "bg-slate-700/60 hover:bg-[#6c63ff] hover:text-white text-slate-200 border-white/10"
+                    : "bg-white hover:bg-[#6c63ff] hover:text-white text-slate-700 border-slate-200"
+                }`}
+              >
+                {hint}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setHints([])}
+              className="text-xs text-slate-400 hover:text-slate-200 px-2 py-0.5 rounded-lg border border-slate-500/20 ml-auto shrink-0"
+              title="Close Suggestions"
+            >
+              ✕
+            </button>
+          </div>
+        )}
 
         {/* Integrated Text Input Bar & Voice Wave */}
         <div className={`p-3.5 border-t shrink-0 space-y-2 ${
@@ -954,9 +962,10 @@ export function ConversationChat() {
 
             <input
               type="text"
-              placeholder={isListening ? "Listening to your voice..." : "Type response to tutor (or click suggestion above)..."}
+              placeholder={isListening ? "Listening to your voice..." : "Type response to tutor..."}
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              onFocus={() => setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 120)}
               disabled={evaluating}
               className={`flex-1 px-4 py-3 rounded-2xl border text-xs sm:text-sm font-semibold focus:outline-none focus:border-[#6c63ff] shadow-inner ${
                 isDark

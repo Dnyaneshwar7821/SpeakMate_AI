@@ -260,6 +260,7 @@ export default function ConversationChatScreen({ navigation, route }) {
   }, [route.params?.avatarModel]);
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Long-press Actions Modal
   const [menuVisible, setMenuVisible] = useState(false);
@@ -279,22 +280,25 @@ export default function ConversationChatScreen({ navigation, route }) {
   const isSendingRef = useRef(false);
   const recordingSessionIdRef = useRef(0);
 
-  // Auto-collapse top avatar on keyboard show to maximize chat view
+  // Auto-collapse top avatar on keyboard show to maximize chat view & dynamically shift content above keyboard
   useEffect(() => {
-    const onShow = () => {
+    const onShow = (e) => {
+      const h = e?.endCoordinates?.height || 0;
+      setKeyboardHeight(h);
+      setKeyboardVisible(true);
       try {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       } catch (_) {}
-      setKeyboardVisible(true);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 260);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 280);
     };
 
     const onHide = () => {
+      setKeyboardHeight(0);
+      setKeyboardVisible(false);
       try {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       } catch (_) {}
-      setKeyboardVisible(false);
     };
 
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -993,7 +997,10 @@ export default function ConversationChatScreen({ navigation, route }) {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={0}
     >
-      <LinearGradient colors={['#0B0F19', '#111827', '#1E1B4B']} style={{ flex: 1 }}>
+      <LinearGradient
+        colors={['#0B0F19', '#111827', '#1E1B4B']}
+        style={[styles.root, { paddingBottom: Platform.OS === 'android' ? keyboardHeight : 0 }]}
+      >
         <StatusBar barStyle="light-content" />
         {/* ─── Header ─── */}
         <View style={styles.header}>
@@ -1080,12 +1087,15 @@ export default function ConversationChatScreen({ navigation, route }) {
             return clean !== 'none' && clean !== 'null' && clean !== '' && !clean.includes('[better_sentence] none') && !clean.includes('[vocabulary] none');
           };
 
-          const showGrammar = hasFeedbackText(item.grammarCorrection);
+          // Only display grammar if there's an actual correction needed (not when already correct)
+          const showGrammar = hasFeedbackText(item.grammarCorrection) && 
+            !item.grammarCorrection.includes('✅') && 
+            !item.grammarCorrection.toLowerCase().includes('correct');
           const showBetter = hasFeedbackText(item.betterSentence);
           const showVocab = hasFeedbackText(item.vocabularySuggestions);
           const showFollowup = hasFeedbackText(item.followUpQuestion);
 
-          const hasAnyFeedback = !isUser && (showGrammar || showBetter || showVocab || showFollowup);
+          const hasCoachingTips = !isUser && (showGrammar || showBetter || showVocab);
 
           return (
             <AnimatedChatBubble isUser={isUser} onLongPress={() => handleOpenMenu(item)}>
@@ -1101,35 +1111,34 @@ export default function ConversationChatScreen({ navigation, route }) {
                   <Text style={[styles.bubbleText, isUser ? styles.userText : styles.aiText]}>
                     {item.message}
                   </Text>
+                  {showFollowup && (
+                    <Text style={[styles.bubbleText, { marginTop: 6, color: '#A5B4FC', fontWeight: '600', fontSize: 13 }]}>
+                      ❓ {item.followUpQuestion}
+                    </Text>
+                  )}
                   {item.bookmarked && (
                     <Ionicons name="star" size={12} color="#F59E0B" style={styles.starIcon} />
                   )}
                 </View>
 
-                {/* Tutor Feedback Card */}
-                {hasAnyFeedback && (
+                {/* Tutor Feedback Card (Only shown when there are genuine corrections or upgrades) */}
+                {hasCoachingTips && (
                   <View style={styles.evalCard}>
                     <View style={styles.evalHeader}>
-                      <Ionicons name="school" size={14} color={COLORS.primary} />
-                      <Text style={styles.evalTitle}>Tutor Corrections & Feedback</Text>
+                      <Ionicons name="bulb-outline" size={13} color={COLORS.primary} />
+                      <Text style={styles.evalTitle}>Tutor Coaching Tips</Text>
                     </View>
                     
                     {showGrammar && (
                       <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Grammar Correction</Text>
-                        {item.grammarCorrection.includes('✅') || item.grammarCorrection.toLowerCase().includes('correct') ? (
-                          <Text style={[styles.evalContent, { color: '#10B981', fontWeight: '700' }]}>
-                            {item.grammarCorrection}
-                          </Text>
-                        ) : (
-                          <Text style={styles.evalContent}>👉 {item.grammarCorrection}</Text>
-                        )}
+                        <Text style={styles.evalLabel}>Grammar Fix</Text>
+                        <Text style={styles.evalContent}>👉 {item.grammarCorrection}</Text>
                       </View>
                     )}
 
                     {showBetter && (
                       <View style={styles.evalSection}>
-                        <Text style={styles.evalLabel}>Better Sentence</Text>
+                        <Text style={styles.evalLabel}>Better Phrasing</Text>
                         <Text style={styles.evalContent}>💡 "{item.betterSentence}"</Text>
                       </View>
                     )}
@@ -1143,21 +1152,6 @@ export default function ConversationChatScreen({ navigation, route }) {
 
                     {hasFeedbackText(item.explanation) && (
                       <Text style={styles.evalExplanation}>{item.explanation}</Text>
-                    )}
-
-                    {showFollowup && (
-                      <TouchableOpacity
-                        style={styles.followUpBadge}
-                        onPress={async () => {
-                          try {
-                            await Share.share({ message: item.followUpQuestion });
-                          } catch (e) {
-                            Alert.alert('Follow-up Question', item.followUpQuestion);
-                          }
-                        }}
-                      >
-                        <Text style={styles.followUpText}>❓ Follow-up: "{item.followUpQuestion}"</Text>
-                      </TouchableOpacity>
                     )}
                   </View>
                 )}
