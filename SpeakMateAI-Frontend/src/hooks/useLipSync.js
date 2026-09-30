@@ -78,42 +78,40 @@ function applyMouthParameters(model, yVal, formVal, isSpeaking = false) {
 export function useLipSync(model, isSpeakingProp = false) {
   const currentMouthY = useRef(0);
   const currentMouthForm = useRef(0);
-  const targetMouthYRef = useRef(1.0);
-  const targetMouthFormRef = useRef(0.2);
+  const targetMouthYRef = useRef(0);
+  const targetMouthFormRef = useRef(0);
   const activeSpeaking = useRef(isSpeakingProp);
-  const speechDeadline = useRef(0);
   const rafRef = useRef(null);
   const lastWordTimeRef = useRef(0);
+  const wordDurationRef = useRef(240);
 
   useEffect(() => {
     activeSpeaking.current = isSpeakingProp;
-    if (isSpeakingProp) {
-      speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 15000);
+    if (!isSpeakingProp) {
+      targetMouthYRef.current = 0;
+      targetMouthFormRef.current = 0;
+      currentMouthY.current = 0;
+      currentMouthForm.current = 0;
+      lastWordTimeRef.current = 0;
+      if (model) {
+        applyMouthParameters(model, 0, 0, false);
+      }
     }
-  }, [isSpeakingProp]);
+  }, [isSpeakingProp, model]);
 
   useEffect(() => {
-    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, (data) => {
+    const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => {
       activeSpeaking.current = true;
       if (typeof window !== 'undefined') window._speakmate_ai_is_speaking = true;
-
-      const text = data?.text || '';
-      const wordCount = text.trim().split(/\s+/).filter(Boolean).length || 10;
-      const speed = data?.speed || 1.0;
-      const durationMs = Math.max(12000, ((wordCount / (1.0 * speed)) * 1000) + 8000);
-      
-      speechDeadline.current = performance.now() + durationMs;
-      targetMouthYRef.current = 1.0;
-      targetMouthFormRef.current = 0.2;
-      lastWordTimeRef.current = performance.now();
+      // Keep mouth at REST until the first actual word arrives
+      targetMouthYRef.current = 0;
+      targetMouthFormRef.current = 0;
+      lastWordTimeRef.current = 0;
     });
 
     const unsubWord = EventBus.on(AVATAR_EVENTS.LIP_SYNC_UPDATE, (data) => {
       activeSpeaking.current = true;
       if (typeof window !== 'undefined') window._speakmate_ai_is_speaking = true;
-      speechDeadline.current = Math.max(speechDeadline.current, performance.now() + 6000);
-      
-      lastWordTimeRef.current = performance.now();
 
       const word = data?.word || '';
       if (word) {
@@ -121,19 +119,28 @@ export function useLipSync(model, isSpeakingProp = false) {
           ? { yVal: data.yVal, formVal: data.formVal }
           : getPrimaryVisemeForWord(word);
 
-        targetMouthYRef.current = Math.max(0.80, visemeObj.yVal || 1.0);
-        targetMouthFormRef.current = visemeObj.formVal || 0.2;
+        targetMouthYRef.current = Math.max(0.25, Math.min(1.0, visemeObj.yVal !== undefined ? visemeObj.yVal : 0.80));
+        targetMouthFormRef.current = Math.max(-1.0, Math.min(1.0, visemeObj.formVal !== undefined ? visemeObj.formVal : 0.0));
+        lastWordTimeRef.current = performance.now();
+
+        // Calculate natural word articulation duration based on length: ~180ms to 320ms
+        const len = word.length;
+        wordDurationRef.current = Math.max(180, Math.min(320, len * 42));
       }
     });
 
     const unsubEnd = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => {
-      const isSynthesizing = typeof window !== 'undefined' && Boolean(
-        window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending)
-      );
-      if (!isSynthesizing) {
-        if (typeof window !== 'undefined') window._speakmate_ai_is_speaking = false;
-        activeSpeaking.current = false;
-        speechDeadline.current = performance.now() + 600;
+      activeSpeaking.current = false;
+      if (typeof window !== 'undefined') {
+        window._speakmate_ai_is_speaking = false;
+      }
+      targetMouthYRef.current = 0;
+      targetMouthFormRef.current = 0;
+      currentMouthY.current = 0;
+      currentMouthForm.current = 0;
+      lastWordTimeRef.current = 0;
+      if (model) {
+        applyMouthParameters(model, 0, 0, false);
       }
     });
 
@@ -142,61 +149,58 @@ export function useLipSync(model, isSpeakingProp = false) {
       if (typeof unsubWord === 'function') unsubWord();
       if (typeof unsubEnd === 'function') unsubEnd();
     };
-  }, []);
+  }, [model]);
 
-  // Animation calculation loop (Continuous 60 FPS)
+  // Frame update loop (Continuous 60 FPS)
   useEffect(() => {
     const updateStateLoop = () => {
       const now = performance.now();
-      const isGlobalLock = typeof window !== 'undefined' && Boolean(window._speakmate_ai_is_speaking);
-      const isWithinDeadline = now < speechDeadline.current;
-      const isSynthesizing = typeof window !== 'undefined' && Boolean(
-        (window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending))
+      const isSpeaking = Boolean(
+        activeSpeaking.current ||
+        isSpeakingProp ||
+        (typeof window !== 'undefined' && window._speakmate_ai_is_speaking)
       );
-      const isSpeaking = Boolean(isGlobalLock || activeSpeaking.current || isSpeakingProp || isSynthesizing || isWithinDeadline);
 
       let targetMouthY = 0;
       let targetMouthForm = 0;
 
-      if (isSpeaking) {
-        const t = now * 0.001;
-        const phoneticY = targetMouthYRef.current > 0 ? targetMouthYRef.current : 1.0;
-        const phoneticForm = targetMouthFormRef.current || 0.2;
+      if (isSpeaking && lastWordTimeRef.current > 0) {
+        const elapsed = now - lastWordTimeRef.current;
+        const duration = wordDurationRef.current || 240;
 
-        const timeSinceWord = now - lastWordTimeRef.current;
-        let envelope = 0;
-
-        // Snappy Syllabic Arc for immediate word boundary response
-        if (timeSinceWord < 300) {
-          const progress = timeSinceWord / 300;
-          // Sine curve with elevated sustain
-          envelope = Math.sin(progress * Math.PI);
+        if (elapsed < duration) {
+          // Word is actively being pronounced: natural vocalic syllable envelope
+          const progress = elapsed / duration;
+          const envelope = Math.sin(progress * Math.PI);
+          targetMouthY = targetMouthYRef.current * envelope;
+          targetMouthForm = targetMouthFormRef.current;
         } else {
-          // Dynamic 3.8 Hz speech cadence with full opening range
-          const syllablePhase = (t * 3.8 * Math.PI * 2) % (Math.PI * 2);
-          const rawWave = Math.sin(syllablePhase);
-          envelope = rawWave > 0 ? Math.pow(rawWave, 0.85) : 0;
+          // Word voicing complete: immediately close mouth between words / during pauses
+          targetMouthY = 0;
+          targetMouthForm = 0;
         }
-
-        // Boosted dynamic range for clear visual articulation (peak up to 1.0)
-        targetMouthY = Math.min(1.0, Math.max(0, phoneticY * envelope * 1.15));
-        targetMouthForm = phoneticForm;
       }
 
-      // Fast-attack lerp on opening, smooth natural release on closing
-      const isOpening = targetMouthY > currentMouthY.current;
-      const lerpSpeed = isSpeaking ? (isOpening ? 0.60 : 0.38) : 0.25;
-      currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
-      currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
-
-      if (!isSpeaking && currentMouthY.current < 0.01) {
+      if (!isSpeaking) {
         currentMouthY.current = 0;
         currentMouthForm.current = 0;
+      } else {
+        // Fast-attack lerp on opening (0.65), swift crisp release on closing (0.55)
+        const isOpening = targetMouthY > currentMouthY.current;
+        const lerpSpeed = isOpening ? 0.65 : 0.55;
+        currentMouthY.current += (targetMouthY - currentMouthY.current) * lerpSpeed;
+        currentMouthForm.current += (targetMouthForm - currentMouthForm.current) * lerpSpeed;
+
+        if (targetMouthY === 0 && currentMouthY.current < 0.05) {
+          currentMouthY.current = 0;
+          currentMouthForm.current = 0;
+        }
       }
 
-      // Apply directly to model core on every frame
+      // Apply directly to model core
       if (model) {
-        applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isSpeaking);
+        const isActuallyActive = isSpeaking && currentMouthY.current > 0.02;
+        applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isActuallyActive);
       }
 
       rafRef.current = requestAnimationFrame(updateStateLoop);
@@ -218,16 +222,13 @@ export function useLipSync(model, isSpeakingProp = false) {
     if (originalMotionUpdate) {
       motionManager.update = function (coreModel, now) {
         originalMotionUpdate(coreModel, now);
-
-        const currentTime = performance.now();
-        const isGlobalLock = typeof window !== 'undefined' && Boolean(window._speakmate_ai_is_speaking);
-        const isWithinDeadline = currentTime < speechDeadline.current;
-        const isSynthesizing = typeof window !== 'undefined' && Boolean(
-          (window.speechSynthesis && (window.speechSynthesis.speaking || window.speechSynthesis.pending))
+        const isSpeaking = Boolean(
+          activeSpeaking.current ||
+          isSpeakingProp ||
+          (typeof window !== 'undefined' && window._speakmate_ai_is_speaking)
         );
-        const isSpeaking = Boolean(isGlobalLock || activeSpeaking.current || isSpeakingProp || isSynthesizing || isWithinDeadline);
-
-        applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isSpeaking);
+        const isActuallyActive = isSpeaking && currentMouthY.current > 0.02;
+        applyMouthParameters(model, currentMouthY.current, currentMouthForm.current, isActuallyActive);
       };
     }
 

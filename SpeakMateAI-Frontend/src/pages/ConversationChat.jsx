@@ -5,8 +5,7 @@ import ROUTES from "../constants/routes";
 import { aiService, chatService } from "../services/appServices";
 import { generateDynamicCoachingResponse, cleanDialogueText } from "../utils/aiConversationEngine";
 import { AvatarCanvas } from "../components/avatar/AvatarCanvas";
-import { useLipSync } from "../hooks/useLipSync";
-import { speakGlobalText } from "../utils/speechHelper";
+import { speakGlobalText, stopSpeaking } from "../utils/speechHelper";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useToast } from "../context/ToastContext";
@@ -91,8 +90,12 @@ export function ConversationChat() {
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [model, setModel] = useState(null);
 
-  // Smooth Live2D Lip Syncing
-  useLipSync(model, isAiSpeaking);
+  // useLipSync is handled directly by AvatarCanvas with isSpeaking prop
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
 
   // Dynamic Real-Time Phonetic Viseme State ("REST", "AA", "EE", "OO", "IH", "OH")
   const [viseme, setViseme] = useState("REST");
@@ -418,6 +421,11 @@ export function ConversationChat() {
     const cleanText = textToSend.trim();
     if (!cleanText) return;
 
+    // Immediately stop any active speech and reset mouth to REST
+    stopSpeaking();
+    setIsAiSpeaking(false);
+    setViseme("REST");
+
     setInputText("");
     setHints([]);
     setEvaluating(true);
@@ -566,7 +574,7 @@ export function ConversationChat() {
             ? "bg-gradient-to-b from-[#0F172A] via-[#111827] to-[#0B0F19]"
             : "bg-gradient-to-b from-sky-50 via-indigo-50/70 to-purple-50/60"
         }`}>
-          <AvatarCanvas className="w-full h-full" framing="faceToChest" onModelLoaded={setModel} />
+          <AvatarCanvas isSpeaking={isAiSpeaking} className="w-full h-full" framing="faceToChest" onModelLoaded={setModel} />
 
           {/* Subtle Stage Lighting Overlay */}
           <div className={`absolute inset-0 pointer-events-none ${

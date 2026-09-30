@@ -5,6 +5,14 @@ import { DoraemonPuppet } from './DoraemonPuppet';
 import { SuperheroPuppet } from './SuperheroPuppet';
 import { MotuPuppet } from './MotuPuppet';
 import { PuppyPuppet } from './PuppyPuppet';
+import { ShizukaPuppet } from './ShizukaPuppet';
+import { SpongeBobPuppet } from './SpongeBobPuppet';
+import { ChhotaBheemPuppet } from './ChhotaBheemPuppet';
+import { BenTenPuppet } from './BenTenPuppet';
+import { NinjaHattoriPuppet } from './NinjaHattoriPuppet';
+import { TomPuppet } from './TomPuppet';
+import { TeacherPuppet } from './TeacherPuppet';
+import { MaleTeacherPuppet } from './MaleTeacherPuppet';
 import { DEFAULT_AVATAR_CONFIG } from '../../config/AvatarConfig';
 import { getCurrentVoiceGender } from '../../utils/speechHelper';
 import { EventBus, AVATAR_EVENTS } from '../../services/live2d/EventBus';
@@ -74,10 +82,18 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
   const catalogEntry = getAvatarById(activeModelKey);
   const isPuppet = catalogEntry.type === 'puppet';
   const isPuppy = isPuppet && (catalogEntry.puppetType === 'puppy' || catalogEntry.id === 'puppy');
-  const isRoboPaws = isPuppet && (catalogEntry.puppetType === 'doraemon' || catalogEntry.id === 'robopaws');
-  const isSuperhero = isPuppet && (catalogEntry.puppetType === 'superhero' || catalogEntry.id === 'sparky' || catalogEntry.id === 'hero');
+  const isTom = isPuppet && (catalogEntry.puppetType === 'tom' || catalogEntry.id === 'haruto' || catalogEntry.id === 'tom');
+  const isRoboPaws = isPuppet && (catalogEntry.puppetType === 'doraemon' || catalogEntry.id === 'robopaws' || catalogEntry.id === 'doraemon');
+  const isBheem = isPuppet && (catalogEntry.puppetType === 'chhotabheem' || catalogEntry.id === 'sparky' || catalogEntry.id === 'bheem');
+  const isSuperhero = isPuppet && (catalogEntry.puppetType === 'superhero' || catalogEntry.id === 'hero');
   const isMotu = isPuppet && (catalogEntry.puppetType === 'motu' || catalogEntry.id === 'motu');
-  const targetModelPath = modelPath || catalogEntry.modelPath || AVATAR_CATALOG.haru.modelPath;
+  const isShizuka = isPuppet && (catalogEntry.puppetType === 'shizuka' || catalogEntry.id === 'shizuku' || catalogEntry.id === 'shizuka');
+  const isSpongeBob = isPuppet && (catalogEntry.puppetType === 'spongebob' || catalogEntry.id === 'spongebob');
+  const isBenTen = isPuppet && (catalogEntry.puppetType === 'benten' || catalogEntry.id === 'mao');
+  const isHattori = isPuppet && (catalogEntry.puppetType === 'ninjahattori' || catalogEntry.id === 'koharu' || catalogEntry.id === 'hattori');
+  const isTeacher = isPuppet && (catalogEntry.puppetType === 'teacher' || catalogEntry.id === 'haru' || catalogEntry.id === 'teacher');
+  const isMaleTeacher = isPuppet && (catalogEntry.puppetType === 'maleTeacher' || catalogEntry.id === 'chitose' || catalogEntry.id === 'maleteacher');
+  const targetModelPath = modelPath || catalogEntry.modelPath || AVATAR_CATALOG.chitose?.modelPath;
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -99,12 +115,28 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
     container.appendChild(app.view);
 
     if (isPuppet) {
-      const puppet = isPuppy
+      const puppet = isMaleTeacher
+        ? new MaleTeacherPuppet()
+        : isTeacher
+        ? new TeacherPuppet()
+        : isPuppy
         ? new PuppyPuppet()
+        : isTom
+        ? new TomPuppet()
+        : isBheem
+        ? new ChhotaBheemPuppet()
+        : isBenTen
+        ? new BenTenPuppet()
+        : isHattori
+        ? new NinjaHattoriPuppet()
         : isSuperhero
         ? new SuperheroPuppet()
         : isMotu
         ? new MotuPuppet()
+        : isShizuka
+        ? new ShizukaPuppet()
+        : isSpongeBob
+        ? new SpongeBobPuppet()
         : new DoraemonPuppet();
       app.stage.addChild(puppet);
       modelRef.current = puppet;
@@ -115,16 +147,50 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
         const width = container.clientWidth;
         const height = container.clientHeight;
         app.renderer.resize(width, height);
-        const scale = isPuppy
-          ? Math.min((width * 0.88) / 210, (height * 0.82) / 240)
+        const scale = isMaleTeacher
+          ? Math.min((width * 0.88) / 230, (height * 0.82) / 270)
+          : isTeacher
+          ? Math.min((width * 0.88) / 230, (height * 0.82) / 270)
+          : isPuppy
+          ? Math.min((width * 0.88) / 220, (height * 0.82) / 270)
+          : isTom
+          ? Math.min((width * 0.88) / 220, (height * 0.82) / 270)
+          : isHattori
+          ? Math.min((width * 0.88) / 220, (height * 0.82) / 270)
+          : isBheem
+          ? Math.min((width * 0.88) / 230, (height * 0.80) / 280)
+          : isBenTen
+          ? Math.min((width * 0.88) / 230, (height * 0.80) / 280)
           : isSuperhero
           ? Math.min((width * 0.90) / 240, (height * 0.85) / 280)
           : isMotu
           ? Math.min((width * 0.88) / 230, (height * 0.82) / 270)
+          : isShizuka
+          ? Math.min((width * 0.88) / 230, (height * 0.82) / 270)
+          : isSpongeBob
+          ? Math.min((width * 0.88) / 230, (height * 0.82) / 270)
           : Math.min((width * 0.85) / 220, (height * 0.80) / 260);
         puppet.scale.set(scale, scale);
         puppet.x = width / 2;
-        puppet.y = isPuppy ? height * 0.48 : height * 0.50;
+        puppet.y = isMaleTeacher
+          ? height * 0.48
+          : isTeacher
+          ? height * 0.50
+          : isPuppy
+          ? height * 0.50
+          : isTom
+          ? height * 0.50
+          : isHattori
+          ? height * 0.50
+          : isBheem
+          ? height * 0.49
+          : isBenTen
+          ? height * 0.50
+          : isShizuka
+          ? height * 0.52
+          : isSpongeBob
+          ? height * 0.50
+          : height * 0.50;
       };
 
       resizePuppet();
@@ -183,7 +249,7 @@ function AvatarCanvasInner({ model, modelPath, onModelLoaded, onError, className
             model.anchor.set(0.5, 0.0);
           }
           const isShizuku = catalogEntry.id === 'shizuku';
-          const isFullBody = catalogEntry.id === 'haru' || catalogEntry.id === 'chitose' || catalogEntry.id === 'koharu';
+          const isFullBody = catalogEntry.id === 'haru' || catalogEntry.id === 'chitose';
           const scaleMultiplier = catalogEntry.scaleMultiplier || (isShizuku ? 1.18 : (isFullBody ? 3.1 : 1.05));
           const scale = (height * scaleMultiplier) / nativeHeight;
           model.scale.set(scale, scale);

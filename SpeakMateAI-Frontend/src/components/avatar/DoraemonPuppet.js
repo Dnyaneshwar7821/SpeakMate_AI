@@ -1,9 +1,9 @@
 import * as PIXI from 'pixi.js';
 
 /**
- * Procedural 2D Doraemon-Style Mascot Rig (Robo-Paws)
- * Clean, iconic 2D cel-shaded vector character with dynamic eye tracking,
- * blinking, autonomous breathing, and phonetic speech visemes.
+ * 2D Doraemon Mascot Rig with Dynamic Phonetic Mouth Renderer
+ * Preserves the canonical Doraemon.jpg image pixel-identically while animating
+ * the mouth using a high-fidelity PIXI.Graphics overlay for real-time lip-sync.
  */
 export class DoraemonPuppet extends PIXI.Container {
   constructor() {
@@ -12,210 +12,130 @@ export class DoraemonPuppet extends PIXI.Container {
     this.isDoraemonPuppet = true;
 
     // Speech & Lip-Sync State
-    this.mouthY = 0;
+    this._mouthY = 0;
     this.smoothMouthY = 0;
-    this.mouthForm = 0;
-    this.isSpeaking = false;
+    this._mouthForm = 0;
+    this._isSpeaking = false;
+    this.debugOverride = false;
     this.currentMood = 'neutral';
     this.isHappy = true;
 
-    // Gaze & Eye-Tracking State
+    // Gaze & Eye-Tracking State (kept for compatibility)
     this.lookX = 0;
     this.lookY = 0;
     this.targetLookX = 0;
     this.targetLookY = 0;
-    this.blinkTimer = performance.now() + 2000;
-    this.isBlinking = false;
-    this.blinkProgress = 0;
-    this.nextSaccadeTime = performance.now() + 1500;
+
+    // Render Cache State (avoid unnecessary redraws)
+    this.lastRenderedMouthY = -1;
+    this.lastRenderedMouthForm = -1;
+    this.lastRenderedSpeakingState = null;
 
     this.initRig();
+  }
+
+  get mouthY() {
+    return this._mouthY || 0;
+  }
+  set mouthY(val) {
+    if (this.debugOverride) return;
+    this._mouthY = Math.max(0, Math.min(1.0, Number(val) || 0));
+  }
+
+  get mouthForm() {
+    return this._mouthForm || 0;
+  }
+  set mouthForm(val) {
+    if (this.debugOverride) return;
+    this._mouthForm = Math.max(-1.0, Math.min(1.0, Number(val) || 0));
+  }
+
+  get isSpeaking() {
+    return this._isSpeaking || false;
+  }
+  set isSpeaking(val) {
+    const boolVal = Boolean(val);
+    if (boolVal) {
+      this.debugOverride = false;
+    } else if (this.debugOverride) {
+      return;
+    }
+    this._isSpeaking = boolVal;
   }
 
   initRig() {
     this.rootContainer = new PIXI.Container();
     this.addChild(this.rootContainer);
 
-    // 1. Torso & Body Graphics
-    this.bodyGfx = new PIXI.Graphics();
-    this.rootContainer.addChild(this.bodyGfx);
+    // 1. Base Canonical Doraemon Image
+    this.sprite = PIXI.Sprite.from('/models/avatar/Doraemon.jpg');
+    this.sprite.anchor.set(0.5, 0.5);
 
-    // 2. Red Collar & Golden Bell
-    this.collarGfx = new PIXI.Graphics();
-    this.rootContainer.addChild(this.collarGfx);
+    // Scale down to match procedural puppet standard size (~200px)
+    this.sprite.scale.set(0.2);
+    this.rootContainer.addChild(this.sprite);
 
-    // 3. Head Container
-    this.headContainer = new PIXI.Container();
-    this.headContainer.position.set(0, 0);
-    this.rootContainer.addChild(this.headContainer);
+    // 2. Dynamic Mouth Container (inherits identical 0.2 scale & coordinate origin)
+    this.mouthContainer = new PIXI.Container();
+    this.mouthContainer.scale.set(0.2);
+    this.rootContainer.addChild(this.mouthContainer);
 
-    // 4. Head Base (Spherical Cyan Head + White Face Disc)
-    this.headBaseGfx = new PIXI.Graphics();
-    this.headContainer.addChild(this.headBaseGfx);
-
-    // 5. Expressive Eyes
-    this.eyesGfx = new PIXI.Graphics();
-    this.headContainer.addChild(this.eyesGfx);
-
-    // 6. Nose & Whiskers
-    this.noseWhiskersGfx = new PIXI.Graphics();
-    this.headContainer.addChild(this.noseWhiskersGfx);
-
-    // 7. Dynamic Phonetic Mouth
+    // 3. PIXI.Graphics Mouth Overlay (allocated once, cleared/redrawn as needed)
     this.mouthGfx = new PIXI.Graphics();
-    this.headContainer.addChild(this.mouthGfx);
+    this.mouthGfx.position.set(-627, -627);
+    this.mouthContainer.addChild(this.mouthGfx);
 
-    // 8. Robotic Arms & Hands
-    this.leftHandGfx = new PIXI.Graphics();
-    this.rightHandGfx = new PIXI.Graphics();
-    this.rootContainer.addChild(this.leftHandGfx);
-    this.rootContainer.addChild(this.rightHandGfx);
+    // Initial render in closed resting state
+    this.renderMouth();
 
-    this.drawStatic2DGeometry();
-  }
+    // Debug Hook for development testing (console verification)
+    if (typeof window !== 'undefined') {
+      window.__speakmate_doraemon_debug = (y = 0.5, form = 0.0) => {
+        if (y === null || y === undefined) {
+          this.debugOverride = false;
+          this._isSpeaking = false;
+          this._mouthY = 0;
+          this.smoothMouthY = 0;
+          this._mouthForm = 0;
+          this.renderMouth();
+          console.log('[DoraemonPuppet Debug] Debug override cleared');
+          return;
+        }
+        this.debugOverride = true;
+        this._mouthY = Math.max(0, Math.min(1.0, y));
+        this.smoothMouthY = this._mouthY;
+        this._mouthForm = Math.max(-1.0, Math.min(1.0, form));
+        this._isSpeaking = this._mouthY >= 0.08;
+        this.renderMouth();
+        console.log(`[DoraemonPuppet Debug] mouthY=${y}, mouthForm=${form}, isSpeaking=${this._isSpeaking}`);
+      };
 
-  drawStatic2DGeometry() {
-    // --- 1. Torso, Belly & Gadget Pocket ---
-    const bg = this.bodyGfx;
-    bg.clear();
+      this.checkHashDebug = () => {
+        const hash = window.location.hash || '';
+        const search = window.location.search || '';
+        const match = hash.match(/debug=([0-9.-]+)(?:,([0-9.-]+))?/) || search.match(/[?&]mY=([0-9.-]+)(?:&mForm=([0-9.-]+))?/);
+        if (match) {
+          const y = parseFloat(match[1]);
+          const form = match[2] !== undefined ? parseFloat(match[2]) : 0.0;
+          window.__speakmate_doraemon_debug(y, form);
+        } else if (hash.includes('debug=clear') || hash.includes('debug=null')) {
+          window.__speakmate_doraemon_debug(null);
+        }
+      };
 
-    // Iconic 2D Cyan-Blue Body
-    bg.beginFill(0x0284C7);
-    bg.lineStyle(3.5, 0x0F172A);
-    bg.drawRoundedRect(-58, 42, 116, 95, 34);
-    bg.endFill();
+      this.handleWindowMessage = (event) => {
+        try {
+          const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+          if (data && data.type === 'DORAEMON_DEBUG') {
+            window.__speakmate_doraemon_debug(data.y, data.form);
+          }
+        } catch (_) {}
+      };
 
-    // White Circular Belly Disc
-    bg.beginFill(0xFFFFFF);
-    bg.lineStyle(2.5, 0x0F172A);
-    bg.drawCircle(0, 84, 38);
-    bg.endFill();
-
-    // Gadget Pocket
-    bg.beginFill(0xFFFFFF);
-    bg.lineStyle(2.5, 0x0F172A);
-    bg.arc(0, 84, 27, 0, Math.PI);
-    bg.lineTo(27, 84);
-    bg.endFill();
-    bg.lineStyle(2.5, 0x0F172A);
-    bg.moveTo(-27, 84);
-    bg.lineTo(27, 84);
-
-    // --- 2. Red Neck Collar & Golden Bell ---
-    const col = this.collarGfx;
-    col.clear();
-
-    // Bright Red Collar Band
-    col.beginFill(0xEF4444);
-    col.lineStyle(3, 0x0F172A);
-    col.drawRoundedRect(-48, 35, 96, 16, 7);
-    col.endFill();
-
-    // Golden Bell
-    col.beginFill(0xFBBF24);
-    col.lineStyle(2.5, 0x0F172A);
-    col.drawCircle(0, 50, 14);
-    col.endFill();
-
-    // Bell Details
-    col.lineStyle(2, 0x0F172A);
-    col.moveTo(-12, 48);
-    col.lineTo(12, 48);
-    col.beginFill(0x334155);
-    col.drawCircle(0, 54, 3.5);
-    col.endFill();
-    col.moveTo(0, 57.5);
-    col.lineTo(0, 64);
-
-    // --- 3. Head Base: Spherical Cyan Head + White Face Mask ---
-    const hg = this.headBaseGfx;
-    hg.clear();
-
-    // 2D Cyan Robot Head
-    hg.beginFill(0x0284C7);
-    hg.lineStyle(3.8, 0x0F172A);
-    hg.drawCircle(0, -30, 80);
-    hg.endFill();
-
-    // 2D White Face Plate
-    hg.beginFill(0xFFFFFF);
-    hg.lineStyle(2.2, 0x0F172A);
-    hg.drawEllipse(0, -10, 66, 48);
-    hg.endFill();
-
-    // --- 4. Red Button Nose & 6 Whiskers ---
-    const nwg = this.noseWhiskersGfx;
-    nwg.clear();
-
-    // Red Sphere Nose
-    nwg.beginFill(0xEF4444);
-    nwg.lineStyle(2.5, 0x0F172A);
-    nwg.drawCircle(0, -30, 11);
-    nwg.endFill();
-
-    // Nose White Glint
-    nwg.beginFill(0xFFFFFF, 0.9);
-    nwg.drawCircle(-3, -33, 3.5);
-    nwg.endFill();
-
-    // Center Vertical Seam
-    nwg.lineStyle(2.5, 0x0F172A);
-    nwg.moveTo(0, -19);
-    nwg.lineTo(0, 4);
-
-    // 6 Whiskers
-    nwg.lineStyle(2.2, 0x0F172A);
-    nwg.moveTo(-16, -20); nwg.lineTo(-58, -26);
-    nwg.moveTo(-18, -12); nwg.lineTo(-64, -12);
-    nwg.moveTo(-16, -4); nwg.lineTo(-58, 2);
-
-    nwg.moveTo(16, -20); nwg.lineTo(58, -26);
-    nwg.moveTo(18, -12); nwg.lineTo(64, -12);
-    nwg.moveTo(16, -4); nwg.lineTo(58, 2);
-
-    this.drawHands(0);
-  }
-
-  drawHands(t) {
-    const lh = this.leftHandGfx;
-    const rh = this.rightHandGfx;
-    lh.clear();
-    rh.clear();
-
-    const lOffset = Math.sin(t) * 3;
-    const rOffset = Math.cos(t) * 3;
-
-    // Left Arm
-    lh.beginFill(0x0284C7);
-    lh.lineStyle(3, 0x0F172A);
-    lh.moveTo(-44, 48);
-    lh.lineTo(-66, 68 + lOffset);
-    lh.lineTo(-56, 76 + lOffset);
-    lh.lineTo(-38, 58);
-    lh.closePath();
-    lh.endFill();
-
-    // Left White Round Hand
-    lh.beginFill(0xFFFFFF);
-    lh.lineStyle(3, 0x0F172A);
-    lh.drawCircle(-66, 68 + lOffset, 16);
-    lh.endFill();
-
-    // Right Arm
-    rh.beginFill(0x0284C7);
-    rh.lineStyle(3, 0x0F172A);
-    rh.moveTo(44, 48);
-    rh.lineTo(66, 68 + rOffset);
-    rh.lineTo(56, 76 + rOffset);
-    rh.lineTo(38, 58);
-    rh.closePath();
-    rh.endFill();
-
-    // Right White Round Hand
-    rh.beginFill(0xFFFFFF);
-    rh.lineStyle(3, 0x0F172A);
-    rh.drawCircle(66, 68 + rOffset, 16);
-    rh.endFill();
+      window.addEventListener('hashchange', this.checkHashDebug);
+      window.addEventListener('message', this.handleWindowMessage);
+      this.checkHashDebug();
+    }
   }
 
   setParam(name, value) {
@@ -231,12 +151,19 @@ export class DoraemonPuppet extends PIXI.Container {
   setMouthOpen(y, form = 0) {
     this.mouthY = Math.max(0, Math.min(1.0, y));
     this.mouthForm = Math.max(-1.0, Math.min(1.0, form));
+    if ((y === 0 || !this.isSpeaking) && this.smoothMouthY < 0.08) {
+      this.smoothMouthY = 0;
+      this.renderMouth();
+    }
   }
 
   setSpeaking(speaking) {
     this.isSpeaking = Boolean(speaking);
-    if (!this.isSpeaking) {
+    if (!this.isSpeaking && !this.debugOverride) {
       this.mouthY = 0;
+      this.smoothMouthY = 0;
+      this.mouthForm = 0;
+      this.renderMouth();
     }
   }
 
@@ -245,156 +172,203 @@ export class DoraemonPuppet extends PIXI.Container {
     this.targetLookY = Math.max(-1, Math.min(1, y));
   }
 
-  update(now = performance.now()) {
-    const t = now * 0.001;
-
-    // Autonomous Saccades
-    if (now > this.nextSaccadeTime) {
-      this.targetLookX = (Math.random() - 0.5) * 0.8;
-      this.targetLookY = (Math.random() - 0.5) * 0.5;
-      this.nextSaccadeTime = now + 1600 + Math.random() * 2200;
-    }
-
-    this.lookX += (this.targetLookX - this.lookX) * 0.08;
-    this.lookY += (this.targetLookY - this.lookY) * 0.08;
-
-    // Gentle Breathing
-    const hoverY = Math.sin(t * 2.0) * 3.0;
-    this.rootContainer.y = hoverY;
-
-    this.drawHands(t * 2.2);
-
-    // Eye Blinking Logic
-    if (now > this.blinkTimer) {
-      this.isBlinking = true;
-      this.blinkProgress = 0;
-      this.blinkTimer = now + 2600 + Math.random() * 3200;
-    }
-    if (this.isBlinking) {
-      this.blinkProgress += 0.18;
-      if (this.blinkProgress >= 1.0) {
-        this.isBlinking = false;
-        this.blinkProgress = 0;
-      }
-    }
-
-    const targetMouthY = this.isSpeaking ? this.mouthY : 0;
-    this.smoothMouthY += (targetMouthY - this.smoothMouthY) * 0.25;
-
-    this.renderEyes();
-    this.renderMouth();
-  }
-
-  renderEyes() {
-    const eg = this.eyesGfx;
-    eg.clear();
-
-    const leftEyeX = -15;
-    const rightEyeX = 15;
-    const eyeY = -48;
-    const eyeW = 15;
-    const eyeH = 20;
-
-    if (this.isBlinking && this.blinkProgress > 0.3 && this.blinkProgress < 0.7) {
-      // Closed Happy Eyes (^ ^)
-      eg.lineStyle(3.5, 0x0F172A);
-      eg.arc(leftEyeX, eyeY + 4, 11, Math.PI * 1.1, Math.PI * 1.9);
-      const rightStart = Math.PI * 1.1;
-      eg.moveTo(rightEyeX + Math.cos(rightStart) * 11, eyeY + 4 + Math.sin(rightStart) * 11);
-      eg.arc(rightEyeX, eyeY + 4, 11, Math.PI * 1.1, Math.PI * 1.9);
-    } else {
-      // Left Eye Capsule (White)
-      eg.beginFill(0xFFFFFF);
-      eg.lineStyle(3, 0x0F172A);
-      eg.drawEllipse(leftEyeX, eyeY, eyeW, eyeH);
-      eg.endFill();
-
-      // Right Eye Capsule (White)
-      eg.beginFill(0xFFFFFF);
-      eg.lineStyle(3, 0x0F172A);
-      eg.drawEllipse(rightEyeX, eyeY, eyeW, eyeH);
-      eg.endFill();
-
-      // Pupil Tracking
-      const pX = this.lookX * 5.2;
-      const pY = this.lookY * 4.0;
-
-      // Left Pupil
-      eg.beginFill(0x0F172A);
-      eg.drawCircle(leftEyeX + 3 + pX, eyeY + 2 + pY, 6.5);
-      eg.endFill();
-      eg.beginFill(0xFFFFFF);
-      eg.drawCircle(leftEyeX + 1 + pX, eyeY - 1 + pY, 2.5);
-      eg.endFill();
-
-      // Right Pupil
-      eg.beginFill(0x0F172A);
-      eg.drawCircle(rightEyeX - 3 + pX, eyeY + 2 + pY, 6.5);
-      eg.endFill();
-      eg.beginFill(0xFFFFFF);
-      eg.drawCircle(rightEyeX - 5 + pX, eyeY - 1 + pY, 2.5);
-      eg.endFill();
-    }
-  }
-
+  /**
+   * Phase R2: Dynamic Cartoon Lip-Sync Renderer
+   * State 0: Resting (mouthY < 0.08 || !isSpeaking) -> Exact validated R1 closed smile
+   * States 1-4: Dynamic cartoon cavity articulating with mouthY and mouthForm
+   * Muzzle concealment patch is ALWAYS active as base layer (never reveals baked mouth)
+   */
   renderMouth() {
+    if (!this.mouthGfx) return;
+
     const mg = this.mouthGfx;
     mg.clear();
 
     const mY = Math.max(0, Math.min(1.0, this.smoothMouthY));
-    const centerY = 4;
+    const mForm = Math.max(-1.0, Math.min(1.0, this.mouthForm));
+    const isSpk = Boolean(this.debugOverride || (this.isSpeaking && mY >= 0.08));
 
-    if (mY < 0.06) {
-      // --- RESTING: Smooth, Clean Iconic Doraemon Smile Line ---
-      mg.lineStyle(3.2, 0x0F172A);
-      const smileW = 28;
-      const smileDrop = 10;
-      mg.moveTo(-smileW, centerY);
-      mg.quadraticCurveTo(0, centerY + smileDrop, smileW, centerY);
+    this.lastRenderedMouthY = mY;
+    this.lastRenderedMouthForm = mForm;
+    this.lastRenderedSpeakingState = isSpk;
+
+    // Landmark coordinates in canonical unscaled space (1254 x 1254)
+    // Sprite anchor is (627, 627), and this.mouthGfx is positioned at (-627, -627) inside this.mouthContainer
+    // guaranteeing that canonical image pixel (X, Y) maps 1:1 to mouthGfx coordinates (X, Y)
+    const cx = 626.5;             // Center of philtrum line in canonical image
+    const strokeColor = 0x0F172A; // Classic dark ink outline matching artwork
+    const skinColor = 0xF2F5FB;   // Sampled median white muzzle color (within #EFF0F5..#F3F6FB range)
+    const strokeWidth = 5.0;      // ~5-6px visual line weight at native 1254px resolution
+
+    // ── 1. Muzzle Skin Concealment Patch (ALWAYS drawn first, concealing baked mouth) ──
+    // Seamlessly and completely conceals the baked open mouth in Doraemon.jpg
+    // (verified 53,758 pixels across X: 434..811, Y: 423..609).
+    // Safely terminates above the red collar (collar starts at Y >= 644, Y=662 at center)
+    // and stays well clear of cheeks, whiskers (Y=380), eyes, and nose.
+    mg.beginFill(skinColor);
+    mg.lineStyle(0);
+    mg.moveTo(420, 460);
+    mg.lineTo(480, 432);
+    mg.lineTo(550, 418);
+    mg.lineTo(cx, 415);
+    mg.lineTo(703, 418);
+    mg.lineTo(773, 432);
+    mg.lineTo(825, 460);
+    mg.lineTo(812, 515);
+    mg.lineTo(765, 570);
+    mg.lineTo(700, 608);
+    mg.lineTo(cx, 620);
+    mg.lineTo(553, 608);
+    mg.lineTo(488, 570);
+    mg.lineTo(441, 515);
+    mg.closePath();
+    mg.endFill();
+
+    if (!isSpk) {
+      // ── STATE 0: RESTING (Exact validated R1 closed smile) ──
+      const halfW = 145.0;           // Smile half-width (X: 481.5 to 771.5)
+      const cornerY = 475.0;         // Smile endpoints Y position
+      const dip = 38.0;              // Smile downward curvature depth
+      const bottomY = cornerY + dip; // Smile center lowest point (Y = 513.0)
+
+      // Philtrum extension line connecting from intact nose philtrum down to resting smile
+      mg.lineStyle(strokeWidth, strokeColor, 1.0);
+      mg.moveTo(cx, 415);
+      mg.lineTo(cx, bottomY);
+
+      // Symmetrical quadratic Bézier curve centered on the philtrum
+      mg.moveTo(cx - halfW, cornerY);
+      mg.quadraticCurveTo(cx, cornerY + 2 * dip, cx + halfW, cornerY);
     } else {
-      // --- SPEAKING: Silky-Smooth Crescent Mouth with Tongue Deep Inside Cavity ---
-      const openHeight = 6 + (mY * 16);
-      const openWidth = 20 + (mY * 7);
+      // ── DYNAMIC CARTOON MOUTH ARTICULATION (States 1 through 4) ──
+      const ty = Math.max(0.0, Math.min(1.0, (mY - 0.08) / 0.92));
 
-      // 1. Smooth Crescent Mouth Cavity
-      mg.beginFill(0xB91C1C);
-      mg.lineStyle(3.2, 0x0F172A);
-      mg.moveTo(-openWidth, centerY);
-      // Top lip contour (gentle smile curve)
-      mg.quadraticCurveTo(0, centerY + 1.5, openWidth, centerY);
-      // Continuous smooth rounded lower jaw reaching down to (0, centerY + openHeight)
-      mg.quadraticCurveTo(openWidth * 0.75, centerY + openHeight * 0.85, 0, centerY + openHeight);
-      mg.quadraticCurveTo(-openWidth * 0.75, centerY + openHeight * 0.85, -openWidth, centerY);
-      mg.closePath();
-      mg.endFill();
+      // Dynamic geometry dimensions responding to mouthY and mouthForm
+      const roundBoost = Math.max(0.0, -mForm) * 14.0 * ty;
+      const openH = 10.0 + (ty * 85.0) + roundBoost;
+      const formScale = 1.0 + (mForm * 0.30);
+      const halfW = Math.max(38.0, Math.min(140.0, (55.0 + (ty * 55.0)) * formScale));
 
-      // 2. Soft, Smooth Double-Bump Tongue (100% FLOATING COMFORTABLY INSIDE MOUTH CAVITY)
-      const tW = openWidth * 0.52;
-      const tBottom = centerY + openHeight * 0.78; // 22% ruby buffer above floor, NEVER touches border!
-      const tTop = centerY + openHeight * 0.36;
-      const tMid = (tTop + tBottom) * 0.5;
+      const topLipY = 475.0 - (ty * 14.0);
+      const bottomY = topLipY + openH;
+      const cornerY = topLipY + 3.0 - (mForm * 5.0 * ty);
+      const topCenterY = topLipY - (ty * 2.0) - Math.max(0.0, -mForm) * 3.0 * ty;
 
-      mg.beginFill(0xFB7185);
+      const leftX = cx - halfW;
+      const rightX = cx + halfW;
+
+      // Control points for smooth quadratic Bézier curves
+      const botCpY = 2.0 * bottomY - cornerY;
+      const topCpY = 2.0 * topCenterY - cornerY;
+
+      // 2a. Philtrum connection down to top lip center
+      mg.lineStyle(strokeWidth, strokeColor, 1.0);
+      mg.moveTo(cx, 415);
+      mg.lineTo(cx, topCenterY);
+
+      // 2b. Dark Crimson Oral Cavity Fill (#991B2B)
+      mg.beginFill(0x991B2B);
       mg.lineStyle(0);
-      mg.moveTo(-tW, tMid);
-      // Left soft rounded lobe
-      mg.quadraticCurveTo(-tW * 0.5, tTop, 0, tTop + (tBottom - tTop) * 0.22);
-      // Right soft rounded lobe
-      mg.quadraticCurveTo(tW * 0.5, tTop, tW, tMid);
-      // Bottom curve fitting comfortably inside cavity
-      mg.quadraticCurveTo(0, tBottom, -tW, tMid);
+      mg.moveTo(leftX, cornerY);
+      mg.quadraticCurveTo(cx, topCpY, rightX, cornerY);
+      mg.quadraticCurveTo(cx, botCpY, leftX, cornerY);
       mg.closePath();
       mg.endFill();
 
-      // Subtle center crease line
-      mg.lineStyle(1.4, 0xE11D48, 0.7);
-      mg.moveTo(0, tTop + (tBottom - tTop) * 0.22);
-      mg.lineTo(0, tBottom - 1.5);
+      // 2c. Warm Pink Tongue (#F47662 with #D64E40 crease, progressively revealed inside cavity)
+      if (mY >= 0.25 && openH > 18.0) {
+        const tngProgress = Math.min(1.0, (mY - 0.25) / 0.55);
+        const tngH = Math.min(22.0, (openH * 0.30) * tngProgress);
+        const tngW = halfW * (0.30 + 0.14 * tngProgress);
+        const tngBotY = bottomY - 9.0;
+        const tngTopY = tngBotY - tngH;
+        const tngCornerY = tngBotY - (tngH * 0.45);
 
-      // 3. Crisp Smooth Top Lip Smile Line
-      mg.lineStyle(3.2, 0x0F172A);
-      mg.moveTo(-openWidth, centerY);
-      mg.quadraticCurveTo(0, centerY + 1.5, openWidth, centerY);
+        const tngTopCpY = 2.0 * tngTopY - tngCornerY;
+        const tngBotCpY = 2.0 * tngBotY - tngCornerY;
+
+        mg.beginFill(0xF47662);
+        mg.lineStyle(0);
+        mg.moveTo(cx - tngW, tngCornerY);
+        mg.quadraticCurveTo(cx, tngTopCpY, cx + tngW, tngCornerY);
+        mg.quadraticCurveTo(cx, tngBotCpY, cx - tngW, tngCornerY);
+        mg.closePath();
+        mg.endFill();
+
+        if (tngProgress > 0.45 && tngH > 9.0) {
+          mg.lineStyle(1.8, 0xD64E40, 0.75);
+          mg.moveTo(cx, tngTopY + 2.0);
+          mg.lineTo(cx, tngBotY - 2.0);
+        }
+      }
+
+      // 2e. Clean Dark Outer Border Stroke
+      mg.lineStyle(strokeWidth, strokeColor, 1.0);
+      mg.moveTo(leftX, cornerY);
+      mg.quadraticCurveTo(cx, topCpY, rightX, cornerY);
+      mg.quadraticCurveTo(cx, botCpY, leftX, cornerY);
     }
   }
+
+  update(now = performance.now()) {
+    const t = now * 0.001;
+
+    // Gentle Breathing Hover Effect (preserved exactly)
+    const hoverY = Math.sin(t * 2.0) * 3.0;
+    this.rootContainer.y = hoverY;
+
+    // Smooth mouth interpolation when speech starts/stops or during speech
+    const active = Boolean(this.debugOverride || (this.isSpeaking && this.mouthY >= 0.05));
+    const targetY = active ? this.mouthY : 0.0;
+    const targetForm = active ? this.mouthForm : 0.0;
+
+    // Quick, responsive approach
+    const deltaY = targetY - this.smoothMouthY;
+    if (Math.abs(deltaY) > 0.001) {
+      this.smoothMouthY += deltaY * 0.45;
+    } else {
+      this.smoothMouthY = targetY;
+    }
+
+    if (!active && this.smoothMouthY < 0.08) {
+      this.smoothMouthY = 0;
+    }
+
+    const mY = Math.max(0, Math.min(1.0, this.smoothMouthY));
+    const mForm = Math.max(-1.0, Math.min(1.0, targetForm));
+    const isSpk = Boolean(this.debugOverride || (this.isSpeaking && mY >= 0.08));
+
+    const stateChanged =
+      Math.abs(mY - this.lastRenderedMouthY) > 0.004 ||
+      Math.abs(mForm - this.lastRenderedMouthForm) > 0.01 ||
+      isSpk !== this.lastRenderedSpeakingState;
+
+    if (stateChanged) {
+      this.renderMouth();
+    }
+  }
+
+  destroy(options) {
+    if (typeof window !== 'undefined') {
+      if (this.checkHashDebug) {
+        window.removeEventListener('hashchange', this.checkHashDebug);
+      }
+      if (this.handleWindowMessage) {
+        window.removeEventListener('message', this.handleWindowMessage);
+      }
+      if (window.__speakmate_doraemon_debug) {
+        delete window.__speakmate_doraemon_debug;
+      }
+    }
+    if (this.mouthGfx) {
+      try { this.mouthGfx.destroy(true); } catch (_) {}
+      this.mouthGfx = null;
+    }
+    if (this.mouthContainer) {
+      try { this.mouthContainer.destroy({ children: true }); } catch (_) {}
+      this.mouthContainer = null;
+    }
+    super.destroy(options);
+  }
 }
+
