@@ -260,6 +260,7 @@ export default function ConversationChatScreen({ navigation, route }) {
   }, [route.params?.avatarModel]);
 
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const keyboardHeightAnim = useRef(new Animated.Value(0)).current;
 
   // Long-press Actions Modal
   const [menuVisible, setMenuVisible] = useState(false);
@@ -278,22 +279,37 @@ export default function ConversationChatScreen({ navigation, route }) {
   const isRecordingRef = useRef(false);
   const recordingSessionIdRef = useRef(0);
 
-  // Auto-collapse top avatar on keyboard show to maximize chat view
+  // Auto-collapse top avatar on keyboard show and smoothly lift chat input bar
   useEffect(() => {
+    const handleKeyboardShow = (e) => {
+      const height = e?.endCoordinates?.height || 0;
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setKeyboardVisible(true);
+      Animated.timing(keyboardHeightAnim, {
+        toValue: height,
+        duration: Platform.OS === 'ios' ? (e.duration || 250) : 150,
+        useNativeDriver: false,
+      }).start();
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    };
+
+    const handleKeyboardHide = (e) => {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setKeyboardVisible(false);
+      Animated.timing(keyboardHeightAnim, {
+        toValue: 0,
+        duration: Platform.OS === 'ios' ? (e.duration || 250) : 150,
+        useNativeDriver: false,
+      }).start();
+    };
+
     const showSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setKeyboardVisible(true);
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
-      }
+      handleKeyboardShow
     );
     const hideSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
-        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setKeyboardVisible(false);
-      }
+      handleKeyboardHide
     );
     return () => {
       showSub.remove();
@@ -988,11 +1004,7 @@ export default function ConversationChatScreen({ navigation, route }) {
         />
       </View>
 
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-      >
+      <Animated.View style={[styles.chatContentContainer, { paddingBottom: keyboardHeightAnim }]}>
         {/* ─── Messages List ─── */}
         <FlatList
           ref={flatListRef}
@@ -1000,8 +1012,10 @@ export default function ConversationChatScreen({ navigation, route }) {
           style={{ flex: 1 }}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.chatScroll}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
         renderItem={({ item }) => {
           const isUser = item.sender === 'user';
 
@@ -1167,7 +1181,7 @@ export default function ConversationChatScreen({ navigation, route }) {
       )}
 
       {/* ─── Bottom Input Bar ─── */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, isKeyboardVisible && styles.inputContainerKeyboard]}>
         {/* Controls row */}
         <View style={styles.controlsRow}>
           <TouchableOpacity style={styles.controlBtn} onPress={handleAdjustSpeed}>
@@ -1222,6 +1236,11 @@ export default function ConversationChatScreen({ navigation, route }) {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
+            onFocus={() => {
+              LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+              setKeyboardVisible(true);
+              setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 120);
+            }}
             placeholder={recording ? "Listening to speak..." : "Type response to tutor..."}
             placeholderTextColor="#94A3B8"
             editable={!recording && !evaluating}
@@ -1238,7 +1257,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </Animated.View>
 
       {/* ─── Long-press Menu Modal ─── */}
       <Modal visible={menuVisible} transparent animationType="fade">
@@ -1301,9 +1320,14 @@ const styles = StyleSheet.create({
   },
   avatarContainerCollapsed: {
     height: 0,
+    maxHeight: 0,
     opacity: 0,
     marginTop: 0,
     marginBottom: 0,
+    overflow: 'hidden',
+  },
+  chatContentContainer: {
+    flex: 1,
   },
   avatar3d: {
     width: '100%',
@@ -1358,6 +1382,7 @@ const styles = StyleSheet.create({
 
   // Input Container
   inputContainer: { backgroundColor: '#090E1A', paddingHorizontal: 16, paddingTop: 10, paddingBottom: Platform.OS === 'ios' ? 34 : 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)' },
+  inputContainerKeyboard: { paddingBottom: 10 },
   controlsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   controlBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   controlText: { fontSize: 11, fontWeight: '700', color: '#9CA3AF' },

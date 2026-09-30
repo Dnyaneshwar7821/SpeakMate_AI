@@ -40,6 +40,7 @@ export default function BottomNavigator() {
           tabBarShowLabel: true,
           tabBarActiveTintColor: COLORS.primary,
           tabBarInactiveTintColor: inactiveText,
+          tabBarHideOnKeyboard: true,
           tabBarStyle: [
             styles.tabBar,
             {
