@@ -320,33 +320,12 @@ function CharacterRig({ id, mouthOpenY, mouthForm, isSpeaking, state, mood }) {
 
   return (
     <View style={rigStyles.charContainer}>
-      {/* ── 1. Authentic Character Artwork Base Sprite ── */}
+      {/* ── Authentic Character Artwork Base Sprite (Clean Fallback) ── */}
       <Image
         source={config.image}
         style={[rigStyles.puppetImage, config.imageStyle]}
         resizeMode="contain"
       />
-
-      {/* ── 2. Doraemon Muzzle Overlay (Conceals baked open mouth) ── */}
-      {config.isDoraemon && (
-        <View style={rigStyles.doraemonMuzzleOverlay} pointerEvents="none">
-          <View style={rigStyles.doraemonWhiteMuzzle} />
-          <View style={rigStyles.doraemonPhiltrum} />
-        </View>
-      )}
-
-      {/* ── 3. Dynamic Phonetic Lip-Sync Mouth Overlay ── */}
-      <View style={[rigStyles.mouthAnchorContainer, config.mouthPosition]}>
-        <DynamicMouth
-          mouthOpenY={mouthOpenY}
-          mouthForm={mouthForm}
-          isSpeaking={isSpeaking}
-          state={state}
-          isSpongeBob={config.isSpongeBob}
-          isDoraemon={config.isDoraemon}
-          hasRestingArtworkSmile={config.hasRestingArtworkSmile}
-        />
-      </View>
     </View>
   );
 }

@@ -150,8 +150,8 @@ export default function AIAvatar({
   const [live2dReady, setLive2dReady] = useState(false);
   const [live2dError, setLive2dError] = useState(false);
   
-  const isLive2DModel = avatarObj.type === 'live2d';
-  const defaultEngine = isLive2DModel ? 'live2d' : 'native';
+  const isLive2DModel = true;
+  const defaultEngine = 'live2d';
   const [engineOverride, setEngineOverride] = useState(null);
 
   useEffect(() => {
