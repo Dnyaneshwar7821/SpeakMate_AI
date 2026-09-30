@@ -281,21 +281,28 @@ export default function ConversationChatScreen({ navigation, route }) {
 
   // Auto-collapse top avatar on keyboard show to maximize chat view
   useEffect(() => {
-    const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      () => {
+    const onShow = () => {
+      try {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setKeyboardVisible(true);
-        setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
-      }
-    );
-    const hideSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
-      () => {
+      } catch (_) {}
+      setKeyboardVisible(true);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 80);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 260);
+    };
+
+    const onHide = () => {
+      try {
         LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-        setKeyboardVisible(false);
-      }
-    );
+      } catch (_) {}
+      setKeyboardVisible(false);
+    };
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, onShow);
+    const hideSub = Keyboard.addListener(hideEvent, onHide);
+
     return () => {
       showSub.remove();
       hideSub.remove();
@@ -883,75 +890,75 @@ export default function ConversationChatScreen({ navigation, route }) {
     <LinearGradient colors={['#0B0F19', '#111827', '#1E1B4B']} style={styles.root}>
       <StatusBar barStyle="light-content" />
 
-      {/* ─── Header ─── */}
-      <View style={styles.header}>
-        <SafeAreaView edges={['top']}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-              <Ionicons name="chevron-back" size={24} color="#FFF" />
-            </TouchableOpacity>
-            <View style={{ flex: 1, alignItems: 'center' }}>
-              <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                <TouchableOpacity
-                  onPress={() => {
-                    const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
-                    const nextIdx = (LEVELS.indexOf(chatLevel) + 1) % LEVELS.length;
-                    setChatLevel(LEVELS[nextIdx]);
-                  }}
-                  style={{
-                    backgroundColor: 'rgba(99, 102, 241, 0.25)',
-                    paddingHorizontal: 8,
-                    paddingVertical: 2,
-                    borderRadius: 10,
-                    borderWidth: 1,
-                    borderColor: 'rgba(99, 102, 241, 0.4)',
-                  }}
-                >
-                  <Text style={{ fontSize: 10, color: '#A5B4FC', fontWeight: '800' }}>⚡ {chatLevel}</Text>
-                </TouchableOpacity>
-                <Text style={styles.headerSubtitle}>{subtitleText}</Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.muteBtn}
-              onPress={() => {
-                if (!isMuted) VoiceService.stop();
-                setIsMuted(!isMuted);
-              }}
-            >
-              <Ionicons name={isMuted ? 'volume-mute' : 'volume-high'} size={20} color="#FFF" />
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </View>
-
-      {/* ─── 3D AI Tutor Avatar (collapses height when typing without unmounting) ─── */}
-      <View
-        style={[
-          styles.avatarContainer,
-          isKeyboardVisible && styles.avatarContainerCollapsed,
-        ]}
-        pointerEvents={isKeyboardVisible ? 'none' : 'auto'}
-      >
-        <AIAvatar
-          model={selectedAvatarModel}
-          gender={getAvatarById(selectedAvatarModel).gender}
-          isSpeaking={isSpeaking}
-          spokenText={currentSpokenText}
-          speechSpeed={speechSpeed}
-          state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
-          expression={avatarExpression}
-          style={styles.avatar3d}
-          hideStatusPill={true}
-        />
-      </View>
-
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 0)}
       >
+        {/* ─── Header ─── */}
+        <View style={styles.header}>
+          <SafeAreaView edges={['top']}>
+            <View style={styles.headerRow}>
+              <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
+                <Ionicons name="chevron-back" size={24} color="#FFF" />
+              </TouchableOpacity>
+              <View style={{ flex: 1, alignItems: 'center' }}>
+                <Text style={styles.headerTitle} numberOfLines={1}>{title}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      const LEVELS = ['Beginner', 'Intermediate', 'Advanced'];
+                      const nextIdx = (LEVELS.indexOf(chatLevel) + 1) % LEVELS.length;
+                      setChatLevel(LEVELS[nextIdx]);
+                    }}
+                    style={{
+                      backgroundColor: 'rgba(99, 102, 241, 0.25)',
+                      paddingHorizontal: 8,
+                      paddingVertical: 2,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: 'rgba(99, 102, 241, 0.4)',
+                    }}
+                  >
+                    <Text style={{ fontSize: 10, color: '#A5B4FC', fontWeight: '800' }}>⚡ {chatLevel}</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.headerSubtitle}>{subtitleText}</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.muteBtn}
+                onPress={() => {
+                  if (!isMuted) VoiceService.stop();
+                  setIsMuted(!isMuted);
+                }}
+              >
+                <Ionicons name={isMuted ? 'volume-mute' : 'volume-high'} size={20} color="#FFF" />
+              </TouchableOpacity>
+            </View>
+          </SafeAreaView>
+        </View>
+
+        {/* ─── 3D AI Tutor Avatar (collapses height when typing without unmounting) ─── */}
+        <View
+          style={[
+            styles.avatarContainer,
+            isKeyboardVisible && styles.avatarContainerCollapsed,
+          ]}
+          pointerEvents={isKeyboardVisible ? 'none' : 'auto'}
+        >
+          <AIAvatar
+            model={selectedAvatarModel}
+            gender={getAvatarById(selectedAvatarModel).gender}
+            isSpeaking={isSpeaking}
+            spokenText={currentSpokenText}
+            speechSpeed={speechSpeed}
+            state={isSpeaking ? 'speaking' : evaluating ? 'thinking' : recording ? 'listening' : 'idle'}
+            expression={avatarExpression}
+            style={styles.avatar3d}
+            hideStatusPill={true}
+          />
+        </View>
+
         {/* ─── Messages List ─── */}
         <FlatList
           ref={flatListRef}
@@ -959,9 +966,11 @@ export default function ConversationChatScreen({ navigation, route }) {
           style={{ flex: 1 }}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.chatScroll}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        renderItem={({ item }) => {
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+          renderItem={({ item }) => {
           const isUser = item.sender === 'user';
 
           // Helper to check if feedback exists and is not "None"
@@ -1090,7 +1099,7 @@ export default function ConversationChatScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hintsScroll}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.hintsScroll}>
             {hints.map((hint, idx) => (
               <View key={idx} style={styles.hintChipWrapper}>
                 <TouchableOpacity
@@ -1126,7 +1135,7 @@ export default function ConversationChatScreen({ navigation, route }) {
       )}
 
       {/* ─── Bottom Input Bar ─── */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, isKeyboardVisible && styles.inputContainerKeyboard]}>
         {/* Controls row */}
         <View style={styles.controlsRow}>
           <TouchableOpacity style={styles.controlBtn} onPress={handleAdjustSpeed}>
@@ -1181,6 +1190,10 @@ export default function ConversationChatScreen({ navigation, route }) {
             style={styles.textInput}
             value={inputText}
             onChangeText={setInputText}
+            onFocus={() => {
+              setKeyboardVisible(true);
+              setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+            }}
             placeholder={recording ? "Listening to speak..." : "Type response to tutor..."}
             placeholderTextColor="#94A3B8"
             editable={!recording && !evaluating}
@@ -1197,7 +1210,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
 
       {/* ─── Long-press Menu Modal ─── */}
       <Modal visible={menuVisible} transparent animationType="fade">
@@ -1263,6 +1276,7 @@ const styles = StyleSheet.create({
     opacity: 0,
     marginTop: 0,
     marginBottom: 0,
+    display: 'none',
   },
   avatar3d: {
     width: '100%',
@@ -1317,6 +1331,7 @@ const styles = StyleSheet.create({
 
   // Input Container
   inputContainer: { backgroundColor: '#090E1A', paddingHorizontal: 16, paddingTop: 10, paddingBottom: Platform.OS === 'ios' ? 34 : 16, borderTopWidth: 1, borderTopColor: 'rgba(255, 255, 255, 0.08)' },
+  inputContainerKeyboard: { paddingBottom: Platform.OS === 'ios' ? 12 : 12 },
   controlsRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   controlBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   controlText: { fontSize: 11, fontWeight: '700', color: '#9CA3AF' },
