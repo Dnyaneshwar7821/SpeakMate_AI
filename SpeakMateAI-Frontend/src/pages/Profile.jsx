@@ -1611,103 +1611,105 @@ export function Profile() {
             {/* AVATAR OPTIONS GRID */}
             <div className="p-5 sm:p-8 overflow-y-auto space-y-4 flex-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {AVATAR_LIST.map((av) => {
-                const isSelected = activeAvatarId === av.id;
-                return (
-                  <div
-                    key={av.id}
-                    onClick={() => {
-                      handleSelectTutor(av);
-                      setShowTutorModal(false);
-                    }}
-                    className={`p-5 rounded-3xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between group ${isSelected
-                        ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102 ring-2 ring-[#6C63FF]/30"
-                        : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
-                      }`}
-                  >
-                    <div>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] grid place-items-center text-3xl shadow-inner shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
-                          {av.thumbnail ? (
-                            <img
-                              src={av.thumbnail}
-                              alt={av.name}
-                              loading="lazy"
-                              width="56"
-                              height="56"
-                              className="w-full h-full object-cover select-none pointer-events-none"
-                              style={{
-                                objectPosition: av.thumbnailPosition || "center",
-                                transform: av.thumbnailScale && av.thumbnailScale !== 1.0 ? `scale(${av.thumbnailScale})` : undefined,
-                              }}
-                            />
-                          ) : (
-                            av.emoji
-                          )}
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          {isSelected && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
-                              ✓ Active
-                            </span>
-                          )}
-                          <span
-                            className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${av.category === "cartoon"
-                                ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
-                                : "bg-purple-500/15 text-purple-400 border-purple-500/30"
-                              }`}
-                            >
-                              {av.badge}
-                            </span>
+                {AVATAR_LIST.map((av) => {
+                  const isSelected = activeAvatarId === av.id;
+                  const isPlaying = playingTutor === av.id;
+                  const displayVoice = (av.voiceLabel || av.voice || "Voice").replace(/\s+Voice$/i, "");
+                  return (
+                    <div
+                      key={av.id}
+                      onClick={() => {
+                        handleSelectTutor(av);
+                        setShowTutorModal(false);
+                      }}
+                      className={`p-5 rounded-3xl border-2 cursor-pointer transition-all space-y-3 flex flex-col justify-between group ${isSelected
+                          ? "border-[#6C63FF] bg-[#6C63FF]/15 shadow-xl scale-102 ring-2 ring-[#6C63FF]/30"
+                          : "border-[var(--border-default)] bg-[var(--bg-elevated)] hover:border-[#6C63FF]/50"
+                        }`}
+                    >
+                      <div>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="w-14 h-14 rounded-2xl bg-[var(--bg-surface)] border border-[var(--border-default)] grid place-items-center text-3xl shadow-inner shrink-0 overflow-hidden group-hover:scale-105 transition-transform">
+                            {av.thumbnail ? (
+                              <img
+                                src={av.thumbnail}
+                                alt={av.name}
+                                loading="lazy"
+                                width="56"
+                                height="56"
+                                className="w-full h-full object-cover select-none pointer-events-none"
+                                style={{
+                                  objectPosition: av.thumbnailPosition || "center",
+                                  transform: av.thumbnailScale && av.thumbnailScale !== 1.0 ? `scale(${av.thumbnailScale})` : undefined,
+                                }}
+                              />
+                            ) : (
+                              av.emoji
+                            )}
                           </div>
+                          <div className="flex flex-col items-end gap-1">
+                            {isSelected && (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black px-2.5 py-1 rounded-full bg-[#6C63FF] text-white shadow-sm">
+                                ✓ Active
+                              </span>
+                            )}
+                            <span
+                              className={`text-[9px] font-black px-2 py-0.5 rounded-full border ${av.category === "cartoon"
+                                  ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30"
+                                  : "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                                }`}
+                              >
+                                {av.badge}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Middle: Character Name + Subtitle */}
+                          <h4 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-[#6C63FF] transition-colors mt-3.5 flex items-center gap-2">
+                            {av.name}
+                          </h4>
+                          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-2 mt-1 min-h-[32px] leading-relaxed">
+                            {av.subtitle}
+                          </p>
                         </div>
 
-                        {/* Middle: Character Name + Subtitle */}
-                        <h4 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-[#6C63FF] transition-colors mt-3.5 flex items-center gap-2">
-                          {av.name}
-                        </h4>
-                        <p className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-2 mt-1 min-h-[32px] leading-relaxed">
-                          {av.subtitle}
-                        </p>
-                      </div>
+                        {/* Bottom: Voice Info Tag + Action Button (NO Choose button) */}
+                        <div className="pt-3.5 mt-4 border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-2">
+                          <div
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-300 min-w-0 flex-1"
+                            title={av.voiceLabel}
+                          >
+                            <span className="text-xs shrink-0">🎙️</span>
+                            <span className="truncate">{displayVoice}</span>
+                          </div>
 
-                      {/* Bottom: Voice Info Tag + Action Button (NO Choose button) */}
-                      <div className="pt-3.5 mt-4 border-t border-slate-200/80 dark:border-white/10 flex items-center justify-between gap-2">
-                        <div
-                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[11px] font-bold text-slate-700 dark:text-slate-300 min-w-0 flex-1"
-                          title={av.voiceLabel}
-                        >
-                          <span className="text-xs shrink-0">🎙️</span>
-                          <span className="truncate">{displayVoice}</span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              playAvatarPreview(av);
+                            }}
+                            className={`py-1.5 px-3 rounded-xl border text-xs font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 ${
+                              isPlaying
+                                ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
+                                : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white border-[#6C63FF]/25 shadow-sm"
+                            }`}
+                            title={`Test voice preview for ${av.name}`}
+                          >
+                            <span>{isPlaying ? "🔊 Speaking..." : "▶ Test Voice"}</span>
+                          </button>
                         </div>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            playAvatarPreview(av);
-                          }}
-                          className={`py-1.5 px-3 rounded-xl border text-xs font-black transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center gap-1.5 ${
-                            isPlaying
-                              ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md shadow-[#6C63FF]/30 animate-pulse"
-                              : "bg-[#6C63FF]/10 text-[#6C63FF] hover:bg-[#6C63FF] hover:text-white border-[#6C63FF]/25 shadow-sm"
-                          }`}
-                          title={`Test voice preview for ${av.name}`}
-                        >
-                          <span>{isPlaying ? "🔊 Speaking..." : "▶ Test Voice"}</span>
-                        </button>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
-    </div>
-  );
-}
+          </div>,
+          document.body
+        )}
+      </div>
+    );
+  }
 
 export default Profile;
