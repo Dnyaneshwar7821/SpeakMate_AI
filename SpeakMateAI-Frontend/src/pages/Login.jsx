@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 import ROUTES from "../constants/routes";
 import { dashboardService } from "../services/appServices";
 import { setCachedDashboardData, clearDashboardCache } from "../utils/dashboardCache";
-import { SpeakMateLoader } from "../components/common/SpeakMateLoader";
 
 export function Login() {
   const { login } = useAuth();
@@ -16,7 +15,6 @@ export function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isPreparingDashboard, setIsPreparingDashboard] = useState(false);
   const [error, setError] = useState("");
   const [touched, setTouched] = useState({
     schoolCode: false,
@@ -113,21 +111,17 @@ export function Login() {
       if (res && res.user && !isCompleted) {
         navigate(ROUTES.ONBOARDING, { replace: true });
       } else {
-        // Activate full-screen loading state with animated load symbol
-        setIsPreparingDashboard(true);
-
         try {
           const userEmail = (res?.user?.email || form.email || "").toLowerCase().trim();
 
           // Clear any stale cached data so previous sessions or other accounts cannot leak
           clearDashboardCache();
 
-          // Fetch fresh dashboard data while providing a short polished delay (~1.6s)
-          // so user clearly sees the loading symbol and lands on an instantly loaded dashboard
-          const [freshSummary] = await Promise.all([
-            dashboardService.summary().catch(() => null),
-            new Promise((resolve) => setTimeout(resolve, 1600)),
-          ]);
+          // Approach 1: Fetch fresh dashboard data while submit button spinner is active (max 2.5s timeout)
+          // Eliminating artificial 1.6s delay so users transition seamlessly without 0-data flash
+          const prefetchPromise = dashboardService.summary().catch(() => null);
+          const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2500));
+          const freshSummary = await Promise.race([prefetchPromise, timeoutPromise]);
 
           if (freshSummary) {
             setCachedDashboardData(freshSummary, userEmail);
@@ -156,16 +150,7 @@ export function Login() {
   };
 
   return (
-    <>
-      {isPreparingDashboard && (
-        <SpeakMateLoader
-          fullScreen
-          size="lg"
-          message="Signing you in..."
-          subMessage="Loading your personalized dashboard and current statistics"
-        />
-      )}
-      <div className="w-full max-w-5xl mx-auto relative z-10">
+    <div className="w-full max-w-5xl mx-auto relative z-10">
       <div className="glass-card p-6 sm:p-10 lg:p-12 rounded-3xl border border-[var(--border-default)] shadow-2xl relative overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
@@ -433,7 +418,6 @@ export function Login() {
         </div>
       </div>
     </div>
-    </>
   );
 }
 
