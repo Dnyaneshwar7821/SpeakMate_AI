@@ -948,6 +948,132 @@ export const getScoobyIntonation = (text = "") => {
   return { pitchOffset: 0.0, rateOffset: 0.0, mood: "friendly" };
 };
 
+export const selectTomVoice = (voices = []) => {
+  if (!voices || voices.length === 0) return null;
+
+  // Score candidate voices deterministically according to Tom criteria:
+  // 1. English candidate (en-US primary preference)
+  // 2. Male presentation (strictly reject female voices)
+  // 3. Timbre: playful, witty, expressive classic cartoon cat male voices (Guy, David, Mark, Alex, Ryan, Christopher)
+  // 4. Intelligible, clear English pronunciation
+  // 5. Deterministic multi-tier fallback chain
+  const scored = voices.map((v) => {
+    const name = (v.name || "").toLowerCase();
+    const lang = (v.lang || "").toLowerCase().replace("_", "-");
+    let score = 0;
+
+    // Strict rejection of female voices
+    if (isKnownFemaleVoiceName(name)) {
+      score -= 1000;
+      return { voice: v, score };
+    }
+
+    // Must be English candidate
+    if (!lang.startsWith("en")) {
+      score -= 500;
+      return { voice: v, score };
+    }
+
+    // Base English score
+    score += 100;
+
+    // Primary Locale: American English (en-US)
+    if (lang === "en-us") {
+      score += 40;
+    } else if (lang === "en-ca") {
+      score += 25;
+    } else if (lang === "en-gb" || lang === "en-au") {
+      score += 15;
+    }
+
+    // High priority target names for classic cartoon cat: Guy, David, Mark, Alex
+    if (name.includes("guy")) score += 95;
+    else if (name.includes("david")) score += 90;
+    else if (name.includes("mark")) score += 88;
+    else if (name.includes("alex")) score += 85;
+    else if (name.includes("ryan")) score += 75;
+    else if (name.includes("christopher")) score += 70;
+    else if (name.includes("daniel")) score += 65;
+    else if (name.includes("eric")) score += 60;
+
+    if (name.includes("natural") || name.includes("neural") || name.includes("online")) {
+      score += 30;
+    }
+    if (name.includes("male") || isKnownMaleVoiceName(name)) {
+      score += 15;
+    }
+    if (v.localService) {
+      score += 10;
+    }
+
+    return { voice: v, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const best = scored.find((s) => s.score > 0);
+  if (best) return best.voice;
+
+  const fallbackUsMale = voices.find(
+    (v) => (v.lang || "").toLowerCase().startsWith("en-us") && !isKnownFemaleVoiceName(v.name)
+  );
+  if (fallbackUsMale) return fallbackUsMale;
+
+  const fallbackAnyMale = voices.find(
+    (v) => (v.lang || "").toLowerCase().startsWith("en") && !isKnownFemaleVoiceName(v.name)
+  );
+  if (fallbackAnyMale) return fallbackAnyMale;
+
+  return voices[0] || null;
+};
+
+export const getTomIntonation = (text = "") => {
+  if (!text || typeof text !== "string") {
+    return { pitchOffset: 0.0, rateOffset: 0.0, mood: "normal" };
+  }
+  const lower = text.toLowerCase().trim();
+
+  // 1. Playful / Mischievous / Witty Cat Exclamations
+  if (
+    lower.includes("haha") ||
+    lower.includes("hehe") ||
+    lower.includes("gotcha") ||
+    lower.includes("clever") ||
+    lower.includes("fun") ||
+    lower.includes("catch me") ||
+    lower.includes("aha") ||
+    lower.includes("oops") ||
+    lower.includes("!")
+  ) {
+    return { pitchOffset: +0.03, rateOffset: +0.02, mood: "playful" };
+  }
+
+  // 2. Inquisitive / Sneaky / Curious Cat Questions
+  if (
+    lower.includes("what") ||
+    lower.includes("how") ||
+    lower.includes("ready") ||
+    lower.includes("shall we") ||
+    lower.includes("think") ||
+    lower.includes("?")
+  ) {
+    return { pitchOffset: +0.02, rateOffset: 0.0, mood: "curious" };
+  }
+
+  // 3. Relaxed / Purring / Calm Cat Encouragement
+  if (
+    lower.includes("take your time") ||
+    lower.includes("relax") ||
+    lower.includes("easy") ||
+    lower.includes("good job") ||
+    lower.includes("well done")
+  ) {
+    return { pitchOffset: -0.02, rateOffset: -0.02, mood: "calm" };
+  }
+
+  // 4. Default: Classic witty cartoon cat voice
+  return { pitchOffset: 0.0, rateOffset: 0.0, mood: "normal" };
+};
+
 export const selectDoraemonRoboticVoice = (voices = []) => {
   if (!voices || voices.length === 0) return null;
 
@@ -1685,15 +1811,18 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   const voices = window.speechSynthesis.getVoices();
   if (!voices || voices.length === 0) return;
 
-    const isSpongeBobActive = settings.effectiveVoiceCode === "SpongeBob" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "spongebob";
-    const isShizukuActive = settings.effectiveVoiceCode === "Shizuku" || settings.effectiveVoiceCode === "Shizuka" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "shizuku" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "shizuka";
-    const isDoraemonActive = settings.effectiveVoiceCode === "Robo-Paws" || settings.effectiveVoiceCode === "Doraemon" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "robopaws" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "doraemon";
-    const isChhotaBheemActive = settings.effectiveVoiceCode === "Sparky" || settings.effectiveVoiceCode === "ChhotaBheem" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "sparky" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "bheem" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "chhotabheem";
-    const isBenTenActive = settings.effectiveVoiceCode === "Mao" || settings.effectiveVoiceCode === "BenTen" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "mao" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "ben" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "ben10";
-    const isNinjaHattoriActive = settings.effectiveVoiceCode === "Koharu" || settings.effectiveVoiceCode === "NinjaHattori" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "koharu" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "hattori" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "ninjahattori";
-    const isScoobyActive = settings.effectiveVoiceCode === "Puppy" || settings.effectiveVoiceCode === "Wanko" || settings.effectiveVoiceCode === "ScoobyDoo" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "puppy" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "wanko" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "dog" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "scooby" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "scoobydoo";
-    const isTeacherActive = settings.effectiveVoiceCode === "Teacher" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "haru" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "teacher";
-    const isMaleTeacherActive = settings.effectiveVoiceCode === "MaleTeacher" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "chitose" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "maleteacher";
+  let targetVoice = null;
+
+  const isSpongeBobActive = settings.effectiveVoiceCode === "SpongeBob" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "spongebob";
+  const isShizukuActive = settings.effectiveVoiceCode === "Shizuku" || settings.effectiveVoiceCode === "Shizuka" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "shizuku" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "shizuka";
+  const isDoraemonActive = settings.effectiveVoiceCode === "Robo-Paws" || settings.effectiveVoiceCode === "Doraemon" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "robopaws" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "doraemon";
+  const isChhotaBheemActive = settings.effectiveVoiceCode === "Sparky" || settings.effectiveVoiceCode === "ChhotaBheem" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "sparky" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "bheem" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "chhotabheem";
+  const isBenTenActive = settings.effectiveVoiceCode === "Mao" || settings.effectiveVoiceCode === "BenTen" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "mao" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "ben" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "ben10";
+  const isNinjaHattoriActive = settings.effectiveVoiceCode === "Koharu" || settings.effectiveVoiceCode === "NinjaHattori" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "koharu" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "hattori" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "ninjahattori";
+  const isTomActive = settings.effectiveVoiceCode === "Haruto" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "haruto" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "tom";
+  const isScoobyActive = settings.effectiveVoiceCode === "Puppy" || settings.effectiveVoiceCode === "Wanko" || settings.effectiveVoiceCode === "ScoobyDoo" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "puppy" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "wanko" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "dog" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "scooby" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "scoobydoo";
+  const isTeacherActive = settings.effectiveVoiceCode === "Teacher" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "haru" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "teacher";
+  const isMaleTeacherActive = settings.effectiveVoiceCode === "MaleTeacher" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "chitose" || (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase() === "maleteacher";
 
     if (isSpongeBobActive) {
       // ── SPONGEBOB DEDICATED YOUTHFUL BOY VOICE LOCK ──
@@ -1793,6 +1922,19 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
       utterance.pitch = Math.max(0.85, Math.min(1.02, basePitch + intonation.pitchOffset));
       utterance.rate = Math.max(0.88, Math.min(1.02, 0.94 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
       utterance.volume = 1.0;
+    } else if (isTomActive) {
+      // ── TOM DEDICATED CARTOON CAT VOICE LOCK ──
+      // Force Tom playful, witty classic cartoon cat male voice using deterministic scoring resolver.
+      // Strictly ignores any previously selected female or generic voice.
+      targetVoice = selectTomVoice(voices);
+
+      const vName = (targetVoice?.name || "").toLowerCase();
+      const isDeeperVoice = vName.includes("david") || vName.includes("mark");
+      const basePitch = isDeeperVoice ? 1.22 : 1.20;
+
+      const intonation = getTomIntonation(utterance.text || "");
+      utterance.pitch = Math.max(1.05, Math.min(1.30, basePitch + intonation.pitchOffset));
+      utterance.rate = Math.max(0.92, Math.min(1.15, 1.04 * (settings.rateMultiplier || 1.0) * speedMultiplier + intonation.rateOffset));
     } else if (isTeacherActive) {
       // ── TEACHER DEDICATED FEMALE COACH VOICE LOCK ──
       // Force Teacher articulate, warm, approachable female voice using deterministic scoring resolver.
@@ -1979,7 +2121,7 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
   if (targetVoice) {
     utterance.voice = targetVoice;
 
-      if (!isShizukuActive && !isDoraemonActive && !isSpongeBobActive && !isChhotaBheemActive && !isBenTenActive && !isNinjaHattoriActive && !isScoobyActive) {
+      if (!isShizukuActive && !isDoraemonActive && !isSpongeBobActive && !isChhotaBheemActive && !isBenTenActive && !isNinjaHattoriActive && !isScoobyActive && !isTomActive) {
         // Fine-tune pitch for smooth natural clarity if fallback voice doesn't match gender
         const FEMALE_NAMES = ["jenny", "zira", "samantha", "victoria", "karen", "susan", "sonia", "hazel", "fiona", "kate", "serena", "natasha", "catherine", "libby", "mia", "annette", "neerja", "veena", "heera", "female"];
         const MALE_NAMES = ["guy", "david", "mark", "alex", "tom", "chris", "george", "james", "ryan", "oliver", "daniel", "william", "russell", "prabhat", "rishi", "ravi", "male"];
@@ -2252,7 +2394,7 @@ export function getCurrentVoiceGender() {
     const currentAvatarModel = (localStorage.getItem("speakmate_avatar_model") || "").toLowerCase();
     if (currentAvatarModel === "shizuku" || currentAvatarModel === "shizuka") return "female";
     if (currentAvatarModel === "robopaws" || currentAvatarModel === "doraemon") return "male";
-    if (currentAvatarModel === "sparky" || currentAvatarModel === "bheem" || currentAvatarModel === "chhotabheem" || currentAvatarModel === "spongebob" || currentAvatarModel === "mao" || currentAvatarModel === "ben" || currentAvatarModel === "ben10" || currentAvatarModel === "koharu" || currentAvatarModel === "hattori" || currentAvatarModel === "ninjahattori" || currentAvatarModel === "puppy" || currentAvatarModel === "wanko" || currentAvatarModel === "dog" || currentAvatarModel === "scooby" || currentAvatarModel === "scoobydoo" || currentAvatarModel === "chitose" || currentAvatarModel === "maleteacher") return "male";
+    if (currentAvatarModel === "sparky" || currentAvatarModel === "bheem" || currentAvatarModel === "chhotabheem" || currentAvatarModel === "spongebob" || currentAvatarModel === "mao" || currentAvatarModel === "ben" || currentAvatarModel === "ben10" || currentAvatarModel === "koharu" || currentAvatarModel === "hattori" || currentAvatarModel === "ninjahattori" || currentAvatarModel === "haruto" || currentAvatarModel === "tom" || currentAvatarModel === "puppy" || currentAvatarModel === "wanko" || currentAvatarModel === "dog" || currentAvatarModel === "scooby" || currentAvatarModel === "scoobydoo" || currentAvatarModel === "chitose" || currentAvatarModel === "maleteacher") return "male";
 
     const directGender = localStorage.getItem('speakmate_voice_gender');
     if (directGender) return directGender;
