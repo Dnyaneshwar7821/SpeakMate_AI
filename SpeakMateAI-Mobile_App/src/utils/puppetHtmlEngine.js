@@ -257,9 +257,23 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
       var currentMouthY = 0;
       var currentMouthForm = 0;
       var isSpeaking = false;
-      var wordDuration = 240;
+      var wordDuration = 280;
       var lastWordTime = 0;
-      var wordTickerInterval = null;
+      var wordSyllablePulses = 1;
+      var speechTimeout = null;
+      var currentSpeechText = '';
+      var currentSpeechSpeed = 1.0;
+
+      // Dynamic fallback visemes for continuous articulation as long as speech audio plays
+      var FALLBACK_VISEMES = [
+        { yVal: 0.65, formVal: 0.25 }, // IH
+        { yVal: 0.85, formVal: 0.15 }, // AA
+        { yVal: 0.50, formVal: 0.65 }, // EE
+        { yVal: 0.25, formVal: 0.00 }, // MBP
+        { yVal: 0.70, formVal: -0.35 },// OH
+        { yVal: 0.55, formVal: 0.15 }, // LNT
+      ];
+      var fallbackIdx = 0;
 
       app.ticker.add(function() {
         var now = performance.now();
@@ -268,7 +282,9 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
           var elapsed = now - lastWordTime;
           if (elapsed < wordDuration) {
             var progress = elapsed / wordDuration;
-            var envelope = Math.sin(progress * Math.PI);
+            // Multisyllabic wave modulation
+            var wave = Math.abs(Math.sin(progress * Math.PI * wordSyllablePulses));
+            var envelope = Math.pow(wave, 0.85);
             var destY = targetMouthY * envelope;
             var destForm = targetMouthForm;
 
@@ -276,10 +292,12 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
             currentMouthY += (destY - currentMouthY) * lerpSpeed;
             currentMouthForm += (destForm - currentMouthForm) * lerpSpeed;
           } else {
-            currentMouthY += (0 - currentMouthY) * 0.50;
-            currentMouthForm += (0 - currentMouthForm) * 0.50;
+            // Natural brief micro-pause between spoken words
+            currentMouthY += (0 - currentMouthY) * 0.45;
+            currentMouthForm += (0 - currentMouthForm) * 0.45;
           }
         } else {
+          // Smooth return to resting closed smile
           currentMouthY += (0 - currentMouthY) * 0.55;
           currentMouthForm += (0 - currentMouthForm) * 0.55;
           if (currentMouthY < 0.02) currentMouthY = 0;
@@ -294,58 +312,86 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
         }
       });
 
-      // ── 5. Speech Synchronizer ──
+      // ── 5. Syllable & Phoneme Speech Synchronizer ──
+      function scheduleNextWord(words, speedMult, wordIdx) {
+        if (!isSpeaking) return;
+
+        var currentWord = '';
+        var viseme = null;
+        var len = 4;
+        var pauseMs = 35;
+
+        if (words && wordIdx < words.length) {
+          currentWord = words[wordIdx];
+          viseme = getWordViseme(currentWord);
+          var clean = currentWord.replace(/[^a-zA-Z]/g, '');
+          len = Math.max(1, clean.length);
+
+          // Punctuation pauses matching real human & TTS speech cadence
+          if (/[,;:]$/.test(currentWord)) {
+            pauseMs = 180 / speedMult;
+          } else if (/[.!?]$/.test(currentWord)) {
+            pauseMs = 300 / speedMult;
+          }
+          wordIdx++;
+        } else {
+          // Audio is still actively playing! Keep articulating continuously without stopping early
+          viseme = FALLBACK_VISEMES[fallbackIdx % FALLBACK_VISEMES.length];
+          fallbackIdx++;
+          len = 4;
+          pauseMs = 45;
+        }
+
+        targetMouthY = viseme.yVal || 0.65;
+        targetMouthForm = viseme.formVal || 0.0;
+        lastWordTime = performance.now();
+
+        // Multi-syllable pulses: words with 8+ chars get 3 pulses, 5+ get 2, short get 1
+        wordSyllablePulses = len >= 8 ? 3 : (len >= 5 ? 2 : 1);
+
+        // Word articulation duration matching natural speech (approx 280ms to 650ms per word)
+        var baseMs = Math.max(280, Math.min(650, 220 + len * 42));
+        wordDuration = baseMs / speedMult;
+
+        var totalStepMs = wordDuration + pauseMs;
+        speechTimeout = setTimeout(function() {
+          if (isSpeaking) {
+            scheduleNextWord(words, speedMult, wordIdx);
+          }
+        }, totalStepMs);
+      }
+
       function startSpeech(text, speed) {
         isSpeaking = true;
-        if (wordTickerInterval) clearInterval(wordTickerInterval);
-
-        var words = (text || '').trim().split(/\\s+/).filter(Boolean);
-        if (!words.length) {
-          targetMouthY = 0.6;
-          targetMouthForm = 0.0;
-          lastWordTime = performance.now();
-          wordDuration = 400;
-          return;
+        if (speechTimeout) {
+          clearTimeout(speechTimeout);
+          speechTimeout = null;
         }
 
         var speedMult = Number(speed) || 1.0;
-        var intervalMs = Math.max(160, Math.min(320, Math.round(230 / speedMult)));
-        var wordIdx = 0;
+        var words = (text || '').trim().split(/\\s+/).filter(Boolean);
+        fallbackIdx = 0;
 
-        function triggerWord() {
-          if (wordIdx < words.length && isSpeaking) {
-            var word = words[wordIdx++];
-            var viseme = getWordViseme(word);
-            targetMouthY = viseme.yVal || 0.70;
-            targetMouthForm = viseme.formVal || 0.0;
-            lastWordTime = performance.now();
-            wordDuration = Math.max(160, Math.min(300, word.length * 40));
-          } else {
-            if (wordTickerInterval) {
-              clearInterval(wordTickerInterval);
-              wordTickerInterval = null;
-            }
-          }
-        }
-
-        triggerWord();
-        wordTickerInterval = setInterval(triggerWord, intervalMs);
+        scheduleNextWord(words, speedMult, 0);
       }
 
       function stopSpeech() {
         isSpeaking = false;
-        if (wordTickerInterval) {
-          clearInterval(wordTickerInterval);
-          wordTickerInterval = null;
+        if (speechTimeout) {
+          clearTimeout(speechTimeout);
+          speechTimeout = null;
         }
+        currentSpeechText = '';
         targetMouthY = 0;
         targetMouthForm = 0;
         currentMouthY = 0;
         currentMouthForm = 0;
-        puppet.mouthY = 0;
-        puppet.mouthForm = 0;
-        puppet.isSpeaking = false;
-        if (typeof puppet.setSpeaking === 'function') puppet.setSpeaking(false);
+        if (puppet) {
+          puppet.mouthY = 0;
+          puppet.mouthForm = 0;
+          puppet.isSpeaking = false;
+          if (typeof puppet.setSpeaking === 'function') puppet.setSpeaking(false);
+        }
       }
 
       // ── 6. Message Dispatcher from React Native ──
@@ -362,9 +408,20 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
           if (!data || !data.type) return;
 
           if (data.type === 'STATE') {
-            if (data.isSpeaking) {
-              startSpeech(data.text, data.speed);
+            var incomingSpeaking = Boolean(data.isSpeaking);
+            var incomingText = data.text || '';
+            var incomingSpeed = Number(data.speed) || 1.0;
+
+            if (incomingSpeaking) {
+              // If already speaking the identical text at the same speed, don't restart word counter
+              if (isSpeaking && currentSpeechText === incomingText && Math.abs(currentSpeechSpeed - incomingSpeed) < 0.05) {
+                return;
+              }
+              currentSpeechText = incomingText;
+              currentSpeechSpeed = incomingSpeed;
+              startSpeech(incomingText, incomingSpeed);
             } else {
+              currentSpeechText = '';
               stopSpeech();
             }
           } else if (data.type === 'MOOD') {
