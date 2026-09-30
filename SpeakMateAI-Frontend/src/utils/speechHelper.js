@@ -1993,7 +1993,6 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
         }
       }
     }
-  }
 };
 
 export const stopSpeaking = () => {

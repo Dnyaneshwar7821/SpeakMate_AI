@@ -1609,7 +1609,8 @@ export function Profile() {
             </div>
 
             {/* AVATAR OPTIONS GRID */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="p-5 sm:p-8 overflow-y-auto space-y-4 flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {AVATAR_LIST.map((av) => {
                 const isSelected = activeAvatarId === av.id;
                 return (
