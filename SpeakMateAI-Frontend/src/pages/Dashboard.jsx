@@ -161,41 +161,51 @@ export function Dashboard() {
     if (user?.englishLevel) setActiveEnglishLevel(safeString(user.englishLevel, "Beginner"));
   }, [user?.accountType, user?.schoolGrade, user?.ageGroup, user?.englishLevel]);
 
-  const [dashboardData, setDashboardData] = useState(() => getCachedDashboardData(user?.email));
+  const cachedOnMount = getCachedDashboardData(user?.email);
+  const [dashboardData, setDashboardData] = useState(() => cachedOnMount);
+  const [isLoading, setIsLoading] = useState(!cachedOnMount);
 
-  // Initial stats with safe fallbacks and preloaded dashboard metrics
+  // Initial stats with clean fallbacks, never flashing previous user or stale local data
   const [stats, setStats] = useState(() => {
-    const live = getLiveProgressStats(user);
-    const cached = getCachedDashboardData(user?.email);
     const initialGoal = parseInt(
       user?.dailyGoalMinutes || localStorage.getItem("speakmate_daily_goal") || "15",
       10
     );
-    const backendStats = cached?.statistics || {};
-    const synced = cached ? syncBackendProgress(cached, user) : {};
 
-    const accuracyVal = synced.accuracy ?? (backendStats.averageScore > 0 ? backendStats.averageScore : null);
-    const totalHoursVal = backendStats.totalStudyHours != null ? backendStats.totalStudyHours : synced.totalHours;
-    const wordsVal = backendStats.vocabularyLearned ?? cached?.progress?.totalVocabularyWords ?? synced.wordsLearned;
+    if (cachedOnMount) {
+      const backendStats = cachedOnMount?.statistics || {};
+      const synced = syncBackendProgress(cachedOnMount, user);
+      return {
+        ...cachedOnMount,
+        ...synced,
+        accuracy: synced.accuracy ?? (backendStats.averageScore > 0 ? backendStats.averageScore : null),
+        totalHours: backendStats.totalStudyHours != null ? backendStats.totalStudyHours : synced.totalHours,
+        wordsLearned: backendStats.vocabularyLearned ?? cachedOnMount?.progress?.totalVocabularyWords ?? synced.wordsLearned,
+        speakingSessions: backendStats.speakingSessions ?? synced.speakingSessions,
+        completedLessons: backendStats.completedLessons ?? synced.completedLessons,
+        streak: Number(synced.streak ?? cachedOnMount?.streak ?? cachedOnMount?.progress?.streak ?? 0),
+        xp: Number(synced.xp ?? cachedOnMount?.progress?.xp ?? cachedOnMount?.xp ?? 0),
+        streakFreezes: Number(synced.streakFreezes ?? 1),
+        todayMins: 0,
+        completedMins: 0,
+        dailyGoalMins: cachedOnMount?.dailyGoal?.targetSpeakingMinutes || cachedOnMount?.dailyGoal?.dailyGoalMinutes || initialGoal,
+      };
+    }
 
     return {
-      ...live,
-      ...(cached || {}),
-      ...(synced || {}),
-      accuracy: accuracyVal,
-      totalHours: totalHoursVal,
-      wordsLearned: wordsVal,
-      speakingSessions: backendStats.speakingSessions ?? synced.speakingSessions,
-      completedLessons: backendStats.completedLessons ?? synced.completedLessons,
-      streak: Number(synced.streak ?? cached?.streak ?? cached?.progress?.streak ?? live.streak ?? 0),
-      xp: Number(synced.xp ?? cached?.progress?.xp ?? cached?.xp ?? live.xp ?? 0),
-      streakFreezes: Number(synced.streakFreezes ?? live.streakFreezes ?? 0),
-      todayMins: live.todayMins || 0,
-      completedMins: live.todayMins || 0,
-      dailyGoalMins: cached?.dailyGoal?.targetSpeakingMinutes || cached?.dailyGoal?.dailyGoalMinutes || initialGoal,
+      accuracy: null,
+      totalHours: 0,
+      wordsLearned: 0,
+      speakingSessions: 0,
+      completedLessons: 0,
+      streak: Number(user?.streak || 0),
+      xp: Number(user?.xp || 0),
+      streakFreezes: Number(user?.streakFreezes ?? 1),
+      todayMins: 0,
+      completedMins: 0,
+      dailyGoalMins: initialGoal,
     };
   });
-  const [isLoading, setIsLoading] = useState(false);
   const [streakModalOpen, setStreakModalOpen] = useState(false);
   const [leaderboardModalOpen, setLeaderboardModalOpen] = useState(false);
 
@@ -218,7 +228,6 @@ export function Dashboard() {
     : "👑";
 
   const refreshStats = useCallback(() => {
-    const liveStats = getLiveProgressStats(user);
     const userGoal = parseInt(
       user?.dailyGoalMinutes ||
       user?.dailyGoal ||
@@ -226,17 +235,6 @@ export function Dashboard() {
       "15",
       10
     );
-
-    setStats((prev) => ({
-      ...prev,
-      ...liveStats,
-      streak: Number(liveStats.streak ?? prev.streak ?? 0),
-      xp: Number(liveStats.xp ?? prev.xp ?? 0),
-      streakFreezes: Number(liveStats.streakFreezes ?? prev.streakFreezes ?? 0),
-      todayMins: liveStats.todayMins ?? prev.todayMins ?? 0,
-      completedMins: liveStats.todayMins ?? prev.todayMins ?? 0,
-      dailyGoalMins: userGoal,
-    }));
 
     dashboardService
       .summary()
@@ -268,9 +266,11 @@ export function Dashboard() {
             accuracy: finalAccuracy,
             totalHours: finalHours,
             wordsLearned: finalWords,
+            speakingSessions: backendStats.speakingSessions ?? synced.speakingSessions,
+            completedLessons: backendStats.completedLessons ?? synced.completedLessons,
             streak: Number(synced.streak ?? data.streak ?? data.progress?.streak ?? 0),
             xp: Number(synced.xp ?? data.progress?.xp ?? data.xp ?? 0),
-            streakFreezes: Number(synced.streakFreezes ?? prev.streakFreezes ?? 0),
+            streakFreezes: Number(synced.streakFreezes ?? prev.streakFreezes ?? 1),
             todayMins: synced.todayMins ?? prev.todayMins ?? 0,
             completedMins: synced.todayMins ?? prev.todayMins ?? 0,
             dailyGoalMins: targetFromBackend || userGoal,
@@ -623,6 +623,48 @@ export function Dashboard() {
       route: ROUTES.PROGRESS,
     },
   ], [totalLessonsCount, actualCompletedLessons, backendStats, stats]);
+
+  if (isLoading && !dashboardData) {
+    return (
+      <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2 animate-pulse">
+        {/* Hero Banner Skeleton */}
+        <div className="h-56 sm:h-64 rounded-3xl bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-indigo-950/40 border border-indigo-500/10 p-8 flex flex-col justify-between">
+          <div className="space-y-3">
+            <div className="h-6 w-48 rounded-full bg-white/10" />
+            <div className="h-10 w-72 rounded-2xl bg-white/15" />
+            <div className="h-4 w-96 rounded-xl bg-white/10" />
+          </div>
+          <div className="flex gap-4">
+            <div className="h-12 w-48 rounded-2xl bg-white/10" />
+            <div className="h-12 w-40 rounded-2xl bg-white/10" />
+          </div>
+        </div>
+
+        {/* 4 KPI Cards Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-32 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-default)] p-5 flex flex-col justify-between shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-500/10" />
+                <div className="w-16 h-5 rounded-full bg-slate-500/10" />
+              </div>
+              <div className="space-y-1.5">
+                <div className="w-20 h-3 rounded bg-slate-500/10" />
+                <div className="w-16 h-6 rounded bg-slate-500/20" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Daily Goal Skeleton */}
+        <div className="h-44 rounded-3xl bg-[var(--bg-card)] border border-[var(--border-default)] p-6 shadow-sm flex flex-col justify-between">
+          <div className="h-6 w-48 rounded bg-slate-500/15" />
+          <div className="h-4 w-full rounded-full bg-slate-500/10" />
+          <div className="h-10 w-44 rounded-2xl bg-indigo-500/15" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-8 px-2 sm:px-4 lg:px-6 py-2">

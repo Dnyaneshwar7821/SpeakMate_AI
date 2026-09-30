@@ -72,7 +72,7 @@ export default function DashboardScreen({ navigation }) {
   const currentUserId = user?.id || user?._id;
   const initialCache = DashboardCache.get(currentUserId);
   const [state, setState] = useState(() => ({
-    loading: !initialCache && !user,
+    loading: !initialCache,
     refreshing: false,
     error: '',
     dashboard: initialCache,
@@ -85,7 +85,7 @@ export default function DashboardScreen({ navigation }) {
     const cached = DashboardCache.get(currentUserId);
     setState((current) => ({
       ...current,
-      loading: refreshing ? false : (!current.dashboard && !cached && !user),
+      loading: refreshing ? false : (!current.dashboard && !cached),
       refreshing,
       error: '',
     }));
@@ -360,7 +360,7 @@ export default function DashboardScreen({ navigation }) {
   const topSafeBg = '#0F172A';
   const contentBg = isDark ? '#0F172A' : '#F8FAFC';
 
-  if (state.loading && !user && !state.dashboard) {
+  if (state.loading && !state.dashboard) {
     return (
       <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
         <ScrollView style={[styles.scroll, { backgroundColor: contentBg }]} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -370,7 +370,7 @@ export default function DashboardScreen({ navigation }) {
     );
   }
 
-  if (state.error && !state.dashboard && !user) {
+  if (state.error && !state.dashboard) {
     return (
       <SafeAreaView style={[styles.safeContainer, { backgroundColor: topSafeBg }]} edges={['top', 'left', 'right']}>
         <View style={styles.errorContainer}>

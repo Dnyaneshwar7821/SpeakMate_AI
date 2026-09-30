@@ -251,11 +251,11 @@ export const syncBackendProgress = (backendData, userContext = null) => {
   }
 
   const finalStreak = rawBackendStreak !== undefined && rawBackendStreak !== null
-    ? Math.max(Number(current.streak || 0), Number(rawBackendStreak))
+    ? Number(rawBackendStreak)
     : Number(current.streak || 0);
 
   const finalMins = rawBackendMins !== undefined && rawBackendMins !== null
-    ? Math.max(Number(current.speakingMins || 0), Number(rawBackendMins))
+    ? Number(rawBackendMins)
     : Number(current.speakingMins || 0);
 
   const backendStats = backendData.statistics || {};
@@ -271,7 +271,7 @@ export const syncBackendProgress = (backendData, userContext = null) => {
     : (current.backendAccuracy || null);
 
   const finalWords = rawBackendVocab !== undefined && rawBackendVocab !== null
-    ? Math.max(Number(current.wordsLearned || 0), Number(rawBackendVocab))
+    ? Number(rawBackendVocab)
     : Number(current.wordsLearned || 0);
 
   const finalSessions = rawBackendSessions !== undefined && rawBackendSessions !== null
@@ -283,11 +283,11 @@ export const syncBackendProgress = (backendData, userContext = null) => {
     : Number(current.distinctScenarios || 0);
 
   const finalGrammar = rawBackendGrammar !== undefined && rawBackendGrammar !== null
-    ? Math.max(Number(current.grammarChecks || 0), Number(rawBackendGrammar))
+    ? Number(rawBackendGrammar)
     : Number(current.grammarChecks || 0);
 
   const finalLessons = rawBackendLessons !== undefined && rawBackendLessons !== null
-    ? Math.max(Number(current.lessonsCompleted || 0), Number(rawBackendLessons))
+    ? Number(rawBackendLessons)
     : Number(current.lessonsCompleted || 0);
 
   const rawBackendFreezes = backendData.streakFreezes ?? backendData.progress?.streakFreezes ?? backendData.profile?.streakFreezes;
