@@ -150,7 +150,7 @@ export default function AIAvatar({
   const [live2dReady, setLive2dReady] = useState(false);
   const [live2dError, setLive2dError] = useState(false);
   
-  const isLive2DModel = avatarObj.type === 'live2d' || targetModel === 'haru' || targetModel === 'chitose';
+  const isLive2DModel = avatarObj.type === 'live2d';
   const defaultEngine = isLive2DModel ? 'live2d' : 'native';
   const [engineOverride, setEngineOverride] = useState(null);
 
@@ -160,7 +160,7 @@ export default function AIAvatar({
     }).catch(() => {});
   }, []);
 
-  const avatarEngine = isLive2DModel ? (engineOverride || defaultEngine) : 'native';
+  const avatarEngine = engineOverride || defaultEngine;
 
   useEffect(() => {
     setLive2dError(false);

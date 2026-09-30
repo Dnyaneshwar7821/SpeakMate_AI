@@ -943,8 +943,12 @@ export default function ProfileScreen({ navigation }) {
 
               <View style={[styles.activeTutorHighlightCard, { backgroundColor: isDark ? '#1E293B' : '#F8FAFC', borderColor: isDark ? '#334155' : '#E2E8F0' }]}>
                 <View style={styles.activeTutorLeft}>
-                  <View style={styles.activeTutorEmojiBox}>
-                    <Text style={{ fontSize: 32 }}>{activeTutor.emoji}</Text>
+                  <View style={[styles.activeTutorEmojiBox, { backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF', borderColor: '#6366F1', borderWidth: 1.5 }]}>
+                    {activeTutor.image ? (
+                      <Image source={activeTutor.image} style={styles.activeTutorImage} resizeMode="contain" />
+                    ) : (
+                      <Text style={{ fontSize: 32 }}>{activeTutor.emoji}</Text>
+                    )}
                   </View>
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
@@ -1700,7 +1704,13 @@ export default function ProfileScreen({ navigation }) {
                       ]}
                     >
                       <View style={styles.tutorCardHeader}>
-                        <Text style={styles.tutorCardEmoji}>{av.emoji}</Text>
+                        {av.image ? (
+                          <View style={[styles.tutorThumbWrap, { backgroundColor: isDark ? '#1E1B4B' : '#EEF2FF' }]}>
+                            <Image source={av.image} style={styles.tutorThumbImage} resizeMode="contain" />
+                          </View>
+                        ) : (
+                          <Text style={styles.tutorCardEmoji}>{av.emoji}</Text>
+                        )}
                         {isSelected ? (
                           <View style={styles.tutorActiveBadge}>
                             <Ionicons name="checkmark-circle" size={12} color="#6366F1" />
@@ -2219,12 +2229,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   activeTutorEmojiBox: {
-    width: 58,
-    height: 58,
-    borderRadius: 18,
-    backgroundColor: '#6366F1',
+    width: 60,
+    height: 60,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  activeTutorImage: {
+    width: 52,
+    height: 52,
   },
   activeTutorName: {
     fontSize: 16,
@@ -2315,6 +2329,20 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 6,
+  },
+  tutorThumbWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(99, 102, 241, 0.2)',
+  },
+  tutorThumbImage: {
+    width: 34,
+    height: 34,
   },
   tutorCardEmoji: {
     fontSize: 24,
