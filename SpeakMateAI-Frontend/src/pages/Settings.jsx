@@ -320,8 +320,22 @@ export function Settings() {
         {/* VOICE SELECTION CARD WITH POPUP TRIGGER */}
         <div className="p-6 rounded-3xl bg-[var(--bg-elevated)] border border-[var(--border-default)] shadow-inner flex flex-col sm:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#FF6584] text-white grid place-items-center text-3xl shadow-lg shrink-0">
-              {activeAvatar.emoji || "🎙️"}
+            <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-2xl bg-[var(--bg-surface)] border-2 border-[#6C63FF]/30 grid place-items-center shadow-lg shrink-0 overflow-hidden relative">
+              {activeAvatar.thumbnail ? (
+                <img
+                  src={activeAvatar.thumbnail}
+                  alt={activeAvatar.name}
+                  className="w-full h-full object-cover select-none pointer-events-none"
+                  style={{
+                    objectPosition: activeAvatar.thumbnailPosition || "center",
+                    transform: activeAvatar.thumbnailScale && activeAvatar.thumbnailScale !== 1.0 ? `scale(${activeAvatar.thumbnailScale})` : undefined,
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-tr from-[#6C63FF] to-[#FF6584] text-white grid place-items-center text-3xl">
+                  {activeAvatar.emoji || "🎙️"}
+                </div>
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -334,7 +348,9 @@ export function Settings() {
               </div>
               <h3 className="text-xl font-black text-[var(--text-primary)] mt-1">{activeVoiceLabel}</h3>
               <p className="text-xs text-[var(--text-secondary)] font-medium mt-0.5">
-                Choose from regional English voices (American, British, Australian, Indian) below.
+                {isHaruOrChitose
+                  ? "Teacher & Male Teacher support switching between custom Male & Female voices and accents below."
+                  : `${activeAvatar.name} uses its dedicated character voice across the entire app. To choose custom Male/Female voices, switch to Teacher or Male Teacher in your Profile.`}
               </p>
             </div>
           </div>
