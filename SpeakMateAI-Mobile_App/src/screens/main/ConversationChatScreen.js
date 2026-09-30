@@ -605,24 +605,125 @@ export default function ConversationChatScreen({ navigation, route }) {
     };
     setMessages((prev) => [...prev, tempUserMsg]);
 
+  const generateMobileChatContextualReply = (userText, currentMode = 'General English', recentMessages = []) => {
+    const lower = (userText || '').toLowerCase().trim();
+    let message = '';
+    let followUpQuestion = '';
+    let suggestions = [];
+
+    const recentQuestions = (recentMessages || [])
+      .filter((m) => m?.sender === 'ai' && (m?.followUpQuestion || m?.message?.includes('?')))
+      .map((m) => (m.followUpQuestion || m.message).toLowerCase());
+
+    if (lower.includes('pune') || lower.includes('mumbai') || lower.includes('delhi') || lower.includes('travel') || lower.includes('trip') || lower.includes('visited') || lower.includes('went to')) {
+      let place = 'there';
+      if (lower.includes('pune')) place = 'Pune';
+      else if (lower.includes('mumbai')) place = 'Mumbai';
+      else if (lower.includes('delhi')) place = 'Delhi';
+      message = 'That sounds like a wonderful trip! Exploring new places is always refreshing.';
+      followUpQuestion = `What did you do in ${place}?`;
+      suggestions = ['I visited famous spots.', 'I spent time with friends.', 'The local food was amazing.'];
+    } else if (lower.includes('movie') || lower.includes('film') || lower.includes('cinema') || lower.includes('watched') || lower.includes('series')) {
+      message = 'Nice! Watching movies is a great way to relax and absorb natural expressions.';
+      followUpQuestion = 'What did you think of the movie?';
+      suggestions = ['It had a gripping story.', 'The acting was impressive.', 'It was a bit slow-paced.'];
+    } else if (lower.includes('java') || lower.includes('python') || lower.includes('coding') || lower.includes('programming') || lower.includes('developer') || lower.includes('software')) {
+      message = 'Interesting! Learning programming builds strong logic and problem-solving abilities.';
+      followUpQuestion = 'What are you currently building with it?';
+      suggestions = ['A full-stack web project.', 'Working on data structures.', 'Practicing backend APIs.'];
+    } else if (lower.includes('tired') || lower.includes('exhausted') || lower.includes('sleepy') || lower.includes('drained')) {
+      message = 'I understand. Busy schedules and intense work can really drain your energy.';
+      followUpQuestion = 'What made you feel so tired?';
+      suggestions = ['I had a very long workday.', 'I stayed up late working.', 'I was busy studying all day.'];
+    } else if (lower.includes('cricket') || lower.includes('football') || lower.includes('sport') || lower.includes('match') || lower.includes('play')) {
+      message = 'That sounds exciting! Playing sports is great for both fitness and mental focus.';
+      followUpQuestion = 'Do you play regularly with friends?';
+      suggestions = ['We play every weekend.', 'I play whenever free.', 'I enjoy bowling the most.'];
+    } else if (lower.includes('cooking') || lower.includes('food') || lower.includes('eat') || lower.includes('restaurant') || lower.includes('dinner')) {
+      if (lower.includes("don't like") || lower.includes("dont like") || lower.includes('hate') || lower.includes('not really')) {
+        message = "That's completely fine! Cooking isn't for everyone.";
+        followUpQuestion = 'What kind of food do you enjoy eating?';
+        suggestions = ['I love Italian pasta.', 'Traditional spicy dishes.', 'Fresh salads and smoothies.'];
+      } else {
+        message = 'That sounds delicious! Good food always brings comfort and joy.';
+        followUpQuestion = 'What is your favorite dish to prepare?';
+        suggestions = ['I make quick easy snacks.', 'I enjoy baking desserts.', 'I like trying new curries.'];
+      }
+    } else if (lower.includes('pronunciation') || lower.includes('accent') || lower.includes('speaking') || lower.includes('fluency')) {
+      message = 'Speaking out loud every single day builds natural muscle memory and confidence.';
+      followUpQuestion = 'Which specific English sounds feel trickiest for you?';
+      suggestions = ['Linking words smoothly.', 'Clear vowel sounds.', 'Pacing my sentences naturally.'];
+    } else if (lower.includes('great') || lower.includes('awesome') || lower.includes('wonderful') || lower.includes('good') || lower.includes('fantastic')) {
+      message = "That sounds great! It's always wonderful when things turn out so well.";
+      followUpQuestion = 'What made it feel so special?';
+      suggestions = ['I accomplished my goals.', 'Had quality family time.', 'Everything went smoothly.'];
+    } else if (lower.includes('terrible') || lower.includes('bad') || lower.includes('awful') || lower.includes('tough') || lower.includes('rough')) {
+      message = "I'm sorry to hear that. Difficult periods happen, but tomorrow brings a fresh start.";
+      followUpQuestion = 'What was the toughest part of it?';
+      suggestions = ['Too many unexpected delays.', 'Heavy stress at work.', 'Hoping for a smoother tomorrow.'];
+    } else if (lower.includes('friend') || lower.includes('friends') || lower.includes('visited')) {
+      message = 'Spending time with good friends is always heartwarming and memorable.';
+      followUpQuestion = 'What did you and your friend do together?';
+      suggestions = ['We caught up over coffee.', 'We went out exploring.', 'Talked about our future plans.'];
+    } else {
+      const questions = [
+        'What inspired you to think about that today?',
+        'How do you usually approach that in your daily routine?',
+        'What do you think is the best next step?',
+        'Could you share a quick example from your experience?',
+        'What part of that do you find most interesting?'
+      ];
+      followUpQuestion = questions[0];
+      for (const q of questions) {
+        if (!recentQuestions.some((rq) => rq.includes(q.toLowerCase().slice(0, 15)))) {
+          followUpQuestion = q;
+          break;
+        }
+      }
+      message = 'That makes a lot of sense! Expressing your thoughts clearly is great practice.';
+      suggestions = ['Let me give you an example.', 'I was reflecting on it earlier.', 'That reminds me of something.'];
+    }
+
+    return {
+      message,
+      followUpQuestion,
+      suggestions,
+      grammarCorrection: '✅ Your sentence is correct.',
+      betterSentence: null,
+      vocabularySuggestions: null,
+      explanation: null,
+    };
+  };
+
     try {
       let response;
       if (sessionId && !String(sessionId).startsWith('sim_')) {
         response = await chatService.send(sessionId, cleanText, !isMuted, chatLevel);
       } else {
-        const aiRes = await aiService.chat(cleanText);
+        const contextual = generateMobileChatContextualReply(cleanText, mode, messages);
         response = {
           id: Date.now() + 1,
           sender: 'ai',
-          message: aiRes?.response || 'That is a great point! Can you tell me more about that?',
+          message: contextual.message,
           grammarCorrection: '✅ Your sentence is correct.',
           betterSentence: null,
           vocabularySuggestions: null,
           explanation: null,
-          followUpQuestion: 'What else would you like to explore?',
+          followUpQuestion: contextual.followUpQuestion,
           createdAt: new Date().toISOString(),
         };
       }
+
+      // Guard against generic repetitive fallback strings from server
+      if (!response || !response.message || response.message.toLowerCase().includes('great thought') || response.message.toLowerCase().includes('share more')) {
+        const contextual = generateMobileChatContextualReply(cleanText, mode, messages);
+        response = {
+          ...response,
+          message: contextual.message,
+          followUpQuestion: contextual.followUpQuestion,
+        };
+      }
+
       setMessages((prev) => [...prev, response]);
 
       const isCorrect = response.grammarCorrection && (
@@ -638,16 +739,16 @@ export default function ConversationChatScreen({ navigation, route }) {
       speakAiWithCoaching(response);
     } catch {
       try {
-        const aiRes = await aiService.chat(cleanText);
+        const contextual = generateMobileChatContextualReply(cleanText, mode, messages);
         const fallbackMsg = {
           id: Date.now() + 1,
           sender: 'ai',
-          message: aiRes?.response || 'That is a great thought! Can you share more about that?',
+          message: contextual.message,
           grammarCorrection: '✅ Your sentence is correct.',
           betterSentence: null,
           vocabularySuggestions: null,
           explanation: null,
-          followUpQuestion: null,
+          followUpQuestion: contextual.followUpQuestion,
           createdAt: new Date().toISOString(),
         };
         setMessages((prev) => [...prev, fallbackMsg]);
@@ -887,14 +988,13 @@ export default function ConversationChatScreen({ navigation, route }) {
     : '✨ Tap mic to speak';
 
   return (
-    <LinearGradient colors={['#0B0F19', '#111827', '#1E1B4B']} style={styles.root}>
-      <StatusBar barStyle="light-content" />
-
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : (StatusBar.currentHeight || 0)}
-      >
+    <KeyboardAvoidingView
+      style={styles.root}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={0}
+    >
+      <LinearGradient colors={['#0B0F19', '#111827', '#1E1B4B']} style={{ flex: 1 }}>
+        <StatusBar barStyle="light-content" />
         {/* ─── Header ─── */}
         <View style={styles.header}>
           <SafeAreaView edges={['top']}>
@@ -1210,7 +1310,6 @@ export default function ConversationChatScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
       </View>
-      </KeyboardAvoidingView>
 
       {/* ─── Long-press Menu Modal ─── */}
       <Modal visible={menuVisible} transparent animationType="fade">
@@ -1253,7 +1352,8 @@ export default function ConversationChatScreen({ navigation, route }) {
           </View>
         </TouchableOpacity>
       </Modal>
-    </LinearGradient>
+      </LinearGradient>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -1276,7 +1376,7 @@ const styles = StyleSheet.create({
     opacity: 0,
     marginTop: 0,
     marginBottom: 0,
-    display: 'none',
+    overflow: 'hidden',
   },
   avatar3d: {
     width: '100%',

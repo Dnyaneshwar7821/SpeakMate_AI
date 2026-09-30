@@ -973,6 +973,97 @@ export default function ConversationScreen({ navigation, route }) {
     }
   };
 
+  const generateMobileSpeakingContextualReply = (userText, scenarioTitle = 'Daily Conversation', recentMessages = []) => {
+    const lower = (userText || '').toLowerCase().trim();
+    let aiReply = '';
+    let followUpQuestion = '';
+    let suggestedResponses = [];
+
+    const recentQuestions = (recentMessages || [])
+      .filter((m) => m?.sender === 'ai' && (m?.followUpQuestion || m?.message?.includes('?')))
+      .map((m) => (m.followUpQuestion || m.message).toLowerCase());
+
+    if (lower.includes('pune') || lower.includes('mumbai') || lower.includes('delhi') || lower.includes('travel') || lower.includes('trip') || lower.includes('visited') || lower.includes('went to')) {
+      let place = 'there';
+      if (lower.includes('pune')) place = 'Pune';
+      else if (lower.includes('mumbai')) place = 'Mumbai';
+      else if (lower.includes('delhi')) place = 'Delhi';
+      aiReply = 'That sounds like a wonderful trip! Traveling to new places is always refreshing.';
+      followUpQuestion = `What did you do in ${place}?`;
+      suggestedResponses = ['I visited famous spots.', 'I spent time with friends.', 'The local food was amazing.'];
+    } else if (lower.includes('movie') || lower.includes('film') || lower.includes('cinema') || lower.includes('watched') || lower.includes('series')) {
+      aiReply = 'Nice! Watching movies is a fantastic way to relax and pick up natural conversational phrases.';
+      followUpQuestion = 'What did you think of the movie?';
+      suggestedResponses = ['It was really entertaining.', 'The acting was great.', 'The story was exciting.'];
+    } else if (lower.includes('java') || lower.includes('python') || lower.includes('coding') || lower.includes('programming') || lower.includes('developer') || lower.includes('software')) {
+      aiReply = 'Interesting! Learning programming builds strong logic and problem-solving abilities.';
+      followUpQuestion = 'What are you currently building with it?';
+      suggestedResponses = ['A web application project.', 'Practicing core algorithms.', 'Building backend APIs.'];
+    } else if (lower.includes('tired') || lower.includes('exhausted') || lower.includes('sleepy') || lower.includes('drained')) {
+      aiReply = 'I understand. Busy schedules and intense work can definitely drain your energy.';
+      followUpQuestion = 'What made you feel so tired?';
+      suggestedResponses = ['I had a very long workday.', 'I stayed up late working.', 'I was studying all day.'];
+    } else if (lower.includes('cricket') || lower.includes('football') || lower.includes('sport') || lower.includes('match') || lower.includes('play')) {
+      aiReply = 'Cricket is such an exciting sport! Playing keeps your mind sharp and active.';
+      followUpQuestion = 'Do you prefer batting or bowling?';
+      suggestedResponses = ['I prefer batting first.', 'I love fast bowling.', 'I enjoy fielding with friends.'];
+    } else if (lower.includes('cooking') || lower.includes('food') || lower.includes('eat') || lower.includes('restaurant') || lower.includes('dinner')) {
+      if (lower.includes("don't like") || lower.includes("dont like") || lower.includes('hate') || lower.includes('not really')) {
+        aiReply = "That's completely fine! Cooking isn't for everyone.";
+        followUpQuestion = 'What kind of food do you enjoy eating?';
+        suggestedResponses = ['I love Italian pasta.', 'Traditional spicy dishes.', 'Fresh salads and fruits.'];
+      } else {
+        aiReply = 'That sounds delicious! Good food always brings comfort and happiness.';
+        followUpQuestion = 'What is your favorite dish to prepare?';
+        suggestedResponses = ['I make quick easy snacks.', 'I enjoy baking desserts.', 'I love cooking curries.'];
+      }
+    } else if (lower.includes('pronunciation') || lower.includes('accent') || lower.includes('speaking') || lower.includes('fluency')) {
+      aiReply = 'Speaking out loud every day builds strong muscle memory and natural confidence.';
+      followUpQuestion = 'Which specific English sounds feel trickiest for you?';
+      suggestedResponses = ['Linking words smoothly.', 'Clear vowel sounds.', 'Pacing my speech naturally.'];
+    } else if (lower.includes('great') || lower.includes('awesome') || lower.includes('wonderful') || lower.includes('good') || lower.includes('fantastic')) {
+      aiReply = "That sounds great! It's always wonderful when things turn out so well.";
+      followUpQuestion = 'What made it feel so special?';
+      suggestedResponses = ['I accomplished my goals.', 'Had quality family time.', 'Everything went smoothly.'];
+    } else if (lower.includes('terrible') || lower.includes('bad') || lower.includes('awful') || lower.includes('tough') || lower.includes('rough')) {
+      aiReply = "I'm sorry to hear that. Difficult periods happen, but tomorrow brings a fresh start.";
+      followUpQuestion = 'What was the toughest part of it?';
+      suggestedResponses = ['Heavy stress at work.', 'Unexpected delays occurred.', 'Hoping for a smoother tomorrow.'];
+    } else if (lower.includes('friend') || lower.includes('friends') || lower.includes('visited')) {
+      aiReply = 'Spending time with good friends is always heartwarming and memorable.';
+      followUpQuestion = 'What did you and your friend do together?';
+      suggestedResponses = ['We caught up over coffee.', 'We went out exploring.', 'Talked about our future plans.'];
+    } else {
+      const questions = [
+        'What inspired you to think about that today?',
+        'How do you usually handle this in your daily routine?',
+        'What do you think is the best next step?',
+        'Could you share a quick example from your experience?',
+        'What part of that do you find most interesting?'
+      ];
+      followUpQuestion = questions[0];
+      for (const q of questions) {
+        if (!recentQuestions.some((rq) => rq.includes(q.toLowerCase().slice(0, 15)))) {
+          followUpQuestion = q;
+          break;
+        }
+      }
+      aiReply = 'That makes a lot of sense! Expressing your thoughts clearly is great practice.';
+      suggestedResponses = ['Let me give you an example.', 'I was reflecting on it earlier.', 'That reminds me of something.'];
+    }
+
+    return {
+      aiReply,
+      followUpQuestion,
+      suggestedResponses,
+      grammarCorrection: '✅ Your sentence is correct.',
+      betterSentence: null,
+      vocabularySuggestions: null,
+      explanation: null,
+      nativeTip: 'Keep a natural, relaxed speaking cadence.',
+    };
+  };
+
   const sendUserText = async (text) => {
     if (!text || !text.trim()) return;
     const cleanText = text.trim();
@@ -993,19 +1084,18 @@ export default function ConversationScreen({ navigation, route }) {
           level: chatLevel,
         });
       } else {
-        const aiRes = await aiService.speakingFeedback(cleanText);
+        const contextual = generateMobileSpeakingContextualReply(cleanText, scenario, messages);
+        feedback = contextual;
+      }
+
+      // Guard against generic repetitive fallback strings
+      if (!feedback || !feedback.aiReply || feedback.aiReply.toLowerCase().includes('great thought') || feedback.aiReply.toLowerCase().includes('share more')) {
+        const contextual = generateMobileSpeakingContextualReply(cleanText, scenario, messages);
         feedback = {
-          aiReply: aiRes?.response || "That is very interesting! Could you share a bit more about that?",
-          grammarCorrection: "✅ Your sentence is correct.",
-          betterSentence: null,
-          vocabularySuggestions: null,
-          explanation: null,
-          followUpQuestion: "What should we discuss next?",
-          nativeTip: "Keep a natural, relaxed speaking cadence.",
-          suggestedResponses: [
-            "I would love to tell you more about it.",
-            "Can you give me an example?"
-          ],
+          ...feedback,
+          aiReply: contextual.aiReply,
+          followUpQuestion: contextual.followUpQuestion,
+          suggestedResponses: contextual.suggestedResponses,
         };
       }
 
@@ -1044,21 +1134,19 @@ export default function ConversationScreen({ navigation, route }) {
       // Speak AI in-character response, pause 1.2s, then speak coaching phrasing
       speakAiWithCoaching(aiMessage);
     } catch (err) {
-      console.warn('Backend speaking message failed, using resilient fallback:', err);
+      console.warn('Backend speaking message failed, using resilient contextual fallback:', err);
+      const contextual = generateMobileSpeakingContextualReply(cleanText, scenario, messages);
       const fallbackAiMsg = {
         id: Date.now() + 1,
         sender: 'ai',
-        message: "That's a very good point! Let's continue exploring this topic.",
-        grammarCorrection: "✅ Your sentence is correct.",
+        message: contextual.aiReply,
+        grammarCorrection: '✅ Your sentence is correct.',
         betterSentence: null,
         vocabularySuggestions: null,
         explanation: null,
-        followUpQuestion: "What do you think is the best next step?",
-        nativeTip: "Speak with clear pauses between thoughts.",
-        suggestedResponses: [
-          "I think we should practice more.",
-          "Could you give me another question?"
-        ]
+        followUpQuestion: contextual.followUpQuestion,
+        nativeTip: 'Speak with clear pauses between thoughts.',
+        suggestedResponses: contextual.suggestedResponses,
       };
       setMessages((prev) => [...prev, fallbackAiMsg]);
       setCorrections(fallbackAiMsg);

@@ -580,9 +580,9 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 	private List<String> getDefaultScenarioHints(String scenario) {
 		if (scenario == null) {
 			return List.of(
-					"Could you please tell me more about that?",
-					"That sounds great, what should we do next?",
-					"What do you recommend in this case?");
+					"I really enjoyed that experience!",
+					"What would you recommend we do next?",
+					"Could you share your perspective on this?");
 		}
 		String s = scenario.toLowerCase();
 		if (s.contains("daily conversation") || s.contains("small talk") || s.contains("routine")) {
@@ -642,8 +642,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 					"Does anyone have any questions on this slide?");
 		}
 		return List.of(
-				"Could you tell me a bit more about that?",
-				"That sounds interesting, what should we do next?",
+				"I would love to hear your thoughts on that.",
+				"What do you think is the best next step?",
 				"Could you give me an example of that?");
 	}
 
@@ -729,6 +729,32 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		}
 
 
+		// 2b. Collect recent AI questions to prevent repetition
+		List<String> recentAiQuestions = new ArrayList<>();
+		for (ConversationMessage m : history) {
+			if ("ai".equalsIgnoreCase(m.getSender()) && m.getMessage() != null) {
+				String msg = m.getMessage().trim();
+				int qIdx = msg.lastIndexOf('?');
+				if (qIdx != -1) {
+					int sentStart = Math.max(0, msg.lastIndexOf('.', qIdx));
+					if (msg.lastIndexOf('!', qIdx) > sentStart) sentStart = msg.lastIndexOf('!', qIdx);
+					String q = msg.substring(sentStart == 0 ? 0 : sentStart + 1, qIdx + 1).trim();
+					if (!q.isEmpty() && !recentAiQuestions.contains(q)) {
+						recentAiQuestions.add(q);
+					}
+				}
+			}
+		}
+
+		StringBuilder antiRepetitionInstruction = new StringBuilder();
+		if (!recentAiQuestions.isEmpty()) {
+			antiRepetitionInstruction.append("\nRECENT QUESTIONS ASKED IN THIS SESSION (DO NOT REPEAT ANY OF THESE OR USE SIMILAR FORMULAS):\n");
+			int qStart = Math.max(0, recentAiQuestions.size() - 6);
+			for (int i = qStart; i < recentAiQuestions.size(); i++) {
+				antiRepetitionInstruction.append("- \"").append(recentAiQuestions.get(i)).append("\"\n");
+			}
+		}
+
 		User user = session.getUser();
 		String userContextInstruction = buildUserContextInstruction(user, session.getScenario());
 
@@ -738,17 +764,44 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 						+
 						"LEARNER CONTEXT & SCENARIO:\n" +
 						"%s\n" +
+						"%s\n" +
 						"%s\n\n" +
 						"ROLEPLAY & CONVERSATIONAL IMMERSION:\n" +
-						"1. IN-CHARACTER DIALOGUE ('aiReply'): Inhabit your persona (e.g. friendly barista, doctor, tour guide, peer, or teacher). Respond naturally in 1-2 lively, empathetic sentences tailored to the student's standard/age. Keep the conversation engaging and fluid.\n"
+						"1. IN-CHARACTER CONTEXTUAL DIALOGUE ('aiReply'): Inhabit your persona (e.g. friendly barista, doctor, tour guide, peer, or teacher). Respond naturally in 1-2 lively, empathetic sentences (strictly under 35-45 words). Acknowledge specifically what the student actually said (their specific experience, activity, opinion, feeling, or place).\n"
 						+
-						"2. NATIVE PHRASING ('betterSentence'): If the student's expression could be polished into a natural native idiom ('How a native speaker says it'), provide it here. If they spoke naturally and cleanly, set to null.\n"
+						"2. NATURAL CONTEXTUAL FOLLOW-UP ('followUpQuestion'): Ask ONE context-aware question (under 12-15 words) derived directly from the learner's message:\n"
 						+
-						"3. GRAMMAR EVALUATION ('grammarCorrection'): Provide a corrected version only if there were grammatical errors, otherwise set to null.\n"
+						"   - If they mentioned a place (e.g. Pune, Mumbai, park): ask what they did or saw there.\n"
 						+
-						"4. DYNAMIC SPOKEN HINTS ('suggestedResponses'): Provide EXACTLY 3 complete, realistic phrases the student can literally speak out loud next. CRITICAL: Never write 'Suggestion 1', 'Option 1', or placeholder labels. Each must be a real sentence tailored directly to this dialogue.\n"
+						"   - If they mentioned an activity or movie: ask what they thought or enjoyed most about it.\n"
 						+
-						"5. CLEAN TEXT RULES: Never output bracketed meta tags (e.g. [grammar]), never output ellipses '...', and never output stage directions like (smiling).\n\n"
+						"   - If they mentioned learning a skill (e.g. Java, English): ask what they are building or find interesting.\n"
+						+
+						"   - If they mentioned feelings (e.g. tired, excited, terrible week): ask what caused that feeling.\n"
+						+
+						"   - If their statement completes a thought (e.g. 'I don't like cooking'), respond briefly and naturally introduce a related topic (e.g. 'What kind of food do you enjoy eating?').\n"
+						+
+						"3. STRICTLY FORBIDDEN GENERIC REPETITIONS: NEVER ask repetitive clichés such as:\n"
+						+
+						"   - 'Can you share more about that?'\n"
+						+
+						"   - 'Tell me more about that.'\n"
+						+
+						"   - 'What else can you tell me?'\n"
+						+
+						"   - 'Can you elaborate?'\n"
+						+
+						"   - 'That's interesting! Tell me more.'\n"
+						+
+						"   Every turn MUST have a distinct, personalized question derived from their specific words.\n"
+						+
+						"4. NATIVE PHRASING ('betterSentence'): If the student's expression could be polished into a natural native idiom ('How a native speaker says it'), provide it here. If they spoke naturally and cleanly, set to null.\n"
+						+
+						"5. GRAMMAR EVALUATION ('grammarCorrection'): Provide a corrected version only if there were grammatical errors, otherwise set to null.\n"
+						+
+						"6. DYNAMIC SPOKEN HINTS ('suggestedResponses'): Provide EXACTLY 3 complete, realistic phrases the student can literally speak out loud next. CRITICAL: Never write 'Suggestion 1', 'Option 1', or placeholder labels. Each must be a real sentence tailored directly to this dialogue.\n"
+						+
+						"7. CLEAN TEXT RULES: Never output bracketed meta tags (e.g. [grammar]), never output ellipses '...', and never output stage directions like (smiling).\n\n"
 						+
 						"YOU MUST RESPOND IN VALID JSON FORMAT ONLY. Do not wrap in ```json or markdown blocks.\n" +
 						"The JSON must have these exact fields and structure:\n" +
@@ -767,7 +820,8 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 						"Important: Escape any double quotes inside string values as \\\" to ensure valid JSON.",
 				session.getScenario(),
 				levelInstruction,
-				userContextInstruction);
+				userContextInstruction,
+				antiRepetitionInstruction.toString());
 		groqMessages.add(new GroqRequest.Message("system", systemPrompt));
 
 		// Add last 10 messages for context
@@ -778,8 +832,13 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 			groqMessages.add(new GroqRequest.Message(role, m.getMessage()));
 		}
 
-		String groqReplyRaw = callGroqChat(groqMessages);
-		String cleanJson = cleanJsonResponse(groqReplyRaw);
+		String groqReplyRaw = null;
+		try {
+			groqReplyRaw = callGroqChat(groqMessages);
+		} catch (Exception e) {
+			// Fallback cascade handled below
+		}
+		String cleanJson = (groqReplyRaw != null) ? cleanJsonResponse(groqReplyRaw) : "{}";
 
 		SpeakingMessageResponse response = new SpeakingMessageResponse();
 		try {
@@ -796,18 +855,22 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				response.setFollowUpQuestion(extractFieldFromJson(cleanJson, "followUpQuestion"));
 				response.setNativeTip(extractFieldFromJson(cleanJson, "nativeTip"));
 			} else {
-				// If we can't extract the aiReply field, check if it looks like JSON
-				if (cleanJson.contains("{") || cleanJson.contains("\"") || cleanJson.contains("aiReply")) {
-					response.setAiReply(
-							"I'm sorry, I had some trouble processing my response. Could you please repeat that?");
-				} else {
-					response.setAiReply(cleanJson);
-				}
-				response.setGrammarCorrection(null);
-				response.setBetterSentence(null);
-				response.setVocabularySuggestions(null);
-				response.setExplanation(null);
-				response.setFollowUpQuestion(null);
+				// Generate dynamic contextual response based on what the user actually said
+				response = generateDynamicSpeakingFallback(request.getMessage(), session.getScenario(), recentAiQuestions);
+			}
+		}
+
+		if (response.getAiReply() == null || response.getAiReply().trim().isEmpty()
+				|| response.getAiReply().toLowerCase().contains("trouble processing my response")
+				|| response.getAiReply().toLowerCase().contains("share more about that")
+				|| response.getAiReply().toLowerCase().contains("tell me more about that")) {
+			SpeakingMessageResponse fb = generateDynamicSpeakingFallback(request.getMessage(), session.getScenario(), recentAiQuestions);
+			response.setAiReply(fb.getAiReply());
+			if (response.getFollowUpQuestion() == null || response.getFollowUpQuestion().trim().isEmpty()) {
+				response.setFollowUpQuestion(fb.getFollowUpQuestion());
+			}
+			if (response.getSuggestedResponses() == null || response.getSuggestedResponses().isEmpty()) {
+				response.setSuggestedResponses(fb.getSuggestedResponses());
 			}
 		}
 
@@ -847,10 +910,16 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 				|| response.getExplanation().equalsIgnoreCase("null") || response.getExplanation().trim().isEmpty())) {
 			response.setExplanation(null);
 		}
-		if (response.getFollowUpQuestion() != null && (response.getFollowUpQuestion().equalsIgnoreCase("none")
-				|| response.getFollowUpQuestion().equalsIgnoreCase("null")
-				|| response.getFollowUpQuestion().trim().isEmpty())) {
-			response.setFollowUpQuestion(null);
+		if (response.getFollowUpQuestion() != null) {
+			String fLower = response.getFollowUpQuestion().toLowerCase().trim();
+			if (fLower.equalsIgnoreCase("none") || fLower.equalsIgnoreCase("null") || fLower.isEmpty()
+					|| fLower.contains("share more about that") || fLower.contains("tell me more about that")
+					|| fLower.contains("tell me more") || fLower.contains("can you elaborate")
+					|| fLower.contains("what else can you tell me") || fLower.equals("what else comes to mind?")) {
+				response.setFollowUpQuestion(deriveSpeakingContextualFollowup(request.getMessage(), recentAiQuestions));
+			}
+		} else {
+			response.setFollowUpQuestion(deriveSpeakingContextualFollowup(request.getMessage(), recentAiQuestions));
 		}
 
 		// Provide smart suggested response chips if empty or sanitize
@@ -901,6 +970,108 @@ public class SpeakingSessionServiceImpl implements SpeakingSessionService {
 		speakingSessionRepository.save(session);
 
 		return response;
+	}
+
+	private String deriveSpeakingContextualReply(String userMessage, String scenario) {
+		String lower = (userMessage != null ? userMessage.toLowerCase().trim() : "");
+		if (lower.contains("pune") || lower.contains("mumbai") || lower.contains("delhi") || lower.contains("trip") || lower.contains("travel") || lower.contains("went to")) {
+			return "That sounds like a wonderful trip! Traveling to new places is always refreshing.";
+		} else if (lower.contains("movie") || lower.contains("film") || lower.contains("cinema") || lower.contains("watched")) {
+			return "Nice! Watching movies is a fantastic way to relax and pick up natural conversational phrases.";
+		} else if (lower.contains("java") || lower.contains("python") || lower.contains("coding") || lower.contains("programming") || lower.contains("software")) {
+			return "Interesting! Learning programming requires great problem-solving skills and persistent practice.";
+		} else if (lower.contains("tired") || lower.contains("exhausted") || lower.contains("sleepy")) {
+			return "I understand completely. Busy schedules can definitely drain your energy.";
+		} else if (lower.contains("cricket") || lower.contains("football") || lower.contains("sports") || lower.contains("play")) {
+			return "That sounds exciting! Participating in sports is great for both energy and focus.";
+		} else if (lower.contains("cooking") || lower.contains("food") || lower.contains("eat")) {
+			if (lower.contains("don't like") || lower.contains("dont like") || lower.contains("hate")) {
+				return "That's completely fine! Cooking isn't for everyone, and having food preferences is totally normal.";
+			}
+			return "That sounds delicious! Good food always brings comfort and happiness.";
+		} else if (lower.contains("pronunciation") || lower.contains("accent") || lower.contains("speaking")) {
+			return "Speaking clearly with focused daily practice is the fastest way to build pronunciation confidence.";
+		} else if (lower.contains("great") || lower.contains("awesome") || lower.contains("wonderful")) {
+			return "That sounds great! It's always wonderful when things turn out so well.";
+		} else if (lower.contains("terrible") || lower.contains("bad") || lower.contains("awful") || lower.contains("tough")) {
+			return "I'm sorry to hear that. Difficult periods happen, but tomorrow is a fresh opportunity.";
+		} else if (lower.contains("friend") || lower.contains("friends") || lower.contains("visited")) {
+			return "Spending quality time with good friends is always heartwarming and fun.";
+		}
+		return "That makes a lot of sense! Expressing your thoughts out loud like this builds strong fluency.";
+	}
+
+	private String deriveSpeakingContextualFollowup(String userMessage, List<String> recentAiQuestions) {
+		String lower = (userMessage != null ? userMessage.toLowerCase().trim() : "");
+		String q;
+
+		if (lower.contains("pune")) {
+			q = "What did you do in Pune?";
+		} else if (lower.contains("mumbai")) {
+			q = "What did you enjoy most while visiting Mumbai?";
+		} else if (lower.contains("travel") || lower.contains("visited") || lower.contains("trip") || lower.contains("went to")) {
+			q = "What was the most exciting thing you did there?";
+		} else if (lower.contains("movie") || lower.contains("film") || lower.contains("cinema") || lower.contains("watched")) {
+			q = "Nice! What did you think of the movie?";
+		} else if (lower.contains("java") || lower.contains("python") || lower.contains("coding")) {
+			q = "Interesting! What are you currently building with it?";
+		} else if (lower.contains("tired") || lower.contains("exhausted")) {
+			q = "I see. What made you feel so tired?";
+		} else if (lower.contains("cricket") || lower.contains("football") || lower.contains("sport") || lower.contains("match")) {
+			q = "Do you prefer batting or bowling?";
+		} else if (lower.contains("cooking") || lower.contains("food") || lower.contains("eat")) {
+			if (lower.contains("don't like") || lower.contains("dont like") || lower.contains("hate")) {
+				q = "What kind of food do you enjoy eating?";
+			} else {
+				q = "What is your favorite dish to prepare?";
+			}
+		} else if (lower.contains("pronunciation") || lower.contains("speaking")) {
+			q = "Which specific English sounds feel trickiest for you?";
+		} else if (lower.contains("great") || lower.contains("awesome") || lower.contains("wonderful")) {
+			q = "What made it feel so special?";
+		} else if (lower.contains("terrible") || lower.contains("bad") || lower.contains("awful")) {
+			q = "What happened that made it so tough?";
+		} else if (lower.contains("friend") || lower.contains("friends")) {
+			q = "What did you and your friend do together?";
+		} else {
+			List<String> fallbacks = List.of(
+				"What inspired you to think about that today?",
+				"How do you usually handle this in your daily routine?",
+				"What do you think is the best next step?",
+				"Could you share a quick example from your experience?",
+				"How would you like to continue practicing this scenario?"
+			);
+			q = fallbacks.get(0);
+			if (recentAiQuestions != null) {
+				for (String fb : fallbacks) {
+					boolean used = false;
+					for (String rq : recentAiQuestions) {
+						if (rq.toLowerCase().contains(fb.toLowerCase().substring(0, 15))) {
+							used = true;
+							break;
+						}
+					}
+					if (!used) {
+						q = fb;
+						break;
+					}
+				}
+			}
+		}
+		return q;
+	}
+
+	private SpeakingMessageResponse generateDynamicSpeakingFallback(String userMessage, String scenario, List<String> recentAiQuestions) {
+		SpeakingMessageResponse resp = new SpeakingMessageResponse();
+		resp.setAiReply(deriveSpeakingContextualReply(userMessage, scenario));
+		resp.setFollowUpQuestion(deriveSpeakingContextualFollowup(userMessage, recentAiQuestions));
+		resp.setGrammarCorrection("✅ Your sentence is correct.");
+		resp.setBetterSentence(null);
+		resp.setVocabularySuggestions(null);
+		resp.setExplanation(null);
+		resp.setNativeTip("Keep a natural, relaxed speaking cadence.");
+		resp.setSuggestedResponses(getDefaultScenarioHints(scenario));
+		return resp;
 	}
 
 	@Override

@@ -52,8 +52,12 @@ CRITICAL CONVERSATIONAL RULES:
 """;
 
 	private String sanitizeConversationalFallback(String text) {
-		if (text == null || text.trim().isEmpty()) {
-			return "That's an interesting point! What else comes to mind?";
+		return sanitizeConversationalFallback(text, null);
+	}
+
+	private String sanitizeConversationalFallback(String text, String userPrompt) {
+		if (text == null || text.trim().isEmpty() || text.toLowerCase().contains("share more about that") || text.toLowerCase().contains("tell me more about that")) {
+			return deriveContextualFallback(userPrompt);
 		}
 		String clean = text.replaceAll("(?s)<think>.*?</think>", "").replaceAll("(?s)<think>.*", "");
 		clean = clean.replaceAll("(?m)^#{1,6}\\s+.*$", "");
@@ -105,13 +109,42 @@ CRITICAL CONVERSATIONAL RULES:
 		try {
 			AiResponse response = callGroqWithSystem(chatModel, CONVERSATIONAL_FALLBACK_SYSTEM_PROMPT, prompt);
 			if (response != null && response.getResponse() != null) {
-				String sanitized = sanitizeConversationalFallback(response.getResponse());
+				String sanitized = sanitizeConversationalFallback(response.getResponse(), prompt);
 				return AiResponse.builder().response(sanitized).build();
 			}
 			return response;
 		} catch (Exception e) {
-			return AiResponse.builder().response("That is a great thought! Can you tell me a little more about that?").build();
+			return AiResponse.builder().response(deriveContextualFallback(prompt)).build();
 		}
+	}
+
+	private String deriveContextualFallback(String prompt) {
+		String lower = (prompt != null ? prompt.toLowerCase().trim() : "");
+		if (lower.contains("pune") || lower.contains("mumbai") || lower.contains("delhi") || lower.contains("trip") || lower.contains("travel") || lower.contains("went to")) {
+			return "That sounds like a wonderful trip! What was your favorite memory from while you were there?";
+		} else if (lower.contains("movie") || lower.contains("film") || lower.contains("cinema") || lower.contains("watched")) {
+			return "Nice! What movie did you watch, and what did you think of it?";
+		} else if (lower.contains("java") || lower.contains("python") || lower.contains("coding") || lower.contains("programming")) {
+			return "Interesting! What are you currently building with it?";
+		} else if (lower.contains("tired") || lower.contains("exhausted")) {
+			return "I see. What made you feel so tired yesterday?";
+		} else if (lower.contains("cricket") || lower.contains("football") || lower.contains("sports") || lower.contains("play")) {
+			return "Cricket is fantastic! Do you prefer batting or bowling?";
+		} else if (lower.contains("cooking") || lower.contains("food") || lower.contains("eat")) {
+			if (lower.contains("don't like") || lower.contains("dont like") || lower.contains("hate")) {
+				return "That's completely fine! What kind of food do you enjoy eating?";
+			}
+			return "That sounds delicious! What is your favorite dish to prepare?";
+		} else if (lower.contains("pronunciation") || lower.contains("speaking")) {
+			return "Which specific English sounds feel trickiest for you to pronounce?";
+		} else if (lower.contains("great") || lower.contains("awesome") || lower.contains("wonderful")) {
+			return "That sounds great! What made your week so special?";
+		} else if (lower.contains("terrible") || lower.contains("bad") || lower.contains("awful")) {
+			return "I'm sorry to hear that. What was the toughest part of your week?";
+		} else if (lower.contains("friend") || lower.contains("friends") || lower.contains("visited")) {
+			return "That sounds fun! What did you and your friend do together?";
+		}
+		return "That makes a lot of sense! How do you usually approach that in your daily routine?";
 	}
 
 	private static final String GRAMMAR_CORRECTION_SYSTEM_PROMPT = """

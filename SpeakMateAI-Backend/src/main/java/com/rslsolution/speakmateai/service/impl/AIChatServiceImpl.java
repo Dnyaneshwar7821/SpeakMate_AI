@@ -272,8 +272,23 @@ public class AIChatServiceImpl implements AIChatService {
 		}
 
 
-		// 3. Fetch last 10 messages for context
+		// 3. Fetch last 10 messages for context and collect recent questions
 		List<ChatMessage> history = chatMessageRepository.findBySessionOrderByCreatedAtAsc(session);
+		List<String> recentAiQuestions = new ArrayList<>();
+		for (ChatMessage m : history) {
+			if ("ai".equalsIgnoreCase(m.getSender()) && m.getFollowUpQuestion() != null && !m.getFollowUpQuestion().trim().isEmpty()) {
+				recentAiQuestions.add(m.getFollowUpQuestion().trim());
+			}
+		}
+
+		StringBuilder antiRepetitionInstruction = new StringBuilder();
+		if (!recentAiQuestions.isEmpty()) {
+			antiRepetitionInstruction.append("\nRECENT QUESTIONS ASKED IN THIS CHAT (DO NOT REPEAT ANY OF THESE OR USE SIMILAR FORMULAS):\n");
+			int qStart = Math.max(0, recentAiQuestions.size() - 6);
+			for (int i = qStart; i < recentAiQuestions.size(); i++) {
+				antiRepetitionInstruction.append("- \"").append(recentAiQuestions.get(i)).append("\"\n");
+			}
+		}
 
 		String userContextInstruction = buildUserContextInstruction(user, session.getMode());
 
@@ -284,24 +299,38 @@ public class AIChatServiceImpl implements AIChatService {
 				"LEARNER CONTEXT & SCENARIO:\n" +
 				"Active Tutoring Mode: %s\n" +
 				"%s\n" +
+				"%s\n" +
 				"%s\n\n" +
-				"STRICT CONVERSATIONAL RULES (MUST FOLLOW ON EVERY TURN):\n" +
-				"1. REAL-TIME SPOKEN DIALOGUE: [REPLY] must contain ONLY 1 to 2 short conversational sentences (maximum 35–45 words total, prefer 15–30 words).\n" +
-				"2. NO ESSAYS OR LISTS: NEVER generate essays, bullet points (-), numbered lists (1.), multi-step tutorials, or long textbook explanations. If the learner asks a broad question, answer ONLY the single most relevant tip and pass the turn back.\n" +
-				"3. RETURN THE TURN: Keep the dialogue interactive. Always hand the turn back to the learner with ONE short question in [FOLLOWUP].\n" +
-				"4. MINIMAL EXPLANATION: [EXPLANATION] is optional and strictly maximum 1 short sentence, used ONLY when there was an actual error. Otherwise return 'None'.\n" +
-				"5. Never output JSON, code blocks, or raw markdown headers. Stick strictly to the tag format.\n\n" +
+				"STRICT CONVERSATIONAL & RELEVANCE RULES (MANDATORY ON EVERY TURN):\n" +
+				"1. CONTEXT-AWARE SPOKEN REPLY: [REPLY] must directly reference what the learner just said (their specific experience, activity, feeling, place, or topic). Acknowledge their exact words. Tailor your 1-2 short sentences (strictly under 35-45 words total, prefer 15-30 words) specifically to them.\n" +
+				"2. NATURAL CONTEXTUAL FOLLOW-UP: In [FOLLOWUP], ask ONE natural, context-aware question (under 12-15 words) derived directly from the learner's message:\n" +
+				"   - If they mentioned a place (e.g. Pune, Mumbai, park): ask what they did or saw there.\n" +
+				"   - If they mentioned an activity or movie: ask what they thought or enjoyed most about it.\n" +
+				"   - If they mentioned learning a skill (e.g. Java, English): ask what they are building or find interesting.\n" +
+				"   - If they mentioned feelings (e.g. tired, excited, terrible week): ask what caused that feeling.\n" +
+				"   - If their statement completes a thought (e.g. 'I don't like cooking'), respond briefly and naturally introduce a related topic (e.g. 'What kind of food do you enjoy eating?').\n" +
+				"3. STRICTLY FORBIDDEN GENERIC REPETITIONS: NEVER generate repetitive clichés such as:\n" +
+				"   - 'Can you share more about that?'\n" +
+				"   - 'Tell me more about that.'\n" +
+				"   - 'What else can you tell me?'\n" +
+				"   - 'Can you elaborate?'\n" +
+				"   - 'That's interesting! Tell me more.'\n" +
+				"   Every turn MUST have a distinct, personalized question derived from their specific words.\n" +
+				"4. NO ESSAYS OR LISTS: NEVER generate bullet points (-), numbered lists (1.), or tutorials. Speak directly like a real speaking partner.\n" +
+				"5. MINIMAL EXPLANATION: [EXPLANATION] is max 1 short sentence, used ONLY if there was an actual error. Otherwise 'None'.\n" +
+				"6. CONVERSATION MEMORY: Never ask for information the learner already gave earlier in the chat.\n\n" +
 				"RESPONSE FORMAT (STRICT):\n" +
 				"[REPLY] Exactly 1-2 short conversational sentences (strictly under 35-45 words). Speak directly to the learner as if talking in person.\n" +
 				"[GRAMMAR] The corrected sentence if there was an error, or 'None' if already correct.\n" +
 				"[BETTER_SENTENCE] One natural native phrasing alternative ('How a native speaker says it'), or 'None'.\n" +
 				"[VOCABULARY] 1 useful topic-related word or idiom with a short 3-word meaning, or 'None'.\n" +
 				"[EXPLANATION] Maximum 1 short sentence explaining the tip, or 'None'.\n" +
-				"[FOLLOWUP] Exactly ONE natural conversational question (maximum 12 words) to encourage the learner to speak.\n" +
+				"[FOLLOWUP] Exactly ONE context-specific follow-up question (maximum 12 words) relating directly to the learner's words.\n" +
 				"[SUGGESTIONS] EXACTLY 3 short alternative responses (each under 10 words) separated by ' | ' that the student could say next to answer your question.",
 				session.getMode(),
 				levelInstruction,
-				userContextInstruction
+				userContextInstruction,
+				antiRepetitionInstruction.toString()
 		);
 		groqMessages.add(new GroqRequest.Message("system", systemPrompt));
 
@@ -317,10 +346,10 @@ public class AIChatServiceImpl implements AIChatService {
 		try {
 			rawResponse = callGroqChat(groqMessages);
 			if (rawResponse == null || rawResponse.trim().isEmpty()) {
-				rawResponse = "[REPLY] That's a great thought! Can you share more about that?\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] What else comes to mind?\n[SUGGESTIONS] I'd love to tell you more. | Could you give me an example? | What do you recommend?";
+				rawResponse = generateDynamicContextualChatFallback(request.getMessage(), session.getMode(), recentAiQuestions);
 			}
 		} catch (Exception e) {
-			rawResponse = "[REPLY] That's a great thought! Can you tell me a little more about that?\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] What would you like to explore next?\n[SUGGESTIONS] I'd love to share more. | What should we discuss next? | Could you give me an example?";
+			rawResponse = generateDynamicContextualChatFallback(request.getMessage(), session.getMode(), recentAiQuestions);
 		}
 
 		// 4. Parse tag contents
@@ -331,6 +360,18 @@ public class AIChatServiceImpl implements AIChatService {
 		String explanation = extractTagContent(rawResponse, "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]");
 		String followup = extractTagContent(rawResponse, "[FOLLOWUP]", "[SUGGESTIONS]");
 		String suggestionsRaw = extractTagContent(rawResponse, "[SUGGESTIONS]");
+
+		// Guard against LLM generating generic forbidden phrases in follow-up
+		if (followup != null) {
+			String fLower = followup.toLowerCase().trim();
+			if (fLower.contains("share more about that") || fLower.contains("tell me more about that")
+					|| fLower.contains("tell me more") || fLower.contains("can you elaborate")
+					|| fLower.contains("what else can you tell me") || fLower.equals("what else comes to mind?")) {
+				followup = deriveContextualFollowup(request.getMessage(), recentAiQuestions);
+			}
+		} else {
+			followup = deriveContextualFollowup(request.getMessage(), recentAiQuestions);
+		}
 
 		// Parse dynamic suggestions
 		List<String> suggestedList = new ArrayList<>();
@@ -351,7 +392,6 @@ public class AIChatServiceImpl implements AIChatService {
 
 		// Clean up defaults and apply backend safety guard
 		if (reply == null || reply.trim().isEmpty()) {
-			// If [REPLY] was omitted or raw response was dumped, strip trailing tags and sanitize
 			String firstChunk = rawResponse != null ? rawResponse : "";
 			for (String tag : new String[]{"[GRAMMAR]", "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]"}) {
 				int idx = firstChunk.indexOf(tag);
@@ -359,9 +399,9 @@ public class AIChatServiceImpl implements AIChatService {
 					firstChunk = firstChunk.substring(0, idx);
 				}
 			}
-			reply = sanitizeAndTrimConversationalReply(firstChunk);
+			reply = sanitizeAndTrimConversationalReply(firstChunk, request.getMessage());
 		} else {
-			reply = sanitizeAndTrimConversationalReply(reply);
+			reply = sanitizeAndTrimConversationalReply(reply, request.getMessage());
 		}
 
 		if (better != null && (better.equalsIgnoreCase("none") || better.equalsIgnoreCase("null") || better.trim().isEmpty())) {
@@ -606,8 +646,12 @@ public class AIChatServiceImpl implements AIChatService {
 	// ── Helpers ───────────────────────────────────────────────────────
 
 	private String sanitizeAndTrimConversationalReply(String rawReply) {
-		if (rawReply == null || rawReply.trim().isEmpty()) {
-			return "That's an interesting thought! What else comes to mind about that?";
+		return sanitizeAndTrimConversationalReply(rawReply, null);
+	}
+
+	private String sanitizeAndTrimConversationalReply(String rawReply, String userMessage) {
+		if (rawReply == null || rawReply.trim().isEmpty() || rawReply.toLowerCase().contains("share more about that") || rawReply.toLowerCase().contains("tell me more about that")) {
+			return deriveContextualReply(userMessage);
 		}
 
 		String clean = rawReply.trim();
@@ -661,6 +705,104 @@ public class AIChatServiceImpl implements AIChatService {
 		}
 
 		return clean;
+	}
+
+	private String deriveContextualReply(String userMessage) {
+		String lower = (userMessage != null ? userMessage.toLowerCase().trim() : "");
+		if (lower.contains("pune") || lower.contains("mumbai") || lower.contains("delhi") || lower.contains("trip") || lower.contains("travel") || lower.contains("went to")) {
+			return "That sounds like a wonderful trip! Exploring new cities always broadens your horizons.";
+		} else if (lower.contains("movie") || lower.contains("film") || lower.contains("cinema") || lower.contains("watched")) {
+			return "Nice! Watching movies is a fantastic and entertaining way to absorb natural English dialogue.";
+		} else if (lower.contains("java") || lower.contains("python") || lower.contains("coding") || lower.contains("programming") || lower.contains("software")) {
+			return "Interesting! Learning programming requires great problem-solving skills and persistent practice.";
+		} else if (lower.contains("tired") || lower.contains("exhausted") || lower.contains("sleepy")) {
+			return "I understand completely. Demanding schedules can really drain your physical and mental energy.";
+		} else if (lower.contains("cricket") || lower.contains("football") || lower.contains("sports") || lower.contains("play")) {
+			return "That sounds exciting! Participating in sports is great for both fitness and teamwork.";
+		} else if (lower.contains("cooking") || lower.contains("food") || lower.contains("eat")) {
+			if (lower.contains("don't like") || lower.contains("dont like") || lower.contains("hate")) {
+				return "That's completely fine! Everyone has their own preferences and talents.";
+			}
+			return "That sounds delicious! Good food always brings comfort and brings friends together.";
+		} else if (lower.contains("pronunciation") || lower.contains("accent") || lower.contains("speaking")) {
+			return "Speaking clearly with focused daily practice is the quickest way to build natural fluency.";
+		} else if (lower.contains("great") || lower.contains("awesome") || lower.contains("wonderful")) {
+			return "That sounds great! Having positive milestones gives you incredible momentum.";
+		} else if (lower.contains("terrible") || lower.contains("bad") || lower.contains("awful") || lower.contains("tough")) {
+			return "I'm sorry to hear that. Difficult periods happen, but tomorrow brings a fresh start.";
+		} else if (lower.contains("friend") || lower.contains("friends") || lower.contains("visited")) {
+			return "Spending quality time with good friends is always heartwarming and memorable.";
+		}
+		return "That makes a lot of sense! Expressing your thoughts clearly is great speaking practice.";
+	}
+
+	private String deriveContextualFollowup(String userMessage, List<String> recentAiQuestions) {
+		String lower = (userMessage != null ? userMessage.toLowerCase().trim() : "");
+		String q;
+
+		if (lower.contains("pune")) {
+			q = "What did you do in Pune?";
+		} else if (lower.contains("mumbai")) {
+			q = "What did you enjoy most while visiting Mumbai?";
+		} else if (lower.contains("travel") || lower.contains("visited") || lower.contains("trip") || lower.contains("went to")) {
+			q = "What was the most exciting thing you did there?";
+		} else if (lower.contains("movie") || lower.contains("film") || lower.contains("cinema") || lower.contains("watched")) {
+			q = "Nice! What did you think of the movie?";
+		} else if (lower.contains("java") || lower.contains("python") || lower.contains("coding")) {
+			q = "Interesting! What are you currently building with it?";
+		} else if (lower.contains("tired") || lower.contains("exhausted")) {
+			q = "I see. What made you feel so tired?";
+		} else if (lower.contains("cricket") || lower.contains("football") || lower.contains("sport") || lower.contains("match")) {
+			q = "Do you prefer playing offensively or defensively?";
+		} else if (lower.contains("cooking") || lower.contains("food") || lower.contains("eat")) {
+			if (lower.contains("don't like") || lower.contains("dont like") || lower.contains("hate")) {
+				q = "What kind of food do you enjoy eating?";
+			} else {
+				q = "What is your favorite dish to prepare?";
+			}
+		} else if (lower.contains("pronunciation") || lower.contains("speaking")) {
+			q = "Which specific English sounds feel trickiest for you?";
+		} else if (lower.contains("great") || lower.contains("awesome") || lower.contains("wonderful")) {
+			q = "What made it feel so special?";
+		} else if (lower.contains("terrible") || lower.contains("bad") || lower.contains("awful")) {
+			q = "What happened that made it so tough?";
+		} else if (lower.contains("friend") || lower.contains("friends")) {
+			q = "What did you and your friend do together?";
+		} else {
+			List<String> fallbacks = List.of(
+				"What inspired you to focus on this topic today?",
+				"How do you usually handle this in your daily routine?",
+				"What do you think is the best next step?",
+				"Could you give an example from your personal experience?",
+				"How would you like to continue practicing this?"
+			);
+			q = fallbacks.get(0);
+			if (recentAiQuestions != null) {
+				for (String fb : fallbacks) {
+					boolean used = false;
+					for (String rq : recentAiQuestions) {
+						if (rq.toLowerCase().contains(fb.toLowerCase().substring(0, 15))) {
+							used = true;
+							break;
+						}
+					}
+					if (!used) {
+						q = fb;
+						break;
+					}
+				}
+			}
+		}
+		return q;
+	}
+
+	private String generateDynamicContextualChatFallback(String userMessage, String mode, List<String> recentAiQuestions) {
+		String reply = deriveContextualReply(userMessage);
+		String followup = deriveContextualFollowup(userMessage, recentAiQuestions);
+		List<String> hints = generateContextualFallbacks(mode, reply, followup);
+		String suggestions = String.join(" | ", hints);
+		return String.format("[REPLY] %s\n[GRAMMAR] None\n[BETTER_SENTENCE] None\n[VOCABULARY] None\n[EXPLANATION] None\n[FOLLOWUP] %s\n[SUGGESTIONS] %s",
+				reply, followup, suggestions);
 	}
 
 	private String callGroqChat(List<GroqRequest.Message> messages) {

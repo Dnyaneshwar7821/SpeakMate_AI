@@ -46,7 +46,7 @@ export function cleanDialogueText(rawText) {
   
   // If clean string is too short or is a leftover label, provide a natural conversational fallback
   if (clean.length < 5 || clean.toLowerCase() === "text" || clean.toLowerCase() === "overall impression") {
-    clean = "That is a great thought! Can you tell me more about that?";
+    clean = "That makes a lot of sense! What would you like to focus on next?";
   }
 
   return clean;
@@ -90,8 +90,8 @@ export function generateDynamicCoachingResponse(userText, scenario = "Daily Conv
   const count = (history || []).length;
   const s = (scenario || "").toLowerCase();
 
-  let aiReply = "That is a great thought! What other details would you like to share about this topic?";
-  let followUpQuestion = "How do you feel about practicing this in real-life conversations?";
+  let aiReply = "That sounds interesting! Expressing your thoughts clearly is great practice.";
+  let followUpQuestion = "What part of that experience stood out most to you?";
 
   if (s.includes("interview") || s.includes("job") || s.includes("career")) {
     const replies = [
