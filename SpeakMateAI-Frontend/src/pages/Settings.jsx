@@ -77,9 +77,6 @@ export function Settings() {
   const [soundEffects, setSoundEffects] = useState(() => localStorage.getItem("speakmate_sound_effects") !== "false");
   const [autoPlayAudio, setAutoPlayAudio] = useState(() => localStorage.getItem("speakmate_autoplay_audio") === "true");
 
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-
   const toggleVisualTheme = () => {
     const nextMode = isDark ? "light" : "dark";
     setTheme(nextMode);
@@ -142,6 +139,17 @@ export function Settings() {
     });
   };
 
+  const handleSelectAccent = (newAccent) => {
+    setAccent(newAccent);
+    localStorage.setItem("speakmate_voice_accent", newAccent);
+    onboardingService.update({ preferredAccent: newAccent }).catch(() => {});
+    if (updateUser) {
+      updateUser({ preferredAccent: newAccent });
+    }
+    window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { preferredAccent: newAccent } }));
+    toast.success("Target accent updated ✓");
+  };
+
   const handleSelectVoiceCode = (voiceCode, previewText) => {
     setSelectedVoice(voiceCode);
     const isMale = (voiceCode || "").toLowerCase().includes("male") && !(voiceCode || "").toLowerCase().includes("female");
@@ -156,81 +164,83 @@ export function Settings() {
     localStorage.setItem("speakmate_voice_code", voiceCode);
     EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
 
+    settingsService.update({ aiVoice: voiceCode }).catch(() => {});
+    onboardingService.update({ preferredVoice: voiceCode }).catch(() => {});
+    if (updateUser) {
+      updateUser({ preferredVoice: voiceCode });
+    }
+    window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { preferredVoice: voiceCode, aiVoice: voiceCode } }));
+    toast.success("AI tutor voice applied ✓");
+
     playVoicePreview(voiceCode, previewText);
   };
 
-  const handleSaveSettings = async (e) => {
-    if (e) e.preventDefault();
-    setSaving(true);
+  const handleSelectSpeed = (spd) => {
+    setSpeechSpeed(spd);
+    localStorage.setItem("speakmate_voice_speed", String(spd));
+    toast.success(`Tutor speech speed set to ${spd}x ✓`);
+  };
 
-    try {
-      const isMale = (selectedVoice || "").toLowerCase().includes("male") && !(selectedVoice || "").toLowerCase().includes("female");
-      const gender = isMale ? "male" : "female";
-      const model = isMale ? "chitose" : "haru";
+  const handleSelectDailyGoal = (goal) => {
+    setDailyGoal(goal);
+    const mins = parseInt(goal, 10) || 15;
+    localStorage.setItem("speakmate_daily_goal", String(mins));
+    onboardingService.update({ dailyGoalMinutes: mins }).catch(() => {});
+    window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { dailyGoalMinutes: mins } }));
+    window.dispatchEvent(new Event("speakmate_progress_updated"));
+    toast.success(`Daily goal updated to ${goal} ✓`);
+  };
 
-      localStorage.setItem("speakmate_ai_voice", selectedVoice);
-      localStorage.setItem("speakmate_voice_code", selectedVoice);
-      localStorage.setItem("speakmate_selected_voice", selectedVoice);
-      localStorage.setItem("speakmate_voice_gender", gender);
-      localStorage.setItem("speakmate_avatar_model", model);
-      setCurrentModelKey(model);
-      EventBus.emit(AVATAR_EVENTS.GENDER_CHANGED, { gender, model });
+  const handleSelectLanguage = (langCode) => {
+    setSelectedLang(langCode);
+    setShowLangModal(false);
+    localStorage.setItem("speakmate_app_language", langCode);
+    settingsService.update({ language: langCode }).catch(() => {});
+    window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { language: langCode } }));
+    toast.success(`App language set to ${langCode} ✓`);
+  };
 
-      localStorage.setItem("speakmate_voice_accent", accent);
-      localStorage.setItem("speakmate_age_group", selectedAgeGroup);
-      localStorage.setItem("speakmate_daily_goal", dailyGoal);
-      localStorage.setItem("speakmate_app_language", selectedLang);
-      localStorage.setItem("speakmate_voice_speed", String(speechSpeed));
-      localStorage.setItem("speakmate_sound_effects", String(soundEffects));
-      localStorage.setItem("speakmate_autoplay_audio", String(autoPlayAudio));
-
-      // 2. Sync preferences to backend services (Settings, Onboarding, and User Profile)
-      await Promise.allSettled([
-        settingsService.update({
-          darkMode: isDark,
-          aiVoice: selectedVoice,
-          language: selectedLang,
-          soundEffects,
-          autoPlayAudio,
-          dailyReminder: reminders,
-          notificationsEnabled: reminders,
-        }),
-        onboardingService.update({
-          ageGroup: selectedAgeGroup,
-          preferredVoice: selectedVoice,
-          preferredAccent: accent,
-          dailyGoalMinutes: parseInt(dailyGoal, 10) || 15,
-        }),
-        profileService.update({
-          ageGroup: selectedAgeGroup,
-          firstName: user?.firstName,
-          lastName: user?.lastName,
-          email: user?.email,
-        }),
-      ]);
-
-      if (updateUser) {
-        updateUser({
-          preferredVoice: selectedVoice,
-          preferredAccent: accent,
-          ageGroup: selectedAgeGroup,
-        });
-      }
-
-      CurriculumCache.clear();
-      window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: selectedAgeGroup } }));
-      window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: selectedAgeGroup } }));
-      window.dispatchEvent(new Event("speakmate_progress_updated"));
-
-      setSaved(true);
-      toast.success("Preferences Saved ✓");
-      setTimeout(() => setSaved(false), 2500);
-    } catch (err) {
-      console.error("Save settings error:", err);
-      toast.error("Failed to save preferences. Please try again.");
-    } finally {
-      setSaving(false);
+  const handleSelectAgeGroup = (val) => {
+    setSelectedAgeGroup(val);
+    localStorage.setItem("speakmate_age_group", val);
+    onboardingService.update({ ageGroup: val }).catch(() => {});
+    profileService.update({
+      ageGroup: val,
+      firstName: user?.firstName,
+      lastName: user?.lastName,
+      email: user?.email,
+    }).catch(() => {});
+    if (updateUser) {
+      updateUser({ ageGroup: val });
     }
+    CurriculumCache.clear();
+    window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
+    window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: val } }));
+    window.dispatchEvent(new Event("speakmate_progress_updated"));
+    toast.success(`Age profile updated to ${val} ✓`);
+  };
+
+  const handleToggleReminders = () => {
+    const next = !reminders;
+    setReminders(next);
+    settingsService.update({ dailyReminder: next, notificationsEnabled: next }).catch(() => {});
+    toast.success(next ? "Practice reminders enabled ✓" : "Practice reminders disabled");
+  };
+
+  const handleToggleSoundEffects = () => {
+    const next = !soundEffects;
+    setSoundEffects(next);
+    localStorage.setItem("speakmate_sound_effects", String(next));
+    settingsService.update({ soundEffects: next }).catch(() => {});
+    toast.success(next ? "Sound effects enabled ✓" : "Sound effects muted");
+  };
+
+  const handleToggleAutoPlay = () => {
+    const next = !autoPlayAudio;
+    setAutoPlayAudio(next);
+    localStorage.setItem("speakmate_autoplay_audio", String(next));
+    settingsService.update({ autoPlayAudio: next }).catch(() => {});
+    toast.success(next ? "Auto-play spoken audio enabled ✓" : "Auto-play audio disabled");
   };
 
   const handleClearCache = () => {
@@ -254,13 +264,11 @@ export function Settings() {
             Customize target accents, AI tutor voice pitch profiles, themes, pace, and notifications.
           </p>
         </div>
-      </div>
-
-      {saved && (
-        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs sm:text-sm font-black text-center animate-in fade-in duration-200">
-          ✓ Preferences Saved and synced across all AI modules!
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-500 text-xs font-black shrink-0 self-start sm:self-auto shadow-sm">
+          <span>⚡</span>
+          <span>Changes auto-save instantly</span>
         </div>
-      )}
+      </div>
 
       {/* SECTION 1: THEME & DISPLAY PREFERENCES (REAL-TIME PREVIEW) */}
       <div className="glass-card p-6 sm:p-8 rounded-3xl border border-[var(--border-default)] shadow-xl space-y-4">
@@ -298,7 +306,7 @@ export function Settings() {
 
           <select
             value={accent}
-            onChange={(e) => setAccent(e.target.value)}
+            onChange={(e) => handleSelectAccent(e.target.value)}
             className="px-4 py-3 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF]"
           >
             {ACCENT_LIST.map((acc) => (
@@ -360,7 +368,7 @@ export function Settings() {
             {[0.75, 1.0, 1.25, 1.5].map((spd) => (
               <button
                 key={spd}
-                onClick={() => setSpeechSpeed(spd)}
+                onClick={() => handleSelectSpeed(spd)}
                 className={`px-3 py-1.5 rounded-xl text-xs font-black border transition-all ${
                   speechSpeed === spd
                     ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-sm"
@@ -386,7 +394,7 @@ export function Settings() {
             {["10 min", "15 min", "30 min"].map((goal) => (
               <button
                 key={goal}
-                onClick={() => setDailyGoal(goal)}
+                onClick={() => handleSelectDailyGoal(goal)}
                 className={`py-3 rounded-2xl text-xs font-black transition-all border active:scale-95 ${
                   dailyGoal === goal
                     ? "bg-[#6C63FF] text-white border-[#6C63FF] shadow-md"
@@ -429,13 +437,7 @@ export function Settings() {
 
           <select
             value={selectedAgeGroup}
-            onChange={(e) => {
-              const val = e.target.value;
-              setSelectedAgeGroup(val);
-              localStorage.setItem("speakmate_age_group", val);
-              window.dispatchEvent(new CustomEvent("speakmate_age_group_changed", { detail: { ageGroup: val } }));
-              window.dispatchEvent(new CustomEvent("speakmate_settings_updated", { detail: { ageGroup: val } }));
-            }}
+            onChange={(e) => handleSelectAgeGroup(e.target.value)}
             className="px-5 py-3.5 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-elevated)] text-xs font-black text-[var(--text-primary)] focus:outline-none focus:border-[#6C63FF] shadow-sm cursor-pointer min-w-[240px]"
           >
             {AGE_OPTIONS.map((opt) => (
@@ -458,7 +460,7 @@ export function Settings() {
               <p className="text-[11px] text-[var(--text-secondary)] font-medium">Receive notifications to maintain your daily streak</p>
             </div>
             <button
-              onClick={() => setReminders(!reminders)}
+              onClick={handleToggleReminders}
               className={`w-12 h-6 rounded-full transition-all relative ${reminders ? "bg-[#6C63FF]" : "bg-gray-400"}`}
             >
               <span className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all ${reminders ? "right-0.5" : "left-0.5"}`} />
@@ -471,7 +473,7 @@ export function Settings() {
               <p className="text-[11px] text-[var(--text-secondary)] font-medium">Play celebratory chimes upon quiz completion and XP awards</p>
             </div>
             <button
-              onClick={() => setSoundEffects(!soundEffects)}
+              onClick={handleToggleSoundEffects}
               className={`w-12 h-6 rounded-full transition-all relative ${soundEffects ? "bg-[#6C63FF]" : "bg-gray-400"}`}
             >
               <span className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all ${soundEffects ? "right-0.5" : "left-0.5"}`} />
@@ -484,7 +486,7 @@ export function Settings() {
               <p className="text-[11px] text-[var(--text-secondary)] font-medium">Automatically speak tutor responses in AI chat sessions</p>
             </div>
             <button
-              onClick={() => setAutoPlayAudio(!autoPlayAudio)}
+              onClick={handleToggleAutoPlay}
               className={`w-12 h-6 rounded-full transition-all relative ${autoPlayAudio ? "bg-[#6C63FF]" : "bg-gray-400"}`}
             >
               <span className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all ${autoPlayAudio ? "right-0.5" : "left-0.5"}`} />
@@ -508,17 +510,6 @@ export function Settings() {
             Clear Cache
           </button>
         </div>
-      </div>
-
-      {/* SAVE BUTTON FOOTER */}
-      <div className="glass-card p-6 rounded-3xl border border-[var(--border-default)] shadow-xl flex items-center justify-end gap-4">
-        <button
-          onClick={handleSaveSettings}
-          disabled={saving}
-          className="py-3.5 px-8 rounded-2xl bg-gradient-to-r from-[#6C63FF] to-[#8B5CF6] hover:opacity-95 disabled:opacity-50 text-white text-xs sm:text-sm font-black shadow-xl shadow-[#6C63FF]/25 transition-all active:scale-95"
-        >
-          {saving ? "Saving Settings..." : "💾 Save All Settings"}
-        </button>
       </div>
 
       {/* ── REGIONAL VOICE OPTIONS POPUP MODAL (PORTALED TO BODY TO PREVENT NAVBAR OVERLAP) ── */}
@@ -686,10 +677,7 @@ export function Settings() {
               {filteredLanguages.map((lang) => (
                 <button
                   key={lang.code}
-                  onClick={() => {
-                    setSelectedLang(lang.code);
-                    setShowLangModal(false);
-                  }}
+                  onClick={() => handleSelectLanguage(lang.code)}
                   className={`p-3 rounded-xl border text-left flex items-center gap-2 transition-all ${
                     selectedLang === lang.code
                       ? "bg-[#6C63FF] text-white border-[#6C63FF]"
