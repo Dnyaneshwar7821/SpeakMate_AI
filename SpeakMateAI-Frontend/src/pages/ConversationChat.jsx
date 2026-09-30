@@ -99,7 +99,10 @@ export function ConversationChat() {
 
   const recognitionRef = useRef(null);
   const isListeningRef = useRef(false);
+  const isAiSpeakingRef = useRef(false);
+  const isSendingRef = useRef(false);
   const silenceTimerRef = useRef(null);
+  const initialSilenceTimerRef = useRef(null);
   const stoppingByUserRef = useRef(false);
   const accumulatedTranscriptRef = useRef("");
   const interimTranscriptRef = useRef("");
@@ -117,10 +120,12 @@ export function ConversationChat() {
     });
 
     const unsubStart = EventBus.on(AVATAR_EVENTS.SPEECH_STARTED, () => {
+      isAiSpeakingRef.current = true;
       setIsAiSpeaking(true);
     });
 
     const unsubFinish = EventBus.on(AVATAR_EVENTS.SPEECH_FINISHED, () => {
+      isAiSpeakingRef.current = false;
       setIsAiSpeaking(false);
       setViseme("REST");
     });
@@ -134,44 +139,69 @@ export function ConversationChat() {
 
   const getSpeakableText = (msg) => {
     if (!msg) return "";
-    let text = cleanDialogueText(msg.message || msg.aiReply || "");
-    const isCorrect =
-      msg.grammarCorrection &&
-      (msg.grammarCorrection.includes("✅") ||
-        msg.grammarCorrection.toLowerCase().includes("correct"));
-
-    if (msg.grammarCorrection && !isCorrect && !msg.grammarCorrection.includes("|")) {
-      const cleanCorrection = cleanDialogueText(msg.grammarCorrection);
-      if (cleanCorrection) text += `. A better way to say that is: "${cleanCorrection}".`;
-      if (msg.explanation && !msg.explanation.includes("|")) {
-        const cleanExpl = cleanDialogueText(msg.explanation);
-        if (cleanExpl) text += ` ${cleanExpl}`;
-      }
-    } else if (msg.betterSentence && !msg.betterSentence.includes("|")) {
-      const cleanBetter = cleanDialogueText(msg.betterSentence);
-      if (cleanBetter) text += `. You could also express it as: "${cleanBetter}".`;
-    }
-
-    if (msg.followUpQuestion && !msg.followUpQuestion.includes("|")) {
-      const cleanFollow = cleanDialogueText(msg.followUpQuestion);
-      if (cleanFollow && !text.includes(cleanFollow)) {
-        text += ` ${cleanFollow}`;
+    let raw = msg.message || msg.aiReply || "";
+    // If raw contains [REPLY] or other tags, extract only the [REPLY] section
+    if (raw.includes("[REPLY]")) {
+      const match = raw.match(/\[REPLY\]\s*([\s\S]*?)(?=\[(?:EXPLANATION|FOLLOWUP|BETTER|GRAMMAR|VOCABULARY)\]|$)/i);
+      if (match && match[1]?.trim()) {
+        raw = match[1].trim();
       }
     }
-    return cleanDialogueText(text);
+    let text = cleanDialogueText(raw);
+
+    // Remove markdown list/bullet artifacts
+    text = text.replace(/^[\s*\-•\d.]+/gm, "").trim();
+
+    // Ensure strictly 1–2 conversational sentences (maximum ~35–45 words)
+    const sentences = text.match(/[^.!?]+[.!?]+|\S+/g) || [text];
+    if (sentences.length > 2) {
+      text = sentences.slice(0, 2).join(" ").trim();
+    }
+    const words = text.split(/\s+/);
+    if (words.length > 45) {
+      text = words.slice(0, 40).join(" ") + "...";
+    }
+    return text.trim();
   };
 
   const handleSpeakText = (text) => {
     if (isMuted || !text) return;
+
+    // Stop mic recognition immediately when AI begins speaking to prevent feedback loops
+    if (isListeningRef.current) {
+      stoppingByUserRef.current = true;
+      isListeningRef.current = false;
+      setIsListening(false);
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
+      if (initialSilenceTimerRef.current) {
+        clearTimeout(initialSilenceTimerRef.current);
+        initialSilenceTimerRef.current = null;
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {}
+      }
+    }
+
+    isAiSpeakingRef.current = true;
+    setIsAiSpeaking(true);
+
     speakGlobalText(text, speechSpeed, {
       onstart: () => {
+        isAiSpeakingRef.current = true;
         setIsAiSpeaking(true);
       },
       onend: () => {
+        isAiSpeakingRef.current = false;
         setIsAiSpeaking(false);
         setViseme("REST");
       },
       onerror: () => {
+        isAiSpeakingRef.current = false;
         setIsAiSpeaking(false);
         setViseme("REST");
       },
@@ -201,7 +231,7 @@ export function ConversationChat() {
           setMessages([initMsg]);
           if (!hasSpokenInitialRef.current) {
             hasSpokenInitialRef.current = true;
-            setTimeout(() => handleSpeakText(initMsg.message), 500);
+            setTimeout(() => handleSpeakText(getSpeakableText(initMsg)), 500);
           }
         }
       })
@@ -214,7 +244,7 @@ export function ConversationChat() {
         setMessages([initMsg]);
         if (!hasSpokenInitialRef.current) {
           hasSpokenInitialRef.current = true;
-          setTimeout(() => handleSpeakText(initMsg.message), 500);
+          setTimeout(() => handleSpeakText(getSpeakableText(initMsg)), 500);
         }
       });
   }, [sessionId, mode]);
@@ -234,6 +264,17 @@ export function ConversationChat() {
       recognition.lang = "en-US";
 
       recognition.onresult = (e) => {
+        // Prevent feedback loops: discard any audio recognized while AI is speaking
+        if (isAiSpeakingRef.current) {
+          return;
+        }
+
+        // Cancel initial silence timer once voice activity is detected
+        if (initialSilenceTimerRef.current) {
+          clearTimeout(initialSilenceTimerRef.current);
+          initialSilenceTimerRef.current = null;
+        }
+
         let interim = "";
         for (let i = e.resultIndex; i < e.results.length; i++) {
           const textChunk = e.results[i][0].transcript;
@@ -255,13 +296,13 @@ export function ConversationChat() {
           silenceTimerRef.current = null;
         }
 
-        // Arm auto-send timer when speech has been detected (2.8s pause triggers auto-stop & send)
+        // Arm auto-send timer: 2.0s pause triggers auto-stop & automatic send
         if (fullTranscript.length > 0) {
           silenceTimerRef.current = setTimeout(() => {
             if (handleStopListeningAndSendRef.current) {
               handleStopListeningAndSendRef.current();
             }
-          }, 2800);
+          }, 2000);
         }
       };
 
@@ -277,13 +318,16 @@ export function ConversationChat() {
             clearTimeout(silenceTimerRef.current);
             silenceTimerRef.current = null;
           }
+          if (initialSilenceTimerRef.current) {
+            clearTimeout(initialSilenceTimerRef.current);
+            initialSilenceTimerRef.current = null;
+          }
         }
       };
 
       recognition.onend = () => {
-        // If the browser session ended automatically but user is still in listening mode,
-        // restart it seamlessly so user can talk as long as they want without premature cutoff!
-        if (isListeningRef.current && !stoppingByUserRef.current) {
+        // Restart seamlessly if listening is active and not stopped by user or AI speech
+        if (isListeningRef.current && !stoppingByUserRef.current && !isAiSpeakingRef.current) {
           try {
             recognition.start();
           } catch (e) {}
@@ -300,6 +344,10 @@ export function ConversationChat() {
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
+      }
+      if (initialSilenceTimerRef.current) {
+        clearTimeout(initialSilenceTimerRef.current);
+        initialSilenceTimerRef.current = null;
       }
       if (recognitionRef.current) {
         try {
@@ -318,8 +366,8 @@ export function ConversationChat() {
 
     // Replay latest AI message with new speed
     const lastAiMsg = [...messages].reverse().find((m) => m.sender === "ai" || m.role === "assistant");
-    if (lastAiMsg && lastAiMsg.message) {
-      speakGlobalText(lastAiMsg.message, nextSpeed);
+    if (lastAiMsg) {
+      speakGlobalText(getSpeakableText(lastAiMsg), nextSpeed);
     }
   };
 
@@ -343,6 +391,10 @@ export function ConversationChat() {
       clearTimeout(silenceTimerRef.current);
       silenceTimerRef.current = null;
     }
+    if (initialSilenceTimerRef.current) {
+      clearTimeout(initialSilenceTimerRef.current);
+      initialSilenceTimerRef.current = null;
+    }
 
     stoppingByUserRef.current = true;
     isListeningRef.current = false;
@@ -362,6 +414,7 @@ export function ConversationChat() {
     interimTranscriptRef.current = "";
     setCurrentTranscript("");
 
+    // Safe idle return: do not send empty speech
     if (!finalSpoken) return;
 
     if (handleSendMessageRef.current) {
@@ -374,15 +427,23 @@ export function ConversationChat() {
     if (isListeningRef.current) {
       handleStopListeningAndSend();
     } else {
+      // Cancel any ongoing AI speech immediately
       if ("speechSynthesis" in window) {
         window.speechSynthesis.cancel();
-        setIsAiSpeaking(false);
-        setViseme("REST");
       }
+      isAiSpeakingRef.current = false;
+      setIsAiSpeaking(false);
+      setViseme("REST");
+
       if (silenceTimerRef.current) {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
       }
+      if (initialSilenceTimerRef.current) {
+        clearTimeout(initialSilenceTimerRef.current);
+        initialSilenceTimerRef.current = null;
+      }
+
       stoppingByUserRef.current = false;
       accumulatedTranscriptRef.current = "";
       interimTranscriptRef.current = "";
@@ -399,6 +460,20 @@ export function ConversationChat() {
           isListeningRef.current = true;
           setIsListening(true);
         }
+
+        // Initial silence timeout (7.5s): if user turns on mic but says nothing, return to IDLE safely
+        initialSilenceTimerRef.current = setTimeout(() => {
+          if (isListeningRef.current && !accumulatedTranscriptRef.current && !interimTranscriptRef.current) {
+            stoppingByUserRef.current = true;
+            isListeningRef.current = false;
+            setIsListening(false);
+            if (recognitionRef.current) {
+              try {
+                recognitionRef.current.stop();
+              } catch (e) {}
+            }
+          }
+        }, 7500);
       } else {
         isListeningRef.current = true;
         setIsListening(true);
@@ -415,12 +490,21 @@ export function ConversationChat() {
   };
 
   const handleSendMessage = async (textToSend = inputText) => {
-    const cleanText = textToSend.trim();
-    if (!cleanText) return;
+    const cleanText = (typeof textToSend === "string" ? textToSend : inputText).trim();
+    if (!cleanText || isSendingRef.current || evaluating) return;
 
+    isSendingRef.current = true;
     setInputText("");
     setHints([]);
     setEvaluating(true);
+
+    // Cancel speech synthesis if user initiates a new turn
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    isAiSpeakingRef.current = false;
+    setIsAiSpeaking(false);
+    setViseme("REST");
 
     const userMsg = {
       id: Date.now(),
@@ -491,9 +575,12 @@ export function ConversationChat() {
       recordChatMessage(1);
       toast.success("+5 XP Earned! 💬");
 
-      const fullSpeakableText = getSpeakableText(response);
-      handleSpeakText(fullSpeakableText);
+      const speakableText = getSpeakableText(response);
+      handleSpeakText(speakableText);
     } catch (e) {
+      setEvaluating(false);
+    } finally {
+      isSendingRef.current = false;
       setEvaluating(false);
     }
   };
@@ -785,7 +872,7 @@ export function ConversationChat() {
           isDark ? "border-white/10 bg-slate-900/90" : "border-slate-200 bg-white"
         }`}>
           {isListening && (
-            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30 text-xs font-bold text-red-500">
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-red-500/15 border border-red-500/30 text-xs font-bold text-red-500 animate-fadeIn">
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-0.5 h-4">
                   <span className="w-1 bg-red-500 rounded-full h-3 animate-pulse" />
@@ -794,14 +881,39 @@ export function ConversationChat() {
                   <span className="w-1 bg-red-500 rounded-full h-5 animate-pulse" style={{ animationDelay: "75ms" }} />
                   <span className="w-1 bg-red-500 rounded-full h-2.5 animate-pulse" style={{ animationDelay: "225ms" }} />
                 </div>
-                <span>Speak now — auto-sends when you finish speaking...</span>
+                <span>Listening... speak naturally, auto-sends when you pause</span>
               </div>
               <button
                 type="button"
                 onClick={handleToggleRecording}
-                className="px-2.5 py-0.5 rounded bg-red-500 text-white text-[10px] font-extrabold hover:bg-red-600 transition-all"
+                className="px-2.5 py-0.5 rounded bg-red-500 text-white text-[10px] font-extrabold hover:bg-red-600 transition-all shadow-sm active:scale-95"
               >
                 Send Now
+              </button>
+            </div>
+          )}
+
+          {evaluating && (
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-purple-500/15 border border-purple-500/30 text-xs font-bold text-purple-400 animate-fadeIn">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-purple-500 animate-ping" />
+                <span>⏳ Processing speech & evaluating conversational reply...</span>
+              </div>
+            </div>
+          )}
+
+          {isAiSpeaking && !evaluating && !isListening && (
+            <div className="flex items-center justify-between px-3 py-1.5 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-xs font-bold text-indigo-400 animate-fadeIn">
+              <div className="flex items-center gap-2">
+                <span className="text-sm animate-pulse">🔊</span>
+                <span>AI Tutor is speaking...</span>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleRecording}
+                className="px-2.5 py-0.5 rounded bg-indigo-500/30 text-indigo-300 hover:bg-indigo-500 hover:text-white text-[10px] font-extrabold transition-all"
+              >
+                Interrupt & Speak 🎙️
               </button>
             </div>
           )}
@@ -818,14 +930,26 @@ export function ConversationChat() {
               onClick={handleToggleRecording}
               className={`p-3 rounded-2xl font-bold transition-all shadow-sm ${
                 isListening
-                  ? "bg-red-500 text-white shadow-lg shadow-red-500/30"
+                  ? "bg-red-500 text-white shadow-lg shadow-red-500/30 animate-pulse"
+                  : isAiSpeaking
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                  : evaluating
+                  ? "bg-purple-600/30 text-purple-300 border border-purple-500/30 cursor-wait"
                   : isDark
-                  ? "bg-slate-800 border border-white/10 text-slate-300 hover:text-white"
-                  : "bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-900"
+                  ? "bg-slate-800 border border-white/10 text-slate-300 hover:text-white hover:bg-[#6c63ff]"
+                  : "bg-slate-100 border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-200"
               }`}
-              title="Toggle Mic Recording"
+              title={
+                isListening
+                  ? "Listening (tap to send now)"
+                  : isAiSpeaking
+                  ? "AI Speaking (tap to interrupt & reply)"
+                  : evaluating
+                  ? "Processing..."
+                  : "Tap to Speak (Auto-sends when done)"
+              }
             >
-              🎙️
+              {isListening ? "⏹️" : isAiSpeaking ? "🔊" : evaluating ? "⏳" : "🎙️"}
             </button>
 
             <input

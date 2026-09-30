@@ -33,15 +33,85 @@ public class AiServiceImpl implements AiService {
 	@Value("${groq.model.analysis:${groq.model:qwen/qwen3.6-27b}}")
 	private String analysisModel;
 
+	@Value("${groq.max-tokens.chat:250}")
+	private Integer maxTokens;
+
 	private final RestTemplate restTemplate;
 
 	public AiServiceImpl(RestTemplate restTemplate) {
 		this.restTemplate = restTemplate;
 	}
 
+	private static final String CONVERSATIONAL_FALLBACK_SYSTEM_PROMPT = """
+You are SpeakMateAI, a warm, friendly real-time English speaking coach.
+CRITICAL CONVERSATIONAL RULES:
+1. Speak in only 1–2 short conversational sentences (strictly under 35–45 words total, prefer 15–30 words).
+2. NEVER generate essays, bullet points (-), numbered lists (1.), multi-step tutorials, or long textbook explanations.
+3. Keep the conversation interactive and encourage the student to speak.
+4. Speak as a real human tutor in a live conversation, not an article writer.
+""";
+
+	private String sanitizeConversationalFallback(String text) {
+		if (text == null || text.trim().isEmpty()) {
+			return "That's an interesting point! What else comes to mind?";
+		}
+		String clean = text.replaceAll("(?s)<think>.*?</think>", "").replaceAll("(?s)<think>.*", "");
+		clean = clean.replaceAll("(?m)^#{1,6}\\s+.*$", "");
+		clean = clean.replaceAll("```[a-zA-Z]*", "").replaceAll("```", "");
+		clean = clean.replaceAll("(?m)^\\s*[-*•]\\s+", "");
+		clean = clean.replaceAll("(?m)^\\s*\\d+[.)]\\s+", "");
+		clean = clean.replaceAll("\\r?\\n+", " ").replaceAll("\\s+", " ").trim();
+
+		String[] words = clean.split("\\s+");
+		if (words.length > 45) {
+			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("[^.!?]+[.!?]+").matcher(clean);
+			StringBuilder trimmed = new StringBuilder();
+			int wordCount = 0;
+			int sentenceCount = 0;
+			while (matcher.find() && sentenceCount < 2) {
+				String sentence = matcher.group().trim();
+				int sWords = sentence.split("\\s+").length;
+				if (wordCount + sWords <= 45 || sentenceCount == 0) {
+					if (trimmed.length() > 0) trimmed.append(" ");
+					trimmed.append(sentence);
+					wordCount += sWords;
+					sentenceCount++;
+				} else {
+					break;
+				}
+			}
+			if (trimmed.length() > 0) {
+				clean = trimmed.toString();
+			} else {
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < Math.min(words.length, 35); i++) {
+					if (i > 0) sb.append(" ");
+					sb.append(words[i]);
+				}
+				String s = sb.toString();
+				if (!s.endsWith(".") && !s.endsWith("!") && !s.endsWith("?")) s += ".";
+				clean = s;
+			}
+		}
+		return clean;
+	}
+
 	@Override
 	public AiResponse chat(AiRequest request) {
-		return callGroq(chatModel, request.getPrompt(), 0.7);
+		String prompt = (request != null && request.getPrompt() != null) ? request.getPrompt().trim() : "";
+		if (prompt.isEmpty()) {
+			return AiResponse.builder().response("Hello! What would you like to practice speaking today?").build();
+		}
+		try {
+			AiResponse response = callGroqWithSystem(chatModel, CONVERSATIONAL_FALLBACK_SYSTEM_PROMPT, prompt);
+			if (response != null && response.getResponse() != null) {
+				String sanitized = sanitizeConversationalFallback(response.getResponse());
+				return AiResponse.builder().response(sanitized).build();
+			}
+			return response;
+		} catch (Exception e) {
+			return AiResponse.builder().response("That is a great thought! Can you tell me a little more about that?").build();
+		}
 	}
 
 	private static final String GRAMMAR_CORRECTION_SYSTEM_PROMPT = """
@@ -271,7 +341,7 @@ Output: {"isCorrect": true, "errors": [], "correctedSentence": "I eat an apple."
 
 	private AiResponse executeGroqCall(String modelName, List<GroqRequest.Message> messages, double temperature) {
 		try {
-			GroqRequest request = new GroqRequest(modelName, messages, temperature);
+			GroqRequest request = new GroqRequest(modelName, messages, temperature, maxTokens != null ? maxTokens : 250);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);

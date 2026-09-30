@@ -276,6 +276,7 @@ export default function ConversationChatScreen({ navigation, route }) {
   const stoppingRef = useRef(false);
   const startingRef = useRef(false);
   const isRecordingRef = useRef(false);
+  const isSendingRef = useRef(false);
   const recordingSessionIdRef = useRef(0);
 
   // Auto-collapse top avatar on keyboard show to maximize chat view
@@ -479,23 +480,35 @@ export default function ConversationChatScreen({ navigation, route }) {
 
   const getSpeakableText = (msg) => {
     if (!msg) return '';
-    let text = msg.message || '';
-    const isCorrect = msg.grammarCorrection && (msg.grammarCorrection.includes('✅') || msg.grammarCorrection.toLowerCase().includes('correct'));
-    if (msg.grammarCorrection && !isCorrect) {
-      text += `. A better way to say that is: "${msg.grammarCorrection}".`;
-      if (msg.explanation) {
-        text += ` ${msg.explanation}`;
-      }
-    } else if (msg.betterSentence) {
-      text += `. You could also express it as: "${msg.betterSentence}".`;
-      if (msg.explanation) {
-        text += ` ${msg.explanation}`;
+    let raw = msg.message || '';
+    if (raw.includes('[REPLY]')) {
+      const match = raw.match(/\[REPLY\]\s*([\s\S]*?)(?=\[(?:EXPLANATION|FOLLOWUP|BETTER|GRAMMAR|VOCABULARY)\]|$)/i);
+      if (match && match[1]?.trim()) {
+        raw = match[1].trim();
       }
     }
-    if (msg.followUpQuestion) {
-      text += ` ${msg.followUpQuestion}`;
+    // Remove markdown symbols, brackets, and bullet numbering
+    let text = raw
+      .replace(/\|.*\|/g, ' ')
+      .replace(/#+\s*/g, '')
+      .replace(/\*\*/g, '')
+      .replace(/\*/g, '')
+      .replace(/\[.*?\]/g, '')
+      .replace(/\(.*?\)/g, '')
+      .replace(/^[\s*\-•\d.]+/gm, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Limit to strictly 1–2 short conversational sentences (maximum ~35–45 words)
+    const sentences = text.match(/[^.!?]+[.!?]+|\S+/g) || [text];
+    if (sentences.length > 2) {
+      text = sentences.slice(0, 2).join(' ').trim();
     }
-    return text;
+    const words = text.split(/\s+/);
+    if (words.length > 45) {
+      text = words.slice(0, 40).join(' ') + '...';
+    }
+    return text.trim();
   };
 
   const avatarGender = VoiceService.getAvatarGender(preferredVoice, onboardingVoiceStyle);
@@ -532,40 +545,10 @@ export default function ConversationChatScreen({ navigation, route }) {
     // Stop any in-flight voice immediately
     VoiceService.stop();
 
-    let mainReply = aiMsg.message || '';
-    if (aiMsg.followUpQuestion && !mainReply.includes(aiMsg.followUpQuestion)) {
-      mainReply += ` ${aiMsg.followUpQuestion}`;
-    }
+    const mainReply = getSpeakableText(aiMsg);
+    if (!mainReply) return;
 
-    // Determine if there is a coaching tip to speak
-    const isGrammarCorrect = !aiMsg.grammarCorrection ||
-      aiMsg.grammarCorrection.includes('✅') ||
-      aiMsg.grammarCorrection.toLowerCase().includes('correct') ||
-      aiMsg.grammarCorrection.toLowerCase() === 'none';
-
-    const cleanBetter = aiMsg.betterSentence && typeof aiMsg.betterSentence === 'string'
-      ? aiMsg.betterSentence.replace(/[\[\]"]/g, '').trim()
-      : null;
-    const hasBetter = cleanBetter &&
-      cleanBetter.toLowerCase() !== 'null' &&
-      cleanBetter.toLowerCase() !== 'none' &&
-      !cleanBetter.includes('✅');
-
-    let coachingPhrase = null;
-    if (!isGrammarCorrect && aiMsg.grammarCorrection) {
-      const cleanCorrection = aiMsg.grammarCorrection.replace(/^👉\s*/, '').replace(/[\[\]"]/g, '').trim();
-      coachingPhrase = `A better way to say that is: "${cleanCorrection}"`;
-      if (aiMsg.explanation && aiMsg.explanation.toLowerCase() !== 'none' && !aiMsg.explanation.toLowerCase().includes('null')) {
-        coachingPhrase += `. ${aiMsg.explanation}`;
-      }
-    } else if (hasBetter) {
-      coachingPhrase = `A better way to say that is: "${cleanBetter}"`;
-      if (aiMsg.explanation && aiMsg.explanation.toLowerCase() !== 'none' && !aiMsg.explanation.toLowerCase().includes('null')) {
-        coachingPhrase += `. ${aiMsg.explanation}`;
-      }
-    }
-
-    // Stage 1: Speak ONLY the conversational tutor reply
+    // Speak ONLY the concise conversational tutor reply (1-2 sentences)
     setCurrentSpokenText(mainReply);
     VoiceService.speak(mainReply, {
       isMuted,
@@ -578,43 +561,10 @@ export default function ConversationChatScreen({ navigation, route }) {
         setIsSpeaking(true);
       },
       onDone: () => {
-        // Stage 2: EXACT 0.45s (450ms) natural gap before speaking coaching tip
-        if (coachingPhrase && !isMuted) {
-          setStatusText('Coaching Tip');
-          setTimeout(() => {
-            if (!isMuted) {
-              setCurrentSpokenText(coachingPhrase);
-              VoiceService.speak(coachingPhrase, {
-                isMuted,
-                avatarId: selectedAvatarModel,
-                voiceType: preferredVoice,
-                speechSpeed,
-                availableVoices,
-                onStart: () => {
-                  setStatusText('Coaching Tip');
-                  setIsSpeaking(true);
-                },
-                onDone: () => {
-                  setStatusText('Waiting for Response');
-                  setIsSpeaking(false);
-                  setCurrentSpokenText('');
-                  wasSpeakingOnPause.current = false;
-                },
-                onError: () => {
-                  setStatusText('Waiting for Response');
-                  setIsSpeaking(false);
-                  setCurrentSpokenText('');
-                  wasSpeakingOnPause.current = false;
-                },
-              });
-            }
-          }, 450); // 0.45 second conversational gap
-        } else {
-          setStatusText('Waiting for Response');
-          setIsSpeaking(false);
-          setCurrentSpokenText('');
-          wasSpeakingOnPause.current = false;
-        }
+        setStatusText('Waiting for Response');
+        setIsSpeaking(false);
+        setCurrentSpokenText('');
+        wasSpeakingOnPause.current = false;
       },
       onError: () => {
         setStatusText('Waiting for Response');
@@ -626,13 +576,18 @@ export default function ConversationChatScreen({ navigation, route }) {
   };
 
   const handleSendMessage = async (textToSend = inputText) => {
-    const cleanText = textToSend.trim();
-    if (!cleanText) return;
+    const cleanText = (textToSend || '').trim();
+    if (!cleanText || isSendingRef.current || evaluating) return;
 
+    isSendingRef.current = true;
     setInputText('');
     setHints([]);
     setEvaluating(true);
     setStatusText('Thinking');
+
+    // Cancel any active AI speech immediately when user takes their turn
+    VoiceService.stop();
+    setIsSpeaking(false);
 
     // Optimistically push user message
     const tempUserMsg = {
@@ -672,7 +627,7 @@ export default function ConversationChatScreen({ navigation, route }) {
         setTimeout(() => setAvatarExpression(undefined), 3500);
       }
 
-      // Automatically play TTS with 0.45s coaching pause
+      // Automatically play TTS: short conversational reply only
       speakAiWithCoaching(response);
     } catch {
       try {
@@ -696,14 +651,18 @@ export default function ConversationChatScreen({ navigation, route }) {
       }
     } finally {
       setEvaluating(false);
+      isSendingRef.current = false;
       setStatusText('Waiting for Response');
     }
   };
 
   const startRecording = async () => {
+    if (evaluating || isSendingRef.current) return;
     try {
+      // Cut off AI speech immediately so mic never records tutor voice
       VoiceService.stop();
       setIsSpeaking(false);
+      setCurrentSpokenText('');
 
       const granted = await VoiceRecorder.requestPermissions();
       if (!granted) {
@@ -724,10 +683,10 @@ export default function ConversationChatScreen({ navigation, route }) {
       initialSilenceTimerRef.current = 0;
       stoppingRef.current = false;
 
-      const SILENCE_THRESHOLD_MS = 3200; // 3.2s post-speech silence auto-stop (allows natural thinking pauses without premature cutoff)
-      const INITIAL_SILENCE_THRESHOLD_MS = 8000; // 8s initial silence before user speaks
-      const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes generous hard limit for long speech
-      const METERING_SPEECH_THRESHOLD = -48; // dB volume threshold for speech detection (higher sensitivity for soft speaking)
+      const SILENCE_THRESHOLD_MS = 2400; // 2.4s post-speech silence auto-stop
+      const INITIAL_SILENCE_THRESHOLD_MS = 7500; // 7.5s initial silence before user speaks
+      const MAX_RECORDING_DURATION_MS = 300000; // 5 minutes hard limit
+      const METERING_SPEECH_THRESHOLD = -48; // dB volume threshold for speech detection
 
       const recorder = new VoiceRecorder((status) => {
         if (!status.isRecording || stoppingRef.current || recordingSessionIdRef.current !== currentSessionId) return;
@@ -744,7 +703,7 @@ export default function ConversationChatScreen({ navigation, route }) {
           silenceTimerRef.current = 0;
         } else if (speechDetectedRef.current) {
           silenceTimerRef.current += 250;
-          if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) { // 3.2s silence auto stop
+          if (silenceTimerRef.current >= SILENCE_THRESHOLD_MS) {
             stopRecordingAndSend();
           }
         } else {
@@ -772,7 +731,7 @@ export default function ConversationChatScreen({ navigation, route }) {
   };
 
   const stopRecordingAndSend = async () => {
-    if (stoppingRef.current) return;
+    if (stoppingRef.current || isSendingRef.current) return;
     stoppingRef.current = true;
     isRecordingRef.current = false;
 
@@ -803,15 +762,15 @@ export default function ConversationChatScreen({ navigation, route }) {
       });
 
       if (res && res.transcript && res.transcript.trim()) {
-        setInputText(res.transcript.trim());
-        handleSendMessage(res.transcript.trim());
+        const transcriptText = res.transcript.trim();
+        setInputText(transcriptText);
+        handleSendMessage(transcriptText);
       } else {
-        Alert.alert('Silence Detected', 'Could not hear any speech. Please try speaking again.');
+        // Safe idle reset: user stayed silent or no speech was recognized
         setStatusText('Waiting for Response');
       }
     } catch (err) {
-      console.warn('Voice chat transcription failed:', err);
-      Alert.alert('Transcription Failed', 'Make sure you have an active internet connection.');
+      console.warn('Voice chat transcription note:', err);
       setStatusText('Waiting for Response');
     } finally {
       setLoading(false);

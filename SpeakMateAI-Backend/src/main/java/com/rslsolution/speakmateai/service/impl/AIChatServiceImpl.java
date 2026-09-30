@@ -59,6 +59,9 @@ public class AIChatServiceImpl implements AIChatService {
 	@Value("${groq.model.chat:${groq.model:openai/gpt-oss-120b}}")
 	private String model;
 
+	@Value("${groq.max-tokens.chat:250}")
+	private Integer maxTokens;
+
 	private final ProgressRepository progressRepository;
 
 	public AIChatServiceImpl(
@@ -276,28 +279,26 @@ public class AIChatServiceImpl implements AIChatService {
 
 		List<GroqRequest.Message> groqMessages = new ArrayList<>();
 		String systemPrompt = String.format(
-				"You are SpeakMateAI, a world-class personal AI English Tutor having a live one-on-one conversation.\n" +
-				"Your personality is warm, enthusiastic, empathetic, and extremely conversational.\n\n" +
+				"You are SpeakMateAI, a friendly, encouraging personal AI English Tutor having a real-time face-to-face spoken conversation.\n" +
+				"You speak as a human tutor in a live conversation, NOT an article writer or ChatGPT essay generator.\n\n" +
 				"LEARNER CONTEXT & SCENARIO:\n" +
 				"Active Tutoring Mode: %s\n" +
 				"%s\n" +
 				"%s\n\n" +
-				"KEY TEACHING GUIDELINES:\n" +
-				"1. React directly to what the user said with real human-like engagement (1-3 natural sentences).\n" +
-				"2. Always ask ONE engaging, open-ended follow-up question perfectly suited to the student's age/standard and topic to keep the conversation flowing smoothly.\n" +
-				"3. Provide polite, supportive grammar corrections only when there are actual errors.\n" +
-				"4. Suggest a more fluent, natural phrasing that a native speaker would actually say.\n" +
-				"5. Suggest 1-2 rich vocabulary words or idioms relevant to what you are talking about.\n" +
-				"6. Tailor your tone, vocabulary, and pacing strictly to the learner's English level and age/standard.\n" +
-				"7. Never output JSON, code blocks, or raw markdown headers. Stick strictly to the tag format.\n\n" +
+				"STRICT CONVERSATIONAL RULES (MUST FOLLOW ON EVERY TURN):\n" +
+				"1. REAL-TIME SPOKEN DIALOGUE: [REPLY] must contain ONLY 1 to 2 short conversational sentences (maximum 35–45 words total, prefer 15–30 words).\n" +
+				"2. NO ESSAYS OR LISTS: NEVER generate essays, bullet points (-), numbered lists (1.), multi-step tutorials, or long textbook explanations. If the learner asks a broad question, answer ONLY the single most relevant tip and pass the turn back.\n" +
+				"3. RETURN THE TURN: Keep the dialogue interactive. Always hand the turn back to the learner with ONE short question in [FOLLOWUP].\n" +
+				"4. MINIMAL EXPLANATION: [EXPLANATION] is optional and strictly maximum 1 short sentence, used ONLY when there was an actual error. Otherwise return 'None'.\n" +
+				"5. Never output JSON, code blocks, or raw markdown headers. Stick strictly to the tag format.\n\n" +
 				"RESPONSE FORMAT (STRICT):\n" +
-				"[REPLY] Your warm in-character conversational response to the learner.\n" +
-				"[GRAMMAR] The corrected version of their sentence with a kind explanation, or 'None' if already correct.\n" +
-				"[BETTER_SENTENCE] How a native speaker would express the same idea naturally, or 'None'.\n" +
-				"[VOCABULARY] 1-2 useful topic-related words or idioms with short definitions, or 'None'.\n" +
-				"[EXPLANATION] A friendly 1-sentence tip explaining the nuance or phrasing, or 'None'.\n" +
-				"[FOLLOWUP] Your natural follow-up question to keep the conversation moving forward.\n\n" +
-				"[SUGGESTIONS] EXACTLY 3 short, realistic alternative responses (each under 10 words) separated by ' | ' that the student could say next to answer your question.",
+				"[REPLY] Exactly 1-2 short conversational sentences (strictly under 35-45 words). Speak directly to the learner as if talking in person.\n" +
+				"[GRAMMAR] The corrected sentence if there was an error, or 'None' if already correct.\n" +
+				"[BETTER_SENTENCE] One natural native phrasing alternative ('How a native speaker says it'), or 'None'.\n" +
+				"[VOCABULARY] 1 useful topic-related word or idiom with a short 3-word meaning, or 'None'.\n" +
+				"[EXPLANATION] Maximum 1 short sentence explaining the tip, or 'None'.\n" +
+				"[FOLLOWUP] Exactly ONE natural conversational question (maximum 12 words) to encourage the learner to speak.\n" +
+				"[SUGGESTIONS] EXACTLY 3 short alternative responses (each under 10 words) separated by ' | ' that the student could say next to answer your question.",
 				session.getMode(),
 				levelInstruction,
 				userContextInstruction
@@ -348,21 +349,50 @@ public class AIChatServiceImpl implements AIChatService {
 			suggestedList = generateContextualFallbacks(session.getMode(), reply, followup);
 		}
 
-		// Clean up defaults
+		// Clean up defaults and apply backend safety guard
 		if (reply == null || reply.trim().isEmpty()) {
-			reply = rawResponse; // Fallback
+			// If [REPLY] was omitted or raw response was dumped, strip trailing tags and sanitize
+			String firstChunk = rawResponse != null ? rawResponse : "";
+			for (String tag : new String[]{"[GRAMMAR]", "[BETTER_SENTENCE]", "[VOCABULARY]", "[EXPLANATION]", "[FOLLOWUP]", "[SUGGESTIONS]"}) {
+				int idx = firstChunk.indexOf(tag);
+				if (idx != -1) {
+					firstChunk = firstChunk.substring(0, idx);
+				}
+			}
+			reply = sanitizeAndTrimConversationalReply(firstChunk);
+		} else {
+			reply = sanitizeAndTrimConversationalReply(reply);
 		}
+
 		if (better != null && (better.equalsIgnoreCase("none") || better.equalsIgnoreCase("null") || better.trim().isEmpty())) {
 			better = null;
 		}
 		if (vocab != null && (vocab.equalsIgnoreCase("none") || vocab.equalsIgnoreCase("null") || vocab.trim().isEmpty())) {
 			vocab = null;
 		}
-		if (explanation != null && (explanation.equalsIgnoreCase("none") || explanation.equalsIgnoreCase("null") || explanation.trim().isEmpty())) {
-			explanation = null;
+		if (explanation != null) {
+			explanation = explanation.replaceAll("(?m)^\\s*[-*•]\\s+", "").replaceAll("\\r?\\n+", " ").trim();
+			if (explanation.equalsIgnoreCase("none") || explanation.equalsIgnoreCase("null") || explanation.isEmpty()) {
+				explanation = null;
+			} else {
+				// Sentence-aware limit for explanation: max 1 short sentence
+				java.util.regex.Matcher m = java.util.regex.Pattern.compile("[^.!?]+[.!?]+").matcher(explanation);
+				if (m.find()) {
+					explanation = m.group().trim();
+				}
+			}
 		}
-		if (followup != null && (followup.equalsIgnoreCase("none") || followup.equalsIgnoreCase("null") || followup.trim().isEmpty())) {
-			followup = null;
+		if (followup != null) {
+			followup = followup.replaceAll("(?m)^\\s*[-*•]\\s+", "").replaceAll("\\r?\\n+", " ").trim();
+			if (followup.equalsIgnoreCase("none") || followup.equalsIgnoreCase("null") || followup.isEmpty()) {
+				followup = null;
+			} else {
+				// Keep only the single first question
+				java.util.regex.Matcher m = java.util.regex.Pattern.compile("[^?]+[?]").matcher(followup);
+				if (m.find()) {
+					followup = m.group().trim();
+				}
+			}
 		}
 
 		// Grammar Correction logic
@@ -575,9 +605,68 @@ public class AIChatServiceImpl implements AIChatService {
 
 	// ── Helpers ───────────────────────────────────────────────────────
 
+	private String sanitizeAndTrimConversationalReply(String rawReply) {
+		if (rawReply == null || rawReply.trim().isEmpty()) {
+			return "That's an interesting thought! What else comes to mind about that?";
+		}
+
+		String clean = rawReply.trim();
+
+		// Remove accidental markdown headers and code blocks
+		clean = clean.replaceAll("(?m)^#{1,6}\\s+.*$", "");
+		clean = clean.replaceAll("```[a-zA-Z]*", "").replaceAll("```", "");
+
+		// Remove bullet points and numbered list markers
+		clean = clean.replaceAll("(?m)^\\s*[-*•]\\s+", "");
+		clean = clean.replaceAll("(?m)^\\s*\\d+[.)]\\s+", "");
+
+		// Collapse newlines and multiple spaces
+		clean = clean.replaceAll("\\r?\\n+", " ").replaceAll("\\s+", " ").trim();
+
+		// Sentence-aware trimming to approximately 35-45 words max
+		String[] words = clean.split("\\s+");
+		if (words.length > 45) {
+			java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("[^.!?]+[.!?]+").matcher(clean);
+			StringBuilder trimmed = new StringBuilder();
+			int wordCount = 0;
+			int sentenceCount = 0;
+
+			while (matcher.find() && sentenceCount < 2) {
+				String sentence = matcher.group().trim();
+				int sWords = sentence.split("\\s+").length;
+				if (wordCount + sWords <= 45 || sentenceCount == 0) {
+					if (trimmed.length() > 0) trimmed.append(" ");
+					trimmed.append(sentence);
+					wordCount += sWords;
+					sentenceCount++;
+				} else {
+					break;
+				}
+			}
+
+			if (trimmed.length() > 0) {
+				clean = trimmed.toString();
+			} else {
+				StringBuilder sb = new StringBuilder();
+				for (int i = 0; i < Math.min(words.length, 35); i++) {
+					if (i > 0) sb.append(" ");
+					sb.append(words[i]);
+				}
+				String s = sb.toString();
+				if (!s.endsWith(".") && !s.endsWith("!") && !s.endsWith("?")) {
+					s += ".";
+				}
+				clean = s;
+			}
+		}
+
+		return clean;
+	}
+
 	private String callGroqChat(List<GroqRequest.Message> messages) {
+		int tokenLimit = (maxTokens != null && maxTokens > 0) ? maxTokens : 250;
 		try {
-			GroqRequest request = new GroqRequest(model, messages, 0.7);
+			GroqRequest request = new GroqRequest(model, messages, 0.7, tokenLimit);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
@@ -595,7 +684,7 @@ public class AIChatServiceImpl implements AIChatService {
 		} catch (Exception e) {
 			if (!"qwen/qwen3.6-27b".equals(model)) {
 				try {
-					GroqRequest request = new GroqRequest("qwen/qwen3.6-27b", messages, 0.7);
+					GroqRequest request = new GroqRequest("qwen/qwen3.6-27b", messages, 0.7, tokenLimit);
 					HttpHeaders headers = new HttpHeaders();
 					headers.setContentType(MediaType.APPLICATION_JSON);
 					headers.setBearerAuth(apiKey);
