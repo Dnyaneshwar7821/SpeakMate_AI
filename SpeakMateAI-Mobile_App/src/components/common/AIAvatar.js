@@ -160,7 +160,7 @@ export default function AIAvatar({
     }).catch(() => {});
   }, []);
 
-  const avatarEngine = engineOverride || defaultEngine;
+  const avatarEngine = isLive2DModel ? (engineOverride || defaultEngine) : 'native';
 
   useEffect(() => {
     setLive2dError(false);

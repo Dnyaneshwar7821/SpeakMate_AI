@@ -23,113 +23,113 @@ export const VOICE_PROFILES = [
 export const AVATAR_VOICE_PROFILES = {
   haru: {
     avatarId: 'haru',
-    name: 'Haru',
+    name: 'Teacher',
     category: 'human',
     intendedGender: 'female',
-    voiceCode: 'US Female',
-    targetLocale: 'en-US',
-    basePitch: 1.00,
-    baseRate: 1.00,
-    preferredVoices: ['sfg', 'iol', 'rgf', 'samantha', 'victoria', 'karen', 'female'],
+    voiceCode: 'Teacher',
+    targetLocale: 'en-IN',
+    basePitch: 1.12,
+    baseRate: 0.98,
+    preferredVoices: ['inf', 'ing', 'cbf', 'ena', 'sfg', 'samantha', 'victoria', 'karen', 'female'],
   },
   chitose: {
     avatarId: 'chitose',
-    name: 'Chitose',
+    name: 'Male Teacher',
     category: 'human',
     intendedGender: 'male',
-    voiceCode: 'US Male',
+    voiceCode: 'MaleTeacher',
+    targetLocale: 'en-IN',
+    basePitch: 1.00,
+    baseRate: 0.96,
+    preferredVoices: ['ind', 'inc', 'inb', 'end', 'rishi', 'ravi', 'prabhat', 'tpf', 'tpc', 'male'],
+  },
+  shizuku: {
+    avatarId: 'shizuku',
+    name: 'Shizuka',
+    category: 'human',
+    intendedGender: 'female',
+    voiceCode: 'Shizuka',
     targetLocale: 'en-US',
-    basePitch: 0.94,
-    baseRate: 0.98,
-    preferredVoices: ['tpf', 'tpc', 'iog', 'david', 'alex', 'george', 'male'],
+    basePitch: 1.22,
+    baseRate: 1.04,
+    preferredVoices: ['sfg', 'iol', 'rgf', 'samantha', 'victoria', 'karen', 'female'],
   },
   robopaws: {
     avatarId: 'robopaws',
-    name: 'Robo-Paws',
-    category: 'cartoon',
-    intendedGender: 'female',
-    voiceCode: 'Robo-Paws',
-    targetLocale: 'en-IN',
-    basePitch: 1.24,
-    baseRate: 1.04,
-    preferredVoices: ['cbf', 'inf', 'ena', 'iol', 'sfg', 'rgf', 'tessa', 'samantha', 'female'],
-  },
-  motu: {
-    avatarId: 'motu',
-    name: 'Motu',
+    name: 'Doraemon',
     category: 'cartoon',
     intendedGender: 'male',
-    voiceCode: 'Motu',
+    voiceCode: 'Doraemon',
     targetLocale: 'en-IN',
-    basePitch: 1.10,
-    baseRate: 0.96,
-    preferredVoices: ['ind', 'inc', 'inb', 'end', 'rishi', 'ravi', 'prabhat', 'tpc', 'tpf', 'male'],
+    basePitch: 1.06,
+    baseRate: 1.03,
+    preferredVoices: ['ind', 'inc', 'inb', 'cbf', 'ena', 'sfg', 'tpf', 'male'],
+  },
+  spongebob: {
+    avatarId: 'spongebob',
+    name: 'SpongeBob',
+    category: 'cartoon',
+    intendedGender: 'male',
+    voiceCode: 'SpongeBob',
+    targetLocale: 'en-US',
+    basePitch: 1.18,
+    baseRate: 1.02,
+    preferredVoices: ['tpc', 'iog', 'daniel', 'alex', 'tpf', 'male'],
   },
   sparky: {
     avatarId: 'sparky',
-    name: 'Sparky',
+    name: 'Chhota Bheem',
     category: 'cartoon',
     intendedGender: 'male',
     voiceCode: 'Sparky',
-    targetLocale: 'en-US',
-    basePitch: 1.06,
-    baseRate: 1.05,
-    preferredVoices: ['tpf', 'tpc', 'iog', 'alex', 'david', 'daniel', 'male'],
-  },
-  wanko: {
-    avatarId: 'wanko',
-    name: 'Wanko',
-    category: 'cartoon',
-    intendedGender: 'cartoon',
-    voiceCode: 'Wanko',
-    targetLocale: 'en-US',
-    basePitch: 1.32,
-    baseRate: 1.04,
-    preferredVoices: ['rgf', 'iol', 'sfg', 'karen', 'samantha', 'female'],
+    targetLocale: 'en-IN',
+    basePitch: 1.22,
+    baseRate: 1.03,
+    preferredVoices: ['ind', 'inc', 'inb', 'end', 'rishi', 'ravi', 'prabhat', 'male'],
   },
   koharu: {
     avatarId: 'koharu',
-    name: 'Koharu',
+    name: 'Ninja Hattori',
     category: 'cartoon',
     intendedGender: 'male',
     voiceCode: 'Koharu',
     targetLocale: 'en-US',
     basePitch: 1.20,
-    baseRate: 1.03,
+    baseRate: 1.04,
     preferredVoices: ['tpc', 'iog', 'tpf', 'alex', 'daniel', 'male'],
   },
   haruto: {
     avatarId: 'haruto',
-    name: 'Haruto',
+    name: 'Tom',
     category: 'cartoon',
     intendedGender: 'male',
     voiceCode: 'Haruto',
     targetLocale: 'en-US',
-    basePitch: 1.25,
-    baseRate: 1.05,
+    basePitch: 1.20,
+    baseRate: 1.04,
     preferredVoices: ['tpc', 'iog', 'daniel', 'alex', 'oliver', 'fred', 'tpf', 'male'],
   },
-  tororo: {
-    avatarId: 'tororo',
-    name: 'Tororo',
+  mao: {
+    avatarId: 'mao',
+    name: 'Ben 10',
     category: 'cartoon',
-    intendedGender: 'female',
-    voiceCode: 'Tororo',
-    targetLocale: 'en-GB',
-    basePitch: 1.36,
-    baseRate: 0.96,
-    preferredVoices: ['gba', 'gbb', 'fis', 'serena', 'iol', 'sfg', 'female'],
-  },
-  rexy: {
-    avatarId: 'rexy',
-    name: 'Rexy',
-    category: 'cartoon',
-    intendedGender: 'cartoon',
-    voiceCode: 'Rexy',
+    intendedGender: 'male',
+    voiceCode: 'Mao',
     targetLocale: 'en-US',
-    basePitch: 1.26,
-    baseRate: 1.05,
-    preferredVoices: ['rgf', 'iol', 'sfg', 'samantha', 'female'],
+    basePitch: 1.18,
+    baseRate: 1.03,
+    preferredVoices: ['tpc', 'iog', 'tpf', 'alex', 'david', 'daniel', 'male'],
+  },
+  puppy: {
+    avatarId: 'puppy',
+    name: 'Scooby-Doo',
+    category: 'cartoon',
+    intendedGender: 'male',
+    voiceCode: 'Puppy',
+    targetLocale: 'en-US',
+    basePitch: 0.92,
+    baseRate: 0.94,
+    preferredVoices: ['tpf', 'tpc', 'iog', 'david', 'alex', 'daniel', 'male'],
   },
 };
 
@@ -311,16 +311,36 @@ export const VoiceService = {
   getAvatarVoiceProfile: (avatarOrVoice) => {
     if (!avatarOrVoice) return AVATAR_VOICE_PROFILES.haru;
     const key = String(avatarOrVoice).toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (key.includes('motu') || key.includes('patlu')) return AVATAR_VOICE_PROFILES.motu;
-    if (key.includes('robo') || key.includes('paws') || key.includes('doraemon')) return AVATAR_VOICE_PROFILES.robopaws;
-    if (key.includes('sparky') || key.includes('hero')) return AVATAR_VOICE_PROFILES.sparky;
-    if (key.includes('chitose') || key === 'male') return AVATAR_VOICE_PROFILES.chitose;
-    if (key.includes('wanko') || key.includes('dog') || key.includes('puppy') || key.includes('shiba')) return AVATAR_VOICE_PROFILES.wanko;
-    if (key.includes('koharu') || key.includes('ribbon') || key.includes('shizuku') || key.includes('mao')) return AVATAR_VOICE_PROFILES.koharu;
-    if (key.includes('haruto') || key.includes('explorer') || key.includes('cap')) return AVATAR_VOICE_PROFILES.haruto;
-    if (key.includes('tororo') || key.includes('kitty') || key.includes('cat') || key.includes('sakura')) return AVATAR_VOICE_PROFILES.tororo;
-    if (key.includes('rexy') || key.includes('dino') || key.includes('trex')) return AVATAR_VOICE_PROFILES.rexy;
-    if (key.includes('haru')) return AVATAR_VOICE_PROFILES.haru;
+    if (key.includes('maleteacher') || key.includes('teachermale') || key.includes('chitose') || key === 'male') {
+      return AVATAR_VOICE_PROFILES.chitose;
+    }
+    if (key === 'haru' || key.includes('teacher')) {
+      return AVATAR_VOICE_PROFILES.haru;
+    }
+    if (key.includes('spongebob') || key.includes('sponge') || key.includes('bob')) {
+      return AVATAR_VOICE_PROFILES.spongebob;
+    }
+    if (key.includes('robo') || key.includes('paws') || key.includes('doraemon')) {
+      return AVATAR_VOICE_PROFILES.robopaws;
+    }
+    if (key.includes('sparky') || key.includes('bheem') || key.includes('chhota') || key.includes('chhotabheem') || key.includes('motu') || key.includes('patlu')) {
+      return AVATAR_VOICE_PROFILES.sparky;
+    }
+    if (key.includes('shizuku') || key.includes('shizuka')) {
+      return AVATAR_VOICE_PROFILES.shizuku;
+    }
+    if (key.includes('hattori') || key.includes('ninja') || key.includes('ninjahattori') || key.includes('koharu')) {
+      return AVATAR_VOICE_PROFILES.koharu;
+    }
+    if (key.includes('tom') || key.includes('tommy') || key.includes('haruto') || key.includes('tororo') || key.includes('cat') || key.includes('kitty')) {
+      return AVATAR_VOICE_PROFILES.haruto;
+    }
+    if (key.includes('mao') || key.includes('ben') || key.includes('ben10') || key.includes('omnitrix') || key.includes('rexy') || key.includes('dino') || key.includes('trex')) {
+      return AVATAR_VOICE_PROFILES.mao;
+    }
+    if (key.includes('wanko') || key.includes('dog') || key.includes('puppy') || key.includes('shiba') || key.includes('scooby') || key.includes('scoobydoo')) {
+      return AVATAR_VOICE_PROFILES.puppy;
+    }
     return AVATAR_VOICE_PROFILES[key] || AVATAR_VOICE_PROFILES.haru;
   },
 

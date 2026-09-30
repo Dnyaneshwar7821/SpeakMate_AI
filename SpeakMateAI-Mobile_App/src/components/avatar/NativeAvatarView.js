@@ -26,7 +26,7 @@ import { generateSpeechSchedule } from '../../utils/PhoneticVisemeEngine';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ─── 1. DYNAMIC MOUTH COMPONENT (Lip-Sync Visemes) ─────────────────────────
-function DynamicMouth({ viseme, mouthOpenY, mouthForm, isSpeaking, state, themeColor }) {
+function DynamicMouth({ viseme, mouthOpenY, mouthForm, isSpeaking, state, themeColor, isSpongeBob = false }) {
   // Interpolate mouth width & height based on phonetic values
   // AA: Tall open oval with tongue & teeth depth
   // OO: Tight round circular mouth
@@ -90,7 +90,14 @@ function DynamicMouth({ viseme, mouthOpenY, mouthForm, isSpeaking, state, themeC
       {/* Deep Mouth Cavity */}
       <View style={mouthStyles.cavity}>
         {/* Top Teeth */}
-        <View style={mouthStyles.topTeeth} />
+        {isSpongeBob ? (
+          <View style={mouthStyles.spongeBuckTeethRow}>
+            <View style={mouthStyles.spongeTooth} />
+            <View style={mouthStyles.spongeTooth} />
+          </View>
+        ) : (
+          <View style={mouthStyles.topTeeth} />
+        )}
 
         {/* Dynamic Tongue */}
         <View style={mouthStyles.tongue} />
@@ -181,6 +188,20 @@ const mouthStyles = StyleSheet.create({
     borderBottomLeftRadius: 3,
     borderBottomRightRadius: 3,
   },
+  spongeBuckTeethRow: {
+    flexDirection: 'row',
+    gap: 3,
+    justifyContent: 'center',
+    width: '100%',
+    marginTop: 0,
+  },
+  spongeTooth: {
+    width: 6,
+    height: 7,
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 2,
+    borderBottomRightRadius: 2,
+  },
   tongue: {
     width: '65%',
     height: 12,
@@ -238,7 +259,54 @@ function DynamicEyes({ blinkAnim, lookX, lookY, eyeType = 'anime' }) {
     );
   }
 
-  // Expressive Stylized Eyes (Haru, Chitose, Motu, Wanko, etc.)
+  if (eyeType === 'spongebob') {
+    return (
+      <View style={eyeStyles.spongeRow}>
+        <View style={eyeStyles.spongeEyeCol}>
+          <View style={eyeStyles.spongeLashRow}>
+            <View style={[eyeStyles.spongeLash, { transform: [{ rotate: '-25deg' }] }]} />
+            <View style={eyeStyles.spongeLash} />
+            <View style={[eyeStyles.spongeLash, { transform: [{ rotate: '25deg' }] }]} />
+          </View>
+          <Animated.View style={[eyeStyles.spongeEye, { transform: [{ scaleY }] }]}>
+            <Animated.View
+              style={[
+                eyeStyles.spongePupil,
+                { transform: [{ translateX: pupilTranslateX }, { translateY: pupilTranslateY }] },
+              ]}
+            >
+              <View style={eyeStyles.spongeIris} />
+              <View style={eyeStyles.eyeGleam} />
+            </Animated.View>
+          </Animated.View>
+        </View>
+
+        <View style={eyeStyles.spongeEyeCol}>
+          <View style={eyeStyles.spongeLashRow}>
+            <View style={[eyeStyles.spongeLash, { transform: [{ rotate: '-25deg' }] }]} />
+            <View style={eyeStyles.spongeLash} />
+            <View style={[eyeStyles.spongeLash, { transform: [{ rotate: '25deg' }] }]} />
+          </View>
+          <Animated.View style={[eyeStyles.spongeEye, { transform: [{ scaleY }] }]}>
+            <Animated.View
+              style={[
+                eyeStyles.spongePupil,
+                { transform: [{ translateX: pupilTranslateX }, { translateY: pupilTranslateY }] },
+              ]}
+            >
+              <View style={eyeStyles.spongeIris} />
+              <View style={eyeStyles.eyeGleam} />
+            </Animated.View>
+          </Animated.View>
+        </View>
+      </View>
+    );
+  }
+
+  const isGreen = eyeType === 'green';
+  const isCat = eyeType === 'cat';
+
+  // Expressive Stylized Eyes (Haru, Chitose, Shizuka, Bheem, Ninja Hattori, Tom, Ben 10, Scooby)
   return (
     <View style={eyeStyles.standardRow}>
       {/* Left Eye */}
@@ -246,9 +314,12 @@ function DynamicEyes({ blinkAnim, lookX, lookY, eyeType = 'anime' }) {
         <Animated.View
           style={[
             eyeStyles.pupil,
+            isGreen && { backgroundColor: '#059669' },
+            isCat && { backgroundColor: '#0D9488', width: 16, height: 26, borderRadius: 8 },
             { transform: [{ translateX: pupilTranslateX }, { translateY: pupilTranslateY }] },
           ]}
         >
+          {isGreen && <View style={eyeStyles.greenPupilCenter} />}
           <View style={eyeStyles.eyeGleam} />
           <View style={eyeStyles.eyeGleamSmall} />
         </Animated.View>
@@ -259,9 +330,12 @@ function DynamicEyes({ blinkAnim, lookX, lookY, eyeType = 'anime' }) {
         <Animated.View
           style={[
             eyeStyles.pupil,
+            isGreen && { backgroundColor: '#059669' },
+            isCat && { backgroundColor: '#0D9488', width: 16, height: 26, borderRadius: 8 },
             { transform: [{ translateX: pupilTranslateX }, { translateY: pupilTranslateY }] },
           ]}
         >
+          {isGreen && <View style={eyeStyles.greenPupilCenter} />}
           <View style={eyeStyles.eyeGleam} />
           <View style={eyeStyles.eyeGleamSmall} />
         </Animated.View>
@@ -297,6 +371,53 @@ const eyeStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  spongeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  spongeEyeCol: {
+    alignItems: 'center',
+  },
+  spongeLashRow: {
+    flexDirection: 'row',
+    gap: 5,
+    marginBottom: -2,
+    zIndex: 10,
+  },
+  spongeLash: {
+    width: 2.5,
+    height: 6,
+    backgroundColor: '#0F172A',
+    borderRadius: 1,
+  },
+  spongeEye: {
+    width: 44,
+    height: 48,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 2.5,
+    borderColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  spongePupil: {
+    width: 22,
+    height: 24,
+    backgroundColor: '#38BDF8',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  spongeIris: {
+    width: 10,
+    height: 12,
+    backgroundColor: '#0F172A',
+    borderRadius: 6,
+  },
   standardRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -323,6 +444,12 @@ const eyeStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  greenPupilCenter: {
+    width: 10,
+    height: 12,
+    backgroundColor: '#064E3B',
+    borderRadius: 5,
+  },
   eyeGleam: {
     position: 'absolute',
     top: 4,
@@ -347,22 +474,26 @@ const eyeStyles = StyleSheet.create({
 function CharacterRig({ id, blinkAnim, lookX, lookY, mouthOpenY, mouthForm, isSpeaking, state, mood }) {
   const norm = (id || 'haru').toLowerCase();
 
-  // ── 1. HARU (Anime Female Coach) ──
-  if (norm.includes('haru') && !norm.includes('haruto') && !norm.includes('koharu')) {
+  // ── 1. TEACHER (English Teacher - Haru) ──
+  if ((norm.includes('teacher') && !norm.includes('male')) || norm === 'haru') {
     return (
       <View style={rigStyles.charContainer}>
-        {/* Headphone Band */}
-        <View style={rigStyles.headphoneBand} />
-
-        {/* Anime Hair Back Ponytail */}
-        <View style={rigStyles.haruHairBack} />
+        {/* Styled Hair Back Ponytail */}
+        <View style={rigStyles.teacherHairBack} />
 
         {/* Head Base */}
-        <View style={[rigStyles.headBase, { backgroundColor: '#FDE047' }]}>
+        <View style={[rigStyles.headBase, { backgroundColor: '#312E81' }]}>
           {/* Natural Skin Face */}
           <View style={rigStyles.skinFace}>
-            {/* Hair Bangs Top */}
-            <View style={rigStyles.haruBangs} />
+            {/* Bangs Top */}
+            <View style={rigStyles.teacherBangs} />
+
+            {/* Smart Glasses Frames */}
+            <View style={rigStyles.teacherGlasses}>
+              <View style={rigStyles.teacherGlassesLens} />
+              <View style={rigStyles.teacherGlassesBridge} />
+              <View style={rigStyles.teacherGlassesLens} />
+            </View>
 
             {/* Eyes */}
             <View style={{ marginTop: 28 }}>
@@ -375,7 +506,7 @@ function CharacterRig({ id, blinkAnim, lookX, lookY, mouthOpenY, mouthForm, isSp
               <View style={rigStyles.blushDot} />
             </View>
 
-            {/* Mouth */}
+            {/* Articulate Mouth */}
             <View style={{ marginTop: 12 }}>
               <DynamicMouth
                 mouthOpenY={mouthOpenY}
@@ -388,25 +519,24 @@ function CharacterRig({ id, blinkAnim, lookX, lookY, mouthOpenY, mouthForm, isSp
           </View>
         </View>
 
-        {/* Glowing Headphone Cups */}
-        <View style={[rigStyles.headphoneCupLeft, { backgroundColor: '#EC4899' }]} />
-        <View style={[rigStyles.headphoneCupRight, { backgroundColor: '#EC4899' }]} />
+        {/* Professional Teacher Cardigan Collar */}
+        <View style={rigStyles.teacherCollar} />
       </View>
     );
   }
 
-  // ── 2. CHITOSE (Pro Anime Male Business Coach - Matching Web Live2D) ──
-  if (norm.includes('chitose') || norm === 'male') {
+  // ── 2. MALE TEACHER (English Teacher - Chitose) ──
+  if (norm.includes('chitose') || norm.includes('maleteacher') || norm === 'male') {
     return (
       <View style={rigStyles.charContainer}>
-        {/* Layer 0: Brown Anime Hair Back */}
+        {/* Brown Anime Hair Back */}
         <View style={rigStyles.chitoseHairBack} />
 
         {/* Head Base */}
         <View style={[rigStyles.headBase, { backgroundColor: '#5D4037' }]}>
           {/* Natural Skin Face */}
           <View style={rigStyles.skinFace}>
-            {/* Side-swept Anime Bangs */}
+            {/* Side-swept Bangs */}
             <View style={rigStyles.chitoseBangs} />
 
             {/* Eyes */}
@@ -427,13 +557,66 @@ function CharacterRig({ id, blinkAnim, lookX, lookY, mouthOpenY, mouthForm, isSp
           </View>
         </View>
 
-        {/* Collar & Navy Suit Accent */}
-        <View style={rigStyles.chitoseCollar} />
+        {/* Formal Shirt Collar & Navy Suit Accent */}
+        <View style={rigStyles.chitoseCollar}>
+          <View style={rigStyles.chitoseTie} />
+        </View>
       </View>
     );
   }
 
-  // ── 3. ROBO-PAWS (Doraemon-Style Robot Cat Buddy) ──
+  // ── 3. SHIZUKA (Academic Mentor) ──
+  if (norm.includes('shizuk') || norm.includes('shizuka')) {
+    return (
+      <View style={rigStyles.charContainer}>
+        {/* Twin Pigtails with Pink Ribbon Clips */}
+        <View style={rigStyles.shizukaPigtailLeft}>
+          <View style={rigStyles.shizukaRibbonPink} />
+        </View>
+        <View style={rigStyles.shizukaPigtailRight}>
+          <View style={rigStyles.shizukaRibbonPink} />
+        </View>
+
+        {/* Hair Back */}
+        <View style={rigStyles.shizukaHairBack} />
+
+        {/* Head Base */}
+        <View style={[rigStyles.headBase, { backgroundColor: '#1E1B4B' }]}>
+          <View style={rigStyles.skinFace}>
+            {/* Gentle Bangs */}
+            <View style={rigStyles.shizukaBangs} />
+
+            {/* Gentle Smiling Eyes */}
+            <View style={{ marginTop: 28 }}>
+              <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
+            </View>
+
+            {/* Soft Blush */}
+            <View style={rigStyles.blushRow}>
+              <View style={[rigStyles.blushDot, { backgroundColor: 'rgba(244, 63, 94, 0.4)' }]} />
+              <View style={[rigStyles.blushDot, { backgroundColor: 'rgba(244, 63, 94, 0.4)' }]} />
+            </View>
+
+            {/* Sweet Encouraging Mouth */}
+            <View style={{ marginTop: 10 }}>
+              <DynamicMouth
+                mouthOpenY={mouthOpenY}
+                mouthForm={mouthForm}
+                isSpeaking={isSpeaking}
+                state={state}
+                themeColor="#FB7185"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Soft Pink Sweater Collar */}
+        <View style={rigStyles.shizukaCollar} />
+      </View>
+    );
+  }
+
+  // ── 4. DORAEMON (Doraemon Buddy - Robo-Paws) ──
   if (norm.includes('robo') || norm.includes('paws') || norm.includes('doraemon')) {
     return (
       <View style={rigStyles.charContainer}>
@@ -489,263 +672,294 @@ function CharacterRig({ id, blinkAnim, lookX, lookY, mouthOpenY, mouthForm, isSp
     );
   }
 
-  // ── 4. MOTU (Furfuri Nagar Samosa Friend) ──
-  if (norm.includes('motu')) {
+  // ── 5. SPONGEBOB (Sponge Buddy) ──
+  if (norm.includes('spongebob') || norm.includes('sponge') || norm.includes('bob')) {
     return (
       <View style={rigStyles.charContainer}>
-        {/* Bald Head with Side Hair Tufts */}
-        <View style={rigStyles.motuHairTuftLeft} />
-        <View style={rigStyles.motuHairTuftRight} />
+        {/* Yellow Sponge Rounded Rectangle Head */}
+        <View style={rigStyles.spongeHead}>
+          {/* Porous Sponge Texture Dips */}
+          <View style={rigStyles.spongePore1} />
+          <View style={rigStyles.spongePore2} />
+          <View style={rigStyles.spongePore3} />
 
-        {/* Round Chubby Head Base */}
-        <View style={[rigStyles.headBase, { backgroundColor: '#FDBA74', borderRadius: 75, width: 154, height: 148 }]}>
-          {/* Eyes */}
-          <View style={{ marginTop: 34 }}>
-            <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
+          {/* Big Round Blue Eyes with Lashes */}
+          <View style={{ marginTop: 14 }}>
+            <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="spongebob" />
           </View>
 
-          {/* Motu's Signature Big Black Moustache */}
-          <View style={rigStyles.motuMoustacheWrapper}>
-            <View style={rigStyles.motuMoustacheLeft} />
-            <View style={rigStyles.motuMoustacheRight} />
+          {/* Cute Sponge Nose */}
+          <View style={rigStyles.spongeNose} />
+
+          {/* Cheeks with Freckle Dots */}
+          <View style={rigStyles.spongeCheekLeft}>
+            <View style={rigStyles.spongeFreckle} />
+            <View style={rigStyles.spongeFreckle} />
+            <View style={rigStyles.spongeFreckle} />
+          </View>
+          <View style={rigStyles.spongeCheekRight}>
+            <View style={rigStyles.spongeFreckle} />
+            <View style={rigStyles.spongeFreckle} />
+            <View style={rigStyles.spongeFreckle} />
           </View>
 
-          {/* Mouth below Moustache */}
+          {/* Dynamic Lip-Sync Mouth with Two Separated Buck Teeth */}
           <View style={{ marginTop: 6 }}>
             <DynamicMouth
               mouthOpenY={mouthOpenY}
               mouthForm={mouthForm}
               isSpeaking={isSpeaking}
               state={state}
-              themeColor="#EA580C"
+              themeColor="#EAB308"
+              isSpongeBob={true}
             />
           </View>
 
-          {/* Red Vest Neckline */}
-          <View style={rigStyles.motuVest} />
+          {/* White Shirt Collar & Red Necktie */}
+          <View style={rigStyles.spongeShirtCollar}>
+            <View style={rigStyles.spongeTie} />
+          </View>
         </View>
       </View>
     );
   }
 
-  // ── 5. SPARKY (Superhero Kid with Lightning Emblem) ──
-  if (norm.includes('sparky')) {
+  // ── 6. CHHOTA BHEEM (Dholakpur Hero - Sparky) ──
+  if (norm.includes('bheem') || norm.includes('sparky') || norm.includes('motu')) {
     return (
       <View style={rigStyles.charContainer}>
-        {/* Spiky Superhero Hair */}
-        <View style={rigStyles.spikyHair} />
+        {/* Heroic Black Hair Tuft on Top */}
+        <View style={rigStyles.bheemHairTuft} />
 
-        {/* Head */}
-        <View style={[rigStyles.headBase, { backgroundColor: '#FED7AA' }]}>
-          {/* Red Superhero Eye Mask */}
-          <View style={rigStyles.superheroMask}>
-            <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
-          </View>
+        {/* Round Head Base - Warm Golden Skin Tone */}
+        <View style={[rigStyles.headBase, { backgroundColor: '#F59E0B', borderRadius: 76, width: 154, height: 150 }]}>
+          {/* Natural Golden Face */}
+          <View style={[rigStyles.skinFace, { backgroundColor: '#FBBF24' }]}>
+            {/* Iconic Red Vertical Tilak with Gold Accent */}
+            <View style={rigStyles.bheemTilak}>
+              <View style={rigStyles.bheemTilakGold} />
+            </View>
 
-          {/* Determined Smile Mouth */}
-          <View style={{ marginTop: 14 }}>
-            <DynamicMouth
-              mouthOpenY={mouthOpenY}
-              mouthForm={mouthForm}
-              isSpeaking={isSpeaking}
-              state={state}
-              themeColor="#EF4444"
-            />
-          </View>
-        </View>
-
-        {/* Cape Collars */}
-        <View style={rigStyles.superheroCape} />
-      </View>
-    );
-  }
-
-  // ── 6. WANKO (Shiba Inu Puppy Mascot) ──
-  if (norm.includes('wanko') || norm.includes('dog') || norm.includes('shiba')) {
-    return (
-      <View style={rigStyles.charContainer}>
-        {/* Shiba Ears */}
-        <View style={rigStyles.shibaEarLeft} />
-        <View style={rigStyles.shibaEarRight} />
-
-        {/* Golden Shiba Head */}
-        <View style={[rigStyles.headBase, { backgroundColor: '#D97706', borderRadius: 75, width: 150, height: 144 }]}>
-          {/* White Fur Cheeks & Muzzle */}
-          <View style={rigStyles.shibaWhiteMuzzle}>
-            {/* Eyes */}
-            <View style={{ marginTop: 16 }}>
+            {/* Heroic Determined Eyes */}
+            <View style={{ marginTop: 24 }}>
               <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
             </View>
 
-            {/* Black Snout Nose */}
-            <View style={rigStyles.dogBlackNose} />
+            {/* Cheerful Brave Smile Mouth */}
+            <View style={{ marginTop: 12 }}>
+              <DynamicMouth
+                mouthOpenY={mouthOpenY}
+                mouthForm={mouthForm}
+                isSpeaking={isSpeaking}
+                state={state}
+                themeColor="#EA580C"
+              />
+            </View>
 
-            {/* Mouth */}
+            {/* Golden Royal Necklace & Orange Dhoti Sash Collar */}
+            <View style={rigStyles.bheemGoldNecklace}>
+              <View style={rigStyles.bheemOrangeSash} />
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // ── 7. NINJA HATTORI (Ninja Hero - Koharu) ──
+  if (norm.includes('hattori') || norm.includes('ninja') || norm.includes('koharu')) {
+    return (
+      <View style={rigStyles.charContainer}>
+        {/* Royal Blue Ninja Cowl / Hood Base */}
+        <View style={[rigStyles.headBase, { backgroundColor: '#1D4ED8', borderRadius: 78, width: 156, height: 152 }]}>
+          {/* White Headband with Ninja Crest */}
+          <View style={rigStyles.hattoriHeadband}>
+            <View style={rigStyles.hattoriNinjaStar} />
+          </View>
+
+          {/* Enclosed Face Oval */}
+          <View style={rigStyles.hattoriFaceHole}>
+            {/* Big Expressive Ninja Eyes */}
+            <View style={{ marginTop: 18 }}>
+              <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
+            </View>
+
+            {/* Iconic Red Spiral Cheek Swirls (🌀) */}
+            <View style={rigStyles.hattoriCheekLeft}>
+              <View style={rigStyles.hattoriSpiralOuter} />
+              <View style={rigStyles.hattoriSpiralInner} />
+            </View>
+            <View style={rigStyles.hattoriCheekRight}>
+              <View style={rigStyles.hattoriSpiralOuter} />
+              <View style={rigStyles.hattoriSpiralInner} />
+            </View>
+
+            {/* Disciplined Ninja Mouth */}
             <View style={{ marginTop: 8 }}>
               <DynamicMouth
                 mouthOpenY={mouthOpenY}
                 mouthForm={mouthForm}
                 isSpeaking={isSpeaking}
                 state={state}
-                themeColor="#FBBF24"
+                themeColor="#3B82F6"
               />
             </View>
           </View>
 
-          {/* Green Bandana */}
-          <View style={rigStyles.shibaBandana} />
+          {/* White Ninja Neck Scarf Wrap */}
+          <View style={rigStyles.hattoriNeckScarf} />
         </View>
       </View>
     );
   }
 
-  // ── 7. KOHARU (Chibi Student with Twin Ribbon Buns) ──
-  if (norm.includes('koharu') || norm.includes('ribbon')) {
+  // ── 8. TOM (Cartoon Cat - Haruto) ──
+  if (norm.includes('tom') || norm.includes('haruto') || norm.includes('tororo')) {
     return (
       <View style={rigStyles.charContainer}>
-        {/* Twin Hair Ribbon Buns */}
-        <View style={rigStyles.bunLeft}>
-          <View style={rigStyles.ribbonPink} />
+        {/* Pointy Cat Ears */}
+        <View style={rigStyles.tomEarLeft}>
+          <View style={rigStyles.tomEarInner} />
         </View>
-        <View style={rigStyles.bunRight}>
-          <View style={rigStyles.ribbonPink} />
+        <View style={rigStyles.tomEarRight}>
+          <View style={rigStyles.tomEarInner} />
         </View>
 
-        {/* Head */}
-        <View style={[rigStyles.headBase, { backgroundColor: '#FDE047' }]}>
-          <View style={rigStyles.skinFace}>
-            <View style={rigStyles.koharuBangs} />
-
-            {/* Big Expressive Eyes */}
-            <View style={{ marginTop: 28 }}>
-              <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
+        {/* Blue-Slate Cat Head */}
+        <View style={[rigStyles.headBase, { backgroundColor: '#64748B', borderRadius: 75, width: 152, height: 144 }]}>
+          {/* White Muzzle Cheeks */}
+          <View style={rigStyles.tomFaceMuzzle}>
+            {/* Witty Cat Eyes */}
+            <View style={{ marginTop: 18 }}>
+              <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="cat" />
             </View>
 
-            <View style={rigStyles.blushRow}>
-              <View style={[rigStyles.blushDot, { backgroundColor: 'rgba(244, 63, 94, 0.45)' }]} />
-              <View style={[rigStyles.blushDot, { backgroundColor: 'rgba(244, 63, 94, 0.45)' }]} />
+            {/* Small Black Cat Nose */}
+            <View style={rigStyles.tomNose} />
+
+            {/* Whiskers */}
+            <View style={rigStyles.tomWhiskersLeft}>
+              <View style={[rigStyles.tomWhisker, { transform: [{ rotate: '8deg' }] }]} />
+              <View style={[rigStyles.tomWhisker, { transform: [{ rotate: '-8deg' }] }]} />
+            </View>
+            <View style={rigStyles.tomWhiskersRight}>
+              <View style={[rigStyles.tomWhisker, { transform: [{ rotate: '-8deg' }] }]} />
+              <View style={[rigStyles.tomWhisker, { transform: [{ rotate: '8deg' }] }]} />
             </View>
 
-            <View style={{ marginTop: 10 }}>
+            {/* Feline Mouth */}
+            <View style={{ marginTop: 6 }}>
               <DynamicMouth
                 mouthOpenY={mouthOpenY}
                 mouthForm={mouthForm}
                 isSpeaking={isSpeaking}
                 state={state}
-                themeColor="#FB7185"
+                themeColor="#94A3B8"
+              />
+            </View>
+          </View>
+
+          {/* Red Cat Collar Accent */}
+          <View style={rigStyles.tomCollar}>
+            <View style={rigStyles.tomGoldTag} />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  // ── 9. BEN 10 (Alien Hero - Mao) ──
+  if (norm.includes('ben') || norm.includes('mao') || norm.includes('rexy')) {
+    return (
+      <View style={rigStyles.charContainer}>
+        {/* Shaggy Brown Hair Tuft */}
+        <View style={rigStyles.benHairTop} />
+
+        {/* Head Base */}
+        <View style={[rigStyles.headBase, { backgroundColor: '#78350F' }]}>
+          {/* Natural Skin Face */}
+          <View style={rigStyles.skinFace}>
+            {/* Bangs */}
+            <View style={rigStyles.benBangs} />
+
+            {/* Striking Green Eyes */}
+            <View style={{ marginTop: 28 }}>
+              <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="green" />
+            </View>
+
+            {/* High-Energy Hero Mouth */}
+            <View style={{ marginTop: 14 }}>
+              <DynamicMouth
+                mouthOpenY={mouthOpenY}
+                mouthForm={mouthForm}
+                isSpeaking={isSpeaking}
+                state={state}
+                themeColor="#10B981"
               />
             </View>
           </View>
         </View>
-      </View>
-    );
-  }
 
-  // ── 8. HARUTO (Junior Explorer Boy with Cap) ──
-  if (norm.includes('haruto') || norm.includes('cap') || norm.includes('explorer')) {
-    return (
-      <View style={rigStyles.charContainer}>
-        {/* Backwards Baseball Cap */}
-        <View style={rigStyles.backwardsCap}>
-          <View style={rigStyles.capVisor} />
-        </View>
-
-        {/* Head */}
-        <View style={[rigStyles.headBase, { backgroundColor: '#FED7AA' }]}>
-          <View style={{ marginTop: 36 }}>
-            <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
-          </View>
-
-          <View style={{ marginTop: 14 }}>
-            <DynamicMouth
-              mouthOpenY={mouthOpenY}
-              mouthForm={mouthForm}
-              isSpeaking={isSpeaking}
-              state={state}
-              themeColor="#3B82F6"
-            />
-          </View>
-        </View>
-
-        {/* Sporty Headphones around neck */}
-        <View style={rigStyles.neckHeadphones} />
-      </View>
-    );
-  }
-
-  // ── 9. TORORO (Sakura Kitten with Bell) ──
-  if (norm.includes('tororo') || norm.includes('cat') || norm.includes('kitty')) {
-    return (
-      <View style={rigStyles.charContainer}>
-        {/* Cat Ears */}
-        <View style={rigStyles.catEarLeft}>
-          <View style={rigStyles.catEarInner} />
-        </View>
-        <View style={rigStyles.catEarRight}>
-          <View style={rigStyles.catEarInner} />
-        </View>
-
-        {/* Fluffy White Face */}
-        <View style={[rigStyles.headBase, { backgroundColor: '#FFFFFF', borderRadius: 75, width: 150, height: 140 }]}>
-          {/* Big Anime Cat Eyes */}
-          <View style={{ marginTop: 24 }}>
-            <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
-          </View>
-
-          {/* Tiny Pink Nose */}
-          <View style={rigStyles.catPinkNose} />
-
-          {/* Mouth */}
-          <View style={{ marginTop: 8 }}>
-            <DynamicMouth
-              mouthOpenY={mouthOpenY}
-              mouthForm={mouthForm}
-              isSpeaking={isSpeaking}
-              state={state}
-              themeColor="#C084FC"
-            />
-          </View>
-
-          {/* Pink Bow & Bell Ribbon */}
-          <View style={rigStyles.catBowRibbon}>
-            <View style={rigStyles.catBellGold} />
+        {/* Hero Jacket Collar & Omnitrix Chest Emblem */}
+        <View style={rigStyles.benJacket}>
+          <View style={rigStyles.omnitrixBadge}>
+            <View style={rigStyles.omnitrixHourglass} />
           </View>
         </View>
       </View>
     );
   }
 
-  // ── 10. REXY (Baby Dinosaur Mascot) ──
+  // ── 10. SCOOBY-DOO (Mystery Pup - Puppy) ──
   return (
     <View style={rigStyles.charContainer}>
-      {/* Dino Crest Spikes */}
-      <View style={rigStyles.dinoSpikeTop} />
-      <View style={rigStyles.dinoSpikeLeft} />
-      <View style={rigStyles.dinoSpikeRight} />
+      {/* Floppy Great Dane Ears */}
+      <View style={rigStyles.scoobyEarLeft} />
+      <View style={rigStyles.scoobyEarRight} />
 
-      {/* Emerald Dino Head */}
-      <View style={[rigStyles.headBase, { backgroundColor: '#10B981', borderRadius: 70, width: 154, height: 146 }]}>
-        {/* Yellow Muzzle Underbelly */}
-        <View style={rigStyles.dinoMuzzleYellow}>
-          <View style={{ marginTop: 18 }}>
+      {/* Tan / Warm Brown Dog Head */}
+      <View style={[rigStyles.headBase, { backgroundColor: '#B45309', borderRadius: 74, width: 152, height: 146 }]}>
+        {/* Black Eyebrow Patch */}
+        <View style={rigStyles.scoobyEyebrowPatch} />
+
+        {/* White / Tan Muzzle Area */}
+        <View style={rigStyles.scoobyMuzzle}>
+          {/* Friendly Pup Eyes */}
+          <View style={{ marginTop: 16 }}>
             <DynamicEyes blinkAnim={blinkAnim} lookX={lookX} lookY={lookY} eyeType="anime" />
           </View>
 
-          {/* Nostrils */}
-          <View style={rigStyles.dinoNostrils}>
-            <View style={rigStyles.dinoNostrilDot} />
-            <View style={rigStyles.dinoNostrilDot} />
+          {/* Big Black Snout Nose */}
+          <View style={rigStyles.scoobyNose}>
+            <View style={rigStyles.scoobyNoseGleam} />
           </View>
 
-          {/* Mouth */}
+          {/* Whisker Freckle Dots */}
+          <View style={rigStyles.scoobyWhiskerDotsLeft}>
+            <View style={rigStyles.scoobyDot} />
+            <View style={rigStyles.scoobyDot} />
+          </View>
+          <View style={rigStyles.scoobyWhiskerDotsRight}>
+            <View style={rigStyles.scoobyDot} />
+            <View style={rigStyles.scoobyDot} />
+          </View>
+
+          {/* Playful Mouth */}
           <View style={{ marginTop: 6 }}>
             <DynamicMouth
               mouthOpenY={mouthOpenY}
               mouthForm={mouthForm}
               isSpeaking={isSpeaking}
               state={state}
-              themeColor="#34D399"
+              themeColor="#D97706"
             />
+          </View>
+        </View>
+
+        {/* Turquoise Collar with Golden SD Diamond Tag */}
+        <View style={rigStyles.scoobyCollar}>
+          <View style={rigStyles.scoobyTagDiamond}>
+            <Text style={rigStyles.scoobyTagText}>SD</Text>
           </View>
         </View>
       </View>
@@ -783,53 +997,56 @@ const rigStyles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
   },
-  haruHairBack: {
+  teacherHairBack: {
     position: 'absolute',
-    top: -12,
+    top: -14,
     width: 160,
     height: 160,
     borderRadius: 80,
     backgroundColor: '#312E81',
   },
-  haruBangs: {
+  teacherBangs: {
     position: 'absolute',
     top: -6,
-    width: 150,
+    width: 148,
     height: 38,
     backgroundColor: '#312E81',
     borderBottomLeftRadius: 24,
     borderBottomRightRadius: 24,
-  },
-  headphoneBand: {
-    position: 'absolute',
-    top: -8,
-    width: 156,
-    height: 48,
-    borderTopWidth: 6,
-    borderColor: '#1E1B4B',
-    borderRadius: 30,
     zIndex: 10,
   },
-  headphoneCupLeft: {
+  teacherGlasses: {
     position: 'absolute',
-    left: -2,
-    top: 50,
-    width: 22,
-    height: 44,
-    borderRadius: 11,
-    borderWidth: 2.5,
-    borderColor: '#0F172A',
-    zIndex: 12,
+    top: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 15,
   },
-  headphoneCupRight: {
+  teacherGlassesLens: {
+    width: 44,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: '#4338CA',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  teacherGlassesBridge: {
+    width: 14,
+    height: 3,
+    backgroundColor: '#4338CA',
+  },
+  teacherCollar: {
     position: 'absolute',
-    right: -2,
-    top: 50,
-    width: 22,
-    height: 44,
-    borderRadius: 11,
-    borderWidth: 2.5,
-    borderColor: '#0F172A',
+    bottom: -12,
+    alignSelf: 'center',
+    width: 100,
+    height: 20,
+    backgroundColor: '#4338CA',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
     zIndex: 12,
   },
   blushRow: {
@@ -876,6 +1093,75 @@ const rigStyles = StyleSheet.create({
     backgroundColor: '#1E293B',
     borderTopLeftRadius: 6,
     borderTopRightRadius: 6,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+    zIndex: 12,
+  },
+  chitoseTie: {
+    width: 14,
+    height: 18,
+    backgroundColor: '#3B82F6',
+    borderRadius: 3,
+    alignSelf: 'center',
+    marginTop: 2,
+  },
+  shizukaPigtailLeft: {
+    position: 'absolute',
+    left: -12,
+    top: 36,
+    width: 32,
+    height: 48,
+    backgroundColor: '#1E1B4B',
+    borderRadius: 16,
+    zIndex: 0,
+    alignItems: 'center',
+  },
+  shizukaPigtailRight: {
+    position: 'absolute',
+    right: -12,
+    top: 36,
+    width: 32,
+    height: 48,
+    backgroundColor: '#1E1B4B',
+    borderRadius: 16,
+    zIndex: 0,
+    alignItems: 'center',
+  },
+  shizukaRibbonPink: {
+    width: 14,
+    height: 10,
+    backgroundColor: '#EC4899',
+    borderRadius: 4,
+    marginTop: -4,
+  },
+  shizukaHairBack: {
+    position: 'absolute',
+    top: -14,
+    width: 156,
+    height: 156,
+    borderRadius: 78,
+    backgroundColor: '#1E1B4B',
+    zIndex: 1,
+  },
+  shizukaBangs: {
+    position: 'absolute',
+    top: -4,
+    width: 144,
+    height: 36,
+    backgroundColor: '#1E1B4B',
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
+    zIndex: 10,
+  },
+  shizukaCollar: {
+    position: 'absolute',
+    bottom: -10,
+    alignSelf: 'center',
+    width: 96,
+    height: 18,
+    backgroundColor: '#FB7185',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
     borderBottomLeftRadius: 14,
     borderBottomRightRadius: 14,
     zIndex: 12,
@@ -963,324 +1249,498 @@ const rigStyles = StyleSheet.create({
     backgroundColor: '#0F172A',
     borderRadius: 2,
   },
-  motuHairTuftLeft: {
-    position: 'absolute',
-    left: 4,
-    top: 48,
-    width: 16,
-    height: 24,
-    backgroundColor: '#18181B',
-    borderRadius: 8,
-  },
-  motuHairTuftRight: {
-    position: 'absolute',
-    right: 4,
-    top: 48,
-    width: 16,
-    height: 24,
-    backgroundColor: '#18181B',
-    borderRadius: 8,
-  },
-  motuMoustacheWrapper: {
-    flexDirection: 'row',
-    marginTop: 6,
-    alignItems: 'center',
-  },
-  motuMoustacheLeft: {
-    width: 26,
-    height: 14,
-    backgroundColor: '#18181B',
-    borderTopLeftRadius: 12,
-    borderBottomRightRadius: 10,
-    transform: [{ rotate: '15deg' }],
-  },
-  motuMoustacheRight: {
-    width: 26,
-    height: 14,
-    backgroundColor: '#18181B',
-    borderTopRightRadius: 12,
-    borderBottomLeftRadius: 10,
-    transform: [{ rotate: '-15deg' }],
-  },
-  motuVest: {
-    position: 'absolute',
-    bottom: -2,
-    width: 110,
-    height: 16,
-    backgroundColor: '#DC2626',
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  spikyHair: {
-    position: 'absolute',
-    top: -12,
-    width: 130,
-    height: 42,
-    backgroundColor: '#92400E',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    zIndex: 5,
-  },
-  superheroMask: {
-    marginTop: 26,
-    width: 136,
-    height: 48,
-    backgroundColor: '#DC2626',
-    borderRadius: 22,
-    borderWidth: 2.5,
+  spongeHead: {
+    width: 148,
+    height: 144,
+    backgroundColor: '#FDE047',
+    borderRadius: 24,
+    borderWidth: 3.5,
     borderColor: '#0F172A',
     alignItems: 'center',
-    justifyContent: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 8,
   },
-  superheroCape: {
+  spongePore1: {
     position: 'absolute',
-    bottom: -8,
-    width: 138,
+    top: 14,
+    left: 12,
+    width: 18,
+    height: 18,
+    backgroundColor: '#CA8A04',
+    opacity: 0.35,
+    borderRadius: 9,
+  },
+  spongePore2: {
+    position: 'absolute',
+    bottom: 22,
+    right: 14,
+    width: 22,
+    height: 22,
+    backgroundColor: '#CA8A04',
+    opacity: 0.35,
+    borderRadius: 11,
+  },
+  spongePore3: {
+    position: 'absolute',
+    top: 50,
+    right: 10,
+    width: 14,
     height: 14,
-    backgroundColor: '#DC2626',
+    backgroundColor: '#CA8A04',
+    opacity: 0.35,
+    borderRadius: 7,
+  },
+  spongeNose: {
+    width: 14,
+    height: 20,
+    backgroundColor: '#FACC15',
     borderRadius: 7,
     borderWidth: 2,
     borderColor: '#0F172A',
+    marginTop: -4,
   },
-  shibaEarLeft: {
+  spongeCheekLeft: {
+    position: 'absolute',
+    left: 14,
+    top: 66,
+    width: 28,
+    height: 18,
+    borderRadius: 10,
+    backgroundColor: 'rgba(239, 68, 68, 0.25)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  spongeCheekRight: {
+    position: 'absolute',
+    right: 14,
+    top: 66,
+    width: 28,
+    height: 18,
+    borderRadius: 10,
+    backgroundColor: 'rgba(239, 68, 68, 0.25)',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  spongeFreckle: {
+    width: 3,
+    height: 3,
+    backgroundColor: '#DC2626',
+    borderRadius: 2,
+  },
+  spongeShirtCollar: {
+    position: 'absolute',
+    bottom: -2,
+    width: 130,
+    height: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 6,
+    borderTopRightRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spongeTie: {
+    width: 12,
+    height: 14,
+    backgroundColor: '#DC2626',
+    borderRadius: 2,
+  },
+  bheemHairTuft: {
+    position: 'absolute',
+    top: -12,
+    width: 32,
+    height: 28,
+    backgroundColor: '#1E1B4B',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    zIndex: 6,
+  },
+  bheemTilak: {
+    position: 'absolute',
+    top: 14,
+    alignSelf: 'center',
+    width: 8,
+    height: 22,
+    backgroundColor: '#DC2626',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  bheemTilakGold: {
+    width: 4,
+    height: 8,
+    backgroundColor: '#FACC15',
+    borderRadius: 2,
+  },
+  bheemGoldNecklace: {
+    position: 'absolute',
+    bottom: -10,
+    alignSelf: 'center',
+    width: 104,
+    height: 20,
+    backgroundColor: '#F59E0B',
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#78350F',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 12,
+  },
+  bheemOrangeSash: {
+    width: 24,
+    height: 12,
+    backgroundColor: '#EA580C',
+    borderRadius: 4,
+  },
+  hattoriHeadband: {
+    position: 'absolute',
+    top: 8,
+    alignSelf: 'center',
+    width: 136,
+    height: 20,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 12,
+  },
+  hattoriNinjaStar: {
+    width: 12,
+    height: 12,
+    backgroundColor: '#DC2626',
+    borderRadius: 2,
+    transform: [{ rotate: '45deg' }],
+  },
+  hattoriFaceHole: {
+    width: 122,
+    height: 102,
+    backgroundColor: '#FED7AA',
+    borderRadius: 50,
+    position: 'absolute',
+    bottom: 12,
+    alignItems: 'center',
+    borderWidth: 2.5,
+    borderColor: '#0F172A',
+    overflow: 'hidden',
+  },
+  hattoriCheekLeft: {
     position: 'absolute',
     left: 10,
-    top: -12,
-    width: 38,
-    height: 44,
-    backgroundColor: '#D97706',
-    borderTopLeftRadius: 24,
+    top: 50,
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hattoriCheekRight: {
+    position: 'absolute',
+    right: 10,
+    top: 50,
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hattoriSpiralOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2.5,
+    borderColor: '#DC2626',
+    borderTopColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hattoriSpiralInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#DC2626',
+    borderBottomColor: 'transparent',
+  },
+  hattoriNeckScarf: {
+    position: 'absolute',
+    bottom: -8,
+    alignSelf: 'center',
+    width: 110,
+    height: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#0F172A',
+    zIndex: 14,
+  },
+  tomEarLeft: {
+    position: 'absolute',
+    left: 8,
+    top: -16,
+    width: 42,
+    height: 50,
+    backgroundColor: '#64748B',
+    borderTopLeftRadius: 26,
     borderTopRightRadius: 6,
     borderWidth: 3,
     borderColor: '#0F172A',
-    transform: [{ rotate: '-20deg' }],
+    transform: [{ rotate: '-16deg' }],
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 0,
   },
-  shibaEarRight: {
+  tomEarRight: {
     position: 'absolute',
-    right: 10,
-    top: -12,
-    width: 38,
-    height: 44,
-    backgroundColor: '#D97706',
-    borderTopRightRadius: 24,
+    right: 8,
+    top: -16,
+    width: 42,
+    height: 50,
+    backgroundColor: '#64748B',
+    borderTopRightRadius: 26,
     borderTopLeftRadius: 6,
     borderWidth: 3,
     borderColor: '#0F172A',
-    transform: [{ rotate: '20deg' }],
+    transform: [{ rotate: '16deg' }],
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 0,
   },
-  shibaWhiteMuzzle: {
+  tomEarInner: {
+    width: 22,
+    height: 30,
+    backgroundColor: '#FDA4AF',
+    borderRadius: 12,
+  },
+  tomFaceMuzzle: {
+    width: 136,
+    height: 112,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 56,
     position: 'absolute',
-    bottom: 2,
-    width: 126,
-    height: 104,
-    backgroundColor: '#FEF3C7',
-    borderRadius: 55,
+    bottom: 4,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#0F172A',
+    overflow: 'hidden',
   },
-  dogBlackNose: {
-    width: 18,
-    height: 12,
+  tomNose: {
+    width: 12,
+    height: 9,
     backgroundColor: '#0F172A',
-    borderRadius: 6,
-    marginTop: -4,
-  },
-  shibaBandana: {
-    position: 'absolute',
-    bottom: -6,
-    width: 90,
-    height: 14,
-    backgroundColor: '#10B981',
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: '#0F172A',
-  },
-  bunLeft: {
-    position: 'absolute',
-    left: 2,
-    top: 4,
-    width: 36,
-    height: 36,
-    backgroundColor: '#92400E',
-    borderRadius: 18,
-    borderWidth: 2.5,
-    borderColor: '#0F172A',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 6,
-  },
-  bunRight: {
-    position: 'absolute',
-    right: 2,
-    top: 4,
-    width: 36,
-    height: 36,
-    backgroundColor: '#92400E',
-    borderRadius: 18,
-    borderWidth: 2.5,
-    borderColor: '#0F172A',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 6,
-  },
-  ribbonPink: {
-    width: 14,
-    height: 8,
-    backgroundColor: '#F43F5E',
-    borderRadius: 4,
-  },
-  koharuBangs: {
-    position: 'absolute',
-    top: -4,
-    width: 144,
-    height: 34,
-    backgroundColor: '#92400E',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-  },
-  backwardsCap: {
-    position: 'absolute',
-    top: -14,
-    width: 140,
-    height: 48,
-    backgroundColor: '#2563EB',
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    borderWidth: 3,
-    borderColor: '#0F172A',
-    zIndex: 6,
-  },
-  capVisor: {
-    position: 'absolute',
-    bottom: -4,
-    width: 110,
-    height: 10,
-    backgroundColor: '#1E40AF',
     borderRadius: 5,
-    alignSelf: 'center',
+    marginTop: -2,
   },
-  neckHeadphones: {
-    position: 'absolute',
-    bottom: -8,
-    width: 118,
-    height: 14,
-    backgroundColor: '#18181B',
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: '#0F172A',
-  },
-  catEarLeft: {
+  tomWhiskersLeft: {
     position: 'absolute',
     left: 8,
-    top: -10,
-    width: 36,
-    height: 40,
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 22,
-    borderWidth: 3,
-    borderColor: '#0F172A',
-    transform: [{ rotate: '-18deg' }],
-    alignItems: 'center',
-    justifyContent: 'center',
+    top: 48,
+    gap: 8,
   },
-  catEarRight: {
+  tomWhiskersRight: {
     position: 'absolute',
     right: 8,
-    top: -10,
-    width: 36,
-    height: 40,
-    backgroundColor: '#FFFFFF',
-    borderTopRightRadius: 22,
-    borderWidth: 3,
-    borderColor: '#0F172A',
-    transform: [{ rotate: '18deg' }],
-    alignItems: 'center',
-    justifyContent: 'center',
+    top: 48,
+    gap: 8,
   },
-  catEarInner: {
-    width: 18,
-    height: 22,
-    backgroundColor: '#F472B6',
-    borderRadius: 10,
+  tomWhisker: {
+    width: 22,
+    height: 2,
+    backgroundColor: '#0F172A',
+    borderRadius: 1,
   },
-  catPinkNose: {
-    width: 10,
-    height: 8,
-    backgroundColor: '#F43F5E',
-    borderRadius: 4,
-    marginTop: 4,
-  },
-  catBowRibbon: {
+  tomCollar: {
     position: 'absolute',
-    bottom: -6,
-    width: 70,
-    height: 12,
-    backgroundColor: '#EC4899',
-    borderRadius: 6,
+    bottom: -8,
+    alignSelf: 'center',
+    width: 100,
+    height: 14,
+    backgroundColor: '#EF4444',
+    borderRadius: 7,
     borderWidth: 2,
     borderColor: '#0F172A',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 12,
   },
-  catBellGold: {
-    width: 12,
-    height: 12,
+  tomGoldTag: {
+    width: 10,
+    height: 10,
     backgroundColor: '#FACC15',
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: '#0F172A',
+    borderRadius: 5,
   },
-  dinoSpikeTop: {
+  benHairTop: {
     position: 'absolute',
     top: -14,
-    width: 24,
-    height: 24,
-    backgroundColor: '#047857',
-    transform: [{ rotate: '45deg' }],
-    zIndex: 2,
+    width: 150,
+    height: 46,
+    backgroundColor: '#78350F',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    zIndex: 4,
   },
-  dinoSpikeLeft: {
+  benBangs: {
+    position: 'absolute',
+    top: -4,
+    width: 142,
+    height: 34,
+    backgroundColor: '#78350F',
+    borderBottomLeftRadius: 18,
+    borderBottomRightRadius: 18,
+    zIndex: 10,
+  },
+  benJacket: {
+    position: 'absolute',
+    bottom: -12,
+    alignSelf: 'center',
+    width: 110,
+    height: 20,
+    backgroundColor: '#15803D',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 12,
+  },
+  omnitrixBadge: {
+    width: 18,
+    height: 18,
+    backgroundColor: '#0F172A',
+    borderRadius: 9,
+    borderWidth: 1.5,
+    borderColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  omnitrixHourglass: {
+    width: 8,
+    height: 8,
+    backgroundColor: '#10B981',
+    transform: [{ rotate: '45deg' }],
+  },
+  scoobyEarLeft: {
     position: 'absolute',
     left: 2,
     top: 6,
-    width: 20,
-    height: 20,
-    backgroundColor: '#047857',
-    transform: [{ rotate: '45deg' }],
-    zIndex: 2,
+    width: 32,
+    height: 60,
+    backgroundColor: '#92400E',
+    borderTopLeftRadius: 18,
+    borderBottomLeftRadius: 18,
+    transform: [{ rotate: '15deg' }],
+    zIndex: 0,
   },
-  dinoSpikeRight: {
+  scoobyEarRight: {
     position: 'absolute',
     right: 2,
     top: 6,
-    width: 20,
-    height: 20,
-    backgroundColor: '#047857',
-    transform: [{ rotate: '45deg' }],
-    zIndex: 2,
+    width: 32,
+    height: 60,
+    backgroundColor: '#92400E',
+    borderTopRightRadius: 18,
+    borderBottomRightRadius: 18,
+    transform: [{ rotate: '-15deg' }],
+    zIndex: 0,
   },
-  dinoMuzzleYellow: {
+  scoobyEyebrowPatch: {
+    position: 'absolute',
+    top: 14,
+    alignSelf: 'center',
+    width: 90,
+    height: 12,
+    backgroundColor: '#78350F',
+    borderRadius: 6,
+    opacity: 0.3,
+  },
+  scoobyMuzzle: {
+    width: 130,
+    height: 104,
+    backgroundColor: '#D97706',
+    borderRadius: 52,
     position: 'absolute',
     bottom: 2,
-    width: 136,
-    height: 104,
-    backgroundColor: '#A7F3D0',
-    borderRadius: 52,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#0F172A',
+    overflow: 'hidden',
   },
-  dinoNostrils: {
+  scoobyNose: {
+    width: 24,
+    height: 16,
+    backgroundColor: '#0F172A',
+    borderRadius: 8,
+    marginTop: -4,
+    position: 'relative',
+    alignItems: 'center',
+  },
+  scoobyNoseGleam: {
+    position: 'absolute',
+    top: 2,
+    left: 4,
+    width: 6,
+    height: 4,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
+  },
+  scoobyWhiskerDotsLeft: {
+    position: 'absolute',
+    left: 22,
+    top: 48,
     flexDirection: 'row',
-    gap: 16,
-    marginTop: 4,
+    gap: 4,
   },
-  dinoNostrilDot: {
-    width: 5,
-    height: 5,
-    backgroundColor: '#047857',
-    borderRadius: 3,
+  scoobyWhiskerDotsRight: {
+    position: 'absolute',
+    right: 22,
+    top: 48,
+    flexDirection: 'row',
+    gap: 4,
+  },
+  scoobyDot: {
+    width: 3.5,
+    height: 3.5,
+    backgroundColor: '#0F172A',
+    borderRadius: 2,
+  },
+  scoobyCollar: {
+    position: 'absolute',
+    bottom: -8,
+    alignSelf: 'center',
+    width: 108,
+    height: 16,
+    backgroundColor: '#06B6D4',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 12,
+  },
+  scoobyTagDiamond: {
+    width: 16,
+    height: 16,
+    backgroundColor: '#FACC15',
+    transform: [{ rotate: '45deg' }],
+    borderWidth: 1.5,
+    borderColor: '#0F172A',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoobyTagText: {
+    fontSize: 7,
+    fontWeight: '900',
+    color: '#0F172A',
+    transform: [{ rotate: '-45deg' }],
   },
 });
 
