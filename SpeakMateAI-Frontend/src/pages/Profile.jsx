@@ -228,23 +228,32 @@ export function Profile() {
       return;
     }
     setPlayingTutor(av.id);
-    const greetingText = av.id === 'spongebob'
-      ? "Hey! It's really nice to meet you! Let's practice English together!"
-      : (av.id === 'sparky' || av.id === 'bheem')
-      ? "Hello! I am Chhota Bheem from Dholakpur! Let's practice English together!"
-      : (av.id === 'mao' || av.id === 'ben' || av.id === 'ben10')
-      ? "Hello! I'm Ben 10! It's hero time! Let's practice English together!"
-      : (av.id === 'robopaws' || av.id === 'doraemon')
-      ? "Hii, I am Dohraymon, your AI speaking coach. Let's practice English together!"
-      : (av.id === 'shizuku' || av.id === 'shizuka')
-      ? "Hii, I am Shizuka, your AI speaking coach. Let's practice English together!"
-      : (av.id === 'haru' || av.id === 'teacher')
-      ? "Hello! Welcome to SpeakMate. Today, we are going to practice speaking clearly and confidently."
-      : (av.id === 'chitose')
-      ? "Hello! Welcome to SpeakMate. Today, we are going to practice speaking clearly and confidently in English."
-      : `Hii, I am ${av.name}, your AI speaking coach. Let's practice English together!`;
+    const greetingText =
+      av.id === 'spongebob'
+        ? "Hey! It's really nice to meet you! Let's practice English together!"
+        : (av.id === 'sparky' || av.id === 'bheem' || av.id === 'chhotabheem')
+        ? "Hello! I am Chhota Bheem from Dholakpur! Let's practice English together!"
+        : (av.id === 'mao' || av.id === 'ben' || av.id === 'ben10')
+        ? "Hello! I'm Ben 10! It's hero time! Let's practice English together!"
+        : (av.id === 'robopaws' || av.id === 'doraemon')
+        ? "Hii, I am Dohraymon, your AI speaking coach. Let's practice English together!"
+        : (av.id === 'shizuku' || av.id === 'shizuka')
+        ? "Hii, I am Shizuka, your AI speaking coach. Let's practice English together!"
+        : (av.id === 'koharu' || av.id === 'hattori' || av.id === 'ninjahattori')
+        ? "Hello! I am Ninja Hattori from Iga! Let's practice English together with ninja speed!"
+        : (av.id === 'haruto' || av.id === 'tom')
+        ? "Hey there! I'm Tom! Let's have fun and practice speaking English together!"
+        : (av.id === 'puppy' || av.id === 'wanko' || av.id === 'scoobydoo' || av.id === 'scooby')
+        ? (av.previewGreeting || "Ruh-roh! Hello! I'm Scooby-Doo! Let's practice English and solve some mysteries together!")
+        : (av.id === 'haru' || av.id === 'teacher')
+        ? "Hello! Welcome to SpeakMate. Today, we are going to practice speaking clearly and confidently."
+        : (av.id === 'chitose' || av.id === 'maleteacher')
+        ? "Hello! Welcome to SpeakMate. Today, we are going to practice speaking clearly and confidently in English."
+        : (av.previewGreeting || `Hii, I am ${av.name}, your AI speaking coach. Let's practice English together!`);
+
     speakGlobalText(greetingText, 1.0, {
       overrideVoiceCode: av.voiceProfile,
+      avatarModel: av.id,
       onend: () => setPlayingTutor(null),
       onerror: () => setPlayingTutor(null),
     });
