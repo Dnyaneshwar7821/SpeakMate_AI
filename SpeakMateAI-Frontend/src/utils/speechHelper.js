@@ -1992,7 +1992,6 @@ export const applyGlobalVoiceSettings = (utterance, speedMultiplier = 1.0, overr
           utterance.pitch = 1.12; // Subtle pitch-shift up for feminine clarity
         }
       }
-    }
   }
 };
 
