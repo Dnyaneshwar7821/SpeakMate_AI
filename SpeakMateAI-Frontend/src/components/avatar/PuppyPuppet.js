@@ -128,6 +128,22 @@ export function getScoobyTexture(onReady) {
           }
         }
 
+        // Fade out remaining lower body parts beneath the SD collar medallion (tag tip at Y ≈ 938)
+        // Between Y = 940 and Y = 1040, smoothly ramp alpha to 0.0 using hermite curve
+        const Y_FADE_START = 940;
+        const Y_FADE_END = 1040;
+        for (let y = Y_FADE_START; y < h; y++) {
+          const t = (y - Y_FADE_START) / (Y_FADE_END - Y_FADE_START);
+          const alphaMult = y >= Y_FADE_END ? 0 : 1.0 - (3 * t * t - 2 * t * t * t);
+          const rowStart = y * w * 4;
+          for (let x = 0; x < w; x++) {
+            const aIdx = rowStart + x * 4 + 3;
+            if (data[aIdx] > 0) {
+              data[aIdx] = Math.round(data[aIdx] * alphaMult);
+            }
+          }
+        }
+
         ctx.putImageData(imgData, 0, 0);
         cachedScoobyCanvas = canvas;
         cachedScoobyTexture = PIXI.Texture.from(canvas);
