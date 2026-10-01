@@ -67,6 +67,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
 					if (jwtUtil.isTokenValid(token, userDetails.getUsername())) {
+						if (!userDetails.isEnabled()) {
+							response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+							response.setContentType("application/json");
+							response.setCharacterEncoding("UTF-8");
+							response.getWriter().write("{\"success\":false,\"message\":\"Your account has been deactivated. Access is restricted. Please contact your administrator for assistance.\"}");
+							return;
+						}
 
 						UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 								userDetails, null, userDetails.getAuthorities());

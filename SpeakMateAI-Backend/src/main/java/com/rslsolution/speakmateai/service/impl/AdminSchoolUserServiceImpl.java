@@ -381,14 +381,56 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
         
         if (request.getActive() != null) {
             user.setActive(request.getActive());
+            user.setStatus(request.getActive() ? com.rslsolution.speakmateai.enums.Status.ACTIVE : com.rslsolution.speakmateai.enums.Status.INACTIVE);
         }
 
         Student savedUser = studentRepository.save(user);
 
-        if (notificationService != null && savedUser.getSchoolId() != null) {
+        if (notificationService != null) {
             try {
                 String studentName = (savedUser.getFirstName() + " " + (savedUser.getLastName() != null ? savedUser.getLastName() : "")).trim();
-                notificationService.notifySchoolAdmins(savedUser.getSchoolId(), "Student Updated", "Student " + studentName + " details have been updated by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED, savedUser.getId(), "STUDENT");
+                notificationService.notifyAdmins(
+                        "Student Updated",
+                        "Student " + studentName + " details have been updated by Super Admin.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                        savedUser.getId(),
+                        "STUDENT"
+                );
+                if (savedUser.getSchoolId() != null) {
+                    notificationService.notifySchoolAdmins(
+                            savedUser.getSchoolId(),
+                            "Student Updated",
+                            "Student " + studentName + " details have been updated by Super Admin.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                            savedUser.getId(),
+                            "STUDENT"
+                    );
+                }
+                notificationService.sendNotification(
+                        savedUser.getEmail(),
+                        "Account Updated",
+                        "Your student account details and class assignment have been updated by Super Admin.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                        savedUser.getId(),
+                        "STUDENT"
+                );
+                Long teacherId = savedUser.getTeacherId();
+                if (teacherId == null && schoolTeacherService != null && savedUser.getSchoolId() != null && savedUser.getStandard() != null && savedUser.getDivision() != null) {
+                    try {
+                        com.rslsolution.speakmateai.dto.response.SchoolTeacherResponse resp = schoolTeacherService.getAssignedTeacher(savedUser.getSchoolId(), savedUser.getStandard(), savedUser.getDivision());
+                        if (resp != null) teacherId = resp.getId();
+                    } catch (Exception ignored) {}
+                }
+                if (teacherId != null) {
+                    notificationService.notifyTeacher(
+                            teacherId,
+                            "Student Updated",
+                            "Student " + studentName + " in your class has been updated by Super Admin.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                            savedUser.getId(),
+                            "STUDENT"
+                    );
+                }
             } catch (Exception ignored) {}
         }
 
@@ -414,8 +456,15 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                 if (schoolId != null) {
                     notificationService.notifySchoolAdmins(schoolId, "Student Removed", "Student " + studentName + " has been removed by Super Admin.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
                 }
-                if (user.getTeacherId() != null) {
-                    notificationService.notifyTeacher(user.getTeacherId(), "Student Removed", "Student " + studentName + " has been removed from your class.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
+                Long teacherId = user.getTeacherId();
+                if (teacherId == null && schoolTeacherService != null && schoolId != null && user.getStandard() != null && user.getDivision() != null) {
+                    try {
+                        com.rslsolution.speakmateai.dto.response.SchoolTeacherResponse resp = schoolTeacherService.getAssignedTeacher(schoolId, user.getStandard(), user.getDivision());
+                        if (resp != null) teacherId = resp.getId();
+                    } catch (Exception ignored) {}
+                }
+                if (teacherId != null) {
+                    notificationService.notifyTeacher(teacherId, "Student Removed", "Student " + studentName + " has been removed from your class.", com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED, id, "STUDENT");
                 }
             } catch (Exception ignored) {}
         }
@@ -482,6 +531,43 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                     System.err.println("Failed to dispatch school admin notification on activate: " + e.getMessage());
                 }
             }
+
+            // 3. Notify Student
+            try {
+                notificationService.sendNotification(
+                        savedUser.getEmail(),
+                        "Student Account Activated",
+                        "Your SpeakMate AI student account has been activated. You can now log in.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                        savedUser.getId(),
+                        "STUDENT"
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to dispatch student notification on activate: " + e.getMessage());
+            }
+
+            // 4. Notify Allocated Teacher
+            Long teacherId = savedUser.getTeacherId();
+            if (teacherId == null && schoolTeacherService != null && schoolId != null && savedUser.getStandard() != null && savedUser.getDivision() != null) {
+                try {
+                    com.rslsolution.speakmateai.dto.response.SchoolTeacherResponse resp = schoolTeacherService.getAssignedTeacher(schoolId, savedUser.getStandard(), savedUser.getDivision());
+                    if (resp != null) teacherId = resp.getId();
+                } catch (Exception ignored) {}
+            }
+            if (teacherId != null) {
+                try {
+                    notificationService.notifyTeacher(
+                            teacherId,
+                            "Student Activated",
+                            "Student " + studentName + " in your class has been activated by Super Admin.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                            savedUser.getId(),
+                            "STUDENT"
+                    );
+                } catch (Exception e) {
+                    System.err.println("Failed to dispatch teacher notification on activate student: " + e.getMessage());
+                }
+            }
         }
 
         return mapToResponse(savedUser);
@@ -540,6 +626,43 @@ public class AdminSchoolUserServiceImpl implements AdminSchoolUserService {
                     );
                 } catch (Exception e) {
                     System.err.println("Failed to dispatch school admin notification on deactivate: " + e.getMessage());
+                }
+            }
+
+            // 3. Notify Student
+            try {
+                notificationService.sendNotification(
+                        savedUser.getEmail(),
+                        "Student Account Deactivated",
+                        "Your SpeakMate AI student account has been deactivated by administration. Access is restricted.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                        savedUser.getId(),
+                        "STUDENT"
+                );
+            } catch (Exception e) {
+                System.err.println("Failed to dispatch student notification on deactivate: " + e.getMessage());
+            }
+
+            // 4. Notify Allocated Teacher
+            Long teacherId = savedUser.getTeacherId();
+            if (teacherId == null && schoolTeacherService != null && schoolId != null && savedUser.getStandard() != null && savedUser.getDivision() != null) {
+                try {
+                    com.rslsolution.speakmateai.dto.response.SchoolTeacherResponse resp = schoolTeacherService.getAssignedTeacher(schoolId, savedUser.getStandard(), savedUser.getDivision());
+                    if (resp != null) teacherId = resp.getId();
+                } catch (Exception ignored) {}
+            }
+            if (teacherId != null) {
+                try {
+                    notificationService.notifyTeacher(
+                            teacherId,
+                            "Student Deactivated",
+                            "Student " + studentName + " in your class has been deactivated by Super Admin.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                            savedUser.getId(),
+                            "STUDENT"
+                    );
+                } catch (Exception e) {
+                    System.err.println("Failed to dispatch teacher notification on deactivate student: " + e.getMessage());
                 }
             }
         }

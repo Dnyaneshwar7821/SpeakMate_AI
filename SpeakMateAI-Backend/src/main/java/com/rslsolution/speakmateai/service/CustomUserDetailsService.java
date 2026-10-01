@@ -29,14 +29,24 @@ public class CustomUserDetailsService implements UserDetailsService {
 				.orElseGet(() -> userRepository.findByEmail(email).orElse(null));
 
 		if (user != null) {
+			boolean isSuperAdmin = user.getRole() == com.rslsolution.speakmateai.enums.Role.SUPER_ADMIN;
+			boolean isUserActive = isSuperAdmin || (user.isActive() && user.getStatus() != com.rslsolution.speakmateai.enums.Status.INACTIVE);
 			return org.springframework.security.core.userdetails.User.withUsername(user.getEmail())
-					.password(user.getPassword()).roles(user.getRole().name()).build();
+					.password(user.getPassword())
+					.disabled(!isUserActive)
+					.roles(user.getRole().name())
+					.build();
 		}
 
 		Admin admin = adminRepository.findByEmail(email)
 				.orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
+		boolean isSuperAdmin = admin.getRole() == com.rslsolution.speakmateai.enums.Role.SUPER_ADMIN;
+		boolean isAdminActive = isSuperAdmin || (admin.getStatus() == com.rslsolution.speakmateai.enums.AdminStatus.ACTIVE);
 		return org.springframework.security.core.userdetails.User.withUsername(admin.getEmail())
-				.password(admin.getPassword()).roles(admin.getRole().name()).build();
+				.password(admin.getPassword())
+				.disabled(!isAdminActive)
+				.roles(admin.getRole().name())
+				.build();
 	}
 }

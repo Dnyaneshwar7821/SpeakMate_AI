@@ -67,15 +67,23 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 
 	@Override
 	public AdminLoginResponse login(AdminLoginRequest request) {
-		Admin admin = adminRepository.findByEmail(request.getEmail())
+		String email = request.getEmail() != null ? request.getEmail().trim() : "";
+		Admin admin = adminRepository.findByEmail(email)
+				.or(() -> adminRepository.findByEmail(request.getEmail()))
 				.orElseThrow(() -> new InvalidCredentialsException("Invalid email or password"));
 
 		if (!passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
 			throw new InvalidCredentialsException("Invalid email or password");
 		}
 
-		if (admin.getStatus() != AdminStatus.ACTIVE) {
-			throw new InvalidCredentialsException("Admin account is not active");
+		// Super Admin can never be restricted or deactivated
+		if (admin.getRole() == Role.SUPER_ADMIN) {
+			if (admin.getStatus() != AdminStatus.ACTIVE) {
+				admin.setStatus(AdminStatus.ACTIVE);
+				adminRepository.save(admin);
+			}
+		} else if (admin.getStatus() != AdminStatus.ACTIVE) {
+			throw new InvalidCredentialsException("Your account has been deactivated. Access is restricted. Please contact your administrator for assistance.");
 		}
 
 		admin.setLastLogin(LocalDateTime.now());
@@ -258,8 +266,14 @@ public class AdminAuthServiceImpl implements AdminAuthService {
 		Admin admin = adminRepository.findByEmail(email)
 				.orElseThrow(() -> new InvalidCredentialsException("Admin account not found"));
 
-		if (admin.getStatus() != AdminStatus.ACTIVE) {
-			throw new InvalidCredentialsException("Admin account is not active");
+		// Super Admin can never be restricted or deactivated
+		if (admin.getRole() == Role.SUPER_ADMIN) {
+			if (admin.getStatus() != AdminStatus.ACTIVE) {
+				admin.setStatus(AdminStatus.ACTIVE);
+				adminRepository.save(admin);
+			}
+		} else if (admin.getStatus() != AdminStatus.ACTIVE) {
+			throw new InvalidCredentialsException("Your account has been deactivated. Access is restricted. Please contact your administrator for assistance.");
 		}
 
 		String newToken = jwtUtil.generateAdminToken(admin.getEmail(), admin.getRole().name(), admin.getId());

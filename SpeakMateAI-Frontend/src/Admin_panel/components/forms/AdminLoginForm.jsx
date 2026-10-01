@@ -146,7 +146,35 @@ export function AdminLoginForm({
           Your permanent password has already been configured. Please sign in below.
         </AdminAlert>
       )}
-      {error && <AdminAlert tone="error">{error}</AdminAlert>}
+      {error && (
+        role !== "SUPER_ADMIN" && (error.toLowerCase().includes("deactivated") || error.toLowerCase().includes("restricted")) ? (
+          <div className="rounded-2xl border-2 border-rose-500/40 bg-rose-500/10 p-4 text-rose-700 dark:text-rose-300 shadow-md backdrop-blur-xs space-y-2.5">
+            <div className="flex items-center gap-2.5">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-rose-600 text-white shadow-xs">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008zM12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61L4.2 20.3a1 1 0 001.5 1.5l2.69-.77A8.96 8.96 0 0012 21c4.97 0 9-4.03 9-9s-4.03-9-9-9z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-black tracking-tight text-rose-800 dark:text-rose-200 uppercase">
+                  Account Access Restricted
+                </p>
+                <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                  Status: Deactivated / Inactive
+                </p>
+              </div>
+            </div>
+            <p className="text-xs leading-relaxed font-semibold text-rose-700 dark:text-rose-200 pl-1 border-l-2 border-rose-500/40 ml-1">
+              {error}
+            </p>
+            <p className="text-[11px] text-[var(--text-muted)] italic pl-1">
+              If you require access restoration or believe this is an error, please contact your system administrator or administrative office.
+            </p>
+          </div>
+        ) : (
+          <AdminAlert tone="error">{error}</AdminAlert>
+        )
+      )}
       <AdminInput
         id={`${role.toLowerCase()}-email`}
         name="email"

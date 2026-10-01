@@ -200,6 +200,33 @@ public class StudentServiceImpl implements StudentService {
                         "Your student account has been created. Start your learning journey today!",
                         com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED, savedStudent.getId(),
                         "STUDENT");
+                if (savedStudent.getSchoolId() != null) {
+                    notificationService.notifySchoolAdmins(
+                            savedStudent.getSchoolId(),
+                            "New Student Enrolled",
+                            "Student " + studentName + " (" + savedStudent.getStudentId() + ") has been enrolled.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_CREATED,
+                            savedStudent.getId(),
+                            "STUDENT"
+                    );
+                }
+                Long teacherId = savedStudent.getTeacherId();
+                if (teacherId == null && schoolTeacherService != null && savedStudent.getSchoolId() != null && savedStudent.getStandard() != null && savedStudent.getDivision() != null) {
+                    try {
+                        com.rslsolution.speakmateai.dto.response.SchoolTeacherResponse resp = schoolTeacherService.getAssignedTeacher(savedStudent.getSchoolId(), savedStudent.getStandard(), savedStudent.getDivision());
+                        if (resp != null) teacherId = resp.getId();
+                    } catch (Exception ignored) {}
+                }
+                if (teacherId != null) {
+                    notificationService.notifyTeacher(
+                            teacherId,
+                            "New Student Assigned",
+                            "Student " + studentName + " has been enrolled in your class (Std " + savedStudent.getStandard() + " - " + savedStudent.getDivision() + ").",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_ASSIGNED,
+                            savedStudent.getId(),
+                            "STUDENT"
+                    );
+                }
             } catch (Exception ignored) {
             }
         }
@@ -360,6 +387,56 @@ public class StudentServiceImpl implements StudentService {
             student.setPassword(passwordEncoder.encode(request.getPassword().trim()));
         }
         Student updatedStudent = studentRepository.save(student);
+
+        if (notificationService != null) {
+            try {
+                String studentName = (updatedStudent.getFirstName() + " "
+                        + (updatedStudent.getLastName() != null ? updatedStudent.getLastName() : "")).trim();
+                notificationService.notifyAdmins(
+                        "Student Updated",
+                        "Student " + studentName + " details have been updated.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                        updatedStudent.getId(),
+                        "STUDENT"
+                );
+                if (updatedStudent.getSchoolId() != null) {
+                    notificationService.notifySchoolAdmins(
+                            updatedStudent.getSchoolId(),
+                            "Student Updated",
+                            "Student " + studentName + " details have been updated.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                            updatedStudent.getId(),
+                            "STUDENT"
+                    );
+                }
+                notificationService.sendNotification(
+                        updatedStudent.getEmail(),
+                        "Account Updated",
+                        "Your student account details and class assignment have been updated.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                        updatedStudent.getId(),
+                        "STUDENT"
+                );
+                Long teacherId = updatedStudent.getTeacherId();
+                if (teacherId == null && schoolTeacherService != null && updatedStudent.getSchoolId() != null && updatedStudent.getStandard() != null && updatedStudent.getDivision() != null) {
+                    try {
+                        com.rslsolution.speakmateai.dto.response.SchoolTeacherResponse resp = schoolTeacherService.getAssignedTeacher(updatedStudent.getSchoolId(), updatedStudent.getStandard(), updatedStudent.getDivision());
+                        if (resp != null) teacherId = resp.getId();
+                    } catch (Exception ignored) {}
+                }
+                if (teacherId != null) {
+                    notificationService.notifyTeacher(
+                            teacherId,
+                            "Student Details Updated",
+                            "Details for student " + studentName + " in your class have been updated.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_UPDATED,
+                            updatedStudent.getId(),
+                            "STUDENT"
+                    );
+                }
+            } catch (Exception ignored) {}
+        }
+
         return mapToResponse(updatedStudent);
     }
 
@@ -377,6 +454,49 @@ public class StudentServiceImpl implements StudentService {
                     .orElseThrow(() -> new RuntimeException("Student not found or not in your school"));
         } else {
             throw new RuntimeException("Unauthorized to delete students");
+        }
+
+        String studentName = (student.getFirstName() + " "
+                + (student.getLastName() != null ? student.getLastName() : "")).trim();
+        Long schoolId = student.getSchoolId();
+        Long teacherId = student.getTeacherId();
+        if (teacherId == null && schoolTeacherService != null && schoolId != null && student.getStandard() != null && student.getDivision() != null) {
+            try {
+                com.rslsolution.speakmateai.dto.response.SchoolTeacherResponse resp = schoolTeacherService.getAssignedTeacher(schoolId, student.getStandard(), student.getDivision());
+                if (resp != null) teacherId = resp.getId();
+            } catch (Exception ignored) {}
+        }
+
+        if (notificationService != null) {
+            try {
+                notificationService.notifyAdmins(
+                        "Student Removed",
+                        "Student " + studentName + " has been removed from the platform.",
+                        com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED,
+                        id,
+                        "STUDENT"
+                );
+                if (schoolId != null) {
+                    notificationService.notifySchoolAdmins(
+                            schoolId,
+                            "Student Removed",
+                            "Student " + studentName + " has been removed from the school roster.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED,
+                            id,
+                            "STUDENT"
+                    );
+                }
+                if (teacherId != null) {
+                    notificationService.notifyTeacher(
+                            teacherId,
+                            "Student Removed",
+                            "Student " + studentName + " has been removed from your class roster.",
+                            com.rslsolution.speakmateai.enums.NotificationType.STUDENT_DELETED,
+                            id,
+                            "STUDENT"
+                    );
+                }
+            } catch (Exception ignored) {}
         }
 
         if (entityCascadeDeletionService != null) {

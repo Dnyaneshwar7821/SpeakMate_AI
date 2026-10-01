@@ -910,6 +910,7 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 			teacher.setPhone(com.rslsolution.speakmateai.util.PhoneNumberUtil.validateAndNormalize(request.getPhone(),
 					"Teacher phone"));
 		teacher.setActive(request.isActive());
+		teacher.setStatus(request.isActive() ? com.rslsolution.speakmateai.enums.Status.ACTIVE : com.rslsolution.speakmateai.enums.Status.INACTIVE);
 
 		if (request.getDepartment() != null)
 			teacher.setDepartment(request.getDepartment());
@@ -929,6 +930,37 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 		Teacher updatedTeacher = (teacherRepository != null)
 				? teacherRepository.save(teacher)
 				: (Teacher) userRepository.save(teacher);
+
+		String teacherName = ((updatedTeacher.getFirstName() != null ? updatedTeacher.getFirstName() : "") + " " +
+				(updatedTeacher.getLastName() != null ? updatedTeacher.getLastName() : "")).trim();
+
+		// Dispatch notifications for update
+		if (notificationService != null) {
+			try {
+				notificationService.notifyAdmins(
+						"Teacher Updated",
+						"Teacher " + teacherName + " details have been updated.",
+						com.rslsolution.speakmateai.enums.NotificationType.TEACHER_UPDATED,
+						updatedTeacher.getId(),
+						"TEACHER");
+				if (updatedTeacher.getSchoolId() != null) {
+					notificationService.notifySchoolAdmins(
+							updatedTeacher.getSchoolId(),
+							"Teacher Updated",
+							"Teacher " + teacherName + " details have been updated.",
+							com.rslsolution.speakmateai.enums.NotificationType.TEACHER_UPDATED,
+							updatedTeacher.getId(),
+							"TEACHER");
+				}
+				notificationService.sendNotification(
+						updatedTeacher.getEmail(),
+						"Account Details Updated",
+						"Your teacher account details and assignments have been updated.",
+						com.rslsolution.speakmateai.enums.NotificationType.TEACHER_UPDATED,
+						updatedTeacher.getId(),
+						"TEACHER");
+			} catch (Exception ignored) {}
+		}
 
 		return mapToResponse(updatedTeacher != null ? updatedTeacher : teacher);
 	}
@@ -1008,6 +1040,7 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 		}
 
 		teacher.setActive(true);
+		teacher.setStatus(com.rslsolution.speakmateai.enums.Status.ACTIVE);
 		Teacher updatedTeacher = (teacherRepository != null)
 				? teacherRepository.save(teacher)
 				: (Teacher) userRepository.save(teacher);
@@ -1041,6 +1074,18 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 					System.err.println(
 							"Failed to dispatch school admin notification on activate teacher: " + e.getMessage());
 				}
+			}
+
+			try {
+				notificationService.sendNotification(
+						updatedTeacher.getEmail(),
+						"Teacher Account Activated",
+						"Your SpeakMate AI teacher account has been activated. You now have full access to your portal.",
+						com.rslsolution.speakmateai.enums.NotificationType.TEACHER_UPDATED,
+						updatedTeacher.getId(),
+						"TEACHER");
+			} catch (Exception e) {
+				System.err.println("Failed to dispatch teacher notification on activate: " + e.getMessage());
 			}
 		}
 
@@ -1080,6 +1125,7 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 		}
 
 		teacher.setActive(false);
+		teacher.setStatus(com.rslsolution.speakmateai.enums.Status.INACTIVE);
 		Teacher updatedTeacher = (teacherRepository != null)
 				? teacherRepository.save(teacher)
 				: (Teacher) userRepository.save(teacher);
@@ -1113,6 +1159,18 @@ public class SchoolTeacherServiceImpl implements SchoolTeacherService {
 					System.err.println(
 							"Failed to dispatch school admin notification on deactivate teacher: " + e.getMessage());
 				}
+			}
+
+			try {
+				notificationService.sendNotification(
+						updatedTeacher.getEmail(),
+						"Teacher Account Deactivated",
+						"Your SpeakMate AI teacher account has been deactivated by administration. Access is restricted.",
+						com.rslsolution.speakmateai.enums.NotificationType.TEACHER_UPDATED,
+						updatedTeacher.getId(),
+						"TEACHER");
+			} catch (Exception e) {
+				System.err.println("Failed to dispatch teacher notification on deactivate: " + e.getMessage());
 			}
 		}
 

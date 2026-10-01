@@ -29,16 +29,28 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 	@Query("SELECT COUNT(n) > 0 FROM Notification n WHERE n.user = :user AND n.title LIKE '%Streak%' AND n.title LIKE '%Risk%' AND n.createdAt >= :after")
 	boolean existsStreakWarningToday(@Param("user") User user, @Param("after") LocalDateTime after);
 
+	List<Notification> findByRecipientEmail(String recipientEmail);
+
 	List<Notification> findByRecipientEmailOrderByCreatedAtDesc(String recipientEmail);
 
 	List<Notification> findByRecipientEmailAndIsReadFalse(String recipientEmail);
 
 	long countByRecipientEmailAndIsReadFalse(String recipientEmail);
 
-	List<Notification> findByRecipientEmail(String recipientEmail);
+	@Query("SELECT COUNT(n) > 0 FROM Notification n WHERE LOWER(n.recipientEmail) = LOWER(:recipientEmail) AND n.title = :title AND n.message = :message AND n.createdAt >= :after")
+	boolean existsRecentDuplicate(@Param("recipientEmail") String recipientEmail, @Param("title") String title, @Param("message") String message, @Param("after") LocalDateTime after);
 
-	@Query("SELECT COUNT(n) > 0 FROM Notification n WHERE n.recipientEmail = :recipientEmail AND n.title = :title AND n.createdAt >= :after")
-	boolean existsRecentDuplicate(@Param("recipientEmail") String recipientEmail, @Param("title") String title, @Param("after") LocalDateTime after);
+	@Query("SELECT n FROM Notification n WHERE (n.user = :user OR LOWER(n.recipientEmail) = LOWER(:email)) ORDER BY n.createdAt DESC")
+	List<Notification> findAllByUserOrEmailOrderByCreatedAtDesc(@Param("user") User user, @Param("email") String email);
+
+	@Query("SELECT n FROM Notification n WHERE (n.user = :user OR LOWER(n.recipientEmail) = LOWER(:email)) AND (n.isRead = false OR n.isRead IS NULL) ORDER BY n.createdAt DESC")
+	List<Notification> findAllUnreadByUserOrEmailOrderByCreatedAtDesc(@Param("user") User user, @Param("email") String email);
+
+	@Query("SELECT COUNT(n) FROM Notification n WHERE (n.user = :user OR LOWER(n.recipientEmail) = LOWER(:email)) AND (n.isRead = false OR n.isRead IS NULL)")
+	long countUnreadByUserOrEmail(@Param("user") User user, @Param("email") String email);
+
+	@Query("SELECT n FROM Notification n WHERE (n.user = :user OR LOWER(n.recipientEmail) = LOWER(:email))")
+	List<Notification> findAllByUserOrEmail(@Param("user") User user, @Param("email") String email);
 
 	default List<Notification> findByStudent(Student student) {
 		return student != null ? findByRecipientEmail(student.getEmail()) : List.of();
