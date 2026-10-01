@@ -4,6 +4,7 @@ import { WebView } from 'react-native-webview';
 import { getPixiPuppetHtml } from '../../utils/puppetHtmlEngine';
 import { AVATAR_IMAGES, getAvatarById } from '../../config/AvatarCatalog';
 import { TEACHER_DATA_URI } from '../../utils/puppets/TeacherBase64';
+import { MALE_TEACHER_DATA_URI } from '../../utils/puppets/MaleTeacherBase64';
 
 export const Live2DAvatarView = memo(function Live2DAvatarView({
   isSpeaking = false,
@@ -25,6 +26,9 @@ export const Live2DAvatarView = memo(function Live2DAvatarView({
     try {
       if (normalizedModel === 'haru' || normalizedModel === 'teacher') {
         return TEACHER_DATA_URI;
+      }
+      if (normalizedModel === 'chitose' || normalizedModel === 'maleteacher' || normalizedModel === 'male') {
+        return MALE_TEACHER_DATA_URI;
       }
       const avatarMeta = getAvatarById(normalizedModel);
       const img = AVATAR_IMAGES[avatarMeta.id] || AVATAR_IMAGES[normalizedModel];

@@ -21,6 +21,7 @@ import { TomPuppetCode } from './puppets/TomPuppetCode';
 import { BenTenPuppetCode } from './puppets/BenTenPuppetCode';
 import { PuppyPuppetCode } from './puppets/PuppyPuppetCode';
 import { TEACHER_DATA_URI } from './puppets/TeacherBase64';
+import { MALE_TEACHER_DATA_URI } from './puppets/MaleTeacherBase64';
 
 const ALIAS_MAP = {
   haru: 'haru',
@@ -124,9 +125,12 @@ export function getPixiPuppetHtml(modelKey = 'haru', assetUri = '') {
   const normKey = (modelKey || 'haru').toLowerCase();
   const canonicalId = ALIAS_MAP[normKey] || 'haru';
   const puppetInfo = PUPPET_REGISTRY[canonicalId] || PUPPET_REGISTRY.haru;
-  const finalAssetUri = canonicalId === 'haru'
-    ? (assetUri && assetUri.startsWith('data:') ? assetUri : TEACHER_DATA_URI)
-    : (assetUri || '');
+  let finalAssetUri = assetUri || '';
+  if (canonicalId === 'haru') {
+    finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : TEACHER_DATA_URI;
+  } else if (canonicalId === 'chitose') {
+    finalAssetUri = (assetUri && assetUri.startsWith('data:')) ? assetUri : MALE_TEACHER_DATA_URI;
+  }
 
   return `<!DOCTYPE html>
 <html lang="en">
