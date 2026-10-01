@@ -350,16 +350,22 @@ export class ShizukaPuppet extends PIXI.Container {
     g.endFill();
 
     // Progressive Soft Tongue Arch (Coral Rose #F06292)
+    // Sits nestled inside cavity and touches the bottom mouth edge
     if (mouthY > 0.22) {
       const cavityH = botY - topY;
       const tH = cavityH * 0.46;
-      const tHalfW = halfW * 0.60;
+      const tHalfW = halfW * 0.58;
+      const ratio = tHalfW / halfW;
+      const yTw = botY + (cornerY - botY) * (ratio * ratio);
       const tTopY = botY - tH;
-      const tTopCtrl = 2 * tTopY - botY;
+      const tTopCtrl = 2 * tTopY - yTw;
+      const tBotCtrl = 2 * botY - yTw;
 
       g.beginFill(0xF06292, 1.0);
-      g.moveTo(cx - tHalfW, botY);
-      g.quadraticCurveTo(cx, tTopCtrl, cx + tHalfW, botY);
+      g.lineStyle(0);
+      g.moveTo(cx - tHalfW, yTw);
+      g.quadraticCurveTo(cx, tTopCtrl, cx + tHalfW, yTw);
+      g.quadraticCurveTo(cx, tBotCtrl, cx - tHalfW, yTw);
       g.closePath();
       g.endFill();
     }

@@ -109,15 +109,20 @@ export class TeacherPuppet extends PIXI.Container {
     this.mouthRig.position.set(-1, -166.5);
     this.contentContainer.addChild(this.mouthRig);
 
-    // 2a. Mouth Cavity Layer (Graphics for skin concealment patch, closed smile / open cavity, and outline)
+    // 2a. Mouth Cavity Layer (Graphics for skin concealment patch, closed smile / open cavity)
     this.mouthCavity = new PIXI.Graphics();
     this.mouthCavity.name = 'mouthCavity';
     this.mouthRig.addChild(this.mouthCavity);
 
-    // 2b. Tongue Graphics Layer (recessed pink dome inside cavity when speaking)
+    // 2b. Tongue Graphics Layer (recessed pink dome inside cavity touching bottom edge)
     this.tongueGraphics = new PIXI.Graphics();
     this.tongueGraphics.name = 'tongueGraphics';
     this.mouthRig.addChild(this.tongueGraphics);
+
+    // 2c. Mouth Border Layer (crisp dark anime outline and accents drawn ON TOP)
+    this.mouthBorder = new PIXI.Graphics();
+    this.mouthBorder.name = 'mouthBorder';
+    this.mouthRig.addChild(this.mouthBorder);
 
     // Initialize resting mouth (state 0: REST with friendly closed smile)
     this.renderMouth(0, 0, false);
@@ -211,6 +216,9 @@ export class TeacherPuppet extends PIXI.Container {
 
     this.mouthCavity.clear();
     this.tongueGraphics.clear();
+    if (this.mouthBorder) {
+      this.mouthBorder.clear();
+    }
 
     // ── 1. CLOSED SMILE STATE (REST / IDLE / CLOSED) ──
     // When mouth is at REST (mouthY < 0.05 or inactive):
@@ -229,21 +237,22 @@ export class TeacherPuppet extends PIXI.Container {
       const centerY = -1.0;
       const ctrlY = 2 * centerY - cornerY;
 
-      this.mouthCavity.lineStyle(2.0, 0x240808, 1.0);
-      this.mouthCavity.moveTo(leftX, cornerY);
-      this.mouthCavity.quadraticCurveTo(0, ctrlY, rightX, cornerY);
+      const borderGfx = this.mouthBorder || this.mouthCavity;
+      borderGfx.lineStyle(2.0, 0x240808, 1.0);
+      borderGfx.moveTo(leftX, cornerY);
+      borderGfx.quadraticCurveTo(0, ctrlY, rightX, cornerY);
 
       // 1c. Upward smiling corner accent flicks
-      this.mouthCavity.lineStyle(1.8, 0x240808, 0.95);
-      this.mouthCavity.moveTo(leftX, cornerY);
-      this.mouthCavity.lineTo(leftX - 2.5, cornerY - 2.0);
-      this.mouthCavity.moveTo(rightX, cornerY);
-      this.mouthCavity.lineTo(rightX + 2.5, cornerY - 2.0);
+      borderGfx.lineStyle(1.8, 0x240808, 0.95);
+      borderGfx.moveTo(leftX, cornerY);
+      borderGfx.lineTo(leftX - 2.5, cornerY - 2.0);
+      borderGfx.moveTo(rightX, cornerY);
+      borderGfx.lineTo(rightX + 2.5, cornerY - 2.0);
 
       // 1d. Subtle lower lip shadow accent
-      this.mouthCavity.lineStyle(1.0, 0xC38273, 0.75);
-      this.mouthCavity.moveTo(-4, 4.5);
-      this.mouthCavity.lineTo(4, 4.5);
+      borderGfx.lineStyle(1.0, 0xC38273, 0.75);
+      borderGfx.moveTo(-4, 4.5);
+      borderGfx.lineTo(4, 4.5);
 
       return;
     }
@@ -278,36 +287,27 @@ export class TeacherPuppet extends PIXI.Container {
     const lowerY = openDrop;
     const lowerCtrlY = 2 * lowerY - cornerY;
 
-    // 2c. Deep Burgundy Mouth Cavity Fill (#5A161C) with Dark Anime Outline (#240808)
+    // 2c. Deep Burgundy Mouth Cavity Fill (#5A161C) without outer stroke
     this.mouthCavity.beginFill(0x5A161C, 1.0);
-    this.mouthCavity.lineStyle(2.0, 0x240808, 1.0);
+    this.mouthCavity.lineStyle(0);
     this.mouthCavity.moveTo(-hw, cornerY);
     this.mouthCavity.quadraticCurveTo(0, upperCtrlY, hw, cornerY);
     this.mouthCavity.quadraticCurveTo(0, lowerCtrlY, -hw, cornerY);
     this.mouthCavity.closePath();
     this.mouthCavity.endFill();
 
-    // 2d. Corner Smile Accent Marks
-    this.mouthCavity.lineStyle(1.2, 0x240808, 0.85);
-    this.mouthCavity.moveTo(-hw - 1, cornerY + 1);
-    this.mouthCavity.lineTo(-hw + 1, cornerY - 1);
-    this.mouthCavity.moveTo(hw - 1, cornerY - 1);
-    this.mouthCavity.lineTo(hw + 1, cornerY + 1);
-
-
-    // 2f. Recessed Warm Pink Tongue Arch (#EC7886)
-    // Introduced at MEDIUM, LARGE, MAX (mouthY >= 0.35)
-    // Nestled snugly along lower contour; never protrudes outside cavity
+    // 2d. Recessed Warm Pink Tongue Arch (#EC7886)
+    // Sits snugly inside cavity and touches bottom mouth edge
     if (mouthY >= 0.35) {
       const cavityHeight = lowerY - upperY;
-      const tW = hw * 0.62;
+      const tW = hw * 0.58;
       const ratio = tW / hw;
       // Parabolic lower boundary Y coordinate at x = tW
       const yTw = lowerY + (cornerY - lowerY) * (ratio * ratio);
-      const tH = cavityHeight * 0.50;
+      const tH = cavityHeight * 0.46;
       const tTop = lowerY - tH;
       const tTopCtrl = 2 * tTop - yTw;
-      const tBotCtrl = 2 * (lowerY - 1.0) - yTw;
+      const tBotCtrl = 2 * lowerY - yTw;
 
       this.tongueGraphics.beginFill(0xEC7886, 1.0);
       this.tongueGraphics.lineStyle(0);
@@ -317,6 +317,20 @@ export class TeacherPuppet extends PIXI.Container {
       this.tongueGraphics.closePath();
       this.tongueGraphics.endFill();
     }
+
+    // 2e. Dark Anime Outline (#240808) drawn ON TOP of cavity & tongue
+    const borderGfx = this.mouthBorder || this.mouthCavity;
+    borderGfx.lineStyle(2.0, 0x240808, 1.0);
+    borderGfx.moveTo(-hw, cornerY);
+    borderGfx.quadraticCurveTo(0, upperCtrlY, hw, cornerY);
+    borderGfx.quadraticCurveTo(0, lowerCtrlY, -hw, cornerY);
+
+    // Corner Smile Accent Marks
+    borderGfx.lineStyle(1.2, 0x240808, 0.85);
+    borderGfx.moveTo(-hw - 1, cornerY + 1);
+    borderGfx.lineTo(-hw + 1, cornerY - 1);
+    borderGfx.moveTo(hw - 1, cornerY - 1);
+    borderGfx.lineTo(hw + 1, cornerY + 1);
   }
 
   /**
@@ -341,6 +355,12 @@ export class TeacherPuppet extends PIXI.Container {
         this.tongueGraphics.destroy(options);
       } catch (_) {}
       this.tongueGraphics = null;
+    }
+    if (this.mouthBorder) {
+      try {
+        this.mouthBorder.destroy(options);
+      } catch (_) {}
+      this.mouthBorder = null;
     }
     if (this.mouthRig) {
       try {
