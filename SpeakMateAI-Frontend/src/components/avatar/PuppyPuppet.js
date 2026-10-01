@@ -319,10 +319,11 @@ export class PuppyPuppet extends PIXI.Container {
     this.rootContainer = new PIXI.Container();
     this.addChild(this.rootContainer);
 
-    // Uniformly scaled content container so Sprite & Overlays share coordinate space
-    // Scale 0.18 maps 1126x1536 (character bounds 811x1419) to ~146x255, matching 220x270 reference box
+    // Uniformly scaled Content Container (Upper-Bust Portrait Framing)
+    // Scale 0.36 with offset (53.5, 117.5) frames Scooby-Doo's head, collar, and SD tag prominently (~2x larger)
     this.contentContainer = new PIXI.Container();
-    this.contentContainer.scale.set(0.18);
+    this.contentContainer.scale.set(0.36);
+    this.contentContainer.position.set(53.5, 117.5);
     this.rootContainer.addChild(this.contentContainer);
 
     // 1. Base Canonical Scooby-Doo Sprite (Untouched original canonical artwork)
