@@ -190,6 +190,30 @@ export function playNotificationChime() {
   playSound("crystal", 80);
 }
 
+export function getNotificationStorageKey(currentUser) {
+  let role = "USER";
+  let email = "";
+
+  if (currentUser) {
+    role = currentUser.role || (currentUser.userType === "SCHOOL" ? "STUDENT" : "USER");
+    email = (currentUser.email || "").toLowerCase().trim();
+  } else {
+    try {
+      const sessionStr = localStorage.getItem("speakmate_admin_session");
+      if (sessionStr) {
+        const session = JSON.parse(sessionStr);
+        role = session.role || "ADMIN";
+        email = (session.user?.email || "").toLowerCase().trim();
+      }
+    } catch {}
+  }
+
+  const normRole = String(role || "USER").toUpperCase().replace("ROLE_", "");
+  return email
+    ? `speakmate_notification_settings_${normRole}_${email}`
+    : `speakmate_notification_settings_${normRole}`;
+}
+
 export function useNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
@@ -200,10 +224,11 @@ export function useNotifications() {
   const [isRinging, setIsRinging] = useState(false);
   const [hasNewActivity, setHasNewActivity] = useState(false);
 
-  // Settings State with LocalStorage Persistence
+  // Settings State with LocalStorage Persistence strictly scoped per role & user
   const [settings, setSettings] = useState(() => {
     try {
-      const saved = localStorage.getItem("speakmate_notification_settings");
+      const key = getNotificationStorageKey(user);
+      const saved = localStorage.getItem(key);
       if (saved) {
         return { ...DEFAULT_NOTIFICATION_SETTINGS, ...JSON.parse(saved) };
       }
@@ -211,23 +236,37 @@ export function useNotifications() {
     return DEFAULT_NOTIFICATION_SETTINGS;
   });
 
+  // Re-sync settings whenever user / active profile changes
+  useEffect(() => {
+    try {
+      const key = getNotificationStorageKey(user);
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        setSettings({ ...DEFAULT_NOTIFICATION_SETTINGS, ...JSON.parse(saved) });
+      } else {
+        setSettings(DEFAULT_NOTIFICATION_SETTINGS);
+      }
+    } catch {}
+  }, [user]);
+
   const isMuted = !settings.enabled || !settings.soundEnabled;
 
   const eventSourceRef = useRef(null);
   const ringTimerRef = useRef(null);
   const pulseTimerRef = useRef(null);
 
-  // Update & persist settings
+  // Update & persist settings scoped to this role and user
   const updateSettings = useCallback((newPartial) => {
     setSettings((prev) => {
       const next = typeof newPartial === "function" ? newPartial(prev) : { ...prev, ...newPartial };
       try {
-        localStorage.setItem("speakmate_notification_settings", JSON.stringify(next));
-        localStorage.setItem("speakmate_notif_muted", String(!next.enabled || !next.soundEnabled));
+        const key = getNotificationStorageKey(user);
+        localStorage.setItem(key, JSON.stringify(next));
+        localStorage.setItem(`${key}_muted`, String(!next.enabled || !next.soundEnabled));
       } catch {}
       return next;
     });
-  }, []);
+  }, [user]);
 
   const toggleMute = useCallback(() => {
     updateSettings((prev) => ({
@@ -335,9 +374,13 @@ export function useNotifications() {
         const sessionStr = localStorage.getItem("speakmate_admin_session");
         if (sessionStr) {
           const session = JSON.parse(sessionStr);
-          return session.token;
+          if (session?.token) return session.token;
         }
       } catch (e) {}
+      const userToken = localStorage.getItem("speakmate_token");
+      if (userToken && userToken !== "null" && userToken !== "undefined") {
+        return userToken;
+      }
       return null;
     };
     

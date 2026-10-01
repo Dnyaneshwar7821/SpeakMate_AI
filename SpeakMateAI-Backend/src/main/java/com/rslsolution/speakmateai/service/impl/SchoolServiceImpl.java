@@ -890,6 +890,27 @@ public class SchoolServiceImpl implements SchoolService {
         }
 
         School updatedSchool = schoolRepository.save(school);
+
+        if (notificationService != null) {
+            try {
+                notificationService.notifyAdmins(
+                        "School Updated",
+                        "School \"" + school.getName() + "\" details have been updated by Super Admin.",
+                        com.rslsolution.speakmateai.enums.NotificationType.SCHOOL_CREATED,
+                        school.getId(),
+                        "SCHOOL"
+                );
+                notificationService.notifySchoolAdmins(
+                        school.getId(),
+                        "School Profile Updated",
+                        "Your school workspace (" + school.getName() + ") details have been updated by Super Admin.",
+                        com.rslsolution.speakmateai.enums.NotificationType.SCHOOL_CREATED,
+                        school.getId(),
+                        "SCHOOL"
+                );
+            } catch (Exception ignored) {}
+        }
+
         return mapToResponse(updatedSchool, null);
     }
 
@@ -900,6 +921,27 @@ public class SchoolServiceImpl implements SchoolService {
                 .orElseThrow(() -> new RuntimeException("School not found with id: " + id));
         school.setActive(true);
         School updatedSchool = schoolRepository.save(school);
+
+        List<User> schoolAdmins = userRepository.findBySchoolIdAndRole(school.getId(), com.rslsolution.speakmateai.enums.Role.SCHOOL_ADMIN);
+        if (schoolAdmins != null) {
+            for (User sa : schoolAdmins) {
+                sa.setActive(true);
+                sa.setStatus(com.rslsolution.speakmateai.enums.Status.ACTIVE);
+                userRepository.save(sa);
+                if (notificationService != null && sa.getEmail() != null) {
+                    try {
+                        notificationService.sendNotification(
+                                sa.getEmail(),
+                                "School Workspace Activated",
+                                "Your school workspace (" + school.getName() + ") and admin access have been activated.",
+                                com.rslsolution.speakmateai.enums.NotificationType.SCHOOL_CREATED,
+                                school.getId(),
+                                "SCHOOL"
+                        );
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
 
         if (notificationService != null) {
             try {
@@ -938,6 +980,27 @@ public class SchoolServiceImpl implements SchoolService {
                 .orElseThrow(() -> new RuntimeException("School not found with id: " + id));
         school.setActive(false);
         School updatedSchool = schoolRepository.save(school);
+
+        List<User> schoolAdmins = userRepository.findBySchoolIdAndRole(school.getId(), com.rslsolution.speakmateai.enums.Role.SCHOOL_ADMIN);
+        if (schoolAdmins != null) {
+            for (User sa : schoolAdmins) {
+                sa.setActive(false);
+                sa.setStatus(com.rslsolution.speakmateai.enums.Status.INACTIVE);
+                userRepository.save(sa);
+                if (notificationService != null && sa.getEmail() != null) {
+                    try {
+                        notificationService.sendNotification(
+                                sa.getEmail(),
+                                "School Workspace Deactivated",
+                                "Your school workspace (" + school.getName() + ") has been deactivated by administration. Access is restricted.",
+                                com.rslsolution.speakmateai.enums.NotificationType.SCHOOL_CREATED,
+                                school.getId(),
+                                "SCHOOL"
+                        );
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
 
         if (notificationService != null) {
             try {

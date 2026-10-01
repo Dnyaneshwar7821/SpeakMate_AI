@@ -136,7 +136,9 @@ export function Login() {
       console.error("Login failed:", err);
       const serverMsg = err.userMessage || err.response?.data?.message || err.message;
       let displayMsg = serverMsg;
-      if (!serverMsg || serverMsg.toLowerCase() === "invalid email" || serverMsg.toLowerCase().includes("user not found") || serverMsg.toLowerCase().includes("no account found")) {
+      if (serverMsg && (serverMsg.toLowerCase().includes("deactivated") || serverMsg.toLowerCase().includes("restricted"))) {
+        displayMsg = serverMsg;
+      } else if (!serverMsg || serverMsg.toLowerCase() === "invalid email" || serverMsg.toLowerCase().includes("user not found") || serverMsg.toLowerCase().includes("no account found")) {
         displayMsg = "No account found with this email address. Please check your email or register.";
       } else if (serverMsg.toLowerCase() === "incorrect password") {
         displayMsg = "Incorrect password. Please try again or use 'Forgot password?'.";
@@ -274,10 +276,34 @@ export function Login() {
 
             {/* Error Message Banner */}
             {error && (
-              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs sm:text-sm font-bold text-rose-600 dark:text-rose-400 space-y-1">
-                <p className="font-black">⚠️ Authentication Notice</p>
-                <p className="font-medium opacity-90">{error}</p>
-              </div>
+              error.toLowerCase().includes("deactivated") || error.toLowerCase().includes("restricted") ? (
+                <div className="p-4 rounded-2xl bg-rose-500/10 border-2 border-rose-500/40 text-rose-700 dark:text-rose-300 shadow-md space-y-2.5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-rose-600 text-white shadow-xs">
+                      <span className="text-base">🚫</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-black tracking-tight text-rose-800 dark:text-rose-200 uppercase">
+                        Account Access Restricted
+                      </p>
+                      <p className="text-[11px] font-semibold text-rose-600 dark:text-rose-400">
+                        Status: Deactivated / Inactive
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-xs font-semibold leading-relaxed text-rose-700 dark:text-rose-200 pl-1 border-l-2 border-rose-500/40 ml-1">
+                    {error}
+                  </p>
+                  <p className="text-[11px] text-[var(--text-muted)] italic pl-1">
+                    If you believe your account was deactivated in error, please contact your school administrator or reach out to support.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs sm:text-sm font-bold text-rose-600 dark:text-rose-400 space-y-1">
+                  <p className="font-black">⚠️ Authentication Notice</p>
+                  <p className="font-medium opacity-90">{error}</p>
+                </div>
+              )
             )}
 
             {/* Login Form */}

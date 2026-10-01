@@ -17,6 +17,7 @@ import {
     VolumeX,
     GraduationCap,
     Briefcase,
+    Sliders,
 } from "lucide-react";
 import { useTheme } from "@/Admin_panel/context/ThemeContext";
 import { useAuth } from "@/Admin_panel/context/AuthContext";
@@ -25,6 +26,7 @@ import { useNotifications } from "@hooks/useNotifications";
 import InsigniaBadge from "@components/common/InsigniaBadge";
 import { schoolAdminDataApi } from "@services/admin/schoolAdminDataApi";
 import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
+import NotificationSettingsModal from "@/frontend/admin-dashboard/components/NotificationSettingsModal";
 
 // In-memory cache for instant search responses across route navigations
 let cachedSchoolStudents = null;
@@ -164,12 +166,16 @@ export function SchoolNavbar() {
         toggleMute,
         markAsRead,
         markAllAsRead,
+        settings,
+        updateSettings,
+        testSound,
         activeToast,
         dismissToast,
     } = useNotifications();
 
     const [profileOpen, setProfileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
@@ -602,6 +608,17 @@ export function SchoolNavbar() {
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
+                                                    setIsSettingsOpen(true);
+                                                }}
+                                                className="grid h-7 w-7 place-items-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                                                title="Notification Sound & Alert Preferences"
+                                            >
+                                                <Sliders className="h-3.5 w-3.5" />
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
                                                     toggleMute();
                                                 }}
                                                 className="grid h-7 w-7 place-items-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
@@ -788,6 +805,15 @@ export function SchoolNavbar() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Notification Sound & Alert Preferences Modal */}
+            <NotificationSettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                settings={settings}
+                onUpdateSettings={updateSettings}
+                onTestSound={testSound}
+            />
         </header>
     );
 }

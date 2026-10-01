@@ -39,6 +39,12 @@ public class NotificationServiceImpl implements NotificationService {
 	private final UserRepository userRepository;
 	private final AdminRepository adminRepository;
 
+	@org.springframework.beans.factory.annotation.Autowired(required = false)
+	private com.rslsolution.speakmateai.repository.SchoolRepository schoolRepository;
+
+	@org.springframework.beans.factory.annotation.Autowired(required = false)
+	private com.rslsolution.speakmateai.repository.TeacherRepository teacherRepository;
+
 	// In-memory SSE connections by user email
 	private final Map<String, CopyOnWriteArrayList<SseEmitter>> sseEmitters = new ConcurrentHashMap<>();
 
@@ -117,22 +123,16 @@ public class NotificationServiceImpl implements NotificationService {
 			return List.of();
 		}
 
-		User user = userRepository.findByEmail(email).orElse(null);
-		List<Notification> notifications;
+		String cleanEmail = email.trim().toLowerCase();
+		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+				.orElseGet(() -> userRepository.findByEmail(cleanEmail).orElse(null));
 
-		if (user != null) {
-			notifications = notificationRepository.findByUserOrderByCreatedAtDesc(user);
-			if (notifications.isEmpty()) {
-				notifications = notificationRepository.findByRecipientEmailOrderByCreatedAtDesc(email);
-			}
-		} else {
-			notifications = notificationRepository.findByRecipientEmailOrderByCreatedAtDesc(email);
-		}
+		List<Notification> notifications = notificationRepository.findAllByUserOrEmailOrderByCreatedAtDesc(user, cleanEmail);
 
 		if (notifications.isEmpty()) {
 			Notification welcomeNotification = Notification.builder()
 					.user(user)
-					.recipientEmail(email)
+					.recipientEmail(cleanEmail)
 					.title("Welcome to SpeakMateAI!")
 					.message("Start your journey today by completing your first speaking session.")
 					.isRead(false)
@@ -159,17 +159,11 @@ public class NotificationServiceImpl implements NotificationService {
 			return List.of();
 		}
 
-		User user = userRepository.findByEmail(email).orElse(null);
-		List<Notification> unread;
+		String cleanEmail = email.trim().toLowerCase();
+		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+				.orElseGet(() -> userRepository.findByEmail(cleanEmail).orElse(null));
 
-		if (user != null) {
-			unread = notificationRepository.findByUserAndIsReadFalse(user);
-			if (unread.isEmpty()) {
-				unread = notificationRepository.findByRecipientEmailAndIsReadFalse(email);
-			}
-		} else {
-			unread = notificationRepository.findByRecipientEmailAndIsReadFalse(email);
-		}
+		List<Notification> unread = notificationRepository.findAllUnreadByUserOrEmailOrderByCreatedAtDesc(user, cleanEmail);
 
 		if (unread.isEmpty()) {
 			List<NotificationResponse> all = getAllNotifications();
@@ -194,16 +188,10 @@ public class NotificationServiceImpl implements NotificationService {
 	public void markAllRead() {
 		String email = getCurrentEmail();
 		if (email == null) return;
-		User user = userRepository.findByEmail(email).orElse(null);
-		List<Notification> unread;
-		if (user != null) {
-			unread = notificationRepository.findByUserAndIsReadFalse(user);
-			if (unread.isEmpty()) {
-				unread = notificationRepository.findByRecipientEmailAndIsReadFalse(email);
-			}
-		} else {
-			unread = notificationRepository.findByRecipientEmailAndIsReadFalse(email);
-		}
+		String cleanEmail = email.trim().toLowerCase();
+		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+				.orElseGet(() -> userRepository.findByEmail(cleanEmail).orElse(null));
+		List<Notification> unread = notificationRepository.findAllUnreadByUserOrEmailOrderByCreatedAtDesc(user, cleanEmail);
 		unread.forEach(n -> n.setIsRead(true));
 		notificationRepository.saveAll(unread);
 	}
@@ -246,16 +234,19 @@ public class NotificationServiceImpl implements NotificationService {
 			return null;
 		}
 
-		// Deduplication guard: Check if identical notification was sent to recipient in the last 10 seconds
+		String cleanEmail = recipientEmail.trim().toLowerCase();
+
+		// Deduplication guard: Check if identical notification (same email, title, and message) was sent in the last 10 seconds
 		java.time.LocalDateTime tenSecondsAgo = java.time.LocalDateTime.now().minusSeconds(10);
-		if (notificationRepository.existsRecentDuplicate(recipientEmail, title, tenSecondsAgo)) {
-			logger.info("Skipping duplicate notification for email: {}, title: {}", recipientEmail, title);
+		if (notificationRepository.existsRecentDuplicate(cleanEmail, title, message, tenSecondsAgo)) {
+			logger.info("Skipping duplicate notification for email: {}, title: {}", cleanEmail, title);
 			return null;
 		}
-		User user = userRepository.findByEmail(recipientEmail).orElse(null);
+		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+				.orElseGet(() -> userRepository.findByEmail(cleanEmail).orElse(null));
 
 		Notification notification = Notification.builder()
-				.recipientEmail(recipientEmail)
+				.recipientEmail(cleanEmail)
 				.user(user)
 				.title(title)
 				.message(message)
@@ -267,7 +258,10 @@ public class NotificationServiceImpl implements NotificationService {
 
 		Notification saved = notificationRepository.save(notification);
 		NotificationResponse response = mapToResponse(saved);
-		pushToSse(recipientEmail, response);
+		pushToSse(cleanEmail, response);
+		if (user != null && user.getEmail() != null && !user.getEmail().equalsIgnoreCase(cleanEmail)) {
+			pushToSse(user.getEmail(), response);
+		}
 		return response;
 	}
 
@@ -302,17 +296,27 @@ public class NotificationServiceImpl implements NotificationService {
 	@Override
 	public void notifySchoolAdmins(Long schoolId, String title, String message, NotificationType type, Long entityId, String entityType) {
 		if (schoolId == null) return;
+		java.util.Set<String> recipientEmails = new java.util.HashSet<>();
+
 		List<User> schoolAdmins = userRepository.findBySchoolIdAndRole(schoolId, Role.SCHOOL_ADMIN);
 		if (schoolAdmins != null) {
-			java.util.Set<String> recipientEmails = new java.util.HashSet<>();
 			for (User admin : schoolAdmins) {
 				if (admin.getEmail() != null && !admin.getEmail().isBlank()) {
-					recipientEmails.add(admin.getEmail().trim());
+					recipientEmails.add(admin.getEmail().trim().toLowerCase());
 				}
 			}
-			for (String email : recipientEmails) {
-				sendNotification(email, title, message, type, entityId, entityType);
-			}
+		}
+
+		if (schoolRepository != null) {
+			schoolRepository.findById(schoolId).ifPresent(s -> {
+				if (s.getEmail() != null && !s.getEmail().isBlank()) {
+					recipientEmails.add(s.getEmail().trim().toLowerCase());
+				}
+			});
+		}
+
+		for (String email : recipientEmails) {
+			sendNotification(email, title, message, type, entityId, entityType);
 		}
 	}
 
@@ -324,7 +328,7 @@ public class NotificationServiceImpl implements NotificationService {
 			java.util.Set<String> recipientEmails = new java.util.HashSet<>();
 			for (User teacher : teachers) {
 				if (teacher.getEmail() != null && !teacher.getEmail().isBlank()) {
-					recipientEmails.add(teacher.getEmail().trim());
+					recipientEmails.add(teacher.getEmail().trim().toLowerCase());
 				}
 			}
 			for (String email : recipientEmails) {
@@ -337,8 +341,11 @@ public class NotificationServiceImpl implements NotificationService {
 	public void notifyTeacher(Long teacherId, String title, String message, NotificationType type, Long entityId, String entityType) {
 		if (teacherId == null) return;
 		User teacher = userRepository.findById(teacherId).orElse(null);
+		if (teacher == null && teacherRepository != null) {
+			teacher = teacherRepository.findById(teacherId).map(t -> (User) t).orElse(null);
+		}
 		if (teacher != null && teacher.getEmail() != null && !teacher.getEmail().isBlank()) {
-			sendNotification(teacher.getEmail().trim(), title, message, type, entityId, entityType);
+			sendNotification(teacher.getEmail().trim().toLowerCase(), title, message, type, entityId, entityType);
 		}
 	}
 
@@ -377,24 +384,20 @@ public class NotificationServiceImpl implements NotificationService {
 	public void clearAllNotifications() {
 		String email = getCurrentEmail();
 		if (email == null) return;
-		User user = userRepository.findByEmail(email).orElse(null);
-		if (user != null) {
-			List<Notification> all = notificationRepository.findByUser(user);
-			notificationRepository.deleteAll(all);
-		}
-		List<Notification> allByEmail = notificationRepository.findByRecipientEmail(email);
-		notificationRepository.deleteAll(allByEmail);
+		String cleanEmail = email.trim().toLowerCase();
+		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+				.orElseGet(() -> userRepository.findByEmail(cleanEmail).orElse(null));
+		List<Notification> all = notificationRepository.findAllByUserOrEmail(user, cleanEmail);
+		notificationRepository.deleteAll(all);
 	}
 
 	@Override
 	public long countUnread() {
 		String email = getCurrentEmail();
 		if (email == null) return 0L;
-		User user = userRepository.findByEmail(email).orElse(null);
-		if (user != null) {
-			long count = notificationRepository.countByUserAndIsReadFalse(user);
-			if (count > 0) return count;
-		}
-		return notificationRepository.countByRecipientEmailAndIsReadFalse(email);
+		String cleanEmail = email.trim().toLowerCase();
+		User user = userRepository.findByEmailIgnoreCase(cleanEmail)
+				.orElseGet(() -> userRepository.findByEmail(cleanEmail).orElse(null));
+		return notificationRepository.countUnreadByUserOrEmail(user, cleanEmail);
 	}
 }

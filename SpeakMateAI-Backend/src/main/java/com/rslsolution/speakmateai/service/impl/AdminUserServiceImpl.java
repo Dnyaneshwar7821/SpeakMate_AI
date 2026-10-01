@@ -243,10 +243,51 @@ public class AdminUserServiceImpl implements AdminUserService {
         user.setAvatar(request.getAvatar());
         user.setPreferredVoice(request.getPreferredVoice());
         user.setPreferredAccent(request.getPreferredAccent());
-        user.setAgeGroup(request.getAgeGroup());
-        user.setActive(request.isActive());
+        if (user.getRole() == Role.SUPER_ADMIN) {
+            user.setActive(true);
+            user.setStatus(com.rslsolution.speakmateai.enums.Status.ACTIVE);
+        } else {
+            user.setActive(request.isActive());
+            user.setStatus(request.isActive() ? com.rslsolution.speakmateai.enums.Status.ACTIVE : com.rslsolution.speakmateai.enums.Status.INACTIVE);
+        }
 
-        return adminUserMapper.mapToDetailResponse(userRepository.save(user));
+        User savedUser = userRepository.save(user);
+
+        if (notificationService != null) {
+            String userName = ((savedUser.getFirstName() != null ? savedUser.getFirstName() : "") + " " +
+                    (savedUser.getLastName() != null ? savedUser.getLastName() : "")).trim();
+            if (userName.isEmpty()) {
+                userName = savedUser.getEmail() != null ? savedUser.getEmail() : "User";
+            }
+            try {
+                notificationService.notifyAdmins(
+                        "User Profile Updated",
+                        "User " + userName + " (" + savedUser.getEmail() + ") profile has been updated by Super Admin.",
+                        com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
+                        savedUser.getId(),
+                        "USER");
+                notificationService.sendNotification(
+                        savedUser.getEmail(),
+                        "Profile Updated",
+                        "Your SpeakMate AI profile information has been updated by administration.",
+                        com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
+                        savedUser.getId(),
+                        "USER");
+                if (savedUser.getSchoolId() != null) {
+                    notificationService.notifySchoolAdmins(
+                            savedUser.getSchoolId(),
+                            "User Profile Updated",
+                            "User " + userName + " profile has been updated by Super Admin.",
+                            com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
+                            savedUser.getId(),
+                            "USER");
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to dispatch notifications on update user: " + e.getMessage());
+            }
+        }
+
+        return adminUserMapper.mapToDetailResponse(savedUser);
     }
 
     @Override
@@ -267,6 +308,13 @@ public class AdminUserServiceImpl implements AdminUserService {
                 notificationService.notifyAdmins(
                         "User Activated",
                         "User " + userName + " (" + savedUser.getEmail() + ") has been activated by Super Admin.",
+                        com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
+                        savedUser.getId(),
+                        "USER");
+                notificationService.sendNotification(
+                        savedUser.getEmail(),
+                        "Account Activated",
+                        "Your SpeakMate AI account has been activated. You now have full access to your learning portal.",
                         com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
                         savedUser.getId(),
                         "USER");
@@ -295,6 +343,11 @@ public class AdminUserServiceImpl implements AdminUserService {
     public void deactivateUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found with id: " + id));
+
+        if (user.getRole() == Role.SUPER_ADMIN) {
+            throw new IllegalArgumentException("Super Admin account cannot be deactivated or restricted.");
+        }
+
         user.setActive(false);
         user.setStatus(com.rslsolution.speakmateai.enums.Status.INACTIVE);
         User savedUser = userRepository.save(user);
@@ -309,6 +362,13 @@ public class AdminUserServiceImpl implements AdminUserService {
                 notificationService.notifyAdmins(
                         "User Deactivated",
                         "User " + userName + " (" + savedUser.getEmail() + ") has been deactivated by Super Admin.",
+                        com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
+                        savedUser.getId(),
+                        "USER");
+                notificationService.sendNotification(
+                        savedUser.getEmail(),
+                        "Account Deactivated",
+                        "Your SpeakMate AI account has been deactivated by administration. Access is restricted.",
                         com.rslsolution.speakmateai.enums.NotificationType.USER_UPDATED,
                         savedUser.getId(),
                         "USER");

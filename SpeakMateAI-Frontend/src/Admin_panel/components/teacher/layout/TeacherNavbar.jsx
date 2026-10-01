@@ -14,6 +14,7 @@ import {
     ArrowRight,
     Volume2,
     VolumeX,
+    Sliders,
 } from "lucide-react";
 import { useTheme } from "@/Admin_panel/context/ThemeContext";
 import { useAuth } from "@/Admin_panel/context/AuthContext";
@@ -23,6 +24,7 @@ import { useNotifications } from "@hooks/useNotifications";
 import InsigniaBadge from "@components/common/InsigniaBadge";
 import { teacherDataApi } from "@services/admin/teacherDataApi";
 import { syncInsigniaFromBackend } from "@utils/insigniaHelper";
+import NotificationSettingsModal from "@/frontend/admin-dashboard/components/NotificationSettingsModal";
 
 export function TeacherNavbar({
     teacherName = "Teacher",
@@ -43,12 +45,16 @@ export function TeacherNavbar({
         markAsRead,
         markAllAsRead,
         isLoading: loadingNotifs,
+        settings,
+        updateSettings,
+        testSound,
         activeToast,
         dismissToast,
     } = useNotifications();
 
     const [profileOpen, setProfileOpen] = useState(false);
     const [notifOpen, setNotifOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [searchOpen, setSearchOpen] = useState(false);
 
@@ -229,6 +235,17 @@ export function TeacherNavbar({
                                             </span>
                                         </div>
                                         <div className="flex items-center gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setIsSettingsOpen(true);
+                                                }}
+                                                className="grid h-7 w-7 place-items-center rounded-lg text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                                                title="Notification Sound & Alert Preferences"
+                                            >
+                                                <Sliders className="h-3.5 w-3.5" />
+                                            </button>
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -427,6 +444,15 @@ export function TeacherNavbar({
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* Notification Sound & Alert Preferences Modal */}
+            <NotificationSettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                settings={settings}
+                onUpdateSettings={updateSettings}
+                onTestSound={testSound}
+            />
         </header>
     );
 }

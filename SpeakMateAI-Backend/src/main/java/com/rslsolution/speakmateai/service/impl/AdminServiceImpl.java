@@ -109,6 +109,10 @@ public class AdminServiceImpl implements AdminService {
 
 		User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User not found"));
 
+		if (user.getRole() == com.rslsolution.speakmateai.enums.Role.SUPER_ADMIN) {
+			throw new IllegalArgumentException("Super Admin account cannot be deactivated or restricted.");
+		}
+
 		user.setActive(false);
 
 		User updatedUser = userRepository.save(user);

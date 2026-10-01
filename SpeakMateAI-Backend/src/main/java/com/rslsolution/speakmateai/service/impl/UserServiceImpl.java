@@ -307,6 +307,22 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	private void validateUserAndSchoolActive(User user) {
+		if (user == null || user.getRole() == Role.SUPER_ADMIN) {
+			return;
+		}
+		if (!user.isActive() || user.getStatus() == com.rslsolution.speakmateai.enums.Status.INACTIVE) {
+			throw new InvalidCredentialsException("Your account has been deactivated. Access is restricted. Please contact your administrator for assistance.");
+		}
+		if (user.getSchoolId() != null && schoolRepository != null) {
+			schoolRepository.findById(user.getSchoolId()).ifPresent(school -> {
+				if (!school.isActive()) {
+					throw new InvalidCredentialsException("Your school workspace has been deactivated. Access is restricted. Please contact your administrator for assistance.");
+				}
+			});
+		}
+	}
+
 	@Override
 	public AuthResponse login(LoginRequest request) {
 		String cleanEmail = ValidationUtils.normalizeEmail(request.getEmail());
@@ -325,9 +341,7 @@ public class UserServiceImpl implements UserService {
 				.orElseGet(() -> userRepository.findByEmail(lookupEmail)
 						.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register.")));
 
-		if (!user.isActive()) {
-			throw new InvalidCredentialsException("Inactive account");
-		}
+		validateUserAndSchoolActive(user);
 
 		boolean isUserStudent = (user.getRole() == Role.STUDENT)
 				|| (user.getSchoolId() != null)
@@ -394,9 +408,7 @@ public class UserServiceImpl implements UserService {
 				.or(() -> userRepository.findByEmail(email).filter(u -> u.getRole() == Role.SCHOOL_ADMIN))
 				.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register."));
 
-		if (!user.isActive()) {
-			throw new InvalidCredentialsException("Inactive account");
-		}
+		validateUserAndSchoolActive(user);
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 			throw new InvalidCredentialsException("Incorrect password");
 		}
@@ -411,9 +423,7 @@ public class UserServiceImpl implements UserService {
 				.or(() -> userRepository.findByEmail(email).filter(u -> u.getRole() == Role.TEACHER))
 				.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register."));
 
-		if (!user.isActive()) {
-			throw new InvalidCredentialsException("Inactive account");
-		}
+		validateUserAndSchoolActive(user);
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 			throw new InvalidCredentialsException("Incorrect password");
 		}
@@ -428,9 +438,7 @@ public class UserServiceImpl implements UserService {
 				.or(() -> userRepository.findByEmail(email).filter(u -> u.getRole() == Role.STUDENT))
 				.orElseThrow(() -> new InvalidCredentialsException("No account found with this email address. Please check your email or register."));
 
-		if (!user.isActive()) {
-			throw new InvalidCredentialsException("Inactive account");
-		}
+		validateUserAndSchoolActive(user);
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 			throw new InvalidCredentialsException("Incorrect password");
 		}
@@ -447,9 +455,7 @@ public class UserServiceImpl implements UserService {
 		if (user.getRole() != Role.USER && user.getRole() != Role.STUDENT) {
 			throw new InvalidCredentialsException("This endpoint is for individual users and students only.");
 		}
-		if (!user.isActive()) {
-			throw new InvalidCredentialsException("Inactive account");
-		}
+		validateUserAndSchoolActive(user);
 		if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
 			throw new InvalidCredentialsException("Incorrect password");
 		}
@@ -484,8 +490,8 @@ public class UserServiceImpl implements UserService {
 				.orElse(null);
 
 		if (user != null) {
-			if (!user.isActive()) {
-				throw new IllegalArgumentException("This account is inactive. Please contact support.");
+			if (user.getRole() != Role.SUPER_ADMIN && (!user.isActive() || user.getStatus() == com.rslsolution.speakmateai.enums.Status.INACTIVE)) {
+				throw new IllegalArgumentException("Your account has been deactivated. Access is restricted. Please contact your administrator for assistance.");
 			}
 			if (!passwordEncoder.matches(tempPassword, user.getPassword())) {
 				throw new IllegalArgumentException("The temporary password entered is incorrect. Please check your credentials and try again.");

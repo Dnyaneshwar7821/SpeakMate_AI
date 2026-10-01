@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.rslsolution.speakmateai.entity.Admin;
 import com.rslsolution.speakmateai.enums.AdminStatus;
+import com.rslsolution.speakmateai.enums.Role;
 import com.rslsolution.speakmateai.repository.AdminRepository;
 import com.rslsolution.speakmateai.util.JwtUtil;
 
@@ -69,7 +70,14 @@ public class AdminJwtAuthenticationFilter extends OncePerRequestFilter {
 					if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 						Admin admin = adminRepository.findByEmail(email).orElse(null);
 
-						if (admin != null && admin.getStatus() == AdminStatus.ACTIVE) {
+						if (admin != null) {
+							if (admin.getRole() != Role.SUPER_ADMIN && admin.getStatus() != AdminStatus.ACTIVE) {
+								response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+								response.setContentType("application/json");
+								response.setCharacterEncoding("UTF-8");
+								response.getWriter().write("{\"success\":false,\"message\":\"Your account has been deactivated. Access is restricted. Please contact your administrator for assistance.\"}");
+								return;
+							}
 							if (jwtUtil.isTokenValid(token, admin.getEmail())) {
 								UserDetails userDetails = org.springframework.security.core.userdetails.User
 										.withUsername(admin.getEmail())
