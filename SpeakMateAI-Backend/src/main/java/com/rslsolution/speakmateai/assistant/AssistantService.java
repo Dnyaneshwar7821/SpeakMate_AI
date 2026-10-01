@@ -88,6 +88,11 @@ public class AssistantService {
 			IntentResult classified = intentClassifier.classify(request.getMessage(), actor.getRole(), request.getHistory());
 			AssistantIntent intent = classified.getIntent();
 
+			// Chatbot identity fast-path: return identity response directly without DB or data provider calls
+			if (intent == AssistantIntent.CHATBOT_IDENTITY || isBotIdentityQuery(request.getMessage())) {
+				return chatbotIdentityResponse(request, actor);
+			}
+
 			Map<String, Object> params = new LinkedHashMap<>(classified.getParams() != null ? classified.getParams() : Map.of());
 			// Attach frontend currentRoute to params so navigation can contextualize suggestions if needed
 			if (request.getCurrentRoute() != null && !request.getCurrentRoute().isBlank()) {
@@ -860,5 +865,32 @@ public class AssistantService {
 
 	private Suggestion suggestion(String label, String route, String targetRole) {
 		return Suggestion.builder().label(label).route(route).targetRole(targetRole).build();
+	}
+
+	private boolean isBotIdentityQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		return containsAnyPhrase(m, List.of(
+				"what is your name", "what's your name", "whats your name", "what is ur name", "what's ur name",
+				"who are you", "who are u", "who r u",
+				"what should i call you", "what should i call u", "what can i call you", "what can i call u",
+				"tell me your name", "tell me ur name", "tell your name",
+				"what are you called", "what are u called", "what are you named",
+				"your name", "ur name",
+				"what are you", "introduce yourself", "who made you"
+		));
+	}
+
+	private AssistantResponse chatbotIdentityResponse(AssistantRequest request, ActorContext actor) {
+		Role role = (actor != null && actor.getRole() != null) ? actor.getRole() : Role.USER;
+		return AssistantResponse.builder()
+				.markdown("My name is SpeakMate AI. I’m your AI English learning assistant.")
+				.intent(AssistantIntent.CHATBOT_IDENTITY.name())
+				.accessDenied(false)
+				.sessionId(request != null ? request.getSessionId() : null)
+				.suggestions(suggestionsFor(AssistantIntent.CHATBOT_IDENTITY, role, false, request != null ? request.getMessage() : null))
+				.build();
 	}
 }

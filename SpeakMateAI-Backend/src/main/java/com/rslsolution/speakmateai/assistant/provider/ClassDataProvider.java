@@ -57,6 +57,8 @@ public class ClassDataProvider implements AssistantDataProvider {
 	private final SpeakingSessionRepository speakingSessionRepository;
 	private final LessonProgressRepository lessonProgressRepository;
 	private final TeacherAssignmentResolver teacherAssignmentResolver;
+	private final com.rslsolution.speakmateai.repository.VocabularyRepository vocabularyRepository;
+	private final com.rslsolution.speakmateai.repository.GrammarHistoryRepository grammarHistoryRepository;
 
 	@Autowired
 	public ClassDataProvider(ClassRoomRepository classRoomRepository,
@@ -67,7 +69,9 @@ public class ClassDataProvider implements AssistantDataProvider {
 			ObjectMapper objectMapper,
 			SpeakingSessionRepository speakingSessionRepository,
 			LessonProgressRepository lessonProgressRepository,
-			TeacherAssignmentResolver teacherAssignmentResolver) {
+			TeacherAssignmentResolver teacherAssignmentResolver,
+			@org.springframework.beans.factory.annotation.Autowired(required = false) com.rslsolution.speakmateai.repository.VocabularyRepository vocabularyRepository,
+			@org.springframework.beans.factory.annotation.Autowired(required = false) com.rslsolution.speakmateai.repository.GrammarHistoryRepository grammarHistoryRepository) {
 		this.classRoomRepository = classRoomRepository;
 		this.classStudentRepository = classStudentRepository;
 		this.studentRepository = studentRepository;
@@ -78,6 +82,8 @@ public class ClassDataProvider implements AssistantDataProvider {
 		this.speakingSessionRepository = speakingSessionRepository;
 		this.lessonProgressRepository = lessonProgressRepository;
 		this.teacherAssignmentResolver = teacherAssignmentResolver;
+		this.vocabularyRepository = vocabularyRepository;
+		this.grammarHistoryRepository = grammarHistoryRepository;
 	}
 
 	public ClassDataProvider(ClassRoomRepository classRoomRepository,
@@ -87,7 +93,7 @@ public class ClassDataProvider implements AssistantDataProvider {
 			UserRepository userRepository,
 			ObjectMapper objectMapper) {
 		this(classRoomRepository, classStudentRepository, studentRepository, progressRepository,
-				teacherStandardDivisionRepository, userRepository, objectMapper, null, null, null);
+				teacherStandardDivisionRepository, userRepository, objectMapper, null, null, null, null, null);
 	}
 
 	@Override
@@ -233,7 +239,27 @@ public class ClassDataProvider implements AssistantDataProvider {
 			if (Boolean.TRUE.equals(params.get("teacherStudentPerformance"))) data.put("teacherStudentPerformance", true);
 			if (Boolean.TRUE.equals(params.get("activeLearnersCount"))) data.put("activeLearnersCount", true);
 			if (Boolean.TRUE.equals(params.get("totalLessonsCompleted"))) data.put("totalLessonsCompleted", true);
+			if (Boolean.TRUE.equals(params.get("studentsWithStreak"))) data.put("studentsWithStreak", true);
+			if (Boolean.TRUE.equals(params.get("teacherVocabularyCount"))) data.put("teacherVocabularyCount", true);
+			if (Boolean.TRUE.equals(params.get("teacherSpeakingSessions"))) data.put("teacherSpeakingSessions", true);
+			if (Boolean.TRUE.equals(params.get("teacherBeginnerStudentCount"))) data.put("teacherBeginnerStudentCount", true);
+			if (Boolean.TRUE.equals(params.get("teacherTotalStudentCount"))) data.put("teacherTotalStudentCount", true);
+			if (Boolean.TRUE.equals(params.get("teacherGrammarActivities"))) data.put("teacherGrammarActivities", true);
 		}
+
+		int totalUniqueAssignedStudents = 0;
+		if (actor != null && actor.getRole() == Role.TEACHER && !allAssigned.isEmpty()) {
+			Set<Long> uniqueIds = allAssigned.stream()
+					.map(Student::getId)
+					.filter(Objects::nonNull)
+					.collect(Collectors.toSet());
+			totalUniqueAssignedStudents = uniqueIds.size();
+		} else if (!uniqueEnrolledStudentIds.isEmpty()) {
+			totalUniqueAssignedStudents = uniqueEnrolledStudentIds.size();
+		} else {
+			totalUniqueAssignedStudents = students.size();
+		}
+		data.put("totalUniqueAssignedStudentsCount", totalUniqueAssignedStudents);
 
 		// Compute total lessons completed across all assigned students
 		List<Long> allEvalUserIds = evalStudents.stream().map(Student::getId).filter(Objects::nonNull).collect(Collectors.toList());
@@ -250,6 +276,99 @@ public class ClassDataProvider implements AssistantDataProvider {
 		} else {
 			data.put("totalLessonsCompletedCount", 0);
 		}
+
+		// Compute total vocabulary words learned across all assigned students
+		long totalVocab = 0;
+		if (!evalStudents.isEmpty()) {
+			for (Student s : evalStudents) {
+				long studentVocabCount = 0;
+				if (s.getId() != null && vocabularyRepository != null) {
+					try {
+						studentVocabCount = vocabularyRepository.countByUserId(s.getId());
+					} catch (Exception ignored) {}
+				}
+				if (studentVocabCount == 0) {
+					Progress p = progressRepository.findByStudent(s).orElse(null);
+					if (p != null && p.getTotalVocabularyWords() != null) {
+						studentVocabCount = p.getTotalVocabularyWords();
+					}
+				}
+				totalVocab += studentVocabCount;
+			}
+		}
+		data.put("totalVocabularyWordsCount", totalVocab);
+
+		// Compute total speaking sessions completed across all assigned students
+		long totalSpeaking = 0;
+		if (!evalStudents.isEmpty()) {
+			for (Student s : evalStudents) {
+				long studentSpeakingCount = 0;
+				if (s.getId() != null && speakingSessionRepository != null) {
+					try {
+						studentSpeakingCount = speakingSessionRepository.countByUserIdAndCompletedTrue(s.getId());
+					} catch (Exception ignored) {}
+				}
+				if (studentSpeakingCount == 0 && speakingSessionRepository != null) {
+					try {
+						studentSpeakingCount = speakingSessionRepository.countByUserAndCompletedTrue(s);
+					} catch (Exception ignored) {}
+				}
+				if (studentSpeakingCount == 0 && progressRepository != null) {
+					Progress p = progressRepository.findByStudent(s).orElse(null);
+					if (p != null && p.getTotalSpeakingSessions() != null) {
+						studentSpeakingCount = p.getTotalSpeakingSessions();
+					}
+				}
+				totalSpeaking += studentSpeakingCount;
+			}
+		}
+		data.put("totalSpeakingSessionsCount", totalSpeaking);
+
+		// Compute total grammar activities/checks completed across all assigned students
+		long totalGrammar = 0;
+		if (!evalStudents.isEmpty()) {
+			for (Student s : evalStudents) {
+				long studentGrammarCount = 0;
+				if (s.getId() != null && grammarHistoryRepository != null) {
+					try {
+						studentGrammarCount = grammarHistoryRepository.countByUserId(s.getId());
+					} catch (Exception ignored) {}
+				}
+				if (studentGrammarCount == 0 && grammarHistoryRepository != null) {
+					try {
+						studentGrammarCount = grammarHistoryRepository.findByUser(s).size();
+					} catch (Exception ignored) {}
+				}
+				if (studentGrammarCount == 0 && progressRepository != null) {
+					Progress p = progressRepository.findByStudent(s).orElse(null);
+					if (p != null && p.getTotalGrammarChecks() != null) {
+						studentGrammarCount = p.getTotalGrammarChecks();
+					}
+				}
+				totalGrammar += studentGrammarCount;
+			}
+		}
+		data.put("totalGrammarActivitiesCount", totalGrammar);
+
+		// Compute beginner student count across all assigned students (Level 1-2 or englishLevel == "Beginner")
+		long beginnerCount = 0;
+		if (!evalStudents.isEmpty()) {
+			for (Student s : evalStudents) {
+				int lvl = 1;
+				if (progressRepository != null) {
+					Progress p = progressRepository.findByStudent(s).orElse(null);
+					if (p != null && p.getLevel() != null && p.getLevel() > 0) {
+						lvl = p.getLevel();
+					}
+				}
+				String engLvl = s.getEnglishLevel();
+				boolean isBeginner = (lvl <= 2) || (engLvl != null && "Beginner".equalsIgnoreCase(engLvl.trim()));
+				if (isBeginner) {
+					beginnerCount++;
+				}
+			}
+		}
+		data.put("beginnerStudentCount", beginnerCount);
 
 		// Compute active learners count: students with speaking sessions OR lesson completions in the last 7 days
 		// This mirrors the established definition in TeacherServiceImpl (practicedThisWeek check)
@@ -315,8 +434,12 @@ public class ClassDataProvider implements AssistantDataProvider {
 			} catch (Exception ignored) {}
 		}
 
-		if (!students.isEmpty()) {
-			List<Progress> progresses = students.stream()
+		List<Student> streakStudents = (actor != null && actor.getRole() == Role.TEACHER && !specificClassRequested && !allAssigned.isEmpty())
+				? allAssigned
+				: students;
+
+		if (!streakStudents.isEmpty()) {
+			List<Progress> progresses = streakStudents.stream()
 					.map(s -> progressRepository.findByStudent(s).orElse(null))
 					.filter(Objects::nonNull)
 					.collect(Collectors.toList());
@@ -326,12 +449,12 @@ public class ClassDataProvider implements AssistantDataProvider {
 			long totalPracticeMinutes = progresses.stream()
 					.mapToLong(p -> p.getTotalPracticeMinutes() == null ? 0L : p.getTotalPracticeMinutes().longValue())
 					.sum();
-			double avgPracticeMinutes = (double) totalPracticeMinutes / students.size();
+			double avgPracticeMinutes = (double) totalPracticeMinutes / streakStudents.size();
 
 			data.put("studentsWithActiveStreak", withStreak);
 			data.put("totalXp", totalXp);
 			data.put("averagePracticeMinutesPerStudent", avgPracticeMinutes);
-			data.put("averageXpPerStudent", totalXp / students.size());
+			data.put("averageXpPerStudent", totalXp / streakStudents.size());
 		} else {
 			data.put("studentsWithActiveStreak", 0);
 			data.put("totalXp", 0);
@@ -397,6 +520,18 @@ public class ClassDataProvider implements AssistantDataProvider {
 				riskFactors.add("Low speaking score (" + overall + "%)");
 			} else if (overall > 0.0 && overall < 65.0) {
 				riskFactors.add("Needs speaking fluency practice (" + overall + "%)");
+			}
+			if (fluency > 0.0 && fluency < 50.0) {
+				riskFactors.add("Low fluency score (" + fluency + "%)");
+			}
+			if (pronun > 0.0 && pronun < 50.0) {
+				riskFactors.add("Low pronunciation score (" + pronun + "%)");
+			}
+			if (grammar > 0.0 && grammar < 50.0) {
+				riskFactors.add("Low grammar score (" + grammar + "%)");
+			}
+			if (vocab > 0.0 && vocab < 50.0) {
+				riskFactors.add("Low vocabulary score (" + vocab + "%)");
 			}
 			if (lessonsCompleted <= 2) {
 				riskFactors.add("Only " + lessonsCompleted + " lesson" + (lessonsCompleted == 1 ? "" : "s") + " completed");

@@ -77,7 +77,7 @@ public class AnswerSynthesizer {
 		// the model rewrite it.
 		// Similarly, multi-student duplicate name disambiguation and cross-student
 		// privacy denials must be rendered deterministically with zero hallucination.
-		if (intent == AssistantIntent.ACCOUNT_INFO || describesNonStudentPerson(dataJson) || hasDisambiguationOrDenial(dataJson)) {
+		if (intent == AssistantIntent.ACCOUNT_INFO || describesNonStudentPerson(dataJson) || hasDisambiguationOrDenial(dataJson) || hasTeacherTotalStudentCount(dataJson)) {
 			return deterministicAnswer(intent, actor, userMessage, params, dataJson);
 		}
 
@@ -250,6 +250,7 @@ public class AnswerSynthesizer {
 			return "Give a helpful general answer.";
 		}
 		return switch (intent) {
+			case CHATBOT_IDENTITY -> "Introduce yourself as SpeakMate AI, an AI English learning assistant.";
 			case CASUAL_CHAT -> "You are greeting or interacting casually with the logged-in user. The user's name is in 'displayName', role in 'role', and school in 'schoolName'.\n"
 					+ "CRITICAL RULES:\n"
 					+ "- ALWAYS greet them personally by their name if 'displayName' is present (e.g., 'Hello [displayName]!'). Never say a generic 'I am your SpeakMate AI assistant' without acknowledging them.\n"
@@ -274,11 +275,13 @@ public class AnswerSynthesizer {
 			case CLASS_PERFORMANCE -> "Answer questions about class performance, teacher's assigned classes, struggling students, and speech learning metrics.\n"
 					+ "- ASSIGNED CLASSES RULE: When asked which classes are assigned to the teacher or which classes they teach (e.g. 'which classes do I teach', 'what classes are assigned to me', 'which classes am I teaching', 'show my assigned classes', 'what are my classes', 'which grades do I teach', 'tell me my assigned classes'): list ONLY the assigned class names under header '**You are assigned to these [N] classes:**'. Do NOT include student counts, student distribution, percentages, analytics, reports, dashboard cards, or action buttons.\n"
 					+ "- ASSIGNED DIVISIONS RULE: When asked which divisions are assigned to the teacher or which divisions they teach (e.g. 'which divisions do I teach', 'what divisions are assigned to me', 'which divisions am I teaching', 'show my divisions', 'what are my assigned divisions', 'tell me which divisions I teach'): report ONLY the assigned division information. If 1 division, state: '**You teach Division [X] (Grade [Y]).**'. If multiple divisions, list them as '**You teach these divisions:** * Division A (Grade 9) * Division B (Grade 7)'. Do NOT include student counts, student distribution, student names, division percentages, analytics, dashboard cards, or action buttons.\n"
-					+ "- STRUGGLING STUDENTS RULE: When asked which learners need help or are struggling (e.g. 'which learners need the most help', 'show students who are struggling', 'low speaking scores', 'weak students', 'who is struggling'): report each student from strugglingStudents with their name, class, speaking score, lessons completed, XP, and specific reason they need attention. If strugglingStudents is empty, state that all students have healthy practice activity.\n"
+					+ "- STRUGGLING STUDENTS / NEEDING IMPROVEMENT RULE: When asked which learners need help, need improvement, or are struggling (e.g. 'which students need improvement', 'which of my students need improvement', 'which students are struggling', 'which students need more practice', 'which students need help', 'which students are performing poorly', 'which students need additional support', 'which learners need improvement', 'show me students who need improvement', 'are any of my students struggling', 'which students have weak performance'): report each student from strugglingStudents with their name, class, speaking score, lessons completed, XP, and specific reason they need attention. If strugglingStudents is empty, state clearly that none of your assigned students are currently flagged as needing improvement. Do NOT say 'Improvement data not available'. Do NOT dump dashboard links, 'View my students', or 'Go to dashboard' buttons.\n"
 					+ "- TOTAL STUDENTS IN CLASSES: When asked how many students are in classes (e.g. 'how many students are in my classes', 'how many students do I have'): state totalStudentsAcrossClasses and provide the per-class student enrollment breakdown from assignedClassesList.\n"
 					+ "- TEACHER STUDENT PERFORMANCE RULE: When asked how students are performing (e.g. 'how are my students performing', 'how are my students doing', 'show me my students performance', 'what is the overall performance of my students'): provide an aggregated performance summary using totalStudentsAcrossClasses, averageXpPerStudent, classAverageSpeakingScore, classAverageFluencyScore, classAveragePronunciationScore, classAverageGrammarScore, classAverageVocabularyScore, averagePracticeMinutesPerStudent, studentsWithActiveStreak, and totalXp. Only include metrics that have non-zero values. If strugglingStudents is non-empty, mention how many students may need attention. Do NOT include dashboard navigation links, 'View my students', or 'View class analytics' action buttons.\n"
 					+ "- ACTIVE LEARNERS COUNT RULE: When asked how many students are actively learning (e.g. 'how many students are actively learning', 'how many active learners do I have', 'how many of my students are active', 'tell me the number of active students'): report ONLY the activelyLearningCount value. If the count is 0, say 'None of your students are currently actively learning.' If the count is N, say 'N of your students are actively learning.' Do NOT include total students, average XP, speaking scores, lesson completion, grammar, vocabulary, student names, class analytics, reports, dashboard cards, or navigation buttons.\n"
 					+ "- TEACHER LESSONS COMPLETED RULE: When asked how many lessons the teacher's students have completed (e.g. 'how many lessons have my students completed', 'total lessons completed by my students', 'lessons my students finished'): report ONLY the totalLessonsCompletedCount value. If 0, say 'Your students have not completed any lessons yet.' If N, say 'Your students have completed N lessons in total.' Do NOT include student names, XP, speaking scores, active learners, class analytics, or navigation buttons. CRITICAL: 'my students' is a collective teacher-scoped reference, never a student name — do NOT attempt student name lookup.\n"
+					+ "- TEACHER STUDENTS WITH STREAK RULE: When asked how many students have a learning streak or active streak (e.g. 'how many students have a learning streak', 'how many of my students have a learning streak', 'how many students are on a learning streak', 'how many students have an active streak', 'how many of my students have an active learning streak', 'how many students currently have a streak', 'how many learners have a learning streak', 'how many assigned students have a streak', 'how many students are maintaining a learning streak'): report ONLY the studentsWithActiveStreak value. If 0, say '**No students currently have a learning streak.**'. If N (where N > 0), say '**N students currently have a learning streak.**' (or '**1 student currently has a learning streak.**' if 1). Do NOT hardcode numbers. Do NOT include student names, XP, speaking scores, active learners, class analytics, or navigation buttons. 'my students', 'my learners', 'assigned students', 'students assigned to me' are collective teacher-scoped references, never student names — do NOT attempt student name lookup.\n"
+					+ "- TEACHER VOCABULARY COUNT RULE: When asked how many vocabulary words the teacher's students have learned or know (e.g. 'how many vocabulary words did my students learn', 'how many vocabulary words have my students learned', 'how many words have my students learned', 'what is the total vocabulary learned by my students', 'how many vocabulary words do my students know', 'how many words did my students learn', 'how many vocabulary words have students in my classes learned', 'tell me the total vocabulary words learned by my students', 'what is my students vocabulary count', 'how much vocabulary have my students learned'): report ONLY the totalVocabularyWordsCount value. State: '**Your students have learned N vocabulary words.**' (or '**Your students have learned 1 vocabulary word.**' if 1). Do NOT hardcode numbers. Do NOT include student names, XP, speaking scores, active learners, class analytics, or navigation buttons. 'my students', 'my learners', 'assigned students', 'students in my classes' are collective teacher-scoped references, never student names — do NOT attempt student name lookup.\n"
 					+ "- CLASS PERFORMANCE SUMMARY: When asked for class performance summary, report enrolled student count, assigned teacher, total XP, average XP, average practice minutes, average speaking scores (classAverageSpeakingScore, classAverageFluencyScore, classAveragePronunciationScore), and highlight top students.\n"
 					+ "- TOP STUDENTS / HIGHEST XP / MOST LESSONS: When asked for top students or highest XP in class, rank students from topStudents with their name, XP, streak, and lessons completed.";
 			case STUDENT_PERFORMANCE -> "If scope is SELF (the caller is a student or learner asking about their own progress or English tutoring):\n"
@@ -390,6 +393,14 @@ public class AnswerSynthesizer {
 		}
 	}
 
+	private boolean hasTeacherTotalStudentCount(String dataJson) {
+		if (dataJson == null || dataJson.isBlank()) {
+			return false;
+		}
+		return dataJson.contains("\"teacherTotalStudentCount\":true")
+				|| dataJson.contains("\"field\":\"teacher_total_student_count\"");
+	}
+
 	/**
 	 * True when the provider payload describes a person who is explicitly NOT a
 	 * student — it carries a {@code personRole} (and/or a {@code notStudent} flag).
@@ -475,6 +486,7 @@ public class AnswerSynthesizer {
 			return summaryOr(data, null);
 		}
 		return switch (intent) {
+			case CHATBOT_IDENTITY -> "My name is SpeakMate AI. I’m your AI English learning assistant.";
 			case CASUAL_CHAT -> renderCasualChat(data, userMessage);
 			case PLATFORM_OVERVIEW -> renderPlatform(data, userMessage);
 			case SCHOOL_OVERVIEW -> renderSchool(data, userMessage);
@@ -482,7 +494,7 @@ public class AnswerSynthesizer {
 			case RESULTS_ANALYTICS -> renderResults(data);
 			case AI_INSIGHTS -> renderAiInsights(data);
 			case PROFILE_SETTINGS -> renderProfile(data, userMessage);
-			case SCHOOL_ROSTER -> renderRoster(data);
+			case SCHOOL_ROSTER -> renderRoster(data, userMessage);
 			case PLATFORM_USERS -> renderUsers(data);
 			case BILLING -> renderBilling(data);
 			case ACCOUNT_INFO -> renderAccount(data, userMessage, actor);
@@ -936,29 +948,119 @@ public class AnswerSynthesizer {
 			return trimOrNull(sb);
 		}
 
-		// 2. Inquiries about total student count across classes ("how many students are in my classes", "how many students do i have")
-		boolean isTotalStudentCountQuery = (msg.contains("how many students") || msg.contains("total students") || msg.contains("count of students") || msg.contains("students do i have"))
-				&& (msg.contains("my class") || msg.contains("my classes") || msg.contains("assigned") || msg.contains("do i have"));
-		if (isTotalStudentCountQuery) {
-			String totalAcross = num(d, "totalStudentsAcrossClasses");
-			if (totalAcross.isBlank()) totalAcross = num(d, "studentCount");
-			sb.append("**Class Enrollment Summary**\n\n");
-			sb.append("You currently have **").append(zeroIfBlank(totalAcross)).append(" students** enrolled across your assigned classes.\n\n");
-			List<Map<String, Object>> classList = maps(d, "assignedClassesList");
-			if (!classList.isEmpty()) {
-				sb.append("**Breakdown by Class:**\n");
-				for (Map<String, Object> c : classList) {
-					sb.append("- **").append(str(c, "name")).append(":** ")
-					  .append(zeroIfBlank(num(c, "studentCount"))).append(" students\n");
-				}
+		// 1f. Teacher students with learning streak ("how many students have a learning streak")
+		boolean isTeacherStudentsWithStreakQuery = "students_with_streak".equalsIgnoreCase(str(d, "field"))
+				|| Boolean.TRUE.equals(d.get("studentsWithStreak"))
+				|| ((msg.contains("streak") || msg.contains("streaks")) && (msg.contains("student") || msg.contains("students") || msg.contains("learner") || msg.contains("learners"))
+					&& (msg.contains("how many") || msg.contains("count") || msg.contains("number") || msg.contains("how many of my") || msg.contains("how many students") || msg.contains("how many learners") || msg.contains("on a streak") || msg.contains("active streak") || msg.contains("learning streak") || msg.contains("maintaining")));
+		if (isTeacherStudentsWithStreakQuery) {
+			String streakStr = num(d, "studentsWithActiveStreak");
+			long count = 0;
+			try { count = Long.parseLong(streakStr); } catch (Exception ignored) {}
+			if (count == 0) {
+				sb.append("**No students currently have a learning streak.**");
+			} else if (count == 1) {
+				sb.append("**1 student currently has a learning streak.**");
+			} else {
+				sb.append("**").append(count).append(" students currently have a learning streak.**");
 			}
 			return trimOrNull(sb);
 		}
 
-		// 3. Inquiries about struggling / weak / learners needing help
-		boolean isStrugglingQuery = msg.contains("struggling") || msg.contains("need help") || msg.contains("need the most help")
+		// 1g. Teacher total vocabulary words learned by assigned students ("how many vocabulary words did my students learn")
+		boolean isTeacherVocabularyCountQuery = "teacher_vocabulary_count".equalsIgnoreCase(str(d, "field"))
+				|| Boolean.TRUE.equals(d.get("teacherVocabularyCount"))
+				|| ((msg.contains("vocabulary") || msg.contains("vocab") || msg.contains("words")) && msg.contains("my students")
+					&& (msg.contains("learn") || msg.contains("learned") || msg.contains("know") || msg.contains("count")));
+		if (isTeacherVocabularyCountQuery) {
+			String countStr = num(d, "totalVocabularyWordsCount");
+			long count = 0;
+			try { count = Long.parseLong(countStr); } catch (Exception ignored) {}
+			sb.append("**Your students have learned ").append(count).append(" vocabulary word").append(count == 1 ? "" : "s").append(".**");
+			return trimOrNull(sb);
+		}
+
+		// 1h. Teacher total speaking sessions completed by assigned students ("how many speaking sessions did my students complete")
+		boolean isTeacherSpeakingSessionsQuery = "teacher_speaking_sessions".equalsIgnoreCase(str(d, "field"))
+				|| Boolean.TRUE.equals(d.get("teacherSpeakingSessions"))
+				|| ((msg.contains("speaking session") || msg.contains("speaking sessions")) && (msg.contains("my student") || msg.contains("my students") || msg.contains("my learner") || msg.contains("my learners") || msg.contains("students in my class") || msg.contains("students in my classes") || msg.contains("assigned students") || msg.contains("students i teach"))
+					&& (msg.contains("complete") || msg.contains("completed") || msg.contains("finish") || msg.contains("finished") || msg.contains("done") || msg.contains("count") || msg.contains("total") || msg.contains("number") || msg.contains("how many")));
+		if (isTeacherSpeakingSessionsQuery) {
+			String countStr = num(d, "totalSpeakingSessionsCount");
+			long count = 0;
+			try { count = Long.parseLong(countStr); } catch (Exception ignored) {}
+			sb.append("**Your students have completed ").append(count).append(" speaking session").append(count == 1 ? "" : "s").append(".**");
+			return trimOrNull(sb);
+		}
+
+		// 1i. Teacher beginner student count ("how many students are beginners")
+		boolean isTeacherBeginnerStudentCountQuery = "teacher_beginner_student_count".equalsIgnoreCase(str(d, "field"))
+				|| Boolean.TRUE.equals(d.get("teacherBeginnerStudentCount"))
+				|| (msg.contains("beginner") && (msg.contains("student") || msg.contains("students") || msg.contains("learner") || msg.contains("learners")));
+		if (isTeacherBeginnerStudentCountQuery) {
+			String countStr = num(d, "beginnerStudentCount");
+			long count = 0;
+			try { count = Long.parseLong(countStr); } catch (Exception ignored) {}
+			if (count == 0) {
+				sb.append("**None of your students are at the Beginner level.**");
+			} else if (count == 1) {
+				sb.append("**1 of your students is at the Beginner level.**");
+			} else {
+				sb.append("**").append(count).append(" of your students are at the Beginner level.**");
+			}
+			return trimOrNull(sb);
+		}
+
+		// 1k. Teacher total grammar activities completed by assigned students ("how many grammar activities were completed")
+		boolean isTeacherGrammarActivitiesQuery = "teacher_grammar_activities".equalsIgnoreCase(str(d, "field"))
+				|| Boolean.TRUE.equals(d.get("teacherGrammarActivities"))
+				|| (msg.contains("grammar") && (msg.contains("activity") || msg.contains("activities") || msg.contains("exercise") || msg.contains("exercises") || msg.contains("check") || msg.contains("checks"))
+					&& (msg.contains("complete") || msg.contains("completed") || msg.contains("finish") || msg.contains("finished") || msg.contains("done") || msg.contains("how many") || msg.contains("count") || msg.contains("total")));
+		if (isTeacherGrammarActivitiesQuery) {
+			String countStr = num(d, "totalGrammarActivitiesCount");
+			long count = 0;
+			try { count = Long.parseLong(countStr); } catch (Exception ignored) {}
+			if (count == 0) {
+				sb.append("**Your students have not completed any grammar activities yet.**");
+			} else {
+				sb.append("**Your students have completed ").append(count).append(" grammar activit").append(count == 1 ? "y" : "ies").append(" in total.**");
+			}
+			return trimOrNull(sb);
+		}
+
+		// 2. Teacher total student count inquiry ("How many students do I have?", "How many students are assigned to me?")
+		boolean isTeacherTotalStudentCountQuery = "teacher_total_student_count".equalsIgnoreCase(str(d, "field"))
+				|| Boolean.TRUE.equals(d.get("teacherTotalStudentCount"))
+				|| ((msg.contains("how many student") || msg.contains("how many students") || msg.contains("how many learner") || msg.contains("how many learners") || msg.contains("total number of student") || msg.contains("total number of students") || msg.contains("total student count") || msg.contains("count of student") || msg.contains("students do i have") || msg.contains("learners do i have"))
+					&& (msg.contains("do i have") || msg.contains("assigned to me") || msg.contains("i teach") || msg.contains("my total") || msg.contains("assigned") || msg.contains("in my class") || msg.contains("in my classes")));
+
+		if (isTeacherTotalStudentCountQuery) {
+			String countStr = num(d, "totalUniqueAssignedStudentsCount");
+			if (countStr.isBlank()) {
+				countStr = num(d, "totalStudentsAcrossClasses");
+			}
+			if (countStr.isBlank()) {
+				countStr = num(d, "studentCount");
+			}
+			long count = 0;
+			try { count = Long.parseLong(countStr); } catch (Exception ignored) {}
+
+			if (count == 0) {
+				sb.append("**You currently have no students assigned to you.**");
+			} else {
+				sb.append("**You have ").append(count).append(" student").append(count == 1 ? "" : "s").append(" across your assigned classes.**");
+			}
+			return trimOrNull(sb);
+		}
+
+		// 3. Inquiries about struggling / weak / learners needing help / needing improvement
+		boolean isStrugglingQuery = "students_needing_improvement".equalsIgnoreCase(str(d, "field"))
+				|| "struggling".equalsIgnoreCase(str(d, "filter"))
+				|| msg.contains("struggling") || msg.contains("need help") || msg.contains("need the most help")
 				|| msg.contains("needing help") || msg.contains("needing attention") || msg.contains("weak")
-				|| msg.contains("at risk") || msg.contains("low performance") || msg.contains("low-performing");
+				|| msg.contains("at risk") || msg.contains("low performance") || msg.contains("low-performing")
+				|| msg.contains("need improvement") || msg.contains("needing improvement") || msg.contains("needs improvement")
+				|| msg.contains("more practice") || msg.contains("performing poorly") || msg.contains("additional support");
 		if (isStrugglingQuery) {
 			List<Map<String, Object>> struggling = maps(d, "strugglingStudents");
 			sb.append("**Learners Needing Support & Attention**\n\n");
@@ -986,7 +1088,7 @@ public class AnswerSynthesizer {
 					sb.append('\n');
 				}
 			} else {
-				sb.append("Great news! None of your students are currently flagged as struggling. All enrolled students are maintaining regular practice activity.\n");
+				sb.append("Great news! None of your students are currently flagged as needing improvement. All assigned students are maintaining regular practice activity.\n");
 			}
 			return trimOrNull(sb);
 		}
@@ -1274,6 +1376,90 @@ public class AnswerSynthesizer {
 	}
 
 	private String renderRoster(Map<String, Object> d) {
+		return renderRoster(d, null);
+	}
+
+	private String renderRoster(Map<String, Object> d, String userMessage) {
+		String field = str(d, "field");
+		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();
+		boolean isPhoneReq = "phone".equalsIgnoreCase(field) || m.contains("phone number") || m.contains("phone numbers") || m.contains("contact number") || m.contains("mobile number");
+
+		if (isPhoneReq) {
+			boolean requestedSpecificStudent = Boolean.TRUE.equals(d.get("requestedSpecificStudent"));
+			boolean studentFound = !Boolean.FALSE.equals(d.get("studentFound"));
+
+			if (requestedSpecificStudent && !studentFound) {
+				return "This student is not in your assigned students.";
+			}
+			List<Map<String, Object>> students = maps(d, "students");
+			if (students.isEmpty()) {
+				return "No assigned students were found.";
+			}
+			StringBuilder sb = new StringBuilder("### Student Phone Numbers\n\n");
+			int withPhone = 0;
+			for (Map<String, Object> s : students) {
+				String name = str(s, "name");
+				String phone = str(s, "phone");
+				if (!phone.isBlank()) {
+					sb.append("* ").append(name).append(": ").append(phone).append("\n");
+					withPhone++;
+				} else {
+					sb.append("* ").append(name).append(": Phone number not provided\n");
+				}
+			}
+			sb.append("\n**Students with phone numbers:** ").append(withPhone);
+			return sb.toString();
+		}
+
+		// Dedicated rendering for broad "student personal information" queries.
+		// Strips phone numbers and other sensitive fields, rendering only
+		// authorized non-sensitive profile data (name, email, class, division,
+		// roll number, student ID).
+		if ("student_personal_info".equalsIgnoreCase(field)) {
+			List<Map<String, Object>> students = maps(d, "students");
+			if (students.isEmpty()) {
+				return "No assigned students were found.";
+			}
+			StringBuilder sb = new StringBuilder("### Your Assigned Students\n\n");
+			int idx = 1;
+			for (Map<String, Object> s : students) {
+				String name = str(s, "name");
+				if (name.isBlank()) continue;
+				sb.append(idx++).append(". **").append(name).append("**");
+				StringBuilder details = new StringBuilder();
+				String email = str(s, "email");
+				if (!email.isBlank()) {
+					details.append("Email: ").append(email);
+				}
+				String std = str(s, "standard");
+				String div = str(s, "division");
+				if (!std.isBlank() || !div.isBlank()) {
+					if (details.length() > 0) details.append(", ");
+					details.append("Class: ");
+					if (!std.isBlank()) details.append(std);
+					if (!std.isBlank() && !div.isBlank()) details.append("-");
+					if (!div.isBlank()) details.append(div);
+				}
+				String rollNo = str(s, "rollNumber");
+				if (!rollNo.isBlank()) {
+					if (details.length() > 0) details.append(", ");
+					details.append("Roll No: ").append(rollNo);
+				}
+				String studentId = str(s, "studentId");
+				if (!studentId.isBlank()) {
+					if (details.length() > 0) details.append(", ");
+					details.append("Student ID: ").append(studentId);
+				}
+				if (details.length() > 0) {
+					sb.append(" — ").append(details);
+				}
+				sb.append("\n");
+			}
+			sb.append("\n**Total:** ").append(students.size())
+			  .append(" student").append(students.size() == 1 ? "" : "s");
+			return sb.toString();
+		}
+
 		Map<String, Object> studentAssignedTeacher = map(d, "studentAssignedTeacher");
 		if (studentAssignedTeacher != null && !studentAssignedTeacher.isEmpty()) {
 			StringBuilder sb = new StringBuilder();
@@ -1544,31 +1730,8 @@ public class AnswerSynthesizer {
 	}
 
 	private String renderAccount(Map<String, Object> d, String userMessage, ActorContext actor) {
-		if (Boolean.TRUE.equals(d.get("botIdentity"))) {
-			String role = str(d, "role");
-			if ("STUDENT".equalsIgnoreCase(role)) {
-				return "I am **SpeakMate AI**, your dedicated Student Assistant and AI English Tutor! 🎓\n\n"
-						+ "I can help you:\n"
-						+ "- Practice English speaking & roleplays with AI Avatars (Haru, Chitose)\n"
-						+ "- Explain tricky grammar rules with clear examples\n"
-						+ "- Check and correct sentences with grammar rule explanations\n"
-						+ "- Build vocabulary with definitions, idioms, and natural expressions\n"
-						+ "- Track curriculum lessons, school homework, XP, streaks, and milestone badges (like Confident Conversationalist & Level 5)!";
-			} else if ("USER".equalsIgnoreCase(role)) {
-				return "I am **SpeakMate AI**, your personal AI English Coach and Fluency Companion! 🎓\n\n"
-						+ "I can help you:\n"
-						+ "- Practice conversational English with AI Avatars across real-world scenarios\n"
-						+ "- Explain English grammar rules with contrastive examples\n"
-						+ "- Check and correct sentences to polish your conversational and professional phrasing\n"
-						+ "- Expand vocabulary with idioms, phrasal verbs, and collocations\n"
-						+ "- Track your fluency metrics, XP, streaks, Level 5 goals, and milestone badges!";
-			}
-			return "I am **SpeakMate AI**, your dedicated assistant for English communication practice, classroom analytics, and platform administration.\n\n"
-					+ "I can help you:\n"
-					+ "- Explore users, teachers, and student rosters\n"
-					+ "- Check individual and class-level speaking performance\n"
-					+ "- Monitor fluency, pronunciation, grammar, and vocabulary progress\n"
-					+ "- Review platform enrollment, school analytics, and subscriptions";
+		if (Boolean.TRUE.equals(d.get("botIdentity")) || isBotIdentityQuery(userMessage)) {
+			return "My name is SpeakMate AI. I’m your AI English learning assistant.";
 		}
 		String m = userMessage == null ? "" : userMessage.toLowerCase(Locale.ROOT).trim();
 
@@ -3050,12 +3213,87 @@ if (containsWord(m, "achievement", "achievements")) {
 		}
 
 		String msg = (userMessage != null ? userMessage.toLowerCase(Locale.ROOT).trim() : "");
+		boolean isTeacherTotalStudentCountQuery = "teacher_total_student_count".equalsIgnoreCase(str(data, "field"))
+				|| Boolean.TRUE.equals(data.get("teacherTotalStudentCount"))
+				|| ((msg.contains("how many student") || msg.contains("how many students") || msg.contains("how many learner") || msg.contains("how many learners") || msg.contains("total number of student") || msg.contains("total number of students") || msg.contains("total student count") || msg.contains("count of student") || msg.contains("students do i have") || msg.contains("learners do i have"))
+					&& (msg.contains("do i have") || msg.contains("assigned to me") || msg.contains("i teach") || msg.contains("my total") || msg.contains("assigned") || msg.contains("in my class") || msg.contains("in my classes")));
+		if (isTeacherTotalStudentCountQuery) {
+			return; // Isolated single-count response — do NOT append stat cards or extra UI elements!
+		}
+
+		boolean isTeacherVocabularyCountQuery = "teacher_vocabulary_count".equalsIgnoreCase(str(data, "field"))
+				|| Boolean.TRUE.equals(data.get("teacherVocabularyCount"))
+				|| ((msg.contains("vocabulary") || msg.contains("vocab") || msg.contains("words"))
+					&& (msg.contains("my student") || msg.contains("my students") || msg.contains("students in my class") || msg.contains("students in my classes") || msg.contains("assigned students") || msg.contains("my learners") || msg.contains("students i teach")));
+
+		boolean isTeacherSpeakingSessionsQuery = "teacher_speaking_sessions".equalsIgnoreCase(str(data, "field"))
+				|| Boolean.TRUE.equals(data.get("teacherSpeakingSessions"))
+				|| ((msg.contains("speaking session") || msg.contains("speaking sessions"))
+					&& (msg.contains("my student") || msg.contains("my students") || msg.contains("students in my class") || msg.contains("students in my classes") || msg.contains("assigned students") || msg.contains("my learners") || msg.contains("students i teach")));
+
+		boolean isTeacherBeginnerStudentCountQuery = "teacher_beginner_student_count".equalsIgnoreCase(str(data, "field"))
+				|| Boolean.TRUE.equals(data.get("teacherBeginnerStudentCount"))
+				|| (msg.contains("beginner") && (msg.contains("student") || msg.contains("students") || msg.contains("learner") || msg.contains("learners")));
+
+		boolean isTeacherGrammarActivitiesQuery = "teacher_grammar_activities".equalsIgnoreCase(str(data, "field"))
+				|| Boolean.TRUE.equals(data.get("teacherGrammarActivities"))
+				|| (msg.contains("grammar") && (msg.contains("activity") || msg.contains("activities") || msg.contains("exercise") || msg.contains("exercises") || msg.contains("check") || msg.contains("checks")));
+
+		boolean isTeacherLessonsCompletedQuery = "teacher_lessons_completed".equalsIgnoreCase(str(data, "field"))
+				|| Boolean.TRUE.equals(data.get("totalLessonsCompleted"))
+				|| ((msg.contains("lesson") || msg.contains("lessons"))
+					&& (msg.contains("my student") || msg.contains("my students") || msg.contains("students in my class") || msg.contains("students in my classes") || msg.contains("assigned students") || msg.contains("my learners")));
+
+		boolean isTeacherStudentsWithStreakQuery = "students_with_streak".equalsIgnoreCase(str(data, "field"))
+				|| Boolean.TRUE.equals(data.get("studentsWithStreak"))
+				|| ((msg.contains("streak") || msg.contains("streaks"))
+					&& (msg.contains("student") || msg.contains("students") || msg.contains("learner") || msg.contains("learners")));
+
+		boolean isActiveLearnersCountQuery = "active_learners_count".equalsIgnoreCase(str(data, "field"))
+				|| Boolean.TRUE.equals(data.get("activeLearnersCount"))
+				|| msg.contains("active learners") || msg.contains("actively learning");
+
 		boolean isAssignedClassesQuery = msg.contains("which classes") || msg.contains("assigned classes")
 				|| msg.contains("classes are assigned") || msg.contains("classes assigned")
 				|| msg.contains("classes do i teach") || msg.contains("what classes are assigned")
 				|| msg.equals("my classes") || msg.equals("my classes?");
 
-		if (isAssignedClassesQuery) {
+		if (isTeacherVocabularyCountQuery) {
+			String totalVocab = num(data, "totalVocabularyWordsCount");
+			if (!totalVocab.isBlank()) {
+				stats.add(new AssistantResponse.StatCard("Vocabulary Words Learned", totalVocab, null));
+			}
+		} else if (isTeacherSpeakingSessionsQuery) {
+			String totalSpeaking = num(data, "totalSpeakingSessionsCount");
+			if (!totalSpeaking.isBlank()) {
+				stats.add(new AssistantResponse.StatCard("Speaking Sessions Completed", totalSpeaking, null));
+			}
+		} else if (isTeacherGrammarActivitiesQuery) {
+			String totalGrammar = num(data, "totalGrammarActivitiesCount");
+			if (!totalGrammar.isBlank()) {
+				stats.add(new AssistantResponse.StatCard("Grammar Activities Completed", totalGrammar, null));
+			}
+		} else if (isTeacherBeginnerStudentCountQuery) {
+			String beginnerCount = num(data, "beginnerStudentCount");
+			if (!beginnerCount.isBlank()) {
+				stats.add(new AssistantResponse.StatCard("Beginner Students", beginnerCount, null));
+			}
+		} else if (isTeacherLessonsCompletedQuery) {
+			String totalLessons = num(data, "totalLessonsCompletedCount");
+			if (!totalLessons.isBlank()) {
+				stats.add(new AssistantResponse.StatCard("Lessons Completed", totalLessons, null));
+			}
+		} else if (isTeacherStudentsWithStreakQuery) {
+			String streakCount = num(data, "studentsWithActiveStreak");
+			if (!streakCount.isBlank()) {
+				stats.add(new AssistantResponse.StatCard("Students with Active Streak", streakCount, null));
+			}
+		} else if (isActiveLearnersCountQuery) {
+			String activeCount = num(data, "activelyLearningCount");
+			if (!activeCount.isBlank()) {
+				stats.add(new AssistantResponse.StatCard("Active Learners", activeCount, null));
+			}
+		} else if (isAssignedClassesQuery) {
 			String totalClasses = num(data, "totalAssignedClasses");
 			String totalStuds = num(data, "totalStudentsAcrossClasses");
 			if (!totalClasses.isBlank()) {
@@ -3471,5 +3709,21 @@ if (containsWord(m, "achievement", "achievements")) {
 			}
 		}
 		return false;
+	}
+
+	private boolean isBotIdentityQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		return containsAny(m, List.of(
+				"what is your name", "what's your name", "whats your name", "what is ur name", "what's ur name",
+				"who are you", "who are u", "who r u",
+				"what should i call you", "what should i call u", "what can i call you", "what can i call u",
+				"tell me your name", "tell me ur name", "tell your name",
+				"what are you called", "what are u called", "what are you named",
+				"your name", "ur name",
+				"what are you", "introduce yourself", "who made you"
+		));
 	}
 }

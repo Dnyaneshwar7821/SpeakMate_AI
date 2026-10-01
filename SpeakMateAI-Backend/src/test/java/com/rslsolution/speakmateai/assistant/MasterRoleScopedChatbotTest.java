@@ -274,21 +274,142 @@ public class MasterRoleScopedChatbotTest {
 	class TeacherRoleTests {
 
 		@Test
-		@DisplayName("Teacher Authorized: Assigned classes, students, struggling learners, class summary")
+		@DisplayName("Teacher Authorized: Assigned classes, students, struggling learners, class summary, learning streak")
 		void testTeacherAuthorized() {
 			assertEquals(AssistantIntent.CLASS_PERFORMANCE, classifier.classify("Which classes are assigned to me?", Role.TEACHER, null).getIntent());
 			assertEquals(AssistantIntent.CLASS_PERFORMANCE, classifier.classify("How many students are in my classes?", Role.TEACHER, null).getIntent());
 			assertEquals(AssistantIntent.SCHOOL_ROSTER, classifier.classify("Show me my students.", Role.TEACHER, null).getIntent());
 			assertEquals(AssistantIntent.SCHOOL_ROSTER, classifier.classify("My students?", Role.TEACHER, null).getIntent());
 
-			// Struggling students:
-			IntentResult struggling1 = classifier.classify("Show students who are struggling.", Role.TEACHER, null);
-			assertEquals(AssistantIntent.CLASS_PERFORMANCE, struggling1.getIntent());
-			assertEquals("struggling", struggling1.getParams().get("filter"));
+			// Learning streak variations:
+			String[] streakQueries = {
+				"How many students have a learning streak?",
+				"How many of my students have a learning streak?",
+				"How many students are on a learning streak?",
+				"How many students have an active streak?",
+				"How many of my students have an active learning streak?",
+				"How many students currently have a streak?",
+				"How many learners have a learning streak?",
+				"How many assigned students have a streak?",
+				"How many students are maintaining a learning streak?"
+			};
+			for (String q : streakQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertEquals(AssistantIntent.CLASS_PERFORMANCE, res.getIntent(), "Failed for query: " + q);
+				assertEquals(Boolean.TRUE, res.getParams().get("studentsWithStreak"), "Missing studentsWithStreak param for query: " + q);
+			}
 
-			IntentResult struggling2 = classifier.classify("Which learners need the most help?", Role.TEACHER, null);
-			assertEquals(AssistantIntent.CLASS_PERFORMANCE, struggling2.getIntent());
-			assertEquals("struggling", struggling2.getParams().get("filter"));
+			// Struggling / Needing Improvement students:
+			String[] improvementQueries = {
+				"Which students need improvement?",
+				"Which of my students need improvement?",
+				"Which students are struggling?",
+				"Which students need more practice?",
+				"Which students need help?",
+				"Which students are performing poorly?",
+				"Which students need additional support?",
+				"Which learners need improvement?",
+				"Show me students who need improvement.",
+				"Are any of my students struggling?",
+				"Which students have weak performance?"
+			};
+			for (String q : improvementQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertEquals(AssistantIntent.CLASS_PERFORMANCE, res.getIntent(), "Failed for query: " + q);
+				assertEquals("struggling", res.getParams().get("filter"), "Missing struggling filter for query: " + q);
+			}
+
+			// Teacher Student Vocabulary Count variations:
+			String[] vocabQueries = {
+				"How many vocabulary words did my students learn?",
+				"How many vocabulary words have my students learned?",
+				"How many words have my students learned?",
+				"What is the total vocabulary learned by my students?",
+				"How many vocabulary words do my students know?",
+				"How many words did my students learn?",
+				"How many vocabulary words have students in my classes learned?",
+				"Tell me the total vocabulary words learned by my students.",
+				"What is my students' vocabulary count?",
+				"How much vocabulary have my students learned?"
+			};
+			for (String q : vocabQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertEquals(AssistantIntent.CLASS_PERFORMANCE, res.getIntent(), "Failed for query: " + q);
+				assertEquals(Boolean.TRUE, res.getParams().get("teacherVocabularyCount"), "Missing teacherVocabularyCount param for query: " + q);
+				assertEquals("teacher_vocabulary_count", res.getParams().get("field"), "Missing field param for query: " + q);
+			}
+
+			// Teacher Student Speaking Sessions variations:
+			String[] speakingSessionQueries = {
+				"How many speaking sessions did my students complete?",
+				"How many speaking sessions have my students completed?",
+				"How many speaking sessions did my students finish?",
+				"How many speaking sessions have my students done?",
+				"What is the total number of speaking sessions completed by my students?",
+				"How many speaking sessions have students in my classes completed?",
+				"How many speaking sessions did my learners complete?",
+				"Tell me how many speaking sessions my students completed.",
+				"What is my students' total speaking session count?"
+			};
+			for (String q : speakingSessionQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertEquals(AssistantIntent.CLASS_PERFORMANCE, res.getIntent(), "Failed for query: " + q);
+				assertEquals(Boolean.TRUE, res.getParams().get("teacherSpeakingSessions"), "Missing teacherSpeakingSessions param for query: " + q);
+				assertEquals("teacher_speaking_sessions", res.getParams().get("field"), "Missing field param for query: " + q);
+			}
+
+			// Teacher Beginner Student Count variations:
+			String[] beginnerStudentQueries = {
+				"How many students are beginners?",
+				"How many of my students are beginners?",
+				"How many students are at beginner level?",
+				"How many students have beginner English?",
+				"How many beginner students do I have?",
+				"How many learners are beginners?",
+				"How many of my students are at the Beginner level?",
+				"How many assigned students are beginners?",
+				"Do I have any beginner students?"
+			};
+			for (String q : beginnerStudentQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertEquals(AssistantIntent.CLASS_PERFORMANCE, res.getIntent(), "Failed for query: " + q);
+				assertEquals(Boolean.TRUE, res.getParams().get("teacherBeginnerStudentCount"), "Missing teacherBeginnerStudentCount param for query: " + q);
+				assertEquals("teacher_beginner_student_count", res.getParams().get("field"), "Missing field param for query: " + q);
+			}
+
+			// Teacher Total Student Count variations:
+			String[] totalStudentCountQueries = {
+				"How many students do I have?",
+				"How many students are assigned to me?",
+				"How many students do I teach?",
+				"What's my total number of students?",
+				"How many learners do I have?",
+				"How many students do I have in total?",
+				"What is my total student count?"
+			};
+			for (String q : totalStudentCountQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertEquals(AssistantIntent.CLASS_PERFORMANCE, res.getIntent(), "Failed for query: " + q);
+				assertEquals(Boolean.TRUE, res.getParams().get("teacherTotalStudentCount"), "Missing teacherTotalStudentCount param for query: " + q);
+				assertEquals("teacher_total_student_count", res.getParams().get("field"), "Missing field param for query: " + q);
+			}
+
+			// Teacher Grammar Activities Completed variations:
+			String[] grammarActivityQueries = {
+				"How many grammar activities were completed?",
+				"How many grammar activities have my students completed?",
+				"How many grammar activities did my students complete?",
+				"How many grammar exercises have my students completed?",
+				"What is the total number of completed grammar activities?",
+				"How many grammar activities are completed by my students?",
+				"How many grammar checks were completed?"
+			};
+			for (String q : grammarActivityQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertEquals(AssistantIntent.CLASS_PERFORMANCE, res.getIntent(), "Failed for query: " + q);
+				assertEquals(Boolean.TRUE, res.getParams().get("teacherGrammarActivities"), "Missing teacherGrammarActivities param for query: " + q);
+				assertEquals("teacher_grammar_activities", res.getParams().get("field"), "Missing field param for query: " + q);
+			}
 
 			// Class performance summary:
 			assertEquals(AssistantIntent.CLASS_PERFORMANCE, classifier.classify("Show my class performance summary.", Role.TEACHER, null).getIntent());
@@ -296,6 +417,26 @@ public class MasterRoleScopedChatbotTest {
 			assertEquals(AssistantIntent.CLASS_PERFORMANCE, classifier.classify("Which students have the highest XP?", Role.TEACHER, null).getIntent());
 			assertEquals(AssistantIntent.CLASS_PERFORMANCE, classifier.classify("Show me student speaking performance.", Role.TEACHER, null).getIntent());
 			assertEquals(AssistantIntent.CLASS_PERFORMANCE, classifier.classify("Show exam results for my class.", Role.TEACHER, null).getIntent());
+		}
+
+		@Test
+		@DisplayName("Teacher Authorized: Student personal information queries")
+		void testTeacherStudentPersonalInfo() {
+			String[] infoQueries = {
+				"Show me all students' personal information.",
+				"Show my students' information.",
+				"Give me information about all my students.",
+				"Show details of my students.",
+				"Show all students' details.",
+				"What information do you have about my students?",
+				"Give me my students' profile details."
+			};
+			for (String q : infoQueries) {
+				IntentResult res = classifier.classify(q, Role.TEACHER, null);
+				assertNotNull(res, "Result should not be null for query: " + q);
+				assertEquals(AssistantIntent.SCHOOL_ROSTER, res.getIntent(), "Failed intent for query: " + q);
+				assertEquals("student_personal_info", res.getParams().get("field"), "Missing student_personal_info field param for query: " + q);
+			}
 		}
 
 		@Test
@@ -430,8 +571,7 @@ public class MasterRoleScopedChatbotTest {
 			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("hey", Role.SCHOOL_ADMIN, null).getIntent());
 			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("good morning", Role.SCHOOL_ADMIN, null).getIntent());
 			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("how are you", Role.SCHOOL_ADMIN, null).getIntent());
-			assertEquals(AssistantIntent.ACCOUNT_INFO, classifier.classify("who are you", Role.SCHOOL_ADMIN, null).getIntent());
-			assertEquals(Boolean.TRUE, classifier.classify("who are you", Role.SCHOOL_ADMIN, null).getParams().get("botIdentity"));
+			assertEquals(AssistantIntent.CHATBOT_IDENTITY, classifier.classify("who are you", Role.SCHOOL_ADMIN, null).getIntent());
 			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("what can you do", Role.SCHOOL_ADMIN, null).getIntent());
 			assertEquals(AssistantIntent.CASUAL_CHAT, classifier.classify("thank you", Role.SCHOOL_ADMIN, null).getIntent());
 		}
@@ -575,8 +715,7 @@ public class MasterRoleScopedChatbotTest {
 
 			// Bot Identity & Non-Student XP
 			IntentResult rWhoAreYou = classifier.classify("who are you", Role.SUPER_ADMIN, null);
-			assertEquals(AssistantIntent.ACCOUNT_INFO, rWhoAreYou.getIntent());
-			assertEquals(Boolean.TRUE, rWhoAreYou.getParams().get("botIdentity"));
+			assertEquals(AssistantIntent.CHATBOT_IDENTITY, rWhoAreYou.getIntent());
 
 			IntentResult rMyXp = classifier.classify("What is my XP?", Role.SUPER_ADMIN, null);
 			assertEquals(AssistantIntent.ACCOUNT_INFO, rMyXp.getIntent());

@@ -508,6 +508,10 @@ public class IntentClassifier {
 			String intentName = json.get("intent") != null ? json.get("intent").toString() : null;
 			AssistantIntent intent = parseIntent(intentName);
 
+			if (isBotIdentityQuery(message)) {
+				return new IntentResult(AssistantIntent.CHATBOT_IDENTITY, Map.of(), null);
+			}
+
 			IntentResult contextualFollowUp = contextualFollowUpCheck(message, role, history);
 			if (contextualFollowUp != null) {
 				return contextualFollowUp;
@@ -947,21 +951,21 @@ public class IntentClassifier {
 		}
 		String m = message.toLowerCase(Locale.ROOT).trim();
 
-		// Privacy guard: phone numbers / personal contact information must never be
-		// disclosed through the chatbot, regardless of whether the querying teacher
-		// is authorized for the student. This check runs before ANY data provider
-		// or Groq call so the information is never fetched or transmitted.
-		boolean isContactInfoQuery = containsAny(m, List.of(
-				"phone number", "phone numbers", "phone no", "contact number", "contact numbers",
-				"mobile number", "mobile numbers", "mobile no", "cell number", "cell numbers",
-				"contact information", "contact info", "student contact", "students contact",
-				"parent phone", "parent number", "parent contact", "parent mobile",
-				"give me all students phone", "show me my students phone",
-				"what are my students phone", "list all student mobile",
-				"show student contact", "students mobile", "students phone",
-				"telephone number", "telephone numbers", "tel number"));
-		if (isContactInfoQuery) {
-			return new IntentResult(AssistantIntent.ACCESS_DENIED, Map.of("privacyBlock", "contact_info"), null);
+		// Student phone numbers / contact info for assigned students:
+		if (isStudentPhoneNumberRequest(message)) {
+			Map<String, Object> rp = new java.util.LinkedHashMap<>();
+			rp.put("entityType", "students");
+			rp.put("field", "phone");
+			String focusName = extractAnyPersonFocusName(message);
+			if (!focusName.isEmpty()) {
+				rp.put("focusName", focusName);
+			}
+			ClassSpec classSpec = extractClassSpec(message);
+			if (classSpec != null) {
+				if (!classSpec.standard.isEmpty()) rp.put("standard", classSpec.standard);
+				if (!classSpec.division.isEmpty()) rp.put("division", classSpec.division);
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, rp, null);
 		}
 
 		// Teacher Security Boundaries:
@@ -1016,13 +1020,33 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("totalLessonsCompleted", true, "field", "teacher_lessons_completed"), null);
 		}
 
+		// 1c. Aggregate teacher student vocabulary count inquiries:
+		if (isTeacherStudentVocabularyCountQuery(message)) {
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("teacherVocabularyCount", true, "field", "teacher_vocabulary_count"), null);
+		}
+
+		// 1c2. Aggregate teacher student speaking session count inquiries:
+		if (isTeacherStudentSpeakingSessionQuery(message)) {
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("teacherSpeakingSessions", true, "field", "teacher_speaking_sessions"), null);
+		}
+
+		// 1c3. Aggregate teacher beginner student count inquiries:
+		if (isTeacherBeginnerStudentCountQuery(message)) {
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("teacherBeginnerStudentCount", true, "field", "teacher_beginner_student_count"), null);
+		}
+
+		// 1c5. Aggregate teacher student grammar activities inquiries:
+		if (isTeacherStudentGrammarActivitiesQuery(message)) {
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("teacherGrammarActivities", true, "field", "teacher_grammar_activities"), null);
+		}
+
 		// 2. Class performance, struggling students, speech/grammar/pronunciation analytics, score rankings:
-		if (containsAny(m, List.of(
+		if (isTeacherStudentsNeedingImprovementQuery(message) || containsAny(m, List.of(
 				"students who are struggling", "struggling students", "students needing attention", "students needing help",
 				"which learners need the most help", "learners need the most help", "who needs help", "who is struggling",
 				"students with low speaking", "low speaking scores", "low performance", "struggling in speaking",
 				"low-performing students", "students with low performance", "weak students"))) {
-			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("filter", "struggling"), null);
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("filter", "struggling", "field", "students_needing_improvement"), null);
 		}
 		if (containsAny(m, List.of(
 				"highest xp", "students have the highest xp", "which students have the highest xp", "top students by xp", "most lessons",
@@ -1088,10 +1112,32 @@ public class IntentClassifier {
 			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("activeLearnersCount", true, "field", "active_learners_count"), null);
 		}
 
-		if (containsAny(m, List.of(
-				"how many students are in my classes", "how many students do i have",
-				"total students in my class", "students in my classes", "total students in my classes", "count of students"))) {
-			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of(), null);
+		// 3d. Teacher students with learning streak inquiries:
+		if (isTeacherStudentsWithStreakQuery(message)) {
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("studentsWithStreak", true, "field", "students_with_streak"), null);
+		}
+
+		// 3d2. Teacher total student count inquiries ("How many students do I have?"):
+		if (isTeacherTotalStudentCountQuery(message)) {
+			return new IntentResult(AssistantIntent.CLASS_PERFORMANCE, Map.of("teacherTotalStudentCount", true, "field", "teacher_total_student_count"), null);
+		}
+
+		// 3e. Teacher student personal information query (broad):
+		// "Show me all students' personal information", "Give me my students' details",
+		// "Show all students assigned to me", "What information do you have about my students?"
+		// Routes to SCHOOL_ROSTER with field=student_personal_info so the synthesizer
+		// renders only authorized non-sensitive fields (no phone, no auth data).
+		if (isTeacherStudentPersonalInfoQuery(m)) {
+			Map<String, Object> params = new java.util.LinkedHashMap<>();
+			params.put("entityType", "students");
+			params.put("field", "student_personal_info");
+			List<ClassSpec> classSpecs = extractAllClassSpecs(message);
+			if (!classSpecs.isEmpty()) {
+				ClassSpec cs = classSpecs.get(0);
+				if (!cs.standard.isEmpty()) params.put("standard", cs.standard);
+				if (!cs.division.isEmpty()) params.put("division", cs.division);
+			}
+			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, params, null);
 		}
 
 		// 4. Student roster (guarded so analytical metric queries are never hijacked):
@@ -1423,7 +1469,9 @@ public class IntentClassifier {
 				params.put("role", "TEACHER");
 			} else if (m.contains("student") || m.contains("learner")) {
 				params.put("roleFilter", "STUDENT");
-				params.put("role", "STUDEN"			return new IntentResult(AssistantIntent.PLATFORM_USERS, params, null);
+				params.put("role", "STUDENT");
+			}
+			return new IntentResult(AssistantIntent.PLATFORM_USERS, params, null);
 		}
 
 		return null;
@@ -1454,14 +1502,15 @@ public class IntentClassifier {
 			return false;
 		}
 		boolean phoneTerm = containsAny(m, List.of(
-				"phone", "phones", "phone number", "phone numbers",
+				"phone", "phones", "phone number", "phone numbers", "phone no",
 				"contact number", "contact numbers", "contact info", "contact information", "contact details",
-				"mobile number", "mobile numbers", "mobile phone", "mobile phones",
-				"cell number", "cell numbers", "telephone number", "telephone numbers"));
+				"mobile number", "mobile numbers", "mobile phone", "mobile phones", "mobile no",
+				"cell number", "cell numbers", "telephone number", "telephone numbers", "tel number"));
 		if (!phoneTerm) {
 			return false;
 		}
-		return containsAny(m, List.of("student", "students", "learner", "learners"));
+		return containsAny(m, List.of("student", "students", "learner", "learners", "my class", "my students", "assigned student", "assigned students"))
+				|| !extractAnyPersonFocusName(message).isEmpty();
 	}
 
 	private boolean isRoleOverrideOrInjectionAttempt(String message) {
@@ -1479,8 +1528,6 @@ public class IntentClassifier {
 				"show system prompt", "show your system prompt", "show the system prompt",
 				"reveal system prompt", "what is your system prompt", "what are your system instructions",
 				"what are your hidden instructions", "reveal hidden instructions", "reveal prompt"));
-	}"
-	}"ompt"));
 	}
 
 	private boolean isCredentialOrSecretRequest(String message) {
@@ -1697,6 +1744,10 @@ public class IntentClassifier {
 		}
 
 		String m = message.toLowerCase(Locale.ROOT).trim();
+
+		if (isBotIdentityQuery(message)) {
+			return new IntentResult(AssistantIntent.CHATBOT_IDENTITY, Map.of(), null);
+		}
 
 		// 1. Role-specific direct test suite fast-paths (evaluated first so explicit questions never get hijacked by context)
 		IntentResult selfProgress = selfProgressFastPath(message, role);
@@ -4038,6 +4089,251 @@ public class IntentClassifier {
 		return "";
 	}
 
+	private boolean isTeacherStudentVocabularyCountQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		boolean hasVocabOrWord = m.contains("vocabulary") || m.contains("vocab") || m.contains("words") || m.contains("word");
+		if (!hasVocabOrWord) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"did my students learn", "have my students learned", "have students in my classes learned",
+				"total vocabulary learned by my students", "vocabulary words do my students know",
+				"words did my students learn", "words have my students learned", "total vocabulary words learned by my students",
+				"my students' vocabulary count", "my students vocabulary count", "how much vocabulary have my students learned",
+				"vocabulary count of my students", "vocabulary count", "words learned by my students", "learn by my students",
+				"learned by my students"
+		));
+	}
+
+	private boolean isTeacherStudentSpeakingSessionQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (!containsAny(m, List.of("speaking session", "speaking sessions", "speaking practice"))) {
+			return false;
+		}
+		if (containsAny(m, List.of(
+				"did my students complete", "have my students completed", "did my students finish",
+				"have my students done", "completed by my students", "completed by students in my classes",
+				"did my learners complete", "my students completed", "my students' total speaking session count",
+				"my students total speaking session count", "total speaking session count of my students",
+				"done by my students", "completed by my learners", "have my learners completed",
+				"did students assigned to me complete", "have students assigned to me completed",
+				"how many speaking sessions", "total speaking sessions", "speaking session count"
+		))) {
+			boolean hasStudentCollection = containsAny(m, List.of(
+					"my student", "my students", "my learner", "my learners",
+					"students in my class", "students in my classes", "students assigned to me",
+					"assigned students", "students i teach", "learners i teach", "my assigned learners"));
+			if (hasStudentCollection || containsAny(m, List.of(
+					"how many speaking sessions did my students complete",
+					"how many speaking sessions have my students completed",
+					"how many speaking sessions did my students finish",
+					"how many speaking sessions have my students done",
+					"what is the total number of speaking sessions completed by my students",
+					"how many speaking sessions have students in my classes completed",
+					"how many speaking sessions did my learners complete",
+					"tell me how many speaking sessions my students completed",
+					"what is my students' total speaking session count"))) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isTeacherBeginnerStudentCountQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (!m.contains("beginner")) {
+			return false;
+		}
+		if (containsAny(m, List.of(
+				"how many students are beginners",
+				"how many of my students are beginners",
+				"how many students are at beginner level",
+				"how many students have beginner english",
+				"how many beginner students do i have",
+				"how many learners are beginners",
+				"how many of my students are at the beginner level",
+				"how many assigned students are beginners",
+				"do i have any beginner students",
+				"count of beginner students",
+				"beginner student count",
+				"how many beginners",
+				"number of beginner students",
+				"students are at beginner level",
+				"students at beginner level"))) {
+			return true;
+		}
+		boolean hasStudentOrLearner = containsAny(m, List.of(
+				"student", "students", "learner", "learners", "my class", "my classes"));
+		boolean hasCountOrQuestion = containsAny(m, List.of(
+				"how many", "count", "number", "do i have", "are there", "any", "total"));
+		return hasStudentOrLearner && hasCountOrQuestion;
+	}
+
+	private boolean isTeacherTotalStudentCountQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		String cleanM = m.replaceAll("[?!.,]+$", "").trim();
+
+		// Explicit phrase list:
+		if (containsAny(cleanM, List.of(
+				"how many students do i have",
+				"how many students are assigned to me",
+				"how many students do i teach",
+				"what's my total number of students",
+				"what is my total number of students",
+				"how many learners do i have",
+				"how many students do i have in total",
+				"total number of students assigned to me",
+				"how many assigned students do i have",
+				"total students assigned to me",
+				"what is my total student count",
+				"what's my total student count",
+				"how many total students do i have",
+				"how many learners are assigned to me",
+				"how many students in my classes",
+				"how many students are in my classes",
+				"total students in my class",
+				"total students in my classes",
+				"count of students",
+				"student count"))) {
+			return true;
+		}
+
+		// Combined check: student/learner keyword + count phrase + teacher ownership phrase
+		boolean hasStudentOrLearner = containsAny(cleanM, List.of("student", "students", "learner", "learners"));
+		boolean hasCountQuery = containsAny(cleanM, List.of("how many", "total number", "total count", "what's my total", "what is my total", "count of"));
+		boolean hasTeacherOwnership = containsAny(cleanM, List.of("do i have", "assigned to me", "i teach", "assigned me", "in my classes", "in my class", "assigned"));
+
+		return hasStudentOrLearner && hasCountQuery && hasTeacherOwnership;
+	}
+
+	private boolean isTeacherStudentGrammarActivitiesQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		boolean hasGrammarKeyword = m.contains("grammar") || m.contains("grammer");
+		if (!hasGrammarKeyword) {
+			return false;
+		}
+
+		if (containsAny(m, List.of(
+				"how many grammar activities were completed",
+				"how many grammar activities have my students completed",
+				"how many grammar activities did my students complete",
+				"how many grammar exercises have my students completed",
+				"what is the total number of completed grammar activities",
+				"how many grammar activities are completed by my students",
+				"how many grammar checks were completed",
+				"how many grammar checks did my students complete",
+				"how many grammar checks have my students completed",
+				"how many grammar checks have my students done",
+				"total completed grammar activities",
+				"total grammar activities completed by my students",
+				"grammar activities completed by my students",
+				"grammar exercises completed by my students",
+				"grammar checks completed by my students",
+				"what is my students' grammar activity count",
+				"what is my students grammar activity count",
+				"grammar activity count of my students"))) {
+			return true;
+		}
+
+		boolean hasActivityMarker = containsAny(m, List.of(
+				"activity", "activities", "exercise", "exercises", "check", "checks", "task", "tasks", "work"));
+		boolean hasCompletionMarker = containsAny(m, List.of(
+				"completed", "complete", "done", "finished", "how many", "total number", "count", "were completed", "have completed"));
+
+		return hasActivityMarker && hasCompletionMarker;
+	}
+
+	private boolean isTeacherStudentsNeedingImprovementQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		return containsAny(m, List.of(
+				"need improvement", "needing improvement", "needs improvement", "who need improvement",
+				"which students need improvement", "which of my students need improvement", "which learners need improvement",
+				"students who need improvement", "show me students who need improvement", "students needing improvement",
+				"struggling", "who is struggling", "are any of my students struggling", "students who are struggling",
+				"need more practice", "need help", "need the most help", "extra help", "performing poorly", "additional support",
+				"weak performance", "low performance", "low-performing", "weak students", "needing support", "needing attention"
+		));
+	}
+
+	private boolean isTeacherStudentsWithStreakQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		if (!m.contains("streak")) {
+			return false;
+		}
+		return containsAny(m, List.of(
+				"student", "students", "learner", "learners", "my students", "my learners",
+				"assigned students", "students assigned", "students i teach", "students in my classes",
+				"how many", "count", "number of", "who has", "how many of", "maintaining", "active streak",
+				"learning streak", "on a streak", "on streak", "have a streak", "has a streak", "currently have"
+		));
+	}
+
+	/**
+	 * Detects broad teacher queries asking for assigned students' personal/profile
+	 * information. The phrase "personal information" is intentionally broad, so this
+	 * method only fires when the query is clearly about the teacher's OWN student
+	 * collection and is requesting profile/information/details — NOT when the query
+	 * is about performance metrics, streaks, vocabulary, XP, etc.
+	 */
+	private boolean isTeacherStudentPersonalInfoQuery(String m) {
+		if (m == null || m.isBlank()) {
+			return false;
+		}
+		// Skip if the query is clearly about performance metrics rather than profile info
+		if (containsAny(m, List.of("xp", "streak", "vocabulary", "grammar", "pronunciation",
+				"fluency", "speaking", "performance", "score", "progress", "lesson", "lessons",
+				"active learner", "actively learning"))) {
+			return false;
+		}
+		// Tier 1: Explicit broad personal-info phrases that always match
+		if (containsAny(m, List.of(
+				"students' personal information", "students personal information",
+				"student's personal information", "student personal information",
+				"students' personal info", "students personal info",
+				"my students' personal information", "my students personal information",
+				"my students' personal info", "my students personal info",
+				"all students' personal information", "all students personal information",
+				"all students' personal info", "all students personal info",
+				"personal information of my students", "personal info of my students",
+				"personal information of students", "personal info of students",
+				"personal information of all students", "personal info of all students",
+				"personal details of my students", "personal details of students",
+				"personal details of all students", "personal details of all my students"))) {
+			return true;
+		}
+		// Tier 2: student-collection reference + broad info/details keyword
+		boolean hasStudentCollection = containsAny(m, List.of(
+				"my students", "my student", "my learners", "my learner",
+				"students assigned to me", "students i teach", "students in my class",
+				"students in my classes", "assigned students", "all students",
+				"all my students", "all the students"));
+		boolean hasInfoMarker = containsAny(m, List.of(
+				"information", "info", "details", "detail",
+				"personal data", "profile", "profiles"));
+		return hasStudentCollection && hasInfoMarker;
+	}
+
 	private boolean isDisallowedContextName(String name) {
 		if (name == null || name.isBlank()) {
 			return true;
@@ -4046,8 +4342,16 @@ public class IntentClassifier {
 		Set<String> blacklisted = Set.of(
 				"english", "math", "maths", "mathematics", "science", "history", "geography", "hindi", "marathi",
 				"physics", "chemistry", "biology", "department", "subject", "progress", "chart", "report",
-				"dashboard", "class", "classes", "school", "schools", "teacher", "teachers", "student", "students");
-		return blacklisted.contains(lower);
+				"dashboard", "class", "classes", "school", "schools", "teacher", "teachers", "student", "students",
+				"my student", "my students", "students assigned to me", "students in my classes", "my learners",
+				"assigned students", "students i teach", "learners", "my learner", "assigned student", "the class",
+				"it", "that", "them", "they", "those", "these", "this");
+		if (blacklisted.contains(lower) || lower.startsWith("my student") || lower.startsWith("students ")
+				|| lower.contains("assigned to me") || lower.contains("i teach") || lower.startsWith("my learner")
+				|| lower.startsWith("assigned student")) {
+			return true;
+		}
+		return false;
 	}
 
 	private AssistantIntent casualChatOverride(String message, Role role) {
@@ -4118,5 +4422,21 @@ public class IntentClassifier {
 		} catch (IllegalArgumentException e) {
 			return AssistantIntent.NAVIGATION_HELP;
 		}
+	}
+
+	private boolean isBotIdentityQuery(String message) {
+		if (message == null || message.isBlank()) {
+			return false;
+		}
+		String m = message.toLowerCase(Locale.ROOT).trim();
+		return containsAny(m, List.of(
+				"what is your name", "what's your name", "whats your name", "what is ur name", "what's ur name",
+				"who are you", "who are u", "who r u",
+				"what should i call you", "what should i call u", "what can i call you", "what can i call u",
+				"tell me your name", "tell me ur name", "tell your name",
+				"what are you called", "what are u called", "what are you named",
+				"your name", "ur name",
+				"what are you", "introduce yourself", "who made you"
+		));
 	}
 }

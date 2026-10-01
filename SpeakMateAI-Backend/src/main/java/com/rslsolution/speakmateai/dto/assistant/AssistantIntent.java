@@ -30,5 +30,7 @@ public enum AssistantIntent {
 	PLATFORM_USERS,
 	/** Casual conversation, greetings, well-being questions, capabilities, and gratitude. */
 	CASUAL_CHAT,
+	/** Chatbot identity questions ("what is your name", "who are you", etc.) directly answered without DB. */
+	CHATBOT_IDENTITY,
 	ACCESS_DENIED
 }

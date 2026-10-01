@@ -56,6 +56,9 @@ public class AccountInfoDataProvider implements AssistantDataProvider {
 	@Override
 	public String provide(ActorContext actor, Map<String, Object> params) {
 		Map<String, Object> data = new LinkedHashMap<>();
+		if (params != null) {
+			data.putAll(params);
+		}
 		if (actor == null) {
 			data.put("message", "NO DATA");
 			data.put("reason", "Authenticated caller context is missing.");

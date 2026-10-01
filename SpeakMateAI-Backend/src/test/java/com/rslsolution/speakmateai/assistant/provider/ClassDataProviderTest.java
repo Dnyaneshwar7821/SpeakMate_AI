@@ -252,4 +252,61 @@ class ClassDataProviderTest {
 		Map<String, Object> c7 = classList.stream().filter(c -> "Grade 7 - A".equals(c.get("name"))).findFirst().orElseThrow();
 		assertEquals(0, ((Number) c7.get("studentCount")).intValue(), "Grade 7 - A must have 0 students");
 	}
+
+	@Test
+	@DisplayName("Teacher vocabulary count sums vocabulary across ALL assigned students (17 + 8 + 5 = 30)")
+	void testTeacherVocabularyCountAggregationAcrossMultipleAssignedStudents() throws Exception {
+		ActorContext teacherActor = ActorContext.builder()
+				.userId(88L)
+				.displayName("John Doe")
+				.email("john@dypatil.edu")
+				.role(Role.TEACHER)
+				.schoolId(24L)
+				.teacherId(88L)
+				.build();
+
+		ClassRoom c9A = ClassRoom.builder().id(11L).schoolId(24L).name("Grade 9 - A").grade("9").division("A").status(Status.ACTIVE).teacherId(88L).build();
+		when(classRoomRepository.findByTeacherId(88L)).thenReturn(List.of(c9A));
+		when(classStudentRepository.findByClassId(11L)).thenReturn(List.of());
+
+		Student s1 = new Student();
+		s1.setId(94L);
+		s1.setFirstName("Student");
+		s1.setLastName("A");
+		s1.setStandard("9");
+		s1.setDivision("A");
+		s1.setTeacherId(88L);
+
+		Student s2 = new Student();
+		s2.setId(99L);
+		s2.setFirstName("Student");
+		s2.setLastName("B");
+		s2.setStandard("9");
+		s2.setDivision("A");
+		s2.setTeacherId(88L);
+
+		Student s3 = new Student();
+		s3.setId(101L);
+		s3.setFirstName("Student");
+		s3.setLastName("C");
+		s3.setStandard("9");
+		s3.setDivision("A");
+		s3.setTeacherId(88L);
+
+		when(studentRepository.findBySchoolId(24L)).thenReturn(List.of(s1, s2, s3));
+
+		Progress p1 = Progress.builder().id(1L).totalVocabularyWords(17).build();
+		Progress p2 = Progress.builder().id(2L).totalVocabularyWords(8).build();
+		Progress p3 = Progress.builder().id(3L).totalVocabularyWords(5).build();
+
+		when(progressRepository.findByStudent(s1)).thenReturn(Optional.of(p1));
+		when(progressRepository.findByStudent(s2)).thenReturn(Optional.of(p2));
+		when(progressRepository.findByStudent(s3)).thenReturn(Optional.of(p3));
+
+		String json = provider.provide(teacherActor, Map.of("teacherVocabularyCount", true, "field", "teacher_vocabulary_count"));
+		assertNotNull(json);
+
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<>() {});
+		assertEquals(30L, ((Number) data.get("totalVocabularyWordsCount")).longValue(), "Vocabulary count must aggregate across all students (17 + 8 + 5 = 30)");
+	}
 }

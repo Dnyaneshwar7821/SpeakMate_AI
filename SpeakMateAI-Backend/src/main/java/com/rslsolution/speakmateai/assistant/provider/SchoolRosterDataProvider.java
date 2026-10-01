@@ -104,9 +104,30 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 					return matchStd && matchDiv;
 				}).collect(Collectors.toList());
 			}
+			String focusName = strParam(params, "focusName").trim();
+			boolean requestedSpecificStudent = !focusName.isEmpty();
+			boolean studentFound = true;
+			if (requestedSpecificStudent) {
+				String needle = focusName.toLowerCase(Locale.ROOT);
+				List<Student> namedStudents = assigned.stream().filter(s -> {
+					String name = (fullName(s.getFirstName(), s.getLastName())).toLowerCase(Locale.ROOT);
+					return name.contains(needle) || needle.contains(name);
+				}).collect(Collectors.toList());
+				if (!namedStudents.isEmpty()) {
+					assigned = namedStudents;
+				} else {
+					studentFound = false;
+					assigned = List.of();
+				}
+			}
+
 			Map<String, Object> data = new LinkedHashMap<>();
 			data.put("scope", "SELF (assigned students only)");
 			data.put("entityType", "STUDENTS");
+			data.put("field", strParam(params, "field"));
+			data.put("focusName", focusName);
+			data.put("requestedSpecificStudent", requestedSpecificStudent);
+			data.put("studentFound", studentFound);
 			data.put("studentCount", assigned.size());
 			data.put("students", assigned.stream().map(this::studentView).collect(Collectors.toList()));
 			String classLabel = (!filterStd.isEmpty() ? "Standard " + filterStd : "")
