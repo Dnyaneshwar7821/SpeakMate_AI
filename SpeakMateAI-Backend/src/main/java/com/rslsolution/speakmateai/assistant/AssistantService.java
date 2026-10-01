@@ -94,6 +94,7 @@ public class AssistantService {
 			}
 
 			Map<String, Object> params = new LinkedHashMap<>(classified.getParams() != null ? classified.getParams() : Map.of());
+			params.put("userMessage", request.getMessage());
 			// Attach frontend currentRoute to params so navigation can contextualize suggestions if needed
 			if (request.getCurrentRoute() != null && !request.getCurrentRoute().isBlank()) {
 				params.put("currentRoute", request.getCurrentRoute().trim());

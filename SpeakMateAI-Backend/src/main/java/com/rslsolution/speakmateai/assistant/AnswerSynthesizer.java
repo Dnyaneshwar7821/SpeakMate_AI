@@ -238,7 +238,7 @@ public class AnswerSynthesizer {
 		switch (actor.getRole().name()) {
 			case "SUPER_ADMIN": return "Super Admin (platform-wide access)";
 			case "SCHOOL_ADMIN": return "School Admin (access limited to their own school)";
-			case "TEACHER": return "Teacher (access limited to their own assigned classes and students)";
+			case "TEACHER": return "Teacher" + (actor != null && actor.getSchoolName() != null && !actor.getSchoolName().isBlank() ? " at " + actor.getSchoolName() : "") + " (access limited to their own assigned classes and students)";
 			case "STUDENT": return "Student (personal learning and English tutoring)";
 			case "USER": return "User (personal learning and English tutoring)";
 			default: return "User";
@@ -331,7 +331,8 @@ public class AnswerSynthesizer {
 					+ "Student entry fields: name, email, phone, studentId, rollNumber, standard, division, assignedTeacher.\n"
 					+ "When entityType is SINGLE_PERSON (or focusName is present), the arrays were narrowed to that one person: answer the specific question about them directly (e.g. \"Pratik Patil is assigned to 8 classes: 6-A, 7-A, ...\") and, when the question is a general 'details' question, list ALL of that person's fields as markdown bullets.\n"
 					+ "When the caller asked for a name (e.g., 'name of the teacher'), state it directly - for example \"The teacher is John Doe\". For a roster list, present each person as a markdown bullet including their known details (name, plus email/department/subject/experience/qualification/classes for teachers; name, plus standard/division/assignedTeacher for students), grouping under Teachers / Students headings when both are present. Use teacherCount and studentCount as the real numbers - an empty list means no one is enrolled, so say \"0 teachers\" or \"0 students\" explicitly. Keep it concise.\n"
-					+ "The payload may also contain otherUsers/otherUserCount for accounts that are neither students nor teachers (platform Users, School Admins, Admins); each entry has name, role, email, phone, schoolName and status. This directory is always available — never say the information is unavailable when these entries are present. Always state a person's role EXACTLY as given in their role field — never substitute, upgrade, or invent a different role (for example, never call a 'User' a 'School Admin').";
+					+ "The payload may also contain otherUsers/otherUserCount for accounts that are neither students nor teachers (platform Users, School Admins, Admins); each entry has name, role, email, phone, schoolName and status. This directory is always available — never say the information is unavailable when these entries are present. Always state a person's role EXACTLY as given in their role field — never substitute, upgrade, or invent a different role (for example, never call a 'User' a 'School Admin').\n"
+					+ "TEACHER ROLE SCOPE RULE: A teacher caller is strictly assigned to their own school (e.g. schoolName). If status in DATA is 'FOREIGN_SCHOOL_ACCESS_DENIED', state clearly that you do not have access to information for the requested school, and that as a teacher assigned to their school they can only view students and academic information for their assigned school. If status in DATA is 'SCHOOL_UNSPECIFIED', politely ask the user which school they are asking about because the school was not specified, and remind them they can view their assigned students for their own school. When reporting assigned students for a teacher, always title the section as '[schoolName] – Your Assigned Students' and list only their assigned students.";
 			case ACCOUNT_INFO -> "Answer with the caller's OWN account details from the provided fields (email, displayName, role, schoolName, location). When asked for the email, state it clearly (e.g., \"Your logged-in email is ...\"). When asked for their location/address/city (e.g. \"my location\"), answer directly from the location field (e.g., \"Your location is ...\") — never reply with navigation links or say the data is unavailable when the location field is present. Also give their name, role and school when asked. Never mention ids or internal field names, and never claim the data is unavailable — this is the caller's own account and is always available.";
 			case NAVIGATION_HELP -> "Give a short, friendly navigation guide pointing to the relevant page.";
 			case SCHOOL_DASHBOARD -> "Summarize the school-admin Dashboard KPIs from the provided fields: totalStudents, activeStudents, inactiveStudents, totalTeachers, totalClasses, totalResults, averageResultPercentage, excellentResults, goodResults, passResults, failResults and totalLessonsCompleted. Answer count questions directly from those numbers — a count of 0 is a valid, real number and must be stated as 0 (never 'unavailable'). Highlight the headline numbers and one area to watch.";
@@ -430,6 +431,8 @@ public class AnswerSynthesizer {
 		}
 		return dataJson.contains("\"hasMultipleMatches\":true")
 				|| dataJson.contains("\"CROSS_STUDENT_DENIED\"")
+				|| dataJson.contains("\"FOREIGN_SCHOOL_ACCESS_DENIED\"")
+				|| dataJson.contains("\"SCHOOL_UNSPECIFIED\"")
 				|| dataJson.contains("\"accessDenied\":true");
 	}
 
@@ -449,6 +452,24 @@ public class AnswerSynthesizer {
 	private String renderData(AssistantIntent intent, ActorContext actor, Map<String, Object> data, String userMessage) {
 		if (data == null || data.isEmpty()) {
 			return NO_DATA_MESSAGE;
+		}
+		// Foreign School Access Denial (for Teacher / School Admin):
+		if ("FOREIGN_SCHOOL_ACCESS_DENIED".equals(data.get("status"))) {
+			String req = str(data, "requestedSchool");
+			String assignedSchool = str(data, "assignedSchool");
+			return "### 🔒 Access Restricted\n\n"
+					+ "I do not have access to information for **" + (req.isBlank() ? "that school" : req) + "**.\n\n"
+					+ "As a teacher assigned to **" + (assignedSchool.isBlank() ? "your assigned school" : assignedSchool) + "**, "
+					+ "you can only view student and class records for **" + (assignedSchool.isBlank() ? "your assigned school" : assignedSchool) + "**.";
+		}
+		// Generic School Students Query (School Unspecified):
+		if ("SCHOOL_UNSPECIFIED".equals(data.get("status"))) {
+			String teacherSchool = str(data, "teacherSchoolName");
+			return "### 🏫 School Not Specified\n\n"
+					+ "Which school are you asking about? Please specify the school name so I can provide the relevant student information.\n\n"
+					+ "> **Note:** As a teacher assigned to **" + (teacherSchool.isBlank() ? "your school" : teacherSchool) + "**, "
+					+ "you have access to student records for **" + (teacherSchool.isBlank() ? "your school" : teacherSchool) + "** "
+					+ "(you can also ask *\"Show my students\"* to view your assigned learners).";
 		}
 		// Cross-Student Privacy Denial:
 		if (Boolean.TRUE.equals(data.get("accessDenied")) || "CROSS_STUDENT_DENIED".equals(data.get("reason"))) {
@@ -1045,6 +1066,17 @@ public class AnswerSynthesizer {
 			long count = 0;
 			try { count = Long.parseLong(countStr); } catch (Exception ignored) {}
 
+			List<Map<String, Object>> classesList = maps(d, "assignedClassesList");
+			if (!classesList.isEmpty()) {
+				sb.append("**Class Enrollment Summary**\n\n");
+				sb.append("- **Total Students:** ").append(count).append(" student").append(count == 1 ? "" : "s").append(" across your assigned classes.\n\n");
+				sb.append("**Classes Breakdown:**\n");
+				for (Map<String, Object> c : classesList) {
+					sb.append("- **").append(str(c, "name")).append(":** ").append(num(c, "studentCount")).append(" students\n");
+				}
+				return trimOrNull(sb);
+			}
+
 			if (count == 0) {
 				sb.append("**You currently have no students assigned to you.**");
 			} else {
@@ -1581,6 +1613,8 @@ public class AnswerSynthesizer {
 				sb.append(" (").append(schoolName).append(")");
 			}
 			sb.append("**\n");
+		} else if ("SELF (assigned students only)".equalsIgnoreCase(str(d, "scope"))) {
+			sb.append("### ").append(schoolName.isBlank() ? "Your Assigned Students" : schoolName + " – Your Assigned Students").append("\n\n");
 		} else {
 			sb.append("**").append(schoolName.isBlank() ? "School roster" : schoolName + " roster").append("**\n");
 		}

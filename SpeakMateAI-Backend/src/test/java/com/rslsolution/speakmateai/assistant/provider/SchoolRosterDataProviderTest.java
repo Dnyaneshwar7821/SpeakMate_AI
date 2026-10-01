@@ -18,6 +18,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rslsolution.speakmateai.assistant.ActorContext;
 import com.rslsolution.speakmateai.assistant.TeacherAssignmentResolver;
+import com.rslsolution.speakmateai.entity.School;
 import com.rslsolution.speakmateai.entity.SchoolStandard;
 import com.rslsolution.speakmateai.entity.StandardDivision;
 import com.rslsolution.speakmateai.entity.TeacherStandardDivision;
@@ -178,5 +179,112 @@ class SchoolRosterDataProviderTest {
 		String summary = String.valueOf(data.get("summary"));
 		assertTrue(summary.contains("2-A: Chetan Mali"));
 		assertTrue(summary.contains("10-A: No teacher assigned"));
+	}
+
+	@Test
+	@DisplayName("Teacher asks 'tell me about school students' without specifying school: status is SCHOOL_UNSPECIFIED")
+	void testTeacherSchoolUnspecified() throws Exception {
+		School dypatil = new School();
+		dypatil.setId(24L);
+		dypatil.setName("DY Patil University");
+		when(schoolRepository.findById(24L)).thenReturn(java.util.Optional.of(dypatil));
+
+		ActorContext teacher = ActorContext.builder()
+				.userId(88L)
+				.teacherId(88L)
+				.schoolId(24L)
+				.schoolName("DY Patil University")
+				.displayName("John Doe")
+				.role(Role.TEACHER)
+				.build();
+
+		Map<String, Object> params = Map.of(
+				"userMessage", "tell me about school students",
+				"entityType", "students"
+		);
+
+		String json = provider.provide(teacher, params);
+		assertNotNull(json);
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+		assertEquals("SCHOOL_UNSPECIFIED", data.get("status"));
+		assertTrue(String.valueOf(data.get("message")).contains("Which school are you asking about"));
+	}
+
+	@Test
+	@DisplayName("Teacher asks 'tell me about PCMC school students' when assigned to DY Patil: status is FOREIGN_SCHOOL_ACCESS_DENIED")
+	void testTeacherForeignSchoolDenied() throws Exception {
+		School dypatil = new School();
+		dypatil.setId(24L);
+		dypatil.setName("DY Patil University");
+
+		School pcmc = new School();
+		pcmc.setId(20L);
+		pcmc.setName("PCMC Public School");
+
+		when(schoolRepository.findById(24L)).thenReturn(java.util.Optional.of(dypatil));
+		when(schoolRepository.findAll()).thenReturn(List.of(dypatil, pcmc));
+
+		ActorContext teacher = ActorContext.builder()
+				.userId(88L)
+				.teacherId(88L)
+				.schoolId(24L)
+				.schoolName("DY Patil University")
+				.displayName("John Doe")
+				.role(Role.TEACHER)
+				.build();
+
+		Map<String, Object> params = Map.of(
+				"userMessage", "tell me about PCMC school students",
+				"schoolName", "PCMC school",
+				"entityType", "students"
+		);
+
+		String json = provider.provide(teacher, params);
+		assertNotNull(json);
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+		assertEquals("FOREIGN_SCHOOL_ACCESS_DENIED", data.get("status"));
+		assertTrue(String.valueOf(data.get("message")).contains("I do not have access to information for"));
+	}
+
+	@Test
+	@DisplayName("Teacher asks about their own school 'DY Patil school students': returns assigned students")
+	void testTeacherAssignedSchoolStudents() throws Exception {
+		School dypatil = new School();
+		dypatil.setId(24L);
+		dypatil.setName("DY Patil University");
+
+		when(schoolRepository.findById(24L)).thenReturn(java.util.Optional.of(dypatil));
+		when(schoolRepository.findAll()).thenReturn(List.of(dypatil));
+
+		com.rslsolution.speakmateai.entity.Student s1 = new com.rslsolution.speakmateai.entity.Student();
+		s1.setId(199L);
+		s1.setFirstName("Yash");
+		s1.setLastName("Jadhav");
+		s1.setStandard("7");
+		s1.setDivision("A");
+
+		when(teacherAssignmentResolver.resolveAssignedStudents(88L, 24L)).thenReturn(List.of(s1));
+
+		ActorContext teacher = ActorContext.builder()
+				.userId(88L)
+				.teacherId(88L)
+				.schoolId(24L)
+				.schoolName("DY Patil University")
+				.displayName("John Doe")
+				.role(Role.TEACHER)
+				.build();
+
+		Map<String, Object> params = Map.of(
+				"userMessage", "tell me about DY Patil school students",
+				"schoolName", "DY Patil school",
+				"entityType", "students"
+		);
+
+		String json = provider.provide(teacher, params);
+		assertNotNull(json);
+		Map<String, Object> data = objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
+		assertEquals("ASSIGNED_STUDENTS", data.get("status"));
+		assertEquals(1, data.get("studentCount"));
+		assertEquals("DY Patil University", data.get("schoolName"));
 	}
 }

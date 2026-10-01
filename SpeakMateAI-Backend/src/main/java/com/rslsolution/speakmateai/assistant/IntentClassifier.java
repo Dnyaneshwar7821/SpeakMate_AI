@@ -1807,11 +1807,9 @@ public class IntentClassifier {
 				} else if (!classSpec.division.isEmpty()) {
 					rp.put("classes", List.of(classSpec.standard + "-" + classSpec.division));
 				}
-				if (role == Role.SUPER_ADMIN) {
-					String school = extractSchoolName(message);
-					if (!school.isEmpty()) {
-						rp.put("schoolName", school);
-					}
+				String school = extractSchoolName(message);
+				if (!school.isEmpty()) {
+					rp.put("schoolName", school);
 				}
 				return new IntentResult(AssistantIntent.SCHOOL_ROSTER, rp, null);
 			}
@@ -1820,11 +1818,9 @@ public class IntentClassifier {
 		if (isGeneralStudentRosterQuery(message)) {
 			Map<String, Object> rp = new java.util.LinkedHashMap<>();
 			rp.put("entityType", "students");
-			if (role == Role.SUPER_ADMIN) {
-				String school = extractSchoolName(message);
-				if (!school.isEmpty()) {
-					rp.put("schoolName", school);
-				}
+			String school = extractSchoolName(message);
+			if (!school.isEmpty()) {
+				rp.put("schoolName", school);
 			}
 			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, rp, null);
 		}
@@ -1832,11 +1828,9 @@ public class IntentClassifier {
 		if (isGeneralTeacherRosterQuery(message)) {
 			Map<String, Object> rp = new java.util.LinkedHashMap<>();
 			rp.put("entityType", "teachers");
-			if (role == Role.SUPER_ADMIN) {
-				String school = extractSchoolName(message);
-				if (!school.isEmpty()) {
-					rp.put("schoolName", school);
-				}
+			String school = extractSchoolName(message);
+			if (!school.isEmpty()) {
+				rp.put("schoolName", school);
 			}
 			return new IntentResult(AssistantIntent.SCHOOL_ROSTER, rp, null);
 		}
@@ -2818,7 +2812,7 @@ public class IntentClassifier {
 			enriched.remove("classes");
 			enriched.remove("className");
 		}
-		if (role == Role.SUPER_ADMIN) {
+		if (role == Role.SUPER_ADMIN || role == Role.TEACHER || role == Role.SCHOOL_ADMIN) {
 			// A person-detail question ("standard of Vijay Patil") leaves the school
 			// unnamed; extractSchoolName would otherwise misread the person's name as
 			// the school ("... of Vijay Patil"), no school would resolve and the
