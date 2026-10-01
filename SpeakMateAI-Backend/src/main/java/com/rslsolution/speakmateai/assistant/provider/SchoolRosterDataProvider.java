@@ -106,23 +106,24 @@ public class SchoolRosterDataProvider implements AssistantDataProvider {
 			School detectedSchool = (!userMsg.isEmpty()) ? detectMentionedSchool(userMsg) : null;
 
 			// Check 1: User requested a foreign school (either explicitly in DB or by extracted name)
+			// CRITICAL: Never expose the foreign school's name in the response.
 			if (detectedSchool != null && teacherSchool != null && !detectedSchool.getId().equals(teacherSchool.getId())) {
 				Map<String, Object> denied = new LinkedHashMap<>();
 				denied.put("status", "FOREIGN_SCHOOL_ACCESS_DENIED");
-				denied.put("requestedSchool", displayName(detectedSchool));
 				denied.put("assignedSchool", teacherSchoolName);
-				denied.put("message", "I do not have access to information for " + displayName(detectedSchool)
-						+ ". As a teacher assigned to " + teacherSchoolName + ", you can only access student and class information for " + teacherSchoolName + ".");
+				denied.put("message", "I cannot access student details from another school. "
+						+ "Please ask about students from " + teacherSchoolName
+						+ " where you are currently a teacher.");
 				return toJson(denied);
 			}
 
 			if (!reqSchoolName.isEmpty() && teacherSchool != null && !isSameSchool(reqSchoolName, teacherSchool)) {
 				Map<String, Object> denied = new LinkedHashMap<>();
 				denied.put("status", "FOREIGN_SCHOOL_ACCESS_DENIED");
-				denied.put("requestedSchool", reqSchoolName);
 				denied.put("assignedSchool", teacherSchoolName);
-				denied.put("message", "I do not have access to information for " + reqSchoolName
-						+ ". As a teacher assigned to " + teacherSchoolName + ", you can only access student and class information for " + teacherSchoolName + ".");
+				denied.put("message", "I cannot access student details from another school. "
+						+ "Please ask about students from " + teacherSchoolName
+						+ " where you are currently a teacher.");
 				return toJson(denied);
 			}
 

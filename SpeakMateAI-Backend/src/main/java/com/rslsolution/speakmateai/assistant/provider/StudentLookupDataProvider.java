@@ -87,7 +87,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 			// available". Resolve the person and report their actual role.
 			Optional<User> person = resolveUser(actor, params);
 			if (person.isPresent()) {
-				return toJson(nonStudentView(person.get()));
+				return toJson(nonStudentView(person.get(), actor));
 			}
 			Map<String, Object> empty = new LinkedHashMap<>();
 			empty.put("message", "NO DATA");
@@ -103,6 +103,26 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		}
 
 		Student s = target.student();
+
+		// Cross-school isolation: Teachers and School Admins must NEVER see
+		// student data from another school. The denial response uses only the
+		// caller's verified school name — the foreign school name is never
+		// mentioned, inferred, or substituted anywhere.
+		if ((actor.getRole() == Role.TEACHER || actor.getRole() == Role.SCHOOL_ADMIN)
+				&& actor.getSchoolId() != null
+				&& s.getSchoolId() != null
+				&& !actor.getSchoolId().equals(s.getSchoolId())) {
+			Map<String, Object> denied = new LinkedHashMap<>();
+			denied.put("status", "FOREIGN_SCHOOL_ACCESS_DENIED");
+			String callerSchool = actor.getSchoolName() != null && !actor.getSchoolName().isBlank()
+					? actor.getSchoolName() : "your school";
+			denied.put("assignedSchool", callerSchool);
+			denied.put("message", "I cannot access student details from another school. "
+					+ "Please ask about students from " + callerSchool
+					+ " where you are currently a teacher.");
+			return toJson(denied);
+		}
+
 		Progress p = null;
 		if (s.getId() != null) {
 			p = progressRepository.findByUserId(s.getId()).orElse(null);
@@ -136,8 +156,13 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 						if (cand.getRollNumber() != null && !cand.getRollNumber().isBlank()) {
 							m.put("rollNumber", cand.getRollNumber());
 						}
-						if (cand.getSchoolName() != null && !cand.getSchoolName().isBlank()) {
-							m.put("schoolName", cand.getSchoolName());
+						// Only include schoolName for roles with platform-wide access;
+						// Teachers and School Admins must never see foreign school names
+						// in disambiguation candidates.
+						if (actor.getRole() != Role.TEACHER && actor.getRole() != Role.SCHOOL_ADMIN) {
+							if (cand.getSchoolName() != null && !cand.getSchoolName().isBlank()) {
+								m.put("schoolName", cand.getSchoolName());
+							}
 						}
 						return m;
 					})
@@ -426,7 +451,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		* unambiguous, and states their actual role together with the fact that XP
 		* and learning metrics exist only for students.
 		*/
-	private Map<String, Object> nonStudentView(User u) {
+	private Map<String, Object> nonStudentView(User u, ActorContext actor) {
 		Map<String, Object> data = new LinkedHashMap<>();
 		String name = fullName(u);
 		String label = roleLabel(u.getRole());
@@ -437,8 +462,19 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 		data.put("personRole", label);
 		data.put("notStudent", true);
 		data.put("personEmail", u.getEmail());
+
+		// Defense-in-depth: only include the person's schoolName when the caller
+		// belongs to the same school or has platform-wide access (Super Admin).
+		// This prevents leaking a foreign school name even if the resolveUser()
+		// scope filter is ever bypassed in a future refactor.
 		String school = u.getSchoolName();
-		if (school != null && !school.isBlank()) {
+		boolean sameSchool = actor == null
+				|| actor.getRole() == Role.SUPER_ADMIN
+				|| actor.getRole() == Role.ADMIN
+				|| actor.getSchoolId() == null
+				|| u.getSchoolId() == null
+				|| actor.getSchoolId().equals(u.getSchoolId());
+		if (school != null && !school.isBlank() && sameSchool) {
 			data.put("schoolName", school);
 		}
 
@@ -460,7 +496,7 @@ public class StudentLookupDataProvider implements AssistantDataProvider {
 				+ "), not a student. XP, levels, streaks, lesson-completion and activity"
 				+ " metrics are recorded only for student accounts, so there is no learning"
 				+ " record (and therefore no XP) for this user.";
-		if (school != null && !school.isBlank()) {
+		if (school != null && !school.isBlank() && sameSchool) {
 			summary = summary + " The account belongs to " + school + ".";
 		}
 		data.put("summary", summary);

@@ -155,9 +155,16 @@ public class SchoolDashboardDataProvider implements AssistantDataProvider {
 	}
 
 	private Long resolveSchoolId(ActorContext actor, Map<String, Object> params) {
+		// Cross-school isolation: School Admins and Teachers must ALWAYS use
+		// their own schoolId. They must never fall through to the name-based
+		// lookup that could resolve to a foreign school's data.
+		if (actor.getRole() == Role.SCHOOL_ADMIN || actor.getRole() == Role.TEACHER) {
+			return actor.getSchoolId(); // may be null → handled as "no scope" by caller
+		}
 		if (actor.getSchoolId() != null) {
 			return actor.getSchoolId();
 		}
+		// Only Super Admin reaches here for cross-school lookup by name
 		String name = strParam(params, "schoolName");
 		if (name != null) {
 			return schoolRepository.findByName(name).map(School::getId)
